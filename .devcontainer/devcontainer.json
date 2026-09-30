@@ -13,9 +13,25 @@
 
   "forwardPorts": [8000, 5173],
 
+  // Claude Code login, settings, and history live in a named volume so they
+  // survive container rebuilds. CLAUDE_CONFIG_DIR also moves ~/.claude.json
+  // into that volume.
+  "mounts": [
+    "source=claude-code-config-${devcontainerId},target=/home/vscode/.claude,type=volume"
+  ],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+  },
+  // A fresh named volume is owned by root; hand it to the vscode user.
+  "onCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.claude",
+
   "customizations": {
     "vscode": {
-      "extensions": ["ms-python.python", "ms-python.debugpy"]
+      "extensions": [
+        "ms-python.python",
+        "ms-python.debugpy",
+        "anthropic.claude-code"
+      ]
     }
   },
 

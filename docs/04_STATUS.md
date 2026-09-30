@@ -23,7 +23,8 @@
 
 > Corrected 2026-09-30: an earlier version of this list described work that
 > was not actually in the repo. Everything below is committed on `main`
-> (local only, not pushed).
+> and pushed to `origin/main` up to `d5d716c`; `731f696` (VS Code debug
+> configs) is local only.
 
 - [x] Repo setup: monorepo (`backend/` + `frontend/`), root `.gitignore`,
       `.gitattributes` (`* text=auto eol=lf`), `.env.example`
@@ -39,8 +40,8 @@
 - [x] React + Vite + TypeScript + Tailwind v4 + TanStack Query skeleton; home
       page calls `GET /health` and shows "API: ok"
 - [x] CI: `.github/workflows/ci.yml` (ruff, alembic upgrade, pytest against
-      a Postgres service; oxlint + build for the frontend). Not yet run on
-      GitHub because nothing has been pushed.
+      a Postgres service; oxlint + build for the frontend). Pushed, but the
+      result on GitHub has not been checked yet.
 - [x] 3 passing pytest tests (health, tenant mixin, `set_tenant` scoping)
 
 ---
@@ -48,7 +49,7 @@
 ## In Progress
 
 - [ ] **Phase 0 — remaining tasks** (all need accounts or secrets)
-  - [ ] Push to GitHub and confirm CI passes there  <- NEXT
+  - [ ] Confirm CI passes on GitHub (Actions tab), push the remaining local commit  <- NEXT
   - [ ] Deploy skeletons (backend -> Render, frontend -> Vercel)
   - [ ] Managed Postgres provisioning
   - [ ] Domain + Cloudflare DNS setup
@@ -127,5 +128,5 @@ Still open:
 
 ## Next Up
 
-Push `main` and check CI on GitHub. Then the account-dependent Phase 0 tasks:
+Check the CI result on GitHub and push the remaining local commit. Then the account-dependent Phase 0 tasks:
 Render + Vercel deploy skeletons, managed Postgres, Cloudflare DNS, Sentry.
