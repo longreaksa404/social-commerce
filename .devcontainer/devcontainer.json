@@ -1,9 +1,17 @@
 {
-"name": "My Development Container",
-"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
- 
-"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
-"workspaceFolder": "/workspace",
- 
-"remoteUser": "vscode"
+  "name": "Social Commerce",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "workspaceFolder": "/workspace",
+
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" },
+    "ghcr.io/devcontainers/features/node:1": { "version": "lts" },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": { "moby": false }
+  },
+
+  "forwardPorts": [8000, 5173],
+
+  "remoteUser": "vscode"
 }
