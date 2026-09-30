@@ -1,0 +1,9 @@
+{
+"name": "My Development Container",
+"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+ 
+"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+"workspaceFolder": "/workspace",
+ 
+"remoteUser": "vscode"
+}
