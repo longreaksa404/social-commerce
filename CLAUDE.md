@@ -78,7 +78,29 @@ for these. Just explain briefly what you chose if it matters.
 - Public storefront endpoints are rate-limited and never expose other tenants' data.
 
 ## Commands
-(Add as they get built, e.g. how to run the backend, frontend, tests, migrations.)
+First-time setup (from the repo root):
+- `cp .env.example .env` (one .env for compose, backend, and Vite)
+- `python -m venv backend/.venv && backend/.venv/bin/pip install -r backend/requirements-dev.txt`
+- `cd frontend && npm install`
+
+Database (from the repo root):
+- `docker compose up -d --wait`: start local Postgres 16 on localhost:5432
+- `docker compose down`: stop it (add `-v` to also delete the data volume)
+
+Backend (from `backend/`, with `source .venv/bin/activate`):
+- `uvicorn app.main:app --reload`: API on http://localhost:8000 (docs at /docs)
+- `pytest`: tests (needs Postgres running)
+- `ruff check . && ruff format --check .`: lint (`ruff format .` to fix formatting)
+- `alembic upgrade head`: apply migrations
+- `alembic revision --autogenerate -m "message"`: create a migration
+
+Frontend (from `frontend/`):
+- `npm run dev`: dev server on http://localhost:5173
+- `npm run lint`: oxlint
+- `npm run build`: type-check and production build
+
+CI (`.github/workflows/ci.yml`) runs the lint, migration, test, and build
+commands above on every push.
 
 ## Status and time tracking
 - After meaningful progress, update docs/04_STATUS.md (Done, In Progress,

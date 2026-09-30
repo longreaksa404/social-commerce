@@ -15,33 +15,42 @@
 
 ## Current Phase
 
-**Phase 0 — Setup & Foundations** (in progress, ~50% of tasks done)
+**Phase 0 — Setup & Foundations** (in progress: local work done, deploy/DNS/Sentry remaining)
 
 ---
 
 ## Done
 
-- [x] Repo setup: monorepo (`backend/` + `frontend/`), pushed to
-      https://github.com/longreaksa404/social-commerce (branch `main`)
-- [x] FastAPI skeleton: Pydantic settings, CORS locked to configured origins,
-      health check at `GET /api/v1/health`, 1 passing pytest
-- [x] React + Vite + TypeScript + Tailwind + TanStack Query skeleton; home
-      page calls the backend health endpoint and shows "API: ok"
-- [x] `.gitattributes` (`* text=auto eol=lf`) to keep LF endings
-- [x] Devcontainer (`.devcontainer/devcontainer.json` + `docker-compose.yml`):
-      Python 3.12, Node 22, Postgres 16 sibling container (host `db`),
-      `frontend/node_modules` as a named volume. Verified working.
+> Corrected 2026-09-30: an earlier version of this list described work that
+> was not actually in the repo. Everything below is committed on `main`
+> (local only, not pushed).
+
+- [x] Repo setup: monorepo (`backend/` + `frontend/`), root `.gitignore`,
+      `.gitattributes` (`* text=auto eol=lf`), `.env.example`
+- [x] Local Postgres 16 via root `docker-compose.yml` (host `localhost:5432`,
+      credentials from the repo-root `.env`)
+- [x] FastAPI skeleton: Pydantic settings from env vars, CORS locked to
+      configured origins, health check at `GET /health`
+- [x] SQLAlchemy 2.0 async base (`backend/app/db/base.py`, `session.py`):
+      `Base`, `UUIDPrimaryKeyMixin`, `TenantMixin` (`store_id`), and
+      `set_tenant()` which sets `app.tenant_id` per transaction for RLS
+- [x] Alembic (async) setup reading `DATABASE_URL` from settings; no tables
+      or migrations yet
+- [x] React + Vite + TypeScript + Tailwind v4 + TanStack Query skeleton; home
+      page calls `GET /health` and shows "API: ok"
+- [x] CI: `.github/workflows/ci.yml` (ruff, alembic upgrade, pytest against
+      a Postgres service; oxlint + build for the frontend). Not yet run on
+      GitHub because nothing has been pushed.
+- [x] 3 passing pytest tests (health, tenant mixin, `set_tenant` scoping)
 
 ---
 
 ## In Progress
 
-- [ ] **Phase 0 — remaining tasks**
-  - [ ] Alembic (async) setup + first migration + DB connection test  <- NEXT
-  - [ ] SQLAlchemy base models, `store_id` tenant convention (drafted in chat,
-        NOT yet in the repo: `backend/app/db/base.py` and `session.py`)
-  - [ ] CI: lint + basic test run on push (GitHub Actions)
-  - [ ] Deploy skeletons (backend -> Render, frontend -> Vercel, pin Node 22)
+- [ ] **Phase 0 — remaining tasks** (all need accounts or secrets)
+  - [ ] Push to GitHub and confirm CI passes there  <- NEXT
+  - [ ] Deploy skeletons (backend -> Render, frontend -> Vercel)
+  - [ ] Managed Postgres provisioning
   - [ ] Domain + Cloudflare DNS setup
   - [ ] Error tracking (Sentry) wired in
 
@@ -65,10 +74,10 @@ Resolved:
 - [x] **Repo structure: Monorepo**
 - [x] **Hosting provider: Render** (fixed monthly pricing)
 - [x] **Object storage: Cloudflare R2** (zero egress fees)
-- [x] **Local dev environment: devcontainer** (Python 3.12, Node 22,
-      Postgres 16 via compose). `backend/.python-version` = 3.12.x for
-      Render. The earlier Python 3.11 idea was dropped, so no doc edit to
-      02_TECHNICAL.md §2 is needed.
+- [x] **Local dev environment: devcontainer** (image-based, Python 3.12,
+      Node LTS, Docker-in-Docker). Postgres 16 runs from the root
+      `docker-compose.yml` inside the container. `backend/.python-version`
+      = 3.12 for Render and CI.
 - [x] **Tenant column naming:** every tenant table uses `store_id`
       (= tenant_id = store.id); RLS reads session setting `app.tenant_id`.
 
@@ -76,6 +85,12 @@ Still open:
 
 - [ ] **Managed Postgres provider:** Render Postgres (recommended) vs Neon.
       Founder to confirm at the start of the next chat.
+- [ ] **Health endpoint path:** built as `GET /health` (unversioned, as
+      requested for Phase 0). 02_TECHNICAL.md §6.1 puts the API under
+      `/api/v1/`; confirm whether health stays outside the versioned prefix.
+- [ ] **Node version:** the devcontainer's "lts" currently resolves to
+      Node 24, and CI uses 24 to match. An earlier note said to pin Node 22;
+      confirm which to pin before the Vercel deploy.
 
 ---
 
@@ -91,10 +106,14 @@ Still open:
 
 ## Notes
 
-- Backend pinned deps: `backend/requirements.lock`. Regenerate inside the
-  container after changing requirements (it was created on Python 3.11 and
-  should be regenerated on 3.12).
+- Backend deps are pinned to exact versions in `backend/requirements.txt`
+  and `requirements-dev.txt` (no separate lock file).
+- The backend test client dependency is `httpx2` (Starlette deprecated
+  plain `httpx` for its TestClient).
+- The Vite template now ships oxlint instead of ESLint; kept as is.
 - React Router deliberately not installed yet (needed in Phase 1).
+- The local DB user from docker-compose is a superuser, which bypasses RLS.
+  A non-superuser app role is needed when RLS policies land in Phase 1.
 
 ---
 
@@ -108,6 +127,5 @@ Still open:
 
 ## Next Up
 
-Phase 0 step 3: Alembic async setup, `db/base.py` + `db/session.py`, first
-migration, non-superuser app role, connection test. Then CI, deploy,
-DNS, Sentry.
+Push `main` and check CI on GitHub. Then the account-dependent Phase 0 tasks:
+Render + Vercel deploy skeletons, managed Postgres, Cloudflare DNS, Sentry.
