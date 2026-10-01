@@ -1,11 +1,30 @@
+import { Minus, Plus, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router'
-import { Button, Card, ErrorMessage, Field, Input, Select, Spinner, TextArea } from '../../components/ui.tsx'
+import { Link, useNavigate, useParams } from 'react-router'
+import { useFeedback } from '../../components/feedback.ts'
+import { buttonClass } from '../../components/styles.ts'
+import {
+  Button,
+  ErrorMessage,
+  ErrorState,
+  Field,
+  IconButton,
+  Input,
+  PageHeader,
+  Section,
+  Select,
+  Skeleton,
+  Switch,
+  TextArea,
+} from '../../components/ui.tsx'
+import { ApiError } from '../../lib/api.ts'
 import { fieldError, formError } from '../../lib/errors.ts'
+import { uploadProductImage } from '../../lib/images.ts'
 import { priceStep } from '../../lib/money.ts'
 import type { Currency, Product, ProductStatus } from '../../lib/types.ts'
 import { useCategories, useProduct, useSaveProduct, useStore } from '../queries.ts'
-import { ProductImages } from './ProductImages.tsx'
+import { useUnsavedChanges } from '../useUnsavedChanges.ts'
+import { NewProductPhotos, ProductPhotos, type LocalPhoto } from './ProductPhotos.tsx'
 
 type VariantDraft = { key: string; id?: string; name: string; sku: string; price_override: string; stock_quantity: string }
 
@@ -39,20 +58,22 @@ function toDraft(product?: Product): Draft {
     status: product?.status ?? 'active',
     has_variants: product?.has_variants ?? false,
     stock_quantity: String(product?.stock_quantity ?? 0),
-    variants: product?.variants.map((v) => ({
-      key: v.id,
-      id: v.id,
-      name: v.name,
-      sku: v.sku ?? '',
-      price_override: v.price_override ?? '',
-      stock_quantity: String(v.stock_quantity),
-    })) ?? [blankVariant()],
+    variants: product?.variants.length
+      ? product.variants.map((v) => ({
+          key: v.id,
+          id: v.id,
+          name: v.name,
+          sku: v.sku ?? '',
+          price_override: v.price_override ?? '',
+          stock_quantity: String(v.stock_quantity),
+        }))
+      : [blankVariant()],
   }
 }
 
 function toBody(draft: Draft, isNew: boolean) {
   return {
-    name: draft.name,
+    name: draft.name.trim(),
     ...(isNew ? {} : { slug: draft.slug }),
     description: draft.description.trim() || null,
     category_id: draft.category_id || null,
@@ -63,7 +84,7 @@ function toBody(draft: Draft, isNew: boolean) {
     variants: draft.has_variants
       ? draft.variants.map((v) => ({
           id: v.id,
-          name: v.name,
+          name: v.name.trim(),
           sku: v.sku.trim() || null,
           price_override: v.price_override === '' ? null : v.price_override,
           stock_quantity: Number(v.stock_quantity || 0),
@@ -72,211 +93,352 @@ function toBody(draft: Draft, isNew: boolean) {
   }
 }
 
+const sameBody = (a: Draft, b: Draft, isNew: boolean) =>
+  JSON.stringify(toBody(a, isNew)) === JSON.stringify(toBody(b, isNew))
+
 /** /dashboard/products/new and /dashboard/products/:productId */
 export function ProductEdit() {
   const { productId } = useParams()
   const product = useProduct(productId)
 
-  if (productId && product.isPending) return <Spinner />
-  if (productId && product.error) return <ErrorMessage error={product.error} />
+  if (productId && product.isPending) return <FormSkeleton />
+  if (productId && product.error) {
+    return (
+      <>
+        <PageHeader title="Product" back="/dashboard/products" />
+        <ErrorState error={product.error} onRetry={() => product.refetch()} />
+      </>
+    )
+  }
   return <ProductForm key={productId ?? 'new'} product={product.data} />
 }
 
 function ProductForm({ product }: { product?: Product }) {
   const isNew = !product
   const navigate = useNavigate()
-  const location = useLocation()
+  const { toast } = useFeedback()
   const store = useStore()
   const categories = useCategories()
   const save = useSaveProduct()
-  const [draft, setDraft] = useState(() => toDraft(product))
-  const [saved, setSaved] = useState(Boolean((location.state as { created?: boolean } | null)?.created))
+  const [baseline, setBaseline] = useState(() => toDraft(product))
+  const [draft, setDraft] = useState(baseline)
+  const [newPhotos, setNewPhotos] = useState<LocalPhoto[]>([])
+  const [progress, setProgress] = useState<string | null>(null)
+
+  const dirty = !sameBody(draft, baseline, isNew) || newPhotos.length > 0
+  const { allowLeave } = useUnsavedChanges(dirty)
 
   const currency: Currency = store.data?.currency ?? 'USD'
-  const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
-    setSaved(false)
-    setDraft((d) => ({ ...d, [key]: value }))
-  }
+  const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft((d) => ({ ...d, [key]: value }))
   const setVariant = (key: string, change: Partial<VariantDraft>) =>
-    set(
-      'variants',
-      draft.variants.map((v) => (v.key === key ? { ...v, ...change } : v)),
-    )
+    setDraft((d) => ({ ...d, variants: d.variants.map((v) => (v.key === key ? { ...v, ...change } : v)) }))
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault()
-    save.mutate(
-      { id: product?.id, body: toBody(draft, isNew) },
-      {
-        onSuccess: (result) => {
-          if (isNew) {
-            navigate(`/dashboard/products/${result.id}`, { replace: true, state: { created: true } })
-          } else {
-            setDraft(toDraft(result))
-            setSaved(true)
-          }
-        },
-      },
-    )
+    let saved: Product
+    try {
+      setProgress('Saving…')
+      saved = await save.mutateAsync({ id: product?.id, body: toBody(draft, isNew) })
+    } catch {
+      setProgress(null)
+      return // shown via save.error
+    }
+
+    if (!isNew) {
+      setProgress(null)
+      setBaseline(toDraft(saved))
+      setDraft(toDraft(saved))
+      toast('Changes saved')
+      return
+    }
+
+    // New product: upload the photos picked before it existed.
+    allowLeave()
+    try {
+      const urls: string[] = []
+      for (const [i, photo] of newPhotos.entries()) {
+        setProgress(`Uploading photo ${i + 1} of ${newPhotos.length}…`)
+        urls.push(await uploadProductImage(saved.id, photo.image))
+      }
+      if (urls.length) await save.mutateAsync({ id: saved.id, body: { image_urls: urls } })
+      newPhotos.forEach((p) => URL.revokeObjectURL(p.preview))
+      toast('Product added')
+      navigate('/dashboard/products', { replace: true })
+    } catch (err) {
+      const reason = err instanceof ApiError ? err.message : 'Please try again.'
+      toast(`Product saved, but photos weren't uploaded. ${reason}`, 'error')
+      navigate(`/dashboard/products/${saved.id}`, { replace: true })
+    }
   }
 
+  const busy = progress !== null
   const fields = ['name', 'slug', 'description', 'category_id', 'price', 'stock_quantity']
+  const slugError = fieldError(save.error, 'slug')
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <Link to="/dashboard/products" className="text-sm text-slate-600 hover:text-slate-900">
-          ← Products
-        </Link>
-      </div>
-      <h1 className="text-xl font-semibold text-slate-900">{isNew ? 'Add product' : product.name}</h1>
+    <>
+      <PageHeader title={isNew ? 'New product' : 'Edit product'} back="/dashboard/products" />
 
       <form onSubmit={submit} className="space-y-4">
-        <Card className="space-y-4">
-          <Field label="Name" error={fieldError(save.error, 'name')}>
-            <Input required maxLength={100} value={draft.name} onChange={(e) => set('name', e.target.value)} />
+        <Section
+          title="Photos"
+          description={isNew ? 'The first photo is the main one customers see.' : 'Changes to photos save right away.'}
+        >
+          {isNew ? <NewProductPhotos photos={newPhotos} onChange={setNewPhotos} /> : <ProductPhotos product={product} />}
+        </Section>
+
+        <Section title="Details">
+          <Field label="Product name" error={fieldError(save.error, 'name')}>
+            <Input
+              required
+              maxLength={100}
+              autoCapitalize="sentences"
+              placeholder="e.g. Leather sandal"
+              value={draft.name}
+              onChange={(e) => set('name', e.target.value)}
+            />
           </Field>
-          <Field label="Description" error={fieldError(save.error, 'description')}>
-            <TextArea maxLength={2000} value={draft.description} onChange={(e) => set('description', e.target.value)} />
+          <Field label="Description" hint="Optional. Size, material, how to care for it…" error={fieldError(save.error, 'description')}>
+            <TextArea
+              rows={4}
+              maxLength={2000}
+              autoCapitalize="sentences"
+              value={draft.description}
+              onChange={(e) => set('description', e.target.value)}
+            />
           </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={`Price (${currency})`} error={fieldError(save.error, 'price')}>
-              <Input
-                required
-                type="number"
-                inputMode="decimal"
-                min="0"
-                step={priceStep(currency)}
-                value={draft.price}
-                onChange={(e) => set('price', e.target.value)}
-              />
-            </Field>
-            <Field label="Category" error={fieldError(save.error, 'category_id')}>
-              <Select value={draft.category_id} onChange={(e) => set('category_id', e.target.value)}>
-                <option value="">No category</option>
-                {categories.data?.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          </div>
-          <Field label="Visibility">
-            <Select value={draft.status} onChange={(e) => set('status', e.target.value as ProductStatus)}>
-              <option value="active">Active: shown in your shop</option>
-              <option value="inactive">Hidden: not shown to customers</option>
+          <Field
+            label="Category"
+            error={fieldError(save.error, 'category_id')}
+            hint={
+              categories.data?.length === 0 ? (
+                <>
+                  No categories yet.{' '}
+                  <Link to="/dashboard/categories" className="font-medium text-emerald-700 underline">
+                    Create one
+                  </Link>
+                </>
+              ) : undefined
+            }
+          >
+            <Select value={draft.category_id} onChange={(e) => set('category_id', e.target.value)}>
+              <option value="">No category</option>
+              {categories.data?.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
             </Select>
           </Field>
-          {!isNew && (
-            <Field
-              label="Link name"
-              error={fieldError(save.error, 'slug')}
-              hint="Used in this product's link. Changing it breaks links you already shared."
-            >
-              <Input required value={draft.slug} onChange={(e) => set('slug', e.target.value.toLowerCase())} />
-            </Field>
-          )}
-        </Card>
+        </Section>
 
-        <Card className="space-y-4">
-          <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-            <input
-              type="checkbox"
-              className="size-4 accent-emerald-600"
-              checked={draft.has_variants}
-              onChange={(e) => set('has_variants', e.target.checked)}
-            />
-            This product has variants (e.g. sizes or colors)
-          </label>
+        <Section title="Price and stock">
+          <Field label="Price" error={fieldError(save.error, 'price')}>
+            <MoneyInput required currency={currency} value={draft.price} onChange={(v) => set('price', v)} />
+          </Field>
 
-          {!draft.has_variants && (
-            <Field label="Stock quantity" error={fieldError(save.error, 'stock_quantity')}>
-              <Input
-                type="number"
-                inputMode="numeric"
-                min="0"
-                step="1"
-                value={draft.stock_quantity}
-                onChange={(e) => set('stock_quantity', e.target.value)}
-                className="sm:max-w-40"
-              />
-            </Field>
-          )}
+          <Switch
+            checked={draft.has_variants}
+            onChange={(on) => set('has_variants', on)}
+            label="This product has variants"
+            description="Different sizes or colors, each with its own stock."
+          />
 
-          {draft.has_variants && (
+          {draft.has_variants ? (
             <div className="space-y-3">
               {draft.variants.map((variant, index) => (
-                <div key={variant.key} className="grid grid-cols-2 gap-2 rounded-lg border border-slate-200 p-3 sm:grid-cols-[2fr_1fr_1fr_1fr_auto] sm:items-end">
-                  <Field label={`Variant ${index + 1}`}>
-                    <Input
-                      required
-                      placeholder="Red / M"
-                      maxLength={100}
-                      value={variant.name}
-                      onChange={(e) => setVariant(variant.key, { name: e.target.value })}
+                <div key={variant.key} className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-slate-700">Variant {index + 1}</span>
+                    <IconButton
+                      icon={Trash2}
+                      tone="danger"
+                      label={`Remove variant ${index + 1}`}
+                      disabled={draft.variants.length === 1}
+                      onClick={() => set('variants', draft.variants.filter((v) => v.key !== variant.key))}
+                      className="-my-2 -mr-2"
                     />
-                  </Field>
-                  <Field label="Stock">
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      min="0"
-                      step="1"
-                      value={variant.stock_quantity}
-                      onChange={(e) => setVariant(variant.key, { stock_quantity: e.target.value })}
-                    />
-                  </Field>
-                  <Field label="Price">
-                    <Input
-                      type="number"
-                      inputMode="decimal"
-                      min="0"
-                      step={priceStep(currency)}
-                      placeholder={draft.price || 'Same'}
-                      value={variant.price_override}
-                      onChange={(e) => setVariant(variant.key, { price_override: e.target.value })}
-                    />
-                  </Field>
-                  <Field label="SKU">
-                    <Input
-                      placeholder="Optional"
-                      maxLength={64}
-                      value={variant.sku}
-                      onChange={(e) => setVariant(variant.key, { sku: e.target.value })}
-                    />
-                  </Field>
-                  <Button
-                    variant="secondary"
-                    aria-label={`Remove variant ${index + 1}`}
-                    disabled={draft.variants.length === 1}
-                    onClick={() => set('variants', draft.variants.filter((v) => v.key !== variant.key))}
-                  >
-                    Remove
-                  </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <Field label="Name">
+                        <Input
+                          required
+                          placeholder="e.g. Red / M"
+                          maxLength={100}
+                          value={variant.name}
+                          onChange={(e) => setVariant(variant.key, { name: e.target.value })}
+                        />
+                      </Field>
+                    </div>
+                    <Field label="Stock">
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        step="1"
+                        value={variant.stock_quantity}
+                        onWheel={(e) => e.currentTarget.blur()}
+                        onChange={(e) => setVariant(variant.key, { stock_quantity: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Price">
+                      <MoneyInput
+                        currency={currency}
+                        placeholder={draft.price || 'Same'}
+                        value={variant.price_override}
+                        onChange={(v) => setVariant(variant.key, { price_override: v })}
+                      />
+                    </Field>
+                    <div className="col-span-2">
+                      <Field label="SKU (optional)">
+                        <Input
+                          maxLength={64}
+                          autoCapitalize="characters"
+                          value={variant.sku}
+                          onChange={(e) => setVariant(variant.key, { sku: e.target.value })}
+                        />
+                      </Field>
+                    </div>
+                  </div>
                 </div>
               ))}
               <p className="text-xs text-slate-500">Leave a variant's price empty to use the product price.</p>
-              <Button variant="secondary" onClick={() => set('variants', [...draft.variants, blankVariant()])}>
+              <button
+                type="button"
+                onClick={() => set('variants', [...draft.variants, blankVariant()])}
+                className={`${buttonClass('secondary')} w-full border-dashed`}
+              >
+                <Plus aria-hidden className="size-4" />
                 Add variant
-              </Button>
+              </button>
             </div>
+          ) : (
+            <Field label="Stock" error={fieldError(save.error, 'stock_quantity')} hint="How many you have to sell.">
+              <StockStepper value={draft.stock_quantity} onChange={(v) => set('stock_quantity', v)} />
+            </Field>
           )}
-        </Card>
+        </Section>
+
+        <Section title="Visibility">
+          <Switch
+            checked={draft.status === 'active'}
+            onChange={(on) => set('status', on ? 'active' : 'inactive')}
+            label="Show in shop"
+            description={
+              draft.status === 'active'
+                ? 'Customers can see and order this product.'
+                : 'Hidden from customers. You can show it again any time.'
+            }
+          />
+        </Section>
+
+        {!isNew && (
+          <details open={slugError ? true : undefined} className="group rounded-2xl border border-slate-200 bg-white px-4 shadow-xs sm:px-6">
+            <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between text-base font-semibold text-slate-900">
+              Advanced
+              <Plus aria-hidden className="size-5 text-slate-400 transition-transform group-open:rotate-45" />
+            </summary>
+            <div className="pb-5">
+              <Field label="Link name" error={slugError} hint="Part of this product's link. Changing it breaks links you already shared.">
+                <Input
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  value={draft.slug}
+                  onChange={(e) => set('slug', e.target.value.toLowerCase())}
+                />
+              </Field>
+            </div>
+          </details>
+        )}
 
         <ErrorMessage error={formError(save.error, fields)} />
-        <div className="flex items-center gap-3">
-          <Button type="submit" disabled={save.isPending}>
-            {save.isPending ? 'Saving…' : isNew ? 'Create product' : 'Save changes'}
-          </Button>
-          {saved && <span className="text-sm text-emerald-700">Saved.</span>}
+
+        {/* Pinned to the bottom on phones so Save is always in reach. */}
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:pb-0">
+          <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3 lg:px-0">
+            <span className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
+              {progress ?? (dirty ? 'Unsaved changes' : isNew ? '' : 'All changes saved')}
+            </span>
+            <Button type="submit" loading={busy} disabled={!isNew && !dirty} className="min-w-32">
+              {isNew ? 'Add product' : 'Save'}
+            </Button>
+          </div>
         </div>
       </form>
+    </>
+  )
+}
 
-      {product ? (
-        <ProductImages product={product} />
-      ) : (
-        <p className="text-sm text-slate-500">You can add photos after creating the product.</p>
-      )}
+function MoneyInput({
+  currency,
+  value,
+  onChange,
+  ...props
+}: {
+  currency: Currency
+  value: string
+  onChange: (value: string) => void
+  required?: boolean
+  placeholder?: string
+}) {
+  return (
+    <Input
+      {...props}
+      type="number"
+      inputMode="decimal"
+      min="0"
+      step={priceStep(currency)}
+      leading={<span className="text-sm font-medium">{currency === 'KHR' ? '៛' : '$'}</span>}
+      value={value}
+      onWheel={(e) => e.currentTarget.blur()}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  )
+}
+
+/** Number field with − / + buttons: quick stock changes with a thumb. */
+function StockStepper({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const n = Number(value || 0)
+  return (
+    <div className="flex items-center gap-2">
+      <IconButton
+        icon={Minus}
+        label="Decrease stock"
+        disabled={n <= 0}
+        onClick={() => onChange(String(Math.max(0, n - 1)))}
+        className="border border-slate-300 bg-white shadow-xs"
+      />
+      <Input
+        type="number"
+        inputMode="numeric"
+        min="0"
+        step="1"
+        value={value}
+        onWheel={(e) => e.currentTarget.blur()}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-24 text-center"
+      />
+      <IconButton
+        icon={Plus}
+        label="Increase stock"
+        onClick={() => onChange(String(n + 1))}
+        className="border border-slate-300 bg-white shadow-xs"
+      />
     </div>
+  )
+}
+
+function FormSkeleton() {
+  return (
+    <>
+      <PageHeader title="Edit product" back="/dashboard/products" />
+      <div className="space-y-4">
+        {[120, 260, 180].map((h) => (
+          <Skeleton key={h} className="w-full rounded-2xl" style={{ height: h }} />
+        ))}
+      </div>
+    </>
   )
 }
