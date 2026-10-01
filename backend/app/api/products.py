@@ -5,6 +5,8 @@ from fastapi import APIRouter, status
 from app.api.deps import Seller, TenantDb
 from app.models import ProductStatus
 from app.schemas.product import ProductCreate, ProductOut, ProductUpdate
+from app.schemas.upload import ImageUploadIn, ImageUploadOut
+from app.services import images as image_service
 from app.services import product as product_service
 
 router = APIRouter(prefix="/seller/products", tags=["products"])
@@ -40,3 +42,11 @@ async def update_product(
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def deactivate_product(product_id: uuid.UUID, seller: Seller, db: TenantDb) -> None:
     await product_service.deactivate_product(db, seller.store_id, product_id)
+
+
+@router.post("/{product_id}/images", response_model=ImageUploadOut)
+async def create_image_upload(
+    product_id: uuid.UUID, data: ImageUploadIn, seller: Seller, db: TenantDb
+) -> ImageUploadOut:
+    """Step 1 of an image upload; see ImageUploadOut for the rest."""
+    return await image_service.create_upload(db, seller.store_id, product_id, data)
