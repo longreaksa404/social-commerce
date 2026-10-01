@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-01 (Phase 1 done except photo upload; Phase 2 next)
+> **Last updated:** 2026-10-01 (seller UI reworked for phones; Phase 2 next)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -98,6 +98,28 @@ shows "API: ok" from the deployed backend.
       (register → categories → products with variants → currency → reload →
       logout/login); no unexpected console errors.
 
+**Seller UI rework for phones (2026-10-01, founder-requested, not yet pushed):**
+
+- [x] App shell: bottom tab bar on phones, sidebar on desktop; product
+      create/edit is a focused screen with a pinned Save bar. Log out moved
+      to Settings → Account.
+- [x] UI kit: 44px touch targets, 16px inputs (no iOS zoom), switches,
+      show/hide password, currency symbol in price fields, toasts, bottom-
+      sheet confirm dialog, skeleton loaders, retry on load errors, empty
+      states. lucide-react icons.
+- [x] Product form: photos first and pickable before the product exists;
+      photos shrunk on the phone to max 1600px JPEG before upload; stock
+      −/+ stepper; "Discard changes?" when leaving unsaved edits.
+- [x] Product list filters in the URL; category product counts link to the
+      filtered list.
+- [x] Accessibility: axe-core reports no WCAG 2.1 A/AA violations on any
+      screen; labels/hints wired with htmlFor/aria-describedby; primary
+      button contrast 5.5:1.
+- [x] Khmer product/category/store names checked with Noto Sans Khmer.
+- [x] Dev: Vite and uvicorn --reload now poll (the repo is on a Windows
+      drive where file-change events never arrive); needs a container
+      rebuild to take effect.
+
 ---
 
 ## In Progress
@@ -123,6 +145,11 @@ shows "API: ok" from the deployed backend.
 - Postgres data lives in a per-machine Docker volume and does not sync
   between machines; schema comes from Alembic migrations, seed data from
   scripts (seed script to be added in a later phase).
+- The repo is bind-mounted from the Windows `C:` drive (9p), so file
+  access in the container is slow (Vite starts in ~15 s, builds ~15 s).
+  Cloning the repo inside WSL (e.g. `~/code`) and opening that folder in
+  the devcontainer would make dev much faster and make polling
+  unnecessary. Founder to decide.
 - Commits must be authored with an email on the `longreaksa404` GitHub
   account, or Vercel (Hobby) blocks the deploy. Set per repo with
   `git config user.email longchansamanakreaksa@gmail.com`; the container's
