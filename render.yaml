@@ -1,0 +1,26 @@
+# Render Blueprint for the backend API (Dashboard > New > Blueprint).
+# Postgres is on Neon, not Render: paste its direct connection string as
+# DATABASE_URL when Render prompts for the sync: false values.
+services:
+  - type: web
+    name: social-commerce-api
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    # Deploy only after the GitHub Actions CI run for the commit passes.
+    autoDeployTrigger: checksPass
+    buildFilter:
+      paths:
+        - backend/**
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
