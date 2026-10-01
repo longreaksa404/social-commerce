@@ -1,18 +1,29 @@
-import { useQuery } from '@tanstack/react-query'
-import { fetchHealth } from './api.ts'
+import { Navigate, Route, Routes } from 'react-router'
+import { Categories } from './dashboard/Categories.tsx'
+import { DashboardLayout } from './dashboard/Layout.tsx'
+import { ProductEdit } from './dashboard/products/ProductEdit.tsx'
+import { ProductList } from './dashboard/products/ProductList.tsx'
+import { Settings } from './dashboard/Settings.tsx'
+import { Home } from './pages/Home.tsx'
+import { Login } from './pages/Login.tsx'
+import { Register } from './pages/Register.tsx'
 
 function App() {
-  const health = useQuery({ queryKey: ['health'], queryFn: fetchHealth, retry: false })
-
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-4 bg-slate-50 p-6 text-slate-900">
-      <h1 className="text-2xl font-semibold">Social Commerce</h1>
-      <p className="rounded-lg border border-slate-200 bg-white px-4 py-2 font-mono text-sm shadow-sm">
-        {health.isPending && 'API: checking…'}
-        {health.isError && <span className="text-red-600">API: unreachable</span>}
-        {health.isSuccess && <span className="text-emerald-600">API: {health.data.status}</span>}
-      </p>
-    </main>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route index element={<Navigate to="products" replace />} />
+        <Route path="products" element={<ProductList />} />
+        <Route path="products/new" element={<ProductEdit />} />
+        <Route path="products/:productId" element={<ProductEdit />} />
+        <Route path="categories" element={<Categories />} />
+        <Route path="settings" element={<Settings />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 

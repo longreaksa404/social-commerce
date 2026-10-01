@@ -16,7 +16,8 @@
     "@sentry/react": "^11.1.0",
     "@tanstack/react-query": "^5.104.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "react-router": "^8.4.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
