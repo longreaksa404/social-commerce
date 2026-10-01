@@ -158,7 +158,7 @@ function ProductRow({ product, currency, category }: { product: Product; currenc
         </span>
       )}
       <span className="min-w-0 flex-1">
-        <span className="line-clamp-2 font-medium leading-snug text-slate-900">{product.name}</span>
+        <span className="line-clamp-2 font-medium leading-normal text-slate-900">{product.name}</span>
         <span className="mt-0.5 block font-semibold text-slate-900">{priceLabel(product, currency)}</span>
         <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
           {product.status === 'inactive' && <Badge>Hidden</Badge>}
