@@ -20,7 +20,11 @@
     "source=claude-code-config-${devcontainerId},target=/home/vscode/.claude,type=volume"
   ],
   "containerEnv": {
-    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+    // The repo is bind-mounted from the Windows drive, where file-change
+    // events don't reach Linux: make Vite and uvicorn --reload poll.
+    "VITE_USE_POLLING": "true",
+    "WATCHFILES_FORCE_POLLING": "true"
   },
   // A fresh named volume is owned by root; hand it to the vscode user.
   "onCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.claude",
