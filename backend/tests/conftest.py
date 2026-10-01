@@ -100,3 +100,45 @@ async def make_store():
 @pytest.fixture
 async def two_stores(make_store) -> AsyncIterator[tuple[StoreRef, StoreRef]]:
     yield await make_store(), await make_store()
+
+
+@pytest.fixture
+async def client():
+    from httpx2 import ASGITransport, AsyncClient
+
+    from app.main import app
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        yield c
+
+
+@pytest.fixture
+async def register(client):
+    """Register a seller through the API; returns the token pair."""
+
+    async def _register(**overrides) -> dict:
+        tag = uuid.uuid4().hex[:10]
+        body = {
+            "email": f"{tag}@example.com",
+            "password": "correct-horse",
+            "full_name": "Test Seller",
+            "phone": "012 345 678",
+            "store_name": f"Store {tag}",
+            **overrides,
+        }
+        response = await client.post("/api/v1/auth/register", json=body)
+        assert response.status_code == 201, response.text
+        return {**response.json(), "email": body["email"]}
+
+    return _register
+
+
+@pytest.fixture
+async def auth_headers(register):
+    """Bearer headers for a freshly registered seller."""
+
+    async def _headers() -> dict[str, str]:
+        tokens = await register()
+        return {"Authorization": f"Bearer {tokens['access_token']}"}
+
+    return _headers
