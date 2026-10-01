@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-01 (Phase 0 deployed)
+> **Last updated:** 2026-10-01 (Phase 1 code complete, not yet deployed)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,7 +15,8 @@
 
 ## Current Phase
 
-**Phase 1 — Auth + Store + Product Management** (not started)
+**Phase 1 — Auth + Store + Product Management** (code complete and tested
+locally; deploy check and R2 setup remaining, see In Progress)
 
 Phase 0 met its definition of done on 2026-10-01: the deployed frontend
 shows "API: ok" from the deployed backend.
@@ -34,10 +35,8 @@ shows "API: ok" from the deployed backend.
 - [x] FastAPI skeleton: Pydantic settings from env vars, CORS locked to
       configured origins, health check at `GET /health`
 - [x] SQLAlchemy 2.0 async base (`backend/app/db/base.py`, `session.py`):
-      `Base`, `UUIDPrimaryKeyMixin`, `TenantMixin` (`store_id`), and
-      `set_tenant()` which sets `app.tenant_id` per transaction for RLS
-- [x] Alembic (async) setup reading `DATABASE_URL` from settings; no tables
-      or migrations yet
+      `Base`, `UUIDPrimaryKeyMixin`, `TenantMixin` (`store_id`)
+- [x] Alembic (async) setup reading `DATABASE_URL` from settings
 - [x] React + Vite + TypeScript + Tailwind v4 + TanStack Query skeleton; home
       page calls `GET /health` and shows "API: ok"
 - [x] CI: `.github/workflows/ci.yml` (ruff, alembic upgrade, pytest against
@@ -53,8 +52,6 @@ shows "API: ok" from the deployed backend.
       `alembic upgrade head` on container start); `frontend/vercel.json`
       (SPA fallback); Node pinned to 24.x via `engines`. Docker image built
       and smoke-tested locally against Postgres.
-- [x] 5 passing pytest tests (health, tenant mixin, `set_tenant` scoping,
-      database URL conversion)
 - [x] **Deployed (2026-10-01):**
   - Frontend: https://social-commerce-eight.vercel.app (Vercel Hobby,
     root directory `frontend`, deploys on push to `main`)
@@ -65,14 +62,57 @@ shows "API: ok" from the deployed backend.
   - Sentry: projects `api` (FastAPI) and `web` (React), errors only
   - Domain + Cloudflare DNS: deferred to Phase 9
 
+**Phase 1 (code complete 2026-10-01, on `main`, not yet pushed/deployed):**
+
+- [x] Tables + migrations: `seller`, `store` (incl. `currency` USD/KHR),
+      `refresh_token`, `category`, `product`, `product_variant` (with
+      `store_id`). Enums are text + CHECK constraints.
+- [x] RLS: NOLOGIN role `app_user` (created by the migration). Seller
+      requests use `tenant_session()`: every transaction runs
+      `SET LOCAL ROLE app_user` + `app.tenant_id`, so RLS applies even
+      though the login role owns the tables. Auth uses `unscoped_session()`
+      and filters by seller explicitly. Verified against a fresh
+      non-superuser owner (Neon-like) Postgres.
+- [x] Auth: `POST /api/v1/auth/register|login|refresh|logout`. Register
+      creates seller + store. Access JWT 15 min (carries `store_id`),
+      refresh JWT 7 days, single use; reuse revokes all the seller's
+      sessions. bcrypt (directly, not passlib). Login/register/refresh rate
+      limited per IP (slowapi). Errors use the 02 §6.3 envelope.
+- [x] `GET/PATCH /api/v1/seller/store` (name, slug, description, currency)
+- [x] Category CRUD with product counts; product CRUD with variants
+      (replace-list semantics), soft delete, store-scoped category check
+- [x] `POST /api/v1/seller/products/{id}/images`: presigned R2 PUT signed
+      for exact type + size (JPEG/PNG/WebP, max 5 MB, max 5 images).
+      Returns 503 until R2 settings exist.
+- [x] Frontend: React Router; landing, login, register; guarded dashboard
+      (Products, Categories, Settings); product list with filters; product
+      form with variants and photo upload; category management; store
+      settings with currency. Mobile-first.
+- [x] 28 pytest tests (auth rotation/reuse/logout, tenant isolation via RLS
+      and via API for store/categories/products, variants, image upload
+      signing). Tests use their own `<db>_test` database.
+- [x] Full flow clicked through in headless Chromium at phone size
+      (register → categories → products with variants → currency → reload →
+      logout/login); no unexpected console errors.
+
 ---
 
 ## In Progress
 
+- [ ] **Phase 1 — remaining (founder):**
+  - [ ] Push `main`; confirm CI is green; watch the Render deploy log for
+        the 3 migrations (first time the `app_user` role is created on Neon)
+  - [ ] Render: check `JWT_SECRET` exists under Environment (the Blueprint
+        should generate it; if not, add a random 48+ char value)
+  - [ ] Register on the live site, add a category and a product
+  - [ ] Cloudflare R2: bucket + API token + public dev URL + CORS, then the
+        five `R2_*` env vars in Render; upload a product photo on the live
+        site. This completes the Phase 1 definition of done.
 - [ ] Confirm CI is green in the GitHub Actions tab (repo is private, so
       Claude can't see it)
-- [ ] Founder to apply the proposed 02/03 doc changes (Neon, domain moved
-      to Phase 9, migrations at container start)
+- [ ] Founder to apply the proposed 02/03 doc changes (Phase 0: Neon,
+      domain moved to Phase 9, migrations at container start; Phase 1:
+      §5.2 additions, §13 bcrypt)
 
 ---
 
@@ -126,6 +166,10 @@ Still open: none.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
 - Postgres on Neon (free), not Render; domain/DNS moved from Phase 0 to
   Phase 9. Doc changes proposed to the founder 2026-10-01.
+- Phase 1 (founder-approved 2026-10-01): `refresh_token` table for real
+  rotation; `store_id` on `product_variant`; per-store `currency` (USD/KHR,
+  default USD); R2 built now, connected later. bcrypt used directly
+  instead of passlib. Doc changes proposed 2026-10-01.
 
 ---
 
@@ -136,12 +180,20 @@ Still open: none.
 - The backend test client dependency is `httpx2` (Starlette deprecated
   plain `httpx` for its TestClient).
 - The Vite template now ships oxlint instead of ESLint; kept as is.
-- React Router deliberately not installed yet (needed in Phase 1).
-- The local DB user from docker-compose is a superuser, which bypasses RLS.
-  A non-superuser app role is needed when RLS policies land in Phase 1.
-  The same applies on Neon: its default owner role is not a superuser but
-  owns the tables, so RLS needs `FORCE ROW LEVEL SECURITY` or a separate
-  app role.
+- RLS convention for new tenant tables (Phase 3+): in the table's
+  migration, `GRANT SELECT, INSERT, UPDATE, DELETE ... TO app_user`,
+  `ENABLE ROW LEVEL SECURITY`, and a `tenant_isolation` policy on
+  `store_id` (copy from the `ccd7d9bce820` migration). Seller endpoints use
+  the `TenantDb` dependency; anything on `UnscopedDb` must filter by hand.
+- The refresh token is kept in localStorage (access token in memory only).
+  Move it to an httpOnly cookie once a custom domain puts app and API on
+  the same site (Phase 9). Refreshes are serialized across tabs.
+- Removing a product photo only unlinks it; the file stays in R2. Fine at
+  MVP volume.
+- Variants removed from a product are deleted. Before Phase 3 adds
+  `order_item.variant_id`, decide whether variants become soft-deleted.
+- Store slugs are global; product/category slugs are unique per store.
+  Names with no Latin letters (e.g. Khmer only) get a short random slug.
 - Free-tier limits to revisit before the first real seller (Phase 9): the
   Render free web service sleeps after 15 min idle (slow first request);
   Neon free keeps only a 6-hour restore window, not daily backups. When the
@@ -161,5 +213,5 @@ Still open: none.
 
 ## Next Up
 
-Phase 1, starting with the `seller` and `store` tables + first migration,
-plus a non-superuser app role so RLS is actually enforced.
+Push and verify Phase 1 on the live site (see In Progress), set up R2,
+then Phase 2 (public storefront).

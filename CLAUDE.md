@@ -89,7 +89,8 @@ Database (from the repo root):
 
 Backend (from `backend/`, with `source .venv/bin/activate`):
 - `uvicorn app.main:app --reload`: API on http://localhost:8000 (docs at /docs)
-- `pytest`: tests (needs Postgres running)
+- `pytest`: tests (needs Postgres running; uses its own `<db>_test` database,
+  created and migrated automatically)
 - `ruff check . && ruff format --check .`: lint (`ruff format .` to fix formatting)
 - `alembic upgrade head`: apply migrations
 - `alembic revision --autogenerate -m "message"`: create a migration
