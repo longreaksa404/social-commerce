@@ -38,6 +38,8 @@ class Category(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
 
 class Product(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
     __tablename__ = "product"
+    # Read the DB-generated updated_at back on UPDATE (async can't lazy-load it).
+    __mapper_args__ = {"eager_defaults": True}
     __table_args__ = (
         UniqueConstraint("store_id", "slug"),
         Index("ix_product_store_id_status", "store_id", "status"),
