@@ -2,9 +2,9 @@ import * as Sentry from '@sentry/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router'
+import { RouterProvider } from 'react-router'
 import './index.css'
-import App from './App.tsx'
+import { router } from './router.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
 import { FeedbackProvider } from './components/FeedbackProvider.tsx'
 
@@ -20,13 +20,11 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <FeedbackProvider>
-            <App />
-          </FeedbackProvider>
-        </AuthProvider>
-      </BrowserRouter>
+      <AuthProvider>
+        <FeedbackProvider>
+          <RouterProvider router={router} />
+        </FeedbackProvider>
+      </AuthProvider>
     </QueryClientProvider>
   </StrictMode>,
 )

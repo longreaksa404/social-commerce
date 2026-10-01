@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
+import { useAuth } from '../auth/useAuth.ts'
 import { Button, Card, ErrorMessage, Field, Input, Select, Spinner, TextArea } from '../components/ui.tsx'
 import { api } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
@@ -89,6 +90,16 @@ function StoreForm({ store }: { store: Store }) {
           </div>
         </Card>
       </form>
+      <LogoutButton />
     </div>
+  )
+}
+
+function LogoutButton() {
+  const { logout } = useAuth()
+  return (
+    <Button variant="secondary" onClick={logout}>
+      Log out
+    </Button>
   )
 }
