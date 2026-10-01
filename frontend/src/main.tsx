@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router'
 import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
+import { FeedbackProvider } from './components/FeedbackProvider.tsx'
 
 // Error tracking is off unless a DSN is set (production only).
 if (import.meta.env.VITE_SENTRY_DSN) {
@@ -21,7 +22,9 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <App />
+          <FeedbackProvider>
+            <App />
+          </FeedbackProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
