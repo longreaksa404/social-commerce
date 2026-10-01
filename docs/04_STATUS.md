@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-09-30
+> **Last updated:** 2026-10-01
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,16 +15,15 @@
 
 ## Current Phase
 
-**Phase 0 — Setup & Foundations** (in progress: local work done, deploy/DNS/Sentry remaining)
+**Phase 0 — Setup & Foundations** (in progress: all code done; account setup
+and first deploy remaining)
 
 ---
 
 ## Done
 
 > Corrected 2026-09-30: an earlier version of this list described work that
-> was not actually in the repo. Everything below is committed on `main`
-> and pushed to `origin/main` up to `d5d716c`; `731f696` (VS Code debug
-> configs) is local only.
+> was not actually in the repo. Everything below is committed on `main`.
 
 - [x] Repo setup: monorepo (`backend/` + `frontend/`), root `.gitignore`,
       `.gitattributes` (`* text=auto eol=lf`), `.env.example`
@@ -41,19 +40,33 @@
       page calls `GET /health` and shows "API: ok"
 - [x] CI: `.github/workflows/ci.yml` (ruff, alembic upgrade, pytest against
       a Postgres service; oxlint + build for the frontend). Pushed, but the
-      result on GitHub has not been checked yet.
-- [x] 3 passing pytest tests (health, tenant mixin, `set_tenant` scoping)
+      result on GitHub has not been checked yet (repo is private).
+- [x] `DATABASE_URL` accepts Neon's plain `postgresql://...?sslmode=require`
+      string and converts it for asyncpg
+- [x] Sentry wired into backend (`SENTRY_DSN`) and frontend
+      (`VITE_SENTRY_DSN`); each is off unless its DSN is set. Errors only,
+      no tracing.
+- [x] Deploy config: `backend/Dockerfile` + root `render.yaml` Blueprint
+      (free web service, Singapore, deploys only after CI passes, runs
+      `alembic upgrade head` on container start); `frontend/vercel.json`
+      (SPA fallback); Node pinned to 24.x via `engines`. Docker image built
+      and smoke-tested locally against Postgres.
+- [x] 5 passing pytest tests (health, tenant mixin, `set_tenant` scoping,
+      database URL conversion)
 
 ---
 
 ## In Progress
 
-- [ ] **Phase 0 — remaining tasks** (all need accounts or secrets)
-  - [ ] Confirm CI passes on GitHub (Actions tab), push the remaining local commit  <- NEXT
-  - [ ] Deploy skeletons (backend -> Render, frontend -> Vercel)
-  - [ ] Managed Postgres provisioning
-  - [ ] Domain + Cloudflare DNS setup
-  - [ ] Error tracking (Sentry) wired in
+- [ ] **Phase 0 — remaining tasks** (founder: accounts and dashboard steps)
+  - [ ] Push `main`, confirm CI is green in the Actions tab  <- NEXT
+  - [ ] Neon: create project (Singapore), copy the direct connection string
+  - [ ] Sentry: create a FastAPI project and a React project, copy both DSNs
+  - [ ] Render: New > Blueprint from the repo, enter the env vars
+  - [ ] Vercel: import repo, root directory `frontend`, set env vars
+  - [ ] Set Render `CORS_ORIGINS` to the Vercel URL; open the Vercel URL and
+        see "API: ok" (Phase 0 definition of done)
+  - Domain + Cloudflare DNS: deferred to Phase 9 (decided 2026-10-01)
 
 ---
 
@@ -81,17 +94,16 @@ Resolved:
       = 3.12 for Render and CI.
 - [x] **Tenant column naming:** every tenant table uses `store_id`
       (= tenant_id = store.id); RLS reads session setting `app.tenant_id`.
+- [x] **Managed Postgres: Neon free plan** (2026-10-01). Render's free
+      Postgres is deleted after 30 days and its cheapest paid tier is
+      $6/month; Neon free is $0 with no expiry (0.5 GB). Region: Singapore.
+- [x] **Health endpoint: stays at `GET /health`** (2026-10-01), outside
+      `/api/v1/`, as an infrastructure probe.
+- [x] **Node version: 24** (2026-10-01), in the devcontainer, CI, and Vercel.
+- [x] **Domain + Cloudflare DNS: deferred to Phase 9** (2026-10-01). Use the
+      free `*.onrender.com` and `*.vercel.app` URLs until then.
 
-Still open:
-
-- [ ] **Managed Postgres provider:** Render Postgres (recommended) vs Neon.
-      Founder to confirm at the start of the next chat.
-- [ ] **Health endpoint path:** built as `GET /health` (unversioned, as
-      requested for Phase 0). 02_TECHNICAL.md §6.1 puts the API under
-      `/api/v1/`; confirm whether health stays outside the versioned prefix.
-- [ ] **Node version:** the devcontainer's "lts" currently resolves to
-      Node 24, and CI uses 24 to match. An earlier note said to pin Node 22;
-      confirm which to pin before the Vercel deploy.
+Still open: none.
 
 ---
 
@@ -102,6 +114,8 @@ Still open:
 - `01_PROJECT.md` renamed to `01_PRODUCT.md` to match cross-references.
 - Hour estimates are now an upper bound; actual hours logged in `docs/TIME_LOG.md`.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
+- Postgres on Neon (free), not Render; domain/DNS moved from Phase 0 to
+  Phase 9. Doc changes proposed to the founder 2026-10-01.
 
 ---
 
@@ -115,6 +129,15 @@ Still open:
 - React Router deliberately not installed yet (needed in Phase 1).
 - The local DB user from docker-compose is a superuser, which bypasses RLS.
   A non-superuser app role is needed when RLS policies land in Phase 1.
+  The same applies on Neon: its default owner role is not a superuser but
+  owns the tables, so RLS needs `FORCE ROW LEVEL SECURITY` or a separate
+  app role.
+- Free-tier limits to revisit before the first real seller (Phase 9): the
+  Render free web service sleeps after 15 min idle (slow first request);
+  Neon free keeps only a 6-hour restore window, not daily backups. When the
+  service moves to a paid instance, switch migrations to `preDeployCommand`.
+- Use Neon's **direct** connection string, not the pooled (`-pooler`) one:
+  asyncpg's prepared statements don't work through PgBouncer by default.
 
 ---
 
@@ -128,5 +151,5 @@ Still open:
 
 ## Next Up
 
-Check the CI result on GitHub and push the remaining local commit. Then the account-dependent Phase 0 tasks:
-Render + Vercel deploy skeletons, managed Postgres, Cloudflare DNS, Sentry.
+Founder account setup (see In Progress), then confirm the deployed frontend
+shows "API: ok". Then Phase 1, starting with the `seller` and `store` tables.
