@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-01 (Phase 1 code complete, not yet deployed)
+> **Last updated:** 2026-10-01 (Phase 1 done except photo upload; Phase 2 next)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,8 +15,11 @@
 
 ## Current Phase
 
-**Phase 1 — Auth + Store + Product Management** (code complete and tested
-locally; deploy check and R2 setup remaining, see In Progress)
+**Phase 2 — Storefront (Customer-Facing Browsing)** (not started)
+
+Phase 1 is deployed and tested by the founder on the live site (2026-10-01).
+One part of its definition of done is carried forward: adding a product
+image needs Cloudflare R2, which the founder will set up later.
 
 Phase 0 met its definition of done on 2026-10-01: the deployed frontend
 shows "API: ok" from the deployed backend.
@@ -62,7 +65,7 @@ shows "API: ok" from the deployed backend.
   - Sentry: projects `api` (FastAPI) and `web` (React), errors only
   - Domain + Cloudflare DNS: deferred to Phase 9
 
-**Phase 1 (code complete 2026-10-01, on `main`, not yet pushed/deployed):**
+**Phase 1 (deployed 2026-10-01; founder-tested on the live site):**
 
 - [x] Tables + migrations: `seller`, `store` (incl. `currency` USD/KHR),
       `refresh_token`, `category`, `product`, `product_variant` (with
@@ -99,15 +102,11 @@ shows "API: ok" from the deployed backend.
 
 ## In Progress
 
-- [ ] **Phase 1 — remaining (founder):**
-  - [ ] Push `main`; confirm CI is green; watch the Render deploy log for
-        the 3 migrations (first time the `app_user` role is created on Neon)
-  - [ ] Render: check `JWT_SECRET` exists under Environment (the Blueprint
-        should generate it; if not, add a random 48+ char value)
-  - [ ] Register on the live site, add a category and a product
-  - [ ] Cloudflare R2: bucket + API token + public dev URL + CORS, then the
-        five `R2_*` env vars in Render; upload a product photo on the live
-        site. This completes the Phase 1 definition of done.
+- [ ] **Carried over from Phase 1 (founder, later):** Cloudflare R2 bucket +
+      API token + public dev URL + CORS, then the five `R2_*` env vars in
+      Render; upload a product photo on the live site. Until then photo
+      upload shows "Image uploads are not set up yet" and products have no
+      images.
 - [ ] Confirm CI is green in the GitHub Actions tab (repo is private, so
       Claude can't see it)
 - [ ] Founder to apply the proposed 02/03 doc changes (Phase 0: Neon,
@@ -213,5 +212,5 @@ Still open: none.
 
 ## Next Up
 
-Push and verify Phase 1 on the live site (see In Progress), set up R2,
-then Phase 2 (public storefront).
+Phase 2: public storefront (`/shop/{slug}`, product and category pages,
+mobile styling). R2 setup whenever the founder is ready.
