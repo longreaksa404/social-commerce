@@ -1,77 +1,129 @@
-import { useState } from 'react'
-import { Link } from 'react-router'
-import { Card, ErrorMessage, Select, Spinner } from '../../components/ui.tsx'
-import { formatMoney } from '../../lib/money.ts'
+import { ChevronRight, ImageIcon, Package, Plus, SearchX } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router'
+import { Badge, Card, EmptyState, ErrorState, PageHeader, Select, Skeleton } from '../../components/ui.tsx'
+import { buttonClass } from '../../components/styles.ts'
+import { priceLabel, totalStock } from '../../lib/products.ts'
 import type { Currency, Product } from '../../lib/types.ts'
 import { useCategories, useProducts, useStore } from '../queries.ts'
 
 type StatusFilter = 'all' | 'active' | 'inactive'
+const STATUS_LABELS: Record<StatusFilter, string> = { all: 'All', active: 'Active', inactive: 'Hidden' }
 
 export function ProductList() {
   const products = useProducts()
   const categories = useCategories()
   const store = useStore()
-  const [status, setStatus] = useState<StatusFilter>('all')
-  const [categoryId, setCategoryId] = useState('')
+  // Filters live in the URL: they survive opening a product and coming back,
+  // and the Categories page can link straight to a filtered list.
+  const [params, setParams] = useSearchParams()
+  const status = (params.get('status') as StatusFilter | null) ?? 'all'
+  const categoryId = params.get('category') ?? ''
+
+  const setFilter = (key: string, value: string) =>
+    setParams(
+      (p) => {
+        if (value && value !== 'all') p.set(key, value)
+        else p.delete(key)
+        return p
+      },
+      { replace: true },
+    )
+
+  const addButton = (
+    <Link to="/dashboard/products/new" className={`${buttonClass('primary')} shrink-0`}>
+      <Plus aria-hidden className="size-4" />
+      Add
+    </Link>
+  )
+
+  if (products.isPending) return <ListSkeleton />
+  if (products.error) {
+    return (
+      <>
+        <PageHeader title="Products" />
+        <ErrorState error={products.error} onRetry={() => products.refetch()} />
+      </>
+    )
+  }
+
+  const all = products.data
+  if (all.length === 0) {
+    return (
+      <>
+        <PageHeader title="Products" />
+        <EmptyState
+          icon={Package}
+          title="Add your first product"
+          action={
+            <Link to="/dashboard/products/new" className={buttonClass('primary', 'lg')}>
+              <Plus aria-hidden className="size-5" />
+              Add product
+            </Link>
+          }
+        >
+          Products you add here will appear in your shop for customers to order.
+        </EmptyState>
+      </>
+    )
+  }
 
   const currency = store.data?.currency ?? 'USD'
   const categoryName = new Map(categories.data?.map((c) => [c.id, c.name]))
-  const shown = (products.data ?? []).filter(
-    (p) => (status === 'all' || p.status === status) && (!categoryId || p.category_id === categoryId),
-  )
+  const inCategory = all.filter((p) => !categoryId || p.category_id === categoryId)
+  const count = (s: StatusFilter) => inCategory.filter((p) => s === 'all' || p.status === s).length
+  const shown = inCategory.filter((p) => status === 'all' || p.status === status)
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-slate-900">Products</h1>
-        <Link
-          to="/dashboard/products/new"
-          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700"
-        >
-          Add product
-        </Link>
+    <>
+      <PageHeader title="Products" action={addButton} />
+
+      <div className="mb-4 space-y-3">
+        <div role="tablist" aria-label="Filter by visibility" className="grid grid-cols-3 rounded-xl bg-slate-200/70 p-1">
+          {(['all', 'active', 'inactive'] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={status === value}
+              onClick={() => setFilter('status', value)}
+              className={`min-h-10 rounded-lg text-sm font-medium transition ${
+                status === value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
+              }`}
+            >
+              {STATUS_LABELS[value]} <span className="text-slate-400">{count(value)}</span>
+            </button>
+          ))}
+        </div>
+        {categories.data && categories.data.length > 0 && (
+          <Select
+            aria-label="Filter by category"
+            value={categoryId}
+            onChange={(e) => setFilter('category', e.target.value)}
+          >
+            <option value="">All categories</option>
+            {categories.data.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+        )}
       </div>
 
-      {products.data && products.data.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <div className="flex rounded-lg border border-slate-300 bg-white p-0.5 text-sm">
-            {(['all', 'active', 'inactive'] as const).map((value) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setStatus(value)}
-                className={`rounded-md px-3 py-1.5 ${status === value ? 'bg-slate-900 text-white' : 'text-slate-600'}`}
-              >
-                {{ all: 'All', active: 'Active', inactive: 'Hidden' }[value]}
-              </button>
-            ))}
-          </div>
-          {categories.data && categories.data.length > 0 && (
-            <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="!w-auto" aria-label="Category">
-              <option value="">All categories</option>
-              {categories.data.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
-          )}
-        </div>
-      )}
-
-      {products.isPending && <Spinner />}
-      <ErrorMessage error={products.error} />
-      {products.data?.length === 0 && (
-        <Card className="text-center">
-          <p className="text-slate-700">No products yet.</p>
-          <p className="mt-1 text-sm text-slate-500">Add your first product to start building your shop.</p>
-        </Card>
-      )}
-      {products.data && products.data.length > 0 && shown.length === 0 && (
-        <p className="text-sm text-slate-500">No products match these filters.</p>
-      )}
-      {shown.length > 0 && (
-        <Card className="divide-y divide-slate-100 !p-0">
+      {shown.length === 0 ? (
+        <EmptyState
+          icon={SearchX}
+          title="No products here"
+          action={
+            <button type="button" className={buttonClass('secondary')} onClick={() => setParams({}, { replace: true })}>
+              Show all products
+            </button>
+          }
+        >
+          No products match these filters.
+        </EmptyState>
+      ) : (
+        <Card className="divide-y divide-slate-100 overflow-hidden">
           {shown.map((product) => (
             <ProductRow
               key={product.id}
@@ -82,48 +134,61 @@ export function ProductList() {
           ))}
         </Card>
       )}
-    </div>
+    </>
   )
 }
 
 function ProductRow({ product, currency, category }: { product: Product; currency: Currency; category?: string }) {
+  const stock = totalStock(product)
   return (
-    <Link to={`/dashboard/products/${product.id}`} className="flex items-center gap-3 p-3 hover:bg-slate-50 sm:p-4">
+    <Link
+      to={`/dashboard/products/${product.id}`}
+      className="flex items-center gap-3 p-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
+    >
       {product.image_urls[0] ? (
-        <img src={product.image_urls[0]} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
+        <img
+          src={product.image_urls[0]}
+          alt=""
+          loading="lazy"
+          className={`size-16 shrink-0 rounded-xl object-cover ${product.status === 'inactive' ? 'opacity-50' : ''}`}
+        />
       ) : (
-        <div className="size-14 shrink-0 rounded-lg bg-slate-100" />
+        <span className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+          <ImageIcon aria-hidden className="size-6" />
+        </span>
       )}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="truncate font-medium text-slate-900">{product.name}</p>
-          {product.status === 'inactive' && (
-            <span className="shrink-0 rounded bg-slate-200 px-1.5 py-0.5 text-xs text-slate-600">Hidden</span>
-          )}
-        </div>
-        <p className="text-sm text-slate-600">{priceLabel(product, currency)}</p>
-        <p className="text-xs text-slate-500">
-          {stockLabel(product)}
-          {category && ` · ${category}`}
-        </p>
-      </div>
+      <span className="min-w-0 flex-1">
+        <span className="line-clamp-2 font-medium leading-snug text-slate-900">{product.name}</span>
+        <span className="mt-0.5 block font-semibold text-slate-900">{priceLabel(product, currency)}</span>
+        <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+          {product.status === 'inactive' && <Badge>Hidden</Badge>}
+          {stock === 0 ? <Badge tone="red">Out of stock</Badge> : <span>{stock} in stock</span>}
+          {product.has_variants && <span>· {product.variants.length} variants</span>}
+          {category && <span>· {category}</span>}
+        </span>
+      </span>
+      <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-300" />
     </Link>
   )
 }
 
-function priceLabel(product: Product, currency: Currency): string {
-  const prices = product.has_variants
-    ? product.variants.map((v) => Number(v.price_override ?? product.price))
-    : [Number(product.price)]
-  const low = Math.min(...prices)
-  const high = Math.max(...prices)
-  return low === high ? formatMoney(low, currency) : `${formatMoney(low, currency)} – ${formatMoney(high, currency)}`
-}
-
-function stockLabel(product: Product): string {
-  const stock = product.has_variants
-    ? product.variants.reduce((sum, v) => sum + v.stock_quantity, 0)
-    : (product.stock_quantity ?? 0)
-  const variants = product.has_variants ? `${product.variants.length} variants · ` : ''
-  return stock === 0 ? `${variants}Out of stock` : `${variants}${stock} in stock`
+function ListSkeleton() {
+  return (
+    <>
+      <PageHeader title="Products" />
+      <Skeleton className="mb-4 h-12 w-full rounded-xl" />
+      <Card className="divide-y divide-slate-100">
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="flex items-center gap-3 p-3 sm:p-4">
+            <Skeleton className="size-16 rounded-xl" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+        ))}
+      </Card>
+    </>
+  )
 }
