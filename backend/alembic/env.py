@@ -5,6 +5,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
+import app.models  # noqa: F401  (registers every table on Base.metadata)
 from alembic import context
 from app.core.config import get_settings
 from app.db.base import Base
@@ -18,8 +19,6 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Model modules must be imported (here or via app.db.base) before autogenerate
-# runs, otherwise their tables are missing from Base.metadata.
 target_metadata = Base.metadata
 
 database_url = get_settings().database_url

@@ -26,6 +26,7 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgresql+asyncpg://app:ci-only@localhost:5432/social_commerce
+      JWT_SECRET: ci-only-not-a-real-secret-0123456789abcdef
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

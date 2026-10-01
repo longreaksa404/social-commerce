@@ -1,0 +1,94 @@
+import enum
+import uuid
+from datetime import datetime
+from typing import Any
+
+from sqlalchemy import DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.db.base import Base, CreatedAtMixin, UUIDPrimaryKeyMixin
+
+
+class Currency(enum.StrEnum):
+    USD = "USD"
+    KHR = "KHR"
+
+
+class OrderConfirmationMode(enum.StrEnum):
+    AUTOMATIC = "automatic"
+    MANUAL = "manual"
+
+
+def str_enum(enum_cls: type[enum.StrEnum], name: str) -> Enum:
+    """Stored as text + CHECK constraint, not a native Postgres enum, so new
+    values only need the constraint replaced instead of ALTER TYPE."""
+    return Enum(
+        enum_cls,
+        name=name,
+        native_enum=False,
+        create_constraint=True,
+        length=32,
+        values_callable=lambda cls: [member.value for member in cls],
+    )
+
+
+class Seller(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
+    """The login account. Not tenant-scoped: it owns the tenant (store)."""
+
+    __tablename__ = "seller"
+
+    email: Mapped[str] = mapped_column(Text, unique=True)  # stored lowercased
+    password_hash: Mapped[str] = mapped_column(Text)
+    full_name: Mapped[str] = mapped_column(Text)
+    phone: Mapped[str] = mapped_column(Text)
+    is_active: Mapped[bool] = mapped_column(default=True, server_default="true")
+
+    store: Mapped["Store"] = relationship(back_populates="seller")
+
+
+class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
+    """The tenant root: store.id is the store_id on every tenant table."""
+
+    __tablename__ = "store"
+
+    # unique: one store per seller in the MVP (02_TECHNICAL.md section 4.3)
+    seller_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("seller.id", ondelete="CASCADE"), unique=True
+    )
+    name: Mapped[str] = mapped_column(Text)
+    slug: Mapped[str] = mapped_column(String(64), unique=True)
+    description: Mapped[str | None] = mapped_column(Text)
+    logo_url: Mapped[str | None] = mapped_column(Text)
+    currency: Mapped[Currency] = mapped_column(
+        str_enum(Currency, "currency"), default=Currency.USD, server_default="USD"
+    )
+    telegram_chat_id: Mapped[str | None] = mapped_column(Text)
+    payment_config: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, server_default="{}")
+    delivery_config: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default="{}"
+    )
+    order_confirmation_mode: Mapped[OrderConfirmationMode] = mapped_column(
+        str_enum(OrderConfirmationMode, "order_confirmation_mode"),
+        default=OrderConfirmationMode.MANUAL,
+        server_default="manual",
+    )
+
+    seller: Mapped[Seller] = relationship(back_populates="store")
+
+
+class RefreshToken(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
+    """One row per issued refresh token; the id is the JWT's `jti`.
+
+    A token works once: refreshing sets revoked_at and issues a new one.
+    Presenting an already-revoked token means it was copied, so every token
+    of that seller is revoked (02_TECHNICAL.md section 13).
+    """
+
+    __tablename__ = "refresh_token"
+
+    seller_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("seller.id", ondelete="CASCADE"), index=True
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

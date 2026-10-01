@@ -1,7 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 
@@ -18,6 +18,31 @@ class Settings(BaseSettings):
     cors_origins: list[str] = []
     # Error tracking is off unless a DSN is set (production only).
     sentry_dsn: str = ""
+
+    # Auth (02_TECHNICAL.md section 13)
+    jwt_secret: str = Field(min_length=32)
+    access_token_minutes: int = 15
+    refresh_token_days: int = 7
+    rate_limit_enabled: bool = True
+
+    # Product images on Cloudflare R2. Uploads return 503 until all are set.
+    r2_account_id: str = ""
+    r2_access_key_id: str = ""
+    r2_secret_access_key: str = ""
+    r2_bucket: str = ""
+    r2_public_url: str = ""  # e.g. https://pub-xxxx.r2.dev, no trailing slash
+
+    @property
+    def r2_configured(self) -> bool:
+        return all(
+            (
+                self.r2_account_id,
+                self.r2_access_key_id,
+                self.r2_secret_access_key,
+                self.r2_bucket,
+                self.r2_public_url,
+            )
+        )
 
     @field_validator("database_url")
     @classmethod
