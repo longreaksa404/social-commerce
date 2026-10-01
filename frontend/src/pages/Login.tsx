@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
-import { Button, ErrorMessage, Field, Input } from '../components/ui.tsx'
+import { Button, ErrorMessage, Field, Input, PasswordInput } from '../components/ui.tsx'
 import { AuthLayout } from './AuthLayout.tsx'
 
 export function Login() {
@@ -32,11 +32,12 @@ export function Login() {
 
   return (
     <AuthLayout
-      title="Log in"
+      title="Welcome back"
+      subtitle="Log in to manage your shop."
       footer={
         <>
           New here?{' '}
-          <Link to="/register" className="font-medium text-emerald-700 hover:underline">
+          <Link to="/register" className="font-semibold text-emerald-700 hover:underline">
             Create your store
           </Link>
         </>
@@ -44,20 +45,31 @@ export function Login() {
     >
       <form onSubmit={submit} className="space-y-4">
         <Field label="Email">
-          <Input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            enterKeyHint="next"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </Field>
         <Field label="Password">
-          <Input
-            type="password"
+          <PasswordInput
             autoComplete="current-password"
+            enterKeyHint="go"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </Field>
         <ErrorMessage error={error} />
-        <Button type="submit" disabled={pending} className="w-full">
-          {pending ? 'Logging in…' : 'Log in'}
+        <Button type="submit" size="lg" loading={pending} className="w-full">
+          Log in
         </Button>
       </form>
     </AuthLayout>

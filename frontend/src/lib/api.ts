@@ -143,9 +143,3 @@ export async function api<T>(path: string, { method = 'GET', body, auth = true }
   if (response.status === 204) return undefined as T
   return (await response.json()) as T
 }
-
-export async function fetchHealth(): Promise<{ status: string }> {
-  const response = await fetch(`${API_URL}/health`)
-  if (!response.ok) throw new Error(`Health check failed with status ${response.status}`)
-  return response.json()
-}
