@@ -7,3 +7,7 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
+# One event loop for the whole run: the app's engine and pool are global.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"

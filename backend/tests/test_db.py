@@ -1,13 +1,13 @@
-import asyncio
 import uuid
 
 from sqlalchemy import text
 from sqlalchemy.orm import DeclarativeBase
 
 from app.db.base import TenantMixin, UUIDPrimaryKeyMixin
-from app.db.session import SessionLocal, engine, set_tenant
+from app.db.session import tenant_session
 
 CURRENT_TENANT = text("SELECT current_setting('app.tenant_id', true)")
+CURRENT_ROLE = text("SELECT current_user")
 
 
 def test_tenant_mixin_adds_required_store_id():
@@ -24,22 +24,14 @@ def test_tenant_mixin_adds_required_store_id():
     assert [fk.target_fullname for fk in store_id.foreign_keys] == ["store.id"]
 
 
-def test_set_tenant_is_scoped_to_the_transaction():
-    """Needs the local Postgres (docker compose up -d)."""
+async def test_tenant_session_scopes_every_transaction():
     store_id = uuid.uuid4()
 
-    async def scenario() -> tuple[str | None, str | None]:
-        try:
-            async with SessionLocal() as session:
-                await set_tenant(session, store_id)
-                inside = await session.scalar(CURRENT_TENANT)
-                await session.commit()
-                after = await session.scalar(CURRENT_TENANT)
-            return inside, after
-        finally:
-            await engine.dispose()
+    async with tenant_session(store_id) as session:
+        first = (await session.scalar(CURRENT_TENANT), await session.scalar(CURRENT_ROLE))
+        await session.commit()
+        # A new transaction after commit is scoped again.
+        second = (await session.scalar(CURRENT_TENANT), await session.scalar(CURRENT_ROLE))
 
-    inside, after = asyncio.run(scenario())
-
-    assert inside == str(store_id)
-    assert not after
+    assert first == (str(store_id), "app_user")
+    assert second == (str(store_id), "app_user")
