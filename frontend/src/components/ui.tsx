@@ -6,6 +6,7 @@ import {
   useState,
   type ButtonHTMLAttributes,
   type ComponentType,
+  type CSSProperties,
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
@@ -19,7 +20,7 @@ import { buttonClass, type ButtonSize, type ButtonVariant } from './styles.ts'
 // Form fields. Inputs are 44px tall with 16px text on phones (smaller text
 // makes iOS zoom in on focus) and slightly tighter from `sm` up.
 
-type FieldState = { invalid: boolean; describedBy?: string }
+type FieldState = { id?: string; invalid: boolean; describedBy?: string }
 const FieldContext = createContext<FieldState>({ invalid: false })
 
 const control =
@@ -34,6 +35,9 @@ function controlClass(invalid: boolean, extra = '') {
   return `${control} ${tone} ${extra}`
 }
 
+/** Label + control + hint/error. The control inside picks up its id,
+ * aria-invalid, and aria-describedby from here, so the label names it and
+ * the hint/error is read as its description. */
 export function Field({
   label,
   hint,
@@ -48,54 +52,61 @@ export function Field({
   const id = useId()
   const describedBy = error || hint ? `${id}-desc` : undefined
   return (
-    <FieldContext value={{ invalid: Boolean(error), describedBy }}>
-      <label className="block">
-        <span className="mb-1.5 block text-sm font-medium text-slate-700">{label}</span>
+    <FieldContext value={{ id, invalid: Boolean(error), describedBy }}>
+      <div>
+        <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-700">
+          {label}
+        </label>
         {children}
         {error ? (
-          <span id={describedBy} className="mt-1.5 flex items-start gap-1 text-sm text-red-600">
+          <p id={describedBy} className="mt-1.5 flex items-start gap-1 text-sm text-red-600">
             <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
             {error}
-          </span>
+          </p>
         ) : (
           hint && (
-            <span id={describedBy} className="mt-1.5 block text-xs leading-5 text-slate-500">
+            <p id={describedBy} className="mt-1.5 text-xs leading-5 text-slate-500">
               {hint}
-            </span>
+            </p>
           )
         )}
-      </label>
+      </div>
     </FieldContext>
   )
 }
 
-type InputProps = InputHTMLAttributes<HTMLInputElement> & {
-  /** Shown inside the field on the left, e.g. a currency symbol. */
-  prefix?: ReactNode
-  /** Shown inside the field on the right, e.g. a show-password button. */
-  suffix?: ReactNode
+/** Props every control takes from its Field. */
+function useFieldProps() {
+  const { id, invalid, describedBy } = use(FieldContext)
+  return { invalid, field: { id, 'aria-invalid': invalid || undefined, 'aria-describedby': describedBy } }
 }
 
-export function Input({ prefix, suffix, className = '', ...props }: InputProps) {
-  const { invalid, describedBy } = use(FieldContext)
+type InputProps = InputHTMLAttributes<HTMLInputElement> & {
+  /** Shown inside the field on the left, e.g. a currency symbol. */
+  leading?: ReactNode
+  /** Shown inside the field on the right, e.g. a show-password button. */
+  trailing?: ReactNode
+}
+
+export function Input({ leading, trailing, className = '', ...props }: InputProps) {
+  const { invalid, field } = useFieldProps()
   const input = (
     <input
-      aria-invalid={invalid || undefined}
-      aria-describedby={describedBy}
+      {...field}
       {...props}
-      className={controlClass(invalid, `${prefix ? 'pl-9' : ''} ${suffix ? 'pr-12' : ''} ${className}`)}
+      className={controlClass(invalid, `${leading ? 'pl-9' : ''} ${trailing ? 'pr-12' : ''} ${className}`)}
     />
   )
-  if (!prefix && !suffix) return input
+  if (!leading && !trailing) return input
   return (
     <div className="relative">
-      {prefix && (
+      {leading && (
         <span className="pointer-events-none absolute inset-y-0 left-0 flex w-9 items-center justify-center text-slate-500">
-          {prefix}
+          {leading}
         </span>
       )}
       {input}
-      {suffix && <span className="absolute inset-y-0 right-0 flex items-center pr-1">{suffix}</span>}
+      {trailing && <span className="absolute inset-y-0 right-0 flex items-center pr-1">{trailing}</span>}
     </div>
   )
 }
@@ -110,7 +121,7 @@ export function PasswordInput(props: InputHTMLAttributes<HTMLInputElement>) {
       autoCapitalize="none"
       autoCorrect="off"
       spellCheck={false}
-      suffix={
+      trailing={
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
@@ -125,12 +136,11 @@ export function PasswordInput(props: InputHTMLAttributes<HTMLInputElement>) {
 }
 
 export function TextArea({ className = '', ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  const { invalid, describedBy } = use(FieldContext)
+  const { invalid, field } = useFieldProps()
   return (
     <textarea
       rows={3}
-      aria-invalid={invalid || undefined}
-      aria-describedby={describedBy}
+      {...field}
       {...props}
       className={controlClass(invalid, `resize-y ${className}`)}
     />
@@ -138,11 +148,10 @@ export function TextArea({ className = '', ...props }: TextareaHTMLAttributes<HT
 }
 
 export function Select({ className = '', ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
-  const { invalid, describedBy } = use(FieldContext)
+  const { invalid, field } = useFieldProps()
   return (
     <select
-      aria-invalid={invalid || undefined}
-      aria-describedby={describedBy}
+      {...field}
       {...props}
       className={controlClass(invalid, `pr-9 ${className}`)}
     />
@@ -312,8 +321,8 @@ export function Badge({ tone = 'neutral', children }: { tone?: 'neutral' | 'red'
   )
 }
 
-export function Skeleton({ className = '' }: { className?: string }) {
-  return <div aria-hidden className={`animate-pulse rounded-lg bg-slate-200/80 ${className}`} />
+export function Skeleton({ className = '', style }: { className?: string; style?: CSSProperties }) {
+  return <div aria-hidden style={style} className={`animate-pulse rounded-lg bg-slate-200/80 ${className}`} />
 }
 
 export function EmptyState({
