@@ -2,6 +2,8 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, EmailStr, Field, StringConstraints
 
+from app.schemas.common import Name
+
 
 def _bcrypt_limit(password: str) -> str:
     # bcrypt only uses the first 72 bytes and the library rejects longer input.
@@ -11,7 +13,6 @@ def _bcrypt_limit(password: str) -> str:
 
 
 Password = Annotated[str, Field(min_length=8), AfterValidator(_bcrypt_limit)]
-Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
 Phone = Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^\+?[0-9 ]{6,20}$")]
 
 
