@@ -82,6 +82,10 @@ and first deploy remaining)
 - Postgres data lives in a per-machine Docker volume and does not sync
   between machines; schema comes from Alembic migrations, seed data from
   scripts (seed script to be added in a later phase).
+- Commits must be authored with an email on the `longreaksa404` GitHub
+  account, or Vercel (Hobby) blocks the deploy. Set per repo with
+  `git config user.email longchansamanakreaksa@gmail.com`; the container's
+  global `~/.gitconfig` has the work email. Repeat on each machine.
 
 ---
 
