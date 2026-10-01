@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-01
+> **Last updated:** 2026-10-01 (Phase 0 deployed)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,8 +15,10 @@
 
 ## Current Phase
 
-**Phase 0 — Setup & Foundations** (in progress: all code done; account setup
-and first deploy remaining)
+**Phase 1 — Auth + Store + Product Management** (not started)
+
+Phase 0 met its definition of done on 2026-10-01: the deployed frontend
+shows "API: ok" from the deployed backend.
 
 ---
 
@@ -53,24 +55,24 @@ and first deploy remaining)
       and smoke-tested locally against Postgres.
 - [x] 5 passing pytest tests (health, tenant mixin, `set_tenant` scoping,
       database URL conversion)
+- [x] **Deployed (2026-10-01):**
+  - Frontend: https://social-commerce-eight.vercel.app (Vercel Hobby,
+    root directory `frontend`, deploys on push to `main`)
+  - Backend: https://social-commerce-api.onrender.com (Render free,
+    Singapore, from `render.yaml`); `/health` ok, CORS allows the Vercel URL
+  - Database: Neon free, Singapore, database `social_commerce`, direct
+    (non-pooled) connection; migrations run against it on backend start
+  - Sentry: projects `api` (FastAPI) and `web` (React), errors only
+  - Domain + Cloudflare DNS: deferred to Phase 9
 
 ---
 
 ## In Progress
 
-- [ ] **Phase 0 — remaining tasks** (founder: accounts and dashboard steps)
-  - [ ] Push `main`, confirm CI is green in the Actions tab  <- NEXT
-  - [ ] Neon: create project (Singapore), copy the direct connection string
-  - [ ] Sentry: create a FastAPI project and a React project, copy both DSNs
-  - [ ] Render: New > Blueprint from the repo, enter the env vars
-  - [x] Neon project created (Singapore, database `social_commerce`)
-  - [x] Sentry projects `api` and `web` created
-  - [ ] Vercel: import repo, root directory `frontend`, set env vars
-        (project created; production URL
-        `https://social-commerce-eight.vercel.app`)
-  - [ ] Set Render `CORS_ORIGINS` to the Vercel URL; open the Vercel URL and
-        see "API: ok" (Phase 0 definition of done)
-  - Domain + Cloudflare DNS: deferred to Phase 9 (decided 2026-10-01)
+- [ ] Confirm CI is green in the GitHub Actions tab (repo is private, so
+      Claude can't see it)
+- [ ] Founder to apply the proposed 02/03 doc changes (Neon, domain moved
+      to Phase 9, migrations at container start)
 
 ---
 
@@ -159,5 +161,5 @@ Still open: none.
 
 ## Next Up
 
-Founder account setup (see In Progress), then confirm the deployed frontend
-shows "API: ok". Then Phase 1, starting with the `seller` and `store` tables.
+Phase 1, starting with the `seller` and `store` tables + first migration,
+plus a non-superuser app role so RLS is actually enforced.
