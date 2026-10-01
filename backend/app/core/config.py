@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     environment: str = "development"
     database_url: str
     cors_origins: list[str] = []
+    # Error tracking is off unless a DSN is set (production only).
+    sentry_dsn: str = ""
 
     @field_validator("database_url")
     @classmethod
