@@ -63,7 +63,11 @@ and first deploy remaining)
   - [ ] Neon: create project (Singapore), copy the direct connection string
   - [ ] Sentry: create a FastAPI project and a React project, copy both DSNs
   - [ ] Render: New > Blueprint from the repo, enter the env vars
+  - [x] Neon project created (Singapore, database `social_commerce`)
+  - [x] Sentry projects `api` and `web` created
   - [ ] Vercel: import repo, root directory `frontend`, set env vars
+        (project created; production URL
+        `https://social-commerce-eight.vercel.app`)
   - [ ] Set Render `CORS_ORIGINS` to the Vercel URL; open the Vercel URL and
         see "API: ok" (Phase 0 definition of done)
   - Domain + Cloudflare DNS: deferred to Phase 9 (decided 2026-10-01)
