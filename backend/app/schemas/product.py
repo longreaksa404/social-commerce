@@ -3,7 +3,14 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Annotated, Self
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    model_validator,
+)
 
 from app.models import ProductStatus
 from app.schemas.common import Description, Name, Slug
@@ -11,7 +18,13 @@ from app.schemas.common import Description, Name, Slug
 MAX_VARIANTS = 50
 MAX_IMAGES = 5
 
-Money = Annotated[Decimal, Field(ge=0, max_digits=12, decimal_places=2)]
+# Always two decimals, so responses read "12.50" whether or not the value
+# has been re-read from the database yet.
+Money = Annotated[
+    Decimal,
+    Field(ge=0, max_digits=12, decimal_places=2),
+    AfterValidator(lambda v: v.quantize(Decimal("0.01"))),
+]
 Stock = Annotated[int, Field(ge=0, le=1_000_000)]
 Sku = Annotated[str, StringConstraints(strip_whitespace=True, max_length=64)]
 

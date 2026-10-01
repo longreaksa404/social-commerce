@@ -1,5 +1,5 @@
 async def _create(client, headers, **body):
-    payload = {"name": "T-shirt", "price": "12.50", "stock_quantity": 5, **body}
+    payload = {"name": "T-shirt", "price": "12.5", "stock_quantity": 5, **body}
     return await client.post("/api/v1/seller/products", headers=headers, json=payload)
 
 
