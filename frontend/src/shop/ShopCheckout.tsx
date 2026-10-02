@@ -14,7 +14,8 @@ import {
 import { ApiError } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
 import { formatMoney, fromCents, toCents } from '../lib/money.ts'
-import type { Currency } from '../lib/types.ts'
+import { PAYMENT_METHOD_LABELS, PAYMENT_METHOD_ORDER } from '../lib/payments.ts'
+import type { Currency, PaymentMethod } from '../lib/types.ts'
 import { useCart, useCheckedCart, type CheckedLine } from './cart.ts'
 import { loadCustomerDetails, rememberOrder, saveCustomerDetails } from './device.ts'
 import { usePlaceOrder, useShop } from './queries.ts'
@@ -22,12 +23,20 @@ import { usePlaceOrder, useShop } from './queries.ts'
 // The server's codes for a cart that no longer matches the shop: the page
 // re-checks the cart so the changed lines show what's wrong.
 const CART_CHANGED = new Set(['PRODUCT_OUT_OF_STOCK', 'PRODUCT_UNAVAILABLE', 'ORDER_TOTAL_CHANGED'])
-const FIELDS = ['name', 'phone', 'delivery_address', 'notes']
+const FIELDS = ['name', 'phone', 'delivery_address', 'notes', 'payment_method']
 
-type Form = { name: string; phone: string; address: string; notes: string }
+type Form = { name: string; phone: string; address: string; notes: string; payment: PaymentMethod | null }
 
-/** /shop/:storeSlug/checkout: guest checkout (customer, delivery, review).
- * Payment method is added in Phase 4, pickup in Phase 5. */
+// Payment details (QR code, bank account) come on the order page, once
+// the order and its total exist.
+const PAYMENT_HINTS: Record<PaymentMethod, string> = {
+  khqr: "Scan a QR code with your bank app. You'll get it after placing the order.",
+  bank_transfer: "Transfer to the seller's account. You'll see it after placing the order.",
+  cod: 'Pay in cash when you get your order.',
+}
+
+/** /shop/:storeSlug/checkout: guest checkout (customer, delivery, payment,
+ * review). Pickup is added in Phase 5. */
 export function ShopCheckout() {
   const { storeSlug = '' } = useParams()
   const navigate = useNavigate()
@@ -38,18 +47,22 @@ export function ShopCheckout() {
   // Prefilled from this device's last order.
   const [form, setForm] = useState<Form>(() => {
     const saved = loadCustomerDetails()
-    return { name: saved?.name ?? '', phone: saved?.phone ?? '', address: saved?.address ?? '', notes: '' }
+    return { name: saved?.name ?? '', phone: saved?.phone ?? '', address: saved?.address ?? '', notes: '', payment: null }
   })
-  const set = (key: keyof Form, value: string) => setForm((f) => ({ ...f, [key]: value }))
+  const set = (key: Exclude<keyof Form, 'payment'>, value: string) => setForm((f) => ({ ...f, [key]: value }))
 
   // After a successful order the cart is emptied while leaving this page.
   if (cart.lines.length === 0 && !place.isSuccess) return <Navigate to={`/shop/${storeSlug}/cart`} replace />
   if (!shop.data) return <CheckoutSkeleton />
   const currency = shop.data.currency
+  const methods = PAYMENT_METHOD_ORDER.filter((m) => shop.data.payment_methods.includes(m))
+  // No choice to make when there's one way to pay; otherwise the customer
+  // picks, rather than paying in a way they didn't notice was chosen.
+  const payment = methods.length === 1 ? methods[0] : form.payment && methods.includes(form.payment) ? form.payment : null
 
   async function submit(event: FormEvent) {
     event.preventDefault()
-    if (!checked.ready || place.isPending) return
+    if (!checked.ready || place.isPending || !payment) return
     const details = { name: form.name.trim(), phone: form.phone.trim(), address: form.address.trim() }
     let order
     try {
@@ -60,9 +73,12 @@ export function ShopCheckout() {
         notes: form.notes.trim() || null,
         items: checked.lines.map((l) => ({ product_id: l.productId, variant_id: l.variantId, quantity: l.quantity })),
         expected_total: fromCents(checked.totalCents),
+        payment_method: payment,
       })
     } catch (error) {
       if (error instanceof ApiError && CART_CHANGED.has(error.code)) checked.refetch()
+      // The seller turned this method off: show what's left.
+      if (error instanceof ApiError && error.code === 'PAYMENT_METHOD_UNAVAILABLE') shop.refetch()
       return // shown via place.error
     }
     saveCustomerDetails(details)
@@ -134,6 +150,39 @@ export function ShopCheckout() {
             onChange={(e) => set('notes', e.target.value)}
           />
         </Field>
+      </Section>
+
+      <Section title="Payment">
+        <fieldset aria-describedby={fieldError(place.error, 'payment_method') ? 'payment-error' : undefined}>
+          <legend className="sr-only">How will you pay?</legend>
+          <div className="space-y-2">
+            {methods.map((method) => (
+              <label
+                key={method}
+                className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-slate-200 px-3.5 py-3 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-emerald-600/15"
+              >
+                <input
+                  type="radio"
+                  name="payment"
+                  required
+                  value={method}
+                  checked={payment === method}
+                  onChange={() => setForm((f) => ({ ...f, payment: method }))}
+                  className="mt-0.5 size-5 shrink-0 accent-emerald-700"
+                />
+                <span className="min-w-0">
+                  <span className="block font-medium text-slate-900">{PAYMENT_METHOD_LABELS[method]}</span>
+                  <span className="mt-0.5 block text-sm text-slate-500">{PAYMENT_HINTS[method]}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          {fieldError(place.error, 'payment_method') && (
+            <p id="payment-error" className="mt-2 text-sm text-red-600">
+              {fieldError(place.error, 'payment_method')}
+            </p>
+          )}
+        </fieldset>
       </Section>
 
       <Section

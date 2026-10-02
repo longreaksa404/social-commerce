@@ -4,6 +4,7 @@ import { buttonClass } from '../../components/styles.ts'
 import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, ORDER_STATUS_LABELS, ORDER_STATUS_TONES } from '../../lib/orders.ts'
+import { paymentBadge } from '../../lib/payments.ts'
 import type { OrderStatus, OrderSummary } from '../../lib/types.ts'
 import { useOrders, useStore } from '../queries.ts'
 
@@ -113,15 +114,17 @@ export function OrderList() {
 }
 
 function OrderRow({ order }: { order: OrderSummary }) {
+  const payment = paymentBadge(order.payment_method, order.payment_status)
   return (
     <Link
       to={`/dashboard/orders/${order.id}`}
       className="flex items-center gap-3 p-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
     >
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-2">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="font-semibold text-slate-900">#{order.number}</span>
           <Badge tone={ORDER_STATUS_TONES[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>
+          <Badge tone={payment.tone}>{payment.label}</Badge>
         </span>
         <span className="mt-0.5 block truncate text-sm text-slate-700">{order.customer_name}</span>
         <span className="mt-0.5 block text-xs text-slate-500">

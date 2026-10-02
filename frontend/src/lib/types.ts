@@ -4,6 +4,17 @@
 export type Currency = 'USD' | 'KHR'
 export type ProductStatus = 'active' | 'inactive'
 export type OrderConfirmationMode = 'automatic' | 'manual'
+export type PaymentMethod = 'cod' | 'bank_transfer' | 'khqr'
+/** 02_TECHNICAL.md section 7.2. */
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
+
+/** Which ways to pay the shop takes. A method can only be on with its
+ * details filled in; details are kept while it's off. */
+export type PaymentSettings = {
+  cod: { enabled: boolean }
+  bank_transfer: { enabled: boolean; bank_name: string; account_name: string; account_number: string }
+  khqr: { enabled: boolean; bakong_account_id: string; merchant_name: string }
+}
 
 export type Store = {
   id: string
@@ -14,6 +25,7 @@ export type Store = {
   currency: Currency
   /** automatic: new orders are accepted at once; manual: they wait as pending. */
   order_confirmation_mode: OrderConfirmationMode
+  payment_settings: PaymentSettings
   created_at: string
 }
 
@@ -67,6 +79,8 @@ export type ShopStore = {
   currency: Currency
   /** Only categories with at least one product on sale. */
   categories: (ShopCategoryRef & { product_count: number })[]
+  /** For checkout; the details come with the order. */
+  payment_methods: PaymentMethod[]
 }
 
 export type ShopProductCard = {
@@ -121,6 +135,30 @@ export type OrderItem = {
   line_total: string
 }
 
+export type BankAccount = { bank_name: string; account_name: string; account_number: string }
+
+/** An order's payment as its customer sees it. */
+export type ShopPayment = {
+  method: PaymentMethod
+  status: PaymentStatus
+  amount: string
+  /** How to pay: only while it's unpaid and the order is still on, and
+   * only for the chosen method. Both null for cash on delivery. */
+  bank_account: BankAccount | null
+  khqr: { code: string; merchant_name: string } | null
+}
+
+/** An order's payment as the seller sees it. */
+export type Payment = {
+  method: PaymentMethod
+  status: PaymentStatus
+  amount: string
+  reference: string | null
+  paid_at: string | null
+  /** What the seller can record now; the server applies the rules. */
+  next_statuses: PaymentStatus[]
+}
+
 /** What a customer sees: the confirmation page and order tracking. */
 export type ShopOrder = {
   id: string
@@ -133,9 +171,11 @@ export type ShopOrder = {
   total: string
   delivery_method: 'seller_delivery' | 'pickup'
   items: OrderItem[]
+  payment: ShopPayment
 }
 
-export type Order = ShopOrder & {
+export type Order = Omit<ShopOrder, 'payment'> & {
+  payment: Payment
   updated_at: string
   delivery_address: string | null
   notes: string | null
@@ -154,6 +194,8 @@ export type OrderSummary = {
   customer_name: string
   /** Units, not lines. */
   item_count: number
+  payment_method: PaymentMethod
+  payment_status: PaymentStatus
 }
 
 export type OrderList = {

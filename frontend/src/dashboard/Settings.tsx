@@ -20,7 +20,7 @@ import {
 } from '../components/ui.tsx'
 import { api } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
-import type { Currency, OrderConfirmationMode, Store } from '../lib/types.ts'
+import type { Currency, OrderConfirmationMode, PaymentSettings, Store } from '../lib/types.ts'
 import { keys, useStore } from './queries.ts'
 import { useUnsavedChanges } from './useUnsavedChanges.ts'
 
@@ -50,6 +50,7 @@ type Form = {
   description: string
   currency: Currency
   order_confirmation_mode: OrderConfirmationMode
+  payment_settings: PaymentSettings
 }
 
 const toForm = (store: Store): Form => ({
@@ -58,7 +59,18 @@ const toForm = (store: Store): Form => ({
   description: store.description ?? '',
   currency: store.currency,
   order_confirmation_mode: store.order_confirmation_mode,
+  payment_settings: store.payment_settings,
 })
+
+// Fields the server may name in an error; their message shows by the input.
+const PAYMENT_FIELDS = [
+  'payment_settings',
+  'payment_settings.bank_transfer.bank_name',
+  'payment_settings.bank_transfer.account_name',
+  'payment_settings.bank_transfer.account_number',
+  'payment_settings.khqr.bakong_account_id',
+  'payment_settings.khqr.merchant_name',
+]
 
 function StoreForm({ store }: { store: Store }) {
   const queryClient = useQueryClient()
@@ -81,7 +93,12 @@ function StoreForm({ store }: { store: Store }) {
     },
   })
 
-  const set = (key: keyof Form, value: string) => setForm((f) => ({ ...f, [key]: value }))
+  const set = (key: Exclude<keyof Form, 'payment_settings'>, value: string) => setForm((f) => ({ ...f, [key]: value }))
+  const setPayment = <M extends keyof PaymentSettings>(method: M, changes: Partial<PaymentSettings[M]>) =>
+    setForm((f) => ({
+      ...f,
+      payment_settings: { ...f.payment_settings, [method]: { ...f.payment_settings[method], ...changes } },
+    }))
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -141,6 +158,8 @@ function StoreForm({ store }: { store: Store }) {
         />
       </Section>
 
+      <PaymentsSection settings={form.payment_settings} onChange={setPayment} error={save.error} />
+
       <Section title="Shop link" description="The address you share with customers.">
         <Field label="Link name" error={fieldError(save.error, 'slug')}>
           <Input
@@ -170,11 +189,124 @@ function StoreForm({ store }: { store: Store }) {
         </Link>
       </Section>
 
-      <ErrorMessage error={formError(save.error, ['name', 'slug', 'description'])} />
+      <ErrorMessage error={formError(save.error, ['name', 'slug', 'description', ...PAYMENT_FIELDS])} />
       <Button type="submit" size="lg" loading={save.isPending} disabled={!dirty} className="w-full sm:w-auto">
         Save settings
       </Button>
     </form>
+  )
+}
+
+function PaymentsSection({
+  settings,
+  onChange,
+  error,
+}: {
+  settings: PaymentSettings
+  onChange: <M extends keyof PaymentSettings>(method: M, changes: Partial<PaymentSettings[M]>) => void
+  error: unknown
+}) {
+  const { cod, bank_transfer: bank, khqr } = settings
+  const noneOn = !cod.enabled && !bank.enabled && !khqr.enabled
+  const fieldErr = (field: string) => fieldError(error, `payment_settings.${field}`)
+  return (
+    <Section
+      title="Payments"
+      description="How customers can pay. You confirm each payment yourself on the order, after checking your bank app."
+    >
+      <Switch
+        checked={khqr.enabled}
+        onChange={(enabled) => onChange('khqr', { enabled })}
+        label="KHQR"
+        description="Customers get a QR code for their exact total, to scan with any Cambodian bank app."
+      />
+      {khqr.enabled && (
+        <div className="space-y-4 border-l-2 border-slate-100 pl-4">
+          <Field
+            label="Bakong ID"
+            error={fieldErr('khqr.bakong_account_id')}
+            hint="In your bank app, with your Bakong or KHQR details. It looks like name@aclb."
+          >
+            <Input
+              required
+              maxLength={32}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="name@bank"
+              value={khqr.bakong_account_id}
+              onChange={(e) => onChange('khqr', { bakong_account_id: e.target.value })}
+            />
+          </Field>
+          <Field
+            label="Name customers see"
+            error={fieldErr('khqr.merchant_name')}
+            hint="Shown in the customer's bank app when they scan. Use the name on your account, in English letters."
+          >
+            <Input
+              required
+              maxLength={25}
+              pattern="[ -~]*"
+              title="English letters, numbers, and spaces"
+              autoCapitalize="characters"
+              value={khqr.merchant_name}
+              onChange={(e) => onChange('khqr', { merchant_name: e.target.value })}
+            />
+          </Field>
+        </div>
+      )}
+
+      <Switch
+        checked={bank.enabled}
+        onChange={(enabled) => onChange('bank_transfer', { enabled })}
+        label="Bank transfer"
+        description="Customers see this account after they order, and transfer the total."
+      />
+      {bank.enabled && (
+        <div className="space-y-4 border-l-2 border-slate-100 pl-4">
+          <Field label="Bank" error={fieldErr('bank_transfer.bank_name')}>
+            <Input
+              required
+              maxLength={50}
+              placeholder="ABA"
+              value={bank.bank_name}
+              onChange={(e) => onChange('bank_transfer', { bank_name: e.target.value })}
+            />
+          </Field>
+          <Field label="Name on the account" error={fieldErr('bank_transfer.account_name')}>
+            <Input
+              required
+              maxLength={100}
+              autoCapitalize="characters"
+              value={bank.account_name}
+              onChange={(e) => onChange('bank_transfer', { account_name: e.target.value })}
+            />
+          </Field>
+          <Field label="Account number" error={fieldErr('bank_transfer.account_number')}>
+            <Input
+              required
+              maxLength={50}
+              autoComplete="off"
+              value={bank.account_number}
+              onChange={(e) => onChange('bank_transfer', { account_number: e.target.value })}
+            />
+          </Field>
+        </div>
+      )}
+
+      <Switch
+        checked={cod.enabled}
+        onChange={(enabled) => onChange('cod', { enabled })}
+        label="Cash on delivery"
+        description="Customers pay in cash when they get their order."
+      />
+
+      {(noneOn || fieldError(error, 'payment_settings')) && (
+        <p role="alert" className="text-sm text-red-600">
+          {fieldError(error, 'payment_settings') ?? 'Turn on at least one way to pay.'}
+        </p>
+      )}
+    </Section>
   )
 }
 

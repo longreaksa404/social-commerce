@@ -1,6 +1,13 @@
 import { queryOptions, useMutation, useQuery } from '@tanstack/react-query'
 import { api, ApiError } from '../lib/api.ts'
-import type { ShopCategoryPage, ShopOrder, ShopProduct, ShopProductCard, ShopStore } from '../lib/types.ts'
+import type {
+  PaymentMethod,
+  ShopCategoryPage,
+  ShopOrder,
+  ShopProduct,
+  ShopProductCard,
+  ShopStore,
+} from '../lib/types.ts'
 
 // Public storefront data: no login, so `auth: false`. A minute of
 // freshness keeps back/forward between pages instant on slow mobile data.
@@ -59,6 +66,7 @@ export type OrderRequest = {
   items: { product_id: string; variant_id: string | null; quantity: number }[]
   /** What the customer was shown; the server refuses the order if prices changed. */
   expected_total: string
+  payment_method: PaymentMethod
 }
 
 export function usePlaceOrder(slug: string) {

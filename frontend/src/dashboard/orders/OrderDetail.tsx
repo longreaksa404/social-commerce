@@ -1,12 +1,14 @@
 import { MessageSquareText, Phone } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
 import { useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
-import { Badge, Button, Card, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
+import { Badge, Button, Card, ErrorState, Field, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { ApiError } from '../../lib/api.ts'
 import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, formatPhone, ORDER_STATUS_LABELS, ORDER_STATUS_TONES } from '../../lib/orders.ts'
+import { PAYMENT_METHOD_LABELS, paymentBadge } from '../../lib/payments.ts'
 import type { Order, OrderStatus } from '../../lib/types.ts'
-import { useChangeOrderStatus, useOrder } from '../queries.ts'
+import { useChangeOrderStatus, useOrder, useRecordPayment } from '../queries.ts'
 
 // The button for moving an order to each status.
 const ACTION_LABELS: Partial<Record<OrderStatus, string>> = {
@@ -91,6 +93,8 @@ function OrderView({ order, onStale }: { order: Order; onStale: () => void }) {
           )}
         </Card>
 
+        <PaymentSection order={order} onStale={onStale} />
+
         <Card className="p-4 sm:p-6">
           <h2 className="font-semibold text-slate-900">Customer</h2>
           <p className="mt-2 break-words text-slate-900">{order.customer.name}</p>
@@ -158,6 +162,106 @@ function OrderView({ order, onStale }: { order: Order; onStale: () => void }) {
         </div>
       )}
     </>
+  )
+}
+
+/** The payment is its own state machine (02 section 7.2): recording it
+ * never moves the order, but an order that isn't cash on delivery can only
+ * be completed once it's paid (section 7.4). */
+function PaymentSection({ order, onStale }: { order: Order; onStale: () => void }) {
+  const { toast, confirm } = useFeedback()
+  const record = useRecordPayment(order.id)
+  const [confirming, setConfirming] = useState(false)
+  const [reference, setReference] = useState('')
+  const { payment } = order
+  const badge = paymentBadge(payment.method, payment.status)
+  const cod = payment.method === 'cod'
+  const waitsForPayment = order.status === 'delivered' && !order.next_statuses.includes('completed')
+
+  async function save(status: 'paid' | 'failed') {
+    try {
+      await record.mutateAsync({ status, reference: reference.trim() || null })
+      toast(status === 'paid' ? `Order #${order.number}: paid` : `Order #${order.number}: payment failed`)
+      setConfirming(false)
+    } catch (error) {
+      toast(error instanceof ApiError ? error.message : 'Something went wrong. Please try again.', 'error')
+      if (error instanceof ApiError && error.status === 409) onStale()
+    }
+  }
+
+  async function markFailed() {
+    const ok = await confirm({
+      title: 'Mark the payment as failed?',
+      message: "Use this when the customer didn't pay, or the transfer never arrived. This can't be undone.",
+      confirmLabel: 'Payment failed',
+      danger: true,
+    })
+    if (ok) save('failed')
+  }
+
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    save('paid')
+  }
+
+  return (
+    <Card className="p-4 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-semibold text-slate-900">Payment</h2>
+        <Badge tone={badge.tone}>{badge.label}</Badge>
+      </div>
+      <p className="mt-2 text-slate-900">
+        {PAYMENT_METHOD_LABELS[payment.method]} · {formatMoney(payment.amount, order.currency)}
+      </p>
+      {payment.paid_at && (
+        <p className="mt-0.5 text-sm text-slate-500">Marked paid {formatOrderTime(payment.paid_at)}</p>
+      )}
+      {payment.reference && (
+        <p className="mt-1 text-sm break-words text-slate-600">
+          <span className="text-slate-500">Note: </span>
+          {payment.reference}
+        </p>
+      )}
+      {waitsForPayment && (
+        <p className="mt-2 text-sm text-amber-800">Mark it paid to complete this order.</p>
+      )}
+
+      {payment.next_statuses.includes('paid') &&
+        (confirming ? (
+          <form onSubmit={submit} className="mt-4 space-y-3">
+            <Field
+              label="Note (optional)"
+              hint={cod ? 'For example, who collected the cash.' : 'For example: ABA, 2:05 PM, last digits 123.'}
+            >
+              <Input
+                maxLength={200}
+                autoFocus
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+              />
+            </Field>
+            <div className="flex gap-3">
+              <Button variant="ghost" onClick={() => setConfirming(false)} disabled={record.isPending}>
+                Back
+              </Button>
+              <Button type="submit" loading={record.isPending} className="flex-1">
+                {cod ? 'Confirm cash received' : 'Confirm paid'}
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <div className="mt-4 flex gap-3">
+            {payment.next_statuses.includes('failed') && (
+              <Button variant="ghost" onClick={markFailed} disabled={record.isPending}>
+                Payment failed
+              </Button>
+            )}
+            <Button variant="secondary" onClick={() => setConfirming(true)} className="flex-1">
+              {cod ? 'Cash received' : 'Mark paid'}
+            </Button>
+          </div>
+        ))}
+    </Card>
   )
 }
 

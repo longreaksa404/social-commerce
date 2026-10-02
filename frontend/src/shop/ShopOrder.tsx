@@ -7,6 +7,7 @@ import { Button, Card, ErrorState, Field, Input, Skeleton } from '../components/
 import { formatMoney } from '../lib/money.ts'
 import type { OrderStatus, ShopOrder, ShopStore } from '../lib/types.ts'
 import { orderPhone, rememberOrder } from './device.ts'
+import { PaymentCard } from './PaymentCard.tsx'
 import { isNotFound, useShop, useTrackOrder } from './queries.ts'
 
 /**
@@ -125,6 +126,10 @@ function OrderView({
     rememberOrder({ id: order.id, shop: shop.slug, number: order.number, phone, placedAt: order.created_at })
   }, [order.id, order.number, order.created_at, shop.slug, phone])
   const closed = order.status === 'rejected' || order.status === 'cancelled'
+  // Nothing to pay for a closed order, unless it was already paid.
+  const showPayment = !(closed && order.payment.status === 'pending')
+  // Paying is what the customer has to do next: put it first.
+  const payNow = showPayment && order.payment.status === 'pending' && order.payment.method !== 'cod'
 
   async function copyLink() {
     try {
@@ -153,6 +158,8 @@ function OrderView({
         </div>
       )}
 
+      {payNow && <PaymentCard shop={shop} order={order} />}
+
       <Card className="p-4 sm:p-6">
         <div className="flex items-baseline justify-between gap-3">
           {justPlaced ? (
@@ -177,6 +184,8 @@ function OrderView({
           <Progress status={order.status} />
         )}
       </Card>
+
+      {showPayment && !payNow && <PaymentCard shop={shop} order={order} />}
 
       <Card className="p-4 sm:p-6">
         <h2 className="mb-2 font-semibold text-slate-900">Items</h2>

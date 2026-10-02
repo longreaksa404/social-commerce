@@ -1,6 +1,6 @@
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api.ts'
-import type { Category, Order, OrderList, OrderStatus, Product, Store } from '../lib/types.ts'
+import type { Category, Order, OrderList, OrderStatus, PaymentStatus, Product, Store } from '../lib/types.ts'
 
 export const keys = {
   store: ['store'] as const,
@@ -88,6 +88,19 @@ export function useChangeOrderStatus(id: string) {
       queryClient.invalidateQueries({ queryKey: [...keys.orders, 'list'] })
       // Rejecting or cancelling puts stock back.
       queryClient.invalidateQueries({ queryKey: keys.products })
+    },
+  })
+}
+
+/** Record the order's payment as paid or failed. */
+export function useRecordPayment(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { status: PaymentStatus; reference: string | null }) =>
+      api<Order>(`/seller/orders/${id}/payment`, { method: 'PATCH', body }),
+    onSuccess: (order) => {
+      queryClient.setQueryData(keys.order(id), order)
+      queryClient.invalidateQueries({ queryKey: [...keys.orders, 'list'] })
     },
   })
 }
