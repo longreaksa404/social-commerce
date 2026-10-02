@@ -17,9 +17,12 @@ import { isNotFound, useShop, useTrackOrder } from './queries.ts'
  */
 export function ShopOrderPage() {
   const { storeSlug = '', orderId = '' } = useParams()
-  const placed = (useLocation().state as { placed?: ShopOrder } | null)?.placed
+  const state = useLocation().state as { placed?: ShopOrder; phone?: string } | null
+  const placed = state?.placed
   const shop = useShop(storeSlug)
-  const [phone, setPhone] = useState(() => orderPhone(orderId))
+  // Straight from checkout, the phone comes along too, in case this
+  // device can't store anything (private browsing).
+  const [phone, setPhone] = useState(() => orderPhone(orderId) ?? (placed?.id === orderId ? (state?.phone ?? null) : null))
   const order = useTrackOrder(storeSlug, orderId, phone, placed)
 
   if (!shop.data) return <OrderSkeleton />

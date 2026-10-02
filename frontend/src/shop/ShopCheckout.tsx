@@ -67,7 +67,7 @@ export function ShopCheckout() {
     }
     saveCustomerDetails(details)
     rememberOrder({ id: order.id, shop: storeSlug, number: order.number, phone: details.phone, placedAt: order.created_at })
-    navigate(`/shop/${storeSlug}/order/${order.id}`, { replace: true, state: { placed: order } })
+    navigate(`/shop/${storeSlug}/order/${order.id}`, { replace: true, state: { placed: order, phone: details.phone } })
     cart.clear()
   }
 
