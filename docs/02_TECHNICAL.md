@@ -92,7 +92,7 @@ Given the constraint of a solo, part-time founder (`01_PRODUCT.md` §2.3, §38.8
 
 | Component | Recommendation | Reasoning |
 |---|---|---|
-| Backend hosting | **Railway** or **Render** (Docker deploy of FastAPI) | Git-push deploys, managed TLS, no server patching, environment variables UI, built-in logs |
+| Backend hosting | **Render** (Docker deploy of FastAPI; free web service, Singapore, for the MVP) | Git-push deploys, managed TLS, no server patching, environment variables UI, built-in logs |
 | Database | **Neon** (free plan, Singapore region) for the MVP; Render Postgres is the upgrade path if Neon's limits are hit | No manual DB ops, branching useful for staging; Render's free Postgres expires after 30 days |
 | Frontend hosting | **Vercel** or **Netlify** (static React build) | Free tier sufficient at MVP scale, instant rollbacks, preview deployments per PR |
 | Object storage | **Cloudflare R2** or **AWS S3** | R2 has no egress fees, which matters once product images are viewed at volume by customers in Cambodia |
@@ -560,7 +560,7 @@ Customer taps "Ask Seller" on product page
 - **Rate limiting:** basic IP-based rate limiting on `/auth/login` and public storefront endpoints (e.g., via `slowapi`) to blunt brute-force and scraping — lightweight, no separate infra required.
 - **CORS:** locked to the known frontend origin(s).
 - **Input validation:** all request bodies validated via Pydantic schemas; no raw SQL string interpolation (SQLAlchemy parameterized queries only).
-- **Secrets:** environment variables via the hosting platform's secret manager (Railway/Render), never committed to the repo.
+- **Secrets:** environment variables in the Render and Vercel dashboards, never committed to the repo.
 
 ---
 
@@ -580,8 +580,8 @@ Not required to launch, but designed for in the schema/architecture so they don'
 
 - **Performance:** no specific SLA needed at MVP scale (single-digit sellers, low order volume). Standard indexing (§4.2) and avoiding N+1 queries is sufficient — no caching layer, no read replicas.
 - **Availability:** best-effort; managed platform's default uptime is acceptable. No multi-region, no failover architecture at this stage.
-- **Backups:** rely on the managed Postgres provider's automatic daily backups (Railway/Render/Neon all provide this) — no custom backup tooling to build/maintain. Neon's free plan keeps only a 6-hour restore window; move to a paid tier or add backups before the first real seller.
-- **Observability:** platform-provided logs (Railway/Render dashboards) + a basic error-tracking tool (e.g., Sentry free tier) for the FastAPI app. No custom monitoring stack.
+- **Backups:** rely on Neon's built-in point-in-time restore — no custom backup tooling to build/maintain. The free plan keeps only a 6-hour restore window; move to a paid tier or add backups before the first real seller.
+- **Observability:** platform-provided logs (Render dashboard) + Sentry (free tier, errors only) for the FastAPI app and the React app. No custom monitoring stack.
 
 ---
 

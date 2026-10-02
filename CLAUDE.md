@@ -17,7 +17,7 @@ Confirm what we're working on before writing code, unless I've already stated it
 ## Stack (default choices; propose changes rather than silently swapping)
 - Backend: FastAPI (async), Pydantic v2, SQLAlchemy 2.0 async, Alembic, PostgreSQL 16
 - Frontend: React + Vite + TypeScript + Tailwind + TanStack Query + React Router
-- Hosting: Render (backend + Postgres), Vercel (frontend), Cloudflare R2 (images)
+- Hosting: Render (backend), Neon (Postgres), Vercel (frontend), Cloudflare R2 (images)
 - Repo: monorepo with backend/ and frontend/
 - Small supporting libraries within this stack are your call. Core stack changes
   need my approval.
