@@ -62,11 +62,13 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | SQLAlchemy base models, `tenant_id` convention established | 2 |
 | React + Vite + TypeScript + Tailwind skeleton | 3 |
 | CI: lint + basic test run on push (GitHub Actions, free tier) | 2 |
-| Deploy skeletons: backend → Railway/Render, frontend → Vercel | 3 |
-| Domain + Cloudflare DNS setup | 1 |
+| Deploy skeletons: backend → Render, frontend → Vercel | 3 |
 | Error tracking (Sentry) wired into both apps | 1 |
 
-**Subtotal:** ~20 hours (**~1.5–2 weeks**)
+**Subtotal:** ~19 hours (**~1.5–2 weeks**)
+
+> Domain + Cloudflare DNS moved to Phase 9 (2026-10-01): the free
+> `*.onrender.com` / `*.vercel.app` URLs are enough until a real seller.
 
 **Definition of done:** visiting the deployed frontend URL loads a blank page that successfully calls a deployed backend health-check endpoint.
 
@@ -237,9 +239,10 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Basic rate limiting + security review (`02_TECHNICAL.md` §13) | 4 |
 | Seed real store data for first seller | 3 |
 | Onboard first real seller (manual walkthrough, not self-serve yet) | 4 |
+| Domain + Cloudflare DNS setup (moved from Phase 0) | 1 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~39 hours (**~3 weeks**)
+**Subtotal:** ~40 hours (**~3 weeks**)
 
 ---
 
@@ -247,7 +250,7 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 
 | Phase | Hours | Elapsed (at ~13 hrs/week) |
 |---|---|---|
-| 0 — Setup | 20 | 1.5 wks |
+| 0 — Setup | 19 | 1.5 wks |
 | 1 — Auth/Store/Products | 47 | 3.5 wks |
 | 2 — Storefront | 25 | 2 wks |
 | 3 — Checkout/Orders | 46 | 3.5 wks |
@@ -256,7 +259,7 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 20 | 1.5 wks |
 | 7 — Notifications/Customers | 12 | 1 wk |
 | 8 — Links/Tracking | 13 | 1 wk |
-| 9 — Polish/First Seller | 39 | 3 wks |
+| 9 — Polish/First Seller | 40 | 3 wks |
 | **Total** | **~258 hrs** | **~19–20 weeks (~4.5–5 months)** |
 
 After Phase 1, replace the "Elapsed" column with actuals from `docs/TIME_LOG.md`.
@@ -320,7 +323,7 @@ Expand automated coverage only once a second developer joins or the manual check
 
 - **Branching:** trunk-based, `main` branch auto-deploys to production (solo dev, no need for long-lived feature branches or a heavyweight git-flow).
 - **Environments:** `production` only for the MVP. A `staging` environment is a "build later" per `01_PRODUCT.md` §44's decision framework — add it once a second seller's data must not be put at risk by testing.
-- **Migrations:** Alembic migrations run as a deploy step (Railway/Render both support pre-deploy commands).
+- **Migrations:** Alembic migrations run at container start while the backend is on Render's free plan (no pre-deploy command); move them to a pre-deploy command once on a paid instance.
 - **Rollback:** rely on the hosting platform's one-click redeploy of the previous build; no custom rollback tooling needed at this scale.
 
 ---

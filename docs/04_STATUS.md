@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-01 (seller UI reworked for phones; Phase 2 next)
+> **Last updated:** 2026-10-02 (02/03 doc changes applied; Phase 2 next)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -131,9 +131,6 @@ shows "API: ok" from the deployed backend.
       images.
 - [ ] Confirm CI is green in the GitHub Actions tab (repo is private, so
       Claude can't see it)
-- [ ] Founder to apply the proposed 02/03 doc changes (Phase 0: Neon,
-      domain moved to Phase 9, migrations at container start; Phase 1:
-      §5.2 additions, §13 bcrypt)
 
 ---
 
@@ -190,12 +187,12 @@ Still open: none.
 - `01_PROJECT.md` renamed to `01_PRODUCT.md` to match cross-references.
 - Hour estimates are now an upper bound; actual hours logged in `docs/TIME_LOG.md`.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
-- Postgres on Neon (free), not Render; domain/DNS moved from Phase 0 to
-  Phase 9. Doc changes proposed to the founder 2026-10-01.
-- Phase 1 (founder-approved 2026-10-01): `refresh_token` table for real
-  rotation; `store_id` on `product_variant`; per-store `currency` (USD/KHR,
-  default USD); R2 built now, connected later. bcrypt used directly
-  instead of passlib. Doc changes proposed 2026-10-01.
+
+Applied to 02/03 on 2026-10-02 (at the founder's request): Neon instead of
+Render Postgres; domain/DNS moved from Phase 0 to Phase 9; migrations at
+container start; `currency` on `store`, `store_id` on `product_variant`,
+the `refresh_token` table, the `app_user` RLS role note, and bcrypt instead
+of passlib.
 
 ---
 

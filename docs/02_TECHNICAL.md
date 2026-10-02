@@ -76,7 +76,7 @@ No separate worker service in the MVP. No message queue in the MVP. `BackgroundT
 | State/data fetching | **TanStack Query (React Query)** | Handles server state, caching, and loading/error states with minimal boilerplate |
 | Routing | **React Router** | Standard for SPA |
 | Database | **PostgreSQL 16** | Relational integrity for orders/payments/inventory; JSONB available for flexible fields (e.g., variant attributes) without needing a second database |
-| Auth | **JWT (access + refresh)**, `passlib`/`bcrypt` for password hashing | Stateless, simple, no session-store dependency |
+| Auth | **JWT (access + refresh)**, `bcrypt` (used directly; passlib is unmaintained) for password hashing | Stateless, simple, no session-store dependency |
 | Image storage | **S3-compatible object storage** (see §11) | Decoupled from app servers, cheap, standard presigned-upload pattern |
 | Background tasks | **FastAPI `BackgroundTasks`** (MVP) → Celery/RQ only if volume demands it later | Avoids running a queue + worker for MVP scale |
 | Telegram | **python-telegram-bot** (webhook mode) | Official-adjacent, well maintained |
@@ -93,7 +93,7 @@ Given the constraint of a solo, part-time founder (`01_PRODUCT.md` §2.3, §38.8
 | Component | Recommendation | Reasoning |
 |---|---|---|
 | Backend hosting | **Railway** or **Render** (Docker deploy of FastAPI) | Git-push deploys, managed TLS, no server patching, environment variables UI, built-in logs |
-| Database | **Managed Postgres** on the same platform (Railway/Render) or **Neon** | Automatic backups, no manual DB ops, branching (Neon) useful for staging |
+| Database | **Neon** (free plan, Singapore region) for the MVP; Render Postgres is the upgrade path if Neon's limits are hit | No manual DB ops, branching useful for staging; Render's free Postgres expires after 30 days |
 | Frontend hosting | **Vercel** or **Netlify** (static React build) | Free tier sufficient at MVP scale, instant rollbacks, preview deployments per PR |
 | Object storage | **Cloudflare R2** or **AWS S3** | R2 has no egress fees, which matters once product images are viewed at volume by customers in Cambodia |
 | Domain/DNS | **Cloudflare** | Free, also gives CDN + basic DDoS protection in front of the frontend |
@@ -120,6 +120,7 @@ Rejected alternatives and why:
 - Every tenant-owned table has a non-nullable `tenant_id` (= `store.id` or a dedicated `seller.id`, see §5).
 - All queries go through a repository/service layer that **always** filters by `tenant_id` from the authenticated session — never trust a `tenant_id` passed in a request body.
 - Postgres **Row-Level Security (RLS)** is applied as a second line of defense: policies restrict rows to the `tenant_id` set in the session context (`SET LOCAL app.tenant_id = ...` per request). This protects against an application-layer bug that forgets to filter.
+- Seller requests run as the non-login role `app_user` (`SET LOCAL ROLE` per transaction); migrations, auth and the public storefront run as the table owner, which RLS does not restrict, so that code filters explicitly.
 - Database indexes are composite, leading with `tenant_id` (e.g., `(tenant_id, id)`, `(tenant_id, status)`), so isolation doesn't cost query performance.
 
 ## 4.3 Seller Identity vs. Store
@@ -174,6 +175,7 @@ seller
 | payment_config | JSONB | which methods enabled, e.g. `{"cod": true, "khqr": true, "bank_transfer": {"account": "...", "bank": "..."}}` |
 | delivery_config | JSONB | e.g. `{"seller_managed": true, "pickup": true, "pickup_address": "..."}` |
 | order_confirmation_mode | enum(`automatic`,`manual`) | default `manual` |
+| currency | enum(`USD`,`KHR`) | default `USD`; currency all prices in the store are shown in |
 | created_at | timestamptz | |
 
 ### `category`
@@ -196,7 +198,7 @@ seller
 | created_at / updated_at | timestamptz | |
 
 ### `product_variant`
-| id, product_id (FK), name (e.g. "Red / L"), sku (nullable), price_override (nullable), stock_quantity (int), created_at |
+| id, store_id (FK, tenant scope), product_id (FK), name (e.g. "Red / L"), sku (nullable), price_override (nullable), stock_quantity (int), created_at |
 
 ### `customer`
 | Column | Type | Notes |
@@ -263,10 +265,16 @@ seller
 ### `notification_log`
 | id, store_id (FK), channel (`web`,`telegram`), event_type, payload (JSONB), sent_at, status (`sent`,`failed`) |
 
+### `refresh_token`
+| id (= the JWT's jti), seller_id (FK), expires_at, revoked_at (nullable), created_at |
+
+> Each refresh token works once; reusing one revokes all of that seller's tokens (§13).
+
 ## 5.3 Entity-Relationship Summary
 
 ```
 seller 1───1 store
+seller 1───N refresh_token
 store 1───N category
 store 1───N product ──N product_variant
 store 1───N customer
@@ -546,7 +554,7 @@ Customer taps "Ask Seller" on product page
 
 # 13. Auth & Security
 
-- **Passwords:** bcrypt via `passlib`, never stored/logged in plaintext.
+- **Passwords:** `bcrypt` (used directly; passlib is unmaintained), never stored/logged in plaintext.
 - **Tokens:** short-lived access JWT (~15 min) + longer-lived refresh JWT (~7 days), refresh rotated on use.
 - **Tenant isolation:** enforced at both application layer (service functions always scope by `store_id` from the authenticated token) and database layer (Postgres RLS, §4.2) — defense in depth, matching Rule 2 (`01_PRODUCT.md` §32).
 - **Rate limiting:** basic IP-based rate limiting on `/auth/login` and public storefront endpoints (e.g., via `slowapi`) to blunt brute-force and scraping — lightweight, no separate infra required.
@@ -572,7 +580,7 @@ Not required to launch, but designed for in the schema/architecture so they don'
 
 - **Performance:** no specific SLA needed at MVP scale (single-digit sellers, low order volume). Standard indexing (§4.2) and avoiding N+1 queries is sufficient — no caching layer, no read replicas.
 - **Availability:** best-effort; managed platform's default uptime is acceptable. No multi-region, no failover architecture at this stage.
-- **Backups:** rely on the managed Postgres provider's automatic daily backups (Railway/Render/Neon all provide this) — no custom backup tooling to build/maintain.
+- **Backups:** rely on the managed Postgres provider's automatic daily backups (Railway/Render/Neon all provide this) — no custom backup tooling to build/maintain. Neon's free plan keeps only a 6-hour restore window; move to a paid tier or add backups before the first real seller.
 - **Observability:** platform-provided logs (Railway/Render dashboards) + a basic error-tracking tool (e.g., Sentry free tier) for the FastAPI app. No custom monitoring stack.
 
 ---
