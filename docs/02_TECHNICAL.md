@@ -120,7 +120,7 @@ Rejected alternatives and why:
 - Every tenant-owned table has a non-nullable `tenant_id` (= `store.id` or a dedicated `seller.id`, see §5).
 - All queries go through a repository/service layer that **always** filters by `tenant_id` from the authenticated session — never trust a `tenant_id` passed in a request body.
 - Postgres **Row-Level Security (RLS)** is applied as a second line of defense: policies restrict rows to the `tenant_id` set in the session context (`SET LOCAL app.tenant_id = ...` per request). This protects against an application-layer bug that forgets to filter.
-- Seller requests run as the non-login role `app_user` (`SET LOCAL ROLE` per transaction); migrations, auth and the public storefront run as the table owner, which RLS does not restrict, so that code filters explicitly.
+- Seller requests run as the non-login role `app_user` (`SET LOCAL ROLE` per transaction). Public storefront requests do too, scoped to the store named in the URL; only the lookup of that store by its slug runs as the table owner. Migrations, auth and that lookup are not restricted by RLS, so that code filters explicitly.
 - Database indexes are composite, leading with `tenant_id` (e.g., `(tenant_id, id)`, `(tenant_id, status)`), so isolation doesn't cost query performance.
 
 ## 4.3 Seller Identity vs. Store

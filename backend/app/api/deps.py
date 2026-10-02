@@ -9,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError
 from app.core.security import decode_token
-from app.db.session import get_db, tenant_session
+from app.db.session import get_db, tenant_session, unscoped_session
+from app.models import Store
+from app.services import storefront as storefront_service
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -40,6 +42,24 @@ async def get_tenant_db(
         yield session
 
 
+async def get_shop(store_slug: str) -> Store:
+    """The public shop named in the URL (/shop/{store_slug}/...).
+
+    Its own short session, closed before the tenant session opens, so a
+    storefront request holds one connection at a time.
+    """
+    async with unscoped_session() as db:
+        return await storefront_service.get_store(db, store_slug)
+
+
+async def get_shop_db(shop: Annotated[Store, Depends(get_shop)]) -> AsyncIterator[AsyncSession]:
+    """Session restricted by RLS to the shop being browsed."""
+    async with tenant_session(shop.id) as session:
+        yield session
+
+
 Seller = Annotated[CurrentSeller, Depends(current_seller)]
 TenantDb = Annotated[AsyncSession, Depends(get_tenant_db)]
 UnscopedDb = Annotated[AsyncSession, Depends(get_db)]
+Shop = Annotated[Store, Depends(get_shop)]
+ShopDb = Annotated[AsyncSession, Depends(get_shop_db)]

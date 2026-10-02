@@ -17,8 +17,8 @@ SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 def unscoped_session() -> AsyncSession:
     """Session that is NOT restricted by RLS.
 
-    Only for code that runs before a tenant is known (auth) or that is
-    public by design (storefront). Every query here must filter explicitly.
+    Only for code that runs before a tenant is known: auth, and finding a
+    shop by its slug. Every query here must filter explicitly.
     """
     return SessionLocal()
 
