@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-02 (Phase 2 complete; Phase 3 next)
+> **Last updated:** 2026-10-02 (Phase 3 built locally; not pushed yet)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,7 +15,13 @@
 
 ## Current Phase
 
-**Phase 3 — Checkout + Orders** (not started)
+**Phase 3 — Checkout + Orders** (built and checked locally, 2026-10-02;
+not pushed or deployed yet)
+
+Its definition of done holds locally: a customer checks out and sees a
+confirmation; the seller sees the order and can accept/reject/advance it
+along 02 §7.1. Still to do: push, deploy, and the founder's manual
+end-to-end run on the live site (03 asks for one before Phase 4).
 
 Phase 2 met its definition of done on 2026-10-02 and the founder closed it:
 on the live site, `/shop/reaksa-store` shows the real product on a phone,
@@ -154,6 +160,56 @@ shows "API: ok" from the deployed backend.
       (besides expected 404s), riel prices, long Khmer names, empty shop,
       slow loading (skeletons), dropped request ("Try again" recovers).
 
+**Phase 3 (built locally 2026-10-02; not pushed or deployed yet):**
+
+- [x] Tables + migration `8980a033af6d`: `customer` (per store, unique
+      by phone), `order` (per-store `number` from 1001, `currency` copied
+      from the store, `delivery_fee` 0 for now), `order_item` (name/price
+      snapshots, `store_id` for RLS, `variant_id` cleared if the variant
+      is deleted). RLS on all three, same policy as the catalog tables.
+- [x] Guest checkout `POST /api/v1/shop/{slug}/orders`: prices and stock
+      from the database; stock checked and taken in one statement per
+      line; refused (409 `ORDER_TOTAL_CHANGED`) if the total differs from
+      what the customer was shown; `PRODUCT_OUT_OF_STOCK` /
+      `PRODUCT_UNAVAILABLE` name the cart line (`field: items.N`). Phones
+      stored one way (`012 345 678`, `+855 12 345 678` → `012345678`).
+      Own limit of 10 orders/min per IP on top of the shop's 300/min.
+- [x] Tracking `GET /api/v1/shop/{slug}/orders/{id}?phone=`: 404 unless
+      the phone matches (any spelling); no customer details in the reply.
+- [x] Order state machine in `app/services/order.py` (02 §7.1 table).
+      Reject/cancel put stock back; the order row is locked while its
+      status changes, so a double tap can't return stock twice.
+      `completed` is blocked until Phase 4 (02 §7.4 needs a payment).
+      Automatic confirmation goes through the same transition as Accept.
+- [x] Seller `GET /seller/orders` (newest first, status/date filters,
+      paging, counts per status), `GET /seller/orders/{id}` (with
+      `next_statuses`), `PATCH /seller/orders/{id}/status`;
+      `order_confirmation_mode` in `GET/PATCH /seller/store`.
+- [x] Fix: the product form now sends stock only when the seller changed
+      it, so saving a form opened before an order came in no longer puts
+      sold units back (`VariantIn.stock_quantity` omitted = unchanged).
+- [x] Storefront: cart per shop on the device (header button with
+      count); quantity + "Add to cart" on the product page; cart page
+      re-checks price/stock and blocks checkout while a line is sold out,
+      short, or gone; checkout (name, phone, address, note, review,
+      pinned "Place order"); order page = confirmation + tracking with a
+      progress list, phone asked only on another device; "Your orders"
+      on the cart page lists orders placed on this device.
+- [x] Seller: Orders tab (first tab and the dashboard's start page) with
+      New / In progress / Delivered / Cancelled filters and counts,
+      polling every 30 s; order detail with tap-to-call phone, note,
+      items, and a pinned bar of the allowed next moves (Reject/Cancel
+      ask first). Settings → Orders → "Accept new orders automatically".
+- [x] 149 pytest tests (81 of them every order status pair): totals in
+      exact decimals, stock taken/refused/returned, order numbers per
+      store, currency kept, phone matching, tracking, tenant isolation
+      (RLS and API), variant deleted after ordering, rate limit.
+- [x] Clicked through in headless Chromium at 390 and 1280 px (customer
+      and seller flows, price change during checkout, stock taken by
+      another customer, wrong phone, storage blocked): axe-core finds no
+      WCAG 2.1 A/AA violations; no console errors besides expected
+      409/404 responses.
+
 ---
 
 ## In Progress
@@ -163,8 +219,13 @@ shows "API: ok" from the deployed backend.
       Render; upload a product photo on the live site. Until then photo
       upload shows "Image uploads are not set up yet" and products have no
       images.
+- [ ] **Phase 3: push and deploy** (founder says when), then the
+      founder's manual end-to-end run on the live site: open a product
+      link on a phone → add to cart → checkout → confirmation; seller
+      sees it, accepts, moves it to Delivered; reject one and check the
+      stock comes back.
 - [ ] **Watch the first Phase 3 backend push** for a Render auto-deploy
-      (see Known Issues).
+      (see Known Issues). It includes a migration, which runs on start.
 
 ---
 
@@ -219,6 +280,17 @@ Resolved:
 - [x] **Node version: 24** (2026-10-01), in the devcontainer, CI, and Vercel.
 - [x] **Domain + Cloudflare DNS: deferred to Phase 9** (2026-10-01). Use the
       free `*.onrender.com` and `*.vercel.app` URLs until then.
+- [x] **Guest checkout, no customer accounts** (2026-10-02). Customers are
+      per store and matched by phone (02 §5.4).
+- [x] **Order tracking = order link + the phone used at checkout**
+      (2026-10-02, 02 §8). The device that placed the order remembers the
+      phone.
+- [x] **Removed variants stay hard-deleted** (2026-10-02); order lines
+      keep their name/price snapshots and lose only the link.
+- [x] **Stock is taken when the order is placed and returned on
+      reject/cancel** (2026-10-02). Not reserved in the cart.
+- [x] **Orders get a per-store number (#1001…) and keep the store's
+      currency** (2026-10-02; founder took the recommendation).
 
 Still open (noticed in Phase 2, not built; founder to decide):
 
@@ -246,6 +318,16 @@ Still open (noticed in Phase 2, not built; founder to decide):
   `docs/TIME_LOG.md` removed; actual hours are not logged.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
 
+Phase 3 (2026-10-02), not yet in 01/02/03:
+
+- Guest checkout and tracking by link + phone are decided (01 §46 lists
+  both as open; 02 §5.4 calls guest checkout "open").
+- 02 §5.2 data model: `order.number`, `order.currency`,
+  `order_item.store_id`, `customer` unique on `(store_id, phone)`,
+  `order_item.variant_id` ON DELETE SET NULL.
+- 02 §14: stock is taken at order creation and returned on
+  reject/cancel.
+
 Applied to 02/03 on 2026-10-02 (at the founder's request): Neon instead of
 Render Postgres; domain/DNS moved from Phase 0 to Phase 9; migrations at
 container start; `currency` on `store`, `store_id` on `product_variant`,
@@ -271,16 +353,32 @@ of passlib.
   the same site (Phase 9). Refreshes are serialized across tabs.
 - Removing a product photo only unlinks it; the file stays in R2. Fine at
   MVP volume.
-- Variants removed from a product are deleted. Before Phase 3 adds
-  `order_item.variant_id`, decide whether variants become soft-deleted.
+- Variants removed from a product are deleted; `order_item.variant_id`
+  is then set to NULL (decided 2026-10-02).
+- Placing an order locks the store row until commit, so checkouts in one
+  store run one at a time (unique order numbers, one customer per phone).
+  Fine at MVP volume.
+- A customer's name and address are overwritten by their latest order;
+  each order keeps its own `delivery_address`.
+- No idempotency key on placing an order: if the connection drops after
+  the server saved it, a retry makes a second order. The seller can
+  reject the duplicate. Revisit if it happens.
+- slowapi checks only one decorated limit per request, so the order
+  limit calls its limiter directly (`check_limit` in
+  `app/core/ratelimit.py`).
+- Completing an order (02 §7.4) needs a payment record, so in Phase 3 no
+  order can reach `completed`; `can_complete` in `app/services/order.py`
+  is the one place Phase 4 changes.
+- Checkout shows no delivery fee line (fee is 0, open decision for
+  Phase 5).
 - Store slugs are global; product/category slugs are unique per store.
   Names with no Latin letters (e.g. Khmer only) get a short random slug.
 - Storefront pages call `useShop` themselves instead of waiting for the
   layout, so a product link costs one round trip. New public endpoints go
   under `/shop/{store_slug}` (`app/api/shop.py`) and use the `Shop` /
   `ShopDb` dependencies; the router-level rate limit covers them.
-- Bundle: 131 KB gzipped, mostly React DOM, React Router and TanStack
-  Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
+- Bundle: 141 KB gzipped after Phase 3 (131 KB after Phase 2), mostly
+  React DOM, React Router and TanStack Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
   customers) and skipped for now; revisit when later phases make the
   dashboard bigger (it would also need a reload-on-stale-chunk fallback).
 - Free-tier limits to revisit before the first real seller (Phase 9): the
@@ -302,7 +400,10 @@ of passlib.
 
 ## Next Up
 
-1. Phase 3: checkout + orders. Before `order_item.variant_id` exists,
-   decide whether removed variants become soft-deleted (see Notes).
-2. Decide on the two Phase 2 proposals above (link previews, grid photos).
+1. Push Phase 3, deploy, and run the manual end-to-end test on the live
+   site (In Progress).
+2. Apply the Phase 3 decisions to 01/02/03 (text given in the session
+   summary; see "Decisions Made This Session").
+3. Phase 4: payments. `can_complete` becomes "payment paid, or COD".
+4. Decide on the two Phase 2 proposals above (link previews, grid photos).
 R2 setup whenever the founder is ready.
