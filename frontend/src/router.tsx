@@ -8,9 +8,12 @@ import { Settings } from './dashboard/Settings.tsx'
 import { Home } from './pages/Home.tsx'
 import { Login } from './pages/Login.tsx'
 import { Register } from './pages/Register.tsx'
+import { ShopCart } from './shop/ShopCart.tsx'
 import { ShopCategory } from './shop/ShopCategory.tsx'
+import { ShopCheckout } from './shop/ShopCheckout.tsx'
 import { ShopHome } from './shop/ShopHome.tsx'
 import { ShopLayout } from './shop/ShopLayout.tsx'
+import { ShopOrderPage } from './shop/ShopOrder.tsx'
 import { ShopProduct } from './shop/ShopProduct.tsx'
 
 // A data router (not <BrowserRouter>) so forms can block navigation while
@@ -42,6 +45,10 @@ export const router = createBrowserRouter([
           { index: true, element: <ShopHome /> },
           { path: 'product/:productSlug', element: <ShopProduct /> },
           { path: 'category/:categorySlug', element: <ShopCategory /> },
+          { path: 'cart', element: <ShopCart /> },
+          { path: 'checkout', element: <ShopCheckout /> },
+          // The order's link: its confirmation page and tracking page.
+          { path: 'order/:orderId', element: <ShopOrderPage /> },
         ],
       },
       { path: '*', element: <Navigate to="/" replace /> },

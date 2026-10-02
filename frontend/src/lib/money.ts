@@ -20,3 +20,13 @@ export function formatPriceRange(low: string | number, high: string | number, cu
     ? formatMoney(low, currency)
     : `${formatMoney(low, currency)} – ${formatMoney(high, currency)}`
 }
+
+/** Whole cents, so sums are exact: in floats 3 × 0.10 is 0.30000000000000004. */
+export function toCents(amount: string | number): number {
+  return Math.round(Number(amount) * 100)
+}
+
+/** Cents back to the API's decimal string, e.g. 3250 → "32.50". */
+export function fromCents(cents: number): string {
+  return (cents / 100).toFixed(2)
+}

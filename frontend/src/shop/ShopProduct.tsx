@@ -1,11 +1,12 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CircleCheck, ShoppingBag } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { ErrorState, Skeleton } from '../components/ui.tsx'
+import { Button, ErrorState, Skeleton } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
 import { formatMoney, formatPriceRange } from '../lib/money.ts'
 import type { ShopProduct as Product, ShopStore, ShopVariant } from '../lib/types.ts'
-import { NotFound, ProductImage } from './components.tsx'
+import { MAX_QUANTITY, useCart } from './cart.ts'
+import { NotFound, ProductImage, QuantityStepper } from './components.tsx'
 import { isNotFound, useShop, useShopProduct } from './queries.ts'
 
 /** /shop/:storeSlug/product/:productSlug: the product link a seller shares. */
@@ -70,6 +71,7 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
         {product.has_variants && (
           <VariantPicker variants={product.variants} value={variantId} onChange={setVariantId} />
         )}
+        <AddToCart shop={shop} product={product} variant={variant} />
 
         {product.description && (
           <div className="mt-6 border-t border-slate-200 pt-5">
@@ -89,6 +91,65 @@ function priceText(product: Product, variant: ShopVariant | null, shop: ShopStor
   if (!product.has_variants) return formatMoney(product.price, shop.currency)
   const prices = product.variants.map((v) => Number(v.price))
   return formatPriceRange(Math.min(...prices), Math.max(...prices), shop.currency)
+}
+
+function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Product; variant: ShopVariant | null }) {
+  const cart = useCart(shop.slug)
+  const [quantity, setQuantity] = useState(1)
+  const [added, setAdded] = useState(false)
+
+  const variantId = variant?.id ?? null
+  const stock = variant
+    ? variant.stock_quantity
+    : product.has_variants
+      ? Math.max(0, ...product.variants.map((v) => v.stock_quantity))
+      : (product.stock_quantity ?? 0)
+  // How many more can go in the cart: what's in stock, less what's there.
+  const room = Math.min(MAX_QUANTITY, stock) - cart.quantityOf(product.id, variantId)
+  const amount = Math.max(1, Math.min(quantity, room))
+
+  let blocked: string | null = null
+  if (stock <= 0) blocked = 'Sold out'
+  else if (product.has_variants && !variant) blocked = 'Choose an option'
+  else if (room <= 0) blocked = 'All in your cart'
+
+  function add() {
+    cart.add({
+      productId: product.id,
+      variantId,
+      quantity: amount,
+      productSlug: product.slug,
+      name: product.name,
+      variantName: variant?.name ?? null,
+      price: variant?.price ?? product.price,
+      imageUrl: product.image_urls[0] ?? null,
+    })
+    setQuantity(1)
+    setAdded(true)
+  }
+
+  return (
+    <div className="mt-6">
+      <div className="flex items-center gap-3">
+        <QuantityStepper value={amount} max={Math.max(1, room)} onChange={setQuantity} disabled={blocked !== null} />
+        <Button size="lg" icon={ShoppingBag} disabled={blocked !== null} onClick={add} className="flex-1">
+          {blocked ?? 'Add to cart'}
+        </Button>
+      </div>
+      {added && (
+        <p
+          role="status"
+          className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 py-1.5 pr-1.5 pl-3.5 text-sm font-medium text-emerald-800"
+        >
+          <CircleCheck aria-hidden className="size-4.5 shrink-0" />
+          <span className="flex-1">Added to your cart</span>
+          <Link to={`/shop/${shop.slug}/cart`} className={`${buttonClass('secondary')} shrink-0`}>
+            View cart ({cart.count})
+          </Link>
+        </p>
+      )}
+    </div>
+  )
 }
 
 /** Few left shows the number; plenty just says in stock. */

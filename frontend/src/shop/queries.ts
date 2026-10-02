@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery } from '@tanstack/react-query'
 import { api, ApiError } from '../lib/api.ts'
-import type { ShopCategoryPage, ShopProduct, ShopProductCard, ShopStore } from '../lib/types.ts'
+import type { ShopCategoryPage, ShopOrder, ShopProduct, ShopProductCard, ShopStore } from '../lib/types.ts'
 
 // Public storefront data: no login, so `auth: false`. A minute of
 // freshness keeps back/forward between pages instant on slow mobile data.
@@ -29,13 +29,17 @@ export function useShopProducts(slug: string) {
   })
 }
 
-export function useShopProduct(slug: string, productSlug: string) {
-  return useQuery({
+/** Also used by the cart to check each product's current price and stock. */
+export const shopProductQuery = (slug: string, productSlug: string) =>
+  queryOptions({
     ...options,
     queryKey: ['shop', slug, 'product', productSlug],
     queryFn: () =>
       api<ShopProduct>(`${shopPath(slug)}/products/${encodeURIComponent(productSlug)}`, { auth: false }),
   })
+
+export function useShopProduct(slug: string, productSlug: string) {
+  return useQuery(shopProductQuery(slug, productSlug))
 }
 
 export function useShopCategory(slug: string, categorySlug: string) {
@@ -44,6 +48,40 @@ export function useShopCategory(slug: string, categorySlug: string) {
     queryKey: ['shop', slug, 'category', categorySlug],
     queryFn: () =>
       api<ShopCategoryPage>(`${shopPath(slug)}/categories/${encodeURIComponent(categorySlug)}`, { auth: false }),
+  })
+}
+
+export type OrderRequest = {
+  name: string
+  phone: string
+  delivery_address: string
+  notes: string | null
+  items: { product_id: string; variant_id: string | null; quantity: number }[]
+  /** What the customer was shown; the server refuses the order if prices changed. */
+  expected_total: string
+}
+
+export function usePlaceOrder(slug: string) {
+  return useMutation({
+    mutationFn: (body: OrderRequest) =>
+      api<ShopOrder>(`${shopPath(slug)}/orders`, { method: 'POST', body, auth: false }),
+  })
+}
+
+/** Order tracking: needs the phone the order was placed with. `placed` is
+ * the order just returned by checkout, shown while it's fetched again. */
+export function useTrackOrder(slug: string, orderId: string, phone: string | null, placed?: ShopOrder) {
+  return useQuery({
+    initialData: placed?.id === orderId ? placed : undefined,
+    queryKey: ['shop', slug, 'order', orderId, phone],
+    queryFn: () =>
+      api<ShopOrder>(`${shopPath(slug)}/orders/${encodeURIComponent(orderId)}?phone=${encodeURIComponent(phone ?? '')}`, {
+        auth: false,
+      }),
+    enabled: phone !== null,
+    retry: options.retry,
+    // Customers come back to this page to see if anything has changed.
+    refetchOnWindowFocus: true,
   })
 }
 

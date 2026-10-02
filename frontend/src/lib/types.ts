@@ -3,6 +3,7 @@
 
 export type Currency = 'USD' | 'KHR'
 export type ProductStatus = 'active' | 'inactive'
+export type OrderConfirmationMode = 'automatic' | 'manual'
 
 export type Store = {
   id: string
@@ -11,6 +12,8 @@ export type Store = {
   description: string | null
   logo_url: string | null
   currency: Currency
+  /** automatic: new orders are accepted at once; manual: they wait as pending. */
+  order_confirmation_mode: OrderConfirmationMode
   created_at: string
 }
 
@@ -93,3 +96,69 @@ export type ShopProduct = {
 }
 
 export type ShopCategoryPage = { category: ShopCategoryRef; products: ShopProductCard[] }
+
+// Orders (02_TECHNICAL.md section 7.1 for the statuses).
+
+export type OrderStatus =
+  | 'pending'
+  | 'accepted'
+  | 'processing'
+  | 'ready'
+  | 'shipped'
+  | 'delivered'
+  | 'completed'
+  | 'cancelled'
+  | 'rejected'
+
+export type OrderItem = {
+  product_id: string
+  /** null once the seller deletes the variant; the name stays. */
+  variant_id: string | null
+  product_name: string
+  variant_name: string | null
+  unit_price: string
+  quantity: number
+  line_total: string
+}
+
+/** What a customer sees: the confirmation page and order tracking. */
+export type ShopOrder = {
+  id: string
+  number: number
+  status: OrderStatus
+  created_at: string
+  currency: Currency
+  subtotal: string
+  delivery_fee: string
+  total: string
+  delivery_method: 'seller_delivery' | 'pickup'
+  items: OrderItem[]
+}
+
+export type Order = ShopOrder & {
+  updated_at: string
+  delivery_address: string | null
+  notes: string | null
+  customer: { id: string; name: string; phone: string; address: string | null }
+  /** Where the seller can move the order now; the server applies the rules. */
+  next_statuses: OrderStatus[]
+}
+
+export type OrderSummary = {
+  id: string
+  number: number
+  status: OrderStatus
+  created_at: string
+  currency: Currency
+  total: string
+  customer_name: string
+  /** Units, not lines. */
+  item_count: number
+}
+
+export type OrderList = {
+  orders: OrderSummary[]
+  has_more: boolean
+  /** Per status, ignoring the status filter. */
+  counts: Record<OrderStatus, number>
+}

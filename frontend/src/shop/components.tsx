@@ -1,7 +1,7 @@
-import { ImageOff, SearchX } from 'lucide-react'
+import { ImageOff, Minus, Plus, SearchX } from 'lucide-react'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
-import { Card, Skeleton } from '../components/ui.tsx'
+import { Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { formatPriceRange } from '../lib/money.ts'
 import type { ShopProductCard, ShopStore } from '../lib/types.ts'
 
@@ -138,5 +138,43 @@ export function NotFound({ title, children, action }: { title: string; children:
       <p className="mt-1 max-w-xs text-sm text-slate-500">{children}</p>
       {action && <div className="mt-5">{action}</div>}
     </Card>
+  )
+}
+
+/** − n + for how many to buy. */
+export function QuantityStepper({
+  value,
+  max,
+  onChange,
+  disabled = false,
+  label = 'Quantity',
+}: {
+  value: number
+  max: number
+  onChange: (value: number) => void
+  disabled?: boolean
+  label?: string
+}) {
+  const button = 'border border-slate-300 bg-white shadow-xs'
+  return (
+    <div role="group" aria-label={label} className="flex shrink-0 items-center gap-1">
+      <IconButton
+        icon={Minus}
+        label="One less"
+        disabled={disabled || value <= 1}
+        onClick={() => onChange(value - 1)}
+        className={button}
+      />
+      <output aria-live="polite" className="w-9 text-center text-base font-semibold text-slate-900 tabular-nums">
+        {value}
+      </output>
+      <IconButton
+        icon={Plus}
+        label="One more"
+        disabled={disabled || value >= max}
+        onClick={() => onChange(value + 1)}
+        className={button}
+      />
+    </div>
   )
 }
