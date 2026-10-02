@@ -126,7 +126,7 @@ def _new_variant(store_id: uuid.UUID, data: VariantIn) -> ProductVariant:
         name=data.name,
         sku=data.sku,
         price_override=data.price_override,
-        stock_quantity=data.stock_quantity,
+        stock_quantity=data.stock_quantity or 0,
     )
 
 
@@ -145,7 +145,8 @@ def _merge_variants(
         variant.name = data.name
         variant.sku = data.sku
         variant.price_override = data.price_override
-        variant.stock_quantity = data.stock_quantity
+        if data.stock_quantity is not None:
+            variant.stock_quantity = data.stock_quantity
         merged.append(variant)
     return merged
 

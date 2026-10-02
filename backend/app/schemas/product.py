@@ -34,7 +34,9 @@ class VariantIn(BaseModel):
     name: Name
     sku: Sku | None = None
     price_override: Money | None = None
-    stock_quantity: Stock = 0
+    # Omitted: 0 for a new variant, unchanged for an existing one (orders
+    # change stock while a seller has the product form open).
+    stock_quantity: Stock | None = None
 
 
 class VariantOut(BaseModel):

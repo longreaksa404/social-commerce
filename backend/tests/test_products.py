@@ -54,6 +54,34 @@ async def test_variants_replace_product_stock_and_update_by_id(client, auth_head
     assert body["variants"][0]["id"] == red_m["id"]
 
 
+async def test_saving_without_stock_keeps_the_current_stock(client, auth_headers):
+    """The form leaves stock out unless the seller changed it, so units
+    ordered while it was open aren't put back."""
+    headers = await auth_headers()
+    simple = (await _create(client, headers)).json()
+    varied = (
+        await _create(
+            client, headers, has_variants=True, variants=[{"name": "M", "stock_quantity": 3}]
+        )
+    ).json()
+    [m] = varied["variants"]
+
+    simple = await client.patch(
+        f"/api/v1/seller/products/{simple['id']}", headers=headers, json={"name": "Tee"}
+    )
+    varied = await client.patch(
+        f"/api/v1/seller/products/{varied['id']}",
+        headers=headers,
+        json={"variants": [{"id": m["id"], "name": "Medium"}, {"name": "Large"}]},
+    )
+
+    assert simple.json()["stock_quantity"] == 5
+    assert [(v["name"], v["stock_quantity"]) for v in varied.json()["variants"]] == [
+        ("Medium", 3),
+        ("Large", 0),
+    ]
+
+
 async def test_variants_need_variants_turned_on(client, auth_headers):
     headers = await auth_headers()
 

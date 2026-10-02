@@ -71,7 +71,12 @@ function toDraft(product?: Product): Draft {
   }
 }
 
-function toBody(draft: Draft, isNew: boolean) {
+/** The request body. Given `saved` (the product as loaded), stock the
+ * seller didn't change is left out, so the server keeps its current value:
+ * orders placed while the form was open have already taken from it. */
+function toBody(draft: Draft, isNew: boolean, saved?: Draft) {
+  const savedStock = new Map(saved?.variants.map((v) => [v.id, v.stock_quantity]))
+  const keepStock = saved && !saved.has_variants && !draft.has_variants && draft.stock_quantity === saved.stock_quantity
   return {
     name: draft.name.trim(),
     ...(isNew ? {} : { slug: draft.slug }),
@@ -80,14 +85,16 @@ function toBody(draft: Draft, isNew: boolean) {
     price: draft.price,
     status: draft.status,
     has_variants: draft.has_variants,
-    stock_quantity: draft.has_variants ? null : Number(draft.stock_quantity || 0),
+    ...(keepStock ? {} : { stock_quantity: draft.has_variants ? null : Number(draft.stock_quantity || 0) }),
     variants: draft.has_variants
       ? draft.variants.map((v) => ({
           id: v.id,
           name: v.name.trim(),
           sku: v.sku.trim() || null,
           price_override: v.price_override === '' ? null : v.price_override,
-          stock_quantity: Number(v.stock_quantity || 0),
+          ...(v.id && savedStock.get(v.id) === v.stock_quantity
+            ? {}
+            : { stock_quantity: Number(v.stock_quantity || 0) }),
         }))
       : [],
   }
@@ -138,7 +145,7 @@ function ProductForm({ product }: { product?: Product }) {
     let saved: Product
     try {
       setProgress('Saving…')
-      saved = await save.mutateAsync({ id: product?.id, body: toBody(draft, isNew) })
+      saved = await save.mutateAsync({ id: product?.id, body: toBody(draft, isNew, isNew ? undefined : baseline) })
     } catch {
       setProgress(null)
       return // shown via save.error
