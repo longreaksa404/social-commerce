@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-02 (Phase 3 closed; Phase 4 started)
+> **Last updated:** 2026-10-02 (Phase 4 built and tested locally; not pushed)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,7 +15,13 @@
 
 ## Current Phase
 
-**Phase 4 — Payments** (started 2026-10-02)
+**Phase 4 — Payments** (built and tested locally 2026-10-02; not pushed
+or deployed yet)
+
+Its definition of done holds locally: an order can be placed with cash on
+delivery, bank transfer, or KHQR, and the seller can mark it paid. Still
+to do on the live site: deploy, then the founder scans one KHQR order
+with a real bank app (see In Progress).
 
 Phase 3 met its definition of done on 2026-10-02 and the founder closed it
 (by starting Phase 4): on the live site a customer checks out and sees a
@@ -210,9 +216,75 @@ shows "API: ok" from the deployed backend.
       WCAG 2.1 A/AA violations; no console errors besides expected
       409/404 responses.
 
+**Phase 4 (built 2026-10-02; local only, not pushed):**
+
+- [x] Spike (Bakong/KHQR, 03 §3 Phase 4): a KHQR is an EMVCo QR payload
+      built from the seller's Bakong ID, so **making one needs no Bakong
+      account, API token, or call**. Only checking payments automatically
+      needs the Bakong Open API (token from api-bakong.nbc.gov.kh, renewed
+      every 90 days; reported to work only from Cambodian IPs). That stays
+      post-MVP (02 §10.3), so nothing blocks KHQR in the MVP.
+- [x] Table + migration `ccd5e33eba38`: `payment` (1:1 with order, with
+      `store_id` for RLS like `order_item`). Existing orders got a pending
+      cash-on-delivery payment for their total.
+- [x] Payment settings in `store.payment_config` via `GET/PATCH
+      /seller/store` (`payment_settings`): COD, bank transfer (bank, name
+      on account, account number), KHQR (Bakong ID, name customers see:
+      English letters, max 25). A method needs its details to be on; a
+      shop needs at least one. New and existing shops take COD.
+- [x] Checkout: `payment_method` is required and must be one the shop
+      takes (409 `PAYMENT_METHOD_UNAVAILABLE` otherwise). The shop page
+      lists method names only (`payment_methods`), no account details.
+- [x] Order page (`ShopOrderOut.payment`): status, plus how to pay while
+      the payment is pending and the order isn't rejected/cancelled: the
+      bank account, or a KHQR code for the exact total with `#<order
+      number>` as the bill number. Each code expires after 24 hours (KHQR
+      requires an expiry once there's an amount); the page makes a fresh
+      one on every load. Riel totals with cents get no code (the SDK
+      refuses them too).
+- [x] Payment state machine (02 §7.2) in `app/services/payment.py`:
+      pending → paid | failed; nothing else in the MVP.
+      `PATCH /seller/orders/{id}/payment` with an optional note
+      (`reference`); `paid_at` set when paid; the order row is locked as
+      for status changes. Recording a payment never changes the order
+      status, or the other way round.
+- [x] Completion rule (02 §7.4): `can_complete` = paid, or cash on
+      delivery.
+- [x] Frontend: Settings → Payments; checkout payment choice (nothing
+      preselected when there's a choice); order page puts the payment
+      first while it's due (KHQR picture with "Save QR code": share sheet
+      on iPhone so it lands in Photos, a download elsewhere; bank account
+      with copy buttons); seller order detail Payment card (Mark paid /
+      Cash received with optional note, Payment failed after a confirm,
+      hint when a delivered order waits for its payment); payment badge in
+      the order list (Unpaid / Paid / Payment failed / COD).
+- [x] 198 pytest tests (49 new): every payment status pair, the
+      completion rule for every method × status, settings validation,
+      method refused at checkout, totals on the payment, bank details
+      hidden once paid or the order is off, tenant isolation (RLS and
+      API), and KHQR strings identical to ones NBC's own SDK
+      (`bakong-khqr` 1.0.20) generated.
+- [x] Clicked through in headless Chromium at 390 and 1280 px: settings
+      (bad Bakong ID shown under the field), checkout with each method,
+      KHQR picture decoded back and **validated by NBC's SDK** (account,
+      amount, currency, `#1001`, 24 h expiry), save QR, copy account and
+      amount, seller marks paid with a note and completes, delivered +
+      unpaid can't complete, payment failed, COD completes unpaid, method
+      turned off mid-checkout. axe-core: no WCAG 2.1 A/AA violations; no
+      console errors besides expected 409/422.
+
 ---
 
 ## In Progress
+
+- [ ] **Phase 4 on the live site (founder):** after the push and deploy,
+      in Settings → Payments turn on KHQR with your own Bakong ID (in your
+      bank app, with your Bakong/KHQR details; looks like `name@aclb`) and
+      bank transfer. Place one KHQR order on the live shop from your
+      phone, save the QR, and scan it from the gallery in your bank app:
+      it should show your name and the exact amount (no need to pay).
+      Then mark an order paid and complete it. If no bank app accepts the
+      code, tell me what it says.
 
 - [ ] **Carried over from Phase 1 (founder, later):** Cloudflare R2 bucket +
       API token + public dev URL + CORS, then the five `R2_*` env vars in
@@ -288,6 +360,10 @@ Resolved:
       reject/cancel** (2026-10-02). Not reserved in the cart.
 - [x] **Orders get a per-store number (#1001…) and keep the store's
       currency** (2026-10-02; founder took the recommendation).
+- [x] **Payment details show right after ordering** (2026-10-02), before
+      the seller accepts; a rejected paid order is refunded by the seller.
+- [x] **KHQR in Phase 4, generated on our server from the seller's Bakong
+      ID; every payment confirmed by hand** (2026-10-02).
 
 Still open (noticed in Phase 2, not built; founder to decide):
 
@@ -314,6 +390,23 @@ Still open (noticed in Phase 2, not built; founder to decide):
 - Hour estimates are now an upper bound. Time tracking dropped (2026-10-02):
   `docs/TIME_LOG.md` removed; actual hours are not logged.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
+
+Phase 4 (2026-10-02), not yet in 01/02/03:
+
+- Payment timing: payment details show **right after ordering**, before
+  the seller accepts (founder's choice). If the seller then rejects a
+  paid order, they refund it themselves. Closes "Payment timing
+  defaults" in 01 §46.
+- KHQR is built in Phase 4 (founder's choice): codes are generated on our
+  server from the seller's Bakong ID, no Bakong API (02 §10.3 step 1 says
+  "calls Bakong API"). Payment confirmation stays manual for every
+  method. Closes "KHQR implementation approach" and "Payment confirmation
+  workflow" in 01 §46.
+- 02 §5.2 data model: `payment.store_id` (RLS); `store.payment_config`
+  shape is `{"cod": {"enabled"}, "bank_transfer": {"enabled",
+  "bank_name", "account_name", "account_number"}, "khqr": {"enabled",
+  "bakong_account_id", "merchant_name"}}`.
+- 02 §7.2: no transitions out of paid/failed in the MVP (refunds later).
 
 Phase 3 (2026-10-02), not yet in 01/02/03:
 
@@ -363,9 +456,18 @@ of passlib.
 - slowapi checks only one decorated limit per request, so the order
   limit calls its limiter directly (`check_limit` in
   `app/core/ratelimit.py`).
-- Completing an order (02 §7.4) needs a payment record, so in Phase 3 no
-  order can reach `completed`; `can_complete` in `app/services/order.py`
-  is the one place Phase 4 changes.
+- Completion (02 §7.4) is taken literally: a cash-on-delivery order can
+  complete even if its payment was marked failed. The seller decides.
+- A payment can't be undone once marked paid or failed (02 §7.2 has no
+  way back); both ask first. If sellers mis-tap in practice, an "undo"
+  would be a deliberate change to 02 §7.2.
+- KHQR codes are made in `app/services/khqr.py` (no dependency); the
+  tests pin it to strings from NBC's SDK. The frontend draws them with
+  `uqr`. The KHQR card's red header is plain text "KHQR", not NBC's logo
+  file.
+- Payment details on the order page are the store's current ones, not a
+  copy from ordering time, and disappear if the seller turns the method
+  off (the customer is told to ask the shop).
 - Checkout shows no delivery fee line (fee is 0, open decision for
   Phase 5).
 - Store slugs are global; product/category slugs are unique per store.
@@ -374,7 +476,8 @@ of passlib.
   layout, so a product link costs one round trip. New public endpoints go
   under `/shop/{store_slug}` (`app/api/shop.py`) and use the `Shop` /
   `ShopDb` dependencies; the router-level rate limit covers them.
-- Bundle: 141 KB gzipped after Phase 3 (131 KB after Phase 2), mostly
+- Bundle: 149 KB gzipped after Phase 4 (141 KB after Phase 3, 131 KB
+  after Phase 2), mostly
   React DOM, React Router and TanStack Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
   customers) and skipped for now; revisit when later phases make the
   dashboard bigger (it would also need a reload-on-stale-chunk fallback).
@@ -397,8 +500,10 @@ of passlib.
 
 ## Next Up
 
-1. Phase 4: payments. `can_complete` becomes "payment paid, or COD".
-2. Apply the Phase 3 decisions to 01/02/03 (text given in the session
-   summary; see "Decisions Made This Session").
-3. Decide on the two Phase 2 proposals above (link previews, grid photos).
+1. Founder reviews Phase 4, then push/deploy and the live KHQR scan
+   (In Progress).
+2. Apply the Phase 3 and Phase 4 decisions to 01/02/03 (text given in
+   the session summaries; see "Decisions Made This Session").
+3. Phase 5: delivery (seller delivery / pickup, delivery fee).
+4. Decide on the two Phase 2 proposals above (link previews, grid photos).
 R2 setup whenever the founder is ready.
