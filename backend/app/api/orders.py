@@ -9,6 +9,7 @@ from fastapi import APIRouter, Query
 from app.api.deps import Seller, TenantDb
 from app.models import OrderStatus
 from app.schemas.order import OrderListOut, OrderOut, OrderStatusUpdate
+from app.schemas.payment import PaymentUpdate
 from app.services import order as order_service
 
 router = APIRouter(prefix="/seller/orders", tags=["orders"])
@@ -47,4 +48,14 @@ async def change_status(
 ) -> OrderOut:
     """Moves the order along the state machine (02 section 7.1)."""
     order = await order_service.change_status(db, seller.store_id, order_id, data.status)
+    return order_service.order_out(order)
+
+
+@router.patch("/{order_id}/payment", response_model=OrderOut)
+async def record_payment(
+    order_id: uuid.UUID, data: PaymentUpdate, seller: Seller, db: TenantDb
+) -> OrderOut:
+    """Marks the payment paid or failed (02 section 7.2). Recording it can
+    let the order complete (section 7.4), so the whole order comes back."""
+    order = await order_service.record_payment(db, seller.store_id, order_id, data)
     return order_service.order_out(order)

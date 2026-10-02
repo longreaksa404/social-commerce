@@ -2,8 +2,26 @@
 settings, choosing a method at checkout, and what the customer is shown."""
 
 import uuid
+from itertools import product
 
+import pytest
+
+from app.core.errors import AppError
+from app.models import Payment, PaymentStatus
+from app.services.payment import check_transition, next_statuses
 from tests.helpers import add_product, place_order, variant_ids
+
+P = PaymentStatus
+
+# Copied from 02_TECHNICAL.md section 7.2 on purpose, not imported: a
+# change to the service's table has to be made here too, deliberately.
+# paid -> refunded is in the schema but not allowed in the MVP.
+EXPECTED = {
+    P.PENDING: {P.PAID, P.FAILED},
+    P.PAID: set(),
+    P.FAILED: set(),
+    P.REFUNDED: set(),
+}
 
 BANK = {
     "enabled": True,
@@ -29,6 +47,21 @@ async def _set_payments(client, headers, **settings):
 
 async def _track(client, slug, order_id, phone="012345678"):
     return await client.get(f"/api/v1/shop/{slug}/orders/{order_id}?phone={phone}")
+
+
+@pytest.mark.parametrize(("current", "target"), list(product(P, P)))
+def test_every_payment_transition_follows_the_state_machine(current, target):
+    if target in EXPECTED[current]:
+        check_transition(current, target)
+    else:
+        with pytest.raises(AppError) as error:
+            check_transition(current, target)
+        assert (error.value.status_code, error.value.code) == (409, "INVALID_PAYMENT_TRANSITION")
+
+
+def test_next_payment_statuses_are_what_the_seller_can_record():
+    assert next_statuses(Payment(status=P.PENDING)) == [P.PAID, P.FAILED]
+    assert next_statuses(Payment(status=P.PAID)) == []
 
 
 # --- Settings ----------------------------------------------------------------
@@ -174,3 +207,72 @@ async def test_order_list_shows_how_each_order_is_paid(client, auth_headers):
     [row] = (await client.get("/api/v1/seller/orders", headers=headers)).json()["orders"]
 
     assert (row["payment_method"], row["payment_status"]) == ("cod", "pending")
+
+
+# --- Recording a payment -----------------------------------------------------
+
+
+async def _record(client, headers, order_id, status, reference=None):
+    return await client.patch(
+        f"/api/v1/seller/orders/{order_id}/payment",
+        headers=headers,
+        json={"status": status, "reference": reference},
+    )
+
+
+async def test_seller_marks_a_transfer_paid_and_can_then_complete(client, auth_headers):
+    headers, store_id, slug = await _seller(client, auth_headers)
+    await _set_payments(client, headers, bank_transfer=BANK)
+    cap = await add_product(store_id, "cap", stock=5)
+    order = (
+        await place_order(
+            client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
+        )
+    ).json()
+    for status in ("accepted", "processing", "ready", "shipped", "delivered"):
+        await client.patch(
+            f"/api/v1/seller/orders/{order['id']}/status", headers=headers, json={"status": status}
+        )
+    detail = (await client.get(f"/api/v1/seller/orders/{order['id']}", headers=headers)).json()
+    assert detail["next_statuses"] == []  # not paid yet
+    assert detail["payment"]["next_statuses"] == ["paid", "failed"]
+
+    response = await _record(client, headers, order["id"], "paid", "ABA 14:05, ...123")
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["payment"]["status"] == "paid"
+    assert body["payment"]["reference"] == "ABA 14:05, ...123"
+    assert body["payment"]["paid_at"] is not None
+    assert body["payment"]["next_statuses"] == []
+    assert (body["status"], body["next_statuses"]) == ("delivered", ["completed"])
+    # The customer sees it's paid, and no longer gets the account to pay to.
+    tracked = (await _track(client, slug, order["id"])).json()["payment"]
+    assert (tracked["status"], tracked["bank_account"]) == ("paid", None)
+
+    again = await _record(client, headers, order["id"], "failed")
+    assert again.status_code == 409
+    assert again.json()["error"]["code"] == "INVALID_PAYMENT_TRANSITION"
+
+
+async def test_recording_a_payment_leaves_the_order_status_alone(client, auth_headers):
+    headers, store_id, slug = await _seller(client, auth_headers)
+    cap = await add_product(store_id, "cap", stock=5)
+    order = (await place_order(client, slug, [(cap, None, 1)], total="10.00")).json()
+
+    body = (await _record(client, headers, order["id"], "failed")).json()
+
+    assert (body["status"], body["payment"]["status"]) == ("pending", "failed")
+    assert body["payment"]["paid_at"] is None
+
+
+async def test_seller_cannot_record_another_stores_payment(client, auth_headers):
+    a_headers, a_store, a_slug = await _seller(client, auth_headers)
+    b_headers, _, _ = await _seller(client, auth_headers)
+    cap = await add_product(a_store, "cap", stock=5)
+    order = (await place_order(client, a_slug, [(cap, None, 1)], total="10.00")).json()
+
+    assert (await _record(client, b_headers, order["id"], "paid")).status_code == 404
+
+    detail = (await client.get(f"/api/v1/seller/orders/{order['id']}", headers=a_headers)).json()
+    assert detail["payment"]["status"] == "pending"

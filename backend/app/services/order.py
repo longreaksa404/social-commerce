@@ -2,8 +2,9 @@
 section 7.1) and the seller's order list and detail.
 
 Order, payment, and delivery are independent state machines (CLAUDE.md
-hard rule 2). Nothing here reads or sets payment or delivery status except
-the one rule that couples them: completion (section 7.4).
+hard rule 2). The order's status follows only the table below, the
+payment's only its own (app/services/payment.py); neither is ever set from
+the other. The one rule that couples them is completion (section 7.4).
 
 Every query filters by store_id (layer 1) on a tenant session where RLS
 enforces the same thing (layer 2).
@@ -17,8 +18,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.errors import AppError, NotFound
-from app.models import Order, OrderStatus, Product, ProductVariant
+from app.models import (
+    Order,
+    OrderStatus,
+    PaymentMethod,
+    PaymentStatus,
+    Product,
+    ProductVariant,
+)
 from app.schemas.order import OrderListOut, OrderOut, OrderSummaryOut
+from app.schemas.payment import PaymentUpdate
+from app.services import payment as payment_service
 
 S = OrderStatus
 
@@ -40,12 +50,9 @@ RETURNS_STOCK = frozenset({S.REJECTED, S.CANCELLED})
 
 def can_complete(order: Order) -> bool:
     """02 section 7.4: an order may complete only once its payment is paid,
-    or when it is cash on delivery.
-
-    Payments are recorded from Phase 4. Until then no order has one, so no
-    order meets the rule and none can complete.
-    """
-    return False
+    or when it is cash on delivery (whenever the cash changes hands)."""
+    payment = order.payment
+    return payment.status is PaymentStatus.PAID or payment.method is PaymentMethod.COD
 
 
 def check_transition(current: OrderStatus, target: OrderStatus) -> None:
@@ -117,7 +124,10 @@ async def get_order(
 
 
 def order_out(order: Order) -> OrderOut:
-    return OrderOut.model_validate(order).model_copy(update={"next_statuses": next_statuses(order)})
+    out = OrderOut.model_validate(order)
+    out.next_statuses = next_statuses(order)
+    out.payment.next_statuses = payment_service.next_statuses(order.payment)
+    return out
 
 
 async def change_status(
@@ -127,6 +137,18 @@ async def change_status(
     # stock twice: the second request waits, then sees the new status.
     order = await get_order(db, store_id, order_id, for_update=True)
     await transition(db, order, target)
+    await db.commit()
+    return order
+
+
+async def record_payment(
+    db: AsyncSession, store_id: uuid.UUID, order_id: uuid.UUID, data: PaymentUpdate
+) -> Order:
+    """The seller records the order's payment as paid or failed (02
+    section 10). Locked like a status change, so a double tap can't record
+    it twice."""
+    order = await get_order(db, store_id, order_id, for_update=True)
+    payment_service.record(order.payment, data.status, data.reference)
     await db.commit()
     return order
 

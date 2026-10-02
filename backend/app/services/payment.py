@@ -1,16 +1,58 @@
-"""Payments (02_TECHNICAL.md sections 7.2 and 10): the seller's payment
-settings and what the customer is shown to pay with.
+"""Payments (02_TECHNICAL.md sections 7.2 and 10): the payment state
+machine, the seller's payment settings, and what the customer is shown to
+pay with.
 
 No payment method is integrated with a provider in the MVP: the seller
 checks their bank app or counts the cash and records it by hand.
+
+The payment's status follows only its own state machine; nothing here
+reads or sets the order's status (CLAUDE.md hard rule 2).
 """
 
+from datetime import UTC, datetime
+
 from app.core.errors import AppError
-from app.models import Order, OrderStatus, PaymentMethod, PaymentStatus, Store
+from app.models import Order, OrderStatus, Payment, PaymentMethod, PaymentStatus, Store
 from app.schemas.payment import PaymentSettings, ShopBankAccount, ShopPaymentOut
+
+P = PaymentStatus
+
+ALLOWED_PAYMENT_TRANSITIONS: dict[PaymentStatus, frozenset[PaymentStatus]] = {
+    P.PENDING: frozenset({P.PAID, P.FAILED}),
+    # paid -> refunded is in the schema but not in the MVP (02 section 7.2).
+    P.PAID: frozenset(),
+    P.FAILED: frozenset(),
+    P.REFUNDED: frozenset(),
+}
 
 # Nothing to pay for any more, so no payment details are shown.
 ORDER_IS_OFF = frozenset({OrderStatus.REJECTED, OrderStatus.CANCELLED})
+
+
+def check_transition(current: PaymentStatus, target: PaymentStatus) -> None:
+    if target not in ALLOWED_PAYMENT_TRANSITIONS[current]:
+        raise AppError(
+            409,
+            "INVALID_PAYMENT_TRANSITION",
+            f"This payment is {current.value}, so it can't be marked {target.value}.",
+            "status",
+        )
+
+
+def next_statuses(payment: Payment) -> list[PaymentStatus]:
+    """What the seller can record now, in state-machine order."""
+    return [s for s in P if s in ALLOWED_PAYMENT_TRANSITIONS[payment.status]]
+
+
+def record(payment: Payment, target: PaymentStatus, reference: str | None) -> None:
+    """The one place a payment's status changes. The caller locks the order
+    first and commits after."""
+    check_transition(payment.status, target)
+    payment.status = target
+    if target is P.PAID:
+        payment.paid_at = datetime.now(UTC)
+    if reference:
+        payment.reference = reference
 
 
 def payment_settings(store: Store) -> PaymentSettings:

@@ -7,8 +7,16 @@ from itertools import product
 import pytest
 
 from app.core.errors import AppError
-from app.models import Order, OrderStatus, Product, ProductVariant
-from app.services.order import check_transition, next_statuses, transition
+from app.models import (
+    Order,
+    OrderStatus,
+    Payment,
+    PaymentMethod,
+    PaymentStatus,
+    Product,
+    ProductVariant,
+)
+from app.services.order import can_complete, check_transition, next_statuses, transition
 from tests.helpers import add_product, place_order, stock, variant_ids
 
 S = OrderStatus
@@ -38,21 +46,37 @@ def test_every_transition_follows_the_state_machine(current, target):
         assert (error.value.status_code, error.value.code) == (409, "INVALID_STATUS_TRANSITION")
 
 
+def _order(status, method=PaymentMethod.BANK_TRANSFER, paid=PaymentStatus.PENDING):
+    return Order(status=status, items=[], payment=Payment(method=method, status=paid))
+
+
 def test_next_statuses_offer_the_allowed_moves_in_order():
-    assert next_statuses(Order(status=S.PENDING)) == [S.ACCEPTED, S.REJECTED]
-    assert next_statuses(Order(status=S.READY)) == [S.SHIPPED, S.CANCELLED]
-    assert next_statuses(Order(status=S.CANCELLED)) == []
+    assert next_statuses(_order(S.PENDING)) == [S.ACCEPTED, S.REJECTED]
+    assert next_statuses(_order(S.READY)) == [S.SHIPPED, S.CANCELLED]
+    assert next_statuses(_order(S.CANCELLED)) == []
+
+
+# 02 section 7.4, copied on purpose: complete only once paid, or when the
+# payment is cash on delivery, whatever its status.
+@pytest.mark.parametrize(("method", "paid"), list(product(PaymentMethod, PaymentStatus)))
+def test_the_completion_rule(method, paid):
+    expected = paid is PaymentStatus.PAID or method is PaymentMethod.COD
+    assert can_complete(_order(S.DELIVERED, method, paid)) is expected
 
 
 async def test_an_order_cannot_complete_before_its_payment_is_settled():
-    """02 section 7.4. Payments arrive in Phase 4; until then none can."""
-    order = Order(status=S.DELIVERED, items=[])
+    order = _order(S.DELIVERED, PaymentMethod.KHQR, PaymentStatus.PENDING)
 
     assert next_statuses(order) == []
     with pytest.raises(AppError) as error:
         await transition(None, order, S.COMPLETED)
     assert error.value.code == "ORDER_NOT_PAID"
     assert order.status is S.DELIVERED
+
+    order.payment.status = PaymentStatus.PAID
+    assert next_statuses(order) == [S.COMPLETED]
+    await transition(None, order, S.COMPLETED)
+    assert order.status is S.COMPLETED
 
 
 # --- Seller endpoints ------------------------------------------------------
@@ -86,7 +110,11 @@ async def test_seller_moves_an_order_along_and_sees_what_comes_next(client, auth
         response = await _move(client, headers, placed["id"], status)
         assert response.status_code == 200, response.text
     assert response.json()["status"] == "delivered"
-    assert response.json()["next_statuses"] == []  # completing needs a payment (Phase 4)
+    # Cash on delivery: completing doesn't wait for the cash to be recorded.
+    assert response.json()["next_statuses"] == ["completed"]
+    response = await _move(client, headers, placed["id"], "completed")
+    assert response.json()["status"] == "completed"
+    assert response.json()["payment"]["status"] == "pending"  # untouched by the order
 
     response = await _move(client, headers, placed["id"], "pending")
     assert response.status_code == 409
