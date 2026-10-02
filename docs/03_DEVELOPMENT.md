@@ -291,6 +291,18 @@ Maintain a **Requirements Log** for anything a seller asks for that isn't in thi
 | Category | one-off vs. possibly-repeated |
 | Seen from other sellers? | tracked over time — this is how "custom request → repeated pattern → reusable feature" gets decided, not gut feel |
 
+### Log
+
+| Date | Seller | Request | Category | Seen from other sellers? |
+|---|---|---|---|---|
+| 2026-10-02 | Founder (own idea while testing Phase 4; no seller yet) | **One-tap pay for several banks.** A "Pay" button that opens the customer's own bank app (ABA, ACLEDA, Wing, …) with the amount filled in, and marks the payment paid automatically. Today the customer saves the KHQR and scans it from their gallery, and the seller confirms by hand. | Possibly repeated. **Validate First** (`01_PRODUCT.md` §44) | Not yet; ask the first sellers |
+
+Notes on the 2026-10-02 one-tap pay request:
+
+- No free, bank-neutral way exists: each bank's app-to-app payment is its own merchant service (ABA PayWay, ACLEDA Toanchet Pay, Wing's merchant service), or an aggregator covers several banks with one account (e.g. A-Pay, iPay88). Either way each seller signs up, usually pays a fee per payment, and is usually asked for business registration. Bakong's own deep link opens only the Bakong app and relied on Firebase Dynamic Links (shut down August 2025).
+- Cost if built: about 2–3 days per bank, or about the same once for an aggregator, plus keeping each seller's keys safe and an endpoint for payment notifications. It would also make payment confirmation automatic for those payments.
+- Ask the first sellers: which banks their customers use; whether they are a registered business; whether they'd pay a fee per payment for automatic "Paid". If most aren't registered, keep KHQR (all banks, free, confirmed by hand).
+
 ---
 
 # 7. Testing Strategy (MVP-Appropriate)
