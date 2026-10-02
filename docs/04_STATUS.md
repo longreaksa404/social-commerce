@@ -401,13 +401,6 @@ Still open (noticed in Phase 2, not built; founder to decide):
   `docs/TIME_LOG.md` removed; actual hours are not logged.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
 
-Khmer / English and light / dark mode (2026-10-02), not yet in 01/03:
-
-- 03 §3 Phase 9 gets two task rows (language switch ~12 hrs, theme
-  ~8 hrs); Phase 9 subtotal ~40 → ~60 hrs, total ~258 → ~278 hrs.
-- 01 §40: Khmer / English is no longer only a future possibility;
-  languages beyond those two still are.
-
 Phase 4 (2026-10-02), not yet in 01/02/03:
 
 - Payment timing: payment details show **right after ordering**, before
@@ -440,6 +433,10 @@ Render Postgres; domain/DNS moved from Phase 0 to Phase 9; migrations at
 container start; `currency` on `store`, `store_id` on `product_variant`,
 the `refresh_token` table, the `app_user` RLS role note, and bcrypt instead
 of passlib.
+
+Applied to 01/03 on 2026-10-02 (at the founder's request): Khmer / English
+switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
+~60 hrs, total ~278 hrs); 01 §40 now lists only languages beyond those two.
 
 ---
 

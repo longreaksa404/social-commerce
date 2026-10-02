@@ -240,9 +240,11 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Seed real store data for first seller | 3 |
 | Onboard first real seller (manual walkthrough, not self-serve yet) | 4 |
 | Domain + Cloudflare DNS setup (moved from Phase 0) | 1 |
+| Khmer / English language switch (all UI text in shop + dashboard; default Khmer; seller-entered text not translated) | 12 |
+| Light / dark mode (follows phone setting + Light/Dark/Auto switch; KHQR stays dark on light) | 8 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~40 hours (**~3 weeks**)
+**Subtotal:** ~60 hours (**~4.5 weeks**)
 
 ---
 
@@ -259,8 +261,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 20 | 1.5 wks |
 | 7 — Notifications/Customers | 12 | 1 wk |
 | 8 — Links/Tracking | 13 | 1 wk |
-| 9 — Polish/First Seller | 40 | 3 wks |
-| **Total** | **~258 hrs** | **~19–20 weeks (~4.5–5 months)** |
+| 9 — Polish/First Seller | 60 | 4.5 wks |
+| **Total** | **~278 hrs** | **~21–22 weeks (~5 months)** |
 
 This is a planning estimate, not a commitment.
 

@@ -1597,7 +1597,7 @@ Possible future capabilities include:
 - Automated seller workflows
 - Accounting integrations
 - Multi-country support
-- Multi-language support
+- More languages beyond Khmer and English (Khmer / English is planned for Phase 9; see 03_DEVELOPMENT.md)
 
 These are possibilities, not commitments.
 
