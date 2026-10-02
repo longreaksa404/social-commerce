@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-02 (Phase 3 built locally; not pushed yet)
+> **Last updated:** 2026-10-02 (Phase 3 deployed and founder-tested on the live site)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,13 +15,14 @@
 
 ## Current Phase
 
-**Phase 3 — Checkout + Orders** (built and checked locally, 2026-10-02;
-not pushed or deployed yet)
+**Phase 3 — Checkout + Orders** (deployed 2026-10-02; founder tested it
+on the live site and reports everything works; waiting for the founder to
+close the phase)
 
-Its definition of done holds locally: a customer checks out and sees a
-confirmation; the seller sees the order and can accept/reject/advance it
-along 02 §7.1. Still to do: push, deploy, and the founder's manual
-end-to-end run on the live site (03 asks for one before Phase 4).
+Its definition of done holds on the live site: a customer checks out and
+sees a confirmation; the seller sees the order and can accept/reject/
+advance it along 02 §7.1. This was the manual end-to-end run 03 asks for
+before Phase 4.
 
 Phase 2 met its definition of done on 2026-10-02 and the founder closed it:
 on the live site, `/shop/reaksa-store` shows the real product on a phone,
@@ -160,7 +161,7 @@ shows "API: ok" from the deployed backend.
       (besides expected 404s), riel prices, long Khmer names, empty shop,
       slow loading (skeletons), dropped request ("Try again" recovers).
 
-**Phase 3 (built locally 2026-10-02; not pushed or deployed yet):**
+**Phase 3 (deployed 2026-10-02; founder-tested on the live site):**
 
 - [x] Tables + migration `8980a033af6d`: `customer` (per store, unique
       by phone), `order` (per-store `number` from 1001, `currency` copied
@@ -219,13 +220,7 @@ shows "API: ok" from the deployed backend.
       Render; upload a product photo on the live site. Until then photo
       upload shows "Image uploads are not set up yet" and products have no
       images.
-- [ ] **Phase 3: push and deploy** (founder says when), then the
-      founder's manual end-to-end run on the live site: open a product
-      link on a phone → add to cart → checkout → confirmation; seller
-      sees it, accepts, moves it to Delivered; reject one and check the
-      stock comes back.
-- [ ] **Watch the first Phase 3 backend push** for a Render auto-deploy
-      (see Known Issues). It includes a migration, which runs on start.
+- [ ] **Founder to close Phase 3** (tested on the live site 2026-10-02).
 
 ---
 
@@ -246,7 +241,11 @@ shows "API: ok" from the deployed backend.
   account, or Vercel (Hobby) blocks the deploy. Set per repo with
   `git config user.email longchansamanakreaksa@gmail.com`; the container's
   global `~/.gitconfig` has the work email. Repeat on each machine.
-- **Render missed the Phase 2 auto-deploy (2026-10-02).** CI was green
+- **Render missed the Phase 2 auto-deploy (2026-10-02); the Phase 3 push
+  deployed by itself.** The Phase 3 push (last commit `b7c1aa8`, also
+  docs-only after backend commits) auto-deployed after CI, with its
+  migration, a few minutes after the push. So the Phase 2 miss looks
+  like a one-off; if it happens again, see below. Phase 2 details: CI was green
   (all 8 runs so far are green), yet Render logged no event for the push
   of `59fdf09`; the founder deployed it manually. Not the build filter:
   the 2026-10-01 push had the same shape (docs-only last commit, backend
@@ -400,8 +399,7 @@ of passlib.
 
 ## Next Up
 
-1. Push Phase 3, deploy, and run the manual end-to-end test on the live
-   site (In Progress).
+1. Founder closes Phase 3.
 2. Apply the Phase 3 decisions to 01/02/03 (text given in the session
    summary; see "Decisions Made This Session").
 3. Phase 4: payments. `can_complete` becomes "payment paid, or COD".
