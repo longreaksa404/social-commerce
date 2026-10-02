@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-02 (02/03 doc changes applied; Phase 2 next)
+> **Last updated:** 2026-10-02 (Phase 2 built and checked locally; not pushed yet)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,7 +15,12 @@
 
 ## Current Phase
 
-**Phase 2 — Storefront (Customer-Facing Browsing)** (not started)
+**Phase 2 — Storefront (Customer-Facing Browsing)** (built, not pushed)
+
+All five Phase 2 tasks are built, committed on `main`, and checked locally
+in headless Chromium. Not pushed or deployed yet. Definition of done still
+to confirm on the live site: opening `/shop/{store-slug}` on a phone shows
+real products, and a product link shows that product.
 
 Phase 1 is deployed and tested by the founder on the live site (2026-10-01).
 One part of its definition of done is carried forward: adding a product
@@ -98,7 +103,7 @@ shows "API: ok" from the deployed backend.
       (register → categories → products with variants → currency → reload →
       logout/login); no unexpected console errors.
 
-**Seller UI rework for phones (2026-10-01, founder-requested, not yet pushed):**
+**Seller UI rework for phones (2026-10-01, founder-requested, pushed):**
 
 - [x] App shell: bottom tab bar on phones, sidebar on desktop; product
       create/edit is a focused screen with a pinned Save bar. Log out moved
@@ -120,6 +125,35 @@ shows "API: ok" from the deployed backend.
       drive where file-change events never arrive); needs a container
       rebuild to take effect.
 
+**Phase 2 (built 2026-10-02; committed, not pushed or deployed):**
+
+- [x] Public endpoints `GET /api/v1/shop/{store_slug}` (store + categories
+      that have active products), `/products` (active products as cards:
+      first photo, price or price range, in stock), `/products/{slug}`
+      (photos, variants with their effective price and stock, category),
+      `/categories/{slug}`. Only customer-safe fields (no SKU, status,
+      payment/Telegram config). A deactivated seller's shop is 404.
+- [x] Tenant isolation: the shop is found by slug on a short unscoped
+      session; all catalog queries then run on a tenant session for that
+      shop, so RLS applies to public reads too (02 §4.2 updated).
+- [x] Rate limit: 300/min per IP shared across all storefront endpoints,
+      checked before the shop lookup, so guessing slugs is limited too.
+- [x] 10 pytest tests (38 total): cross-store isolation by slug, inactive
+      products hidden, variant prices/stock, no private fields, deactivated
+      shop, RLS role on shop sessions, rate limit on unknown slugs.
+- [x] Frontend routes (02 §9.1): `/shop/:slug`, `/shop/:slug/product/:slug`,
+      `/shop/:slug/category/:slug`. Header with store name; store page
+      (description folded when long, category chips, 2/3/4-column grid,
+      "Sold out" badge); product page (swipeable photos, variant chips with
+      sold-out ones crossed out, price follows the chosen option, stock
+      "In stock" / "Only N left" (≤5) / "Sold out", description); category
+      page; not-found pages for shop/product/category; tab titles.
+- [x] Settings → Shop link has an "Open shop" button.
+- [x] Checked at 320/360/414/1280 px with Noto Sans Khmer: no horizontal
+      scroll, axe-core finds no WCAG 2.1 A/AA violations, no console errors
+      (besides expected 404s), riel prices, long Khmer names, empty shop,
+      slow loading (skeletons), dropped request ("Try again" recovers).
+
 ---
 
 ## In Progress
@@ -131,6 +165,9 @@ shows "API: ok" from the deployed backend.
       images.
 - [ ] Confirm CI is green in the GitHub Actions tab (repo is private, so
       Claude can't see it)
+- [ ] **Phase 2 on the live site (founder):** push, then open
+      `/shop/{your-slug}` and a product link on a phone. No photos show
+      until R2 is set up (grey placeholders instead).
 
 ---
 
@@ -176,7 +213,20 @@ Resolved:
 - [x] **Domain + Cloudflare DNS: deferred to Phase 9** (2026-10-01). Use the
       free `*.onrender.com` and `*.vercel.app` URLs until then.
 
-Still open: none.
+Still open (noticed in Phase 2, not built; founder to decide):
+
+- [ ] **Link previews when sharing.** Facebook, Messenger, Telegram and
+      TikTok build the preview card (title + photo) without running
+      JavaScript, so every shared shop/product link previews as the generic
+      "Social Commerce" page. Fix: a small Vercel function on `/shop/*`
+      that adds Open Graph tags from the API. About 3–5 hrs, $0 on Vercel
+      Hobby, one more piece to maintain. Suggest doing it with Phase 8
+      (shareable links).
+- [ ] **Small photos for the product grid.** The grid loads each product's
+      full photo (up to 1600px, a few hundred KB); 20 products can be
+      several MB on mobile data. Fix: the phone also makes a ~480px copy
+      at upload time and the grid uses it (no new service). About 2–3 hrs.
+      Matters once R2 is live and shops have many photos.
 
 ---
 
@@ -217,6 +267,14 @@ of passlib.
   `order_item.variant_id`, decide whether variants become soft-deleted.
 - Store slugs are global; product/category slugs are unique per store.
   Names with no Latin letters (e.g. Khmer only) get a short random slug.
+- Storefront pages call `useShop` themselves instead of waiting for the
+  layout, so a product link costs one round trip. New public endpoints go
+  under `/shop/{store_slug}` (`app/api/shop.py`) and use the `Shop` /
+  `ShopDb` dependencies; the router-level rate limit covers them.
+- Bundle: 131 KB gzipped, mostly React DOM, React Router and TanStack
+  Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
+  customers) and skipped for now; revisit when later phases make the
+  dashboard bigger (it would also need a reload-on-stale-chunk fallback).
 - Free-tier limits to revisit before the first real seller (Phase 9): the
   Render free web service sleeps after 15 min idle (slow first request);
   Neon free keeps only a 6-hour restore window, not daily backups. When the
@@ -236,5 +294,8 @@ of passlib.
 
 ## Next Up
 
-Phase 2: public storefront (`/shop/{slug}`, product and category pages,
-mobile styling). R2 setup whenever the founder is ready.
+1. Founder: push Phase 2 and check it on a phone (see In Progress).
+2. Decide on the two Phase 2 proposals above (link previews, grid photos).
+3. Phase 3: checkout + orders. Before `order_item.variant_id` exists,
+   decide whether removed variants become soft-deleted (see Notes).
+R2 setup whenever the founder is ready.
