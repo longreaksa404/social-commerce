@@ -364,6 +364,16 @@ Resolved:
       the seller accepts; a rejected paid order is refunded by the seller.
 - [x] **KHQR in Phase 4, generated on our server from the seller's Bakong
       ID; every payment confirmed by hand** (2026-10-02).
+- [x] **Khmer / English switch and light / dark mode in Phase 9**
+      (2026-10-02, founder's request). Not built before then; Phases 5–8
+      stay English-only and light-only. Language: all of the platform's
+      own text (shop and dashboard, incl. error messages, translated on
+      the frontend by error code); what the seller types is shown as
+      typed. Switch in the shop header, login page and seller Settings,
+      remembered per device; **default Khmer**. Theme: follows the
+      phone's setting, with a Light / Dark / Auto switch; the KHQR code
+      stays dark on light so bank apps can scan it. No backend or data
+      model change expected.
 
 Still open (noticed in Phase 2, not built; founder to decide):
 
@@ -390,6 +400,13 @@ Still open (noticed in Phase 2, not built; founder to decide):
 - Hour estimates are now an upper bound. Time tracking dropped (2026-10-02):
   `docs/TIME_LOG.md` removed; actual hours are not logged.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
+
+Khmer / English and light / dark mode (2026-10-02), not yet in 01/03:
+
+- 03 §3 Phase 9 gets two task rows (language switch ~12 hrs, theme
+  ~8 hrs); Phase 9 subtotal ~40 → ~60 hrs, total ~258 → ~278 hrs.
+- 01 §40: Khmer / English is no longer only a future possibility;
+  languages beyond those two still are.
 
 Phase 4 (2026-10-02), not yet in 01/02/03:
 
