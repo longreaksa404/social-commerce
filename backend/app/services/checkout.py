@@ -22,13 +22,15 @@ from app.models import (
     OrderConfirmationMode,
     OrderItem,
     OrderStatus,
+    Payment,
     Product,
     ProductStatus,
     ProductVariant,
     Store,
 )
-from app.schemas.order import OrderCreate, OrderLineIn
+from app.schemas.order import OrderCreate, OrderLineIn, ShopOrderOut
 from app.services import order as order_service
+from app.services import payment as payment_service
 from app.services.phone import normalize_phone
 
 FIRST_ORDER_NUMBER = 1001
@@ -75,6 +77,7 @@ async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) 
     # customers. Fine at MVP volume.
     store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
     assert store is not None  # the shop was found by slug moments ago
+    payment_service.check_method_available(store, data.payment_method)
 
     lines = await _resolve_lines(db, store_id, data.items)
     items = [
@@ -117,6 +120,9 @@ async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) 
         delivery_address=data.delivery_address,
         notes=data.notes or None,
         items=sorted(items, key=lambda i: (i.product_name_snapshot, i.variant_name_snapshot or "")),
+        # Paid or not is its own state machine, starting at pending for
+        # every method (02 section 7.2).
+        payment=Payment(store_id=store_id, method=data.payment_method, amount=total),
     )
     db.add(order)
     if store.order_confirmation_mode is OrderConfirmationMode.AUTOMATIC:
@@ -145,12 +151,19 @@ async def track_order(
                 Customer.store_id == store_id,
                 Customer.phone == phone,
             )
-            .options(selectinload(Order.items))
+            .options(selectinload(Order.items), selectinload(Order.payment))
         )
     if order is None:
         # The same answer for a wrong phone as for no such order.
         raise NotFound("ORDER_NOT_FOUND", "No order matches this link and phone number.")
     return order
+
+
+def shop_order_out(store: Store, order: Order) -> ShopOrderOut:
+    """The order as its customer sees it, with how to pay for it."""
+    return ShopOrderOut.model_validate(order).model_copy(
+        update={"payment": payment_service.shop_payment_out(store, order)}
+    )
 
 
 async def _resolve_lines(

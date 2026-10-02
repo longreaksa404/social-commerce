@@ -26,8 +26,17 @@ async def test_store_page_shows_only_categories_with_active_products(client, mak
 
     assert response.status_code == 200
     body = response.json()
-    assert set(body) == {"name", "slug", "description", "logo_url", "currency", "categories"}
+    assert set(body) == {
+        "name",
+        "slug",
+        "description",
+        "logo_url",
+        "currency",
+        "categories",
+        "payment_methods",  # names only; bank details come with an order
+    }
     assert body["currency"] == "USD"
+    assert body["payment_methods"] == ["cod"]  # a new shop takes cash on delivery
     assert body["categories"] == [{"name": "Tops", "slug": "tops", "product_count": 2}]
 
 

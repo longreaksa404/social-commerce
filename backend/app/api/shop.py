@@ -72,7 +72,8 @@ async def get_category(category_slug: str, shop: Shop, db: ShopDb) -> ShopCatego
 )
 async def place_order(data: OrderCreate, shop: Shop, db: ShopDb) -> ShopOrderOut:
     """Guest checkout (02_TECHNICAL.md section 5.4)."""
-    return await checkout_service.place_order(db, shop.id, data)
+    order = await checkout_service.place_order(db, shop.id, data)
+    return checkout_service.shop_order_out(shop, order)
 
 
 @router.get("/orders/{order_id}", response_model=ShopOrderOut)
@@ -84,4 +85,5 @@ async def track_order(
 ) -> ShopOrderOut:
     """Order tracking: the order link plus the phone it was placed with
     (02_TECHNICAL.md section 8)."""
-    return await checkout_service.track_order(db, shop.id, order_id, phone)
+    order = await checkout_service.track_order(db, shop.id, order_id, phone)
+    return checkout_service.shop_order_out(shop, order)

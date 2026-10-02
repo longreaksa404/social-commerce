@@ -66,7 +66,9 @@ async def stock(model, row_id) -> int | None:
         return await db.scalar(select(model.stock_quantity).where(model.id == row_id))
 
 
-async def place_order(client, slug, items, *, total, phone="012 345 678", name="Dara"):
+async def place_order(
+    client, slug, items, *, total, phone="012 345 678", name="Dara", payment_method="cod"
+):
     """items: (product_id, variant_id, quantity) tuples."""
     return await client.post(
         f"/api/v1/shop/{slug}/orders",
@@ -79,5 +81,6 @@ async def place_order(client, slug, items, *, total, phone="012 345 678", name="
                 for p, v, q in items
             ],
             "expected_total": total,
+            "payment_method": payment_method,
         },
     )

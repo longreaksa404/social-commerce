@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel
 
+from app.models import PaymentMethod
 from app.models.account import Currency
 
 
@@ -26,6 +27,9 @@ class ShopStoreOut(BaseModel):
     currency: Currency
     # Only categories with at least one product on sale.
     categories: list[ShopCategoryOut]
+    # The ways to pay this shop takes, for checkout. Details (bank account,
+    # KHQR) are shown only on the order page, after ordering.
+    payment_methods: list[PaymentMethod]
 
 
 class ShopProductCard(BaseModel):

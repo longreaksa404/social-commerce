@@ -9,8 +9,9 @@ from typing import Annotated
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstraints
 from pydantic_core import PydanticCustomError
 
-from app.models import Currency, DeliveryMethod, OrderStatus
+from app.models import Currency, DeliveryMethod, OrderStatus, PaymentMethod, PaymentStatus
 from app.schemas.common import Name
+from app.schemas.payment import PaymentOut, ShopPaymentOut
 from app.schemas.product import Money
 from app.services.phone import normalize_phone
 
@@ -47,6 +48,7 @@ class OrderCreate(BaseModel):
     delivery_address: Address
     notes: Note | None = None
     items: list[OrderLineIn] = Field(min_length=1, max_length=MAX_ORDER_LINES)
+    payment_method: PaymentMethod  # one the shop takes (ShopStoreOut.payment_methods)
     # The total the customer was shown. If prices changed since, the order
     # is refused rather than charged at a price they didn't see.
     expected_total: Money
@@ -79,6 +81,7 @@ class ShopOrderOut(BaseModel):
     total: Decimal
     delivery_method: DeliveryMethod
     items: list[OrderItemOut]
+    payment: ShopPaymentOut
 
 
 class CustomerOut(BaseModel):
@@ -95,6 +98,7 @@ class OrderOut(ShopOrderOut):
     delivery_address: str | None
     notes: str | None
     customer: CustomerOut
+    payment: PaymentOut  # the seller's view of it, with what they can record next
     # What the seller can move the order to now (the state machine plus the
     # completion rule), so the app doesn't keep its own copy of the rules.
     next_statuses: list[OrderStatus] = []
@@ -111,6 +115,8 @@ class OrderSummaryOut(BaseModel):
     total: Decimal
     customer_name: str
     item_count: int  # units, not lines
+    payment_method: PaymentMethod
+    payment_status: PaymentStatus
 
 
 class OrderListOut(BaseModel):

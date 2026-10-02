@@ -25,6 +25,7 @@ from app.schemas.storefront import (
     ShopStoreOut,
     ShopVariantOut,
 )
+from app.services.payment import payment_settings
 
 
 async def get_store(db: AsyncSession, slug: str) -> Store:
@@ -59,6 +60,7 @@ async def store_page(db: AsyncSession, store: Store) -> ShopStoreOut:
         categories=[
             ShopCategoryOut(name=name, slug=slug, product_count=count) for name, slug, count in rows
         ],
+        payment_methods=payment_settings(store).enabled_methods(),
     )
 
 
