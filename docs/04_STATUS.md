@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-02 (Phase 3 deployed and founder-tested on the live site)
+> **Last updated:** 2026-10-02 (Phase 3 closed; Phase 4 started)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,14 +15,13 @@
 
 ## Current Phase
 
-**Phase 3 — Checkout + Orders** (deployed 2026-10-02; founder tested it
-on the live site and reports everything works; waiting for the founder to
-close the phase)
+**Phase 4 — Payments** (started 2026-10-02)
 
-Its definition of done holds on the live site: a customer checks out and
-sees a confirmation; the seller sees the order and can accept/reject/
-advance it along 02 §7.1. This was the manual end-to-end run 03 asks for
-before Phase 4.
+Phase 3 met its definition of done on 2026-10-02 and the founder closed it
+(by starting Phase 4): on the live site a customer checks out and sees a
+confirmation; the seller sees the order and can accept/reject/advance it
+along 02 §7.1. This was the manual end-to-end run 03 asks for before
+Phase 4.
 
 Phase 2 met its definition of done on 2026-10-02 and the founder closed it:
 on the live site, `/shop/reaksa-store` shows the real product on a phone,
@@ -161,7 +160,7 @@ shows "API: ok" from the deployed backend.
       (besides expected 404s), riel prices, long Khmer names, empty shop,
       slow loading (skeletons), dropped request ("Try again" recovers).
 
-**Phase 3 (deployed 2026-10-02; founder-tested on the live site):**
+**Phase 3 (deployed 2026-10-02; founder closed it on the live site):**
 
 - [x] Tables + migration `8980a033af6d`: `customer` (per store, unique
       by phone), `order` (per-store `number` from 1001, `currency` copied
@@ -220,7 +219,6 @@ shows "API: ok" from the deployed backend.
       Render; upload a product photo on the live site. Until then photo
       upload shows "Image uploads are not set up yet" and products have no
       images.
-- [ ] **Founder to close Phase 3** (tested on the live site 2026-10-02).
 
 ---
 
@@ -399,9 +397,8 @@ of passlib.
 
 ## Next Up
 
-1. Founder closes Phase 3.
+1. Phase 4: payments. `can_complete` becomes "payment paid, or COD".
 2. Apply the Phase 3 decisions to 01/02/03 (text given in the session
    summary; see "Decisions Made This Session").
-3. Phase 4: payments. `can_complete` becomes "payment paid, or COD".
-4. Decide on the two Phase 2 proposals above (link previews, grid photos).
+3. Decide on the two Phase 2 proposals above (link previews, grid photos).
 R2 setup whenever the founder is ready.
