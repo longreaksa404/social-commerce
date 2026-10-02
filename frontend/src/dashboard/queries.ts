@@ -1,13 +1,21 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api.ts'
-import type { Category, Product, Store } from '../lib/types.ts'
+import type { Category, Order, OrderList, OrderStatus, Product, Store } from '../lib/types.ts'
 
 export const keys = {
   store: ['store'] as const,
   categories: ['categories'] as const,
   products: ['products'] as const,
   product: (id: string) => ['products', id] as const,
+  orders: ['orders'] as const,
+  orderList: (statuses: OrderStatus[]) => ['orders', 'list', statuses] as const,
+  order: (id: string) => ['orders', id] as const,
 }
+
+const ORDER_PAGE = 50
+// No notifications until Phase 6/7: an open order list checks for new
+// orders now and then, and whenever the seller comes back to the app.
+const ORDER_POLL_MS = 30_000
 
 export function useStore() {
   return useQuery({ queryKey: keys.store, queryFn: () => api<Store>('/seller/store') })
@@ -41,6 +49,45 @@ export function useSaveProduct() {
       queryClient.setQueryData(keys.product(product.id), product)
       queryClient.invalidateQueries({ queryKey: keys.products, exact: true })
       queryClient.invalidateQueries({ queryKey: keys.categories })
+    },
+  })
+}
+
+/** Newest first, a page at a time. Empty `statuses` means all. */
+export function useOrders(statuses: OrderStatus[]) {
+  return useInfiniteQuery({
+    queryKey: keys.orderList(statuses),
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams({ limit: String(ORDER_PAGE), offset: String(pageParam) })
+      statuses.forEach((s) => params.append('status', s))
+      return api<OrderList>(`/seller/orders?${params}`)
+    },
+    initialPageParam: 0,
+    getNextPageParam: (last, pages) => (last.has_more ? pages.length * ORDER_PAGE : undefined),
+    // Switching filters keeps the last list (and its counts) until the next arrives.
+    placeholderData: keepPreviousData,
+    refetchInterval: ORDER_POLL_MS,
+    refetchOnWindowFocus: true,
+  })
+}
+
+export function useOrder(id: string) {
+  return useQuery({
+    queryKey: keys.order(id),
+    queryFn: () => api<Order>(`/seller/orders/${id}`),
+    refetchOnWindowFocus: true,
+  })
+}
+
+export function useChangeOrderStatus(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (status: OrderStatus) => api<Order>(`/seller/orders/${id}/status`, { method: 'PATCH', body: { status } }),
+    onSuccess: (order) => {
+      queryClient.setQueryData(keys.order(id), order)
+      queryClient.invalidateQueries({ queryKey: [...keys.orders, 'list'] })
+      // Rejecting or cancelling puts stock back.
+      queryClient.invalidateQueries({ queryKey: keys.products })
     },
   })
 }

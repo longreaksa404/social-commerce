@@ -308,11 +308,19 @@ export function PageHeader({ title, back, action }: { title: ReactNode; back?: s
   )
 }
 
-export function Badge({ tone = 'neutral', children }: { tone?: 'neutral' | 'red' | 'green'; children: ReactNode }) {
+export function Badge({
+  tone = 'neutral',
+  children,
+}: {
+  tone?: 'neutral' | 'red' | 'green' | 'amber' | 'blue'
+  children: ReactNode
+}) {
   const colors = {
     neutral: 'bg-slate-100 text-slate-700 ring-slate-200',
     red: 'bg-red-50 text-red-700 ring-red-200',
     green: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    amber: 'bg-amber-50 text-amber-800 ring-amber-200',
+    blue: 'bg-sky-50 text-sky-800 ring-sky-200',
   }[tone]
   return (
     <span className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${colors}`}>

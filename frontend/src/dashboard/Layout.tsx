@@ -1,10 +1,11 @@
-import { Package, Settings, Store, Tags } from 'lucide-react'
+import { Inbox, Package, Settings, Store, Tags } from 'lucide-react'
 import { NavLink, Navigate, Outlet, useLocation, useMatch } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { Skeleton, Spinner } from '../components/ui.tsx'
 import { useStore } from './queries.ts'
 
 const links = [
+  { to: '/dashboard/orders', label: 'Orders', icon: Inbox },
   { to: '/dashboard/products', label: 'Products', icon: Package },
   { to: '/dashboard/categories', label: 'Categories', icon: Tags },
   { to: '/dashboard/settings', label: 'Settings', icon: Settings },
@@ -21,9 +22,12 @@ export function DashboardLayout() {
 }
 
 function Shell() {
-  // Product create/edit is a focused task screen on phones: no app bar or
-  // tab bar; the page brings its own back button and save bar.
-  const focused = useMatch('/dashboard/products/:productId') !== null
+  // Product create/edit and an order are focused task screens on phones:
+  // no app bar or tab bar; the page brings its own back button and a
+  // pinned bar with its buttons.
+  const productScreen = useMatch('/dashboard/products/:productId') !== null
+  const orderScreen = useMatch('/dashboard/orders/:orderId') !== null
+  const focused = productScreen || orderScreen
 
   return (
     <div className="min-h-dvh lg:flex">

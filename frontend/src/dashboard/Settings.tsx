@@ -15,11 +15,12 @@ import {
   Section,
   Select,
   Skeleton,
+  Switch,
   TextArea,
 } from '../components/ui.tsx'
 import { api } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
-import type { Currency, Store } from '../lib/types.ts'
+import type { Currency, OrderConfirmationMode, Store } from '../lib/types.ts'
 import { keys, useStore } from './queries.ts'
 import { useUnsavedChanges } from './useUnsavedChanges.ts'
 
@@ -43,13 +44,20 @@ export function Settings() {
   )
 }
 
-type Form = { name: string; slug: string; description: string; currency: Currency }
+type Form = {
+  name: string
+  slug: string
+  description: string
+  currency: Currency
+  order_confirmation_mode: OrderConfirmationMode
+}
 
 const toForm = (store: Store): Form => ({
   name: store.name,
   slug: store.slug,
   description: store.description ?? '',
   currency: store.currency,
+  order_confirmation_mode: store.order_confirmation_mode,
 })
 
 function StoreForm({ store }: { store: Store }) {
@@ -118,6 +126,19 @@ function StoreForm({ store }: { store: Store }) {
             <option value="KHR">Cambodian riel (៛)</option>
           </Select>
         </Field>
+      </Section>
+
+      <Section title="Orders">
+        <Switch
+          checked={form.order_confirmation_mode === 'automatic'}
+          onChange={(on) => set('order_confirmation_mode', on ? 'automatic' : 'manual')}
+          label="Accept new orders automatically"
+          description={
+            form.order_confirmation_mode === 'automatic'
+              ? 'New orders are accepted right away. You can still cancel one later.'
+              : 'New orders wait for you to accept or reject them.'
+          }
+        />
       </Section>
 
       <Section title="Shop link" description="The address you share with customers.">
