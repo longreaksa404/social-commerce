@@ -10,6 +10,7 @@ import { Login } from './pages/Login.tsx'
 import { Register } from './pages/Register.tsx'
 import { ShopHome } from './shop/ShopHome.tsx'
 import { ShopLayout } from './shop/ShopLayout.tsx'
+import { ShopProduct } from './shop/ShopProduct.tsx'
 
 // A data router (not <BrowserRouter>) so forms can block navigation while
 // they have unsaved changes (useBlocker).
@@ -36,7 +37,10 @@ export const router = createBrowserRouter([
         // Customer-facing; link shapes from 02_TECHNICAL.md section 9.1.
         path: '/shop/:storeSlug',
         element: <ShopLayout />,
-        children: [{ index: true, element: <ShopHome /> }],
+        children: [
+          { index: true, element: <ShopHome /> },
+          { path: 'product/:productSlug', element: <ShopProduct /> },
+        ],
       },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
