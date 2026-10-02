@@ -15,24 +15,7 @@ from app.db.session import unscoped_session
 from app.models import Customer, Order, OrderConfirmationMode, Product, ProductVariant, Store
 from app.services.checkout import line_total, order_totals
 from app.services.phone import normalize_phone
-from tests.helpers import add_product, shop_slug, stock, variant_ids
-
-
-async def _place(client, slug, items, *, total, phone="012 345 678", name="Dara"):
-    """items: (product_id, variant_id, quantity) tuples."""
-    return await client.post(
-        f"/api/v1/shop/{slug}/orders",
-        json={
-            "name": name,
-            "phone": phone,
-            "delivery_address": "St 271, Phnom Penh",
-            "items": [
-                {"product_id": str(p), "variant_id": v and str(v), "quantity": q}
-                for p, v, q in items
-            ],
-            "expected_total": total,
-        },
-    )
+from tests.helpers import add_product, place_order, shop_slug, stock, variant_ids
 
 
 async def _order_count(store_id) -> int:
@@ -81,7 +64,7 @@ async def test_order_snapshots_prices_and_takes_stock(client, make_store):
     )
     xl = (await variant_ids(dress))["XL"]
 
-    response = await _place(client, slug, [(cap, None, 2), (dress, xl, 1)], total="32.50")
+    response = await place_order(client, slug, [(cap, None, 2), (dress, xl, 1)], total="32.50")
 
     assert response.status_code == 201, response.text
     order = response.json()
@@ -104,9 +87,9 @@ async def test_order_numbers_count_up_per_store(client, two_stores):
     a_slug, b_slug = await shop_slug(a.store_id), await shop_slug(b.store_id)
 
     numbers = [
-        (await _place(client, a_slug, [(a_cap, None, 1)], total="10.00")).json()["number"],
-        (await _place(client, a_slug, [(a_cap, None, 1)], total="10.00")).json()["number"],
-        (await _place(client, b_slug, [(b_cap, None, 1)], total="10.00")).json()["number"],
+        (await place_order(client, a_slug, [(a_cap, None, 1)], total="10.00")).json()["number"],
+        (await place_order(client, a_slug, [(a_cap, None, 1)], total="10.00")).json()["number"],
+        (await place_order(client, b_slug, [(b_cap, None, 1)], total="10.00")).json()["number"],
     ]
 
     assert numbers == [1001, 1002, 1001]
@@ -116,7 +99,7 @@ async def test_the_same_item_twice_counts_against_stock_once(client, make_store)
     store = await make_store()
     cap = await add_product(store.store_id, "cap", stock=3)
 
-    response = await _place(
+    response = await place_order(
         client, await shop_slug(store.store_id), [(cap, None, 2), (cap, None, 2)], total="40.00"
     )
 
@@ -131,7 +114,7 @@ async def test_out_of_stock_refuses_the_whole_order(client, make_store):
     dress = await add_product(store.store_id, "dress", variants=[("XL", None, 1)])
     xl = (await variant_ids(dress))["XL"]
 
-    response = await _place(
+    response = await place_order(
         client, await shop_slug(store.store_id), [(cap, None, 1), (dress, xl, 2)], total="30.00"
     )
 
@@ -151,7 +134,8 @@ async def test_changed_total_refuses_the_order(client, make_store):
     cap = await add_product(store.store_id, "cap", stock=5)
 
     # The customer saw $9.00; the price is now $10.00.
-    response = await _place(client, await shop_slug(store.store_id), [(cap, None, 1)], total="9")
+    slug = await shop_slug(store.store_id)
+    response = await place_order(client, slug, [(cap, None, 1)], total="9")
 
     assert response.status_code == 409
     assert response.json()["error"]["code"] == "ORDER_TOTAL_CHANGED"
@@ -174,7 +158,7 @@ async def test_unavailable_items_are_refused(client, two_stores):
         (dress, (await variant_ids(other_dress))["S"], 1),  # another product's variant
         (cap, (await variant_ids(dress))["S"], 1),  # variant on a product without any
     ):
-        response = await _place(client, slug, [item], total="10.00")
+        response = await place_order(client, slug, [item], total="10.00")
         assert response.status_code == 409, item
         assert response.json()["error"]["code"] == "PRODUCT_UNAVAILABLE"
         assert response.json()["error"]["field"] == "items.0"
@@ -185,8 +169,10 @@ async def test_same_phone_is_one_customer_with_their_latest_details(client, make
     slug = await shop_slug(store.store_id)
     cap = await add_product(store.store_id, "cap")
 
-    await _place(client, slug, [(cap, None, 1)], total="10.00", phone="012 345 678")
-    await _place(client, slug, [(cap, None, 1)], total="10.00", phone="+855 12-345-678", name="Sok")
+    await place_order(client, slug, [(cap, None, 1)], total="10.00", phone="012 345 678")
+    await place_order(
+        client, slug, [(cap, None, 1)], total="10.00", phone="+855 12-345-678", name="Sok"
+    )
 
     async with unscoped_session() as db:
         customers = (await db.scalars(select(Customer))).all()
@@ -203,7 +189,8 @@ async def test_automatic_confirmation_accepts_new_orders(client, make_store):
         await db.commit()
     cap = await add_product(store.store_id, "cap")
 
-    response = await _place(client, await shop_slug(store.store_id), [(cap, None, 1)], total="10")
+    slug = await shop_slug(store.store_id)
+    response = await place_order(client, slug, [(cap, None, 1)], total="10")
 
     assert response.json()["status"] == "accepted"
 
@@ -212,7 +199,7 @@ async def test_order_keeps_the_currency_it_was_placed_in(client, make_store):
     store = await make_store()
     slug = await shop_slug(store.store_id)
     cap = await add_product(store.store_id, "cap")
-    order = (await _place(client, slug, [(cap, None, 1)], total="10.00")).json()
+    order = (await place_order(client, slug, [(cap, None, 1)], total="10.00")).json()
 
     async with unscoped_session() as db:
         (await db.get(Store, store.store_id)).currency = "KHR"
@@ -226,7 +213,7 @@ async def test_tracking_needs_the_phone_the_order_was_placed_with(client, two_st
     a, b = two_stores
     a_slug, b_slug = await shop_slug(a.store_id), await shop_slug(b.store_id)
     cap = await add_product(a.store_id, "cap")
-    order = (await _place(client, a_slug, [(cap, None, 1)], total="10.00")).json()
+    order = (await place_order(client, a_slug, [(cap, None, 1)], total="10.00")).json()
     url = f"/api/v1/shop/{a_slug}/orders/{order['id']}"
 
     tracked = await client.get(url, params={"phone": "+855 12 345 678"})  # another spelling

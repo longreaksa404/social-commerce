@@ -64,3 +64,20 @@ async def stock(model, row_id) -> int | None:
     """Current stock_quantity of a Product or ProductVariant row."""
     async with unscoped_session() as db:
         return await db.scalar(select(model.stock_quantity).where(model.id == row_id))
+
+
+async def place_order(client, slug, items, *, total, phone="012 345 678", name="Dara"):
+    """items: (product_id, variant_id, quantity) tuples."""
+    return await client.post(
+        f"/api/v1/shop/{slug}/orders",
+        json={
+            "name": name,
+            "phone": phone,
+            "delivery_address": "St 271, Phnom Penh",
+            "items": [
+                {"product_id": str(p), "variant_id": v and str(v), "quantity": q}
+                for p, v, q in items
+            ],
+            "expected_total": total,
+        },
+    )

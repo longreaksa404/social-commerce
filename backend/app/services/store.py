@@ -7,7 +7,7 @@ from app.core.errors import AppError, NotFound
 from app.models import Store
 from app.schemas.store import StoreUpdate
 
-REQUIRED_FIELDS = {"name", "slug", "currency"}
+REQUIRED_FIELDS = {"name", "slug", "currency", "order_confirmation_mode"}
 
 
 async def get_store(db: AsyncSession, store_id: uuid.UUID) -> Store:
