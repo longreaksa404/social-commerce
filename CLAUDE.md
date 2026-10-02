@@ -100,11 +100,9 @@ Frontend (from `frontend/`):
 CI (`.github/workflows/ci.yml`) runs the lint, migration, test, and build
 commands above on every push.
 
-## Status and time tracking
+## Status tracking
 - After meaningful progress, update docs/04_STATUS.md (Done, In Progress,
   Blockers, Next Up) and tell me what changed.
 - When I say a phase is complete, update "Done" before starting the next phase.
-- When I tell you actual hours for a task, add a row to docs/TIME_LOG.md
-  (Date, Phase, Task, Est. hrs, Actual hrs, Notes).
 - If a decision changes 01, 02, or 03, say so and give me the exact section and
   text to update.

@@ -26,8 +26,8 @@
 At **10–20 hrs/week**, budget roughly **12–15 effective hours/week** after accounting for context-switching from a full-time job (setup time, interrupted sessions, review/testing overhead). Estimates below are in **person-hours**, converted to elapsed weeks at that rate. Treat elapsed-week numbers as ranges, not commitments — the hour estimates are the more reliable unit.
 
 > **Update (2026-09-30):** The estimates above assume hand-coding. Since
-> development now uses Claude Code, treat the hour estimates as an upper bound
-> and re-forecast from logged actuals (`docs/TIME_LOG.md`) after Phase 1.
+> development now uses Claude Code, treat the hour estimates as an upper bound.
+> Actual hours are not tracked (time log dropped 2026-10-02).
 
 ---
 
@@ -262,9 +262,7 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 9 — Polish/First Seller | 40 | 3 wks |
 | **Total** | **~258 hrs** | **~19–20 weeks (~4.5–5 months)** |
 
-After Phase 1, replace the "Elapsed" column with actuals from `docs/TIME_LOG.md`.
-
-This is a planning estimate, not a commitment — treat it as the baseline to re-forecast against as real hours are logged per phase (§6).
+This is a planning estimate, not a commitment.
 
 ---
 
@@ -275,27 +273,13 @@ Given the hours-per-week constraint, use **2-week sprints** rather than weekly o
 **Per sprint:**
 1. Pick the next phase (or split a large phase across 2 sprints).
 2. Break the phase's task table into daily-sized chunks (1.5–3 hrs each) at the start of the sprint.
-3. Log actual hours per task (§6) — this is what makes future estimates trustworthy.
-4. End-of-sprint: does the phase's "Definition of done" statement hold true? If not, it's not done — carry it forward rather than marking partial credit.
+3. End-of-sprint: does the phase's "Definition of done" statement hold true? If not, it's not done — carry it forward rather than marking partial credit.
 
 ---
 
-# 6. Requirements & Time Tracking
+# 6. Requirements Log
 
-The time log lives in `docs/TIME_LOG.md`.
-
-A lightweight running log — a spreadsheet or a simple table is enough, no project-management tool needed at this scale:
-
-| Column | Purpose |
-|---|---|
-| Date | |
-| Phase | which phase this work belongs to |
-| Task | |
-| Est. hours | from this document |
-| Actual hours | |
-| Notes | blockers, scope changes |
-
-**Separately**, maintain a **Requirements Log** for anything a seller asks for that isn't in this plan (per `01_PRODUCT.md` §39):
+Maintain a **Requirements Log** for anything a seller asks for that isn't in this plan (per `01_PRODUCT.md` §39):
 
 | Column | Purpose |
 |---|---|
@@ -355,4 +339,4 @@ Once these hold, move from "building the MVP" to `01_PRODUCT.md` §35's validati
 
 ---
 
-This document should be re-forecast at the end of each phase using actual logged hours (§6), not treated as fixed after Phase 0.
+This document should be revisited at the end of each phase, not treated as fixed after Phase 0.

@@ -242,7 +242,8 @@ Still open (noticed in Phase 2, not built; founder to decide):
 - Development moved from a Claude Project chat to Claude Code. Docs live in
   `docs/` in the monorepo; `CLAUDE.md` is at the repo root.
 - `01_PROJECT.md` renamed to `01_PRODUCT.md` to match cross-references.
-- Hour estimates are now an upper bound; actual hours logged in `docs/TIME_LOG.md`.
+- Hour estimates are now an upper bound. Time tracking dropped (2026-10-02):
+  `docs/TIME_LOG.md` removed; actual hours are not logged.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
 
 Applied to 02/03 on 2026-10-02 (at the founder's request): Neon instead of
