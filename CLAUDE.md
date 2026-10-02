@@ -40,10 +40,7 @@ Confirm what we're working on before writing code, unless I've already stated it
    suggest logging it in the Requirements Log (03_DEVELOPMENT.md section 6).
 5. Don't treat a decision as settled unless 04_STATUS.md marks it resolved or I
    closed it in this conversation. If unsure, ask.
-6. docs 01, 02, and 03 are stable references. Do not edit them yourself.
-   Propose the exact change (file, section, new text) and let me apply it.
-   You MAY edit docs/04_STATUS.md and docs/TIME_LOG.md.
-7. Be direct and implementable. Give options only when I ask for them.
+6. Be direct and implementable. Give options only when I ask for them.
 
 ## What you can decide on your own
 Implementation details inside the plan: file and function structure, naming,
