@@ -11,7 +11,16 @@ from sqlalchemy import select, text, update
 from sqlalchemy.exc import DBAPIError
 
 from app.db.session import tenant_session, unscoped_session
-from app.models import Category, Product, ProductVariant, Store
+from app.models import (
+    Category,
+    Customer,
+    DeliveryMethod,
+    Order,
+    OrderItem,
+    Product,
+    ProductVariant,
+    Store,
+)
 
 
 async def _add_product(store_id, name="Shirt"):
@@ -40,6 +49,48 @@ async def test_store_only_sees_its_own_rows(two_stores):
 
     assert stores == [a.store_id]
     assert set(products) == set(variants) == set(categories) == {a.store_id}
+
+
+async def _add_order(store_id, product_id):
+    async with unscoped_session() as db:
+        customer = Customer(store_id=store_id, name="Dara", phone="012345678")
+        db.add(customer)
+        await db.flush()
+        db.add(
+            Order(
+                store_id=store_id,
+                number=1001,
+                customer_id=customer.id,
+                currency="USD",
+                subtotal=Decimal("10.00"),
+                total=Decimal("10.00"),
+                delivery_method=DeliveryMethod.SELLER_DELIVERY,
+                items=[
+                    OrderItem(
+                        store_id=store_id,
+                        product_id=product_id,
+                        product_name_snapshot="Shirt",
+                        unit_price_snapshot=Decimal("10.00"),
+                        quantity=1,
+                        line_total=Decimal("10.00"),
+                    )
+                ],
+            )
+        )
+        await db.commit()
+
+
+async def test_store_only_sees_its_own_orders(two_stores):
+    a, b = two_stores
+    await _add_order(a.store_id, await _add_product(a.store_id))
+    await _add_order(b.store_id, await _add_product(b.store_id))
+
+    async with tenant_session(a.store_id) as db:
+        customers = (await db.scalars(select(Customer.store_id))).all()
+        orders = (await db.scalars(select(Order.store_id))).all()
+        items = (await db.scalars(select(OrderItem.store_id))).all()
+
+    assert customers == orders == items == [a.store_id]
 
 
 async def test_store_cannot_change_another_stores_rows(two_stores):
