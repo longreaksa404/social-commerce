@@ -8,6 +8,7 @@ import { Settings } from './dashboard/Settings.tsx'
 import { Home } from './pages/Home.tsx'
 import { Login } from './pages/Login.tsx'
 import { Register } from './pages/Register.tsx'
+import { ShopCategory } from './shop/ShopCategory.tsx'
 import { ShopHome } from './shop/ShopHome.tsx'
 import { ShopLayout } from './shop/ShopLayout.tsx'
 import { ShopProduct } from './shop/ShopProduct.tsx'
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <ShopHome /> },
           { path: 'product/:productSlug', element: <ShopProduct /> },
+          { path: 'category/:categorySlug', element: <ShopCategory /> },
         ],
       },
       { path: '*', element: <Navigate to="/" replace /> },

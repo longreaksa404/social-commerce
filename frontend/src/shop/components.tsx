@@ -1,6 +1,6 @@
 import { ImageOff, SearchX } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { Link, NavLink } from 'react-router'
+import { useEffect, useRef, type ReactNode } from 'react'
+import { Link, NavLink, useLocation } from 'react-router'
 import { Card, Skeleton } from '../components/ui.tsx'
 import { formatPriceRange } from '../lib/money.ts'
 import type { ShopProductCard, ShopStore } from '../lib/types.ts'
@@ -39,6 +39,17 @@ export function ProductImage({
 /** "All" plus each category, as a row of chips that scrolls sideways on
  * phones. Hidden when the shop has no categories. */
 export function CategoryChips({ shop }: { shop: ShopStore }) {
+  const nav = useRef<HTMLElement>(null)
+  const { pathname } = useLocation()
+
+  // Someone landing on a category link should see which chip is theirs,
+  // even when it starts off-screen. Sideways only: the page doesn't move.
+  useEffect(() => {
+    const el = nav.current
+    const active = el?.querySelector<HTMLElement>('[aria-current="page"]')
+    if (el && active) el.scrollLeft = active.offsetLeft - (el.clientWidth - active.offsetWidth) / 2
+  }, [pathname])
+
   if (shop.categories.length === 0) return null
   const chip = ({ isActive }: { isActive: boolean }) =>
     `flex min-h-10 shrink-0 items-center rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
@@ -47,8 +58,10 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
         : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100'
     }`
   return (
-    <nav aria-label="Categories" className="-mx-4 mb-5 overflow-x-auto px-4 [scrollbar-width:none]">
-      <ul className="flex gap-2">
+    <nav ref={nav} aria-label="Categories" className="relative -mx-4 mb-5 overflow-x-auto [scrollbar-width:none]">
+      {/* Padding on the list, not the nav, so the last chip keeps its gap
+          from the screen edge when scrolled all the way. */}
+      <ul className="flex w-max gap-2 px-4">
         <li>
           <NavLink to={`/shop/${shop.slug}`} end className={chip}>
             All
