@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-02 (Phase 2 built and checked locally; not pushed yet)
+> **Last updated:** 2026-10-02 (Phase 2 complete; Phase 3 next)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,12 +15,12 @@
 
 ## Current Phase
 
-**Phase 2 — Storefront (Customer-Facing Browsing)** (built, not pushed)
+**Phase 3 — Checkout + Orders** (not started)
 
-All five Phase 2 tasks are built, committed on `main`, and checked locally
-in headless Chromium. Not pushed or deployed yet. Definition of done still
-to confirm on the live site: opening `/shop/{store-slug}` on a phone shows
-real products, and a product link shows that product.
+Phase 2 met its definition of done on 2026-10-02 and the founder closed it:
+on the live site, `/shop/reaksa-store` shows the real product on a phone,
+and its product link (tapped, or opened directly) shows that product.
+Checked by the founder and in headless Chromium at 390px.
 
 Phase 1 is deployed and tested by the founder on the live site (2026-10-01).
 One part of its definition of done is carried forward: adding a product
@@ -125,7 +125,7 @@ shows "API: ok" from the deployed backend.
       drive where file-change events never arrive); needs a container
       rebuild to take effect.
 
-**Phase 2 (built 2026-10-02; committed, not pushed or deployed):**
+**Phase 2 (deployed 2026-10-02; founder closed it on the live site):**
 
 - [x] Public endpoints `GET /api/v1/shop/{store_slug}` (store + categories
       that have active products), `/products` (active products as cards:
@@ -163,11 +163,8 @@ shows "API: ok" from the deployed backend.
       Render; upload a product photo on the live site. Until then photo
       upload shows "Image uploads are not set up yet" and products have no
       images.
-- [ ] Confirm CI is green in the GitHub Actions tab (repo is private, so
-      Claude can't see it)
-- [ ] **Phase 2 on the live site (founder):** push, then open
-      `/shop/{your-slug}` and a product link on a phone. No photos show
-      until R2 is set up (grey placeholders instead).
+- [ ] **Watch the first Phase 3 backend push** for a Render auto-deploy
+      (see Known Issues).
 
 ---
 
@@ -188,6 +185,16 @@ shows "API: ok" from the deployed backend.
   account, or Vercel (Hobby) blocks the deploy. Set per repo with
   `git config user.email longchansamanakreaksa@gmail.com`; the container's
   global `~/.gitconfig` has the work email. Repeat on each machine.
+- **Render missed the Phase 2 auto-deploy (2026-10-02).** CI was green
+  (all 8 runs so far are green), yet Render logged no event for the push
+  of `59fdf09`; the founder deployed it manually. Not the build filter:
+  the 2026-10-01 push had the same shape (docs-only last commit, backend
+  changes earlier) and auto-deployed. Not the Render GitHub app (all
+  repos, checks read access). Still to check: every check on `59fdf09`
+  (Vercel's too) on the commit page. If the next backend push also
+  doesn't deploy: deploy manually, then ask Render support or switch
+  `autoDeployTrigger` to `commit`. Pushes that change no `backend/` files
+  never deploy the backend and leave no Render event; that's expected.
 
 ---
 
@@ -294,8 +301,7 @@ of passlib.
 
 ## Next Up
 
-1. Founder: push Phase 2 and check it on a phone (see In Progress).
-2. Decide on the two Phase 2 proposals above (link previews, grid photos).
-3. Phase 3: checkout + orders. Before `order_item.variant_id` exists,
+1. Phase 3: checkout + orders. Before `order_item.variant_id` exists,
    decide whether removed variants become soft-deleted (see Notes).
+2. Decide on the two Phase 2 proposals above (link previews, grid photos).
 R2 setup whenever the founder is ready.
