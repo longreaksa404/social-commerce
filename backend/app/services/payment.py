@@ -13,7 +13,8 @@ from datetime import UTC, datetime
 
 from app.core.errors import AppError
 from app.models import Order, OrderStatus, Payment, PaymentMethod, PaymentStatus, Store
-from app.schemas.payment import PaymentSettings, ShopBankAccount, ShopPaymentOut
+from app.schemas.payment import PaymentSettings, ShopBankAccount, ShopKhqr, ShopPaymentOut
+from app.services.khqr import individual_khqr
 
 P = PaymentStatus
 
@@ -120,4 +121,15 @@ def shop_payment_out(store: Store, order: Order) -> ShopPaymentOut:
             account_name=bank.account_name,
             account_number=bank.account_number,
         )
+    if payment.method is PaymentMethod.KHQR and settings.khqr.enabled:
+        code = individual_khqr(
+            bakong_account_id=settings.khqr.bakong_account_id,
+            merchant_name=settings.khqr.merchant_name,
+            currency=order.currency,
+            amount=payment.amount,
+            bill_number=f"#{order.number}",
+            now=datetime.now(UTC),
+        )
+        if code is not None:
+            out.khqr = ShopKhqr(code=code, merchant_name=settings.khqr.merchant_name)
     return out

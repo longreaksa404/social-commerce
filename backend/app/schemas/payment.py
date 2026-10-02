@@ -109,6 +109,11 @@ class ShopBankAccount(BaseModel):
     account_number: str
 
 
+class ShopKhqr(BaseModel):
+    code: str  # the KHQR payload; the app draws it as a QR code
+    merchant_name: str  # who the customer's bank app says they're paying
+
+
 class ShopPaymentOut(BaseModel):
     """An order's payment, for the customer who placed it."""
 
@@ -117,7 +122,8 @@ class ShopPaymentOut(BaseModel):
     method: PaymentMethod
     status: PaymentStatus
     amount: Decimal
-    # How to pay. Only while there is something to pay: the payment is
-    # pending and the order hasn't been rejected or cancelled. Null too if
-    # the seller has since turned this way to pay off.
+    # How to pay, for the chosen method. Only while there is something to
+    # pay: the payment is pending and the order hasn't been rejected or
+    # cancelled. Null too if the seller has since turned this way to pay off.
     bank_account: ShopBankAccount | None = None
+    khqr: ShopKhqr | None = None  # also null for riel amounts with cents

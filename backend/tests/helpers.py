@@ -1,5 +1,6 @@
 """Test data straight into the database (bypassing the API)."""
 
+import uuid
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -84,3 +85,32 @@ async def place_order(
             "payment_method": payment_method,
         },
     )
+
+
+# Payment settings that can be turned on as they are.
+BANK = {
+    "enabled": True,
+    "bank_name": "ABA",
+    "account_name": "SOK DARA",
+    "account_number": "000 123 456",
+}
+KHQR = {"enabled": True, "bakong_account_id": "dara@aclb", "merchant_name": "SOK DARA"}
+
+
+async def registered_seller(client, auth_headers):
+    """A seller registered through the API: (headers, store_id, shop slug)."""
+    headers = await auth_headers()
+    store = (await client.get("/api/v1/seller/store", headers=headers)).json()
+    return headers, uuid.UUID(store["id"]), store["slug"]
+
+
+async def set_payments(client, headers, **settings):
+    """Save the seller's payment settings; parts left out get the defaults."""
+    return await client.patch(
+        "/api/v1/seller/store", headers=headers, json={"payment_settings": settings}
+    )
+
+
+async def track(client, slug, order_id, phone="012345678"):
+    """The customer's order page."""
+    return await client.get(f"/api/v1/shop/{slug}/orders/{order_id}?phone={phone}")
