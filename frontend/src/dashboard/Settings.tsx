@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LogOut } from 'lucide-react'
+import { ExternalLink, LogOut } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { useFeedback } from '../components/feedback.ts'
+import { buttonClass } from '../components/styles.ts'
 import {
   Button,
   ErrorMessage,
@@ -136,6 +138,15 @@ function StoreForm({ store }: { store: Store }) {
         <p className="break-all rounded-xl bg-slate-50 px-3.5 py-2.5 font-mono text-sm text-slate-700">
           {window.location.host}/shop/<span className="font-semibold text-slate-900">{form.slug || '…'}</span>
         </p>
+        {/* The saved link: an unsaved new slug doesn't work yet. */}
+        <Link
+          to={`/shop/${store.slug}`}
+          target="_blank"
+          className={`${buttonClass('secondary')} w-full sm:w-auto`}
+        >
+          <ExternalLink aria-hidden className="size-4" />
+          Open shop
+        </Link>
       </Section>
 
       <ErrorMessage error={formError(save.error, ['name', 'slug', 'description'])} />

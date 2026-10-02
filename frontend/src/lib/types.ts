@@ -51,3 +51,45 @@ export type ImageUpload = {
   public_url: string
   headers: Record<string, string>
 }
+
+// Public storefront (/shop/{slug}): only what customers may see.
+
+export type ShopCategoryRef = { name: string; slug: string }
+
+export type ShopStore = {
+  name: string
+  slug: string
+  description: string | null
+  logo_url: string | null
+  currency: Currency
+  /** Only categories with at least one product on sale. */
+  categories: (ShopCategoryRef & { product_count: number })[]
+}
+
+export type ShopProductCard = {
+  id: string
+  name: string
+  slug: string
+  image_url: string | null
+  price_min: string
+  price_max: string
+  in_stock: boolean
+}
+
+export type ShopVariant = { id: string; name: string; price: string; stock_quantity: number }
+
+export type ShopProduct = {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  price: string
+  image_urls: string[]
+  has_variants: boolean
+  /** null when has_variants: stock is per variant. */
+  stock_quantity: number | null
+  variants: ShopVariant[]
+  category: ShopCategoryRef | null
+}
+
+export type ShopCategoryPage = { category: ShopCategoryRef; products: ShopProductCard[] }

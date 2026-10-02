@@ -13,3 +13,10 @@ export function formatMoney(amount: string | number, currency: Currency): string
 export function priceStep(currency: Currency): string {
   return currency === 'KHR' ? '1' : '0.01'
 }
+
+/** "$8.00", or "$8.00 – $12.00" when the prices differ. */
+export function formatPriceRange(low: string | number, high: string | number, currency: Currency): string {
+  return Number(low) === Number(high)
+    ? formatMoney(low, currency)
+    : `${formatMoney(low, currency)} – ${formatMoney(high, currency)}`
+}
