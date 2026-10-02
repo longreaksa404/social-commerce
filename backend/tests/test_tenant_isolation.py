@@ -17,6 +17,8 @@ from app.models import (
     DeliveryMethod,
     Order,
     OrderItem,
+    Payment,
+    PaymentMethod,
     Product,
     ProductVariant,
     Store,
@@ -75,6 +77,9 @@ async def _add_order(store_id, product_id):
                         line_total=Decimal("10.00"),
                     )
                 ],
+                payment=Payment(
+                    store_id=store_id, method=PaymentMethod.COD, amount=Decimal("10.00")
+                ),
             )
         )
         await db.commit()
@@ -89,8 +94,9 @@ async def test_store_only_sees_its_own_orders(two_stores):
         customers = (await db.scalars(select(Customer.store_id))).all()
         orders = (await db.scalars(select(Order.store_id))).all()
         items = (await db.scalars(select(OrderItem.store_id))).all()
+        payments = (await db.scalars(select(Payment.store_id))).all()
 
-    assert customers == orders == items == [a.store_id]
+    assert customers == orders == items == payments == [a.store_id]
 
 
 async def test_store_cannot_change_another_stores_rows(two_stores):

@@ -3,6 +3,7 @@
 from app.models.account import Currency, OrderConfirmationMode, RefreshToken, Seller, Store
 from app.models.catalog import Category, Product, ProductStatus, ProductVariant
 from app.models.order import Customer, DeliveryMethod, Order, OrderItem, OrderStatus
+from app.models.payment import Payment, PaymentMethod, PaymentStatus
 
 __all__ = [
     "Category",
@@ -13,6 +14,9 @@ __all__ = [
     "OrderConfirmationMode",
     "OrderItem",
     "OrderStatus",
+    "Payment",
+    "PaymentMethod",
+    "PaymentStatus",
     "Product",
     "ProductStatus",
     "ProductVariant",

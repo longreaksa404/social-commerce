@@ -17,6 +17,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base, CreatedAtMixin, TenantMixin, UUIDPrimaryKeyMixin
 from app.models.account import Currency, str_enum
 from app.models.catalog import Money
+from app.models.payment import Payment
 
 
 class OrderStatus(enum.StrEnum):
@@ -99,6 +100,10 @@ class Order(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
         cascade="all, delete-orphan",
         order_by="(OrderItem.product_name_snapshot, OrderItem.variant_name_snapshot)",
         lazy="raise",
+    )
+    # Every order has one, created with it at checkout.
+    payment: Mapped[Payment] = relationship(
+        back_populates="order", cascade="all, delete-orphan", lazy="raise"
     )
 
 
