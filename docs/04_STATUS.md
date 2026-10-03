@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-03 (Phase 4 closed after the founder's live test)
+> **Last updated:** 2026-10-03 (Phase 5 built and tested locally; not pushed)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,7 +15,11 @@
 
 ## Current Phase
 
-**Next: Phase 5 — Delivery** (not started)
+**Phase 5 — Delivery: built, tested locally, not pushed yet.**
+Waiting for the founder to push it and run it on the live site.
+Definition of done (03 Phase 5): an order can be marked through delivery
+states to `delivered`, and the order itself can then be marked
+`completed`. Met locally (pytest and a headless Chromium click-through).
 
 Phase 4 met its definition of done on 2026-10-03 and the founder closed
 it: on the live site an order can be placed with cash on delivery, bank
@@ -273,6 +277,64 @@ shows "API: ok" from the deployed backend.
       turned off mid-checkout. axe-core: no WCAG 2.1 A/AA violations; no
       console errors besides expected 409/422.
 
+**Phase 5 (built 2026-10-03; tested locally, not pushed or deployed):**
+
+- [x] Table + migration `7461cde1fdf0`: `delivery` (1:1 with order,
+      `store_id` + RLS like `payment`, `area_name`, `assignee_note`,
+      `created_at`/`updated_at`); existing orders got a not-assigned
+      delivery for their method. `order.discount` (in the money CHECK) and
+      `store.discount_config`.
+- [x] Settings via `GET/PATCH /seller/store`: `delivery_settings` (seller
+      delivery on/off with up to 10 named areas and fees, free delivery
+      from an amount and/or a number of items; pickup on/off with its
+      address) and `discount_settings` (up to 5 rules "X off once the
+      items reach Y"). A shop needs delivery or pickup on; pickup needs an
+      address; area names must differ; a discount can't exceed its
+      threshold. New and existing shops: free seller delivery, no
+      discounts. The shop page (`delivery`, `discounts`) lists them.
+- [x] Pricing in `app/services/pricing.py`: total = items − discount +
+      delivery fee. The biggest discount reached applies (they never add
+      up), capped at the items. Fee = the chosen area's fee; 0 for pickup,
+      for a shop without areas, or when a free-delivery rule applies
+      (judged on the items before the discount). The storefront repeats it
+      in `frontend/src/lib/pricing.ts` (must change together); checkout
+      still refuses a total that differs (`ORDER_TOTAL_CHANGED`).
+- [x] Checkout: `delivery_method` required, `delivery_area` (by name)
+      when the shop has areas, `delivery_address` only for delivery.
+      `DELIVERY_METHOD_UNAVAILABLE` / `DELIVERY_AREA_UNAVAILABLE` (409)
+      when the seller changed them mid-checkout. A pickup keeps the
+      customer's saved address.
+- [x] Delivery state machine (02 §7.3) in `app/services/delivery.py`:
+      not_assigned → assigned → picked_up → in_transit → delivered |
+      failed, **failed → assigned (retry)**; pickup: not_assigned →
+      delivered. `PATCH /seller/orders/{id}/delivery` with an optional
+      driver note; the order row is locked as for status changes. Never
+      reads or sets the order's or the payment's status.
+- [x] Completion (02 §7.4): `can_complete` = delivery delivered AND
+      (paid or COD). `ORDER_NOT_DELIVERED` / `ORDER_NOT_PAID`.
+- [x] Customer order page: delivery card (area or pickup address, status
+      in the customer's words; the driver note is seller-only), items /
+      discount / delivery / total; pickup orders read "Ready to collect",
+      "Handed over", "Collected".
+- [x] Frontend: Settings → Delivery and Discounts; cart shows the
+      discount and "Add $X more to get $Y off"; checkout delivery/pickup
+      choice, area picker, free-delivery note, breakdown, "Total before
+      delivery" until chosen; seller order detail Delivery card (Assign
+      with note, Picked up, On the way, Delivered, Delivery failed, Try
+      again, Customer collected; hint when it holds up completion); list
+      badges for pickup and failed deliveries.
+- [x] 364 pytest tests (166 new): every delivery status pair per method,
+      the completion rule for every payment method × payment status ×
+      delivery status, pricing (fees, both free-delivery rules at their
+      boundaries, best discount, discount before/after fee, cap, riel),
+      checkout with area / free / discount / pickup, refused choices,
+      changed fee, settings validation, tenant isolation (RLS and API).
+- [x] Clicked through in headless Chromium at 390 and 1280 px: settings
+      saved and reloaded, duplicate area shown by its field, three orders
+      ($12 + $2.50 to Provinces; 4 items: $48 − $5, free delivery; pickup
+      $12), seller assigns, fails, retries, delivers, completes; pickup
+      collected. axe-core: no WCAG 2.1 A/AA violations; no console errors.
+
 ---
 
 ## In Progress
@@ -347,6 +409,18 @@ Resolved:
       the seller accepts; a rejected paid order is refunded by the seller.
 - [x] **KHQR in Phase 4, generated on our server from the seller's Bakong
       ID; every payment confirmed by hand** (2026-10-02).
+- [x] **Delivery fees: seller-defined areas with a fee each, plus optional
+      free delivery from an amount or a number of items; pickup is free**
+      (2026-10-03). Closes "Delivery fee handling" in 01 §46.
+- [x] **Bill discounts in Phase 5** (2026-10-03, founder's request): fixed
+      amount off once the items reach a threshold; the biggest applies.
+      No codes, percentages, or per-product discounts.
+- [x] **Completing an order needs the delivery delivered** as well as the
+      payment rule (2026-10-03; 03 said so, 02 §7.4 didn't).
+- [x] **A failed delivery can be retried** (failed → assigned, 2026-10-03).
+- [x] **`delivery` gets `store_id` (RLS), `created_at`, `area_name`;
+      fee rules and pickup address in `store.delivery_config`; discounts
+      in `store.discount_config`; `order.discount`** (2026-10-03).
 - [x] **Khmer / English switch and light / dark mode in Phase 9**
       (2026-10-02, founder's request). Not built before then; Phases 5–8
       stay English-only and light-only. Language: all of the platform's
@@ -376,6 +450,10 @@ Still open (noticed in Phase 2, not built; founder to decide):
 ---
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
+
+- Phase 5 decisions above (delivery fees, discounts, completion needs
+  delivery, retry, data model): text for 01 §26/§28/§46, 02 §5.2/§7.3/
+  §7.4 and 03 Phase 5 given to the founder on 2026-10-03, not applied yet.
 
 - Development moved from a Claude Project chat to Claude Code. Docs live in
   `docs/` in the monorepo; `CLAUDE.md` is at the repo root.
@@ -446,15 +524,20 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 - Payment details on the order page are the store's current ones, not a
   copy from ordering time, and disappear if the seller turns the method
   off (the customer is told to ask the shop).
-- Checkout shows no delivery fee line (fee is 0, open decision for
-  Phase 5).
+- A pickup order still goes through the order's own `ready → shipped →
+  delivered` steps (02 §7.1 is the same for both methods); the customer
+  reads them as "Ready to collect / Handed over / Collected". If sellers
+  find the extra taps annoying, a shorter order path for pickup would be
+  a deliberate change to 02 §7.1.
+- Delivery areas are matched by name at checkout; renaming an area while
+  a customer is checking out makes them choose again.
 - Store slugs are global; product/category slugs are unique per store.
   Names with no Latin letters (e.g. Khmer only) get a short random slug.
 - Storefront pages call `useShop` themselves instead of waiting for the
   layout, so a product link costs one round trip. New public endpoints go
   under `/shop/{store_slug}` (`app/api/shop.py`) and use the `Shop` /
   `ShopDb` dependencies; the router-level rate limit covers them.
-- Bundle: 149 KB gzipped after Phase 4 (141 KB after Phase 3, 131 KB
+- Bundle: 154 KB gzipped after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
   after Phase 2), mostly
   React DOM, React Router and TanStack Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
   customers) and skipped for now; revisit when later phases make the
@@ -478,7 +561,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Phase 5: delivery (seller delivery / pickup). Decide first how
-   delivery fees work (01 §46 lists "Delivery fee handling" as open).
-2. Decide on the two Phase 2 proposals above (link previews, grid photos).
+1. Founder: push Phase 5, then on the live site set delivery areas and a
+   discount, place an order, walk the delivery to delivered, complete.
+2. Apply the Phase 5 decisions to 01/02/03 (text given 2026-10-03).
+3. Phase 6: Telegram.
+4. Decide on the two Phase 2 proposals above (link previews, grid photos).
 R2 setup whenever the founder is ready.
