@@ -1,5 +1,5 @@
-import { Check, LocateFixed } from 'lucide-react'
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { Check, LoaderCircle, MapPin } from 'lucide-react'
+import { lazy, Suspense, useCallback, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import {
   Button,
@@ -226,8 +226,8 @@ export function ShopCheckout() {
               label={form.location ? 'Address (optional)' : 'Address'}
               hint={
                 form.location
-                  ? 'Your location is shared. Add the address too if you can.'
-                  : 'House and street number, village, district, and province. Or share your location above.'
+                  ? 'Your location is pinned. Add the address too if you can.'
+                  : 'House and street number, village, district, and province. Or pin your location above.'
               }
               error={fieldError(place.error, 'delivery_address')}
             >
@@ -433,8 +433,15 @@ function DeliverySection({
   )
 }
 
-/** "Use my current location": the phone's GPS position, so the seller
- * can open it in Google Maps. Needs https (or localhost). */
+// The map (Leaflet) loads only when a customer opens it. If the file is
+// gone (a new deploy since the page loaded) or the connection drops, say
+// so instead of breaking checkout: the typed address still works.
+const MapPicker = lazy(() =>
+  import('./MapPicker.tsx').catch(() => ({ default: MapUnavailable })),
+)
+
+/** Where to deliver: a pin on the map, so the seller can open it in
+ * Google Maps. Optional when the customer types an address. */
 function LocationField({
   location,
   onChange,
@@ -444,48 +451,19 @@ function LocationField({
   onChange: (location: Location | null) => void
   error: string | null
 }) {
-  const [locating, setLocating] = useState(false)
-  const [problem, setProblem] = useState<string | null>(null)
-  const [blocked, setBlocked] = useState(false)
+  const [open, setOpen] = useState(false)
+  const close = useCallback(() => setOpen(false), [])
 
-  function locate() {
-    if (!('geolocation' in navigator)) {
-      setProblem("This browser can't share your location. Type your address instead.")
-      return
-    }
-    setLocating(true)
-    setProblem(null)
-    setBlocked(false)
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocating(false)
-        onChange({ lat: position.coords.latitude, lng: position.coords.longitude })
-      },
-      (failure) => {
-        setLocating(false)
-        if (failure.code === failure.PERMISSION_DENIED) setBlocked(true)
-        else setProblem("Couldn't find your location. Try again outside, or type your address.")
-      },
-      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 60_000 },
-    )
-  }
-
-  const message = problem ?? error
   return (
     <div>
       {location ? (
         <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-800">
           <Check aria-hidden className="size-4 shrink-0" />
           <span className="min-w-0 flex-1">
-            Location shared.{' '}
-            <a
-              href={`https://www.google.com/maps?q=${location.lat},${location.lng}`}
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium underline"
-            >
-              Check it on the map
-            </a>
+            Location pinned.{' '}
+            <button type="button" onClick={() => setOpen(true)} className="font-medium underline">
+              Change
+            </button>
           </span>
           <button
             type="button"
@@ -496,80 +474,54 @@ function LocationField({
           </button>
         </div>
       ) : (
-        <Button variant="secondary" icon={LocateFixed} loading={locating} onClick={locate} className="w-full">
-          Use my current location
+        <Button variant="secondary" icon={MapPin} onClick={() => setOpen(true)} className="w-full">
+          Pin my location on the map
         </Button>
       )}
-      {blocked && !location && <LocationBlocked onRetry={locate} retrying={locating} />}
-      {message && (
+      {error && (
         <p role="alert" className="mt-1.5 text-sm text-red-600">
-          {message}
+          {error}
         </p>
+      )}
+      {open && (
+        <Suspense fallback={<MapLoading />}>
+          <MapPicker
+            initial={location}
+            onClose={close}
+            onConfirm={(picked) => {
+              onChange(picked)
+              setOpen(false)
+            }}
+          />
+        </Suspense>
       )}
     </div>
   )
 }
 
-/** A web page can't open the phone's settings, so say exactly where to tap
- * for this phone and browser. */
-function locationSteps(): { title: string; steps: string[] } {
-  const ua = navigator.userAgent
-  const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)
-  if (/FBAN|FBAV|FB_IAB|Instagram|BytedanceWebview|musical_ly|TikTok|Line\//i.test(ua)) {
-    return {
-      title: "This app's browser can't share your location",
-      steps: [
-        `Tap ••• (top right) → “Open in ${ios ? 'Safari' : 'browser'}”.`,
-        'Your cart stays in this app, so add the items again there, then tap “Use my current location”.',
-      ],
-    }
-  }
-  if (ios && /CriOS/.test(ua)) {
-    return {
-      title: 'Location is off for Chrome',
-      steps: ['Open the Settings app → Chrome → Location → “While Using the App”.', 'Come back here and tap Try again.'],
-    }
-  }
-  if (ios) {
-    return {
-      title: 'Location is off for this site',
-      steps: [
-        'Tap the ᴀA (or ☰) button next to the address bar → Website Settings → Location → Allow.',
-        'Still blocked? Settings app → Privacy & Security → Location Services: turn it on, and set Safari Websites to “While Using the App”.',
-        'Come back here and tap Try again.',
-      ],
-    }
-  }
-  if (/Android/.test(ua)) {
-    return {
-      title: 'Location is off for this site',
-      steps: [
-        'Tap the icon left of the web address → Permissions (or Site settings) → Location → Allow.',
-        "Make sure your phone's Location is on (swipe down from the top).",
-        'Come back here and tap Try again.',
-      ],
-    }
-  }
-  return {
-    title: 'Location is off for this site',
-    steps: ['Allow location for this site in your browser settings.', 'Then tap Try again.'],
-  }
+function MapLoading() {
+  return (
+    <div role="status" className="fixed inset-0 z-50 flex items-center justify-center bg-white text-slate-600">
+      <LoaderCircle aria-hidden className="mr-2 size-5 animate-spin" />
+      Opening the map…
+    </div>
+  )
 }
 
-function LocationBlocked({ onRetry, retrying }: { onRetry: () => void; retrying: boolean }) {
-  const { title, steps } = locationSteps()
+function MapUnavailable({ onClose }: { onClose: () => void }) {
   return (
-    <div role="alert" className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-900">
-      <p className="font-medium">{title}</p>
-      <ol className="mt-1.5 list-decimal space-y-1 pl-5">
-        {steps.map((step) => (
-          <li key={step}>{step}</li>
-        ))}
-      </ol>
-      <Button variant="secondary" loading={retrying} onClick={onRetry} className="mt-3 w-full">
-        Try again
+    <div
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="map-unavailable"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white px-6 text-center"
+    >
+      <p id="map-unavailable" className="text-slate-800">
+        Couldn't open the map. Check your connection, or just type your address.
+      </p>
+      <Button variant="secondary" onClick={onClose}>
+        Back to checkout
       </Button>
-      <p className="mt-2 text-amber-800">Or just type your address below. That works too.</p>
     </div>
   )
 }

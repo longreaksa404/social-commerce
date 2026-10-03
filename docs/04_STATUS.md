@@ -361,6 +361,14 @@ photos live 2026-10-03):**
       collected; reworked flow (couriers, GPS, one fee) re-checked at 390
       px. axe-core: no WCAG 2.1 A/AA violations; no console errors.
 
+**Checkout location map (2026-10-03, founder's request):**
+
+- [x] `frontend/src/shop/MapPicker.tsx` (loaded on demand) replaces "Use
+      my current location" and the blocked-location help box. Checked in
+      headless Chromium at iPhone size with location allowed and blocked:
+      map opens, ◎, drag, zoom, confirm, address becomes optional; no
+      console errors.
+
 **Phase 6 (built 2026-10-03; not deployed, needs the founder's bot):**
 
 - [x] Migration `3867d44e4db7`: `store.telegram_username` and the
@@ -505,9 +513,16 @@ Resolved:
       number of items; pickup is free** (2026-10-03). Replaces the
       per-area fees built first: a customer could pick the cheaper area.
       Closes "Delivery fee handling" in 01 §46.
-- [x] **Customer location: "Use my current location" (GPS, no map on
-      screen, no API key) + address note; the seller opens it in Google
-      Maps** (2026-10-03). Typed address, GPS, or both.
+- [x] **Customer location: a pin on a map** (2026-10-03, founder's
+      request; replaces "GPS, no map on screen" decided earlier the same
+      day, after location blocked on the founder's iPhone left no way
+      forward). "Pin my location on the map" opens a full-screen map
+      (Leaflet + OpenStreetMap tiles: $0, no account or API key); the pin
+      stays in the middle and the customer moves the map under it; ◎ jumps
+      to the phone's location when allowed. Typed address, pin, or both;
+      the seller opens the pin in Google Maps. No backend or data model
+      change. If OSM's free tiles stop being enough, move to a free-tier
+      tile service (needs an account).
 - [x] **Couriers, manual: the seller lists the couriers they send with
       (J&T Express, VET Express, ...); the customer picks one; the seller
       books it and notes the branch / tracking number** (2026-10-03). No
@@ -654,8 +669,14 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   a deliberate change to 02 §7.1.
 - Couriers are matched by name at checkout; renaming one while a
   customer is checking out makes them choose again.
-- "Use my current location" needs https (or localhost): it works on the
-  Vercel site, not on a phone opening the dev server by LAN IP.
+- The map's ◎ button needs https (or localhost): it works on the Vercel
+  site, not on a phone opening the dev server by LAN IP. Moving the map
+  by hand works everywhere. Confirm stays off until the map was moved
+  (or ◎ found the phone) and is zoomed to street level (16+), so a pin
+  can't be the default middle of Phnom Penh. The map (Leaflet, 45 KB
+  gzipped) loads only when opened; if that file can't load (connection,
+  or a deploy since the page opened) the customer is told to type the
+  address.
 - The courier's tracking number goes in the seller's note, which the
   customer doesn't see. Showing a tracking number to the customer would
   be a small addition if sellers want it.
