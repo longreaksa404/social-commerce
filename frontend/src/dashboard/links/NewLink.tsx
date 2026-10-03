@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
-import { Button, Card, ErrorMessage, Field, Input, PageHeader, Select } from '../../components/ui.tsx'
+import { Button, Card, ErrorMessage, Field, Input, PageHeader, Select, Skeleton } from '../../components/ui.tsx'
 import { fieldError, formError } from '../../lib/errors.ts'
 import { LINK_SOURCES } from '../../lib/links.ts'
 import type { LinkTarget } from '../../lib/types.ts'
@@ -35,6 +35,9 @@ export function NewLink() {
   const [campaign, setCampaign] = useState('')
 
   const place = source === OTHER ? otherSource.trim() : source
+  // Until the lists arrive, a product picked by a Share button has no
+  // option yet and the select would show "Whole shop".
+  const loading = products.isPending || categories.isPending
   const shown = products.data?.filter((p) => p.status === 'active' || target === `product:${p.id}`) ?? []
 
   function submit(event: FormEvent) {
@@ -59,6 +62,9 @@ export function NewLink() {
       <form onSubmit={submit} className="space-y-4">
         <Card className="space-y-5 p-4 sm:p-6">
           <Field label="What it opens" error={fieldError(create.error, 'target_id')}>
+            {loading ? (
+              <Skeleton className="h-11 w-full rounded-xl" />
+            ) : (
             <Select value={target} onChange={(e) => setTarget(e.target.value)}>
               <option value="store">Whole shop</option>
               {shown.length > 0 && (
@@ -80,6 +86,7 @@ export function NewLink() {
                 </optgroup>
               )}
             </Select>
+            )}
           </Field>
 
           <fieldset>
@@ -126,7 +133,7 @@ export function NewLink() {
         </Card>
 
         <ErrorMessage error={formError(create.error, ['target_id', 'source', 'campaign'])} />
-        <Button type="submit" size="lg" loading={create.isPending} disabled={!place} className="w-full sm:w-auto">
+        <Button type="submit" size="lg" loading={create.isPending} disabled={!place || loading} className="w-full sm:w-auto">
           Make link
         </Button>
       </form>
