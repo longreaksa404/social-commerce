@@ -1,7 +1,8 @@
-import { MapPin, MessageSquareText, Phone, Truck } from 'lucide-react'
+import { MapPin, MapPinned, MessageSquareText, Phone, Truck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
+import { buttonClass } from '../../components/styles.ts'
 import { Badge, Button, Card, ErrorState, Field, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { ApiError } from '../../lib/api.ts'
 import { deliveryAction, deliveryBadge } from '../../lib/delivery.ts'
@@ -108,12 +109,29 @@ function OrderView({ order, onStale }: { order: Order; onStale: () => void }) {
             <Phone aria-hidden className="size-4" />
             {formatPhone(order.customer.phone)}
           </a>
-          {order.delivery_address && (
+          {order.delivery_method === 'seller_delivery' && (
             <>
-              <h3 className="mt-3 text-sm font-medium text-slate-500">
-                Deliver to{order.delivery.area_name && ` (${order.delivery.area_name})`}
-              </h3>
-              <p className="mt-0.5 whitespace-pre-line break-words text-slate-900">{order.delivery_address}</p>
+              <h3 className="mt-3 text-sm font-medium text-slate-500">Deliver to</h3>
+              {order.delivery_address && (
+                <p className="mt-0.5 whitespace-pre-line break-words text-slate-900">{order.delivery_address}</p>
+              )}
+              {order.delivery_address_note && (
+                <p className="mt-1 text-sm break-words text-slate-600">
+                  <span className="text-slate-500">Note: </span>
+                  {order.delivery_address_note}
+                </p>
+              )}
+              {order.delivery_lat !== null && order.delivery_lng !== null && (
+                <a
+                  href={`https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`${buttonClass('secondary')} mt-3 w-full sm:w-auto`}
+                >
+                  <MapPinned aria-hidden className="size-4" />
+                  Open in Google Maps
+                </a>
+              )}
             </>
           )}
         </Card>
@@ -341,13 +359,13 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
         <Badge tone={badge.tone}>{badge.label}</Badge>
       </div>
       <p className="mt-2 text-slate-900">
-        {pickup ? 'The customer collects it' : delivery.area_name ? `To ${delivery.area_name}` : 'Delivery'}
+        {pickup ? 'The customer collects it' : delivery.courier ? `Send with ${delivery.courier}` : 'Your own delivery'}
         {' · '}
         {Number(order.delivery_fee) > 0 ? formatMoney(order.delivery_fee, order.currency) : 'Free'}
       </p>
       {delivery.assignee_note && (
         <p className="mt-1 text-sm break-words text-slate-600">
-          <span className="text-slate-500">Delivering: </span>
+          <span className="text-slate-500">{delivery.courier ? 'Note: ' : 'Delivering: '}</span>
           {delivery.assignee_note}
         </p>
       )}
@@ -359,7 +377,14 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
 
       {assigning ? (
         <form onSubmit={submit} className="mt-4 space-y-3">
-          <Field label="Who's delivering? (optional)" hint="For example: Sokha, 012 999 888. Only you see this.">
+          <Field
+            label={delivery.courier ? 'Courier branch or tracking number (optional)' : "Who's delivering? (optional)"}
+            hint={
+              delivery.courier
+                ? `For example: ${delivery.courier} Takeo branch, no. 123456. Only you see this.`
+                : 'For example: Sokha, 012 999 888. Only you see this.'
+            }
+          >
             <Input maxLength={200} autoFocus value={note} onChange={(e) => setNote(e.target.value)} />
           </Field>
           <div className="flex gap-3">
@@ -367,7 +392,7 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
               Back
             </Button>
             <Button type="submit" loading={record.isPending} className="flex-1">
-              {delivery.status === 'failed' ? 'Try again' : 'Assign'}
+              {deliveryAction(delivery, 'assigned')}
             </Button>
           </div>
         </form>
@@ -377,7 +402,7 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
             {actions.map((status) =>
               status === 'failed' ? (
                 <Button key={status} variant="ghost" onClick={() => save(status)} disabled={record.isPending}>
-                  {deliveryAction(delivery.method, delivery.status, status)}
+                  {deliveryAction(delivery, status)}
                 </Button>
               ) : (
                 <Button
@@ -388,7 +413,7 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
                   onClick={() => (status === 'assigned' ? startAssigning() : save(status))}
                   className="flex-1"
                 >
-                  {deliveryAction(delivery.method, delivery.status, status)}
+                  {deliveryAction(delivery, status)}
                 </Button>
               ),
             )}

@@ -1,5 +1,5 @@
 import type { StatusTone } from './orders.ts'
-import type { DeliveryMethod, DeliveryStatus } from './types.ts'
+import type { Delivery, DeliveryMethod, DeliveryStatus } from './types.ts'
 
 /** The seller's words for each delivery status (02 section 7.3). */
 const LABELS: Record<DeliveryStatus, string> = {
@@ -31,9 +31,9 @@ export function deliveryBadge(method: DeliveryMethod, status: DeliveryStatus): {
 }
 
 /** The button for moving a delivery to each status. */
-export function deliveryAction(method: DeliveryMethod, from: DeliveryStatus, to: DeliveryStatus): string {
-  if (method === 'pickup') return 'Customer collected'
-  if (to === 'assigned') return from === 'failed' ? 'Try again' : 'Assign'
+export function deliveryAction(delivery: Delivery, to: DeliveryStatus): string {
+  if (delivery.method === 'pickup') return 'Customer collected'
+  if (to === 'assigned') return delivery.status === 'failed' ? 'Try again' : delivery.courier ? 'Book courier' : 'Assign'
   return { picked_up: 'Picked up', in_transit: 'On the way', delivered: 'Delivered', failed: 'Delivery failed' }[
     to as 'picked_up' | 'in_transit' | 'delivered' | 'failed'
   ]
