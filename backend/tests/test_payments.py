@@ -216,6 +216,12 @@ async def test_seller_marks_a_transfer_paid_and_can_then_complete(client, auth_h
         await client.patch(
             f"/api/v1/seller/orders/{order['id']}/status", headers=headers, json={"status": status}
         )
+    for status in ("assigned", "picked_up", "in_transit", "delivered"):
+        await client.patch(
+            f"/api/v1/seller/orders/{order['id']}/delivery",
+            headers=headers,
+            json={"status": status},
+        )
     detail = (await client.get(f"/api/v1/seller/orders/{order['id']}", headers=headers)).json()
     assert detail["next_statuses"] == []  # not paid yet
     assert detail["payment"]["next_statuses"] == ["paid", "failed"]

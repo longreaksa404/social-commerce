@@ -14,6 +14,7 @@ from app.db.session import tenant_session, unscoped_session
 from app.models import (
     Category,
     Customer,
+    Delivery,
     DeliveryMethod,
     Order,
     OrderItem,
@@ -80,6 +81,7 @@ async def _add_order(store_id, product_id):
                 payment=Payment(
                     store_id=store_id, method=PaymentMethod.COD, amount=Decimal("10.00")
                 ),
+                delivery=Delivery(store_id=store_id, method=DeliveryMethod.SELLER_DELIVERY),
             )
         )
         await db.commit()
@@ -95,8 +97,9 @@ async def test_store_only_sees_its_own_orders(two_stores):
         orders = (await db.scalars(select(Order.store_id))).all()
         items = (await db.scalars(select(OrderItem.store_id))).all()
         payments = (await db.scalars(select(Payment.store_id))).all()
+        deliveries = (await db.scalars(select(Delivery.store_id))).all()
 
-    assert customers == orders == items == payments == [a.store_id]
+    assert customers == orders == items == payments == deliveries == [a.store_id]
 
 
 async def test_store_cannot_change_another_stores_rows(two_stores):

@@ -1,12 +1,16 @@
-"""Delivery (02_TECHNICAL.md section 7.3): the seller's delivery and
-discount settings, and the delivery choice at checkout.
+"""Delivery (02_TECHNICAL.md section 7.3): the delivery state machine,
+the seller's delivery and discount settings, and the delivery choice at
+checkout.
 
 No courier integration in the MVP: the seller delivers (or sends
 someone) and records each step by hand.
+
+The delivery's status follows only its own state machine; nothing here
+reads or sets the order's or the payment's (CLAUDE.md hard rule 2).
 """
 
 from app.core.errors import AppError
-from app.models import DeliveryMethod, Order, Store
+from app.models import Delivery, DeliveryMethod, DeliveryStatus, Order, Store
 from app.schemas.delivery import (
     DeliveryArea,
     DeliverySettings,
@@ -17,6 +21,60 @@ from app.schemas.delivery import (
     ShopSellerDelivery,
 )
 from app.services.payment import ORDER_IS_OFF
+
+D = DeliveryStatus
+
+ALLOWED_DELIVERY_TRANSITIONS: dict[
+    DeliveryMethod, dict[DeliveryStatus, frozenset[DeliveryStatus]]
+] = {
+    DeliveryMethod.SELLER_DELIVERY: {
+        D.NOT_ASSIGNED: frozenset({D.ASSIGNED}),
+        D.ASSIGNED: frozenset({D.PICKED_UP}),
+        D.PICKED_UP: frozenset({D.IN_TRANSIT}),
+        D.IN_TRANSIT: frozenset({D.DELIVERED, D.FAILED}),
+        D.DELIVERED: frozenset(),
+        # Nobody home: try again, maybe with someone else (decided 2026-10-03).
+        D.FAILED: frozenset({D.ASSIGNED}),
+    },
+    # Pickup skips the steps in between: the seller marks it when the
+    # customer collects.
+    DeliveryMethod.PICKUP: {
+        D.NOT_ASSIGNED: frozenset({D.DELIVERED}),
+        D.ASSIGNED: frozenset(),
+        D.PICKED_UP: frozenset(),
+        D.IN_TRANSIT: frozenset(),
+        D.DELIVERED: frozenset(),
+        D.FAILED: frozenset(),
+    },
+}
+
+
+def check_transition(
+    method: DeliveryMethod, current: DeliveryStatus, target: DeliveryStatus
+) -> None:
+    if target not in ALLOWED_DELIVERY_TRANSITIONS[method][current]:
+        raise AppError(
+            409,
+            "INVALID_DELIVERY_TRANSITION",
+            f"This delivery is {current.value.replace('_', ' ')}, so it can't be marked "
+            f"{target.value.replace('_', ' ')}.",
+            "status",
+        )
+
+
+def next_statuses(delivery: Delivery) -> list[DeliveryStatus]:
+    """Where the seller can move it now, in state-machine order."""
+    allowed = ALLOWED_DELIVERY_TRANSITIONS[delivery.method][delivery.status]
+    return [s for s in D if s in allowed]
+
+
+def record(delivery: Delivery, target: DeliveryStatus, assignee_note: str | None) -> None:
+    """The one place a delivery's status changes. The caller locks the
+    order first and commits after."""
+    check_transition(delivery.method, delivery.status, target)
+    delivery.status = target
+    if assignee_note:
+        delivery.assignee_note = assignee_note
 
 
 def delivery_settings(store: Store) -> DeliverySettings:

@@ -1,7 +1,13 @@
 """Delivery (02_TECHNICAL.md section 7.3) and the shop's delivery and
 discount settings."""
 
-from app.models import Product
+from itertools import product
+
+import pytest
+
+from app.core.errors import AppError
+from app.models import Delivery, DeliveryMethod, DeliveryStatus, Product
+from app.services.delivery import check_transition, next_statuses
 from tests.helpers import (
     AREAS,
     PICKUP,
@@ -252,3 +258,115 @@ async def test_a_shop_without_areas_takes_orders_without_one(client, auth_header
 
     assert (order["delivery_fee"], order["delivery"]["area_name"]) == ("0.00", None)
     assert with_area.json()["error"]["code"] == "DELIVERY_AREA_UNAVAILABLE"
+
+
+# --- State machine (02 section 7.3) ------------------------------------------
+
+D = DeliveryStatus
+
+# Copied from 02_TECHNICAL.md section 7.3 on purpose, not imported: a
+# change to the service's table has to be made here too, deliberately.
+# failed -> assigned is the retry (decided 2026-10-03).
+EXPECTED = {
+    DeliveryMethod.SELLER_DELIVERY: {
+        D.NOT_ASSIGNED: {D.ASSIGNED},
+        D.ASSIGNED: {D.PICKED_UP},
+        D.PICKED_UP: {D.IN_TRANSIT},
+        D.IN_TRANSIT: {D.DELIVERED, D.FAILED},
+        D.DELIVERED: set(),
+        D.FAILED: {D.ASSIGNED},
+    },
+    DeliveryMethod.PICKUP: {
+        D.NOT_ASSIGNED: {D.DELIVERED},
+        D.ASSIGNED: set(),
+        D.PICKED_UP: set(),
+        D.IN_TRANSIT: set(),
+        D.DELIVERED: set(),
+        D.FAILED: set(),
+    },
+}
+
+
+@pytest.mark.parametrize(("method", "current", "target"), list(product(DeliveryMethod, D, D)))
+def test_every_delivery_transition_follows_the_state_machine(method, current, target):
+    if target in EXPECTED[method][current]:
+        check_transition(method, current, target)
+    else:
+        with pytest.raises(AppError) as error:
+            check_transition(method, current, target)
+        assert (error.value.status_code, error.value.code) == (409, "INVALID_DELIVERY_TRANSITION")
+
+
+def test_next_delivery_statuses_are_what_the_seller_can_do():
+    seller = DeliveryMethod.SELLER_DELIVERY
+    assert next_statuses(Delivery(method=seller, status=D.IN_TRANSIT)) == [D.DELIVERED, D.FAILED]
+    assert next_statuses(Delivery(method=seller, status=D.FAILED)) == [D.ASSIGNED]
+    assert next_statuses(Delivery(method=DeliveryMethod.PICKUP, status=D.NOT_ASSIGNED)) == [
+        D.DELIVERED
+    ]
+
+
+async def _deliver(client, headers, order_id, status, note=None):
+    return await client.patch(
+        f"/api/v1/seller/orders/{order_id}/delivery",
+        headers=headers,
+        json={"status": status, "assignee_note": note},
+    )
+
+
+async def test_seller_delivers_fails_and_tries_again(client, auth_headers):
+    headers, slug, shirt = await _shop(client, auth_headers)
+    order = (
+        await place_order(client, slug, [(shirt, None, 1)], total="11.50", area="Phnom Penh")
+    ).json()
+
+    assigned = await _deliver(client, headers, order["id"], "assigned", "Sokha, 012 999 888")
+    assert assigned.status_code == 200, assigned.text
+    assert assigned.json()["delivery"]["assignee_note"] == "Sokha, 012 999 888"
+    assert assigned.json()["delivery"]["next_statuses"] == ["picked_up"]
+    await _deliver(client, headers, order["id"], "picked_up")
+    await _deliver(client, headers, order["id"], "in_transit")
+    failed = (await _deliver(client, headers, order["id"], "failed")).json()
+    assert failed["delivery"]["next_statuses"] == ["assigned"]
+    assert failed["delivery"]["assignee_note"] == "Sokha, 012 999 888"  # kept
+
+    retry = (await _deliver(client, headers, order["id"], "assigned", "Vibol tomorrow")).json()
+
+    assert retry["delivery"]["status"] == "assigned"
+    assert retry["delivery"]["assignee_note"] == "Vibol tomorrow"
+    # The order and payment stay where they were (CLAUDE.md hard rule 2).
+    assert (retry["status"], retry["payment"]["status"]) == ("pending", "pending")
+    tracked = (await track(client, slug, order["id"])).json()["delivery"]
+    assert tracked["status"] == "assigned"
+    assert "assignee_note" not in tracked  # the seller's note stays theirs
+
+
+async def test_pickup_goes_straight_to_delivered(client, auth_headers):
+    headers, slug, shirt = await _shop(client, auth_headers)
+    order = (
+        await place_order(
+            client, slug, [(shirt, None, 1)], total="10.00", delivery_method="pickup", address=None
+        )
+    ).json()
+
+    skipped = await _deliver(client, headers, order["id"], "assigned")
+    collected = await _deliver(client, headers, order["id"], "delivered")
+
+    assert skipped.status_code == 409
+    assert skipped.json()["error"]["code"] == "INVALID_DELIVERY_TRANSITION"
+    assert collected.status_code == 200
+    assert collected.json()["delivery"]["status"] == "delivered"
+    assert collected.json()["delivery"]["next_statuses"] == []
+
+
+async def test_seller_cannot_move_another_stores_delivery(client, auth_headers):
+    _, slug, shirt = await _shop(client, auth_headers)
+    other_headers, _, _ = await registered_seller(client, auth_headers)
+    order = (
+        await place_order(client, slug, [(shirt, None, 1)], total="11.50", area="Phnom Penh")
+    ).json()
+
+    response = await _deliver(client, other_headers, order["id"], "assigned")
+
+    assert response.status_code == 404
+    assert (await track(client, slug, order["id"])).json()["delivery"]["status"] == "not_assigned"

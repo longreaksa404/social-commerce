@@ -8,6 +8,9 @@ import pytest
 
 from app.core.errors import AppError
 from app.models import (
+    Delivery,
+    DeliveryMethod,
+    DeliveryStatus,
     Order,
     OrderStatus,
     Payment,
@@ -46,8 +49,18 @@ def test_every_transition_follows_the_state_machine(current, target):
         assert (error.value.status_code, error.value.code) == (409, "INVALID_STATUS_TRANSITION")
 
 
-def _order(status, method=PaymentMethod.BANK_TRANSFER, paid=PaymentStatus.PENDING):
-    return Order(status=status, items=[], payment=Payment(method=method, status=paid))
+def _order(
+    status,
+    method=PaymentMethod.BANK_TRANSFER,
+    paid=PaymentStatus.PENDING,
+    delivered=DeliveryStatus.DELIVERED,
+):
+    return Order(
+        status=status,
+        items=[],
+        payment=Payment(method=method, status=paid),
+        delivery=Delivery(method=DeliveryMethod.SELLER_DELIVERY, status=delivered),
+    )
 
 
 def test_next_statuses_offer_the_allowed_moves_in_order():
@@ -56,12 +69,17 @@ def test_next_statuses_offer_the_allowed_moves_in_order():
     assert next_statuses(_order(S.CANCELLED)) == []
 
 
-# 02 section 7.4, copied on purpose: complete only once paid, or when the
-# payment is cash on delivery, whatever its status.
-@pytest.mark.parametrize(("method", "paid"), list(product(PaymentMethod, PaymentStatus)))
-def test_the_completion_rule(method, paid):
-    expected = paid is PaymentStatus.PAID or method is PaymentMethod.COD
-    assert can_complete(_order(S.DELIVERED, method, paid)) is expected
+# 02 section 7.4, copied on purpose: complete only once the delivery is
+# delivered, and the payment is paid or cash on delivery (whatever its
+# status).
+@pytest.mark.parametrize(
+    ("method", "paid", "delivered"), list(product(PaymentMethod, PaymentStatus, DeliveryStatus))
+)
+def test_the_completion_rule(method, paid, delivered):
+    expected = delivered is DeliveryStatus.DELIVERED and (
+        paid is PaymentStatus.PAID or method is PaymentMethod.COD
+    )
+    assert can_complete(_order(S.DELIVERED, method, paid, delivered)) is expected
 
 
 async def test_an_order_cannot_complete_before_its_payment_is_settled():
@@ -77,6 +95,16 @@ async def test_an_order_cannot_complete_before_its_payment_is_settled():
     assert next_statuses(order) == [S.COMPLETED]
     await transition(None, order, S.COMPLETED)
     assert order.status is S.COMPLETED
+
+
+async def test_an_order_cannot_complete_before_its_delivery_is_delivered():
+    order = _order(S.DELIVERED, PaymentMethod.COD, delivered=DeliveryStatus.IN_TRANSIT)
+
+    assert next_statuses(order) == []
+    with pytest.raises(AppError) as error:
+        await transition(None, order, S.COMPLETED)
+    assert error.value.code == "ORDER_NOT_DELIVERED"
+    assert order.status is S.DELIVERED
 
 
 # --- Seller endpoints ------------------------------------------------------
@@ -108,6 +136,16 @@ async def test_seller_moves_an_order_along_and_sees_what_comes_next(client, auth
 
     for status in ("accepted", "processing", "ready", "shipped", "delivered"):
         response = await _move(client, headers, placed["id"], status)
+        assert response.status_code == 200, response.text
+    assert response.json()["status"] == "delivered"
+    assert response.json()["delivery"]["status"] == "not_assigned"  # untouched by the order
+    assert response.json()["next_statuses"] == []  # the delivery isn't delivered yet
+    for status in ("assigned", "picked_up", "in_transit", "delivered"):
+        response = await client.patch(
+            f"/api/v1/seller/orders/{placed['id']}/delivery",
+            headers=headers,
+            json={"status": status},
+        )
         assert response.status_code == 200, response.text
     assert response.json()["status"] == "delivered"
     # Cash on delivery: completing doesn't wait for the cash to be recorded.

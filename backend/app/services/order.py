@@ -3,8 +3,9 @@ section 7.1) and the seller's order list and detail.
 
 Order, payment, and delivery are independent state machines (CLAUDE.md
 hard rule 2). The order's status follows only the table below, the
-payment's only its own (app/services/payment.py); neither is ever set from
-the other. The one rule that couples them is completion (section 7.4).
+payment's and the delivery's only their own (app/services/payment.py,
+app/services/delivery.py); none is ever set from another. The one rule
+that couples them is completion (section 7.4).
 
 Every query filters by store_id (layer 1) on a tenant session where RLS
 enforces the same thing (layer 2).
@@ -19,6 +20,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.errors import AppError, NotFound
 from app.models import (
+    DeliveryStatus,
     Order,
     OrderStatus,
     PaymentMethod,
@@ -26,8 +28,10 @@ from app.models import (
     Product,
     ProductVariant,
 )
+from app.schemas.delivery import DeliveryUpdate
 from app.schemas.order import OrderListOut, OrderOut, OrderSummaryOut
 from app.schemas.payment import PaymentUpdate
+from app.services import delivery as delivery_service
 from app.services import payment as payment_service
 
 S = OrderStatus
@@ -48,11 +52,16 @@ ALLOWED_ORDER_TRANSITIONS: dict[OrderStatus, frozenset[OrderStatus]] = {
 RETURNS_STOCK = frozenset({S.REJECTED, S.CANCELLED})
 
 
-def can_complete(order: Order) -> bool:
-    """02 section 7.4: an order may complete only once its payment is paid,
-    or when it is cash on delivery (whenever the cash changes hands)."""
+def is_settled(order: Order) -> bool:
+    """Paid, or cash on delivery (whenever the cash changes hands)."""
     payment = order.payment
     return payment.status is PaymentStatus.PAID or payment.method is PaymentMethod.COD
+
+
+def can_complete(order: Order) -> bool:
+    """02 section 7.4: an order may complete only once its delivery is
+    delivered (or the pickup collected) and its payment is settled."""
+    return order.delivery.status is DeliveryStatus.DELIVERED and is_settled(order)
 
 
 def check_transition(current: OrderStatus, target: OrderStatus) -> None:
@@ -74,7 +83,14 @@ def next_statuses(order: Order) -> list[OrderStatus]:
 async def transition(db: AsyncSession, order: Order, target: OrderStatus) -> None:
     """The one place an order's status changes. The caller commits."""
     check_transition(order.status, target)
-    if target is S.COMPLETED and not can_complete(order):
+    if target is S.COMPLETED and order.delivery.status is not DeliveryStatus.DELIVERED:
+        raise AppError(
+            409,
+            "ORDER_NOT_DELIVERED",
+            "Mark the delivery delivered before completing this order.",
+            "status",
+        )
+    if target is S.COMPLETED and not is_settled(order):
         raise AppError(
             409, "ORDER_NOT_PAID", "Record the payment before completing this order.", "status"
         )
@@ -130,6 +146,7 @@ def order_out(order: Order) -> OrderOut:
     out = OrderOut.model_validate(order)
     out.next_statuses = next_statuses(order)
     out.payment.next_statuses = payment_service.next_statuses(order.payment)
+    out.delivery.next_statuses = delivery_service.next_statuses(order.delivery)
     return out
 
 
@@ -152,6 +169,17 @@ async def record_payment(
     it twice."""
     order = await get_order(db, store_id, order_id, for_update=True)
     payment_service.record(order.payment, data.status, data.reference)
+    await db.commit()
+    return order
+
+
+async def record_delivery(
+    db: AsyncSession, store_id: uuid.UUID, order_id: uuid.UUID, data: DeliveryUpdate
+) -> Order:
+    """The seller moves the order's delivery along (02 section 7.3).
+    Locked like a status change, so a double tap can't move it twice."""
+    order = await get_order(db, store_id, order_id, for_update=True)
+    delivery_service.record(order.delivery, data.status, data.assignee_note)
     await db.commit()
     return order
 
