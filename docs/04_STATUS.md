@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-03 (R2 live, Phase 1 fully done; Phase 6 built, waiting for the founder's bot)
+> **Last updated:** 2026-10-03 (Phase 6 closed after the founder's live test)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,12 +15,12 @@
 
 ## Current Phase
 
-**Phase 6 — Telegram: built and tested locally, not deployed.** Its
-definition of done needs a real bot, which only the founder can create
-(@BotFather), then three env vars in Render (see In Progress). With the
-founder's decision, "Ask Seller" opens the seller's own Telegram instead of
-a bot conversation, so that half of the definition of done changes too
-(proposed text under "Decisions Made This Session").
+**Next: Phase 7 — Web notifications + customer management** (not started)
+
+Phase 6 met its definition of done on 2026-10-03 and the founder closed
+it after testing on the live site with their bot (ReaksaShopAlertBot):
+Connect in Settings, a real Telegram alert for a test order, and "Ask
+seller on Telegram" opening their own chat with the message typed.
 
 Phase 5 met its definition of done on 2026-10-03 and the founder closed
 it after testing on the live site: delivery fee, couriers, discount, an
@@ -369,7 +369,7 @@ photos live 2026-10-03):**
       map opens, ◎, drag, zoom, confirm, address becomes optional; no
       console errors.
 
-**Phase 6 (built 2026-10-03; not deployed, needs the founder's bot):**
+**Phase 6 (deployed 2026-10-03; founder closed it on the live site):**
 
 - [x] Migration `3867d44e4db7`: `store.telegram_username` and the
       `notification_log` table from 02 §5.2 (RLS like the other tenant
@@ -421,28 +421,17 @@ photos live 2026-10-03):**
       failed (this container can't reach Telegram) while the order went
       through, disconnect, no button without a username. axe-core: no
       WCAG 2.1 A/AA violations; no console errors.
-- [ ] **Not yet checked with real Telegram:** that the message arrives
-      and looks right, the "Open order" button, and that
-      `t.me/<username>?text=` pre-fills the message on iPhone and
-      Android (if it doesn't, the chat still opens, just empty).
+- [x] **Checked with real Telegram by the founder (2026-10-03):**
+      Connect, the new-order alert arriving, and "Ask seller" opening
+      their chat with the message pre-filled on their iPhone. Android
+      pre-fill not checked yet (if it doesn't, the chat still opens,
+      just empty).
 
 ---
 
 ## In Progress
 
-- [ ] **Phase 6, founder (needed to deploy and test):**
-      1. In Telegram, message @BotFather → `/newbot`; pick a name (e.g.
-         "Dara Shop Alerts") and a username ending in `bot`. It replies
-         with a token.
-      2. Render → social-commerce-api → Environment: add
-         `TELEGRAM_BOT_TOKEN` (the token), `TELEGRAM_BOT_USERNAME` (without
-         @), `TELEGRAM_WEBHOOK_SECRET` (any random letters/numbers, 20+),
-         `PUBLIC_API_URL` = `https://social-commerce-api.onrender.com`,
-         `PUBLIC_APP_URL` = `https://social-commerce-eight.vercel.app`.
-         (They are in `render.yaml`, but an existing service may not
-         pick up new Blueprint variables by itself.)
-      3. Push, let it deploy, then Settings → Telegram → Connect, tap
-         Start, place a test order, and tap Ask seller on a phone.
+- Nothing in progress.
 
 ---
 
@@ -580,12 +569,6 @@ Still open (noticed in Phase 2, not built; founder to decide):
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-Phase 6 (2026-10-03), to apply to 01/02/03 when the founder asks:
-"Ask Seller" goes to the seller's own Telegram (01 §11, §27, §46; 02
-§12.2, §5.2 `store.telegram_username`, §6.2 the two settings endpoints;
-03 Phase 6 tasks and definition of done); alerts only for new orders and
-low stock (01 §19, 02 §12.1); httpx instead of python-telegram-bot (02
-§3); `notification_log` moves from Phase 7 to Phase 6 (03).
 
 - Development moved from a Claude Project chat to Claude Code. Docs live in
   `docs/` in the monorepo; `CLAUDE.md` is at the repo root.
@@ -593,6 +576,16 @@ low stock (01 §19, 02 §12.1); httpx instead of python-telegram-bot (02
 - Hour estimates are now an upper bound. Time tracking dropped (2026-10-02):
   `docs/TIME_LOG.md` removed; actual hours are not logged.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
+
+Applied to 01/02/03 on 2026-10-03 (at the founder's request): the
+Phase 6 decisions ("Ask seller" opens the seller's own Telegram in 01
+§11, §27, §46 and 02 §12.2; alerts only for new orders and low stock in
+01 §19 and 02 §12.1; httpx in 02 §3; `store.telegram_username` in 02
+§5.2; the two Telegram endpoints in 02 §6.2; webhook registration in 02
+§12.3; 03 Phase 6 tasks and definition of done, `notification_log`
+moved from Phase 7; §4 totals: Phase 6 ~17 hrs, Phase 7 ~11 hrs, total
+~284 hrs) and the checkout map (01 §26, 02 §5.2 `delivery_lat` /
+`delivery_lng`).
 
 Applied to 01/02/03 on 2026-10-03 (at the founder's request): the
 Phase 5 decisions (01 §26, §28, §46; 02 §5.2 `store.delivery_config` /
@@ -735,10 +728,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Phase 6: founder creates the bot and sets the Render env vars (In
-   Progress), then the live test; then apply the Phase 6 decisions to
-   01/02/03.
-2. Phase 7: web notifications + customer list (the `notification_log`
+1. Phase 7: web notifications + customer list (the `notification_log`
    table already exists).
+2. Manual regression checklist (03 §7), still missing.
 3. Decide on the two Phase 2 proposals above (link previews, grid photos;
    grid photos matter more now that R2 is live).
