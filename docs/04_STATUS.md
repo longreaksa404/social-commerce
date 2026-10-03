@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-03 (Phase 5 built and tested locally; not pushed)
+> **Last updated:** 2026-10-03 (Phase 5 deployed; waiting for the founder's live test)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,8 +15,9 @@
 
 ## Current Phase
 
-**Phase 5 — Delivery: built, tested locally, not pushed yet.**
-Waiting for the founder to push it and run it on the live site.
+**Phase 5 — Delivery: deployed 2026-10-03, waiting for the founder's
+live test.** The live API serves the new delivery settings, so both
+migrations ran on Neon; the Vercel build has the new checkout.
 Definition of done (03 Phase 5): an order can be marked through delivery
 states to `delivered`, and the order itself can then be marked
 `completed`. Met locally (pytest and a headless Chromium click-through).
@@ -277,7 +278,7 @@ shows "API: ok" from the deployed backend.
       turned off mid-checkout. axe-core: no WCAG 2.1 A/AA violations; no
       console errors besides expected 409/422.
 
-**Phase 5 (built 2026-10-03; tested locally, not pushed or deployed):**
+**Phase 5 (deployed 2026-10-03; founder tested locally, live test pending):**
 
 - [x] Migrations `7461cde1fdf0` + `b2f4c81e9d03`: `delivery` (1:1 with
       order, `store_id` + RLS like `payment`, `courier`, `assignee_note`,
@@ -588,8 +589,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: push Phase 5, then on the live site set delivery areas and a
-   discount, place an order, walk the delivery to delivered, complete.
+1. Founder: on the live site set the delivery fee, couriers and a
+   discount, place an order (try "Use my current location" on the
+   phone), walk the delivery to delivered, complete. Then close Phase 5.
 2. Phase 6: Telegram.
 3. Decide on the two Phase 2 proposals above (link previews, grid photos).
 R2 setup whenever the founder is ready.
