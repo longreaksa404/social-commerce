@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-03 (Phase 7 built and committed, not pushed yet)
+> **Last updated:** 2026-10-03 (Phase 7 closed after the founder's live test)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,13 +15,13 @@
 
 ## Current Phase
 
-**Phase 7 — Web notifications + customer management: built, waiting for
-the founder's live test** (committed on `main`, not pushed or deployed yet)
+**Next: Phase 8 — Shareable links + basic tracking** (not started)
 
-Proposed definition of done (03 has none for Phase 7): a test order makes
-the bell show a count and tapping the notification opens the order; from
-the order, the seller opens the customer and sees their details and order
-history.
+Phase 7 met its definition of done on 2026-10-03 and the founder closed
+it after testing on the live site: a test order showed on the bell,
+tapping it opened the order, and "View customer" showed the customer's
+details and order history. (The definition of done is the one proposed
+for Phase 7; 03 doesn't have it yet.)
 
 Phase 6 met its definition of done on 2026-10-03 and the founder closed
 it after testing on the live site with their bot (ReaksaShopAlertBot):
@@ -433,7 +433,7 @@ photos live 2026-10-03):**
       pre-fill not checked yet (if it doesn't, the chat still opens,
       just empty).
 
-**Phase 7 (built 2026-10-03; committed, not pushed; founder to test live):**
+**Phase 7 (deployed 2026-10-03; founder closed it on the live site):**
 
 - [x] Migration `aa40287b7688`: `notification_log.read_at` (decided
       2026-10-03: read on one device is read on all) and an index on
@@ -491,9 +491,7 @@ photos live 2026-10-03):**
 
 ## In Progress
 
-- Phase 7: built and committed locally (4 commits); not pushed or
-  deployed. Founder to push, then test on the live site (the migration
-  runs on deploy).
+- Nothing in progress.
 
 ---
 
@@ -813,9 +811,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: push Phase 7, test it on the live site, and close it (or
-   say what to change).
-2. Phase 8: shareable links + basic tracking.
+1. Phase 8: shareable links + basic tracking.
+2. Apply the Phase 7 text to 01/02/03 (given to the founder; not yet
+   asked for).
 3. Manual regression checklist (03 §7), still missing.
 4. Decide on the two Phase 2 proposals above (link previews, grid photos;
    grid photos matter more now that R2 is live).
