@@ -67,7 +67,9 @@ async def test_upload_rejects_large_or_wrong_files(client, auth_headers, r2):
     assert gif.status_code == 422
 
 
-async def test_upload_needs_r2_settings(client, auth_headers):
+async def test_upload_needs_r2_settings(client, auth_headers, monkeypatch):
+    # The local .env may have R2 set; this test needs it off.
+    monkeypatch.setattr(get_settings(), "r2_bucket", "")
     headers = await auth_headers()
     product = await _product(client, headers)
 
