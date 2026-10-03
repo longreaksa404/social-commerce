@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-03 (Phase 5 deployed; waiting for the founder's live test)
+> **Last updated:** 2026-10-03 (Phase 5 closed after the founder's live test)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,12 +15,12 @@
 
 ## Current Phase
 
-**Phase 5 — Delivery: deployed 2026-10-03, waiting for the founder's
-live test.** The live API serves the new delivery settings, so both
-migrations ran on Neon; the Vercel build has the new checkout.
-Definition of done (03 Phase 5): an order can be marked through delivery
-states to `delivered`, and the order itself can then be marked
-`completed`. Met locally (pytest and a headless Chromium click-through).
+**Next: Phase 6 — Telegram** (not started)
+
+Phase 5 met its definition of done on 2026-10-03 and the founder closed
+it after testing on the live site: delivery fee, couriers, discount, an
+order with the phone's location, the delivery walked to delivered, and
+the order completed.
 
 Phase 4 met its definition of done on 2026-10-03 and the founder closed
 it: on the live site an order can be placed with cash on delivery, bank
@@ -278,7 +278,7 @@ shows "API: ok" from the deployed backend.
       turned off mid-checkout. axe-core: no WCAG 2.1 A/AA violations; no
       console errors besides expected 409/422.
 
-**Phase 5 (deployed 2026-10-03; founder tested locally, live test pending):**
+**Phase 5 (deployed 2026-10-03; founder closed it on the live site):**
 
 - [x] Migrations `7461cde1fdf0` + `b2f4c81e9d03`: `delivery` (1:1 with
       order, `store_id` + RLS like `payment`, `courier`, `assignee_note`,
@@ -589,9 +589,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: on the live site set the delivery fee, couriers and a
-   discount, place an order (try "Use my current location" on the
-   phone), walk the delivery to delivered, complete. Then close Phase 5.
-2. Phase 6: Telegram.
-3. Decide on the two Phase 2 proposals above (link previews, grid photos).
+1. Phase 6: Telegram (seller notifications, "Ask Seller"). Needs a bot
+   from @BotFather, which only the founder can create.
+2. Decide on the two Phase 2 proposals above (link previews, grid photos).
 R2 setup whenever the founder is ready.
