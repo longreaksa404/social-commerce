@@ -1,4 +1,4 @@
-import { Minus, Plus, Trash2 } from 'lucide-react'
+import { Minus, Plus, Share2, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
@@ -184,7 +184,20 @@ function ProductForm({ product }: { product?: Product }) {
 
   return (
     <>
-      <PageHeader title={isNew ? 'New product' : 'Edit product'} back="/dashboard/products" />
+      <PageHeader
+        title={isNew ? 'New product' : 'Edit product'}
+        back="/dashboard/products"
+        action={
+          // A hidden product's page doesn't open, so there's nothing to share.
+          product &&
+          baseline.status === 'active' && (
+            <Link to={`/dashboard/links/new?product=${product.id}`} className={`${buttonClass('secondary')} shrink-0`}>
+              <Share2 aria-hidden className="size-4" />
+              Share
+            </Link>
+          )
+        }
+      />
 
       <form onSubmit={submit} className="space-y-4">
         <Section

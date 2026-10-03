@@ -248,6 +248,8 @@ export type Order = Omit<ShopOrder, 'payment' | 'delivery'> & {
   /** For the driver, e.g. "blue gate, next to the pagoda". */
   delivery_address_note: string | null
   notes: string | null
+  /** Where the shop link it came through was posted, e.g. "tiktok". */
+  source: string | null
   customer: { id: string; name: string; phone: string; address: string | null }
   /** Where the seller can move the order now; the server applies the rules. */
   next_statuses: OrderStatus[]
@@ -348,5 +350,36 @@ export type CustomerDetail = {
   /** As in CustomerSummary. */
   spent: Amount[]
   /** Newest first; only the latest 100 if there are more (order_count). */
+  orders: OrderSummary[]
+}
+
+// Shareable links (02_TECHNICAL.md section 9)
+
+export type LinkTarget = 'store' | 'product' | 'category'
+
+/** A link the seller made to share in one place, with what it brought. */
+export type ShareLink = {
+  id: string
+  target_type: LinkTarget
+  /** The product or category; null for the whole shop. */
+  target_id: string | null
+  /** The product's or category's current name; null for the shop, or once
+   * the category is deleted. */
+  target_name: string | null
+  /** The address to share, from the site's root; null while its page
+   * doesn't open (product hidden, category deleted). */
+  path: string | null
+  token: string
+  /** Where it's posted: one of LINK_SOURCES, or what the seller typed. */
+  source: string | null
+  /** The seller's own name for it. */
+  campaign: string | null
+  created_at: string
+  view_count: number
+  order_count: number
+}
+
+export type LinkStats = ShareLink & {
+  /** The orders it brought, newest first (at most 100). */
   orders: OrderSummary[]
 }

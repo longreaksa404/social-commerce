@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, Pencil, Plus, Tags, Trash2, X } from 'lucide-react'
+import { Check, Pencil, Plus, Share2, Tags, Trash2, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import {
   Button,
@@ -44,7 +44,7 @@ export function Categories() {
 
   return (
     <>
-      <PageHeader title="Categories" />
+      <PageHeader title="Categories" back="/dashboard/products" />
 
       <Card className="mb-4 p-4">
         <form onSubmit={submit} className="flex gap-2">
@@ -98,6 +98,7 @@ export function Categories() {
 
 function CategoryRow({ category, onChanged }: { category: Category; onChanged: () => void }) {
   const { toast, confirm } = useFeedback()
+  const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(category.name)
 
@@ -187,6 +188,11 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
           <p className="text-sm text-slate-500">No products yet</p>
         )}
       </div>
+      <IconButton
+        icon={Share2}
+        label={`Share ${category.name}`}
+        onClick={() => navigate(`/dashboard/links/new?category=${category.id}`)}
+      />
       <IconButton icon={Pencil} label={`Rename ${category.name}`} onClick={() => setEditing(true)} />
       <IconButton
         icon={Trash2}

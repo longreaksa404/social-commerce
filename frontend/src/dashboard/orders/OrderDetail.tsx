@@ -1,4 +1,4 @@
-import { ChevronRight, MapPin, MapPinned, MessageSquareText, Phone, Truck } from 'lucide-react'
+import { ChevronRight, Link2, MapPin, MapPinned, MessageSquareText, Phone, Truck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
@@ -6,6 +6,7 @@ import { buttonClass } from '../../components/styles.ts'
 import { Badge, Button, Card, ErrorState, Field, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { ApiError } from '../../lib/api.ts'
 import { deliveryAction, deliveryBadge } from '../../lib/delivery.ts'
+import { sourceLabel } from '../../lib/links.ts'
 import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, formatPhone, ORDER_STATUS_LABELS, ORDER_STATUS_TONES } from '../../lib/orders.ts'
 import { PAYMENT_METHOD_LABELS, paymentBadge } from '../../lib/payments.ts'
@@ -86,6 +87,12 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
             <Badge tone={ORDER_STATUS_TONES[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>
             <span className="text-sm text-slate-500">Placed {formatOrderTime(order.created_at)}</span>
           </div>
+          {order.source && (
+            <p className="mt-2 flex items-center gap-1.5 text-sm text-slate-500">
+              <Link2 aria-hidden className="size-4 shrink-0" />
+              Came through your {sourceLabel(order.source)} link
+            </p>
+          )}
           {order.notes && (
             <div className="mt-4 flex gap-2.5 rounded-xl bg-amber-50 px-3.5 py-3 text-sm text-amber-900">
               <MessageSquareText aria-hidden className="mt-0.5 size-4 shrink-0" />

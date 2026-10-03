@@ -4,6 +4,9 @@ import { Categories } from './dashboard/Categories.tsx'
 import { CustomerDetail } from './dashboard/customers/CustomerDetail.tsx'
 import { CustomerList } from './dashboard/customers/CustomerList.tsx'
 import { DashboardLayout } from './dashboard/Layout.tsx'
+import { LinkDetail } from './dashboard/links/LinkDetail.tsx'
+import { LinkList } from './dashboard/links/LinkList.tsx'
+import { NewLink } from './dashboard/links/NewLink.tsx'
 import { Notifications } from './dashboard/Notifications.tsx'
 import { OrderDetail } from './dashboard/orders/OrderDetail.tsx'
 import { OrderList } from './dashboard/orders/OrderList.tsx'
@@ -43,6 +46,9 @@ export const router = createBrowserRouter([
           { path: 'products/new', element: <ProductEdit /> },
           { path: 'products/:productId', element: <ProductEdit /> },
           { path: 'categories', element: <Categories /> },
+          { path: 'links', element: <LinkList /> },
+          { path: 'links/new', element: <NewLink /> },
+          { path: 'links/:linkId', element: <LinkDetail /> },
           { path: 'settings', element: <Settings /> },
           { path: 'notifications', element: <Notifications /> },
         ],

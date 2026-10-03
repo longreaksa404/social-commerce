@@ -1,16 +1,19 @@
-import { Bell, Inbox, Package, Settings, Store, Tags, Users } from 'lucide-react'
+import { Bell, Inbox, Link2, Package, Settings, Store, Tags, Users } from 'lucide-react'
 import { NavLink, Navigate, Outlet, useLocation, useMatch } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { Skeleton, Spinner } from '../components/ui.tsx'
 import { useStore, useUnreadNotifications } from './queries.ts'
 
-const links = [
+// Five tabs fit a 320px phone. Categories is a button on Products there,
+// and its own entry in the wider sidebar.
+const tabs = [
   { to: '/dashboard/orders', label: 'Orders', icon: Inbox },
   { to: '/dashboard/customers', label: 'Customers', icon: Users },
   { to: '/dashboard/products', label: 'Products', icon: Package },
-  { to: '/dashboard/categories', label: 'Categories', icon: Tags },
+  { to: '/dashboard/links', label: 'Links', icon: Link2 },
   { to: '/dashboard/settings', label: 'Settings', icon: Settings },
 ]
+const sidebarLinks = [...tabs.slice(0, 3), { to: '/dashboard/categories', label: 'Categories', icon: Tags }, ...tabs.slice(3)]
 
 /** Dashboard shell; also the login guard for everything under /dashboard. */
 export function DashboardLayout() {
@@ -101,13 +104,14 @@ function MobileTopBar() {
 }
 
 function BottomTabBar() {
+  const onCategories = useMatch('/dashboard/categories') !== null
   return (
     <nav
       aria-label="Main"
       className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
     >
       <div className="mx-auto flex max-w-md">
-        {links.map(({ to, label, icon: Icon }) => (
+        {tabs.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
@@ -117,7 +121,10 @@ function BottomTabBar() {
               }`
             }
           >
-            {({ isActive }) => (
+            {({ isActive: onTab }) => {
+              // Categories lives under the Products tab on phones.
+              const isActive = onTab || (onCategories && to === '/dashboard/products')
+              return (
               <>
                 <span
                   className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors ${
@@ -128,7 +135,8 @@ function BottomTabBar() {
                 </span>
                 {label}
               </>
-            )}
+              )
+            }}
           </NavLink>
         ))}
       </div>
@@ -147,7 +155,7 @@ function Sidebar() {
         <NotificationBell />
       </div>
       <nav aria-label="Main" className="flex flex-col gap-1 p-3">
-        {links.map(({ to, label, icon: Icon }) => (
+        {sidebarLinks.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}

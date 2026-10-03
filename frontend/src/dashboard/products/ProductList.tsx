@@ -1,4 +1,4 @@
-import { ChevronRight, ImageIcon, Package, Plus, SearchX } from 'lucide-react'
+import { ChevronRight, ImageIcon, Package, Plus, SearchX, Tags } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router'
 import { Badge, Card, EmptyState, ErrorState, PageHeader, Select, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
@@ -94,20 +94,29 @@ export function ProductList() {
             </button>
           ))}
         </div>
-        {categories.data && categories.data.length > 0 && (
-          <Select
-            aria-label="Filter by category"
-            value={categoryId}
-            onChange={(e) => setFilter('category', e.target.value)}
-          >
-            <option value="">All categories</option>
-            {categories.data.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-        )}
+        <div className="flex gap-2">
+          {categories.data && categories.data.length > 0 && (
+            <div className="min-w-0 flex-1">
+              <Select
+                aria-label="Filter by category"
+                value={categoryId}
+                onChange={(e) => setFilter('category', e.target.value)}
+              >
+                <option value="">All categories</option>
+                {categories.data.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          )}
+          {/* On phones the tab bar has no room for Categories. */}
+          <Link to="/dashboard/categories" className={`${buttonClass('secondary')} shrink-0`}>
+            <Tags aria-hidden className="size-4" />
+            Categories
+          </Link>
+        </div>
       </div>
 
       {shown.length === 0 ? (

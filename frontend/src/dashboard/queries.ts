@@ -5,12 +5,15 @@ import type {
   CustomerDetail,
   CustomerList,
   DeliveryStatus,
+  LinkStats,
+  LinkTarget,
   NotificationList,
   Order,
   OrderList,
   OrderStatus,
   PaymentStatus,
   Product,
+  ShareLink,
   Store,
 } from '../lib/types.ts'
 
@@ -29,6 +32,8 @@ export const keys = {
   customers: ['customers'] as const,
   customerList: (search: string) => ['customers', 'list', search] as const,
   customer: (id: string) => ['customers', id] as const,
+  links: ['links'] as const,
+  link: (id: string) => ['links', id] as const,
 }
 
 const ORDER_PAGE = 50
@@ -196,5 +201,34 @@ export function useCustomer(id: string) {
   return useQuery({
     queryKey: keys.customer(id),
     queryFn: () => api<CustomerDetail>(`/seller/customers/${id}`),
+  })
+}
+
+/** Newest first, each with its views and orders. */
+export function useLinks() {
+  return useQuery({ queryKey: keys.links, queryFn: () => api<ShareLink[]>('/seller/links') })
+}
+
+export function useLinkStats(id: string) {
+  return useQuery({
+    queryKey: keys.link(id),
+    queryFn: () => api<LinkStats>(`/seller/links/${id}/stats`),
+    refetchOnWindowFocus: true,
+  })
+}
+
+export type NewLink = {
+  target_type: LinkTarget
+  target_id: string | null
+  source: string
+  campaign: string | null
+}
+
+/** Make a link; the same page, place and name gives back the existing one. */
+export function useCreateLink() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: NewLink) => api<ShareLink>('/seller/links', { method: 'POST', body }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.links }),
   })
 }
