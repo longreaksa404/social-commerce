@@ -1,14 +1,15 @@
-import { MessageSquareText, Phone } from 'lucide-react'
+import { MapPin, MessageSquareText, Phone, Truck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
 import { Badge, Button, Card, ErrorState, Field, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { ApiError } from '../../lib/api.ts'
+import { deliveryAction, deliveryBadge } from '../../lib/delivery.ts'
 import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, formatPhone, ORDER_STATUS_LABELS, ORDER_STATUS_TONES } from '../../lib/orders.ts'
 import { PAYMENT_METHOD_LABELS, paymentBadge } from '../../lib/payments.ts'
-import type { Order, OrderStatus } from '../../lib/types.ts'
-import { useChangeOrderStatus, useOrder, useRecordPayment } from '../queries.ts'
+import type { DeliveryStatus, Order, OrderStatus } from '../../lib/types.ts'
+import { useChangeOrderStatus, useOrder, useRecordDelivery, useRecordPayment } from '../queries.ts'
 
 // The button for moving an order to each status.
 const ACTION_LABELS: Partial<Record<OrderStatus, string>> = {
@@ -93,6 +94,8 @@ function OrderView({ order, onStale }: { order: Order; onStale: () => void }) {
           )}
         </Card>
 
+        <DeliverySection order={order} onStale={onStale} />
+
         <PaymentSection order={order} onStale={onStale} />
 
         <Card className="p-4 sm:p-6">
@@ -107,7 +110,9 @@ function OrderView({ order, onStale }: { order: Order; onStale: () => void }) {
           </a>
           {order.delivery_address && (
             <>
-              <h3 className="mt-3 text-sm font-medium text-slate-500">Deliver to</h3>
+              <h3 className="mt-3 text-sm font-medium text-slate-500">
+                Deliver to{order.delivery.area_name && ` (${order.delivery.area_name})`}
+              </h3>
               <p className="mt-0.5 whitespace-pre-line break-words text-slate-900">{order.delivery_address}</p>
             </>
           )}
@@ -131,6 +136,24 @@ function OrderView({ order, onStale }: { order: Order; onStale: () => void }) {
               </li>
             ))}
           </ul>
+          <dl className="mt-2 space-y-1 border-t border-slate-200 pt-3 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-slate-600">Items</dt>
+              <dd className="text-slate-900">{formatMoney(order.subtotal, order.currency)}</dd>
+            </div>
+            {Number(order.discount) > 0 && (
+              <div className="flex justify-between">
+                <dt className="text-slate-600">Discount</dt>
+                <dd className="text-slate-900">−{formatMoney(order.discount, order.currency)}</dd>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <dt className="text-slate-600">{order.delivery_method === 'pickup' ? 'Pickup' : 'Delivery'}</dt>
+              <dd className="text-slate-900">
+                {Number(order.delivery_fee) > 0 ? formatMoney(order.delivery_fee, order.currency) : 'Free'}
+              </dd>
+            </div>
+          </dl>
           <div className="mt-2 flex items-baseline justify-between border-t border-slate-200 pt-3">
             <span className="font-semibold text-slate-900">Total</span>
             <span className="text-lg font-bold text-slate-900">{formatMoney(order.total, order.currency)}</span>
@@ -176,7 +199,9 @@ function PaymentSection({ order, onStale }: { order: Order; onStale: () => void 
   const { payment } = order
   const badge = paymentBadge(payment.method, payment.status)
   const cod = payment.method === 'cod'
-  const waitsForPayment = order.status === 'delivered' && !order.next_statuses.includes('completed')
+  // Delivered both ways, but the payment still holds up completing (02 section 7.4).
+  const waitsForPayment =
+    order.status === 'delivered' && order.delivery.status === 'delivered' && !order.next_statuses.includes('completed')
 
   async function save(status: 'paid' | 'failed') {
     try {
@@ -261,6 +286,115 @@ function PaymentSection({ order, onStale }: { order: Order; onStale: () => void 
             </Button>
           </div>
         ))}
+    </Card>
+  )
+}
+
+const CLOSED = new Set<OrderStatus>(['rejected', 'cancelled'])
+
+/** The delivery is its own state machine too (02 section 7.3): moving it
+ * never moves the order, but an order can only be completed once its
+ * delivery is delivered (section 7.4). */
+function DeliverySection({ order, onStale }: { order: Order; onStale: () => void }) {
+  const { toast } = useFeedback()
+  const record = useRecordDelivery(order.id)
+  const [assigning, setAssigning] = useState(false)
+  const [note, setNote] = useState('')
+  const { delivery } = order
+  const pickup = delivery.method === 'pickup'
+  const badge = deliveryBadge(delivery.method, delivery.status)
+  const Icon = pickup ? MapPin : Truck
+  // Nothing to deliver once the order is off, so no buttons (the server
+  // would still allow it: the two never set each other).
+  const actions = CLOSED.has(order.status) ? [] : delivery.next_statuses
+  const waitsForDelivery = order.status === 'delivered' && delivery.status !== 'delivered'
+
+  async function save(status: DeliveryStatus) {
+    try {
+      await record.mutateAsync({ status, assignee_note: status === 'assigned' ? note.trim() || null : null })
+      toast(`Order #${order.number}: ${deliveryBadge(delivery.method, status).label.toLowerCase()}`)
+      setAssigning(false)
+      setNote('')
+    } catch (error) {
+      toast(error instanceof ApiError ? error.message : 'Something went wrong. Please try again.', 'error')
+      if (error instanceof ApiError && error.status === 409) onStale()
+    }
+  }
+
+  function startAssigning() {
+    setNote(delivery.assignee_note ?? '')
+    setAssigning(true)
+  }
+
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    save('assigned')
+  }
+
+  return (
+    <Card className="p-4 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 font-semibold text-slate-900">
+          <Icon aria-hidden className="size-4.5 text-slate-500" />
+          {pickup ? 'Pickup' : 'Delivery'}
+        </h2>
+        <Badge tone={badge.tone}>{badge.label}</Badge>
+      </div>
+      <p className="mt-2 text-slate-900">
+        {pickup ? 'The customer collects it' : delivery.area_name ? `To ${delivery.area_name}` : 'Delivery'}
+        {' · '}
+        {Number(order.delivery_fee) > 0 ? formatMoney(order.delivery_fee, order.currency) : 'Free'}
+      </p>
+      {delivery.assignee_note && (
+        <p className="mt-1 text-sm break-words text-slate-600">
+          <span className="text-slate-500">Delivering: </span>
+          {delivery.assignee_note}
+        </p>
+      )}
+      {waitsForDelivery && (
+        <p className="mt-2 text-sm text-amber-800">
+          {pickup ? 'Mark it collected to complete this order.' : 'Mark the delivery delivered to complete this order.'}
+        </p>
+      )}
+
+      {assigning ? (
+        <form onSubmit={submit} className="mt-4 space-y-3">
+          <Field label="Who's delivering? (optional)" hint="For example: Sokha, 012 999 888. Only you see this.">
+            <Input maxLength={200} autoFocus value={note} onChange={(e) => setNote(e.target.value)} />
+          </Field>
+          <div className="flex gap-3">
+            <Button variant="ghost" onClick={() => setAssigning(false)} disabled={record.isPending}>
+              Back
+            </Button>
+            <Button type="submit" loading={record.isPending} className="flex-1">
+              {delivery.status === 'failed' ? 'Try again' : 'Assign'}
+            </Button>
+          </div>
+        </form>
+      ) : (
+        actions.length > 0 && (
+          <div className="mt-4 flex gap-3">
+            {actions.map((status) =>
+              status === 'failed' ? (
+                <Button key={status} variant="ghost" onClick={() => save(status)} disabled={record.isPending}>
+                  {deliveryAction(delivery.method, delivery.status, status)}
+                </Button>
+              ) : (
+                <Button
+                  key={status}
+                  variant="secondary"
+                  loading={record.isPending && record.variables?.status === status}
+                  disabled={record.isPending}
+                  onClick={() => (status === 'assigned' ? startAssigning() : save(status))}
+                  className="flex-1"
+                >
+                  {deliveryAction(delivery.method, delivery.status, status)}
+                </Button>
+              ),
+            )}
+          </div>
+        )
+      )}
     </Card>
   )
 }

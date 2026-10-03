@@ -1,6 +1,15 @@
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api.ts'
-import type { Category, Order, OrderList, OrderStatus, PaymentStatus, Product, Store } from '../lib/types.ts'
+import type {
+  Category,
+  DeliveryStatus,
+  Order,
+  OrderList,
+  OrderStatus,
+  PaymentStatus,
+  Product,
+  Store,
+} from '../lib/types.ts'
 
 export const keys = {
   store: ['store'] as const,
@@ -98,6 +107,19 @@ export function useRecordPayment(id: string) {
   return useMutation({
     mutationFn: (body: { status: PaymentStatus; reference: string | null }) =>
       api<Order>(`/seller/orders/${id}/payment`, { method: 'PATCH', body }),
+    onSuccess: (order) => {
+      queryClient.setQueryData(keys.order(id), order)
+      queryClient.invalidateQueries({ queryKey: [...keys.orders, 'list'] })
+    },
+  })
+}
+
+/** Move the order's delivery along, with an optional note on who delivers. */
+export function useRecordDelivery(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { status: DeliveryStatus; assignee_note: string | null }) =>
+      api<Order>(`/seller/orders/${id}/delivery`, { method: 'PATCH', body }),
     onSuccess: (order) => {
       queryClient.setQueryData(keys.order(id), order)
       queryClient.invalidateQueries({ queryKey: [...keys.orders, 'list'] })

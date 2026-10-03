@@ -2,6 +2,7 @@ import { ChevronRight, ExternalLink, Inbox, SearchX } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router'
 import { buttonClass } from '../../components/styles.ts'
 import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
+import { deliveryBadge } from '../../lib/delivery.ts'
 import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, ORDER_STATUS_LABELS, ORDER_STATUS_TONES } from '../../lib/orders.ts'
 import { paymentBadge } from '../../lib/payments.ts'
@@ -115,6 +116,13 @@ export function OrderList() {
 
 function OrderRow({ order }: { order: OrderSummary }) {
   const payment = paymentBadge(order.payment_method, order.payment_status)
+  // Only what needs the seller's eye: a pickup, or a delivery that failed.
+  const delivery =
+    order.delivery_status === 'failed'
+      ? deliveryBadge(order.delivery_method, 'failed')
+      : order.delivery_method === 'pickup'
+        ? { label: 'Pickup', tone: 'neutral' as const }
+        : null
   return (
     <Link
       to={`/dashboard/orders/${order.id}`}
@@ -125,6 +133,7 @@ function OrderRow({ order }: { order: OrderSummary }) {
           <span className="font-semibold text-slate-900">#{order.number}</span>
           <Badge tone={ORDER_STATUS_TONES[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>
           <Badge tone={payment.tone}>{payment.label}</Badge>
+          {delivery && <Badge tone={delivery.tone}>{delivery.label}</Badge>}
         </span>
         <span className="mt-0.5 block truncate text-sm text-slate-700">{order.customer_name}</span>
         <span className="mt-0.5 block text-xs text-slate-500">
