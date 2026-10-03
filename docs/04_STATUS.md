@@ -361,7 +361,7 @@ photos live 2026-10-03):**
       collected; reworked flow (couriers, GPS, one fee) re-checked at 390
       px. axe-core: no WCAG 2.1 A/AA violations; no console errors.
 
-**Checkout location map (2026-10-03, founder's request):**
+**Checkout location map (2026-10-03, founder's request; deployed, founder-tested on the live site with location blocked on their iPhone):**
 
 - [x] `frontend/src/shop/MapPicker.tsx` (loaded on demand) replaces "Use
       my current location" and the blocked-location help box. Checked in
