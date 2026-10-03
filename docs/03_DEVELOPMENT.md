@@ -179,8 +179,17 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Seller delivery status UI | 4 |
 | Pickup-specific simplified flow | 2 |
 | Order completion rule (payment + delivery gating, `02_TECHNICAL.md` §7.4) | 2 |
+| Delivery fee + free-delivery rules, couriers, customer GPS location + address note (decided 2026-10-03) | 6 |
+| Bill discounts (decided 2026-10-03) | 4 |
 
-**Subtotal:** ~14 hours (**~1 week**)
+**Subtotal:** ~24 hours (**~2 weeks**)
+
+> **Decided (2026-10-03):** one delivery fee per shop for any address and
+> any courier, free from an amount or a number of items; the seller's own
+> delivery and/or couriers (J&T, VET, ...) chosen by the customer and booked
+> by hand; GPS location + address note at checkout; simple bill discounts;
+> completion needs the delivery delivered; a failed delivery can be retried.
+> See `01_PRODUCT.md` §26 and `02_TECHNICAL.md` §5.2, §7.3, §7.4.
 
 **Definition of done:** an order can be marked through delivery states to `delivered`, and the order itself can then be marked `completed`.
 
@@ -264,12 +273,12 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 2 — Storefront | 25 | 2 wks |
 | 3 — Checkout/Orders | 46 | 3.5 wks |
 | 4 — Payments | 22 | 1.5–2 wks |
-| 5 — Delivery | 14 | 1 wk |
+| 5 — Delivery | 24 | 2 wks |
 | 6 — Telegram | 20 | 1.5 wks |
 | 7 — Notifications/Customers | 12 | 1 wk |
 | 8 — Links/Tracking | 13 | 1 wk |
 | 9 — Polish/First Seller | 60 | 4.5 wks |
-| **Total** | **~278 hrs** | **~21–22 weeks (~5 months)** |
+| **Total** | **~288 hrs** | **~22 weeks (~5 months)** |
 
 This is a planning estimate, not a commitment.
 

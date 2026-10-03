@@ -1056,6 +1056,10 @@ Potential capabilities:
 
 Complex logistics functionality should be postponed.
 
+**Decided (2026-10-03):** the seller turns on any of: their own delivery, the couriers they send with (e.g. J&T Express, VET Express), and pickup. The customer chooses one at checkout. Delivery costs one fee set by the seller, the same for every address and every courier (per-area fees were dropped because a customer could pick the cheaper area); the seller can make it free from an amount or from a number of items, and pickup is always free. For delivery the customer gives a typed address, their phone's GPS location, or both, plus an optional note for the driver; the seller opens the location in Google Maps. The seller books the courier and moves each delivery along by hand; no courier integration in the MVP.
+
+**Decided (2026-10-03):** simple bill discounts are in the MVP: the seller sets a fixed amount off once the items reach a total (e.g. $5 off from $40). If an order reaches more than one, the biggest applies; they never add up. No discount codes, percentages, or per-product discounts.
+
 # 27. MVP Telegram Scope
 
 Telegram should be optional.
@@ -1108,7 +1112,7 @@ The following should not be part of the initial MVP unless validation demonstrat
 - Accounting
 - Payroll
 - Complex reporting
-- Advanced promotion engine
+- Advanced promotion engine (simple bill discounts are in the MVP, §26)
 - Advanced marketing automation
 
 ## Platform Features
@@ -1773,9 +1777,7 @@ The following are intentionally not finalized.
 
 ## Delivery
 
-- Initial delivery model
-- Delivery fee handling
-- Seller-managed vs provider integration
+- Courier integration (automatic booking and tracking with J&T, VET, etc.). Decided for the MVP (2026-10-03): seller-managed delivery, one fee per shop, couriers chosen and booked by hand (§26).
 
 ## Telegram
 

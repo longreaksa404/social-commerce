@@ -173,7 +173,8 @@ seller
 | logo_url | text, nullable | |
 | telegram_chat_id | text, nullable | for seller notifications |
 | payment_config | JSONB | which methods are on, with their details: `{"cod": {"enabled": true}, "bank_transfer": {"enabled", "bank_name", "account_name", "account_number"}, "khqr": {"enabled", "bakong_account_id", "merchant_name"}}`. A method can only be on with its details filled in; at least one must be on. Missing parts read as the defaults (cash on delivery on, the others off), so a new store takes cash on delivery. Details are kept while a method is off. |
-| delivery_config | JSONB | e.g. `{"seller_managed": true, "pickup": true, "pickup_address": "..."}` |
+| delivery_config | JSONB | `{"fee", "free_from_amount", "free_from_items", "own_delivery": {"enabled"}, "couriers": ["J&T Express", ...], "pickup": {"enabled", "address"}}`. One fee for any delivery (own or courier); free from an amount (items before discount) or a number of units; pickup free. At least one of own delivery, a courier, or pickup. Missing parts read as the defaults (own delivery on, free), so a new store can take orders at once. |
+| discount_config | JSONB | `{"rules": [{"min_subtotal", "amount_off"}]}`, up to 5; the biggest rule the items reach applies, never more than the items |
 | order_confirmation_mode | enum(`automatic`,`manual`) | default `manual` |
 | currency | enum(`USD`,`KHR`) | default `USD`; currency all prices in the store are shown in |
 | created_at | timestamptz | |
@@ -221,9 +222,12 @@ seller
 | status | enum: `pending, accepted, processing, ready, shipped, delivered, completed, cancelled, rejected` | see §7.1 |
 | currency | enum(`USD`,`KHR`) | the store's currency when the order was placed, so changing the store's currency later doesn't relabel old totals |
 | subtotal | numeric(12,2) | |
+| discount | numeric(12,2), default 0 | the shop's bill discount (`store.discount_config`) |
 | delivery_fee | numeric(12,2), default 0 | |
-| total | numeric(12,2) | |
-| delivery_address | text, nullable | null if pickup |
+| total | numeric(12,2) | subtotal − discount + delivery_fee |
+| delivery_address | text, nullable | null if pickup; a delivery has this, the GPS location, or both |
+| delivery_lat / delivery_lng | numeric(9,6), nullable | the customer's GPS location, both or neither; the seller opens it in Google Maps |
+| delivery_address_note | text, nullable | for the driver, e.g. "blue gate, next to the pagoda" |
 | delivery_method | enum(`seller_delivery`,`pickup`) | |
 | source | text, nullable | e.g. `tiktok`, from link tracking (§9) |
 | notes | text, nullable | |
@@ -251,11 +255,13 @@ seller
 | Column | Type | Notes |
 |---|---|---|
 | id | UUID PK | |
-| order_id | UUID FK, unique | |
+| store_id | UUID FK | tenant scope, copied from the order so RLS covers deliveries directly |
+| order_id | UUID FK, unique | 1:1 with order; created with it at checkout |
 | status | enum(`not_assigned`,`assigned`,`picked_up`,`in_transit`,`delivered`,`failed`) | see §7.3 |
 | method | enum(`seller_delivery`,`pickup`) | |
-| assignee_note | text, nullable | free text, e.g. "Sokha delivering" — no courier integration in MVP |
-| updated_at | timestamptz | |
+| courier | text, nullable | the courier the customer chose ("VET Express"); null for the seller's own delivery and pickup |
+| assignee_note | text, nullable | the seller's note, e.g. "Sokha, 012 999 888" or "VET Takeo branch, no. 123456" — no courier integration in MVP |
+| created_at / updated_at | timestamptz | |
 
 ### `shareable_link`
 | id, store_id (FK), target_type (`store`,`product`,`category`), target_id (nullable for store links), slug/token, source (nullable, e.g. `tiktok`), campaign (nullable), created_at |
@@ -440,11 +446,13 @@ NOT_ASSIGNED ──▶ ASSIGNED ──▶ PICKED_UP ──▶ IN_TRANSIT ──�
                                                   │
                                                   └──▶ FAILED
 ```
-For `pickup` delivery method, the flow simplifies: `NOT_ASSIGNED → DELIVERED` (marked by seller when customer collects), skipping the intermediate states.
+- `FAILED ──▶ ASSIGNED`: the seller tries again, e.g. nobody was home (decided 2026-10-03).
+- For `pickup` delivery method, the flow simplifies: `NOT_ASSIGNED → DELIVERED` (marked by seller when customer collects), skipping the intermediate states.
+- The seller moves it with `PATCH /seller/orders/{id}/delivery` (optionally with an `assignee_note`). Moving the delivery never changes the order's status, or the other way round.
 
 ## 7.4 Cross-State Validity (Rule 4 / Rule 5)
 
-No database constraint forces payment/delivery status to match order status — this is intentional. Valid real-world combinations like `order=shipped, payment=pending` (COD) must remain possible. The only enforced coupling: an order cannot move to `completed` unless `payment.status = paid` **or** `payment.method = cod` (COD orders complete on delivery regardless of when cash changes hands) — this single business rule lives in the order-transition service function, not the schema.
+No database constraint forces payment/delivery status to match order status — this is intentional. Valid real-world combinations like `order=shipped, payment=pending` (COD) must remain possible. The only enforced coupling: an order cannot move to `completed` unless `delivery.status = delivered` **and** (`payment.status = paid` **or** `payment.method = cod`) (COD orders complete on delivery regardless of when cash changes hands; the delivery condition was added 2026-10-03) — this single business rule lives in the order-transition service function, not the schema.
 
 ---
 
@@ -586,7 +594,7 @@ Not required to launch, but designed for in the schema/architecture so they don'
 - Bakong webhook-based automatic KHQR payment confirmation (§10.3)
 - Stock reservation on "add to cart" (currently, decided 2026-10-02: stock is checked and taken when the order is placed, in one statement per line so two checkouts can't oversell, and returned when the order is rejected or cancelled; per `01_PRODUCT.md` §32 Rule 3 — reservation logic is deferred until abandoned-cart overselling is shown to be a real problem)
 - Background worker (Celery/RQ) if notification/tracking volume outgrows `BackgroundTasks`
-- Delivery-provider API integrations (replacing free-text `assignee_note`)
+- Delivery-provider API integrations, e.g. booking and tracking with J&T or VET (replacing the hand-typed `courier` choice and `assignee_note`)
 - Customer accounts (replacing phone-based guest lookup)
 
 ---

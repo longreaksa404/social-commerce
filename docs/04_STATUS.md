@@ -470,9 +470,6 @@ Still open (noticed in Phase 2, not built; founder to decide):
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-- Phase 5 decisions above (delivery fees, discounts, completion needs
-  delivery, retry, data model): text for 01 §26/§28/§46, 02 §5.2/§7.3/
-  §7.4 and 03 Phase 5 given to the founder on 2026-10-03, not applied yet.
 
 - Development moved from a Claude Project chat to Claude Code. Docs live in
   `docs/` in the monorepo; `CLAUDE.md` is at the repo root.
@@ -480,6 +477,12 @@ Still open (noticed in Phase 2, not built; founder to decide):
 - Hour estimates are now an upper bound. Time tracking dropped (2026-10-02):
   `docs/TIME_LOG.md` removed; actual hours are not logged.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
+
+Applied to 01/02/03 on 2026-10-03 (at the founder's request): the
+Phase 5 decisions (01 §26, §28, §46; 02 §5.2 `store.delivery_config` /
+`discount_config`, `order.discount` / location / address note, the
+`delivery` table, §7.3 retry, §7.4 completion, §14; 03 Phase 5 tasks and
+§4 totals: Phase 5 ~24 hrs, total ~288 hrs).
 
 Applied to 01/02/03 on 2026-10-03 (at the founder's request): the
 Phase 3 decisions (guest checkout and tracking by link + phone in 01 §24,
@@ -587,7 +590,6 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 1. Founder: push Phase 5, then on the live site set delivery areas and a
    discount, place an order, walk the delivery to delivered, complete.
-2. Apply the Phase 5 decisions to 01/02/03 (text given 2026-10-03).
-3. Phase 6: Telegram.
-4. Decide on the two Phase 2 proposals above (link previews, grid photos).
+2. Phase 6: Telegram.
+3. Decide on the two Phase 2 proposals above (link previews, grid photos).
 R2 setup whenever the founder is ready.
