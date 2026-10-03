@@ -18,7 +18,7 @@ from app.models import (
     PaymentStatus,
 )
 from app.schemas.common import Name
-from app.schemas.delivery import AreaName, DeliveryOut, ShopDeliveryOut
+from app.schemas.delivery import CourierName, DeliveryOut, ShopDeliveryOut
 from app.schemas.payment import PaymentOut, ShopPaymentOut
 from app.schemas.product import Money
 from app.services.phone import normalize_phone
@@ -40,6 +40,9 @@ Phone = Annotated[
 ]
 Address = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=500)]
 Note = Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)]
+# The phone's GPS position, to 6 decimals (about 10 cm).
+Latitude = Annotated[Decimal, Field(ge=-90, le=90), AfterValidator(lambda v: round(v, 6))]
+Longitude = Annotated[Decimal, Field(ge=-180, le=180), AfterValidator(lambda v: round(v, 6))]
 
 
 class OrderLineIn(BaseModel):
@@ -57,11 +60,15 @@ class OrderCreate(BaseModel):
     items: list[OrderLineIn] = Field(min_length=1, max_length=MAX_ORDER_LINES)
     payment_method: PaymentMethod  # one the shop takes (ShopStoreOut.payment_methods)
     delivery_method: DeliveryMethod  # one the shop offers (ShopStoreOut.delivery)
-    # The name of one of the shop's delivery areas; required for delivery
-    # when the shop has areas.
-    delivery_area: AreaName | None = None
-    # Required for delivery; ignored for pickup.
+    # One of the shop's couriers; null = the shop's own delivery. Ignored
+    # for pickup.
+    courier: CourierName | None = None
+    # A delivery needs the typed address, the GPS location, or both. All
+    # ignored for pickup.
     delivery_address: Address | None = None
+    delivery_lat: Latitude | None = None
+    delivery_lng: Longitude | None = None
+    delivery_address_note: Note | None = None
     # The total the customer was shown. If prices, fees or discounts changed
     # since, the order is refused rather than charged at a total they
     # didn't see.
@@ -112,6 +119,9 @@ class CustomerOut(BaseModel):
 class OrderOut(ShopOrderOut):
     updated_at: datetime
     delivery_address: str | None
+    delivery_lat: Decimal | None
+    delivery_lng: Decimal | None
+    delivery_address_note: str | None
     notes: str | None
     customer: CustomerOut
     payment: PaymentOut  # the seller's view of it, with what they can record next

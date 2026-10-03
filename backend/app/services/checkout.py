@@ -71,13 +71,10 @@ async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) 
     assert store is not None  # the shop was found by slug moments ago
     payment_service.check_method_available(store, data.payment_method)
     delivery_settings = delivery_service.delivery_settings(store)
-    area = delivery_service.checkout_area(
-        delivery_settings, data.delivery_method, data.delivery_area
+    courier = delivery_service.check_checkout_choice(
+        delivery_settings, data.delivery_method, data.courier
     )
-    is_pickup = data.delivery_method is DeliveryMethod.PICKUP
-    if not is_pickup and data.delivery_address is None:
-        raise AppError(422, "VALIDATION_ERROR", "Enter your address.", "delivery_address")
-    address = None if is_pickup else data.delivery_address
+    location = _delivery_location(data)
 
     lines = await _resolve_lines(db, store_id, data.items)
     items = [
@@ -97,7 +94,6 @@ async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) 
         [item.line_total for item in items],
         item_count=sum(line.quantity for line in lines),
         method=data.delivery_method,
-        area=area,
         delivery=delivery_settings,
         discounts=delivery_service.discount_settings(store),
     )
@@ -115,7 +111,7 @@ async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) 
     order = Order(
         store_id=store_id,
         number=await _next_number(db, store_id),
-        customer=await _customer(db, store_id, data, address),
+        customer=await _customer(db, store_id, data, location.address),
         status=OrderStatus.PENDING,
         currency=store.currency,
         subtotal=totals.subtotal,
@@ -123,7 +119,10 @@ async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) 
         delivery_fee=totals.delivery_fee,
         total=totals.total,
         delivery_method=data.delivery_method,
-        delivery_address=address,
+        delivery_address=location.address,
+        delivery_lat=location.lat,
+        delivery_lng=location.lng,
+        delivery_address_note=location.note,
         notes=data.notes or None,
         items=sorted(items, key=lambda i: (i.product_name_snapshot, i.variant_name_snapshot or "")),
         # Paid or not is its own state machine, starting at pending for
@@ -133,7 +132,7 @@ async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) 
         delivery=Delivery(
             store_id=store_id,
             method=data.delivery_method,
-            area_name=area.name if area else None,
+            courier=courier,
         ),
     )
     db.add(order)
@@ -183,6 +182,37 @@ def shop_order_out(store: Store, order: Order) -> ShopOrderOut:
             "payment": payment_service.shop_payment_out(store, order),
             "delivery": delivery_service.shop_delivery_out(store, order),
         }
+    )
+
+
+@dataclass(frozen=True)
+class _Location:
+    address: str | None = None
+    lat: Decimal | None = None
+    lng: Decimal | None = None
+    note: str | None = None
+
+
+def _delivery_location(data: OrderCreate) -> _Location:
+    """Where to deliver: the typed address, the GPS location, or both, plus
+    a note for the driver. Nothing for pickup."""
+    if data.delivery_method is DeliveryMethod.PICKUP:
+        return _Location()
+    has_gps = data.delivery_lat is not None and data.delivery_lng is not None
+    if (data.delivery_lat is None) != (data.delivery_lng is None):
+        raise AppError(422, "VALIDATION_ERROR", "Share your location again.", "delivery_lat")
+    if data.delivery_address is None and not has_gps:
+        raise AppError(
+            422,
+            "VALIDATION_ERROR",
+            "Enter your address or share your location.",
+            "delivery_address",
+        )
+    return _Location(
+        data.delivery_address,
+        data.delivery_lat,
+        data.delivery_lng,
+        data.delivery_address_note or None,
     )
 
 

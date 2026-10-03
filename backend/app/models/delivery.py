@@ -50,9 +50,9 @@ class Delivery(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
         default=DeliveryStatus.NOT_ASSIGNED,
         server_default="not_assigned",
     )
-    # The area the customer chose, as the seller had named it then
-    # ("Phnom Penh"); null for pickup or a shop without areas.
-    area_name: Mapped[str | None] = mapped_column(Text)
+    # The courier the customer chose ("VET Express"), as the seller had
+    # named it then; null for the seller's own delivery and for pickup.
+    courier: Mapped[str | None] = mapped_column(Text)
     # Free text, e.g. "Sokha delivering, 012 999 888". No courier integration.
     assignee_note: Mapped[str | None] = mapped_column(Text)
     updated_at: Mapped[datetime] = mapped_column(

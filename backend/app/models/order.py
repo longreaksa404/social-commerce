@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Numeric,
     Text,
     UniqueConstraint,
     func,
@@ -62,6 +63,9 @@ class Order(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
         Index("ix_order_store_id_created_at", "store_id", "created_at"),
         Index("ix_order_store_id_customer_id", "store_id", "customer_id"),
         CheckConstraint(
+            "(delivery_lat IS NULL) = (delivery_lng IS NULL)", name="location_complete"
+        ),
+        CheckConstraint(
             "subtotal >= 0 AND discount >= 0 AND delivery_fee >= 0 AND total >= 0",
             name="money_not_negative",
         ),
@@ -87,7 +91,13 @@ class Order(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
     delivery_method: Mapped[DeliveryMethod] = mapped_column(
         str_enum(DeliveryMethod, "delivery_method")
     )
-    delivery_address: Mapped[str | None] = mapped_column(Text)  # null for pickup
+    # Null for pickup. A delivery has the typed address, the GPS location,
+    # or both.
+    delivery_address: Mapped[str | None] = mapped_column(Text)
+    delivery_lat: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
+    delivery_lng: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
+    # For the driver, e.g. "blue gate, next to Wat Phnom".
+    delivery_address_note: Mapped[str | None] = mapped_column(Text)
     source: Mapped[str | None] = mapped_column(Text)  # link tracking, Phase 8
     notes: Mapped[str | None] = mapped_column(Text)  # from the customer
     updated_at: Mapped[datetime] = mapped_column(

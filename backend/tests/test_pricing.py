@@ -1,34 +1,23 @@
-"""What an order costs (app/services/pricing.py): bill discounts and
-delivery fees. Exact decimals throughout; the storefront repeats this
-math, so these cases are the contract for both."""
+"""What an order costs (app/services/pricing.py): bill discounts and the
+delivery fee. Exact decimals throughout; the storefront repeats this math,
+so these cases are the contract for both."""
 
 from decimal import Decimal as D
 
 import pytest
 
 from app.models import DeliveryMethod
-from app.schemas.delivery import DeliveryArea, DeliverySettings, DiscountRule, DiscountSettings
+from app.schemas.delivery import DeliverySettings, DiscountRule, DiscountSettings
 from app.services.pricing import Totals, discount_for, order_totals
 
-PHNOM_PENH = DeliveryArea(name="Phnom Penh", fee=D("1.50"))
-DELIVERY = DeliverySettings.model_validate(
-    {"seller_delivery": {"areas": [PHNOM_PENH.model_dump()]}}
-)
-FREE_FROM_30_OR_3 = DeliverySettings.model_validate(
-    {
-        "seller_delivery": {
-            "areas": [PHNOM_PENH.model_dump()],
-            "free_from_amount": "30",
-            "free_from_items": 3,
-        }
-    }
-)
+DELIVERY = DeliverySettings(fee=D("1.50"))
+FREE_FROM_30_OR_3 = DeliverySettings(fee=D("1.50"), free_from_amount=D("30"), free_from_items=3)
 NO_DISCOUNTS = DiscountSettings()
-# $5 off from $40, $12 off from $80.
+# $4 off from $70, $5 off from $90 (entered in that order or not).
 DISCOUNTS = DiscountSettings(
     rules=[
-        DiscountRule(min_subtotal=D("40"), amount_off=D("5")),
-        DiscountRule(min_subtotal=D("80"), amount_off=D("12")),
+        DiscountRule(min_subtotal=D("90"), amount_off=D("5")),
+        DiscountRule(min_subtotal=D("70"), amount_off=D("4")),
     ]
 )
 
@@ -38,7 +27,6 @@ def _totals(
     *,
     items=1,
     method=DeliveryMethod.SELLER_DELIVERY,
-    area=PHNOM_PENH,
     delivery=DELIVERY,
     discounts=NO_DISCOUNTS,
 ):
@@ -46,7 +34,6 @@ def _totals(
         [D(x) for x in lines],
         item_count=items,
         method=method,
-        area=area,
         delivery=delivery,
         discounts=discounts,
     )
@@ -56,14 +43,14 @@ def test_delivery_fee_is_added_exactly():
     assert _totals(["0.30", "25.00"], items=2) == Totals(D("25.30"), D("0"), D("1.50"), D("26.80"))
 
 
-def test_shop_without_areas_delivers_for_free():
-    assert _totals(["12.00"], area=None, delivery=DeliverySettings()) == Totals(
+def test_a_new_shop_delivers_for_free():
+    assert _totals(["12.00"], delivery=DeliverySettings()) == Totals(
         D("12.00"), D("0"), D("0"), D("12.00")
     )
 
 
 def test_pickup_is_free():
-    totals = _totals(["12.00"], method=DeliveryMethod.PICKUP, area=None)
+    totals = _totals(["12.00"], method=DeliveryMethod.PICKUP)
     assert (totals.delivery_fee, totals.total) == (D("0"), D("12.00"))
 
 
@@ -85,11 +72,12 @@ def test_free_delivery_from_an_amount_or_a_number_of_items(subtotal, items, fee)
 @pytest.mark.parametrize(
     ("subtotal", "discount"),
     [
-        ("39.99", "0"),
-        ("40.00", "5.00"),  # exactly the threshold
-        ("79.99", "5.00"),
-        ("80.00", "12.00"),  # the biggest one it reaches; they don't add up
-        ("500.00", "12.00"),
+        ("37.00", "0"),
+        ("69.99", "0"),
+        ("70.00", "4.00"),  # exactly the threshold
+        ("89.99", "4.00"),
+        ("90.00", "5.00"),  # the biggest one it reaches; they don't add up
+        ("500.00", "5.00"),
     ],
 )
 def test_the_biggest_discount_reached_applies(subtotal, discount):
@@ -97,8 +85,8 @@ def test_the_biggest_discount_reached_applies(subtotal, discount):
 
 
 def test_discount_comes_off_the_items_and_the_fee_is_added_after():
-    assert _totals(["45.00"], discounts=DISCOUNTS) == Totals(
-        D("45.00"), D("5.00"), D("1.50"), D("41.50")
+    assert _totals(["75.00"], discounts=DISCOUNTS) == Totals(
+        D("75.00"), D("4.00"), D("1.50"), D("72.50")
     )
 
 
@@ -112,13 +100,12 @@ def test_free_delivery_looks_at_the_items_before_the_discount():
 def test_a_discount_never_takes_the_total_below_the_delivery_fee():
     whole_bill = DiscountSettings(rules=[DiscountRule(min_subtotal=D("10"), amount_off=D("10"))])
     assert _totals(["10.00"], discounts=whole_bill).total == D("1.50")
-    assert discount_for(D("10.00"), whole_bill) == D("10.00")
 
 
 def test_riel_totals_stay_whole():
-    area = DeliveryArea(name="Phnom Penh", fee=D("6000"))
+    delivery = DeliverySettings(fee=D("6000"))
     discounts = DiscountSettings(
         rules=[DiscountRule(min_subtotal=D("100000"), amount_off=D("10000"))]
     )
-    totals = _totals(["120000"], area=area, discounts=discounts)
+    totals = _totals(["120000"], delivery=delivery, discounts=discounts)
     assert totals == Totals(D("120000"), D("10000"), D("6000"), D("116000"))

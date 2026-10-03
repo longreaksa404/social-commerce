@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from app.models import DeliveryMethod
-from app.schemas.delivery import DeliveryArea, DeliverySettings, DiscountSettings
+from app.schemas.delivery import DeliverySettings, DiscountSettings
 
 CENT = Decimal("0.01")
 ZERO = Decimal("0.00")
@@ -31,24 +31,19 @@ def discount_for(subtotal: Decimal, discounts: DiscountSettings) -> Decimal:
 
 
 def delivery_fee_for(
-    method: DeliveryMethod,
-    area: DeliveryArea | None,
-    *,
-    subtotal: Decimal,
-    item_count: int,
-    delivery: DeliverySettings,
+    method: DeliveryMethod, *, subtotal: Decimal, item_count: int, delivery: DeliverySettings
 ) -> Decimal:
-    """Pickup is free, and so is delivery in a shop without areas. Otherwise
-    the area's fee, unless a free-delivery rule applies: the items come to
-    enough (before any discount), or there are enough of them (units)."""
-    if method is DeliveryMethod.PICKUP or area is None:
+    """The shop's one delivery fee, wherever the customer is and whoever
+    delivers (decided 2026-10-03). Pickup is free, and so is delivery
+    when the items come to enough (before any discount) or there are
+    enough of them (units)."""
+    if method is DeliveryMethod.PICKUP:
         return ZERO
-    rules = delivery.seller_delivery
-    if rules.free_from_amount is not None and subtotal >= rules.free_from_amount:
+    if delivery.free_from_amount is not None and subtotal >= delivery.free_from_amount:
         return ZERO
-    if rules.free_from_items is not None and item_count >= rules.free_from_items:
+    if delivery.free_from_items is not None and item_count >= delivery.free_from_items:
         return ZERO
-    return area.fee
+    return delivery.fee
 
 
 @dataclass(frozen=True)
@@ -64,13 +59,10 @@ def order_totals(
     *,
     item_count: int,
     method: DeliveryMethod,
-    area: DeliveryArea | None,
     delivery: DeliverySettings,
     discounts: DiscountSettings,
 ) -> Totals:
     subtotal = sum(line_totals, ZERO)
     discount = discount_for(subtotal, discounts)
-    fee = delivery_fee_for(
-        method, area, subtotal=subtotal, item_count=item_count, delivery=delivery
-    )
+    fee = delivery_fee_for(method, subtotal=subtotal, item_count=item_count, delivery=delivery)
     return Totals(subtotal, discount, fee, subtotal - discount + fee)

@@ -39,9 +39,13 @@ async def test_store_page_shows_only_categories_with_active_products(client, mak
     }
     assert body["currency"] == "USD"
     assert body["payment_methods"] == ["cod"]  # a new shop takes cash on delivery
-    # ... and delivers for free, with no areas to choose from.
+    # ... and delivers itself, for free.
     assert body["delivery"] == {
-        "seller_delivery": {"areas": [], "free_from_amount": None, "free_from_items": None},
+        "fee": "0.00",
+        "free_from_amount": None,
+        "free_from_items": None,
+        "own_delivery": True,
+        "couriers": [],
         "pickup": None,
     }
     assert body["discounts"] == []

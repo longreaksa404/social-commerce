@@ -77,8 +77,11 @@ async def place_order(
     name="Dara",
     payment_method="cod",
     delivery_method="seller_delivery",
-    area=None,
+    courier=None,
     address="St 271, Phnom Penh",
+    lat=None,
+    lng=None,
+    address_note=None,
 ):
     """items: (product_id, variant_id, quantity) tuples."""
     return await client.post(
@@ -87,8 +90,11 @@ async def place_order(
             "name": name,
             "phone": phone,
             "delivery_method": delivery_method,
-            "delivery_area": area,
+            "courier": courier,
             "delivery_address": address,
+            "delivery_lat": lat,
+            "delivery_lng": lng,
+            "delivery_address_note": address_note,
             "items": [
                 {"product_id": str(p), "variant_id": v and str(v), "quantity": q}
                 for p, v, q in items
@@ -146,11 +152,12 @@ async def set_discounts(client, headers, *rules):
     )
 
 
-# Dara's delivery: two areas, free from $30 or from 3 items.
-AREAS = {
-    "enabled": True,
-    "areas": [{"name": "Phnom Penh", "fee": "1.50"}, {"name": "Provinces", "fee": "2.50"}],
+# Dara's delivery: $1.50 anywhere, free from $30 or from 3 items; her own
+# delivery and two couriers.
+DELIVERY = {
+    "fee": "1.50",
     "free_from_amount": "30.00",
     "free_from_items": 3,
+    "couriers": ["J&T Express", "VET Express"],
 }
 PICKUP = {"enabled": True, "address": "Shop 12, Orussey Market"}

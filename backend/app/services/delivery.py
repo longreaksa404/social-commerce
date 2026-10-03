@@ -12,13 +12,11 @@ reads or sets the order's or the payment's (CLAUDE.md hard rule 2).
 from app.core.errors import AppError
 from app.models import Delivery, DeliveryMethod, DeliveryStatus, Order, Store
 from app.schemas.delivery import (
-    DeliveryArea,
     DeliverySettings,
     DiscountSettings,
     ShopDeliveryOptions,
     ShopDeliveryOut,
     ShopPickup,
-    ShopSellerDelivery,
 )
 from app.services.payment import ORDER_IS_OFF
 
@@ -86,8 +84,8 @@ def discount_settings(store: Store) -> DiscountSettings:
 
 
 def check_delivery_settings(settings: DeliverySettings) -> None:
-    """Pickup needs an address to send customers to, area names must tell
-    the areas apart, and a shop must offer at least one way."""
+    """Pickup needs an address to send customers to, courier names must
+    tell them apart, and a shop must offer at least one way."""
     if settings.pickup.enabled and not settings.pickup.address:
         raise AppError(
             422,
@@ -96,18 +94,22 @@ def check_delivery_settings(settings: DeliverySettings) -> None:
             "delivery_settings.pickup.address",
         )
     seen: set[str] = set()
-    for index, area in enumerate(settings.seller_delivery.areas):
-        key = area.name.casefold()
-        if key in seen:
+    for index, name in enumerate(settings.couriers):
+        if name.casefold() in seen:
             raise AppError(
                 422,
                 "VALIDATION_ERROR",
-                "Another area already has this name.",
-                f"delivery_settings.seller_delivery.areas.{index}.name",
+                "This courier is already on the list.",
+                f"delivery_settings.couriers.{index}",
             )
-        seen.add(key)
+        seen.add(name.casefold())
     if not settings.enabled_methods():
-        raise AppError(422, "VALIDATION_ERROR", "Turn on delivery or pickup.", "delivery_settings")
+        raise AppError(
+            422,
+            "VALIDATION_ERROR",
+            "Turn on your own delivery, add a courier, or turn on pickup.",
+            "delivery_settings",
+        )
 
 
 def check_discount_settings(settings: DiscountSettings) -> None:
@@ -126,25 +128,22 @@ def check_discount_settings(settings: DiscountSettings) -> None:
 
 def shop_delivery_options(store: Store) -> ShopDeliveryOptions:
     settings = delivery_settings(store)
-    seller = settings.seller_delivery
     return ShopDeliveryOptions(
-        seller_delivery=ShopSellerDelivery(
-            areas=seller.areas,
-            free_from_amount=seller.free_from_amount,
-            free_from_items=seller.free_from_items,
-        )
-        if seller.enabled
-        else None,
+        fee=settings.fee,
+        free_from_amount=settings.free_from_amount,
+        free_from_items=settings.free_from_items,
+        own_delivery=settings.own_delivery.enabled,
+        couriers=settings.couriers,
         pickup=ShopPickup(address=settings.pickup.address) if settings.pickup.enabled else None,
     )
 
 
-def checkout_area(
-    settings: DeliverySettings, method: DeliveryMethod, area_name: str | None
-) -> DeliveryArea | None:
-    """The method and area the customer chose, checked against the shop's
-    current settings: the seller may have changed them since the customer
-    opened the page."""
+def check_checkout_choice(
+    settings: DeliverySettings, method: DeliveryMethod, courier: str | None
+) -> str | None:
+    """The courier for the order (null = the seller's own delivery or
+    pickup), checked against the shop's current settings: the seller may
+    have changed them since the customer opened the page."""
     if method not in settings.enabled_methods():
         raise AppError(
             409,
@@ -152,20 +151,18 @@ def checkout_area(
             "This shop doesn't offer this any more. Choose another way to get your order.",
             "delivery_method",
         )
-    areas = settings.seller_delivery.areas
-    if method is DeliveryMethod.PICKUP or (not areas and area_name is None):
+    if method is DeliveryMethod.PICKUP:
         return None
-    if area_name is None:
-        raise AppError(422, "VALIDATION_ERROR", "Choose where to deliver.", "delivery_area")
-    area = next((a for a in areas if a.name == area_name), None)
-    if area is None:
+    own_delivery_gone = courier is None and not settings.own_delivery.enabled
+    courier_gone = courier is not None and courier not in settings.couriers
+    if own_delivery_gone or courier_gone:
         raise AppError(
             409,
-            "DELIVERY_AREA_UNAVAILABLE",
-            "The shop changed its delivery areas. Choose again.",
-            "delivery_area",
+            "DELIVERY_OPTION_UNAVAILABLE",
+            "The shop changed how it delivers. Choose again.",
+            "courier",
         )
-    return area
+    return courier
 
 
 def shop_delivery_out(store: Store, order: Order) -> ShopDeliveryOut:
