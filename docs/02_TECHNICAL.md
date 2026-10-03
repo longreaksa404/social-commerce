@@ -273,7 +273,7 @@ seller
 > Kept deliberately minimal per `01_PRODUCT.md` §20.1 — "advanced marketing analytics are not required for the first MVP." This just supports counting views/orders per link/source.
 
 ### `notification_log`
-| id, store_id (FK), channel (`web`,`telegram`), event_type, payload (JSONB), sent_at, status (`sent`,`failed`) |
+| id, store_id (FK), channel (`web`,`telegram`), event_type, payload (JSONB), sent_at, status (`sent`,`failed`), read_at (nullable; web only: when the seller opened the list with it in; null = unread) |
 
 ### `refresh_token`
 | id (= the JWT's jti), seller_id (FK), expires_at, revoked_at (nullable), created_at |
@@ -362,8 +362,15 @@ PATCH  /api/v1/seller/orders/{id}/delivery    # update delivery status
 
 ### Seller — Customers
 ```
-GET    /api/v1/seller/customers
-GET    /api/v1/seller/customers/{id}          # includes order history
+GET    /api/v1/seller/customers               # whoever ordered last first; ?q= part of a name or phone
+GET    /api/v1/seller/customers/{id}          # includes order history (latest 100)
+```
+
+### Seller — Notifications
+```
+GET    /api/v1/seller/notifications           # newest first, with the unread count
+GET    /api/v1/seller/notifications/unread    # the count on the bell
+POST   /api/v1/seller/notifications/read      # marks read up to the newest one shown
 ```
 
 ### Seller — Links
@@ -551,6 +558,7 @@ New Order Created (backend event)
 ```
 - Seller links their Telegram from Settings → "Connect Telegram", which opens `t.me/{bot_username}?start={code}`. The code is signed, not stored (store id + 30-minute expiry + HMAC). Tapping Start sends `/start {code}`; the webhook checks it and saves the chat as `store.telegram_chat_id`. Disconnect clears it; if the seller blocks the bot, the next alert clears it.
 - Notification triggers (`01_PRODUCT.md` §19, decided 2026-10-03): only events the seller didn't cause: new order, and low stock (an order takes a product or option to 5 or fewer, or to 0). Cancellation, payment, and delivery changes are the seller's own actions in the MVP. Each alert writes a `notification_log` row (sent / failed) and calls the Bot API; a failed send never affects the order.
+- Web notifications (Phase 7): the same events also write a `web` row in `notification_log`, in the order's own transaction, whether or not Telegram is connected. The bell counts rows with `read_at` null; opening the list marks them read up to the newest one shown.
 
 ## 12.2 Customer "Ask Seller"
 ```

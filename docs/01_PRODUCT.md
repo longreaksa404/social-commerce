@@ -664,6 +664,8 @@ Customer management should remain lightweight initially.
 
 The product is not intended to become a complex enterprise CRM in the MVP.
 
+**Decided (2026-10-03):** the customer list shows each customer's orders, last order and what they spent: every order except rejected and cancelled ones, including orders still on their way. Only the seller sees it.
+
 # 17. Inventory Management
 
 The product should eventually provide basic inventory management.
@@ -736,6 +738,8 @@ Total: $20
 The application remains the source of truth.
 
 **Decided (2026-10-03):** Telegram alerts only for events the seller didn't cause: each new order, and low stock (an order takes a product or option to 5 or fewer, or sells it out). Cancellation, payment, and delivery changes are the seller's own actions in the MVP, so they get no alert.
+
+**Decided (2026-10-03):** the same two events also appear in the dashboard: a bell with the unread count, and a list that opens the order or product. Read on one device is read on all. No push notifications in the MVP.
 
 # 20. Shareable Links
 

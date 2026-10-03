@@ -20,8 +20,7 @@
 Phase 7 met its definition of done on 2026-10-03 and the founder closed
 it after testing on the live site: a test order showed on the bell,
 tapping it opened the order, and "View customer" showed the customer's
-details and order history. (The definition of done is the one proposed
-for Phase 7; 03 doesn't have it yet.)
+details and order history. (Definition of done now in 03.)
 
 Phase 6 met its definition of done on 2026-10-03 and the founder closed
 it after testing on the live site with their bot (ReaksaShopAlertBot):
@@ -634,11 +633,6 @@ Still open (noticed in Phase 2, not built; founder to decide):
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-- Phase 7 (2026-10-03): the two decisions above (`read_at`, "spent");
-  web notifications for the same two events as the Telegram alerts (new
-  order, low stock / sold out; in the Phase 7 plan); the notification
-  and customer endpoints (02 §6.2); a definition of done for Phase 7 in
-  03. Exact text given to the founder.
 
 - Development moved from a Claude Project chat to Claude Code. Docs live in
   `docs/` in the monorepo; `CLAUDE.md` is at the repo root.
@@ -646,6 +640,12 @@ Still open (noticed in Phase 2, not built; founder to decide):
 - Hour estimates are now an upper bound. Time tracking dropped (2026-10-02):
   `docs/TIME_LOG.md` removed; actual hours are not logged.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
+
+Applied to 01/02/03 on 2026-10-03 (at the founder's request): the
+Phase 7 decisions (customer "spent" in 01 §16; web notifications in 01
+§19 and 02 §12.1; `notification_log.read_at` in 02 §5.2; the customer
+and notification endpoints in 02 §6.2; the Phase 7 definition of done in
+03).
 
 Applied to 01/02/03 on 2026-10-03 (at the founder's request): the
 Phase 6 decisions ("Ask seller" opens the seller's own Telegram in 01
@@ -812,8 +812,6 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 ## Next Up
 
 1. Phase 8: shareable links + basic tracking.
-2. Apply the Phase 7 text to 01/02/03 (given to the founder; not yet
-   asked for).
-3. Manual regression checklist (03 §7), still missing.
-4. Decide on the two Phase 2 proposals above (link previews, grid photos;
+2. Manual regression checklist (03 §7), still missing.
+3. Decide on the two Phase 2 proposals above (link previews, grid photos;
    grid photos matter more now that R2 is live).

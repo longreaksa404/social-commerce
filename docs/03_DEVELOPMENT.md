@@ -226,6 +226,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 
 **Subtotal:** ~11 hours (**~1 week**)
 
+**Definition of done:** a test order makes the bell show a count, and tapping the notification opens the order; from the order, the seller opens the customer and sees their details and order history.
+
 ---
 
 ## Phase 8 — Shareable Links + Basic Tracking
