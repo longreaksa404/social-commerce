@@ -48,13 +48,14 @@ export function Settings() {
 
 // Rows the seller can add and remove carry a key for React; inputs hold
 // strings, turned back into the API's shape by toBody.
-type AreaRow = { key: string; name: string; fee: string }
+type CourierRow = { key: string; name: string }
 type RuleRow = { key: string; min_subtotal: string; amount_off: string }
 type DeliveryForm = {
-  enabled: boolean
-  areas: AreaRow[]
+  fee: string
   free_from_amount: string
   free_from_items: string
+  own: boolean
+  couriers: CourierRow[]
   pickup: DeliverySettings['pickup']
 }
 
@@ -73,7 +74,7 @@ type Form = {
 const amount = (value: string | null) => (value === null ? '' : String(Number(value)))
 
 const toForm = (store: Store): Form => {
-  const { seller_delivery: delivery, pickup } = store.delivery_settings
+  const delivery = store.delivery_settings
   return {
     name: store.name,
     slug: store.slug,
@@ -82,11 +83,12 @@ const toForm = (store: Store): Form => {
     order_confirmation_mode: store.order_confirmation_mode,
     payment_settings: store.payment_settings,
     delivery: {
-      enabled: delivery.enabled,
-      areas: delivery.areas.map((a, i) => ({ key: `area-${i}`, name: a.name, fee: amount(a.fee) })),
+      fee: Number(delivery.fee) === 0 ? '' : amount(delivery.fee),
       free_from_amount: amount(delivery.free_from_amount),
       free_from_items: delivery.free_from_items === null ? '' : String(delivery.free_from_items),
-      pickup,
+      own: delivery.own_delivery.enabled,
+      couriers: delivery.couriers.map((name, i) => ({ key: `courier-${i}`, name })),
+      pickup: delivery.pickup,
     },
     discounts: store.discount_settings.rules.map((r, i) => ({
       key: `rule-${i}`,
@@ -104,12 +106,11 @@ const toBody = (form: Form) => ({
   order_confirmation_mode: form.order_confirmation_mode,
   payment_settings: form.payment_settings,
   delivery_settings: {
-    seller_delivery: {
-      enabled: form.delivery.enabled,
-      areas: form.delivery.areas.map(({ name, fee }) => ({ name: name.trim(), fee })),
-      free_from_amount: form.delivery.free_from_amount || null,
-      free_from_items: form.delivery.free_from_items ? Number(form.delivery.free_from_items) : null,
-    },
+    fee: form.delivery.fee || '0',
+    free_from_amount: form.delivery.free_from_amount || null,
+    free_from_items: form.delivery.free_from_items ? Number(form.delivery.free_from_items) : null,
+    own_delivery: { enabled: form.delivery.own },
+    couriers: form.delivery.couriers.map(({ name }) => name.trim()),
     pickup: { ...form.delivery.pickup, address: form.delivery.pickup.address.trim() },
   },
   discount_settings: {
@@ -260,7 +261,7 @@ function StoreForm({ store }: { store: Store }) {
           'slug',
           'description',
           ...PAYMENT_FIELDS,
-          ...deliveryFields(form.delivery.areas.length),
+          ...deliveryFields(form.delivery.couriers.length),
           ...discountFields(form.discounts.length),
         ])}
       />
@@ -385,14 +386,14 @@ function PaymentsSection({
 }
 
 /** The fields the server may name for the delivery settings. */
-function deliveryFields(areaCount: number): string[] {
-  const base = 'delivery_settings.seller_delivery'
+function deliveryFields(courierCount: number): string[] {
   return [
     'delivery_settings',
+    'delivery_settings.fee',
+    'delivery_settings.free_from_amount',
+    'delivery_settings.free_from_items',
     'delivery_settings.pickup.address',
-    `${base}.free_from_amount`,
-    `${base}.free_from_items`,
-    ...Array.from({ length: areaCount }, (_, i) => [`${base}.areas.${i}.name`, `${base}.areas.${i}.fee`]).flat(),
+    ...Array.from({ length: courierCount }, (_, i) => `delivery_settings.couriers.${i}`),
   ]
 }
 
@@ -403,8 +404,10 @@ function discountFields(ruleCount: number): string[] {
   ]).flat()
 }
 
-const MAX_AREAS = 10
+const MAX_COURIERS = 10
 const MAX_DISCOUNTS = 5
+// The couriers most Cambodian sellers use, one tap to add.
+const COMMON_COURIERS = ['J&T Express', 'VET Express']
 
 function DeliverySection({
   delivery,
@@ -418,105 +421,105 @@ function DeliverySection({
   error: unknown
 }) {
   const fieldErr = (field: string) => fieldError(error, `delivery_settings.${field}`)
-  const { areas, pickup } = delivery
-  const setArea = (key: string, changes: Partial<AreaRow>) =>
-    onChange({ areas: areas.map((a) => (a.key === key ? { ...a, ...changes } : a)) })
-  const noneOn = !delivery.enabled && !pickup.enabled
+  const { couriers, pickup } = delivery
+  const addCourier = (name: string) => onChange({ couriers: [...couriers, { key: crypto.randomUUID(), name }] })
+  const setCourier = (key: string, name: string) =>
+    onChange({ couriers: couriers.map((c) => (c.key === key ? { ...c, name } : c)) })
+  const missingCommon = COMMON_COURIERS.filter(
+    (name) => !couriers.some((c) => c.name.trim().toLowerCase() === name.toLowerCase()),
+  )
+  const delivers = delivery.own || couriers.length > 0
+  const noneOn = !delivers && !pickup.enabled
   return (
     <Section title="Delivery" description="How customers get their orders. You update each delivery on the order.">
+      <Field
+        label="Delivery fee"
+        error={fieldErr('fee')}
+        hint="One price wherever the customer lives, for your own delivery or a courier. Leave empty for free delivery."
+      >
+        <MoneyInput
+          currency={currency}
+          placeholder="Free"
+          value={delivery.fee}
+          onChange={(fee) => onChange({ fee })}
+        />
+      </Field>
+      <Field
+        label="Free delivery from"
+        error={fieldErr('free_from_amount')}
+        hint="Optional. Free when the items come to this much or more."
+      >
+        <MoneyInput
+          currency={currency}
+          placeholder="Off"
+          value={delivery.free_from_amount}
+          onChange={(free_from_amount) => onChange({ free_from_amount })}
+        />
+      </Field>
+      <Field
+        label="Free delivery from (items)"
+        error={fieldErr('free_from_items')}
+        hint="Optional. Free when the customer buys this many items or more, e.g. 3."
+      >
+        <Input
+          type="number"
+          inputMode="numeric"
+          min="1"
+          max="999"
+          step="1"
+          placeholder="Off"
+          value={delivery.free_from_items}
+          onWheel={(e) => e.currentTarget.blur()}
+          onChange={(e) => onChange({ free_from_items: e.target.value })}
+        />
+      </Field>
+
       <Switch
-        checked={delivery.enabled}
-        onChange={(enabled) => onChange({ enabled })}
-        label="Delivery"
+        checked={delivery.own}
+        onChange={(own) => onChange({ own })}
+        label="Own delivery"
         description="You, or someone you send, bring the order to the customer."
       />
-      {delivery.enabled && (
-        <div className="space-y-4 border-l-2 border-slate-100 pl-4">
-          <div>
-            <h3 className="text-sm font-medium text-slate-700">Delivery areas and fees</h3>
-            <p className="mt-0.5 text-xs leading-5 text-slate-500">
-              {areas.length === 0
-                ? 'No areas: delivery is free. Add areas to charge for delivery.'
-                : areas.length === 1
-                  ? 'Customers pay this fee. Add more areas if the fee depends on where they live.'
-                  : 'Customers choose their area at checkout.'}
-            </p>
-          </div>
-          {areas.map((area, index) => (
-            <div key={area.key} className="flex items-start gap-2">
-              <div className="min-w-0 flex-1">
-                <Field label="Area" error={fieldErr(`seller_delivery.areas.${index}.name`)}>
-                  <Input
-                    required
-                    maxLength={50}
-                    autoCapitalize="words"
-                    placeholder={index === 0 ? 'Phnom Penh' : 'Provinces'}
-                    value={area.name}
-                    onChange={(e) => setArea(area.key, { name: e.target.value })}
-                  />
-                </Field>
-              </div>
-              <div className="w-28 shrink-0 sm:w-36">
-                <Field label="Fee" error={fieldErr(`seller_delivery.areas.${index}.fee`)}>
-                  <MoneyInput
-                    required
-                    currency={currency}
-                    value={area.fee}
-                    onChange={(fee) => setArea(area.key, { fee })}
-                  />
-                </Field>
-              </div>
-              <IconButton
-                icon={Trash2}
-                tone="danger"
-                label={`Remove ${area.name || 'area'}`}
-                className="mt-7"
-                onClick={() => onChange({ areas: areas.filter((a) => a.key !== area.key) })}
+
+      <div>
+        <h3 className="text-sm font-medium text-slate-900">Couriers</h3>
+        <p className="mt-0.5 text-xs leading-5 text-slate-500">
+          Delivery companies you send with. The customer chooses one at checkout, and you see their location to pick
+          the branch.
+        </p>
+      </div>
+      {couriers.map((courier, index) => (
+        <div key={courier.key} className="flex items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <Field label="Courier" error={fieldErr(`couriers.${index}`)}>
+              <Input
+                required
+                maxLength={50}
+                autoCapitalize="words"
+                value={courier.name}
+                onChange={(e) => setCourier(courier.key, e.target.value)}
               />
-            </div>
-          ))}
-          {areas.length < MAX_AREAS && (
-            <Button
-              variant="secondary"
-              icon={Plus}
-              onClick={() => onChange({ areas: [...areas, { key: crypto.randomUUID(), name: '', fee: '' }] })}
-            >
-              Add area
+            </Field>
+          </div>
+          <IconButton
+            icon={Trash2}
+            tone="danger"
+            label={`Remove ${courier.name || 'courier'}`}
+            className="mt-7"
+            onClick={() => onChange({ couriers: couriers.filter((c) => c.key !== courier.key) })}
+          />
+        </div>
+      ))}
+      {couriers.length < MAX_COURIERS && (
+        <div className="flex flex-wrap gap-2">
+          {missingCommon.map((name) => (
+            <Button key={name} variant="secondary" icon={Plus} onClick={() => addCourier(name)}>
+              {name}
             </Button>
-          )}
-          {areas.length > 0 && (
-            <>
-              <Field
-                label="Free delivery from"
-                error={fieldErr('seller_delivery.free_from_amount')}
-                hint="Optional. Free when the items come to this much or more."
-              >
-                <MoneyInput
-                  currency={currency}
-                  placeholder="Off"
-                  value={delivery.free_from_amount}
-                  onChange={(free_from_amount) => onChange({ free_from_amount })}
-                />
-              </Field>
-              <Field
-                label="Free delivery from (items)"
-                error={fieldErr('seller_delivery.free_from_items')}
-                hint="Optional. Free when the customer buys this many items or more, e.g. 3."
-              >
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  min="1"
-                  max="999"
-                  step="1"
-                  placeholder="Off"
-                  value={delivery.free_from_items}
-                  onWheel={(e) => e.currentTarget.blur()}
-                  onChange={(e) => onChange({ free_from_items: e.target.value })}
-                />
-              </Field>
-            </>
-          )}
+          ))}
+          <Button variant="secondary" icon={Plus} onClick={() => addCourier('')}>
+            Other courier
+          </Button>
         </div>
       )}
 
@@ -547,7 +550,7 @@ function DeliverySection({
 
       {(noneOn || fieldError(error, 'delivery_settings')) && (
         <p role="alert" className="text-sm text-red-600">
-          {fieldError(error, 'delivery_settings') ?? 'Turn on delivery or pickup.'}
+          {fieldError(error, 'delivery_settings') ?? 'Turn on your own delivery, add a courier, or turn on pickup.'}
         </p>
       )}
     </Section>

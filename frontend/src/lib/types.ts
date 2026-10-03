@@ -19,18 +19,17 @@ export type PaymentSettings = {
   khqr: { enabled: boolean; bakong_account_id: string; merchant_name: string }
 }
 
-export type DeliveryArea = { name: string; fee: string }
-
-/** How the shop gets orders to customers. Without areas, delivery is free. */
+/** How the shop gets orders to customers: one fee for any delivery
+ * (its own or a courier), free from an amount or a number of items. */
 export type DeliverySettings = {
-  seller_delivery: {
-    enabled: boolean
-    areas: DeliveryArea[]
-    /** Free delivery once the items come to this much (before discounts). */
-    free_from_amount: string | null
-    /** ... or to this many units. */
-    free_from_items: number | null
-  }
+  fee: string
+  /** Free delivery once the items come to this much (before discounts). */
+  free_from_amount: string | null
+  /** ... or to this many units. */
+  free_from_items: number | null
+  own_delivery: { enabled: boolean }
+  /** e.g. "J&T Express", "VET Express": the customer picks one. */
+  couriers: string[]
   pickup: { enabled: boolean; address: string }
 }
 
@@ -104,9 +103,10 @@ export type ShopStore = {
   categories: (ShopCategoryRef & { product_count: number })[]
   /** For checkout; the details come with the order. */
   payment_methods: PaymentMethod[]
-  /** What checkout offers; null = not offered. */
-  delivery: {
-    seller_delivery: Omit<DeliverySettings['seller_delivery'], 'enabled'> | null
+  /** What checkout offers. */
+  delivery: Omit<DeliverySettings, 'own_delivery' | 'pickup'> & {
+    own_delivery: boolean
+    /** null = no pickup. */
     pickup: { address: string } | null
   }
   discounts: DiscountRule[]
@@ -192,7 +192,8 @@ export type Payment = {
 export type ShopDelivery = {
   method: DeliveryMethod
   status: DeliveryStatus
-  area_name: string | null
+  /** null = the shop's own delivery (or pickup). */
+  courier: string | null
   /** Where to collect a pickup order, while the order is on. */
   pickup_address: string | null
 }
@@ -201,7 +202,7 @@ export type ShopDelivery = {
 export type Delivery = {
   method: DeliveryMethod
   status: DeliveryStatus
-  area_name: string | null
+  courier: string | null
   assignee_note: string | null
   updated_at: string
   /** Where the seller can move it now; the server applies the rules. */
@@ -231,6 +232,11 @@ export type Order = Omit<ShopOrder, 'payment' | 'delivery'> & {
   delivery: Delivery
   updated_at: string
   delivery_address: string | null
+  /** The customer's GPS location, if they shared it. */
+  delivery_lat: string | null
+  delivery_lng: string | null
+  /** For the driver, e.g. "blue gate, next to the pagoda". */
+  delivery_address_note: string | null
   notes: string | null
   customer: { id: string; name: string; phone: string; address: string | null }
   /** Where the seller can move the order now; the server applies the rules. */
