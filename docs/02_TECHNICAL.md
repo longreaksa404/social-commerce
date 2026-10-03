@@ -79,7 +79,7 @@ No separate worker service in the MVP. No message queue in the MVP. `BackgroundT
 | Auth | **JWT (access + refresh)**, `bcrypt` (used directly; passlib is unmaintained) for password hashing | Stateless, simple, no session-store dependency |
 | Image storage | **S3-compatible object storage** (see §11) | Decoupled from app servers, cheap, standard presigned-upload pattern |
 | Background tasks | **FastAPI `BackgroundTasks`** (MVP) → Celery/RQ only if volume demands it later | Avoids running a queue + worker for MVP scale |
-| Telegram | **python-telegram-bot** (webhook mode) | Official-adjacent, well maintained |
+| Telegram | Bot API called directly with **httpx** (webhook mode) | One message type and one command don't need a bot framework (decided 2026-10-03, instead of python-telegram-bot) |
 | Payments | KHQR via **Bakong API** (see §10), COD (no integration), manual bank transfer (manual confirmation, no integration) | Matches validated MVP payment scope from `01_PRODUCT.md` §25 |
 
 ---
@@ -171,7 +171,8 @@ seller
 | slug | text, unique | used in shareable URLs, e.g. `/shop/{slug}` |
 | description | text, nullable | |
 | logo_url | text, nullable | |
-| telegram_chat_id | text, nullable | for seller notifications |
+| telegram_chat_id | text, nullable | for seller notifications; private, never shown on the shop |
+| telegram_username | text, nullable | the seller's own Telegram username (without @), public on the shop page for "Ask seller" |
 | payment_config | JSONB | which methods are on, with their details: `{"cod": {"enabled": true}, "bank_transfer": {"enabled", "bank_name", "account_name", "account_number"}, "khqr": {"enabled", "bakong_account_id", "merchant_name"}}`. A method can only be on with its details filled in; at least one must be on. Missing parts read as the defaults (cash on delivery on, the others off), so a new store takes cash on delivery. Details are kept while a method is off. |
 | delivery_config | JSONB | `{"fee", "free_from_amount", "free_from_items", "own_delivery": {"enabled"}, "couriers": ["J&T Express", ...], "pickup": {"enabled", "address"}}`. One fee for any delivery (own or courier); free from an amount (items before discount) or a number of units; pickup free. At least one of own delivery, a courier, or pickup. Missing parts read as the defaults (own delivery on, free), so a new store can take orders at once. |
 | discount_config | JSONB | `{"rules": [{"min_subtotal", "amount_off"}]}`, up to 5; the biggest rule the items reach applies, never more than the items |
@@ -226,7 +227,7 @@ seller
 | delivery_fee | numeric(12,2), default 0 | |
 | total | numeric(12,2) | subtotal − discount + delivery_fee |
 | delivery_address | text, nullable | null if pickup; a delivery has this, the GPS location, or both |
-| delivery_lat / delivery_lng | numeric(9,6), nullable | the customer's GPS location, both or neither; the seller opens it in Google Maps |
+| delivery_lat / delivery_lng | numeric(9,6), nullable | the pin the customer placed on the checkout map, both or neither; the seller opens it in Google Maps |
 | delivery_address_note | text, nullable | for the driver, e.g. "blue gate, next to the pagoda" |
 | delivery_method | enum(`seller_delivery`,`pickup`) | |
 | source | text, nullable | e.g. `tiktok`, from link tracking (§9) |
@@ -328,6 +329,8 @@ POST   /api/v1/auth/logout
 ```
 GET    /api/v1/seller/store
 PATCH  /api/v1/seller/store
+POST   /api/v1/seller/store/telegram/link     # signed t.me/<bot>?start=<code> link, 30 min
+DELETE /api/v1/seller/store/telegram          # disconnect the seller's chat
 ```
 
 ### Seller — Products
@@ -546,31 +549,31 @@ New Order Created (backend event)
         ▼
  Sent to store.telegram_chat_id
 ```
-- Seller links their Telegram by starting a chat with the platform's bot and sending a linking code shown in their dashboard settings (`/settings`) — bot resolves the code to `store_id` and stores the resulting `chat_id`.
-- Notification triggers (from `01_PRODUCT.md` §19): new order, order cancellation, payment received, payment failed, delivery update, low stock. Each writes a `notification_log` row and calls the Bot API.
+- Seller links their Telegram from Settings → "Connect Telegram", which opens `t.me/{bot_username}?start={code}`. The code is signed, not stored (store id + 30-minute expiry + HMAC). Tapping Start sends `/start {code}`; the webhook checks it and saves the chat as `store.telegram_chat_id`. Disconnect clears it; if the seller blocks the bot, the next alert clears it.
+- Notification triggers (`01_PRODUCT.md` §19, decided 2026-10-03): only events the seller didn't cause: new order, and low stock (an order takes a product or option to 5 or fewer, or to 0). Cancellation, payment, and delivery changes are the seller's own actions in the MVP. Each alert writes a `notification_log` row (sent / failed) and calls the Bot API; a failed send never affects the order.
 
 ## 12.2 Customer "Ask Seller"
 ```
-Customer taps "Ask Seller" on product page
+Customer taps "Ask seller on Telegram" on the product page
         │
         ▼
- Deep link: https://t.me/{bot_username}?start={store_id}_{product_id}
+ https://t.me/{store.telegram_username}?text=<product name (option) and link>
         │
         ▼
- Customer's Telegram opens, bot greets them, forwards message thread
- context to seller's linked chat (or a dedicated seller-facing group)
+ Customer's Telegram opens a chat with the seller's own account,
+ message already typed
         │
         ▼
- Seller replies directly in Telegram (outside the platform)
+ Seller replies from their own Telegram (outside the platform)
         │
         ▼
- Customer manually returns to the product page link to complete checkout
+ Customer returns to the product page link to complete checkout
 ```
-- The platform does **not** proxy or store the back-and-forth conversation content — per `01_PRODUCT.md` §8.3/§27, Telegram is a communication channel, not the source of truth. The platform only logs that an "ask seller" event occurred (for link/product analytics), not the conversation itself.
+- Decided 2026-10-03: the platform's bot isn't involved and nothing is logged; the platform doesn't proxy or store the conversation (`01_PRODUCT.md` §11, §27). No username, no button.
 - This keeps the integration to a single webhook endpoint and avoids building a chat-relay system.
 
 ## 12.3 Webhook
-- Single endpoint: `POST /api/v1/telegram/webhook`, registered with Telegram on deploy.
+- Single endpoint: `POST /api/v1/telegram/webhook`, registered with Telegram at startup where `PUBLIC_API_URL` is set (production only, so a laptop never takes the bot over).
 - Validates the Telegram secret token header before processing, per Telegram's webhook security guidance.
 
 ---

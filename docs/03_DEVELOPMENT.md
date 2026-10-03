@@ -203,13 +203,14 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 |---|---|
 | Telegram bot creation + webhook registration | 2 |
 | Store-to-Telegram linking flow (code-based) | 4 |
-| Seller notification sending (new order, cancellation, payment, delivery, low stock) | 6 |
-| "Ask Seller" deep link + bot greeting/forwarding | 5 |
-| Settings UI: connect/disconnect Telegram | 3 |
+| `notification_log` table + migration (moved from Phase 7, 2026-10-03: every alert writes a row) | 1 |
+| Seller notification sending (new order, low stock; decided 2026-10-03) | 5 |
+| "Ask Seller": seller's Telegram username + `t.me/<username>?text=` link (decided 2026-10-03: the seller's own Telegram, no bot conversation) | 2 |
+| Settings UI: connect/disconnect Telegram, username | 3 |
 
-**Subtotal:** ~20 hours (**~1.5 weeks**)
+**Subtotal:** ~17 hours (**~1.5 weeks**)
 
-**Definition of done:** placing a test order sends a real Telegram message to the seller; tapping "Ask Seller" on a product opens a working bot conversation.
+**Definition of done:** placing a test order sends a real Telegram message to the seller; tapping "Ask seller" on a product opens a Telegram chat with the seller's own account.
 
 ---
 
@@ -219,12 +220,11 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 
 | Task | Est. hours |
 |---|---|
-| `notification_log` table + migration | 1 |
 | Web notification UI (simple in-dashboard list/badge, no push notifications needed for MVP) | 5 |
 | Customer list endpoint + UI | 3 |
 | Customer detail (order history) endpoint + UI | 3 |
 
-**Subtotal:** ~12 hours (**~1 week**)
+**Subtotal:** ~11 hours (**~1 week**)
 
 ---
 
@@ -274,11 +274,11 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 3 — Checkout/Orders | 46 | 3.5 wks |
 | 4 — Payments | 22 | 1.5–2 wks |
 | 5 — Delivery | 24 | 2 wks |
-| 6 — Telegram | 20 | 1.5 wks |
-| 7 — Notifications/Customers | 12 | 1 wk |
+| 6 — Telegram | 17 | 1.5 wks |
+| 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 13 | 1 wk |
 | 9 — Polish/First Seller | 60 | 4.5 wks |
-| **Total** | **~288 hrs** | **~22 weeks (~5 months)** |
+| **Total** | **~284 hrs** | **~22 weeks (~5 months)** |
 
 This is a planning estimate, not a commitment.
 

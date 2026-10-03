@@ -498,6 +498,8 @@ Checkout
 
 Telegram should initially be treated as an optional integration.
 
+**Decided (2026-10-03):** "Ask seller on Telegram" on the product page opens a chat with the seller's own Telegram account (the username they enter in Settings), with the product's name and link already typed. The seller answers from their own Telegram; the platform's bot isn't involved and the conversation isn't stored. No username, no button.
+
 It should not become a mandatory dependency for ordering.
 
 # 12. Customer Ordering
@@ -732,6 +734,8 @@ Total: $20
 ```
 
 The application remains the source of truth.
+
+**Decided (2026-10-03):** Telegram alerts only for events the seller didn't cause: each new order, and low stock (an order takes a product or option to 5 or fewer, or sells it out). Cancellation, payment, and delivery changes are the seller's own actions in the MVP, so they get no alert.
 
 # 20. Shareable Links
 
@@ -1056,7 +1060,7 @@ Potential capabilities:
 
 Complex logistics functionality should be postponed.
 
-**Decided (2026-10-03):** the seller turns on any of: their own delivery, the couriers they send with (e.g. J&T Express, VET Express), and pickup. The customer chooses one at checkout. Delivery costs one fee set by the seller, the same for every address and every courier (per-area fees were dropped because a customer could pick the cheaper area); the seller can make it free from an amount or from a number of items, and pickup is always free. For delivery the customer gives a typed address, their phone's GPS location, or both, plus an optional note for the driver; the seller opens the location in Google Maps. The seller books the courier and moves each delivery along by hand; no courier integration in the MVP.
+**Decided (2026-10-03):** the seller turns on any of: their own delivery, the couriers they send with (e.g. J&T Express, VET Express), and pickup. The customer chooses one at checkout. Delivery costs one fee set by the seller, the same for every address and every courier (per-area fees were dropped because a customer could pick the cheaper area); the seller can make it free from an amount or from a number of items, and pickup is always free. For delivery the customer gives a typed address, a pin they place on a map (it can jump to the phone's location), or both, plus an optional note for the driver; the seller opens the location in Google Maps. The seller books the courier and moves each delivery along by hand; no courier integration in the MVP.
 
 **Decided (2026-10-03):** simple bill discounts are in the MVP: the seller sets a fixed amount off once the items reach a total (e.g. $5 off from $40). If an order reaches more than one, the biggest applies; they never add up. No discount codes, percentages, or per-product discounts.
 
@@ -1091,6 +1095,8 @@ Seller
 The actual Telegram interaction must be validated and technically confirmed before committing to a specific implementation.
 
 Telegram should not store the authoritative order state.
+
+**Decided (2026-10-03):** Telegram is in the MVP and optional per store. Seller notification: the seller connects their chat to the platform's bot from Settings; alerts as in §19. Customer communication: "Ask seller" opens the seller's own Telegram (§11).
 
 # 28. Features Explicitly Deferred
 
@@ -1781,9 +1787,7 @@ The following are intentionally not finalized.
 
 ## Telegram
 
-- Seller notification implementation
-- Customer communication implementation
-- Whether Telegram belongs in the first MVP
+- Alerts for more events (cancellation, payment, delivery) if sellers ask for them. Decided for the MVP (2026-10-03): Telegram is in, alerts for new orders and low stock (§19), "Ask seller" opens the seller's own Telegram (§11, §27).
 
 ## Business
 
