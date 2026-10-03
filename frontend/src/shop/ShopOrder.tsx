@@ -1,11 +1,11 @@
-import { Check, CircleCheck, Copy, XCircle } from 'lucide-react'
+import { Check, CircleCheck, Copy, MapPin, Truck, XCircle } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import { buttonClass } from '../components/styles.ts'
 import { Button, Card, ErrorState, Field, Input, Skeleton } from '../components/ui.tsx'
 import { formatMoney } from '../lib/money.ts'
-import type { OrderStatus, ShopOrder, ShopStore } from '../lib/types.ts'
+import type { DeliveryMethod, DeliveryStatus, OrderStatus, ShopOrder, ShopStore } from '../lib/types.ts'
 import { orderPhone, rememberOrder } from './device.ts'
 import { PaymentCard } from './PaymentCard.tsx'
 import { isNotFound, useShop, useTrackOrder } from './queries.ts'
@@ -108,6 +108,33 @@ const HEADLINES: Record<OrderStatus, string> = {
   cancelled: 'This order was cancelled',
 }
 
+// A pickup order goes through the same order statuses; its customer reads
+// them differently.
+const PICKUP_WORDS: Partial<Record<OrderStatus, string>> = {
+  ready: 'Ready to collect',
+  shipped: 'Handed over',
+  delivered: 'Collected',
+}
+
+const stepLabel = (status: OrderStatus, label: string, method: DeliveryMethod) =>
+  (method === 'pickup' && PICKUP_WORDS[status]) || label
+
+// The delivery's own status (02 section 7.3), in the customer's words.
+const DELIVERY_WORDS: Record<DeliveryMethod, Partial<Record<DeliveryStatus, string>>> = {
+  seller_delivery: {
+    not_assigned: 'Not sent out yet',
+    assigned: 'A driver is assigned',
+    picked_up: 'Picked up by the driver',
+    in_transit: 'On the way',
+    delivered: 'Delivered',
+    failed: "Couldn't deliver. The seller will contact you to try again.",
+  },
+  pickup: {
+    not_assigned: 'Not collected yet',
+    delivered: 'Collected',
+  },
+}
+
 function OrderView({
   shop,
   order,
@@ -176,14 +203,16 @@ function OrderView({
           aria-live="polite"
         >
           {closed && <XCircle aria-hidden className="size-4.5" />}
-          {HEADLINES[order.status]}
+          {stepLabel(order.status, HEADLINES[order.status], order.delivery_method)}
         </p>
         {closed ? (
           <p className="mt-2 text-sm text-slate-600">Contact {shop.name} if you have questions about it.</p>
         ) : (
-          <Progress status={order.status} />
+          <Progress status={order.status} method={order.delivery_method} />
         )}
       </Card>
+
+      {!closed && <DeliveryCard order={order} />}
 
       {showPayment && !payNow && <PaymentCard shop={shop} order={order} />}
 
@@ -205,6 +234,24 @@ function OrderView({
             </li>
           ))}
         </ul>
+        <dl className="mt-2 space-y-1 border-t border-slate-200 pt-3 text-sm">
+          <div className="flex justify-between">
+            <dt className="text-slate-600">Items</dt>
+            <dd className="text-slate-900">{formatMoney(order.subtotal, order.currency)}</dd>
+          </div>
+          {Number(order.discount) > 0 && (
+            <div className="flex justify-between">
+              <dt className="text-slate-600">Discount</dt>
+              <dd className="font-medium text-emerald-700">−{formatMoney(order.discount, order.currency)}</dd>
+            </div>
+          )}
+          <div className="flex justify-between">
+            <dt className="text-slate-600">{order.delivery_method === 'pickup' ? 'Pickup' : 'Delivery'}</dt>
+            <dd className="text-slate-900">
+              {Number(order.delivery_fee) > 0 ? formatMoney(order.delivery_fee, order.currency) : 'Free'}
+            </dd>
+          </div>
+        </dl>
         <div className="mt-2 flex items-baseline justify-between border-t border-slate-200 pt-3">
           <span className="font-semibold text-slate-900">Total</span>
           <span className="text-lg font-bold text-slate-900">{formatMoney(order.total, order.currency)}</span>
@@ -229,7 +276,34 @@ function OrderView({
   )
 }
 
-function Progress({ status }: { status: OrderStatus }) {
+function DeliveryCard({ order }: { order: ShopOrder }) {
+  const { delivery } = order
+  const pickup = delivery.method === 'pickup'
+  const Icon = pickup ? MapPin : Truck
+  return (
+    <Card className="p-4 sm:p-6">
+      <h2 className="flex items-center gap-2 font-semibold text-slate-900">
+        <Icon aria-hidden className="size-4.5 text-slate-500" />
+        {pickup ? 'Pickup' : delivery.area_name ? `Delivery to ${delivery.area_name}` : 'Delivery'}
+      </h2>
+      <p
+        className={`mt-1 text-sm font-medium ${delivery.status === 'failed' ? 'text-red-700' : delivery.status === 'delivered' ? 'text-emerald-700' : 'text-slate-700'}`}
+      >
+        {DELIVERY_WORDS[delivery.method][delivery.status] ?? delivery.status}
+      </p>
+      {pickup && delivery.status !== 'delivered' && (
+        <div className="mt-3 rounded-xl bg-slate-50 px-3.5 py-2.5">
+          <p className="text-xs font-medium text-slate-500">Pick up at</p>
+          <p className="mt-0.5 whitespace-pre-line break-words text-sm text-slate-900">
+            {delivery.pickup_address ?? 'Ask the shop where to collect your order.'}
+          </p>
+        </div>
+      )}
+    </Card>
+  )
+}
+
+function Progress({ status, method }: { status: OrderStatus; method: DeliveryMethod }) {
   // The last step reached; a completed order has reached them all.
   const reached = status === 'completed' ? STEPS.length - 1 : STEPS.findIndex((step) => step.status === status)
   return (
@@ -257,7 +331,7 @@ function Progress({ status }: { status: OrderStatus }) {
               aria-current={latest ? 'step' : undefined}
               className={`pt-0.5 text-sm ${latest ? 'font-semibold text-slate-900' : done ? 'text-slate-700' : 'text-slate-500'}`}
             >
-              {step.label}
+              {stepLabel(step.status, step.label, method)}
               <span className="sr-only">{done ? ' (done)' : ' (not yet)'}</span>
             </span>
           </li>

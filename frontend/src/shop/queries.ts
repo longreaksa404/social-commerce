@@ -1,6 +1,7 @@
 import { queryOptions, useMutation, useQuery } from '@tanstack/react-query'
 import { api, ApiError } from '../lib/api.ts'
 import type {
+  DeliveryMethod,
   PaymentMethod,
   ShopCategoryPage,
   ShopOrder,
@@ -61,10 +62,15 @@ export function useShopCategory(slug: string, categorySlug: string) {
 export type OrderRequest = {
   name: string
   phone: string
-  delivery_address: string
+  delivery_method: DeliveryMethod
+  /** One of the shop's area names; null for pickup or a shop without areas. */
+  delivery_area: string | null
+  /** Null for pickup. */
+  delivery_address: string | null
   notes: string | null
   items: { product_id: string; variant_id: string | null; quantity: number }[]
-  /** What the customer was shown; the server refuses the order if prices changed. */
+  /** What the customer was shown; the server refuses the order if prices,
+   * fees or discounts changed. */
   expected_total: string
   payment_method: PaymentMethod
 }

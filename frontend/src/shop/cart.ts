@@ -163,7 +163,10 @@ export function useCheckedCart(shop: string, lines: CartLine[]) {
     loading,
     error,
     refetch: () => Promise.all(results.map((r) => r.refetch())),
-    totalCents: checked.reduce((sum, line) => sum + toCents(line.price) * line.quantity, 0),
+    /** The items only; lib/pricing.ts adds discounts and delivery. */
+    subtotalCents: checked.reduce((sum, line) => sum + toCents(line.price) * line.quantity, 0),
+    /** Units, not lines (for "free delivery from 3 items"). */
+    itemCount: checked.reduce((sum, line) => sum + line.quantity, 0),
     /** Everything checked and orderable as it is. */
     ready: !loading && !error && checked.length > 0 && checked.every((line) => !line.problem),
   }

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { Card, EmptyState, ErrorState, IconButton, Skeleton } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
 import { formatMoney, toCents } from '../lib/money.ts'
+import { discountCents, nextDiscount } from '../lib/pricing.ts'
 import type { Currency } from '../lib/types.ts'
 import { MAX_QUANTITY, useCart, useCheckedCart, type CheckedLine } from './cart.ts'
 import { ProductImage, QuantityStepper } from './components.tsx'
@@ -18,6 +19,12 @@ export function ShopCart() {
 
   if (!shop.data) return <CartSkeleton />
   const currency = shop.data.currency
+  const money = (cents: number) => formatMoney(cents / 100, currency)
+  const discount = discountCents(checked.subtotalCents, shop.data.discounts)
+  const next = nextDiscount(checked.subtotalCents, shop.data.discounts)
+  // Delivery costs something only in a shop with areas; the fee depends on
+  // the area chosen at checkout.
+  const feeLater = Boolean(shop.data.delivery.seller_delivery?.areas.length)
 
   return (
     <div className="mx-auto max-w-xl">
@@ -53,14 +60,34 @@ export function ShopCart() {
             ))}
           </Card>
 
+          {!checked.loading && discount > 0 && (
+            <dl className="mt-4 space-y-1 px-1 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-slate-600">Items</dt>
+                <dd className="text-slate-900">{money(checked.subtotalCents)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-slate-600">Discount</dt>
+                <dd className="font-medium text-emerald-700">−{money(discount)}</dd>
+              </div>
+            </dl>
+          )}
           <div className="mt-4 flex items-baseline justify-between px-1">
             <span className="font-medium text-slate-700">Total</span>
             {checked.loading ? (
               <Skeleton className="h-7 w-24" />
             ) : (
-              <span className="text-xl font-bold text-slate-900">{formatMoney(checked.totalCents / 100, currency)}</span>
+              <span className="text-xl font-bold text-slate-900">{money(checked.subtotalCents - discount)}</span>
             )}
           </div>
+          {!checked.loading && feeLater && (
+            <p className="px-1 text-right text-xs text-slate-500">Delivery fee is added at checkout.</p>
+          )}
+          {!checked.loading && next && (
+            <p className="mt-3 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-800">
+              Add {money(next.missing)} more to get {money(next.off)} off.
+            </p>
+          )}
           {!checked.loading && !checked.ready && (
             <p className="mt-2 px-1 text-sm text-red-700">Fix the items marked in red to continue.</p>
           )}
