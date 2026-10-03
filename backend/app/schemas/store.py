@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.account import Currency, OrderConfirmationMode
 from app.schemas.common import Description, Name, Slug
+from app.schemas.delivery import DeliverySettings, DiscountSettings
 from app.schemas.payment import PaymentSettings
 
 
@@ -20,6 +21,8 @@ class StoreOut(BaseModel):
     # automatic: new orders are accepted at once; manual: they wait as pending.
     order_confirmation_mode: OrderConfirmationMode
     payment_settings: PaymentSettings = Field(validation_alias="payment_config")
+    delivery_settings: DeliverySettings = Field(validation_alias="delivery_config")
+    discount_settings: DiscountSettings = Field(validation_alias="discount_config")
     created_at: datetime
 
 
@@ -31,3 +34,5 @@ class StoreUpdate(BaseModel):
     order_confirmation_mode: OrderConfirmationMode | None = None
     # All of it at once: the settings screen sends the whole thing.
     payment_settings: PaymentSettings | None = None
+    delivery_settings: DeliverySettings | None = None
+    discount_settings: DiscountSettings | None = None

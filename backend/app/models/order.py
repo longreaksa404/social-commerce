@@ -17,6 +17,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base, CreatedAtMixin, TenantMixin, UUIDPrimaryKeyMixin
 from app.models.account import Currency, str_enum
 from app.models.catalog import Money
+from app.models.delivery import Delivery, DeliveryMethod
 from app.models.payment import Payment
 
 
@@ -34,11 +35,6 @@ class OrderStatus(enum.StrEnum):
     REJECTED = "rejected"
 
 
-class DeliveryMethod(enum.StrEnum):
-    SELLER_DELIVERY = "seller_delivery"
-    PICKUP = "pickup"
-
-
 class Customer(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
     """A guest customer of one store, matched by phone at checkout
     (02_TECHNICAL.md section 5.4). No login."""
@@ -54,7 +50,8 @@ class Customer(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
 
 class Order(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
     """Payment and delivery are separate tables with their own state
-    machines (Phases 4 and 5); nothing here mirrors their status."""
+    machines; nothing here mirrors their status. total = subtotal -
+    discount + delivery_fee."""
 
     __tablename__ = "order"
     # Read the DB-generated timestamps back (async can't lazy-load them).
@@ -65,7 +62,8 @@ class Order(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
         Index("ix_order_store_id_created_at", "store_id", "created_at"),
         Index("ix_order_store_id_customer_id", "store_id", "customer_id"),
         CheckConstraint(
-            "subtotal >= 0 AND delivery_fee >= 0 AND total >= 0", name="money_not_negative"
+            "subtotal >= 0 AND discount >= 0 AND delivery_fee >= 0 AND total >= 0",
+            name="money_not_negative",
         ),
     )
 
@@ -80,6 +78,8 @@ class Order(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
     # store's currency later doesn't relabel old totals.
     currency: Mapped[Currency] = mapped_column(str_enum(Currency, "currency"))
     subtotal: Mapped[Decimal] = mapped_column(Money)
+    # The shop's bill discount, off the subtotal (app/services/pricing.py).
+    discount: Mapped[Decimal] = mapped_column(Money, default=Decimal("0.00"), server_default="0")
     delivery_fee: Mapped[Decimal] = mapped_column(
         Money, default=Decimal("0.00"), server_default="0"
     )
@@ -103,6 +103,10 @@ class Order(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
     )
     # Every order has one, created with it at checkout.
     payment: Mapped[Payment] = relationship(
+        back_populates="order", cascade="all, delete-orphan", lazy="raise"
+    )
+    # Every order has one too, created with it at checkout.
+    delivery: Mapped[Delivery] = relationship(
         back_populates="order", cascade="all, delete-orphan", lazy="raise"
     )
 

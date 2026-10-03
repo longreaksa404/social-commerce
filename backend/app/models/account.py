@@ -68,6 +68,9 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     delivery_config: Mapped[dict[str, Any]] = mapped_column(
         JSONB, default=dict, server_default="{}"
     )
+    discount_config: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default="{}"
+    )
     order_confirmation_mode: Mapped[OrderConfirmationMode] = mapped_column(
         str_enum(OrderConfirmationMode, "order_confirmation_mode"),
         default=OrderConfirmationMode.MANUAL,

@@ -114,3 +114,31 @@ async def set_payments(client, headers, **settings):
 async def track(client, slug, order_id, phone="012345678"):
     """The customer's order page."""
     return await client.get(f"/api/v1/shop/{slug}/orders/{order_id}?phone={phone}")
+
+
+async def set_delivery(client, headers, **settings):
+    """Save the seller's delivery settings; parts left out get the defaults."""
+    return await client.patch(
+        "/api/v1/seller/store", headers=headers, json={"delivery_settings": settings}
+    )
+
+
+async def set_discounts(client, headers, *rules):
+    """rules: (min_subtotal, amount_off) pairs."""
+    return await client.patch(
+        "/api/v1/seller/store",
+        headers=headers,
+        json={
+            "discount_settings": {"rules": [{"min_subtotal": m, "amount_off": a} for m, a in rules]}
+        },
+    )
+
+
+# Dara's delivery: two areas, free from $30 or from 3 items.
+AREAS = {
+    "enabled": True,
+    "areas": [{"name": "Phnom Penh", "fee": "1.50"}, {"name": "Provinces", "fee": "2.50"}],
+    "free_from_amount": "30.00",
+    "free_from_items": 3,
+}
+PICKUP = {"enabled": True, "address": "Shop 12, Orussey Market"}

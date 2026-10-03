@@ -1,5 +1,6 @@
 """Public storefront responses: only what a customer may see. No SKUs,
-product status, payment/Telegram settings, or seller details."""
+product status, payment/Telegram settings, or seller details. Delivery
+fees, the pickup address and discounts are public: checkout shows them."""
 
 import uuid
 from decimal import Decimal
@@ -8,6 +9,7 @@ from pydantic import BaseModel
 
 from app.models import PaymentMethod
 from app.models.account import Currency
+from app.schemas.delivery import DiscountRule, ShopDeliveryOptions
 
 
 class ShopCategoryRef(BaseModel):
@@ -30,6 +32,10 @@ class ShopStoreOut(BaseModel):
     # The ways to pay this shop takes, for checkout. Details (bank account,
     # KHQR) are shown only on the order page, after ordering.
     payment_methods: list[PaymentMethod]
+    # Delivery areas and fees, pickup, and bill discounts: checkout works
+    # out the total with them (app/services/pricing.py).
+    delivery: ShopDeliveryOptions
+    discounts: list[DiscountRule]
 
 
 class ShopProductCard(BaseModel):

@@ -34,9 +34,17 @@ async def test_store_page_shows_only_categories_with_active_products(client, mak
         "currency",
         "categories",
         "payment_methods",  # names only; bank details come with an order
+        "delivery",
+        "discounts",
     }
     assert body["currency"] == "USD"
     assert body["payment_methods"] == ["cod"]  # a new shop takes cash on delivery
+    # ... and delivers for free, with no areas to choose from.
+    assert body["delivery"] == {
+        "seller_delivery": {"areas": [], "free_from_amount": None, "free_from_items": None},
+        "pickup": None,
+    }
+    assert body["discounts"] == []
     assert body["categories"] == [{"name": "Tops", "slug": "tops", "product_count": 2}]
 
 
