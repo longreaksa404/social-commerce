@@ -1,10 +1,12 @@
 import { ShoppingBag, Store } from 'lucide-react'
-import { Link, Outlet, useParams } from 'react-router'
+import { useEffect } from 'react'
+import { Link, Outlet, useParams, useSearchParams } from 'react-router'
 import { ErrorState, Skeleton } from '../components/ui.tsx'
 import type { ShopStore } from '../lib/types.ts'
 import { useCart } from './cart.ts'
 import { NotFound } from './components.tsx'
-import { isNotFound, useShop } from './queries.ts'
+import { openedLink } from './device.ts'
+import { isNotFound, trackView, useShop } from './queries.ts'
 
 /** Customer-facing shell for /shop/:storeSlug/*. Pages render right away
  * and load their own data alongside the shop's, rather than waiting for it,
@@ -12,6 +14,7 @@ import { isNotFound, useShop } from './queries.ts'
 export function ShopLayout() {
   const { storeSlug = '' } = useParams()
   const shop = useShop(storeSlug)
+  useLinkTracking(storeSlug)
 
   if (isNotFound(shop.error)) {
     return (
@@ -30,6 +33,19 @@ export function ShopLayout() {
       </main>
     </div>
   )
+}
+
+// A link's token: what the seller's links add to the page's address.
+const LINK_TOKEN = /^[a-z0-9]{8}$/
+
+/** Opened through one of the seller's links (?l=<token>, 02_TECHNICAL.md
+ * section 9.2): count the view, and remember the link so an order placed
+ * on this device within 7 days counts for it. */
+function useLinkTracking(slug: string) {
+  const token = useSearchParams()[0].get('l')
+  useEffect(() => {
+    if (token && LINK_TOKEN.test(token) && openedLink(slug, token)) trackView(slug, token)
+  }, [slug, token])
 }
 
 function Header({ shop, slug }: { shop: ShopStore | undefined; slug: string }) {

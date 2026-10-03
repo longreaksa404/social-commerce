@@ -19,7 +19,7 @@ import { PAYMENT_METHOD_LABELS, PAYMENT_METHOD_ORDER } from '../lib/payments.ts'
 import { deliveryFeeCents, discountCents } from '../lib/pricing.ts'
 import type { Currency, PaymentMethod, ShopStore } from '../lib/types.ts'
 import { useCart, useCheckedCart, type CheckedLine } from './cart.ts'
-import { loadCustomerDetails, rememberOrder, saveCustomerDetails } from './device.ts'
+import { loadCustomerDetails, rememberedLink, rememberOrder, saveCustomerDetails } from './device.ts'
 import { usePlaceOrder, useShop } from './queries.ts'
 
 // The server's codes for a cart that no longer matches the shop: the page
@@ -151,6 +151,7 @@ export function ShopCheckout() {
         notes: form.notes.trim() || null,
         items: checked.lines.map((l) => ({ product_id: l.productId, variant_id: l.variantId, quantity: l.quantity })),
         expected_total: fromCents(price.total),
+        link: rememberedLink(storeSlug),
         payment_method: payment,
       })
     } catch (error) {

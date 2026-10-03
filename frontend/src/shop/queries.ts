@@ -76,6 +76,8 @@ export type OrderRequest = {
    * fees or discounts changed. */
   expected_total: string
   payment_method: PaymentMethod
+  /** The shop link this device opened in the last 7 days; the order counts for it. */
+  link: string | null
 }
 
 export function usePlaceOrder(slug: string) {
@@ -100,6 +102,12 @@ export function useTrackOrder(slug: string, orderId: string, phone: string | nul
     // Customers come back to this page to see if anything has changed.
     refetchOnWindowFocus: true,
   })
+}
+
+/** A page was opened through one of the shop's links. Fire and forget: a
+ * missed view never bothers the customer. */
+export function trackView(slug: string, token: string) {
+  api(`${shopPath(slug)}/track-view`, { method: 'POST', body: { token }, auth: false }).catch(() => {})
 }
 
 export function isNotFound(error: unknown) {
