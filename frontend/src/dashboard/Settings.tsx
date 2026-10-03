@@ -1,11 +1,12 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ExternalLink, LogOut, Plus, Trash2 } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { CircleCheck, ExternalLink, LogOut, Plus, Send, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { useFeedback } from '../components/feedback.ts'
 import { buttonClass } from '../components/styles.ts'
 import {
+  Badge,
   Button,
   ErrorMessage,
   ErrorState,
@@ -22,7 +23,14 @@ import {
 } from '../components/ui.tsx'
 import { api } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
-import type { Currency, DeliverySettings, OrderConfirmationMode, PaymentSettings, Store } from '../lib/types.ts'
+import type {
+  Currency,
+  DeliverySettings,
+  OrderConfirmationMode,
+  PaymentSettings,
+  Store,
+  TelegramLink,
+} from '../lib/types.ts'
 import { keys, useStore } from './queries.ts'
 import { useUnsavedChanges } from './useUnsavedChanges.ts'
 
@@ -68,6 +76,7 @@ type Form = {
   payment_settings: PaymentSettings
   delivery: DeliveryForm
   discounts: RuleRow[]
+  telegram_username: string
 }
 
 /** "1.50" -> "1.5", "6000.00" -> "6000": what a person would type. */
@@ -95,6 +104,7 @@ const toForm = (store: Store): Form => {
       min_subtotal: amount(r.min_subtotal),
       amount_off: amount(r.amount_off),
     })),
+    telegram_username: store.telegram_username ?? '',
   }
 }
 
@@ -116,6 +126,7 @@ const toBody = (form: Form) => ({
   discount_settings: {
     rules: form.discounts.map(({ min_subtotal, amount_off }) => ({ min_subtotal, amount_off })),
   },
+  telegram_username: form.telegram_username.trim() || null,
 })
 
 // Fields the server may name in an error; their message shows by the input.
@@ -226,6 +237,13 @@ function StoreForm({ store }: { store: Store }) {
         error={save.error}
       />
 
+      <TelegramSection
+        store={store}
+        username={form.telegram_username}
+        onUsernameChange={(telegram_username) => setForm((f) => ({ ...f, telegram_username }))}
+        error={save.error}
+      />
+
       <Section title="Shop link" description="The address you share with customers.">
         <Field label="Link name" error={fieldError(save.error, 'slug')}>
           <Input
@@ -260,6 +278,7 @@ function StoreForm({ store }: { store: Store }) {
           'name',
           'slug',
           'description',
+          'telegram_username',
           ...PAYMENT_FIELDS,
           ...deliveryFields(form.delivery.couriers.length),
           ...discountFields(form.discounts.length),
@@ -616,6 +635,143 @@ function DiscountsSection({
           Add discount
         </Button>
       )}
+    </Section>
+  )
+}
+
+// Fetched ahead so "Connect Telegram" is a plain link: a phone browser
+// blocks opening a new tab after waiting for a request. The code in it
+// works for 30 minutes.
+const LINK_REFRESH_MS = 20 * 60_000
+// While the seller is off in Telegram tapping Start, check for the chat.
+const CONNECT_POLL_MS = 3_000
+
+function TelegramSection({
+  store,
+  username,
+  onUsernameChange,
+  error,
+}: {
+  store: Store
+  username: string
+  onUsernameChange: (username: string) => void
+  error: unknown
+}) {
+  const queryClient = useQueryClient()
+  const { toast, confirm } = useFeedback()
+  const [opened, setOpened] = useState(false)
+  const connected = store.telegram_connected
+  // Opened the link and not connected yet: poll until the bot has the chat.
+  const waiting = opened && !connected
+  const canConnect = store.telegram_bot_available && !connected
+
+  const link = useQuery({
+    queryKey: keys.telegramLink,
+    queryFn: () => api<TelegramLink>('/seller/store/telegram/link', { method: 'POST' }),
+    enabled: canConnect,
+    staleTime: LINK_REFRESH_MS,
+    refetchInterval: LINK_REFRESH_MS,
+  })
+  // Same data as the page's store query; this one only adds the polling.
+  useQuery({
+    queryKey: keys.store,
+    queryFn: () => api<Store>('/seller/store'),
+    enabled: waiting,
+    refetchInterval: CONNECT_POLL_MS,
+    refetchOnWindowFocus: true,
+  })
+
+  const disconnect = useMutation({
+    mutationFn: () => api<Store>('/seller/store/telegram', { method: 'DELETE' }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(keys.store, updated)
+      setOpened(false)
+      toast('Telegram disconnected')
+    },
+  })
+
+  async function askDisconnect() {
+    const ok = await confirm({
+      title: 'Disconnect Telegram?',
+      message: "You won't get Telegram messages about new orders until you connect again.",
+      confirmLabel: 'Disconnect',
+    })
+    if (ok) disconnect.mutate()
+  }
+
+  return (
+    <Section title="Telegram" description="Hear about new orders on your phone, and let customers message you.">
+      <div>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-sm font-medium text-slate-900">Order alerts</h3>
+          {connected && (
+            <Badge tone="green">
+              <CircleCheck aria-hidden className="mr-1 size-3.5" />
+              Connected
+            </Badge>
+          )}
+        </div>
+        <p className="mt-0.5 text-xs leading-5 text-slate-500">
+          {!store.telegram_bot_available
+            ? "Order alerts on Telegram aren't available yet."
+            : connected
+              ? 'A message for every new order, and when a product is running low or sold out.'
+              : 'Get a Telegram message for every new order, and when a product is running low or sold out.'}
+        </p>
+      </div>
+      {connected ? (
+        <Button
+          variant="danger"
+          loading={disconnect.isPending}
+          onClick={askDisconnect}
+          className="w-full sm:w-auto"
+        >
+          Disconnect
+        </Button>
+      ) : (
+        canConnect && (
+          <div>
+            {link.error ? (
+              <ErrorMessage error={link.error} />
+            ) : (
+              <a
+                href={link.data?.url}
+                target="_blank"
+                rel="noreferrer"
+                aria-disabled={!link.data}
+                onClick={() => setOpened(true)}
+                className={`${buttonClass('primary')} w-full sm:w-auto ${link.data ? '' : 'pointer-events-none opacity-50'}`}
+              >
+                <Send aria-hidden className="size-4" />
+                Connect Telegram
+              </a>
+            )}
+            <p className="mt-2 text-xs leading-5 text-slate-500">
+              {waiting
+                ? 'In Telegram, tap Start. This page updates once you have.'
+                : 'Telegram opens our bot. Tap Start, then come back here.'}
+            </p>
+          </div>
+        )
+      )}
+      {disconnect.error && <ErrorMessage error={disconnect.error} />}
+
+      <Field
+        label="Your Telegram username"
+        error={fieldError(error, 'telegram_username')}
+        hint="Optional. Customers tap “Ask seller” on a product to message you here. Leave empty to hide the button."
+      >
+        <Input
+          maxLength={60}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder="your_shop"
+          leading={<span className="text-sm font-medium">@</span>}
+          value={username}
+          onChange={(e) => onUsernameChange(e.target.value.replace(/^@/, ''))}
+        />
+      </Field>
     </Section>
   )
 }

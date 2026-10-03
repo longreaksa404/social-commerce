@@ -48,8 +48,16 @@ export type Store = {
   payment_settings: PaymentSettings
   delivery_settings: DeliverySettings
   discount_settings: { rules: DiscountRule[] }
+  /** The seller's own Telegram account, no @: "Ask seller" opens it. */
+  telegram_username: string | null
+  /** Order alerts go to a Telegram chat. */
+  telegram_connected: boolean
+  /** False until the platform's bot is set up. */
+  telegram_bot_available: boolean
   created_at: string
 }
+
+export type TelegramLink = { url: string; expires_at: string }
 
 export type Category = {
   id: string
@@ -110,6 +118,8 @@ export type ShopStore = {
     pickup: { address: string } | null
   }
   discounts: DiscountRule[]
+  /** null = no "Ask seller" button. */
+  telegram_username: string | null
 }
 
 export type ShopProductCard = {

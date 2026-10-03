@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, CircleCheck, ShoppingBag } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CircleCheck, Send, ShoppingBag } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { Button, ErrorState, Skeleton } from '../components/ui.tsx'
@@ -72,6 +72,9 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
           <VariantPicker variants={product.variants} value={variantId} onChange={setVariantId} />
         )}
         <AddToCart shop={shop} product={product} variant={variant} />
+        {shop.telegram_username && (
+          <AskSeller username={shop.telegram_username} product={product} variant={variant} />
+        )}
 
         {product.description && (
           <div className="mt-6 border-t border-slate-200 pt-5">
@@ -149,6 +152,24 @@ function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Produ
         </p>
       )}
     </div>
+  )
+}
+
+/** Opens a Telegram chat with the seller's own account, the question
+ * started for them. Ordering stays on the shop (01_PRODUCT.md section 11). */
+function AskSeller({ username, product, variant }: { username: string; product: Product; variant: ShopVariant | null }) {
+  const name = variant ? `${product.name} (${variant.name})` : product.name
+  const text = `Hi! I'd like to ask about ${name}: ${window.location.href}`
+  return (
+    <a
+      href={`https://t.me/${username}?text=${encodeURIComponent(text)}`}
+      target="_blank"
+      rel="noreferrer"
+      className={`${buttonClass('secondary')} mt-3 w-full`}
+    >
+      <Send aria-hidden className="size-4" />
+      Ask seller on Telegram
+    </a>
   )
 }
 

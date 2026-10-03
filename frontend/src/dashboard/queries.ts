@@ -13,6 +13,7 @@ import type {
 
 export const keys = {
   store: ['store'] as const,
+  telegramLink: ['telegram-link'] as const,
   categories: ['categories'] as const,
   products: ['products'] as const,
   product: (id: string) => ['products', id] as const,
