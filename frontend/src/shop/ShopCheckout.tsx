@@ -446,6 +446,7 @@ function LocationField({
 }) {
   const [locating, setLocating] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
+  const [blocked, setBlocked] = useState(false)
 
   function locate() {
     if (!('geolocation' in navigator)) {
@@ -454,6 +455,7 @@ function LocationField({
     }
     setLocating(true)
     setProblem(null)
+    setBlocked(false)
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocating(false)
@@ -461,11 +463,8 @@ function LocationField({
       },
       (failure) => {
         setLocating(false)
-        setProblem(
-          failure.code === failure.PERMISSION_DENIED
-            ? 'Location is blocked. Allow it for this site in your browser settings, or type your address.'
-            : "Couldn't find your location. Try again outside, or type your address.",
-        )
+        if (failure.code === failure.PERMISSION_DENIED) setBlocked(true)
+        else setProblem("Couldn't find your location. Try again outside, or type your address.")
       },
       { enableHighAccuracy: true, timeout: 15_000, maximumAge: 60_000 },
     )
@@ -501,11 +500,76 @@ function LocationField({
           Use my current location
         </Button>
       )}
+      {blocked && !location && <LocationBlocked onRetry={locate} retrying={locating} />}
       {message && (
         <p role="alert" className="mt-1.5 text-sm text-red-600">
           {message}
         </p>
       )}
+    </div>
+  )
+}
+
+/** A web page can't open the phone's settings, so say exactly where to tap
+ * for this phone and browser. */
+function locationSteps(): { title: string; steps: string[] } {
+  const ua = navigator.userAgent
+  const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)
+  if (/FBAN|FBAV|FB_IAB|Instagram|BytedanceWebview|musical_ly|TikTok|Line\//i.test(ua)) {
+    return {
+      title: "This app's browser can't share your location",
+      steps: [
+        `Tap ••• (top right) → “Open in ${ios ? 'Safari' : 'browser'}”.`,
+        'Your cart stays in this app, so add the items again there, then tap “Use my current location”.',
+      ],
+    }
+  }
+  if (ios && /CriOS/.test(ua)) {
+    return {
+      title: 'Location is off for Chrome',
+      steps: ['Open the Settings app → Chrome → Location → “While Using the App”.', 'Come back here and tap Try again.'],
+    }
+  }
+  if (ios) {
+    return {
+      title: 'Location is off for this site',
+      steps: [
+        'Tap the ᴀA (or ☰) button next to the address bar → Website Settings → Location → Allow.',
+        'Still blocked? Settings app → Privacy & Security → Location Services: turn it on, and set Safari Websites to “While Using the App”.',
+        'Come back here and tap Try again.',
+      ],
+    }
+  }
+  if (/Android/.test(ua)) {
+    return {
+      title: 'Location is off for this site',
+      steps: [
+        'Tap the icon left of the web address → Permissions (or Site settings) → Location → Allow.',
+        "Make sure your phone's Location is on (swipe down from the top).",
+        'Come back here and tap Try again.',
+      ],
+    }
+  }
+  return {
+    title: 'Location is off for this site',
+    steps: ['Allow location for this site in your browser settings.', 'Then tap Try again.'],
+  }
+}
+
+function LocationBlocked({ onRetry, retrying }: { onRetry: () => void; retrying: boolean }) {
+  const { title, steps } = locationSteps()
+  return (
+    <div role="alert" className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-900">
+      <p className="font-medium">{title}</p>
+      <ol className="mt-1.5 list-decimal space-y-1 pl-5">
+        {steps.map((step) => (
+          <li key={step}>{step}</li>
+        ))}
+      </ol>
+      <Button variant="secondary" loading={retrying} onClick={onRetry} className="mt-3 w-full">
+        Try again
+      </Button>
+      <p className="mt-2 text-amber-800">Or just type your address below. That works too.</p>
     </div>
   )
 }
