@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-03 (Phase 4 deployed; waiting for the founder's live test)
+> **Last updated:** 2026-10-03 (Phase 4 closed after the founder's live test)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,14 +15,13 @@
 
 ## Current Phase
 
-**Phase 4 — Payments** (deployed 2026-10-03; founder tested locally with
-no errors; live test pending)
+**Next: Phase 5 — Delivery** (not started)
 
-Its definition of done holds locally: an order can be placed with cash on
-delivery, bank transfer, or KHQR, and the seller can mark it paid. Pushed
-2026-10-02 (CI green); Vercel deployed by itself, the backend was
-deployed by hand by the founder. Still to do: the founder scans one KHQR
-order on the live site with a real bank app (see In Progress).
+Phase 4 met its definition of done on 2026-10-03 and the founder closed
+it: on the live site an order can be placed with cash on delivery, bank
+transfer, or KHQR, and the seller can mark it paid. The founder scanned
+a live KHQR order with their own bank app (their name and the exact
+amount showed), marked it paid, and completed it.
 
 Phase 3 met its definition of done on 2026-10-02 and the founder closed it
 (by starting Phase 4): on the live site a customer checks out and sees a
@@ -217,7 +216,7 @@ shows "API: ok" from the deployed backend.
       WCAG 2.1 A/AA violations; no console errors besides expected
       409/404 responses.
 
-**Phase 4 (deployed 2026-10-03; live test pending):**
+**Phase 4 (deployed 2026-10-03; founder closed it on the live site):**
 
 - [x] Spike (Bakong/KHQR, 03 §3 Phase 4): a KHQR is an EMVCo QR payload
       built from the seller's Bakong ID, so **making one needs no Bakong
@@ -277,14 +276,6 @@ shows "API: ok" from the deployed backend.
 ---
 
 ## In Progress
-
-- [ ] **Phase 4 on the live site (founder):** in Settings → Payments
-      turn on KHQR with your own Bakong ID (in your bank app, with your Bakong/KHQR details; looks like `name@aclb`) and
-      bank transfer. Place one KHQR order on the live shop from your
-      phone, save the QR, and scan it from the gallery in your bank app:
-      it should show your name and the exact amount (no need to pay).
-      Then mark an order paid and complete it. If no bank app accepts the
-      code, tell me what it says.
 
 - [ ] **Carried over from Phase 1 (founder, later):** Cloudflare R2 bucket +
       API token + public dev URL + CORS, then the five `R2_*` env vars in
@@ -506,9 +497,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder's live KHQR scan (In Progress); then close Phase 4.
-2. Apply the Phase 3 and Phase 4 decisions to 01/02/03 (text given in
+1. Apply the Phase 3 and Phase 4 decisions to 01/02/03 (text given in
    the session summaries; see "Decisions Made This Session").
-3. Phase 5: delivery (seller delivery / pickup, delivery fee).
-4. Decide on the two Phase 2 proposals above (link previews, grid photos).
+2. Phase 5: delivery (seller delivery / pickup). Decide first how
+   delivery fees work (01 §46 lists "Delivery fee handling" as open).
+3. Decide on the two Phase 2 proposals above (link previews, grid photos).
 R2 setup whenever the founder is ready.
