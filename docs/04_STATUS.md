@@ -279,31 +279,34 @@ shows "API: ok" from the deployed backend.
 
 **Phase 5 (built 2026-10-03; tested locally, not pushed or deployed):**
 
-- [x] Table + migration `7461cde1fdf0`: `delivery` (1:1 with order,
-      `store_id` + RLS like `payment`, `area_name`, `assignee_note`,
+- [x] Migrations `7461cde1fdf0` + `b2f4c81e9d03`: `delivery` (1:1 with
+      order, `store_id` + RLS like `payment`, `courier`, `assignee_note`,
       `created_at`/`updated_at`); existing orders got a not-assigned
-      delivery for their method. `order.discount` (in the money CHECK) and
-      `store.discount_config`.
-- [x] Settings via `GET/PATCH /seller/store`: `delivery_settings` (seller
-      delivery on/off with up to 10 named areas and fees, free delivery
-      from an amount and/or a number of items; pickup on/off with its
-      address) and `discount_settings` (up to 5 rules "X off once the
-      items reach Y"). A shop needs delivery or pickup on; pickup needs an
-      address; area names must differ; a discount can't exceed its
-      threshold. New and existing shops: free seller delivery, no
-      discounts. The shop page (`delivery`, `discounts`) lists them.
+      delivery for their method. `order.discount` (in the money CHECK),
+      `order.delivery_lat` / `delivery_lng` (both or neither) /
+      `delivery_address_note`, and `store.discount_config`.
+- [x] Settings via `GET/PATCH /seller/store`: `delivery_settings` (one
+      `fee` for any delivery, free delivery from an amount and/or a number
+      of items, own delivery on/off, up to 10 `couriers` such as J&T
+      Express / VET Express, pickup on/off with its address) and
+      `discount_settings` (up to 5 rules "X off once the items reach Y").
+      A shop needs own delivery, a courier, or pickup; pickup needs an
+      address; courier names must differ; a discount can't exceed its
+      threshold. New and existing shops: free own delivery, no discounts.
+      The shop page (`delivery`, `discounts`) lists them.
 - [x] Pricing in `app/services/pricing.py`: total = items − discount +
       delivery fee. The biggest discount reached applies (they never add
-      up), capped at the items. Fee = the chosen area's fee; 0 for pickup,
-      for a shop without areas, or when a free-delivery rule applies
-      (judged on the items before the discount). The storefront repeats it
+      up), capped at the items. Fee = the shop's one fee, whoever
+      delivers; 0 for pickup or when a free-delivery rule applies (judged
+      on the items before the discount). The storefront repeats it
       in `frontend/src/lib/pricing.ts` (must change together); checkout
       still refuses a total that differs (`ORDER_TOTAL_CHANGED`).
-- [x] Checkout: `delivery_method` required, `delivery_area` (by name)
-      when the shop has areas, `delivery_address` only for delivery.
-      `DELIVERY_METHOD_UNAVAILABLE` / `DELIVERY_AREA_UNAVAILABLE` (409)
-      when the seller changed them mid-checkout. A pickup keeps the
-      customer's saved address.
+- [x] Checkout: `delivery_method` required; `courier` (one of the shop's,
+      or null for its own delivery); for delivery the typed address, the
+      phone's GPS location (`delivery_lat`/`lng`), or both, plus an
+      optional `delivery_address_note`. `DELIVERY_METHOD_UNAVAILABLE` /
+      `DELIVERY_OPTION_UNAVAILABLE` (409) when the seller changed them
+      mid-checkout. A pickup keeps the customer's saved address.
 - [x] Delivery state machine (02 §7.3) in `app/services/delivery.py`:
       not_assigned → assigned → picked_up → in_transit → delivered |
       failed, **failed → assigned (retry)**; pickup: not_assigned →
@@ -312,28 +315,34 @@ shows "API: ok" from the deployed backend.
       reads or sets the order's or the payment's status.
 - [x] Completion (02 §7.4): `can_complete` = delivery delivered AND
       (paid or COD). `ORDER_NOT_DELIVERED` / `ORDER_NOT_PAID`.
-- [x] Customer order page: delivery card (area or pickup address, status
+- [x] Customer order page: delivery card (who delivers or the pickup address, status
       in the customer's words; the driver note is seller-only), items /
       discount / delivery / total; pickup orders read "Ready to collect",
       "Handed over", "Collected".
-- [x] Frontend: Settings → Delivery and Discounts; cart shows the
-      discount and "Add $X more to get $Y off"; checkout delivery/pickup
-      choice, area picker, free-delivery note, breakdown, "Total before
-      delivery" until chosen; seller order detail Delivery card (Assign
-      with note, Picked up, On the way, Delivered, Delivery failed, Try
-      again, Customer collected; hint when it holds up completion); list
-      badges for pickup and failed deliveries.
-- [x] 364 pytest tests (166 new): every delivery status pair per method,
+- [x] Frontend: Settings → Delivery (fee, free rules, own delivery,
+      couriers with one-tap J&T Express / VET Express, pickup) and
+      Discounts; cart shows the discount and "Add $X more to get $Y off";
+      checkout: shop delivery / courier / pickup in one list, "Use my
+      current location", address (optional once located), address note,
+      free-delivery note, breakdown, "Total before delivery" until chosen;
+      seller order detail: Delivery card ("Send with VET Express", Book
+      courier / Assign with a note, Picked up, On the way, Delivered,
+      Delivery failed, Try again, Customer collected; hint when it holds
+      up completion), address note and "Open in Google Maps"; list badges
+      for pickup and failed deliveries.
+- [x] 365 pytest tests (167 new): every delivery status pair per method,
       the completion rule for every payment method × payment status ×
       delivery status, pricing (fees, both free-delivery rules at their
       boundaries, best discount, discount before/after fee, cap, riel),
-      checkout with area / free / discount / pickup, refused choices,
+      checkout with own delivery / courier + GPS / free / discount /
+      pickup, refused choices,
       changed fee, settings validation, tenant isolation (RLS and API).
 - [x] Clicked through in headless Chromium at 390 and 1280 px: settings
       saved and reloaded, duplicate area shown by its field, three orders
       ($12 + $2.50 to Provinces; 4 items: $48 − $5, free delivery; pickup
       $12), seller assigns, fails, retries, delivers, completes; pickup
-      collected. axe-core: no WCAG 2.1 A/AA violations; no console errors.
+      collected; reworked flow (couriers, GPS, one fee) re-checked at 390
+      px. axe-core: no WCAG 2.1 A/AA violations; no console errors.
 
 ---
 
@@ -409,18 +418,28 @@ Resolved:
       the seller accepts; a rejected paid order is refunded by the seller.
 - [x] **KHQR in Phase 4, generated on our server from the seller's Bakong
       ID; every payment confirmed by hand** (2026-10-02).
-- [x] **Delivery fees: seller-defined areas with a fee each, plus optional
-      free delivery from an amount or a number of items; pickup is free**
-      (2026-10-03). Closes "Delivery fee handling" in 01 §46.
+- [x] **Delivery fee: one fee per shop, the same for every address and
+      every courier, plus optional free delivery from an amount or a
+      number of items; pickup is free** (2026-10-03). Replaces the
+      per-area fees built first: a customer could pick the cheaper area.
+      Closes "Delivery fee handling" in 01 §46.
+- [x] **Customer location: "Use my current location" (GPS, no map on
+      screen, no API key) + address note; the seller opens it in Google
+      Maps** (2026-10-03). Typed address, GPS, or both.
+- [x] **Couriers, manual: the seller lists the couriers they send with
+      (J&T Express, VET Express, ...); the customer picks one; the seller
+      books it and notes the branch / tracking number** (2026-10-03). No
+      courier API integration (post-MVP, 02 §14).
 - [x] **Bill discounts in Phase 5** (2026-10-03, founder's request): fixed
       amount off once the items reach a threshold; the biggest applies.
       No codes, percentages, or per-product discounts.
 - [x] **Completing an order needs the delivery delivered** as well as the
       payment rule (2026-10-03; 03 said so, 02 §7.4 didn't).
 - [x] **A failed delivery can be retried** (failed → assigned, 2026-10-03).
-- [x] **`delivery` gets `store_id` (RLS), `created_at`, `area_name`;
-      fee rules and pickup address in `store.delivery_config`; discounts
-      in `store.discount_config`; `order.discount`** (2026-10-03).
+- [x] **`delivery` gets `store_id` (RLS), `created_at`, `courier`; order
+      gets `discount`, `delivery_lat`/`lng`, `delivery_address_note`; fee,
+      rules, couriers and pickup in `store.delivery_config`; discounts in
+      `store.discount_config`** (2026-10-03).
 - [x] **Khmer / English switch and light / dark mode in Phase 9**
       (2026-10-02, founder's request). Not built before then; Phases 5–8
       stay English-only and light-only. Language: all of the platform's
@@ -529,15 +548,20 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   reads them as "Ready to collect / Handed over / Collected". If sellers
   find the extra taps annoying, a shorter order path for pickup would be
   a deliberate change to 02 §7.1.
-- Delivery areas are matched by name at checkout; renaming an area while
-  a customer is checking out makes them choose again.
+- Couriers are matched by name at checkout; renaming one while a
+  customer is checking out makes them choose again.
+- "Use my current location" needs https (or localhost): it works on the
+  Vercel site, not on a phone opening the dev server by LAN IP.
+- The courier's tracking number goes in the seller's note, which the
+  customer doesn't see. Showing a tracking number to the customer would
+  be a small addition if sellers want it.
 - Store slugs are global; product/category slugs are unique per store.
   Names with no Latin letters (e.g. Khmer only) get a short random slug.
 - Storefront pages call `useShop` themselves instead of waiting for the
   layout, so a product link costs one round trip. New public endpoints go
   under `/shop/{store_slug}` (`app/api/shop.py`) and use the `Shop` /
   `ShopDb` dependencies; the router-level rate limit covers them.
-- Bundle: 154 KB gzipped after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
+- Bundle: 155 KB gzipped after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
   after Phase 2), mostly
   React DOM, React Router and TanStack Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
   customers) and skipped for now; revisit when later phases make the
