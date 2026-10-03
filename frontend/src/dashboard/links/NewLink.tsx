@@ -65,27 +65,27 @@ export function NewLink() {
             {loading ? (
               <Skeleton className="h-11 w-full rounded-xl" />
             ) : (
-            <Select value={target} onChange={(e) => setTarget(e.target.value)}>
-              <option value="store">Whole shop</option>
-              {shown.length > 0 && (
-                <optgroup label="Products">
-                  {shown.map((p) => (
-                    <option key={p.id} value={`product:${p.id}`}>
-                      {p.name}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-              {categories.data && categories.data.length > 0 && (
-                <optgroup label="Categories">
-                  {categories.data.map((c) => (
-                    <option key={c.id} value={`category:${c.id}`}>
-                      {c.name}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-            </Select>
+              <Select value={target} onChange={(e) => setTarget(e.target.value)}>
+                <option value="store">Whole shop</option>
+                {shown.length > 0 && (
+                  <optgroup label="Products">
+                    {shown.map((p) => (
+                      <option key={p.id} value={`product:${p.id}`}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {categories.data && categories.data.length > 0 && (
+                  <optgroup label="Categories">
+                    {categories.data.map((c) => (
+                      <option key={c.id} value={`category:${c.id}`}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </Select>
             )}
           </Field>
 
