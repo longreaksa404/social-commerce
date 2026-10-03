@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-02 (Phase 4 built and tested locally; not pushed)
+> **Last updated:** 2026-10-03 (Phase 4 deployed; waiting for the founder's live test)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,13 +15,14 @@
 
 ## Current Phase
 
-**Phase 4 — Payments** (built and tested locally 2026-10-02; not pushed
-or deployed yet)
+**Phase 4 — Payments** (deployed 2026-10-03; founder tested locally with
+no errors; live test pending)
 
 Its definition of done holds locally: an order can be placed with cash on
-delivery, bank transfer, or KHQR, and the seller can mark it paid. Still
-to do on the live site: deploy, then the founder scans one KHQR order
-with a real bank app (see In Progress).
+delivery, bank transfer, or KHQR, and the seller can mark it paid. Pushed
+2026-10-02 (CI green); Vercel deployed by itself, the backend was
+deployed by hand by the founder. Still to do: the founder scans one KHQR
+order on the live site with a real bank app (see In Progress).
 
 Phase 3 met its definition of done on 2026-10-02 and the founder closed it
 (by starting Phase 4): on the live site a customer checks out and sees a
@@ -216,7 +217,7 @@ shows "API: ok" from the deployed backend.
       WCAG 2.1 A/AA violations; no console errors besides expected
       409/404 responses.
 
-**Phase 4 (built 2026-10-02; local only, not pushed):**
+**Phase 4 (deployed 2026-10-03; live test pending):**
 
 - [x] Spike (Bakong/KHQR, 03 §3 Phase 4): a KHQR is an EMVCo QR payload
       built from the seller's Bakong ID, so **making one needs no Bakong
@@ -277,9 +278,8 @@ shows "API: ok" from the deployed backend.
 
 ## In Progress
 
-- [ ] **Phase 4 on the live site (founder):** after the push and deploy,
-      in Settings → Payments turn on KHQR with your own Bakong ID (in your
-      bank app, with your Bakong/KHQR details; looks like `name@aclb`) and
+- [ ] **Phase 4 on the live site (founder):** in Settings → Payments
+      turn on KHQR with your own Bakong ID (in your bank app, with your Bakong/KHQR details; looks like `name@aclb`) and
       bank transfer. Place one KHQR order on the live shop from your
       phone, save the QR, and scan it from the gallery in your bank app:
       it should show your name and the exact amount (no need to pay).
@@ -311,20 +311,18 @@ shows "API: ok" from the deployed backend.
   account, or Vercel (Hobby) blocks the deploy. Set per repo with
   `git config user.email longchansamanakreaksa@gmail.com`; the container's
   global `~/.gitconfig` has the work email. Repeat on each machine.
-- **Render missed the Phase 2 auto-deploy (2026-10-02); the Phase 3 push
-  deployed by itself.** The Phase 3 push (last commit `b7c1aa8`, also
-  docs-only after backend commits) auto-deployed after CI, with its
-  migration, a few minutes after the push. So the Phase 2 miss looks
-  like a one-off; if it happens again, see below. Phase 2 details: CI was green
-  (all 8 runs so far are green), yet Render logged no event for the push
-  of `59fdf09`; the founder deployed it manually. Not the build filter:
-  the 2026-10-01 push had the same shape (docs-only last commit, backend
-  changes earlier) and auto-deployed. Not the Render GitHub app (all
-  repos, checks read access). Still to check: every check on `59fdf09`
-  (Vercel's too) on the commit page. If the next backend push also
-  doesn't deploy: deploy manually, then ask Render support or switch
-  `autoDeployTrigger` to `commit`. Pushes that change no `backend/` files
-  never deploy the backend and leave no Render event; that's expected.
+- **Render never auto-deployed a push (found 2026-10-02).** Render's
+  deploy list shows every deploy since the Blueprint was created as
+  "Manual" (Phase 2 `59fdf09`, Phase 3 `b7c1aa8`, Phase 4 `fdb357a`); the
+  earlier note that the Phase 3 push deployed by itself was wrong. Each of
+  those pushes ended with a docs-only commit, and `render.yaml` had a
+  `backend/**` build filter, so Render most likely checked only the last
+  commit and skipped. Fix (2026-10-03, founder approved): build filter
+  removed, so every push deploys after CI. **Check on the next push:** if
+  Render still doesn't deploy by itself, the cause is `checksPass`; then
+  switch `autoDeployTrigger` to `commit`. Until confirmed, check Render's
+  Deploys page after each push and deploy by hand if needed (a new
+  frontend against an old backend breaks checkout).
 
 ---
 
@@ -514,8 +512,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder reviews Phase 4, then push/deploy and the live KHQR scan
-   (In Progress).
+1. Founder's live KHQR scan (In Progress); then close Phase 4.
 2. Apply the Phase 3 and Phase 4 decisions to 01/02/03 (text given in
    the session summaries; see "Decisions Made This Session").
 3. Phase 5: delivery (seller delivery / pickup, delivery fee).

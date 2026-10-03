@@ -11,10 +11,9 @@ services:
     region: singapore
     healthCheckPath: /health
     # Deploy only after the GitHub Actions CI run for the commit passes.
+    # Every push deploys, docs-only ones too: with a backend/** build filter,
+    # pushes whose last commit was docs-only never deployed (2026-10-02).
     autoDeployTrigger: checksPass
-    buildFilter:
-      paths:
-        - backend/**
     envVars:
       - key: ENVIRONMENT
         value: production
