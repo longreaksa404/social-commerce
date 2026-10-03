@@ -1,6 +1,6 @@
-import { MapPin, MapPinned, MessageSquareText, Phone, Truck } from 'lucide-react'
+import { ChevronRight, MapPin, MapPinned, MessageSquareText, Phone, Truck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { useLocation, useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
 import { Badge, Button, Card, ErrorState, Field, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
@@ -11,6 +11,7 @@ import { formatOrderTime, formatPhone, ORDER_STATUS_LABELS, ORDER_STATUS_TONES }
 import { PAYMENT_METHOD_LABELS, paymentBadge } from '../../lib/payments.ts'
 import type { DeliveryStatus, Order, OrderStatus } from '../../lib/types.ts'
 import { useChangeOrderStatus, useOrder, useRecordDelivery, useRecordPayment } from '../queries.ts'
+import { useBackTo } from '../useBackTo.ts'
 
 // The button for moving an order to each status.
 const ACTION_LABELS: Partial<Record<OrderStatus, string>> = {
@@ -27,13 +28,11 @@ const ACTION_LABELS: Partial<Record<OrderStatus, string>> = {
 // Ending an order: asks first, and its items go back into stock.
 const ENDS_ORDER = new Set<OrderStatus>(['rejected', 'cancelled'])
 
-/** /dashboard/orders/:orderId. Links from a customer or a notification
- * pass `state: { back }`, so the back arrow returns there. */
+/** /dashboard/orders/:orderId */
 export function OrderDetail() {
   const { orderId = '' } = useParams()
   const order = useOrder(orderId)
-  const from = (useLocation().state as { back?: unknown } | null)?.back
-  const back = typeof from === 'string' && from.startsWith('/dashboard/') ? from : '/dashboard/orders'
+  const back = useBackTo('/dashboard/orders')
 
   if (order.isPending) return <DetailSkeleton back={back} />
   if (order.error) {
@@ -103,7 +102,17 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
         <PaymentSection order={order} onStale={onStale} />
 
         <Card className="p-4 sm:p-6">
-          <h2 className="font-semibold text-slate-900">Customer</h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-semibold text-slate-900">Customer</h2>
+            <Link
+              to={`/dashboard/customers/${order.customer.id}`}
+              state={{ back: `/dashboard/orders/${order.id}` }}
+              className="-my-2 -mr-2 inline-flex min-h-11 items-center gap-0.5 rounded-lg px-2 text-sm font-medium text-emerald-700 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600"
+            >
+              View customer
+              <ChevronRight aria-hidden className="size-4" />
+            </Link>
+          </div>
           <p className="mt-2 break-words text-slate-900">{order.customer.name}</p>
           <a
             href={`tel:${order.customer.phone}`}

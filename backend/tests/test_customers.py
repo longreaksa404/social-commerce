@@ -2,8 +2,11 @@
 and spent, finding one by name or phone, and their page with their
 orders."""
 
+import uuid
+
 import pytest
 
+from app.core.errors import AppError
 from app.db.session import tenant_session
 from app.services import customer as customer_service
 from app.services.phone import phone_search_terms
@@ -143,3 +146,59 @@ async def test_customers_stay_in_their_store(client, auth_headers):
     async with tenant_session(b_store) as db:
         listed = await customer_service.list_customers(db, a_store)
     assert (listed.customers, listed.total) == ([], 0)
+
+
+async def test_a_customers_page_has_their_details_and_orders(client, auth_headers):
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    cap = await add_product(store_id, "cap", stock=20)
+    first = await place_order(client, slug, [(cap, None, 1)], total="10.00", address="Old St")
+    second = await place_order(client, slug, [(cap, None, 2)], total="20.00", address="New St")
+    await reject(client, headers, second.json()["id"])
+    # Someone else's order isn't on Dara's page.
+    await place_order(
+        client, slug, [(cap, None, 1)], total="10.00", name="Sokha", phone="097 111 222"
+    )
+    [dara] = (await customers(client, headers, q="Dara"))["customers"]
+
+    response = await client.get(f"{URL}/{dara['id']}", headers=headers)
+    assert response.status_code == 200, response.text
+    page = response.json()
+    assert (page["name"], page["phone"], page["address"]) == ("Dara", "012345678", "New St")
+    assert (page["order_count"], page["spent"]) == (2, [{"currency": "USD", "amount": "10.00"}])
+    assert [(o["number"], o["status"], o["total"]) for o in page["orders"]] == [
+        (1002, "rejected", "20.00"),
+        (1001, "pending", "10.00"),
+    ]
+    assert page["orders"][1]["id"] == first.json()["id"]
+    assert page["orders"][1]["payment_method"] == "cod"
+
+
+async def test_a_customers_page_lists_only_their_latest_orders(client, auth_headers, monkeypatch):
+    monkeypatch.setattr(customer_service, "MAX_HISTORY", 2)
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    cap = await add_product(store_id, "cap", stock=20)
+    for _ in range(3):
+        await place_order(client, slug, [(cap, None, 1)], total="10.00")
+    [dara] = (await customers(client, headers))["customers"]
+
+    page = (await client.get(f"{URL}/{dara['id']}", headers=headers)).json()
+    assert [o["number"] for o in page["orders"]] == [1003, 1002]
+    assert page["order_count"] == 3
+    assert page["spent"] == [{"currency": "USD", "amount": "30.00"}]
+
+
+async def test_a_customers_page_is_only_for_their_store(client, auth_headers):
+    a_headers, a_store, a_slug = await registered_seller(client, auth_headers)
+    b_headers, b_store, _ = await registered_seller(client, auth_headers)
+    cap = await add_product(a_store, "cap", stock=20)
+    await place_order(client, a_slug, [(cap, None, 1)], total="10.00")
+    [dara] = (await customers(client, a_headers))["customers"]
+
+    response = await client.get(f"{URL}/{dara['id']}", headers=b_headers)
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "CUSTOMER_NOT_FOUND"
+    assert (await client.get(f"{URL}/{uuid.uuid4()}", headers=a_headers)).status_code == 404
+    # RLS alone: B's session can't load A's customer even asked for A's store.
+    async with tenant_session(b_store) as db:
+        with pytest.raises(AppError):
+            await customer_service.get_customer(db, a_store, uuid.UUID(dara["id"]))

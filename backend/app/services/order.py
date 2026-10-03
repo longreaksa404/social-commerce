@@ -184,6 +184,33 @@ async def record_delivery(
     return order
 
 
+# What order_summary reads; load them with the orders.
+SUMMARY_LOADS = (
+    selectinload(Order.customer),
+    selectinload(Order.items),
+    selectinload(Order.payment),
+    selectinload(Order.delivery),
+)
+
+
+def order_summary(order: Order) -> OrderSummaryOut:
+    """A row in an order list (the Orders tab, a customer's orders)."""
+    return OrderSummaryOut(
+        id=order.id,
+        number=order.number,
+        status=order.status,
+        created_at=order.created_at,
+        currency=order.currency,
+        total=order.total,
+        customer_name=order.customer.name,
+        item_count=sum(item.quantity for item in order.items),
+        payment_method=order.payment.method,
+        payment_status=order.payment.status,
+        delivery_method=order.delivery.method,
+        delivery_status=order.delivery.status,
+    )
+
+
 async def list_orders(
     db: AsyncSession,
     store_id: uuid.UUID,
@@ -204,12 +231,7 @@ async def list_orders(
     query = (
         select(Order)
         .where(*filters)
-        .options(
-            selectinload(Order.customer),
-            selectinload(Order.items),
-            selectinload(Order.payment),
-            selectinload(Order.delivery),
-        )
+        .options(*SUMMARY_LOADS)
         .order_by(Order.number.desc())
         .limit(limit + 1)  # one extra row tells whether there are more
         .offset(offset)
@@ -223,23 +245,7 @@ async def list_orders(
     )
     counts = dict(count_rows.all())
     return OrderListOut(
-        orders=[
-            OrderSummaryOut(
-                id=order.id,
-                number=order.number,
-                status=order.status,
-                created_at=order.created_at,
-                currency=order.currency,
-                total=order.total,
-                customer_name=order.customer.name,
-                item_count=sum(item.quantity for item in order.items),
-                payment_method=order.payment.method,
-                payment_status=order.payment.status,
-                delivery_method=order.delivery.method,
-                delivery_status=order.delivery.status,
-            )
-            for order in orders[:limit]
-        ],
+        orders=[order_summary(order) for order in orders[:limit]],
         has_more=len(orders) > limit,
         counts={status: counts.get(status, 0) for status in S},
     )

@@ -11,12 +11,22 @@ from collections import defaultdict
 from sqlalchemy import ColumnElement, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.errors import NotFound
 from app.models import Customer, Order, OrderStatus
-from app.schemas.customer import AmountOut, CustomerListOut, CustomerSummaryOut
+from app.schemas.customer import (
+    AmountOut,
+    CustomerDetailOut,
+    CustomerListOut,
+    CustomerSummaryOut,
+)
+from app.services import order as order_service
 from app.services.phone import phone_search_terms
 
 # What a customer has spent leaves these out (decided 2026-10-03).
 NOT_SPENT = (OrderStatus.REJECTED, OrderStatus.CANCELLED)
+# A customer's page lists this many of their orders at most, newest first;
+# the rest are still in the Orders tab.
+MAX_HISTORY = 100
 
 
 def _matches(search: str) -> ColumnElement[bool]:
@@ -78,6 +88,36 @@ async def list_customers(
         ],
         has_more=len(rows) > limit,
         total=total or 0,
+    )
+
+
+async def get_customer(
+    db: AsyncSession, store_id: uuid.UUID, customer_id: uuid.UUID
+) -> CustomerDetailOut:
+    customer = await db.scalar(
+        select(Customer).where(Customer.id == customer_id, Customer.store_id == store_id)
+    )
+    if customer is None:
+        raise NotFound("CUSTOMER_NOT_FOUND", "Customer not found.")
+    of_customer = (Order.store_id == store_id, Order.customer_id == customer.id)
+    orders = await db.scalars(
+        select(Order)
+        .where(*of_customer)
+        .options(*order_service.SUMMARY_LOADS)
+        .order_by(Order.number.desc())
+        .limit(MAX_HISTORY)
+    )
+    order_count = await db.scalar(select(func.count()).select_from(Order).where(*of_customer))
+    spent = await _spent(db, store_id, [customer.id])
+    return CustomerDetailOut(
+        id=customer.id,
+        name=customer.name,
+        phone=customer.phone,
+        address=customer.address,
+        created_at=customer.created_at,
+        order_count=order_count or 0,
+        spent=spent.get(customer.id, []),
+        orders=[order_service.order_summary(order) for order in orders],
     )
 
 

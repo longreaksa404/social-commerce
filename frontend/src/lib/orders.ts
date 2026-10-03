@@ -38,6 +38,11 @@ export function formatOrderTime(iso: string, now = new Date()): string {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+/** "Oct 2, 2026". */
+export function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
 /** Stored numbers are digits only ("012345678"); shown as "012 345 678". */
 export function formatPhone(phone: string): string {
   if (/^0\d{8}$/.test(phone)) return phone.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')

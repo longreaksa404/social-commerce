@@ -73,7 +73,7 @@ export function CustomerList() {
       ) : (
         <Card className={`divide-y divide-slate-100 overflow-hidden transition-opacity ${list.isPlaceholderData ? 'opacity-60' : ''}`}>
           {shown.map((customer) => (
-            <CustomerRow key={customer.id} customer={customer} currency={currency} />
+            <CustomerRow key={customer.id} customer={customer} currency={currency} search={search} />
           ))}
         </Card>
       )}
@@ -91,10 +91,20 @@ export function CustomerList() {
   )
 }
 
-function CustomerRow({ customer, currency }: { customer: CustomerSummary; currency: Currency }) {
+function CustomerRow({
+  customer,
+  currency,
+  search,
+}: {
+  customer: CustomerSummary
+  currency: Currency
+  search: string
+}) {
   return (
     <Link
       to={`/dashboard/customers/${customer.id}`}
+      // Back to this list with this search.
+      state={{ back: search ? `/dashboard/customers?q=${encodeURIComponent(search)}` : '/dashboard/customers' }}
       className="flex items-center gap-3 p-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
     >
       <span className="min-w-0 flex-1">

@@ -334,3 +334,19 @@ export type CustomerList = {
   /** Matching the search, on every page. */
   total: number
 }
+
+/** A customer's page: who they are and their orders. */
+export type CustomerDetail = {
+  id: string
+  name: string
+  phone: string
+  /** Their latest delivery address (each order keeps its own). */
+  address: string | null
+  /** Their first order. */
+  created_at: string
+  order_count: number
+  /** As in CustomerSummary. */
+  spent: Amount[]
+  /** Newest first; only the latest 100 if there are more (order_count). */
+  orders: OrderSummary[]
+}

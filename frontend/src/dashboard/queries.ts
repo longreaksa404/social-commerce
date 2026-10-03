@@ -2,6 +2,7 @@ import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClie
 import { api } from '../lib/api.ts'
 import type {
   Category,
+  CustomerDetail,
   CustomerList,
   DeliveryStatus,
   NotificationList,
@@ -27,6 +28,7 @@ export const keys = {
   unreadNotifications: ['notifications', 'unread'] as const,
   customers: ['customers'] as const,
   customerList: (search: string) => ['customers', 'list', search] as const,
+  customer: (id: string) => ['customers', id] as const,
 }
 
 const ORDER_PAGE = 50
@@ -187,5 +189,12 @@ export function useCustomers(search: string) {
     getNextPageParam: (last, pages) => (last.has_more ? pages.length * CUSTOMER_PAGE : undefined),
     // While a new search loads, the last results stay.
     placeholderData: keepPreviousData,
+  })
+}
+
+export function useCustomer(id: string) {
+  return useQuery({
+    queryKey: keys.customer(id),
+    queryFn: () => api<CustomerDetail>(`/seller/customers/${id}`),
   })
 }

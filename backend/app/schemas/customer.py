@@ -7,6 +7,7 @@ from decimal import Decimal
 from pydantic import BaseModel
 
 from app.models import Currency
+from app.schemas.order import OrderSummaryOut
 
 
 class AmountOut(BaseModel):
@@ -32,3 +33,18 @@ class CustomerListOut(BaseModel):
     customers: list[CustomerSummaryOut]
     has_more: bool
     total: int  # customers matching the search, on every page
+
+
+class CustomerDetailOut(BaseModel):
+    """A customer's page: who they are and their orders."""
+
+    id: uuid.UUID
+    name: str
+    phone: str
+    address: str | None  # their latest delivery address
+    created_at: datetime  # their first order
+    order_count: int
+    spent: list[AmountOut]  # as in CustomerSummaryOut
+    # Newest first; only the latest MAX_HISTORY when there are more than
+    # that (order_count says how many).
+    orders: list[OrderSummaryOut]

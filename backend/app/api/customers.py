@@ -1,11 +1,12 @@
 """The seller's customers (02_TECHNICAL.md section 6.2, "Seller - Customers")."""
 
+import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Query
 
 from app.api.deps import Seller, TenantDb
-from app.schemas.customer import CustomerListOut
+from app.schemas.customer import CustomerDetailOut, CustomerListOut
 from app.services import customer as customer_service
 
 router = APIRouter(prefix="/seller/customers", tags=["customers"])
@@ -24,3 +25,9 @@ async def list_customers(
     return await customer_service.list_customers(
         db, seller.store_id, search=q, limit=limit, offset=offset
     )
+
+
+@router.get("/{customer_id}", response_model=CustomerDetailOut)
+async def get_customer(customer_id: uuid.UUID, seller: Seller, db: TenantDb) -> CustomerDetailOut:
+    """Who they are, with their orders (newest first)."""
+    return await customer_service.get_customer(db, seller.store_id, customer_id)
