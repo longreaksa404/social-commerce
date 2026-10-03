@@ -3,6 +3,7 @@
 from app.models.account import Currency, OrderConfirmationMode, RefreshToken, Seller, Store
 from app.models.catalog import Category, Product, ProductStatus, ProductVariant
 from app.models.delivery import Delivery, DeliveryMethod, DeliveryStatus
+from app.models.link import LinkEvent, LinkEventType, LinkTarget, ShareableLink
 from app.models.notification import (
     NotificationChannel,
     NotificationLog,
@@ -18,6 +19,9 @@ __all__ = [
     "Delivery",
     "DeliveryMethod",
     "DeliveryStatus",
+    "LinkEvent",
+    "LinkEventType",
+    "LinkTarget",
     "NotificationChannel",
     "NotificationLog",
     "NotificationStatus",
@@ -33,5 +37,6 @@ __all__ = [
     "ProductVariant",
     "RefreshToken",
     "Seller",
+    "ShareableLink",
     "Store",
 ]
