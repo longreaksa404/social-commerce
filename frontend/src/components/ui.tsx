@@ -14,6 +14,8 @@ import {
 } from 'react'
 import { Link } from 'react-router'
 import { ApiError } from '../lib/api.ts'
+import { priceStep } from '../lib/money.ts'
+import type { Currency } from '../lib/types.ts'
 import { buttonClass, type ButtonSize, type ButtonVariant } from './styles.ts'
 
 // ---------------------------------------------------------------------------
@@ -108,6 +110,34 @@ export function Input({ leading, trailing, className = '', ...props }: InputProp
       {input}
       {trailing && <span className="absolute inset-y-0 right-0 flex items-center pr-1">{trailing}</span>}
     </div>
+  )
+}
+
+/** Amount in the shop's currency, with its symbol in the field. */
+export function MoneyInput({
+  currency,
+  value,
+  onChange,
+  ...props
+}: {
+  currency: Currency
+  value: string
+  onChange: (value: string) => void
+  required?: boolean
+  placeholder?: string
+}) {
+  return (
+    <Input
+      {...props}
+      type="number"
+      inputMode="decimal"
+      min="0"
+      step={priceStep(currency)}
+      leading={<span className="text-sm font-medium">{currency === 'KHR' ? '៛' : '$'}</span>}
+      value={value}
+      onWheel={(e) => e.currentTarget.blur()}
+      onChange={(e) => onChange(e.target.value)}
+    />
   )
 }
 

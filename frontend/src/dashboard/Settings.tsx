@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ExternalLink, LogOut } from 'lucide-react'
+import { ExternalLink, LogOut, Plus, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
@@ -10,7 +10,9 @@ import {
   ErrorMessage,
   ErrorState,
   Field,
+  IconButton,
   Input,
+  MoneyInput,
   PageHeader,
   Section,
   Select,
@@ -20,7 +22,7 @@ import {
 } from '../components/ui.tsx'
 import { api } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
-import type { Currency, OrderConfirmationMode, PaymentSettings, Store } from '../lib/types.ts'
+import type { Currency, DeliverySettings, OrderConfirmationMode, PaymentSettings, Store } from '../lib/types.ts'
 import { keys, useStore } from './queries.ts'
 import { useUnsavedChanges } from './useUnsavedChanges.ts'
 
@@ -44,6 +46,18 @@ export function Settings() {
   )
 }
 
+// Rows the seller can add and remove carry a key for React; inputs hold
+// strings, turned back into the API's shape by toBody.
+type AreaRow = { key: string; name: string; fee: string }
+type RuleRow = { key: string; min_subtotal: string; amount_off: string }
+type DeliveryForm = {
+  enabled: boolean
+  areas: AreaRow[]
+  free_from_amount: string
+  free_from_items: string
+  pickup: DeliverySettings['pickup']
+}
+
 type Form = {
   name: string
   slug: string
@@ -51,15 +65,56 @@ type Form = {
   currency: Currency
   order_confirmation_mode: OrderConfirmationMode
   payment_settings: PaymentSettings
+  delivery: DeliveryForm
+  discounts: RuleRow[]
 }
 
-const toForm = (store: Store): Form => ({
-  name: store.name,
-  slug: store.slug,
-  description: store.description ?? '',
-  currency: store.currency,
-  order_confirmation_mode: store.order_confirmation_mode,
-  payment_settings: store.payment_settings,
+/** "1.50" -> "1.5", "6000.00" -> "6000": what a person would type. */
+const amount = (value: string | null) => (value === null ? '' : String(Number(value)))
+
+const toForm = (store: Store): Form => {
+  const { seller_delivery: delivery, pickup } = store.delivery_settings
+  return {
+    name: store.name,
+    slug: store.slug,
+    description: store.description ?? '',
+    currency: store.currency,
+    order_confirmation_mode: store.order_confirmation_mode,
+    payment_settings: store.payment_settings,
+    delivery: {
+      enabled: delivery.enabled,
+      areas: delivery.areas.map((a, i) => ({ key: `area-${i}`, name: a.name, fee: amount(a.fee) })),
+      free_from_amount: amount(delivery.free_from_amount),
+      free_from_items: delivery.free_from_items === null ? '' : String(delivery.free_from_items),
+      pickup,
+    },
+    discounts: store.discount_settings.rules.map((r, i) => ({
+      key: `rule-${i}`,
+      min_subtotal: amount(r.min_subtotal),
+      amount_off: amount(r.amount_off),
+    })),
+  }
+}
+
+const toBody = (form: Form) => ({
+  name: form.name.trim(),
+  slug: form.slug,
+  description: form.description.trim() || null,
+  currency: form.currency,
+  order_confirmation_mode: form.order_confirmation_mode,
+  payment_settings: form.payment_settings,
+  delivery_settings: {
+    seller_delivery: {
+      enabled: form.delivery.enabled,
+      areas: form.delivery.areas.map(({ name, fee }) => ({ name: name.trim(), fee })),
+      free_from_amount: form.delivery.free_from_amount || null,
+      free_from_items: form.delivery.free_from_items ? Number(form.delivery.free_from_items) : null,
+    },
+    pickup: { ...form.delivery.pickup, address: form.delivery.pickup.address.trim() },
+  },
+  discount_settings: {
+    rules: form.discounts.map(({ min_subtotal, amount_off }) => ({ min_subtotal, amount_off })),
+  },
 })
 
 // Fields the server may name in an error; their message shows by the input.
@@ -76,16 +131,11 @@ function StoreForm({ store }: { store: Store }) {
   const queryClient = useQueryClient()
   const { toast, confirm } = useFeedback()
   const [form, setForm] = useState(() => toForm(store))
-  const baseline = toForm(store)
-  const dirty = JSON.stringify(form) !== JSON.stringify(baseline)
+  const dirty = JSON.stringify(toBody(form)) !== JSON.stringify(toBody(toForm(store)))
   useUnsavedChanges(dirty)
 
   const save = useMutation({
-    mutationFn: () =>
-      api<Store>('/seller/store', {
-        method: 'PATCH',
-        body: { ...form, name: form.name.trim(), description: form.description.trim() || null },
-      }),
+    mutationFn: () => api<Store>('/seller/store', { method: 'PATCH', body: toBody(form) }),
     onSuccess: (updated) => {
       queryClient.setQueryData(keys.store, updated)
       setForm(toForm(updated))
@@ -93,7 +143,8 @@ function StoreForm({ store }: { store: Store }) {
     },
   })
 
-  const set = (key: Exclude<keyof Form, 'payment_settings'>, value: string) => setForm((f) => ({ ...f, [key]: value }))
+  const set = (key: Exclude<keyof Form, 'payment_settings' | 'delivery' | 'discounts'>, value: string) =>
+    setForm((f) => ({ ...f, [key]: value }))
   const setPayment = <M extends keyof PaymentSettings>(method: M, changes: Partial<PaymentSettings[M]>) =>
     setForm((f) => ({
       ...f,
@@ -160,6 +211,20 @@ function StoreForm({ store }: { store: Store }) {
 
       <PaymentsSection settings={form.payment_settings} onChange={setPayment} error={save.error} />
 
+      <DeliverySection
+        delivery={form.delivery}
+        currency={form.currency}
+        onChange={(changes) => setForm((f) => ({ ...f, delivery: { ...f.delivery, ...changes } }))}
+        error={save.error}
+      />
+
+      <DiscountsSection
+        rules={form.discounts}
+        currency={form.currency}
+        onChange={(discounts) => setForm((f) => ({ ...f, discounts }))}
+        error={save.error}
+      />
+
       <Section title="Shop link" description="The address you share with customers.">
         <Field label="Link name" error={fieldError(save.error, 'slug')}>
           <Input
@@ -189,7 +254,16 @@ function StoreForm({ store }: { store: Store }) {
         </Link>
       </Section>
 
-      <ErrorMessage error={formError(save.error, ['name', 'slug', 'description', ...PAYMENT_FIELDS])} />
+      <ErrorMessage
+        error={formError(save.error, [
+          'name',
+          'slug',
+          'description',
+          ...PAYMENT_FIELDS,
+          ...deliveryFields(form.delivery.areas.length),
+          ...discountFields(form.discounts.length),
+        ])}
+      />
       <Button type="submit" size="lg" loading={save.isPending} disabled={!dirty} className="w-full sm:w-auto">
         Save settings
       </Button>
@@ -305,6 +379,239 @@ function PaymentsSection({
         <p role="alert" className="text-sm text-red-600">
           {fieldError(error, 'payment_settings') ?? 'Turn on at least one way to pay.'}
         </p>
+      )}
+    </Section>
+  )
+}
+
+/** The fields the server may name for the delivery settings. */
+function deliveryFields(areaCount: number): string[] {
+  const base = 'delivery_settings.seller_delivery'
+  return [
+    'delivery_settings',
+    'delivery_settings.pickup.address',
+    `${base}.free_from_amount`,
+    `${base}.free_from_items`,
+    ...Array.from({ length: areaCount }, (_, i) => [`${base}.areas.${i}.name`, `${base}.areas.${i}.fee`]).flat(),
+  ]
+}
+
+function discountFields(ruleCount: number): string[] {
+  return Array.from({ length: ruleCount }, (_, i) => [
+    `discount_settings.rules.${i}.min_subtotal`,
+    `discount_settings.rules.${i}.amount_off`,
+  ]).flat()
+}
+
+const MAX_AREAS = 10
+const MAX_DISCOUNTS = 5
+
+function DeliverySection({
+  delivery,
+  currency,
+  onChange,
+  error,
+}: {
+  delivery: DeliveryForm
+  currency: Currency
+  onChange: (changes: Partial<DeliveryForm>) => void
+  error: unknown
+}) {
+  const fieldErr = (field: string) => fieldError(error, `delivery_settings.${field}`)
+  const { areas, pickup } = delivery
+  const setArea = (key: string, changes: Partial<AreaRow>) =>
+    onChange({ areas: areas.map((a) => (a.key === key ? { ...a, ...changes } : a)) })
+  const noneOn = !delivery.enabled && !pickup.enabled
+  return (
+    <Section title="Delivery" description="How customers get their orders. You update each delivery on the order.">
+      <Switch
+        checked={delivery.enabled}
+        onChange={(enabled) => onChange({ enabled })}
+        label="Delivery"
+        description="You, or someone you send, bring the order to the customer."
+      />
+      {delivery.enabled && (
+        <div className="space-y-4 border-l-2 border-slate-100 pl-4">
+          <div>
+            <h3 className="text-sm font-medium text-slate-700">Delivery areas and fees</h3>
+            <p className="mt-0.5 text-xs leading-5 text-slate-500">
+              {areas.length === 0
+                ? 'No areas: delivery is free. Add areas to charge for delivery.'
+                : areas.length === 1
+                  ? 'Customers pay this fee. Add more areas if the fee depends on where they live.'
+                  : 'Customers choose their area at checkout.'}
+            </p>
+          </div>
+          {areas.map((area, index) => (
+            <div key={area.key} className="flex items-start gap-2">
+              <div className="min-w-0 flex-1">
+                <Field label="Area" error={fieldErr(`seller_delivery.areas.${index}.name`)}>
+                  <Input
+                    required
+                    maxLength={50}
+                    autoCapitalize="words"
+                    placeholder={index === 0 ? 'Phnom Penh' : 'Provinces'}
+                    value={area.name}
+                    onChange={(e) => setArea(area.key, { name: e.target.value })}
+                  />
+                </Field>
+              </div>
+              <div className="w-28 shrink-0 sm:w-36">
+                <Field label="Fee" error={fieldErr(`seller_delivery.areas.${index}.fee`)}>
+                  <MoneyInput
+                    required
+                    currency={currency}
+                    value={area.fee}
+                    onChange={(fee) => setArea(area.key, { fee })}
+                  />
+                </Field>
+              </div>
+              <IconButton
+                icon={Trash2}
+                tone="danger"
+                label={`Remove ${area.name || 'area'}`}
+                className="mt-7"
+                onClick={() => onChange({ areas: areas.filter((a) => a.key !== area.key) })}
+              />
+            </div>
+          ))}
+          {areas.length < MAX_AREAS && (
+            <Button
+              variant="secondary"
+              icon={Plus}
+              onClick={() => onChange({ areas: [...areas, { key: crypto.randomUUID(), name: '', fee: '' }] })}
+            >
+              Add area
+            </Button>
+          )}
+          {areas.length > 0 && (
+            <>
+              <Field
+                label="Free delivery from"
+                error={fieldErr('seller_delivery.free_from_amount')}
+                hint="Optional. Free when the items come to this much or more."
+              >
+                <MoneyInput
+                  currency={currency}
+                  placeholder="Off"
+                  value={delivery.free_from_amount}
+                  onChange={(free_from_amount) => onChange({ free_from_amount })}
+                />
+              </Field>
+              <Field
+                label="Free delivery from (items)"
+                error={fieldErr('seller_delivery.free_from_items')}
+                hint="Optional. Free when the customer buys this many items or more, e.g. 3."
+              >
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min="1"
+                  max="999"
+                  step="1"
+                  placeholder="Off"
+                  value={delivery.free_from_items}
+                  onWheel={(e) => e.currentTarget.blur()}
+                  onChange={(e) => onChange({ free_from_items: e.target.value })}
+                />
+              </Field>
+            </>
+          )}
+        </div>
+      )}
+
+      <Switch
+        checked={pickup.enabled}
+        onChange={(enabled) => onChange({ pickup: { ...pickup, enabled } })}
+        label="Pickup"
+        description="Customers collect their order from you, for free."
+      />
+      {pickup.enabled && (
+        <div className="border-l-2 border-slate-100 pl-4">
+          <Field
+            label="Pickup address"
+            error={fieldErr('pickup.address')}
+            hint="Shown at checkout and on the order page."
+          >
+            <TextArea
+              required
+              maxLength={500}
+              autoCapitalize="sentences"
+              placeholder="Shop 12, Orussey Market, Phnom Penh"
+              value={pickup.address}
+              onChange={(e) => onChange({ pickup: { ...pickup, address: e.target.value } })}
+            />
+          </Field>
+        </div>
+      )}
+
+      {(noneOn || fieldError(error, 'delivery_settings')) && (
+        <p role="alert" className="text-sm text-red-600">
+          {fieldError(error, 'delivery_settings') ?? 'Turn on delivery or pickup.'}
+        </p>
+      )}
+    </Section>
+  )
+}
+
+function DiscountsSection({
+  rules,
+  currency,
+  onChange,
+  error,
+}: {
+  rules: RuleRow[]
+  currency: Currency
+  onChange: (rules: RuleRow[]) => void
+  error: unknown
+}) {
+  const setRule = (key: string, changes: Partial<RuleRow>) =>
+    onChange(rules.map((r) => (r.key === key ? { ...r, ...changes } : r)))
+  return (
+    <Section
+      title="Discounts"
+      description="Money off when the items in an order come to an amount. If an order reaches more than one, the biggest applies."
+    >
+      {rules.length === 0 && <p className="text-sm text-slate-500">No discounts.</p>}
+      {rules.map((rule, index) => (
+        <div key={rule.key} className="flex items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <Field label="When items reach" error={fieldError(error, `discount_settings.rules.${index}.min_subtotal`)}>
+              <MoneyInput
+                required
+                currency={currency}
+                value={rule.min_subtotal}
+                onChange={(min_subtotal) => setRule(rule.key, { min_subtotal })}
+              />
+            </Field>
+          </div>
+          <div className="min-w-0 flex-1">
+            <Field label="Take off" error={fieldError(error, `discount_settings.rules.${index}.amount_off`)}>
+              <MoneyInput
+                required
+                currency={currency}
+                value={rule.amount_off}
+                onChange={(amount_off) => setRule(rule.key, { amount_off })}
+              />
+            </Field>
+          </div>
+          <IconButton
+            icon={Trash2}
+            tone="danger"
+            label="Remove discount"
+            className="mt-7"
+            onClick={() => onChange(rules.filter((r) => r.key !== rule.key))}
+          />
+        </div>
+      ))}
+      {rules.length < MAX_DISCOUNTS && (
+        <Button
+          variant="secondary"
+          icon={Plus}
+          onClick={() => onChange([...rules, { key: crypto.randomUUID(), min_subtotal: '', amount_off: '' }])}
+        >
+          Add discount
+        </Button>
       )}
     </Section>
   )

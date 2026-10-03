@@ -10,6 +10,7 @@ import {
   Field,
   IconButton,
   Input,
+  MoneyInput,
   PageHeader,
   Section,
   Select,
@@ -20,7 +21,6 @@ import {
 import { ApiError } from '../../lib/api.ts'
 import { fieldError, formError } from '../../lib/errors.ts'
 import { uploadProductImage } from '../../lib/images.ts'
-import { priceStep } from '../../lib/money.ts'
 import type { Currency, Product, ProductStatus } from '../../lib/types.ts'
 import { useCategories, useProduct, useSaveProduct, useStore } from '../queries.ts'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
@@ -375,33 +375,6 @@ function ProductForm({ product }: { product?: Product }) {
         </div>
       </form>
     </>
-  )
-}
-
-function MoneyInput({
-  currency,
-  value,
-  onChange,
-  ...props
-}: {
-  currency: Currency
-  value: string
-  onChange: (value: string) => void
-  required?: boolean
-  placeholder?: string
-}) {
-  return (
-    <Input
-      {...props}
-      type="number"
-      inputMode="decimal"
-      min="0"
-      step={priceStep(currency)}
-      leading={<span className="text-sm font-medium">{currency === 'KHR' ? '៛' : '$'}</span>}
-      value={value}
-      onWheel={(e) => e.currentTarget.blur()}
-      onChange={(e) => onChange(e.target.value)}
-    />
   )
 }
 

@@ -7,6 +7,9 @@ export type OrderConfirmationMode = 'automatic' | 'manual'
 export type PaymentMethod = 'cod' | 'bank_transfer' | 'khqr'
 /** 02_TECHNICAL.md section 7.2. */
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
+export type DeliveryMethod = 'seller_delivery' | 'pickup'
+/** 02_TECHNICAL.md section 7.3. Pickup goes straight to delivered. */
+export type DeliveryStatus = 'not_assigned' | 'assigned' | 'picked_up' | 'in_transit' | 'delivered' | 'failed'
 
 /** Which ways to pay the shop takes. A method can only be on with its
  * details filled in; details are kept while it's off. */
@@ -15,6 +18,24 @@ export type PaymentSettings = {
   bank_transfer: { enabled: boolean; bank_name: string; account_name: string; account_number: string }
   khqr: { enabled: boolean; bakong_account_id: string; merchant_name: string }
 }
+
+export type DeliveryArea = { name: string; fee: string }
+
+/** How the shop gets orders to customers. Without areas, delivery is free. */
+export type DeliverySettings = {
+  seller_delivery: {
+    enabled: boolean
+    areas: DeliveryArea[]
+    /** Free delivery once the items come to this much (before discounts). */
+    free_from_amount: string | null
+    /** ... or to this many units. */
+    free_from_items: number | null
+  }
+  pickup: { enabled: boolean; address: string }
+}
+
+/** e.g. 5.00 off once the items come to 40.00; the biggest one reached applies. */
+export type DiscountRule = { min_subtotal: string; amount_off: string }
 
 export type Store = {
   id: string
@@ -26,6 +47,8 @@ export type Store = {
   /** automatic: new orders are accepted at once; manual: they wait as pending. */
   order_confirmation_mode: OrderConfirmationMode
   payment_settings: PaymentSettings
+  delivery_settings: DeliverySettings
+  discount_settings: { rules: DiscountRule[] }
   created_at: string
 }
 
@@ -81,6 +104,12 @@ export type ShopStore = {
   categories: (ShopCategoryRef & { product_count: number })[]
   /** For checkout; the details come with the order. */
   payment_methods: PaymentMethod[]
+  /** What checkout offers; null = not offered. */
+  delivery: {
+    seller_delivery: Omit<DeliverySettings['seller_delivery'], 'enabled'> | null
+    pickup: { address: string } | null
+  }
+  discounts: DiscountRule[]
 }
 
 export type ShopProductCard = {
@@ -159,6 +188,26 @@ export type Payment = {
   next_statuses: PaymentStatus[]
 }
 
+/** An order's delivery as its customer sees it. */
+export type ShopDelivery = {
+  method: DeliveryMethod
+  status: DeliveryStatus
+  area_name: string | null
+  /** Where to collect a pickup order, while the order is on. */
+  pickup_address: string | null
+}
+
+/** An order's delivery as the seller sees it. */
+export type Delivery = {
+  method: DeliveryMethod
+  status: DeliveryStatus
+  area_name: string | null
+  assignee_note: string | null
+  updated_at: string
+  /** Where the seller can move it now; the server applies the rules. */
+  next_statuses: DeliveryStatus[]
+}
+
 /** What a customer sees: the confirmation page and order tracking. */
 export type ShopOrder = {
   id: string
@@ -167,15 +216,19 @@ export type ShopOrder = {
   created_at: string
   currency: Currency
   subtotal: string
+  discount: string
   delivery_fee: string
+  /** subtotal - discount + delivery_fee */
   total: string
-  delivery_method: 'seller_delivery' | 'pickup'
+  delivery_method: DeliveryMethod
   items: OrderItem[]
   payment: ShopPayment
+  delivery: ShopDelivery
 }
 
-export type Order = Omit<ShopOrder, 'payment'> & {
+export type Order = Omit<ShopOrder, 'payment' | 'delivery'> & {
   payment: Payment
+  delivery: Delivery
   updated_at: string
   delivery_address: string | null
   notes: string | null
@@ -196,6 +249,8 @@ export type OrderSummary = {
   item_count: number
   payment_method: PaymentMethod
   payment_status: PaymentStatus
+  delivery_method: DeliveryMethod
+  delivery_status: DeliveryStatus
 }
 
 export type OrderList = {
