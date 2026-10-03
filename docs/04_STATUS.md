@@ -311,18 +311,12 @@ shows "API: ok" from the deployed backend.
   account, or Vercel (Hobby) blocks the deploy. Set per repo with
   `git config user.email longchansamanakreaksa@gmail.com`; the container's
   global `~/.gitconfig` has the work email. Repeat on each machine.
-- **Render never auto-deployed a push (found 2026-10-02).** Render's
-  deploy list shows every deploy since the Blueprint was created as
-  "Manual" (Phase 2 `59fdf09`, Phase 3 `b7c1aa8`, Phase 4 `fdb357a`); the
-  earlier note that the Phase 3 push deployed by itself was wrong. Each of
-  those pushes ended with a docs-only commit, and `render.yaml` had a
-  `backend/**` build filter, so Render most likely checked only the last
-  commit and skipped. Fix (2026-10-03, founder approved): build filter
-  removed, so every push deploys after CI. **Check on the next push:** if
-  Render still doesn't deploy by itself, the cause is `checksPass`; then
-  switch `autoDeployTrigger` to `commit`. Until confirmed, check Render's
-  Deploys page after each push and deploy by hand if needed (a new
-  frontend against an old backend breaks checkout).
+- **Render auto-deploy fixed (2026-10-03).** Until then no push had ever
+  auto-deployed the backend (every deploy was "Manual"): each push ended
+  with a docs-only commit and the `backend/**` build filter skipped it.
+  With the filter removed, the push of `7f6fcfe` deployed by itself
+  ("Auto-Deploy" in Render, after CI). Every push now redeploys the
+  backend after CI passes.
 
 ---
 
