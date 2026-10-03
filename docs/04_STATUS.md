@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-03 (Phase 6 built; waiting for the founder's bot)
+> **Last updated:** 2026-10-03 (R2 live, Phase 1 fully done; Phase 6 built, waiting for the founder's bot)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -44,9 +44,10 @@ on the live site, `/shop/reaksa-store` shows the real product on a phone,
 and its product link (tapped, or opened directly) shows that product.
 Checked by the founder and in headless Chromium at 390px.
 
-Phase 1 is deployed and tested by the founder on the live site (2026-10-01).
-One part of its definition of done is carried forward: adding a product
-image needs Cloudflare R2, which the founder will set up later.
+Phase 1 met its full definition of done on 2026-10-03: the last part,
+adding a product image, works on the live site now that Cloudflare R2 is
+set up (founder saw the photo in the shop on their phone). The rest was
+deployed and tested by the founder on 2026-10-01.
 
 Phase 0 met its definition of done on 2026-10-01: the deployed frontend
 shows "API: ok" from the deployed backend.
@@ -92,7 +93,17 @@ shows "API: ok" from the deployed backend.
   - Sentry: projects `api` (FastAPI) and `web` (React), errors only
   - Domain + Cloudflare DNS: deferred to Phase 9
 
-**Phase 1 (deployed 2026-10-01; founder-tested on the live site):**
+**Phase 1 (deployed 2026-10-01; founder-tested on the live site;
+photos live 2026-10-03):**
+
+- [x] **Cloudflare R2 live (2026-10-03):** bucket `social-commerce-images`
+      (Standard class, free tier), public development URL
+      `https://pub-dd493652428741dcac9a6b9257e6cb17.r2.dev`, CORS for PUT/GET
+      from the Vercel site and `localhost:5173`, an Account API token with
+      Object Read & Write on that bucket only. The five `R2_*` vars are in
+      Render and the local `.env` (listed in `render.yaml` as
+      `sync: false`). Photo uploaded on the live site and seen in the shop
+      on the founder's phone.
 
 - [x] Tables + migrations: `seller`, `store` (incl. `currency` USD/KHR),
       `refresh_token`, `category`, `product`, `product_variant` (with
@@ -425,12 +436,6 @@ shows "API: ok" from the deployed backend.
       3. Push, let it deploy, then Settings → Telegram → Connect, tap
          Start, place a test order, and tap Ask seller on a phone.
 
-- [ ] **Carried over from Phase 1 (founder, later):** Cloudflare R2 bucket +
-      API token + public dev URL + CORS, then the five `R2_*` env vars in
-      Render; upload a product photo on the live site. Until then photo
-      upload shows "Image uploads are not set up yet" and products have no
-      images.
-
 ---
 
 ## Known Issues / Blockers
@@ -679,6 +684,15 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   Render free web service sleeps after 15 min idle (slow first request);
   Neon free keeps only a 6-hour restore window, not daily backups. When the
   service moves to a paid instance, switch migrations to `preDeployCommand`.
+- `*.r2.dev` is blocked by the company network's filter (Cisco Umbrella,
+  which answers with its own 404), so product photos look broken on the
+  work laptop, locally and live. Check photos on the phone or at home.
+  Other office/school filters may block `r2.dev` for customers too, and
+  Cloudflare rate-limits it as a development URL. **Phase 9, with the
+  domain:** connect a custom domain to the bucket (e.g. `images.<domain>`)
+  and change `R2_PUBLIC_URL`; no code change. Photos uploaded before
+  then keep their `r2.dev` address, so switch before real sellers add
+  many photos.
 - Use Neon's **direct** connection string, not the pooled (`-pooler`) one:
   asyncpg's prepared statements don't work through PgBouncer by default.
 
@@ -699,5 +713,5 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
    01/02/03.
 2. Phase 7: web notifications + customer list (the `notification_log`
    table already exists).
-3. Decide on the two Phase 2 proposals above (link previews, grid photos).
-R2 setup whenever the founder is ready.
+3. Decide on the two Phase 2 proposals above (link previews, grid photos;
+   grid photos matter more now that R2 is live).
