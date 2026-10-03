@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-03 (Phase 7 closed after the founder's live test)
+> **Last updated:** 2026-10-03 (Phase 8 built locally, waiting for the founder's live test)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,7 +15,13 @@
 
 ## Current Phase
 
-**Next: Phase 8 — Shareable links + basic tracking** (not started)
+**Phase 8 — Shareable links + basic tracking: built, not pushed yet.**
+Waiting for the founder to push and test on the live site: make a link
+from a product's Share button, open it on a phone, place an order, and
+see the view and the order on the link's page; paste a product link in
+Messenger or Telegram and see its name in the preview. 03 has no
+definition of done for Phase 8; suggested text is in "Decisions Made
+This Session".
 
 Phase 7 met its definition of done on 2026-10-03 and the founder closed
 it after testing on the live site: a test order showed on the bell,
@@ -486,6 +492,61 @@ photos live 2026-10-03):**
       another shop's customer not found. axe-core: no WCAG 2.1 A/AA
       violations; no console errors.
 
+**Phase 8 (built 2026-10-03, local only; not pushed or tested live yet):**
+
+- [x] Migration `883276fadeed`: `shareable_link` (as 02 §5.2, `target_id`
+      with no foreign key since it points at a product or a category;
+      token unique) and `link_event` (as 02 §5.2 plus `store_id` for RLS;
+      an order counts for one link at most). RLS on both.
+- [x] `GET /seller/links` (newest first, latest 200, each with views and
+      orders), `POST /seller/links` (shop, product or category + where
+      it's posted + optional name; the same page, place and name returns
+      the existing link; a hidden product can't be shared),
+      `GET /seller/links/{id}/stats` (counts + the orders it brought,
+      latest 100). A link's address is the page's own address +
+      `?l=<8-char token>`, built from the current slugs; null while the
+      product is hidden or the category deleted.
+- [x] `POST /shop/{slug}/track-view {token}`: 204 at once, the view is
+      written after the response (BackgroundTasks); unknown or another
+      shop's token is ignored. Own limit 60/min per IP on top of the shop
+      limit.
+- [x] Checkout takes `link` (the token the device remembered): the order
+      gets the link's `source` and a `link_event(order)` in the order's
+      transaction. Another shop's token does nothing.
+- [x] Shop: opening a page with `?l=` counts a view (once per device per
+      link per 30 min, so reloads don't count) and remembers the link for
+      that shop; an order on the device within 7 days counts for the last
+      link opened (decided 2026-10-03).
+- [x] Dashboard: bottom tabs are now Orders, Customers, Products, Links,
+      Settings (decided 2026-10-03); Categories is a button on Products
+      (and stays in the desktop sidebar). Links tab: each link with what it
+      opens, where it's posted, views and orders. New link: what it opens,
+      Facebook / TikTok / Instagram / Telegram / Messenger / Other (typed),
+      optional name. A link's page: the address with Copy, Share (phone's
+      share sheet) and Open (without the token, so the seller's own look
+      isn't counted), views, orders, the orders themselves. Share buttons
+      on a product, each category and Settings → Shop link. An order that
+      came through a link says "Came through your TikTok link".
+- [x] Link previews (decided 2026-10-03, closes the Phase 2 proposal):
+      `frontend/middleware.ts` (Vercel Routing Middleware on `/shop/*`).
+      Preview bots (Facebook/Messenger, Telegram, TikTok, WhatsApp, ...)
+      get `index.html` with `og:` title, description (price · shop ·
+      description) and photo from the storefront API; people pass
+      through untouched. API slower than 6 s (Render asleep) → the generic
+      card. Adds `@vercel/functions`. Uses `VITE_API_URL`, which Vercel
+      already has.
+- [x] 438 pytest tests (9 new): link addresses per target, the same link
+      twice, hidden product refused, stats kept when the target goes
+      away, views and orders per link and `order.source`, another shop's
+      token ignored, bad token, tenant isolation (API and RLS).
+- [x] Clicked through in headless Chromium (iPhone size, and 320 px for
+      the tabs) against the local dev servers: Share on a product → TikTok
+      + name → link page; customer opens it, reload not counted twice,
+      checkout → the link shows 1 view and 1 order, the order says "Came
+      through your TikTok link". Middleware run locally against the built
+      app: product and shop cards filled in, unknown product → generic
+      card, Facebook's in-app browser passed through.
+
 ---
 
 ## In Progress
@@ -614,15 +675,22 @@ Resolved:
       cancelled ones, including orders still on their way** (2026-10-03).
       Seller-only; customers never see it.
 
+- [x] **Shareable links are saved, named links** (2026-10-03): the seller
+      makes one per place they post (shop / product / category + where +
+      optional name); its address is the page's own + `?l=<token>`.
+      Replaces the hand-typed `?src=&campaign=` of 02 §9.1.
+- [x] **An order counts for the last link opened on that device in the
+      last 7 days** (2026-10-03) and gets its `source`. A view counts once
+      per device per link per 30 minutes.
+- [x] **Links tab replaces Categories in the bottom tabs** (2026-10-03);
+      Categories is a button on Products.
+- [x] **Link previews built with Phase 8** (2026-10-03), as Vercel Routing
+      Middleware for preview bots only.
+- [x] **`link_event` gets `store_id`** (2026-10-03, CLAUDE.md hard rule 1,
+      like `delivery` and `order_item`).
+
 Still open (noticed in Phase 2, not built; founder to decide):
 
-- [ ] **Link previews when sharing.** Facebook, Messenger, Telegram and
-      TikTok build the preview card (title + photo) without running
-      JavaScript, so every shared shop/product link previews as the generic
-      "Social Commerce" page. Fix: a small Vercel function on `/shop/*`
-      that adds Open Graph tags from the API. About 3–5 hrs, $0 on Vercel
-      Hobby, one more piece to maintain. Suggest doing it with Phase 8
-      (shareable links).
 - [ ] **Small photos for the product grid.** The grid loads each product's
       full photo (up to 1600px, a few hundred KB); 20 products can be
       several MB on mobile data. Fix: the phone also makes a ~480px copy
@@ -632,6 +700,29 @@ Still open (noticed in Phase 2, not built; founder to decide):
 ---
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
+
+Phase 8 (2026-10-03), to apply to 01/02/03 when the founder asks:
+
+- 02 §5.2 `shareable_link`: `target_id` has no foreign key (product or
+  category); `token` is 8 lowercase letters/digits, unique; `source` is
+  where it's posted, `campaign` the seller's name for it.
+- 02 §5.2 `link_event`: add `store_id (FK)` for RLS; `order_id` unique.
+- 02 §9.1: replace the `?src=tiktok&campaign=...` paragraph with: "A
+  seller's link is the page's own address plus `?l=<token>`; the link's
+  `source` and `campaign` are saved with it."
+- 02 §9.2 step 2: `POST /shop/{slug}/track-view` takes `{token}`. Step 4:
+  "the device remembers the last link opened per shop for 7 days; an
+  order placed in that time sends its token, gets the link's `source` and
+  writes `link_event(order)`. A view counts once per device per link per
+  30 minutes."
+- 02 §6.2 Storefront: add `POST /api/v1/shop/{store_slug}/track-view`.
+- 02 §3 / §1.3: Vercel Routing Middleware (`frontend/middleware.ts`) adds
+  link-preview tags for preview bots on `/shop/*`.
+- 03 Phase 8: add a task "Link previews (Open Graph tags for preview
+  bots) | 4" (subtotal ~17 hrs; §4 total ~288 hrs) and a definition of
+  done: "A seller makes a link for a product and shares it; it previews
+  with the product's name and photo; opening it and ordering shows one
+  view and one order on the link's page."
 
 
 - Development moved from a Claude Project chat to Claude Code. Docs live in
@@ -759,7 +850,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 - A "Connect Telegram" link works for 30 minutes and for anyone who has
   it; it is only shown to the logged-in seller. Connecting again moves
   alerts to the new chat (one chat per store).
-- Bundle: 159 KB gzipped after Phase 7, 156 KB after Phase 6, 155 KB after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
+- Bundle: 162 KB gzipped after Phase 8, 159 KB after Phase 7, 156 KB after Phase 6, 155 KB after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
   after Phase 2), mostly
   React DOM, React Router and TanStack Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
   customers) and skipped for now; revisit when later phases make the
@@ -796,6 +887,17 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   and change `R2_PUBLIC_URL`; no code change. Photos uploaded before
   then keep their `r2.dev` address, so switch before real sellers add
   many photos.
+- Links: counts are per device, so a customer who opens the link on
+  their phone and orders on a laptop isn't counted; the seller tapping
+  their own link in TikTok counts as a view (the dashboard's Open button
+  doesn't). Preview bots don't run JavaScript, so they never count.
+- Link previews: Facebook caches a link's card; if it was first shared
+  while Render was asleep it may keep the generic card for a while
+  (Facebook's Sharing Debugger can refresh it). Making a link in the
+  dashboard wakes Render, so sharing right after is fine. Changing a
+  product's link name still breaks links already shared, tracked or not.
+- Links are never deleted (no endpoint); the Links page shows the latest
+  200. Add archiving if sellers make many.
 - Use Neon's **direct** connection string, not the pooled (`-pooler`) one:
   asyncpg's prepared statements don't work through PgBouncer by default.
 
@@ -811,7 +913,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Phase 8: shareable links + basic tracking.
-2. Manual regression checklist (03 §7), still missing.
-3. Decide on the two Phase 2 proposals above (link previews, grid photos;
-   grid photos matter more now that R2 is live).
+1. Founder: push and test Phase 8 on the live site (see Current Phase);
+   then close it and apply the 01/02/03 changes listed above.
+2. Phase 9: polish, hardening, first real seller.
+3. Manual regression checklist (03 §7), still missing.
+4. Decide on the remaining Phase 2 proposal (small grid photos).
