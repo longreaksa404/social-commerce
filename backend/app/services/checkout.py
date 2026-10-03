@@ -113,7 +113,7 @@ async def place_order(
     stock_alerts = []
     for line in lines:
         left = await _take_stock(db, store_id, line)
-        alert = notifications.stock_alert(line.name, left + line.quantity, left)
+        alert = notifications.stock_alert(line.product.id, line.name, left + line.quantity, left)
         if alert is not None:
             stock_alerts.append(alert)
 
@@ -148,6 +148,8 @@ async def place_order(
     if store.order_confirmation_mode is OrderConfirmationMode.AUTOMATIC:
         # Same path as the seller tapping "Accept" (02 section 7.1).
         await order_service.transition(db, order, OrderStatus.ACCEPTED)
+    await db.flush()  # gives the order its id, for the notification's link
+    db.add_all(notifications.web_notifications(order, stock_alerts))
     await db.commit()
     return order, stock_alerts
 

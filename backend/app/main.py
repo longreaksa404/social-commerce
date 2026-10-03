@@ -5,7 +5,17 @@ import sentry_sdk
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, categories, health, orders, products, shop, store, telegram
+from app.api import (
+    auth,
+    categories,
+    health,
+    notifications,
+    orders,
+    products,
+    shop,
+    store,
+    telegram,
+)
 from app.core.config import get_settings
 from app.core.errors import install_error_handlers
 from app.core.ratelimit import limiter
@@ -45,6 +55,7 @@ api_v1.include_router(store.router)
 api_v1.include_router(categories.router)
 api_v1.include_router(products.router)
 api_v1.include_router(orders.router)
+api_v1.include_router(notifications.router)
 api_v1.include_router(shop.router)
 api_v1.include_router(telegram.router)
 

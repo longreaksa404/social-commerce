@@ -11,6 +11,7 @@ from app.core.config import get_settings
 from app.db.session import tenant_session, unscoped_session
 from app.models import (
     Currency,
+    NotificationChannel,
     NotificationLog,
     NotificationStatus,
     Order,
@@ -59,11 +60,15 @@ async def connect(store_id, chat_id: int = 555) -> None:
 
 
 async def logs(store_id) -> list[NotificationLog]:
+    """The store's Telegram alerts (not its dashboard notifications)."""
     async with tenant_session(store_id) as db:
         return list(
             await db.scalars(
                 select(NotificationLog)
-                .where(NotificationLog.store_id == store_id)
+                .where(
+                    NotificationLog.store_id == store_id,
+                    NotificationLog.channel == NotificationChannel.TELEGRAM,
+                )
                 .order_by(NotificationLog.sent_at)
             )
         )
@@ -234,7 +239,7 @@ async def test_bad_telegram_username_is_refused(client, auth_headers, typed):
     ],
 )
 def test_stock_alert_on_crossing_only(before, after, left):
-    alert = notifications.stock_alert("Cap", before, after)
+    alert = notifications.stock_alert(uuid.uuid4(), "Cap", before, after)
     assert (alert.left if alert else None) == left
 
 

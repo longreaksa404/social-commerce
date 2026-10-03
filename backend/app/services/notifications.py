@@ -1,20 +1,27 @@
-"""Seller alerts on Telegram (02_TECHNICAL.md section 12.1).
+"""Seller notifications (02_TECHNICAL.md section 12.1): the dashboard's
+notification list (web) and alerts on Telegram.
 
 Only for things the seller didn't do themselves (decided 2026-10-03): a new
 order, and stock running low or out because of one. Cancelling, recording
 a payment and moving a delivery are all the seller's own taps, so they send
-nothing. Sent after the response (FastAPI BackgroundTasks); a failure is
-logged and never affects the order.
+nothing.
+
+The web ones are saved with the order, in its transaction, so the list
+never misses an order or shows one that wasn't placed. The Telegram ones
+are sent after the response (FastAPI BackgroundTasks); a failure is logged
+and never affects the order.
 """
 
 import logging
 import uuid
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import ColumnElement, func, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.config import get_settings
@@ -30,6 +37,7 @@ from app.models import (
     PaymentMethod,
     Store,
 )
+from app.schemas.notification import NotificationListOut, NotificationOut
 from app.services import telegram
 from app.services.telegram import escape
 
@@ -47,16 +55,126 @@ PAYMENT_LABELS = {
 
 @dataclass(frozen=True)
 class StockAlert:
+    product_id: uuid.UUID
     name: str  # "Red T-shirt (XL)"
     left: int
 
 
-def stock_alert(name: str, before: int, after: int) -> StockAlert | None:
+def stock_alert(product_id: uuid.UUID, name: str, before: int, after: int) -> StockAlert | None:
     """An alert when an order takes stock to LOW_STOCK or below, and again
     when it sells out; not for every sale below the line."""
     if after <= 0 < before or after <= LOW_STOCK < before:
-        return StockAlert(name, max(after, 0))
+        return StockAlert(product_id, name, max(after, 0))
     return None
+
+
+def _stock_payload(alerts: list[StockAlert]) -> dict[str, Any]:
+    return {
+        "items": [{"product_id": str(a.product_id), "name": a.name, "left": a.left} for a in alerts]
+    }
+
+
+# Web: the dashboard's notification list
+
+
+def web_notifications(order: Order, alerts: list[StockAlert]) -> list[NotificationLog]:
+    """The dashboard's notifications for a new order, to save with it
+    (whether or not Telegram is connected). The order as placed, as
+    NotificationOut has it; opening it shows where it is now."""
+    rows = [
+        _log(
+            order.store_id,
+            NotificationChannel.WEB,
+            "new_order",
+            {
+                "order": {
+                    "id": str(order.id),
+                    "number": order.number,
+                    "customer_name": order.customer.name,
+                    "item_count": sum(item.quantity for item in order.items),
+                    "total": str(order.total),
+                    "currency": order.currency.value,
+                    "accepted_automatically": order.status is OrderStatus.ACCEPTED,
+                }
+            },
+        )
+    ]
+    if alerts:
+        rows.append(
+            _log(order.store_id, NotificationChannel.WEB, "low_stock", _stock_payload(alerts))
+        )
+    return rows
+
+
+def _web(store_id: uuid.UUID) -> tuple[ColumnElement[bool], ...]:
+    """The store's dashboard notifications (not its Telegram log)."""
+    return NotificationLog.store_id == store_id, NotificationLog.channel == NotificationChannel.WEB
+
+
+async def list_web(
+    db: AsyncSession, store_id: uuid.UUID, *, limit: int = 20, offset: int = 0
+) -> NotificationListOut:
+    """Newest first. Listing doesn't mark them read; mark_read does."""
+    rows = list(
+        await db.scalars(
+            select(NotificationLog)
+            .where(*_web(store_id))
+            .order_by(
+                NotificationLog.sent_at.desc(),
+                # An order and its low-stock alert are saved in one
+                # transaction, so they share sent_at: the order first.
+                NotificationLog.event_type.desc(),
+                NotificationLog.id,
+            )
+            .limit(limit + 1)  # one extra row tells whether there are more
+            .offset(offset)
+        )
+    )
+    return NotificationListOut(
+        notifications=[
+            NotificationOut(
+                id=row.id,
+                event_type=row.event_type,
+                created_at=row.sent_at,
+                read=row.read_at is not None,
+                **row.payload,
+            )
+            for row in rows[:limit]
+        ],
+        has_more=len(rows) > limit,
+        unread=await unread_count(db, store_id),
+    )
+
+
+async def unread_count(db: AsyncSession, store_id: uuid.UUID) -> int:
+    """What the bell shows."""
+    count = await db.scalar(
+        select(func.count())
+        .select_from(NotificationLog)
+        .where(*_web(store_id), NotificationLog.read_at.is_(None))
+    )
+    return count or 0
+
+
+async def mark_read(db: AsyncSession, store_id: uuid.UUID, up_to: datetime) -> int:
+    """Marks read the notifications up to the newest one the seller was
+    shown (not one that arrived since); returns how many are still unread."""
+    await db.execute(
+        update(NotificationLog)
+        .where(
+            *_web(store_id),
+            NotificationLog.read_at.is_(None),
+            NotificationLog.sent_at <= up_to,
+        )
+        .values(read_at=func.now())
+        .execution_options(synchronize_session=False)
+    )
+    unread = await unread_count(db, store_id)
+    await db.commit()
+    return unread
+
+
+# Telegram
 
 
 def format_money(amount: Decimal, currency: Currency) -> str:
@@ -145,8 +263,7 @@ async def notify_new_order(
             )
         ]
         if alerts:
-            payload = {"items": [{"name": a.name, "left": a.left} for a in alerts]}
-            messages.append(("low_stock", payload, low_stock_text(alerts), None))
+            messages.append(("low_stock", _stock_payload(alerts), low_stock_text(alerts), None))
 
         for event_type, payload, text, button in messages:
             status = NotificationStatus.SENT
@@ -164,18 +281,22 @@ async def notify_new_order(
                 status = NotificationStatus.FAILED
                 payload = {**payload, "error": type(exc).__name__}
                 logger.error("Telegram alert failed: %r", exc)
-            db.add(_log(store_id, event_type, payload, status))
+            db.add(_log(store_id, NotificationChannel.TELEGRAM, event_type, payload, status))
             if store.telegram_chat_id is None:
                 break
         await db.commit()
 
 
 def _log(
-    store_id: uuid.UUID, event_type: str, payload: dict[str, Any], status: NotificationStatus
+    store_id: uuid.UUID,
+    channel: NotificationChannel,
+    event_type: str,
+    payload: dict[str, Any],
+    status: NotificationStatus = NotificationStatus.SENT,
 ) -> NotificationLog:
     return NotificationLog(
         store_id=store_id,
-        channel=NotificationChannel.TELEGRAM,
+        channel=channel,
         event_type=event_type,
         payload=payload,
         status=status,
