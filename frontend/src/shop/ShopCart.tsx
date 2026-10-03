@@ -22,9 +22,8 @@ export function ShopCart() {
   const money = (cents: number) => formatMoney(cents / 100, currency)
   const discount = discountCents(checked.subtotalCents, shop.data.discounts)
   const next = nextDiscount(checked.subtotalCents, shop.data.discounts)
-  // Delivery costs something only in a shop with areas; the fee depends on
-  // the area chosen at checkout.
-  const feeLater = Boolean(shop.data.delivery.seller_delivery?.areas.length)
+  // Unless the customer picks pickup (or a free-delivery rule applies).
+  const feeLater = Number(shop.data.delivery.fee) > 0
 
   return (
     <div className="mx-auto max-w-xl">

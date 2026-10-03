@@ -1,3 +1,4 @@
+import { Check, LocateFixed } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import {
@@ -16,7 +17,7 @@ import { fieldError, formError } from '../lib/errors.ts'
 import { formatMoney, fromCents, toCents } from '../lib/money.ts'
 import { PAYMENT_METHOD_LABELS, PAYMENT_METHOD_ORDER } from '../lib/payments.ts'
 import { deliveryFeeCents, discountCents } from '../lib/pricing.ts'
-import type { Currency, DeliveryArea, DeliveryMethod, PaymentMethod, ShopStore } from '../lib/types.ts'
+import type { Currency, PaymentMethod, ShopStore } from '../lib/types.ts'
 import { useCart, useCheckedCart, type CheckedLine } from './cart.ts'
 import { loadCustomerDetails, rememberOrder, saveCustomerDetails } from './device.ts'
 import { usePlaceOrder, useShop } from './queries.ts'
@@ -25,8 +26,18 @@ import { usePlaceOrder, useShop } from './queries.ts'
 // re-checks the cart so the changed lines show what's wrong.
 const CART_CHANGED = new Set(['PRODUCT_OUT_OF_STOCK', 'PRODUCT_UNAVAILABLE', 'ORDER_TOTAL_CHANGED'])
 // The seller changed how they deliver since the page loaded: reload the shop.
-const DELIVERY_CHANGED = new Set(['DELIVERY_METHOD_UNAVAILABLE', 'DELIVERY_AREA_UNAVAILABLE', 'ORDER_TOTAL_CHANGED'])
-const FIELDS = ['name', 'phone', 'delivery_method', 'delivery_area', 'delivery_address', 'notes', 'payment_method']
+const DELIVERY_CHANGED = new Set(['DELIVERY_METHOD_UNAVAILABLE', 'DELIVERY_OPTION_UNAVAILABLE', 'ORDER_TOTAL_CHANGED'])
+const FIELDS = [
+  'name',
+  'phone',
+  'delivery_method',
+  'courier',
+  'delivery_address',
+  'delivery_lat',
+  'delivery_address_note',
+  'notes',
+  'payment_method',
+]
 
 type Form = {
   name: string
@@ -34,8 +45,22 @@ type Form = {
   address: string
   notes: string
   payment: PaymentMethod | null
-  delivery: DeliveryMethod | null
-  area: string | null
+  /** The delivery choice: OWN, PICKUP, or a courier's name. */
+  how: string | null
+  addressNote: string
+  location: Location | null
+}
+
+type Location = { lat: number; lng: number }
+
+// Delivery choices besides the shop's couriers (whose names can't clash
+// with these: they're typed by people).
+const OWN = '\u0000own'
+const PICKUP = '\u0000pickup'
+
+/** The shop's delivery choices, in the order they're offered. */
+function deliveryChoices(options: ShopStore['delivery']): string[] {
+  return [...(options.own_delivery ? [OWN] : []), ...options.couriers, ...(options.pickup ? [PICKUP] : [])]
 }
 
 /** Each part of the price, in cents. `fee` is null until the customer has
@@ -68,11 +93,13 @@ export function ShopCheckout() {
       address: saved?.address ?? '',
       notes: '',
       payment: null,
-      delivery: null,
-      area: null,
+      how: null,
+      addressNote: saved?.addressNote ?? '',
+      location: null,
     }
   })
-  const set = (key: 'name' | 'phone' | 'address' | 'notes', value: string) => setForm((f) => ({ ...f, [key]: value }))
+  const set = (key: 'name' | 'phone' | 'address' | 'notes' | 'addressNote', value: string) =>
+    setForm((f) => ({ ...f, [key]: value }))
 
   // After a successful order the cart is emptied while leaving this page.
   if (cart.lines.length === 0 && !place.isSuccess) return <Navigate to={`/shop/${storeSlug}/cart`} replace />
@@ -84,22 +111,16 @@ export function ShopCheckout() {
   const payment = methods.length === 1 ? methods[0] : form.payment && methods.includes(form.payment) ? form.payment : null
   // The same for delivery: picked for them only when there's one choice.
   const options = shop.data.delivery
-  const deliveryMethods = (['seller_delivery', 'pickup'] as const).filter((m) =>
-    m === 'pickup' ? options.pickup : options.seller_delivery,
-  )
-  const delivery =
-    deliveryMethods.length === 1
-      ? deliveryMethods[0]
-      : form.delivery && deliveryMethods.includes(form.delivery)
-        ? form.delivery
-        : null
-  const areas = options.seller_delivery?.areas ?? []
-  const area =
-    delivery !== 'seller_delivery' ? null : areas.length === 1 ? areas[0] : (areas.find((a) => a.name === form.area) ?? null)
-  const deliveryChosen = delivery === 'pickup' || (delivery === 'seller_delivery' && (areas.length === 0 || area !== null))
+  const choices = deliveryChoices(options)
+  const how = choices.length === 1 ? choices[0] : form.how && choices.includes(form.how) ? form.how : null
+  const pickup = how === PICKUP
+  const courier = how && how !== OWN && how !== PICKUP ? how : null
 
   const discount = discountCents(checked.subtotalCents, shop.data.discounts)
-  const fee = deliveryChosen ? deliveryFeeCents(delivery!, area, checked.subtotalCents, checked.itemCount, options) : null
+  const fee =
+    how === null
+      ? null
+      : deliveryFeeCents(pickup ? 'pickup' : 'seller_delivery', checked.subtotalCents, checked.itemCount, options)
   const price: Price = {
     subtotal: checked.subtotalCents,
     discount,
@@ -109,17 +130,24 @@ export function ShopCheckout() {
 
   async function submit(event: FormEvent) {
     event.preventDefault()
-    if (!checked.ready || place.isPending || !payment || !delivery || !deliveryChosen) return
-    const pickup = delivery === 'pickup'
-    const details = { name: form.name.trim(), phone: form.phone.trim(), address: form.address.trim() }
+    if (!checked.ready || place.isPending || !payment || !how) return
+    const details = {
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      address: form.address.trim(),
+      addressNote: form.addressNote.trim(),
+    }
     let order
     try {
       order = await place.mutateAsync({
         name: details.name,
         phone: details.phone,
-        delivery_method: delivery,
-        delivery_area: area?.name ?? null,
-        delivery_address: pickup ? null : details.address,
+        delivery_method: pickup ? 'pickup' : 'seller_delivery',
+        courier,
+        delivery_address: pickup ? null : details.address || null,
+        delivery_lat: pickup ? null : (form.location?.lat ?? null),
+        delivery_lng: pickup ? null : (form.location?.lng ?? null),
+        delivery_address_note: pickup ? null : details.addressNote || null,
         notes: form.notes.trim() || null,
         items: checked.lines.map((l) => ({ product_id: l.productId, variant_id: l.variantId, quantity: l.quantity })),
         expected_total: fromCents(price.total),
@@ -134,7 +162,11 @@ export function ShopCheckout() {
       return // shown via place.error
     }
     // A pickup order has no address; keep the one saved from a delivery.
-    saveCustomerDetails(pickup ? { ...details, address: loadCustomerDetails()?.address ?? '' } : details)
+    if (!pickup) saveCustomerDetails(details)
+    else {
+      const saved = loadCustomerDetails()
+      saveCustomerDetails({ ...details, address: saved?.address ?? '', addressNote: saved?.addressNote ?? '' })
+    }
     rememberOrder({ id: order.id, shop: storeSlug, number: order.number, phone: details.phone, placedAt: order.created_at })
     navigate(`/shop/${storeSlug}/order/${order.id}`, { replace: true, state: { placed: order, phone: details.phone } })
     cart.clear()
@@ -176,39 +208,56 @@ export function ShopCheckout() {
 
       <DeliverySection
         options={options}
-        methods={deliveryMethods}
-        method={delivery}
-        area={area}
+        choices={choices}
+        how={how}
         currency={currency}
         price={price}
         error={place.error}
-        onMethod={(method) => setForm((f) => ({ ...f, delivery: method }))}
-        onArea={(name) => setForm((f) => ({ ...f, area: name }))}
+        onChoose={(choice) => setForm((f) => ({ ...f, how: choice }))}
       >
-        {delivery !== 'pickup' && (
-          <Field
-            label="Delivery address"
-            hint="House and street number, area, and city."
-            error={fieldError(place.error, 'delivery_address')}
-          >
-            <TextArea
-              required
-              minLength={3}
-              maxLength={500}
-              autoComplete="street-address"
-              autoCapitalize="sentences"
-              value={form.address}
-              onChange={(e) => set('address', e.target.value)}
+        {how !== null && !pickup && (
+          <>
+            <LocationField
+              location={form.location}
+              onChange={(location) => setForm((f) => ({ ...f, location }))}
+              error={fieldError(place.error, 'delivery_lat')}
             />
-          </Field>
+            <Field
+              label={form.location ? 'Address (optional)' : 'Address'}
+              hint={
+                form.location
+                  ? 'Your location is shared. Add the address too if you can.'
+                  : 'House and street number, village, district, and province. Or share your location above.'
+              }
+              error={fieldError(place.error, 'delivery_address')}
+            >
+              <TextArea
+                required={!form.location}
+                minLength={3}
+                maxLength={500}
+                autoComplete="street-address"
+                autoCapitalize="sentences"
+                value={form.address}
+                onChange={(e) => set('address', e.target.value)}
+              />
+            </Field>
+            <Field
+              label="Address note"
+              hint="Optional. Helps the driver find you, e.g. blue gate, next to the pagoda."
+              error={fieldError(place.error, 'delivery_address_note')}
+            >
+              <Input
+                maxLength={500}
+                autoCapitalize="sentences"
+                value={form.addressNote}
+                onChange={(e) => set('addressNote', e.target.value)}
+              />
+            </Field>
+          </>
         )}
         <Field
           label="Note for the seller"
-          hint={
-            delivery === 'pickup'
-              ? 'Optional. For example, when you will come.'
-              : 'Optional. For example, the best time to deliver.'
-          }
+          hint={pickup ? 'Optional. For example, when you will come.' : 'Optional. For example, the best time to deliver.'}
           error={fieldError(place.error, 'notes')}
         >
           <TextArea
@@ -300,102 +349,71 @@ export function ShopCheckout() {
 
 function DeliverySection({
   options,
-  methods,
-  method,
-  area,
+  choices,
+  how,
   currency,
   price,
   error,
-  onMethod,
-  onArea,
+  onChoose,
   children,
 }: {
   options: ShopStore['delivery']
-  methods: DeliveryMethod[]
-  method: DeliveryMethod | null
-  area: DeliveryArea | null
+  choices: string[]
+  how: string | null
   currency: Currency
   price: Price
   error: unknown
-  onMethod: (method: DeliveryMethod) => void
-  onArea: (name: string) => void
+  onChoose: (choice: string) => void
   children: ReactNode
 }) {
   const money = (amount: string) => formatMoney(amount, currency)
-  const areas = options.seller_delivery?.areas ?? []
-  const fees = areas.map((a) => toCents(a.fee))
-  const feeHint =
-    areas.length === 0
-      ? 'Free delivery.'
-      : Math.min(...fees) === Math.max(...fees)
-        ? `Delivery fee ${money(areas[0].fee)}.`
-        : `Delivery fee from ${formatMoney(Math.min(...fees) / 100, currency)}, depending on where you live.`
-  const free = options.seller_delivery
+  const feeText = Number(options.fee) > 0 ? money(options.fee) : 'Free'
   const freeRules = [
-    free?.free_from_amount != null && `orders from ${money(free.free_from_amount)}`,
-    free?.free_from_items != null && `${free.free_from_items} or more items`,
+    options.free_from_amount !== null && `orders from ${money(options.free_from_amount)}`,
+    options.free_from_items !== null && `${options.free_from_items} or more items`,
   ].filter(Boolean)
-  const hints: Record<DeliveryMethod, string> = {
-    seller_delivery: `The seller brings it to you. ${feeHint}`,
-    pickup: `Collect it from the seller, for free.`,
-  }
-  // A free-delivery rule applies to this order (the area alone has a fee).
-  const freeNow = area !== null && price.fee === 0 && toCents(area.fee) > 0
-  const methodError = fieldError(error, 'delivery_method')
-  const areaError = fieldError(error, 'delivery_area')
+  const delivering = how !== null && how !== PICKUP
+  // A free-delivery rule applies to this order (the shop charges otherwise).
+  const freeNow = delivering && price.fee === 0 && Number(options.fee) > 0
+  const label = (choice: string) =>
+    choice === OWN ? 'Delivery by the shop' : choice === PICKUP ? 'Pickup' : choice
+  const hint = (choice: string) =>
+    choice === OWN
+      ? 'The seller brings it to you.'
+      : choice === PICKUP
+        ? 'Collect it from the seller.'
+        : 'Sent with this delivery company.'
+  const choiceError = fieldError(error, 'delivery_method') ?? fieldError(error, 'courier')
   return (
-    <Section title={methods.length === 1 && methods[0] === 'pickup' ? 'Pickup' : 'Delivery'}>
-      {methods.length > 1 && (
-        <fieldset aria-describedby={methodError ? 'delivery-method-error' : undefined}>
-          <legend className="sr-only">How do you want to get your order?</legend>
+    <Section title={choices.length === 1 && choices[0] === PICKUP ? 'Pickup' : 'Delivery'}>
+      {choices.length > 1 ? (
+        <fieldset aria-describedby={choiceError ? 'delivery-choice-error' : undefined}>
+          <legend className="mb-1.5 block text-sm font-medium text-slate-700">How do you want to get your order?</legend>
           <div className="space-y-2">
-            {methods.map((m) => (
+            {choices.map((choice) => (
               <ChoiceCard
-                key={m}
-                name="delivery-method"
-                checked={method === m}
-                onChange={() => onMethod(m)}
-                label={m === 'pickup' ? 'Pickup' : 'Delivery'}
-                hint={hints[m]}
+                key={choice}
+                name="delivery-choice"
+                checked={how === choice}
+                onChange={() => onChoose(choice)}
+                label={label(choice)}
+                hint={hint(choice)}
+                trailing={choice === PICKUP ? 'Free' : feeText}
               />
             ))}
           </div>
-          {methodError && (
-            <p id="delivery-method-error" className="mt-2 text-sm text-red-600">
-              {methodError}
+          {choiceError && (
+            <p id="delivery-choice-error" className="mt-2 text-sm text-red-600">
+              {choiceError}
             </p>
           )}
         </fieldset>
-      )}
-
-      {method === 'seller_delivery' && areas.length > 1 && (
-        <fieldset aria-describedby={areaError ? 'delivery-area-error' : undefined}>
-          <legend className="mb-1.5 block text-sm font-medium text-slate-700">Where should we deliver?</legend>
-          <div className="space-y-2">
-            {areas.map((a) => (
-              <ChoiceCard
-                key={a.name}
-                name="delivery-area"
-                checked={area?.name === a.name}
-                onChange={() => onArea(a.name)}
-                label={a.name}
-                trailing={money(a.fee)}
-              />
-            ))}
-          </div>
-          {areaError && (
-            <p id="delivery-area-error" className="mt-2 text-sm text-red-600">
-              {areaError}
-            </p>
-          )}
-        </fieldset>
-      )}
-      {method === 'seller_delivery' && areas.length === 1 && methods.length === 1 && (
-        <p className="text-sm text-slate-600">
-          Delivery to {areas[0].name}: {money(areas[0].fee)}
+      ) : (
+        <p className="text-sm text-slate-700">
+          {label(choices[0])}: {choices[0] === PICKUP ? 'Free' : feeText}
         </p>
       )}
-      {method === 'seller_delivery' && freeRules.length > 0 && (
+      {delivering && freeRules.length > 0 && Number(options.fee) > 0 && (
         <p
           className={`rounded-xl px-3.5 py-2.5 text-sm ${freeNow ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-50 text-slate-700'}`}
         >
@@ -403,7 +421,7 @@ function DeliverySection({
         </p>
       )}
 
-      {method === 'pickup' && options.pickup && (
+      {how === PICKUP && options.pickup && (
         <div className="rounded-xl bg-slate-50 px-3.5 py-2.5">
           <p className="text-xs font-medium text-slate-500">Pick up at</p>
           <p className="mt-0.5 whitespace-pre-line break-words text-sm text-slate-900">{options.pickup.address}</p>
@@ -412,6 +430,83 @@ function DeliverySection({
 
       {children}
     </Section>
+  )
+}
+
+/** "Use my current location": the phone's GPS position, so the seller
+ * can open it in Google Maps. Needs https (or localhost). */
+function LocationField({
+  location,
+  onChange,
+  error,
+}: {
+  location: Location | null
+  onChange: (location: Location | null) => void
+  error: string | null
+}) {
+  const [locating, setLocating] = useState(false)
+  const [problem, setProblem] = useState<string | null>(null)
+
+  function locate() {
+    if (!('geolocation' in navigator)) {
+      setProblem("This browser can't share your location. Type your address instead.")
+      return
+    }
+    setLocating(true)
+    setProblem(null)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocating(false)
+        onChange({ lat: position.coords.latitude, lng: position.coords.longitude })
+      },
+      (failure) => {
+        setLocating(false)
+        setProblem(
+          failure.code === failure.PERMISSION_DENIED
+            ? 'Location is blocked. Allow it for this site in your browser settings, or type your address.'
+            : "Couldn't find your location. Try again outside, or type your address.",
+        )
+      },
+      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 60_000 },
+    )
+  }
+
+  const message = problem ?? error
+  return (
+    <div>
+      {location ? (
+        <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-800">
+          <Check aria-hidden className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1">
+            Location shared.{' '}
+            <a
+              href={`https://www.google.com/maps?q=${location.lat},${location.lng}`}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium underline"
+            >
+              Check it on the map
+            </a>
+          </span>
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="-my-2 -mr-2 min-h-11 rounded-lg px-2 font-medium hover:underline"
+          >
+            Remove
+          </button>
+        </div>
+      ) : (
+        <Button variant="secondary" icon={LocateFixed} loading={locating} onClick={locate} className="w-full">
+          Use my current location
+        </Button>
+      )}
+      {message && (
+        <p role="alert" className="mt-1.5 text-sm text-red-600">
+          {message}
+        </p>
+      )}
+    </div>
   )
 }
 

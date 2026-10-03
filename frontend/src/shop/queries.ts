@@ -63,10 +63,13 @@ export type OrderRequest = {
   name: string
   phone: string
   delivery_method: DeliveryMethod
-  /** One of the shop's area names; null for pickup or a shop without areas. */
-  delivery_area: string | null
-  /** Null for pickup. */
+  /** One of the shop's couriers; null = the shop's own delivery, or pickup. */
+  courier: string | null
+  /** A delivery needs the address, the GPS location, or both; null for pickup. */
   delivery_address: string | null
+  delivery_lat: number | null
+  delivery_lng: number | null
+  delivery_address_note: string | null
   notes: string | null
   items: { product_id: string; variant_id: string | null; quantity: number }[]
   /** What the customer was shown; the server refuses the order if prices,

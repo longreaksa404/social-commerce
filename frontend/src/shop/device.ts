@@ -2,7 +2,7 @@
  * next checkout, and the orders placed on it with the phone that opens each
  * one's tracking page (02_TECHNICAL.md section 8). No account needed. */
 
-export type CustomerDetails = { name: string; phone: string; address: string }
+export type CustomerDetails = { name: string; phone: string; address: string; addressNote: string }
 export type PlacedOrder = { id: string; shop: string; number: number; phone: string; placedAt: string }
 
 const DETAILS_KEY = 'sc.customer'
@@ -28,7 +28,12 @@ function write(key: string, value: unknown) {
 export function loadCustomerDetails(): CustomerDetails | null {
   const details = read(DETAILS_KEY) as Partial<CustomerDetails> | null
   return typeof details?.name === 'string' && typeof details.phone === 'string'
-    ? { name: details.name, phone: details.phone, address: details.address ?? '' }
+    ? {
+        name: details.name,
+        phone: details.phone,
+        address: details.address ?? '',
+        addressNote: details.addressNote ?? '',
+      }
     : null
 }
 

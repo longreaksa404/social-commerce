@@ -284,7 +284,7 @@ function DeliveryCard({ order }: { order: ShopOrder }) {
     <Card className="p-4 sm:p-6">
       <h2 className="flex items-center gap-2 font-semibold text-slate-900">
         <Icon aria-hidden className="size-4.5 text-slate-500" />
-        {pickup ? 'Pickup' : delivery.area_name ? `Delivery to ${delivery.area_name}` : 'Delivery'}
+        {pickup ? 'Pickup' : delivery.courier ? `Delivery by ${delivery.courier}` : 'Delivery by the shop'}
       </h2>
       <p
         className={`mt-1 text-sm font-medium ${delivery.status === 'failed' ? 'text-red-700' : delivery.status === 'delivered' ? 'text-emerald-700' : 'text-slate-700'}`}

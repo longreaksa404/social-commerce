@@ -1,5 +1,5 @@
 import { toCents } from './money.ts'
-import type { DeliveryArea, DeliveryMethod, DiscountRule, ShopStore } from './types.ts'
+import type { DeliveryMethod, DiscountRule, ShopStore } from './types.ts'
 
 // What an order costs, in whole cents: the same math as the server's
 // app/services/pricing.py, which refuses the order if the totals differ.
@@ -12,21 +12,19 @@ export function discountCents(subtotal: number, rules: DiscountRule[]): number {
   return Math.min(Math.max(0, ...reached), subtotal)
 }
 
-/** Pickup is free, and so is delivery in a shop without areas. Otherwise
- * the area's fee, unless the items come to enough (before any discount)
- * or there are enough of them. */
+/** The shop's one delivery fee, whoever delivers. Pickup is free, and so
+ * is delivery when the items come to enough (before any discount) or
+ * there are enough of them. */
 export function deliveryFeeCents(
   method: DeliveryMethod,
-  area: DeliveryArea | null,
   subtotal: number,
   itemCount: number,
   delivery: ShopStore['delivery'],
 ): number {
-  const rules = delivery.seller_delivery
-  if (method === 'pickup' || !area || !rules) return 0
-  if (rules.free_from_amount !== null && subtotal >= toCents(rules.free_from_amount)) return 0
-  if (rules.free_from_items !== null && itemCount >= rules.free_from_items) return 0
-  return toCents(area.fee)
+  if (method === 'pickup') return 0
+  if (delivery.free_from_amount !== null && subtotal >= toCents(delivery.free_from_amount)) return 0
+  if (delivery.free_from_items !== null && itemCount >= delivery.free_from_items) return 0
+  return toCents(delivery.fee)
 }
 
 /** The next discount the customer could reach, for a nudge in the cart. */
