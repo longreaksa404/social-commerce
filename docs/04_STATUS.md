@@ -680,6 +680,12 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   React DOM, React Router and TanStack Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
   customers) and skipped for now; revisit when later phases make the
   dashboard bigger (it would also need a reload-on-stale-chunk fallback).
+- **Before launch (Phase 9): revoke the Telegram bot token.** It was
+  committed by mistake in `5b147df` (reverted in `8514d9b`) and pushed, so
+  it stays in the private repo's history. Founder chose to revoke at
+  launch: @BotFather → `/revoke` → ReaksaShopAlertBot, put the new token in
+  Render's `TELEGRAM_BOT_TOKEN`, redeploy, reconnect in Settings → Telegram.
+  The token goes only in Render / `.env`, never in code.
 - Free-tier limits to revisit before the first real seller (Phase 9): the
   Render free web service sleeps after 15 min idle (slow first request);
   Neon free keeps only a 6-hour restore window, not daily backups. When the
