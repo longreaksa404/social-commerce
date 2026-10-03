@@ -63,7 +63,12 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     currency: Mapped[Currency] = mapped_column(
         str_enum(Currency, "currency"), default=Currency.USD, server_default="USD"
     )
+    # The chat the bot sends this store's order alerts to; set when the
+    # seller opens the bot's link from Settings (app/services/telegram.py).
     telegram_chat_id: Mapped[str | None] = mapped_column(Text)
+    # The seller's own Telegram account, without the @: "Ask seller" on the
+    # shop opens a chat with it. Public.
+    telegram_username: Mapped[str | None] = mapped_column(Text)
     payment_config: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, server_default="{}")
     delivery_config: Mapped[dict[str, Any]] = mapped_column(
         JSONB, default=dict, server_default="{}"

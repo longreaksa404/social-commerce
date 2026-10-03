@@ -32,6 +32,26 @@ class Settings(BaseSettings):
     r2_bucket: str = ""
     r2_public_url: str = ""  # e.g. https://pub-xxxx.r2.dev, no trailing slash
 
+    # Telegram bot for seller order alerts (02_TECHNICAL.md section 12).
+    # Off until the token, username and webhook secret are all set.
+    telegram_bot_token: str = ""
+    telegram_bot_username: str = ""  # without the @, e.g. MyShopAlertsBot
+    # Any random string (A-Z, a-z, 0-9, _ and -); Telegram sends it back on
+    # every webhook call so we know the call is really from Telegram.
+    telegram_webhook_secret: str = ""
+    # This API's public https address, e.g. https://social-commerce-api.onrender.com.
+    # When set (with the bot), the webhook is registered with Telegram at
+    # startup. Leave empty locally so a dev server never takes over the bot.
+    public_api_url: str = ""
+    # The web app's public address, for "Open order" links in alerts.
+    public_app_url: str = ""
+
+    @property
+    def telegram_configured(self) -> bool:
+        return all(
+            (self.telegram_bot_token, self.telegram_bot_username, self.telegram_webhook_secret)
+        )
+
     @property
     def r2_configured(self) -> bool:
         return all(

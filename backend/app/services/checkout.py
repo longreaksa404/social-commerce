@@ -31,6 +31,7 @@ from app.models import (
 )
 from app.schemas.order import OrderCreate, OrderLineIn, ShopOrderOut
 from app.services import delivery as delivery_service
+from app.services import notifications
 from app.services import order as order_service
 from app.services import payment as payment_service
 from app.services.phone import normalize_phone
@@ -63,7 +64,11 @@ class _Line:
         return f"{self.product.name} ({self.variant.name})" if self.variant else self.product.name
 
 
-async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) -> Order:
+async def place_order(
+    db: AsyncSession, store_id: uuid.UUID, data: OrderCreate
+) -> tuple[Order, list[notifications.StockAlert]]:
+    """The placed order, and the products it took down to low or out of
+    stock (for the seller's alert)."""
     # Locks the store row until commit, so checkouts in one store run one
     # at a time: order numbers stay unique, and one phone can't become two
     # customers. Fine at MVP volume.
@@ -105,8 +110,12 @@ async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) 
             "Check your order and place it again.",
         )
 
+    stock_alerts = []
     for line in lines:
-        await _take_stock(db, store_id, line)
+        left = await _take_stock(db, store_id, line)
+        alert = notifications.stock_alert(line.name, left + line.quantity, left)
+        if alert is not None:
+            stock_alerts.append(alert)
 
     order = Order(
         store_id=store_id,
@@ -140,7 +149,7 @@ async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) 
         # Same path as the seller tapping "Accept" (02 section 7.1).
         await order_service.transition(db, order, OrderStatus.ACCEPTED)
     await db.commit()
-    return order
+    return order, stock_alerts
 
 
 async def track_order(
@@ -267,12 +276,13 @@ async def _resolve_lines(
     return lines
 
 
-async def _take_stock(db: AsyncSession, store_id: uuid.UUID, line: _Line) -> None:
+async def _take_stock(db: AsyncSession, store_id: uuid.UUID, line: _Line) -> int:
+    """Takes the line's quantity from stock; returns how many are left."""
     model = ProductVariant if line.variant is not None else Product
     row_id = line.variant.id if line.variant is not None else line.product.id
     # Checked and taken in one statement: a seller saving new stock between
     # the check above and here can't make it go negative.
-    result = await db.execute(
+    left = await db.scalar(
         update(model)
         .where(
             model.id == row_id,
@@ -280,10 +290,12 @@ async def _take_stock(db: AsyncSession, store_id: uuid.UUID, line: _Line) -> Non
             model.stock_quantity >= line.quantity,
         )
         .values(stock_quantity=model.stock_quantity - line.quantity)
+        .returning(model.stock_quantity)
         .execution_options(synchronize_session=False)
     )
-    if result.rowcount != 1:
+    if left is None:
         raise _out_of_stock(line)
+    return left
 
 
 def _out_of_stock(line: _Line) -> AppError:

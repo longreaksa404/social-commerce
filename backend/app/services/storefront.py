@@ -64,6 +64,7 @@ async def store_page(db: AsyncSession, store: Store) -> ShopStoreOut:
         payment_methods=payment_settings(store).enabled_methods(),
         delivery=shop_delivery_options(store),
         discounts=discount_settings(store).rules,
+        telegram_username=store.telegram_username,
     )
 
 

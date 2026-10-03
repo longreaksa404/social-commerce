@@ -36,7 +36,9 @@ async def test_store_page_shows_only_categories_with_active_products(client, mak
         "payment_methods",  # names only; bank details come with an order
         "delivery",
         "discounts",
+        "telegram_username",  # for "Ask seller"; the alerts chat id stays private
     }
+    assert body["telegram_username"] is None
     assert body["currency"] == "USD"
     assert body["payment_methods"] == ["cod"]  # a new shop takes cash on delivery
     # ... and delivers itself, for free.

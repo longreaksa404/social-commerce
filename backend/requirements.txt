@@ -11,3 +11,4 @@ bcrypt==5.0.0
 slowapi==0.1.10
 limits==5.8.0
 boto3==1.43.106
+httpx==0.28.1

@@ -3,7 +3,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, status
 
 from app.api.deps import Shop, ShopDb
 from app.core.ratelimit import check_limit, limiter
@@ -15,6 +15,7 @@ from app.schemas.storefront import (
     ShopStoreOut,
 )
 from app.services import checkout as checkout_service
+from app.services import notifications
 from app.services import storefront as storefront_service
 
 # Per IP, across all storefront endpoints. Generous because customers on
@@ -70,9 +71,13 @@ async def get_category(category_slug: str, shop: Shop, db: ShopDb) -> ShopCatego
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(_order_rate_limit)],
 )
-async def place_order(data: OrderCreate, shop: Shop, db: ShopDb) -> ShopOrderOut:
+async def place_order(
+    data: OrderCreate, shop: Shop, db: ShopDb, background: BackgroundTasks
+) -> ShopOrderOut:
     """Guest checkout (02_TECHNICAL.md section 5.4)."""
-    order = await checkout_service.place_order(db, shop.id, data)
+    order, stock_alerts = await checkout_service.place_order(db, shop.id, data)
+    # After the response, so a slow Telegram never holds up the customer.
+    background.add_task(notifications.notify_new_order, shop.id, order.id, stock_alerts)
     return checkout_service.shop_order_out(shop, order)
 
 

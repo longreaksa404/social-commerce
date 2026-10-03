@@ -1,6 +1,7 @@
 """Public storefront responses: only what a customer may see. No SKUs,
-product status, payment/Telegram settings, or seller details. Delivery
-fees, the pickup address and discounts are public: checkout shows them."""
+product status, payment settings, the alerts chat, or seller details.
+Delivery fees, the pickup address and discounts are public: checkout shows
+them, and so is the seller's Telegram username, for "Ask seller"."""
 
 import uuid
 from decimal import Decimal
@@ -36,6 +37,8 @@ class ShopStoreOut(BaseModel):
     # out the total with them (app/services/pricing.py).
     delivery: ShopDeliveryOptions
     discounts: list[DiscountRule]
+    # The seller's own Telegram account (no @); null hides "Ask seller".
+    telegram_username: str | None
 
 
 class ShopProductCard(BaseModel):

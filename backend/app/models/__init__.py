@@ -3,6 +3,11 @@
 from app.models.account import Currency, OrderConfirmationMode, RefreshToken, Seller, Store
 from app.models.catalog import Category, Product, ProductStatus, ProductVariant
 from app.models.delivery import Delivery, DeliveryMethod, DeliveryStatus
+from app.models.notification import (
+    NotificationChannel,
+    NotificationLog,
+    NotificationStatus,
+)
 from app.models.order import Customer, Order, OrderItem, OrderStatus
 from app.models.payment import Payment, PaymentMethod, PaymentStatus
 
@@ -13,6 +18,9 @@ __all__ = [
     "Delivery",
     "DeliveryMethod",
     "DeliveryStatus",
+    "NotificationChannel",
+    "NotificationLog",
+    "NotificationStatus",
     "Order",
     "OrderConfirmationMode",
     "OrderItem",
