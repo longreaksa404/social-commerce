@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-03 (Phase 6 closed after the founder's live test)
+> **Last updated:** 2026-10-03 (Phase 7 built and committed, not pushed yet)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,7 +15,13 @@
 
 ## Current Phase
 
-**Next: Phase 7 — Web notifications + customer management** (not started)
+**Phase 7 — Web notifications + customer management: built, waiting for
+the founder's live test** (committed on `main`, not pushed or deployed yet)
+
+Proposed definition of done (03 has none for Phase 7): a test order makes
+the bell show a count and tapping the notification opens the order; from
+the order, the seller opens the customer and sees their details and order
+history.
 
 Phase 6 met its definition of done on 2026-10-03 and the founder closed
 it after testing on the live site with their bot (ReaksaShopAlertBot):
@@ -427,11 +433,67 @@ photos live 2026-10-03):**
       pre-fill not checked yet (if it doesn't, the chat still opens,
       just empty).
 
+**Phase 7 (built 2026-10-03; committed, not pushed; founder to test live):**
+
+- [x] Migration `aa40287b7688`: `notification_log.read_at` (decided
+      2026-10-03: read on one device is read on all) and an index on
+      `(store_id, channel, sent_at)`.
+- [x] Web notifications: every order saves a `web` row in
+      `notification_log` in the order's own transaction, whether or not
+      Telegram is connected, plus a low-stock row when it takes a product
+      or option to 5 or fewer or sells it out: the same two events as the
+      Telegram alerts. The row keeps the order as placed (number,
+      customer name, units, total, currency, accepted automatically) or
+      the products (id, name, left).
+- [x] `GET /seller/notifications` (newest first, paged, with the unread
+      count), `GET /seller/notifications/unread` (the bell), `POST
+      /seller/notifications/read` with `up_to` = the newest one the seller
+      was shown, so one arriving meanwhile stays unread.
+- [x] `GET /seller/customers` (whoever ordered last first, paged, total):
+      orders, last order, and what they spent = every order except
+      rejected and cancelled ones, including orders still on their way
+      (decided 2026-10-03), per currency in case the shop changed
+      currency. `q` finds part of a name (any case, Khmer too) or part of
+      a phone typed any way (`012 345`, `+855 12 345`, `12-345`).
+- [x] `GET /seller/customers/{id}`: name, phone, latest address, customer
+      since, orders, spent, and their orders newest first (the latest
+      100 if there are more).
+- [x] Frontend: bell with a red count in the phone's top bar and the
+      sidebar, checked every 30 s and when the seller comes back to the
+      app. Notifications page: "New order #1001 · Dara · 2 items ·
+      $24.00" opens the order, "Running low · Silk Shirt: 4 left" opens
+      the product (several products: the product list); opening it marks
+      them read on every device, while new ones stay highlighted until
+      the seller leaves the page. Customers tab (second; five tabs on
+      phones): search box (kept in the URL), name, phone, orders, last
+      order, spent. Customer page: tap-to-call, latest address, customer
+      since, orders and spent (with a note when rejected or cancelled
+      orders are left out), their orders as in the Orders tab. An order's
+      Customer card has "View customer". Back arrows return to where the
+      seller came from (the customer, the notifications, the search).
+- [x] 429 pytest tests (25 new): notifications saved with and without
+      Telegram, auto-accepted flag, low stock after its order with
+      product ids, paging, marking read only what was shown, tenant
+      isolation (API and RLS) of notifications, customers and a
+      customer's page; spent leaves out rejected orders, per currency;
+      search by name, Khmer, phone spellings, `%` not a wildcard; the
+      latest-orders cap.
+- [x] Clicked through in headless Chromium at 320, 390 and 1280 px:
+      empty bell and list, an order and its low-stock notification,
+      badge count, list marks read, a second device sees it read and
+      then a newer one unread, back arrows; customers list (Khmer name,
+      +855 phone), search by name / phone / Khmer, no match, a
+      customer's page, order ↔ customer links, search kept coming back,
+      another shop's customer not found. axe-core: no WCAG 2.1 A/AA
+      violations; no console errors.
+
 ---
 
 ## In Progress
 
-- Nothing in progress.
+- Phase 7: built and committed locally (4 commits); not pushed or
+  deployed. Founder to push, then test on the live site (the migration
+  runs on deploy).
 
 ---
 
@@ -549,6 +611,11 @@ Resolved:
       automatically.
 - [x] **`store.telegram_username`**, and `notification_log` built in
       Phase 6 (2026-10-03).
+- [x] **Notifications read on one device are read on all**
+      (2026-10-03): `notification_log.read_at`, null = unread.
+- [x] **A customer's "spent" = every order except rejected and
+      cancelled ones, including orders still on their way** (2026-10-03).
+      Seller-only; customers never see it.
 
 Still open (noticed in Phase 2, not built; founder to decide):
 
@@ -569,6 +636,11 @@ Still open (noticed in Phase 2, not built; founder to decide):
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
+- Phase 7 (2026-10-03): the two decisions above (`read_at`, "spent");
+  web notifications for the same two events as the Telegram alerts (new
+  order, low stock / sold out; in the Phase 7 plan); the notification
+  and customer endpoints (02 §6.2); a definition of done for Phase 7 in
+  03. Exact text given to the founder.
 
 - Development moved from a Claude Project chat to Claude Code. Docs live in
   `docs/` in the monorepo; `CLAUDE.md` is at the repo root.
@@ -689,7 +761,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 - A "Connect Telegram" link works for 30 minutes and for anyone who has
   it; it is only shown to the logged-in seller. Connecting again moves
   alerts to the new chat (one chat per store).
-- Bundle: 156 KB gzipped after Phase 6, 155 KB after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
+- Bundle: 159 KB gzipped after Phase 7, 156 KB after Phase 6, 155 KB after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
   after Phase 2), mostly
   React DOM, React Router and TanStack Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
   customers) and skipped for now; revisit when later phases make the
@@ -700,6 +772,19 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   launch: @BotFather → `/revoke` → ReaksaShopAlertBot, put the new token in
   Render's `TELEGRAM_BOT_TOKEN`, redeploy, reconnect in Settings → Telegram.
   The token goes only in Render / `.env`, never in code.
+- The bell checks for notifications every 30 s on every dashboard screen
+  (the Orders tab did already), but only while the tab is visible. While a
+  seller has the dashboard open, Render and Neon stay awake: faster for
+  the seller, and it uses Neon's free compute hours. Fine for one seller;
+  watch Neon's usage page once there are several.
+- `notification_log` keeps every row. Delete old ones only if it ever
+  matters (one row per order plus low-stock ones, small).
+- Five tabs on phones: at 320 px the labels just fit. Check again with
+  the Khmer labels in Phase 9.
+- A customer's page lists their latest 100 orders; older ones are still
+  in the Orders tab.
+- Back arrows on the order and customer pages go to the `back` the link
+  passed in its state (`useBackTo`), else to their list.
 - Free-tier limits to revisit before the first real seller (Phase 9): the
   Render free web service sleeps after 15 min idle (slow first request);
   Neon free keeps only a 6-hour restore window, not daily backups. When the
@@ -728,8 +813,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Phase 7: web notifications + customer list (the `notification_log`
-   table already exists).
-2. Manual regression checklist (03 §7), still missing.
-3. Decide on the two Phase 2 proposals above (link previews, grid photos;
+1. Founder: push Phase 7, test it on the live site, and close it (or
+   say what to change).
+2. Phase 8: shareable links + basic tracking.
+3. Manual regression checklist (03 §7), still missing.
+4. Decide on the two Phase 2 proposals above (link previews, grid photos;
    grid photos matter more now that R2 is live).
