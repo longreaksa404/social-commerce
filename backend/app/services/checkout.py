@@ -31,6 +31,7 @@ from app.models import (
 )
 from app.schemas.order import OrderCreate, OrderLineIn, ShopOrderOut
 from app.services import delivery as delivery_service
+from app.services import link as link_service
 from app.services import notifications
 from app.services import order as order_service
 from app.services import payment as payment_service
@@ -117,6 +118,8 @@ async def place_order(
         if alert is not None:
             stock_alerts.append(alert)
 
+    # The link the customer came through counts the order (02 section 9.2).
+    link = await link_service.find(db, store_id, data.link) if data.link else None
     order = Order(
         store_id=store_id,
         number=await _next_number(db, store_id),
@@ -133,6 +136,7 @@ async def place_order(
         delivery_lng=location.lng,
         delivery_address_note=location.note,
         notes=data.notes or None,
+        source=link.source if link else None,
         items=sorted(items, key=lambda i: (i.product_name_snapshot, i.variant_name_snapshot or "")),
         # Paid or not is its own state machine, starting at pending for
         # every method (02 section 7.2).
@@ -150,6 +154,8 @@ async def place_order(
         await order_service.transition(db, order, OrderStatus.ACCEPTED)
     await db.flush()  # gives the order its id, for the notification's link
     db.add_all(notifications.web_notifications(order, stock_alerts))
+    if link is not None:
+        db.add(link_service.order_event(link, order))
     await db.commit()
     return order, stock_alerts
 

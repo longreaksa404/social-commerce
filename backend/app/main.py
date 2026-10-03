@@ -10,6 +10,7 @@ from app.api import (
     categories,
     customers,
     health,
+    links,
     notifications,
     orders,
     products,
@@ -58,6 +59,7 @@ api_v1.include_router(products.router)
 api_v1.include_router(orders.router)
 api_v1.include_router(customers.router)
 api_v1.include_router(notifications.router)
+api_v1.include_router(links.router)
 api_v1.include_router(shop.router)
 api_v1.include_router(telegram.router)
 

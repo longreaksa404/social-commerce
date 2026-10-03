@@ -7,6 +7,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, status
 
 from app.api.deps import Shop, ShopDb
 from app.core.ratelimit import check_limit, limiter
+from app.schemas.link import TrackViewIn
 from app.schemas.order import OrderCreate, ShopOrderOut
 from app.schemas.storefront import (
     ShopCategoryPageOut,
@@ -15,6 +16,7 @@ from app.schemas.storefront import (
     ShopStoreOut,
 )
 from app.services import checkout as checkout_service
+from app.services import link as link_service
 from app.services import notifications
 from app.services import storefront as storefront_service
 
@@ -25,6 +27,9 @@ SHOP_RATE_LIMIT = "300/minute"
 # Per IP, on top of that, for placing orders: each one writes to the
 # database and lands in a seller's order list.
 ORDER_RATE_LIMIT = "10/minute"
+# Per IP, for counting link views. The app counts a link once per device
+# per half hour, so this only stops someone inflating a seller's numbers.
+VIEW_RATE_LIMIT = "60/minute"
 
 
 # A shared scope, because slowapi otherwise keys limits on the full URL and
@@ -38,6 +43,10 @@ async def _rate_limit(request: Request) -> None:
 
 async def _order_rate_limit(request: Request) -> None:
     check_limit(ORDER_RATE_LIMIT, "place-order", request)
+
+
+async def _view_rate_limit(request: Request) -> None:
+    check_limit(VIEW_RATE_LIMIT, "track-view", request)
 
 
 router = APIRouter(
@@ -92,3 +101,15 @@ async def track_order(
     (02_TECHNICAL.md section 8)."""
     order = await checkout_service.track_order(db, shop.id, order_id, phone)
     return checkout_service.shop_order_out(shop, order)
+
+
+@router.post(
+    "/track-view",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(_view_rate_limit)],
+)
+async def track_view(data: TrackViewIn, shop: Shop, background: BackgroundTasks) -> None:
+    """A page was opened through one of the shop's links (?l=<token>,
+    02_TECHNICAL.md section 9.2). Written after the response; an unknown
+    token is ignored, so the answer is the same either way."""
+    background.add_task(link_service.record_view, shop.id, data.token)

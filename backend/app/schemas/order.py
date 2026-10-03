@@ -73,6 +73,9 @@ class OrderCreate(BaseModel):
     # since, the order is refused rather than charged at a total they
     # didn't see.
     expected_total: Money
+    # The shop link this device opened in the last 7 days (?l=<token>), if
+    # any; the order counts for it. Unknown tokens are ignored.
+    link: Annotated[str, StringConstraints(max_length=16)] | None = None
 
 
 class OrderItemOut(BaseModel):
@@ -123,6 +126,7 @@ class OrderOut(ShopOrderOut):
     delivery_lng: Decimal | None
     delivery_address_note: str | None
     notes: str | None
+    source: str | None  # where the shop link it came through was posted, e.g. "tiktok"
     customer: CustomerOut
     payment: PaymentOut  # the seller's view of it, with what they can record next
     delivery: DeliveryOut  # likewise
