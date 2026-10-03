@@ -15,6 +15,7 @@
   "dependencies": {
     "@sentry/react": "^11.1.0",
     "@tanstack/react-query": "^5.104.0",
+    "@vercel/functions": "^3.9.11",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.49.0",
     "react": "^19.2.8",
