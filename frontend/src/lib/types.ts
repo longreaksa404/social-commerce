@@ -310,3 +310,27 @@ export type NotificationList = {
   has_more: boolean
   unread: number
 }
+
+// The seller's customers: one per phone number, made at checkout.
+
+export type Amount = { currency: Currency; amount: string }
+
+export type CustomerSummary = {
+  id: string
+  /** As typed at their latest order. */
+  name: string
+  phone: string
+  /** Every order, rejected and cancelled ones too. */
+  order_count: number
+  last_order_at: string | null
+  /** Their orders except rejected and cancelled ones, per currency
+   * (usually one; two if the shop changed its currency). */
+  spent: Amount[]
+}
+
+export type CustomerList = {
+  customers: CustomerSummary[]
+  has_more: boolean
+  /** Matching the search, on every page. */
+  total: number
+}

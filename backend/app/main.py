@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import (
     auth,
     categories,
+    customers,
     health,
     notifications,
     orders,
@@ -55,6 +56,7 @@ api_v1.include_router(store.router)
 api_v1.include_router(categories.router)
 api_v1.include_router(products.router)
 api_v1.include_router(orders.router)
+api_v1.include_router(customers.router)
 api_v1.include_router(notifications.router)
 api_v1.include_router(shop.router)
 api_v1.include_router(telegram.router)

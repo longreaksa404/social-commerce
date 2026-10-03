@@ -25,3 +25,20 @@ def normalize_phone(raw: str) -> str:
     if _CAMBODIAN.fullmatch(phone) or _INTERNATIONAL.fullmatch(phone):
         return phone
     raise ValueError("Enter a valid phone number.")
+
+
+def phone_search_terms(raw: str) -> list[str]:
+    """What to look for inside stored phones when the seller searches with
+    part of one, typed any way ("012 345", "+855 12 345", "12-345-678").
+    Empty if it isn't a number. A leading 855 is tried both as the country
+    code (+855 12 → 012) and as digits from the middle of a number."""
+    compact = _SEPARATORS.sub("", raw)
+    if not re.fullmatch(r"\+?\d+", compact):
+        return []
+    digits = compact.removeprefix("+")
+    terms = [digits]
+    for prefix in ("00855", "855"):
+        if digits.startswith(prefix) and len(digits) > len(prefix):
+            terms.append("0" + digits[len(prefix) :].lstrip("0"))
+            break
+    return terms

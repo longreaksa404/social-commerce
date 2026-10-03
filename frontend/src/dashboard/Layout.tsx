@@ -1,4 +1,4 @@
-import { Bell, Inbox, Package, Settings, Store, Tags } from 'lucide-react'
+import { Bell, Inbox, Package, Settings, Store, Tags, Users } from 'lucide-react'
 import { NavLink, Navigate, Outlet, useLocation, useMatch } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { Skeleton, Spinner } from '../components/ui.tsx'
@@ -6,6 +6,7 @@ import { useStore, useUnreadNotifications } from './queries.ts'
 
 const links = [
   { to: '/dashboard/orders', label: 'Orders', icon: Inbox },
+  { to: '/dashboard/customers', label: 'Customers', icon: Users },
   { to: '/dashboard/products', label: 'Products', icon: Package },
   { to: '/dashboard/categories', label: 'Categories', icon: Tags },
   { to: '/dashboard/settings', label: 'Settings', icon: Settings },

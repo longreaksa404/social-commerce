@@ -2,6 +2,7 @@ import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClie
 import { api } from '../lib/api.ts'
 import type {
   Category,
+  CustomerList,
   DeliveryStatus,
   NotificationList,
   Order,
@@ -24,10 +25,13 @@ export const keys = {
   notifications: ['notifications'] as const,
   notificationList: ['notifications', 'list'] as const,
   unreadNotifications: ['notifications', 'unread'] as const,
+  customers: ['customers'] as const,
+  customerList: (search: string) => ['customers', 'list', search] as const,
 }
 
 const ORDER_PAGE = 50
 const NOTIFICATION_PAGE = 20
+const CUSTOMER_PAGE = 50
 // No push notifications in the MVP: the bell and an open order list check
 // for news now and then, and whenever the seller comes back to the app.
 const POLL_MS = 30_000
@@ -166,5 +170,22 @@ export function useMarkNotificationsRead() {
     mutationFn: (upTo: string) =>
       api<{ unread: number }>('/seller/notifications/read', { method: 'POST', body: { up_to: upTo } }),
     onSuccess: (data) => queryClient.setQueryData(keys.unreadNotifications, data),
+  })
+}
+
+/** Whoever ordered last first, a page at a time. `search` finds part of a
+ * name or of a phone number. */
+export function useCustomers(search: string) {
+  return useInfiniteQuery({
+    queryKey: keys.customerList(search),
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams({ limit: String(CUSTOMER_PAGE), offset: String(pageParam) })
+      if (search) params.set('q', search)
+      return api<CustomerList>(`/seller/customers?${params}`)
+    },
+    initialPageParam: 0,
+    getNextPageParam: (last, pages) => (last.has_more ? pages.length * CUSTOMER_PAGE : undefined),
+    // While a new search loads, the last results stay.
+    placeholderData: keepPreviousData,
   })
 }
