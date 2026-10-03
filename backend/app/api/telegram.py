@@ -16,7 +16,7 @@ router = APIRouter(prefix="/telegram", tags=["telegram"], include_in_schema=Fals
 @router.post("/webhook")
 async def webhook(
     update: Annotated[dict[str, Any], Body()],
-    secret: Annotated[str | None, Header(alias="8699040365:AAGWE6miLuab4BqZRz03iCkhP6zBRbT2xqM")] = None,
+    secret: Annotated[str | None, Header(alias="X-Telegram-Bot-Api-Secret-Token")] = None,
 ) -> JSONResponse:
     settings = get_settings()
     # Telegram sends back the secret given in setWebhook; anything else
