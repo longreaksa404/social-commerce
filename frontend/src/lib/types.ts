@@ -275,3 +275,38 @@ export type OrderList = {
   /** Per status, ignoring the status filter. */
   counts: Record<OrderStatus, number>
 }
+
+// The dashboard's notifications (the bell): things the seller didn't do.
+
+/** The order as it was placed; opening it shows where it is now. */
+export type NotificationOrder = {
+  id: string
+  number: number
+  customer_name: string
+  /** Units, not lines. */
+  item_count: number
+  total: string
+  currency: Currency
+  accepted_automatically: boolean
+}
+
+/** e.g. "Red T-shirt (XL)" with 2 left; 0 = sold out. */
+export type StockItem = { product_id: string; name: string; left: number }
+
+export type SellerNotification = {
+  id: string
+  event_type: 'new_order' | 'low_stock'
+  /** Sent back as is to mark it read (the server's microseconds matter). */
+  created_at: string
+  read: boolean
+  /** new_order only. */
+  order: NotificationOrder | null
+  /** low_stock only. */
+  items: StockItem[]
+}
+
+export type NotificationList = {
+  notifications: SellerNotification[]
+  has_more: boolean
+  unread: number
+}

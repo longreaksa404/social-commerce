@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router'
 import { RootLayout } from './components/RootLayout.tsx'
 import { Categories } from './dashboard/Categories.tsx'
 import { DashboardLayout } from './dashboard/Layout.tsx'
+import { Notifications } from './dashboard/Notifications.tsx'
 import { OrderDetail } from './dashboard/orders/OrderDetail.tsx'
 import { OrderList } from './dashboard/orders/OrderList.tsx'
 import { ProductEdit } from './dashboard/products/ProductEdit.tsx'
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
           { path: 'products/:productId', element: <ProductEdit /> },
           { path: 'categories', element: <Categories /> },
           { path: 'settings', element: <Settings /> },
+          { path: 'notifications', element: <Notifications /> },
         ],
       },
       {

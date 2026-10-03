@@ -1,8 +1,8 @@
-import { Inbox, Package, Settings, Store, Tags } from 'lucide-react'
+import { Bell, Inbox, Package, Settings, Store, Tags } from 'lucide-react'
 import { NavLink, Navigate, Outlet, useLocation, useMatch } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { Skeleton, Spinner } from '../components/ui.tsx'
-import { useStore } from './queries.ts'
+import { useStore, useUnreadNotifications } from './queries.ts'
 
 const links = [
   { to: '/dashboard/orders', label: 'Orders', icon: Inbox },
@@ -45,20 +45,55 @@ function Shell() {
   )
 }
 
-function StoreName({ className = '' }: { className?: string }) {
+/** Takes the room left in its bar, cut short with "…" if it needs more. */
+function StoreName() {
   const store = useStore()
-  if (!store.data) return <Skeleton className={`h-5 w-32 ${className}`} />
-  return <span className={`truncate font-semibold text-slate-900 ${className}`}>{store.data.name}</span>
+  return (
+    <div className="min-w-0 flex-1">
+      {store.data ? (
+        <span className="block truncate font-semibold text-slate-900">{store.data.name}</span>
+      ) : (
+        <Skeleton className="h-5 w-32" />
+      )}
+    </div>
+  )
+}
+
+/** New orders and low stock since the seller last looked, on any device. */
+function NotificationBell() {
+  const unread = useUnreadNotifications().data ?? 0
+  return (
+    <NavLink
+      to="/dashboard/notifications"
+      aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+      className={({ isActive }) =>
+        `relative inline-flex size-11 shrink-0 items-center justify-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-emerald-600 ${
+          isActive ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+        }`
+      }
+    >
+      <Bell aria-hidden className="size-5.5" />
+      {unread > 0 && (
+        <span
+          aria-hidden
+          className="absolute top-1 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-semibold text-white ring-2 ring-white"
+        >
+          {unread > 99 ? '99+' : unread}
+        </span>
+      )}
+    </NavLink>
+  )
 }
 
 function MobileTopBar() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
-      <div className="flex h-14 items-center gap-2.5 px-4">
+      <div className="flex h-14 items-center gap-2.5 pr-2 pl-4">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
           <Store aria-hidden className="size-4.5" />
         </span>
         <StoreName />
+        <NotificationBell />
       </div>
     </header>
   )
@@ -103,11 +138,12 @@ function BottomTabBar() {
 function Sidebar() {
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
-      <div className="flex h-16 items-center gap-2.5 border-b border-slate-100 px-5">
+      <div className="flex h-16 items-center gap-2.5 border-b border-slate-100 pr-3 pl-5">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
           <Store aria-hidden className="size-4.5" />
         </span>
         <StoreName />
+        <NotificationBell />
       </div>
       <nav aria-label="Main" className="flex flex-col gap-1 p-3">
         {links.map(({ to, label, icon: Icon }) => (

@@ -3,6 +3,7 @@ import { api } from '../lib/api.ts'
 import type {
   Category,
   DeliveryStatus,
+  NotificationList,
   Order,
   OrderList,
   OrderStatus,
@@ -20,12 +21,16 @@ export const keys = {
   orders: ['orders'] as const,
   orderList: (statuses: OrderStatus[]) => ['orders', 'list', statuses] as const,
   order: (id: string) => ['orders', id] as const,
+  notifications: ['notifications'] as const,
+  notificationList: ['notifications', 'list'] as const,
+  unreadNotifications: ['notifications', 'unread'] as const,
 }
 
 const ORDER_PAGE = 50
-// No notifications until Phase 6/7: an open order list checks for new
-// orders now and then, and whenever the seller comes back to the app.
-const ORDER_POLL_MS = 30_000
+const NOTIFICATION_PAGE = 20
+// No push notifications in the MVP: the bell and an open order list check
+// for news now and then, and whenever the seller comes back to the app.
+const POLL_MS = 30_000
 
 export function useStore() {
   return useQuery({ queryKey: keys.store, queryFn: () => api<Store>('/seller/store') })
@@ -76,7 +81,7 @@ export function useOrders(statuses: OrderStatus[]) {
     getNextPageParam: (last, pages) => (last.has_more ? pages.length * ORDER_PAGE : undefined),
     // Switching filters keeps the last list (and its counts) until the next arrives.
     placeholderData: keepPreviousData,
-    refetchInterval: ORDER_POLL_MS,
+    refetchInterval: POLL_MS,
     refetchOnWindowFocus: true,
   })
 }
@@ -125,5 +130,41 @@ export function useRecordDelivery(id: string) {
       queryClient.setQueryData(keys.order(id), order)
       queryClient.invalidateQueries({ queryKey: [...keys.orders, 'list'] })
     },
+  })
+}
+
+/** The count on the bell. */
+export function useUnreadNotifications() {
+  return useQuery({
+    queryKey: keys.unreadNotifications,
+    queryFn: () => api<{ unread: number }>('/seller/notifications/unread'),
+    select: (data) => data.unread,
+    refetchInterval: POLL_MS,
+    refetchOnWindowFocus: true,
+  })
+}
+
+/** Newest first, a page at a time. */
+export function useNotifications() {
+  return useInfiniteQuery({
+    queryKey: keys.notificationList,
+    queryFn: ({ pageParam }) =>
+      api<NotificationList>(`/seller/notifications?limit=${NOTIFICATION_PAGE}&offset=${pageParam}`),
+    initialPageParam: 0,
+    getNextPageParam: (last, pages) => (last.has_more ? pages.length * NOTIFICATION_PAGE : undefined),
+    refetchInterval: POLL_MS,
+    refetchOnWindowFocus: true,
+  })
+}
+
+/** Marks read everything up to the newest notification shown (its
+ * created_at as it came), on every device; one that arrived since stays
+ * unread. */
+export function useMarkNotificationsRead() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (upTo: string) =>
+      api<{ unread: number }>('/seller/notifications/read', { method: 'POST', body: { up_to: upTo } }),
+    onSuccess: (data) => queryClient.setQueryData(keys.unreadNotifications, data),
   })
 }

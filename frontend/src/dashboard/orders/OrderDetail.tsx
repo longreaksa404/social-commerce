@@ -1,6 +1,6 @@
 import { MapPin, MapPinned, MessageSquareText, Phone, Truck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { useParams } from 'react-router'
+import { useLocation, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
 import { Badge, Button, Card, ErrorState, Field, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
@@ -27,24 +27,27 @@ const ACTION_LABELS: Partial<Record<OrderStatus, string>> = {
 // Ending an order: asks first, and its items go back into stock.
 const ENDS_ORDER = new Set<OrderStatus>(['rejected', 'cancelled'])
 
-/** /dashboard/orders/:orderId */
+/** /dashboard/orders/:orderId. Links from a customer or a notification
+ * pass `state: { back }`, so the back arrow returns there. */
 export function OrderDetail() {
   const { orderId = '' } = useParams()
   const order = useOrder(orderId)
+  const from = (useLocation().state as { back?: unknown } | null)?.back
+  const back = typeof from === 'string' && from.startsWith('/dashboard/') ? from : '/dashboard/orders'
 
-  if (order.isPending) return <DetailSkeleton />
+  if (order.isPending) return <DetailSkeleton back={back} />
   if (order.error) {
     return (
       <>
-        <PageHeader title="Order" back="/dashboard/orders" />
+        <PageHeader title="Order" back={back} />
         <ErrorState error={order.error} onRetry={() => order.refetch()} />
       </>
     )
   }
-  return <OrderView order={order.data} onStale={() => order.refetch()} />
+  return <OrderView order={order.data} back={back} onStale={() => order.refetch()} />
 }
 
-function OrderView({ order, onStale }: { order: Order; onStale: () => void }) {
+function OrderView({ order, back, onStale }: { order: Order; back: string; onStale: () => void }) {
   const { toast, confirm } = useFeedback()
   const change = useChangeOrderStatus(order.id)
   const ends = order.next_statuses.filter((s) => ENDS_ORDER.has(s))
@@ -75,7 +78,7 @@ function OrderView({ order, onStale }: { order: Order; onStale: () => void }) {
 
   return (
     <>
-      <PageHeader title={`Order #${order.number}`} back="/dashboard/orders" />
+      <PageHeader title={`Order #${order.number}`} back={back} />
       <title>{`Order #${order.number}`}</title>
 
       <div className="space-y-4">
@@ -424,10 +427,10 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
   )
 }
 
-function DetailSkeleton() {
+function DetailSkeleton({ back }: { back: string }) {
   return (
     <>
-      <PageHeader title="Order" back="/dashboard/orders" />
+      <PageHeader title="Order" back={back} />
       <div aria-hidden className="space-y-4">
         <Skeleton className="h-20 w-full rounded-2xl" />
         <Skeleton className="h-36 w-full rounded-2xl" />
