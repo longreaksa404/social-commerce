@@ -112,7 +112,10 @@ async def get_order(
         select(Order)
         .where(Order.id == order_id, Order.store_id == store_id)
         .options(
-            selectinload(Order.customer), selectinload(Order.items), selectinload(Order.payment)
+            selectinload(Order.customer),
+            selectinload(Order.items),
+            selectinload(Order.payment),
+            selectinload(Order.delivery),
         )
     )
     if for_update:
@@ -174,7 +177,10 @@ async def list_orders(
         select(Order)
         .where(*filters)
         .options(
-            selectinload(Order.customer), selectinload(Order.items), selectinload(Order.payment)
+            selectinload(Order.customer),
+            selectinload(Order.items),
+            selectinload(Order.payment),
+            selectinload(Order.delivery),
         )
         .order_by(Order.number.desc())
         .limit(limit + 1)  # one extra row tells whether there are more
@@ -201,6 +207,8 @@ async def list_orders(
                 item_count=sum(item.quantity for item in order.items),
                 payment_method=order.payment.method,
                 payment_status=order.payment.status,
+                delivery_method=order.delivery.method,
+                delivery_status=order.delivery.status,
             )
             for order in orders[:limit]
         ],

@@ -13,8 +13,8 @@ from app.api.shop import ORDER_RATE_LIMIT
 from app.core.ratelimit import limiter
 from app.db.session import unscoped_session
 from app.models import Customer, Order, OrderConfirmationMode, Product, ProductVariant, Store
-from app.services.checkout import line_total, order_totals
 from app.services.phone import normalize_phone
+from app.services.pricing import line_total
 from tests.helpers import add_product, place_order, shop_slug, stock, variant_ids
 
 
@@ -23,19 +23,12 @@ async def _order_count(store_id) -> int:
         return await db.scalar(select(func.count(Order.id)).where(Order.store_id == store_id))
 
 
-def test_line_and_order_totals_are_exact():
+def test_line_totals_are_exact():
     # 3 x 0.10 is 0.30000000000000004 in floats; Decimal keeps it exact.
     assert line_total(Decimal("0.10"), 3) == Decimal("0.30")
     assert line_total(Decimal("12.50"), 2) == Decimal("25.00")
-    assert order_totals([Decimal("0.30"), Decimal("25.00")], Decimal("1.50")) == (
-        Decimal("25.30"),
-        Decimal("26.80"),
-    )
     # Riel prices are whole numbers.
-    assert order_totals([line_total(Decimal("15000"), 3)], Decimal("0")) == (
-        Decimal("45000.00"),
-        Decimal("45000.00"),
-    )
+    assert line_total(Decimal("15000"), 3) == Decimal("45000.00")
 
 
 @pytest.mark.parametrize(

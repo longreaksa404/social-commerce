@@ -9,8 +9,16 @@ from typing import Annotated
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstraints
 from pydantic_core import PydanticCustomError
 
-from app.models import Currency, DeliveryMethod, OrderStatus, PaymentMethod, PaymentStatus
+from app.models import (
+    Currency,
+    DeliveryMethod,
+    DeliveryStatus,
+    OrderStatus,
+    PaymentMethod,
+    PaymentStatus,
+)
 from app.schemas.common import Name
+from app.schemas.delivery import AreaName, DeliveryOut, ShopDeliveryOut
 from app.schemas.payment import PaymentOut, ShopPaymentOut
 from app.schemas.product import Money
 from app.services.phone import normalize_phone
@@ -45,12 +53,18 @@ class OrderCreate(BaseModel):
 
     name: Name
     phone: Phone
-    delivery_address: Address
     notes: Note | None = None
     items: list[OrderLineIn] = Field(min_length=1, max_length=MAX_ORDER_LINES)
     payment_method: PaymentMethod  # one the shop takes (ShopStoreOut.payment_methods)
-    # The total the customer was shown. If prices changed since, the order
-    # is refused rather than charged at a price they didn't see.
+    delivery_method: DeliveryMethod  # one the shop offers (ShopStoreOut.delivery)
+    # The name of one of the shop's delivery areas; required for delivery
+    # when the shop has areas.
+    delivery_area: AreaName | None = None
+    # Required for delivery; ignored for pickup.
+    delivery_address: Address | None = None
+    # The total the customer was shown. If prices, fees or discounts changed
+    # since, the order is refused rather than charged at a total they
+    # didn't see.
     expected_total: Money
 
 
@@ -77,11 +91,13 @@ class ShopOrderOut(BaseModel):
     created_at: datetime
     currency: Currency
     subtotal: Decimal
+    discount: Decimal
     delivery_fee: Decimal
-    total: Decimal
+    total: Decimal  # subtotal - discount + delivery_fee
     delivery_method: DeliveryMethod
     items: list[OrderItemOut]
     payment: ShopPaymentOut
+    delivery: ShopDeliveryOut
 
 
 class CustomerOut(BaseModel):
@@ -99,6 +115,7 @@ class OrderOut(ShopOrderOut):
     notes: str | None
     customer: CustomerOut
     payment: PaymentOut  # the seller's view of it, with what they can record next
+    delivery: DeliveryOut  # likewise
     # What the seller can move the order to now (the state machine plus the
     # completion rule), so the app doesn't keep its own copy of the rules.
     next_statuses: list[OrderStatus] = []
@@ -117,6 +134,8 @@ class OrderSummaryOut(BaseModel):
     item_count: int  # units, not lines
     payment_method: PaymentMethod
     payment_status: PaymentStatus
+    delivery_method: DeliveryMethod
+    delivery_status: DeliveryStatus
 
 
 class OrderListOut(BaseModel):

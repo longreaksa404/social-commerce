@@ -6,15 +6,17 @@ someone) and records each step by hand.
 """
 
 from app.core.errors import AppError
-from app.models import DeliveryMethod, Store
+from app.models import DeliveryMethod, Order, Store
 from app.schemas.delivery import (
     DeliveryArea,
     DeliverySettings,
     DiscountSettings,
     ShopDeliveryOptions,
+    ShopDeliveryOut,
     ShopPickup,
     ShopSellerDelivery,
 )
+from app.services.payment import ORDER_IS_OFF
 
 
 def delivery_settings(store: Store) -> DeliverySettings:
@@ -106,3 +108,13 @@ def checkout_area(
             "delivery_area",
         )
     return area
+
+
+def shop_delivery_out(store: Store, order: Order) -> ShopDeliveryOut:
+    out = ShopDeliveryOut.model_validate(order.delivery)
+    # The shop's current pickup address, like payment details: the seller
+    # may have moved. Gone if they've turned pickup off since.
+    pickup = delivery_settings(store).pickup
+    if order.delivery.method is DeliveryMethod.PICKUP and order.status not in ORDER_IS_OFF:
+        out.pickup_address = pickup.address if pickup.enabled else None
+    return out

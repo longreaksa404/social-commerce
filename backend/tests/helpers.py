@@ -68,7 +68,17 @@ async def stock(model, row_id) -> int | None:
 
 
 async def place_order(
-    client, slug, items, *, total, phone="012 345 678", name="Dara", payment_method="cod"
+    client,
+    slug,
+    items,
+    *,
+    total,
+    phone="012 345 678",
+    name="Dara",
+    payment_method="cod",
+    delivery_method="seller_delivery",
+    area=None,
+    address="St 271, Phnom Penh",
 ):
     """items: (product_id, variant_id, quantity) tuples."""
     return await client.post(
@@ -76,7 +86,9 @@ async def place_order(
         json={
             "name": name,
             "phone": phone,
-            "delivery_address": "St 271, Phnom Penh",
+            "delivery_method": delivery_method,
+            "delivery_area": area,
+            "delivery_address": address,
             "items": [
                 {"product_id": str(p), "variant_id": v and str(v), "quantity": q}
                 for p, v, q in items

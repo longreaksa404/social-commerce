@@ -17,6 +17,7 @@ from sqlalchemy.orm import selectinload
 from app.core.errors import AppError, NotFound
 from app.models import (
     Customer,
+    Delivery,
     DeliveryMethod,
     Order,
     OrderConfirmationMode,
@@ -29,22 +30,13 @@ from app.models import (
     Store,
 )
 from app.schemas.order import OrderCreate, OrderLineIn, ShopOrderOut
+from app.services import delivery as delivery_service
 from app.services import order as order_service
 from app.services import payment as payment_service
 from app.services.phone import normalize_phone
+from app.services.pricing import line_total, order_totals
 
 FIRST_ORDER_NUMBER = 1001
-CENT = Decimal("0.01")
-
-
-def line_total(unit_price: Decimal, quantity: int) -> Decimal:
-    return (unit_price * quantity).quantize(CENT)
-
-
-def order_totals(line_totals: list[Decimal], delivery_fee: Decimal) -> tuple[Decimal, Decimal]:
-    """(subtotal, total)."""
-    subtotal = sum(line_totals, Decimal("0.00"))
-    return subtotal, subtotal + delivery_fee
 
 
 @dataclass(frozen=True)
@@ -78,6 +70,14 @@ async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) 
     store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
     assert store is not None  # the shop was found by slug moments ago
     payment_service.check_method_available(store, data.payment_method)
+    delivery_settings = delivery_service.delivery_settings(store)
+    area = delivery_service.checkout_area(
+        delivery_settings, data.delivery_method, data.delivery_area
+    )
+    is_pickup = data.delivery_method is DeliveryMethod.PICKUP
+    if not is_pickup and data.delivery_address is None:
+        raise AppError(422, "VALIDATION_ERROR", "Enter your address.", "delivery_address")
+    address = None if is_pickup else data.delivery_address
 
     lines = await _resolve_lines(db, store_id, data.items)
     items = [
@@ -93,14 +93,20 @@ async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) 
         )
         for line in lines
     ]
-    # Delivery fees are an open decision (01_PRODUCT.md section 46), for Phase 5.
-    delivery_fee = Decimal("0.00")
-    subtotal, total = order_totals([item.line_total for item in items], delivery_fee)
-    if total != data.expected_total:
+    totals = order_totals(
+        [item.line_total for item in items],
+        item_count=sum(line.quantity for line in lines),
+        method=data.delivery_method,
+        area=area,
+        delivery=delivery_settings,
+        discounts=delivery_service.discount_settings(store),
+    )
+    if totals.total != data.expected_total:
         raise AppError(
             409,
             "ORDER_TOTAL_CHANGED",
-            "Prices changed since you opened your cart. Check your order and place it again.",
+            "Prices or delivery fees changed since you opened your cart. "
+            "Check your order and place it again.",
         )
 
     for line in lines:
@@ -109,20 +115,26 @@ async def place_order(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) 
     order = Order(
         store_id=store_id,
         number=await _next_number(db, store_id),
-        customer=await _customer(db, store_id, data),
+        customer=await _customer(db, store_id, data, address),
         status=OrderStatus.PENDING,
         currency=store.currency,
-        subtotal=subtotal,
-        delivery_fee=delivery_fee,
-        total=total,
-        # Pickup becomes a choice at checkout in Phase 5.
-        delivery_method=DeliveryMethod.SELLER_DELIVERY,
-        delivery_address=data.delivery_address,
+        subtotal=totals.subtotal,
+        discount=totals.discount,
+        delivery_fee=totals.delivery_fee,
+        total=totals.total,
+        delivery_method=data.delivery_method,
+        delivery_address=address,
         notes=data.notes or None,
         items=sorted(items, key=lambda i: (i.product_name_snapshot, i.variant_name_snapshot or "")),
         # Paid or not is its own state machine, starting at pending for
         # every method (02 section 7.2).
-        payment=Payment(store_id=store_id, method=data.payment_method, amount=total),
+        payment=Payment(store_id=store_id, method=data.payment_method, amount=totals.total),
+        # Likewise its own state machine, starting at not_assigned (section 7.3).
+        delivery=Delivery(
+            store_id=store_id,
+            method=data.delivery_method,
+            area_name=area.name if area else None,
+        ),
     )
     db.add(order)
     if store.order_confirmation_mode is OrderConfirmationMode.AUTOMATIC:
@@ -151,7 +163,11 @@ async def track_order(
                 Customer.store_id == store_id,
                 Customer.phone == phone,
             )
-            .options(selectinload(Order.items), selectinload(Order.payment))
+            .options(
+                selectinload(Order.items),
+                selectinload(Order.payment),
+                selectinload(Order.delivery),
+            )
         )
     if order is None:
         # The same answer for a wrong phone as for no such order.
@@ -160,9 +176,13 @@ async def track_order(
 
 
 def shop_order_out(store: Store, order: Order) -> ShopOrderOut:
-    """The order as its customer sees it, with how to pay for it."""
+    """The order as its customer sees it, with how to pay for it and where
+    to collect it."""
     return ShopOrderOut.model_validate(order).model_copy(
-        update={"payment": payment_service.shop_payment_out(store, order)}
+        update={
+            "payment": payment_service.shop_payment_out(store, order),
+            "delivery": delivery_service.shop_delivery_out(store, order),
+        }
     )
 
 
@@ -245,9 +265,12 @@ def _out_of_stock(line: _Line) -> AppError:
     return AppError(409, "PRODUCT_OUT_OF_STOCK", message, f"items.{line.index}")
 
 
-async def _customer(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) -> Customer:
+async def _customer(
+    db: AsyncSession, store_id: uuid.UUID, data: OrderCreate, address: str | None
+) -> Customer:
     """This store's customer with this phone, updated to the name and
-    address from this order, or a new one."""
+    address from this order (a pickup keeps the last address), or a new
+    one."""
     customer = await db.scalar(
         select(Customer).where(Customer.store_id == store_id, Customer.phone == data.phone)
     )
@@ -255,7 +278,8 @@ async def _customer(db: AsyncSession, store_id: uuid.UUID, data: OrderCreate) ->
         customer = Customer(store_id=store_id, phone=data.phone)
         db.add(customer)
     customer.name = data.name
-    customer.address = data.delivery_address
+    if address is not None:
+        customer.address = address
     return customer
 
 
