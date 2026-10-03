@@ -384,32 +384,13 @@ Still open (noticed in Phase 2, not built; founder to decide):
   `docs/TIME_LOG.md` removed; actual hours are not logged.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
 
-Phase 4 (2026-10-02), not yet in 01/02/03:
-
-- Payment timing: payment details show **right after ordering**, before
-  the seller accepts (founder's choice). If the seller then rejects a
-  paid order, they refund it themselves. Closes "Payment timing
-  defaults" in 01 §46.
-- KHQR is built in Phase 4 (founder's choice): codes are generated on our
-  server from the seller's Bakong ID, no Bakong API (02 §10.3 step 1 says
-  "calls Bakong API"). Payment confirmation stays manual for every
-  method. Closes "KHQR implementation approach" and "Payment confirmation
-  workflow" in 01 §46.
-- 02 §5.2 data model: `payment.store_id` (RLS); `store.payment_config`
-  shape is `{"cod": {"enabled"}, "bank_transfer": {"enabled",
-  "bank_name", "account_name", "account_number"}, "khqr": {"enabled",
-  "bakong_account_id", "merchant_name"}}`.
-- 02 §7.2: no transitions out of paid/failed in the MVP (refunds later).
-
-Phase 3 (2026-10-02), not yet in 01/02/03:
-
-- Guest checkout and tracking by link + phone are decided (01 §46 lists
-  both as open; 02 §5.4 calls guest checkout "open").
-- 02 §5.2 data model: `order.number`, `order.currency`,
-  `order_item.store_id`, `customer` unique on `(store_id, phone)`,
-  `order_item.variant_id` ON DELETE SET NULL.
-- 02 §14: stock is taken at order creation and returned on
-  reject/cancel.
+Applied to 01/02/03 on 2026-10-03 (at the founder's request): the
+Phase 3 decisions (guest checkout and tracking by link + phone in 01 §24,
+§46 and 02 §5.4, §8; `order.number`, `order.currency`,
+`order_item.store_id`, customer unique by phone, `variant_id` ON DELETE
+SET NULL in 02 §5.2; stock taken at ordering in 02 §14) and the Phase 4
+decisions (01 §25, §46; 02 §5.2 `payment.store_id` and the
+`payment_config` shape, §7.2, §10; 03 Phase 4 spike result and §9 risk).
 
 Applied to 02/03 on 2026-10-02 (at the founder's request): Neon instead of
 Render Postgres; domain/DNS moved from Phase 0 to Phase 9; migrations at
@@ -497,9 +478,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Apply the Phase 3 and Phase 4 decisions to 01/02/03 (text given in
-   the session summaries; see "Decisions Made This Session").
-2. Phase 5: delivery (seller delivery / pickup). Decide first how
+1. Phase 5: delivery (seller delivery / pickup). Decide first how
    delivery fees work (01 §46 lists "Delivery fee handling" as open).
-3. Decide on the two Phase 2 proposals above (link previews, grid photos).
+2. Decide on the two Phase 2 proposals above (link previews, grid photos).
 R2 setup whenever the founder is ready.

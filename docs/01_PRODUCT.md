@@ -1022,7 +1022,7 @@ A customer account should not automatically be required for the first MVP.
 
 Guest checkout should be considered because reducing checkout friction is important for social-commerce traffic.
 
-The final decision should be validated before implementation.
+**Decided (2026-10-02): guest checkout, no customer accounts in the MVP.** The customer gives a name, phone, and address at checkout. They track the order with its link plus the phone they ordered with. Sellers and customers refer to orders by a per-store number (#1001, #1002, …).
 
 # 25. MVP Payment Scope
 
@@ -1037,6 +1037,8 @@ Manual Bank Transfer
 ```
 
 The exact implementation depends on validation and integration feasibility.
+
+**Decided (2026-10-02):** the MVP offers all three, each turned on or off by the seller. The customer chooses one at checkout and sees how to pay right after ordering, before the seller accepts. KHQR codes are made from the seller's Bakong ID with the exact amount, without a payment provider. The seller confirms every payment by hand.
 
 Do not implement multiple payment providers simply to make the product appear complete.
 
@@ -1764,16 +1766,10 @@ The following are intentionally not finalized.
 - Final product name
 - Exact initial seller vertical
 - Exact target seller size
-- Guest checkout vs customer accounts
-- Exact customer order tracking method
 
 ## Payment
 
-- First payment method
-- KHQR implementation approach
-- Payment timing defaults
-- Payment confirmation workflow
-- Payment provider requirements
+- Payment provider requirements (e.g. one-tap pay in the customer's bank app and automatic confirmation; see the Requirements Log)
 
 ## Delivery
 
@@ -1803,6 +1799,15 @@ The following are intentionally not finalized.
 - Main differentiating value proposition
 
 These decisions should be resolved through validation and technical investigation rather than assumptions.
+
+Decided so far (details in §24, §25 and `02_TECHNICAL.md`):
+
+- Guest checkout, no customer accounts in the MVP (2026-10-02)
+- Order tracking: the order link plus the phone used at checkout (2026-10-02)
+- Payment methods: cash on delivery, bank transfer, and KHQR, each turned on by the seller (2026-10-02)
+- KHQR: generated from the seller's Bakong ID, no payment provider (2026-10-02)
+- Payment timing: the customer sees how to pay right after ordering (2026-10-02)
+- Payment confirmation: by hand by the seller, for every method (2026-10-02)
 
 # 47. Relationship With Other Project Documents
 

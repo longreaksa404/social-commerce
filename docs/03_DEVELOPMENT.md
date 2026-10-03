@@ -149,14 +149,21 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | `payment` table + migration | 1 |
 | Payment method selection at checkout (COD / bank transfer / KHQR) | 4 |
 | COD: mark-paid flow (seller side) | 2 |
-| Bank transfer: display store's bank details at checkout | 2 |
+| Bank transfer: display store's bank details after ordering (order page) | 2 |
 | **Spike:** Bakong/KHQR API access — confirm requirements, timebox 4 hrs | 4 |
-| KHQR generation endpoint + QR display at checkout | 6 |
+| KHQR generation + QR display after ordering (order page) | 6 |
 | Payment status update endpoint + seller UI | 3 |
 
 **Subtotal:** ~22 hours (**~1.5–2 weeks**, KHQR spike may push this depending on Bakong onboarding friction — flag as the phase most likely to slip)
 
 **Definition of done:** an order can be placed with any of the three payment methods, and a seller can mark it paid.
+
+> **Spike result (2026-10-02):** generating a KHQR needs no Bakong onboarding,
+> account, or API token: the code is built on our server from the seller's
+> Bakong ID (`02_TECHNICAL.md` §10.3). Only automatic payment confirmation
+> needs the Bakong Open API, which stays post-MVP. So KHQR shipped in
+> Phase 4 and the fallback in §9 wasn't needed. Payment details show on the
+> order page right after ordering (decided 2026-10-02).
 
 ---
 
@@ -330,7 +337,7 @@ Expand automated coverage only once a second developer joins or the manual check
 
 | Risk | Mitigation |
 |---|---|
-| KHQR/Bakong integration takes longer than the 4-hr spike suggests | Timebox strictly; if the spike reveals heavy merchant-onboarding requirements, ship Phase 4 with COD + bank transfer only and defer KHQR to a fast-follow — matches `01_PRODUCT.md` §25's "do not implement multiple payment providers simply to make the product appear complete" |
+| KHQR/Bakong integration takes longer than the 4-hr spike suggests | **Resolved 2026-10-02:** generation needed no Bakong onboarding (Phase 4 spike result). Original mitigation: timebox strictly; if the spike reveals heavy merchant-onboarding requirements, ship Phase 4 with COD + bank transfer only and defer KHQR to a fast-follow — matches `01_PRODUCT.md` §25's "do not implement multiple payment providers simply to make the product appear complete" |
 | Full-time job leaves inconsistent weekly hours | Plan in 2-week sprints (§5), not daily quotas; a light week is absorbed by the next sprint rather than breaking the schedule |
 | Scope creep from imagined seller needs | Anything not in Phases 0–9 goes into the Requirements Log (§6), not into a sprint, until a real seller asks for it |
 | Building Phase 6+ before validating Phases 1–3 actually work with a real user | After Phase 3, do a real manual end-to-end run (flagged in Phase 3's definition of done) before continuing — catches a broken core loop early instead of after 5 more phases |

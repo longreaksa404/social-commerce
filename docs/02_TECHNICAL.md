@@ -172,7 +172,7 @@ seller
 | description | text, nullable | |
 | logo_url | text, nullable | |
 | telegram_chat_id | text, nullable | for seller notifications |
-| payment_config | JSONB | which methods enabled, e.g. `{"cod": true, "khqr": true, "bank_transfer": {"account": "...", "bank": "..."}}` |
+| payment_config | JSONB | which methods are on, with their details: `{"cod": {"enabled": true}, "bank_transfer": {"enabled", "bank_name", "account_name", "account_number"}, "khqr": {"enabled", "bakong_account_id", "merchant_name"}}`. A method can only be on with its details filled in; at least one must be on. Missing parts read as the defaults (cash on delivery on, the others off), so a new store takes cash on delivery. Details are kept while a method is off. |
 | delivery_config | JSONB | e.g. `{"seller_managed": true, "pickup": true, "pickup_address": "..."}` |
 | order_confirmation_mode | enum(`automatic`,`manual`) | default `manual` |
 | currency | enum(`USD`,`KHR`) | default `USD`; currency all prices in the store are shown in |
@@ -204,10 +204,10 @@ seller
 | Column | Type | Notes |
 |---|---|---|
 | id | UUID PK | |
-| store_id | UUID FK | tenant scope — a customer record is per-store, not global, in MVP (matches "guest checkout" default; see §5.4) |
-| name | text | |
-| phone | text | primary identifier for guest customers |
-| address | text, nullable | |
+| store_id | UUID FK | tenant scope — a customer record is per-store, not global, in MVP (guest checkout; see §5.4) |
+| name | text | as typed at their latest order |
+| phone | text | primary identifier for guest customers; stored normalized (`012 345 678` and `+855 12 345 678` both become `012345678`); unique per store `(store_id, phone)` |
+| address | text, nullable | their latest delivery address (each order keeps its own) |
 | telegram_user_id | text, nullable | if they contacted via Telegram |
 | created_at | timestamptz | |
 
@@ -216,8 +216,10 @@ seller
 |---|---|---|
 | id | UUID PK | |
 | store_id | UUID FK | tenant scope |
+| number | int, unique per store | #1001, #1002, … per store: what sellers and customers say in chat. The id stays the real key and is what the tracking link uses |
 | customer_id | UUID FK | |
 | status | enum: `pending, accepted, processing, ready, shipped, delivered, completed, cancelled, rejected` | see §7.1 |
+| currency | enum(`USD`,`KHR`) | the store's currency when the order was placed, so changing the store's currency later doesn't relabel old totals |
 | subtotal | numeric(12,2) | |
 | delivery_fee | numeric(12,2), default 0 | |
 | total | numeric(12,2) | |
@@ -228,19 +230,20 @@ seller
 | created_at / updated_at | timestamptz | |
 
 ### `order_item`
-| id, order_id (FK), product_id (FK), variant_id (FK, nullable), product_name_snapshot, variant_name_snapshot, unit_price_snapshot, quantity, line_total |
+| id, store_id (FK, tenant scope, copied from the order so RLS covers items directly), order_id (FK), product_id (FK), variant_id (FK, nullable, ON DELETE SET NULL), product_name_snapshot, variant_name_snapshot, unit_price_snapshot, quantity, line_total |
 
-> Snapshots are stored because product name/price may change after the order is placed — orders must reflect what was actually purchased.
+> Snapshots are stored because product name/price may change after the order is placed — orders must reflect what was actually purchased. Variants removed from a product are deleted; an order line then keeps its snapshots and loses only the link (`variant_id` becomes null).
 
 ### `payment`
 | Column | Type | Notes |
 |---|---|---|
 | id | UUID PK | |
-| order_id | UUID FK, unique | 1:1 with order in MVP |
-| method | enum(`cod`,`khqr`,`bank_transfer`) | |
+| store_id | UUID FK | tenant scope, copied from the order so RLS covers payments directly |
+| order_id | UUID FK, unique | 1:1 with order in MVP; created with the order at checkout |
+| method | enum(`cod`,`khqr`,`bank_transfer`) | chosen by the customer at checkout, from the methods the store has on |
 | status | enum(`pending`,`paid`,`failed`,`refunded`) | see §7.2 |
-| amount | numeric(12,2) | |
-| reference | text, nullable | KHQR transaction ref, or bank transfer note |
+| amount | numeric(12,2) | the order total, in the order's currency |
+| reference | text, nullable | the seller's note when recording it, e.g. "ABA, 2:05 PM, last digits 123" |
 | paid_at | timestamptz, nullable | |
 | created_at | timestamptz | |
 
@@ -287,12 +290,12 @@ store 1───N notification_log
 
 ## 5.4 Guest Checkout Decision
 
-`01_PRODUCT.md` §46 leaves "guest checkout vs. customer accounts" open. **Technical recommendation: guest checkout for MVP, no customer login.**
+**Decided (2026-10-02): guest checkout for MVP, no customer login.**
 
 - `customer` records are created/matched by `(store_id, phone)` at checkout time — no password, no account.
 - This avoids building an entire customer auth system before validating whether customers even want to leave the chat app to order (Critical Assumption 2, `01_PRODUCT.md` §35).
 - Order tracking (§8) uses a token-based lookup (order ID + phone), not login.
-- This is flagged as an **open decision requiring product sign-off**, not fully closed — but it's the technically recommended default given `01_PRODUCT.md` §24's note that "reducing checkout friction is important."
+- Chosen because `01_PRODUCT.md` §24 notes that "reducing checkout friction is important." Customer accounts remain a post-MVP option (§14).
 
 ---
 
@@ -428,6 +431,8 @@ PENDING ──▶ PAID
 
 PAID ──▶ REFUNDED   (future; not required for MVP transitions, but schema supports it)
 ```
+- In the MVP there are no transitions out of PAID or FAILED, so the seller is asked to confirm before recording either. Every payment starts PENDING, for every method.
+- The seller records the payment with `PATCH /seller/orders/{id}/payment` (optionally with a `reference` note); `paid_at` is set when it becomes PAID. Recording a payment never changes the order's status, and changing the order's status never changes the payment's.
 
 ## 7.3 Delivery State Machine
 ```
@@ -449,8 +454,8 @@ Since there's no customer login (§5.4), order tracking uses:
 ```
 GET /api/v1/shop/{store_slug}/orders/{order_id}?phone={phone}
 ```
-- Requires both the order ID (given at checkout / in Telegram confirmation) and the phone number used at checkout — a simple shared-secret pattern, not real auth, appropriate for the low-sensitivity data involved (order status, not payment credentials).
-- Returns order status, items, and delivery status only — no other customer orders are exposed.
+- **Decided (2026-10-02): the order link plus the phone used at checkout.** The order ID is in the link given at checkout (or in a Telegram confirmation); the phone is matched however it's typed. A simple shared-secret pattern, not real auth, appropriate for the low-sensitivity data involved (order status, not payment credentials). The device that placed the order remembers the phone, so the customer only types it on another device. A wrong phone gets the same 404 as a missing order.
+- Returns order status, items, delivery status, and payment status, plus how to pay while the payment is pending and the order isn't rejected or cancelled (the store's bank account, or a KHQR code; §10). No other customer's orders or details are exposed.
 
 ---
 
@@ -484,19 +489,29 @@ This is intentionally simple — no attribution modeling, no multi-touch trackin
 
 Matches `01_PRODUCT.md` §25: **COD + KHQR + manual bank transfer**, no additional providers.
 
+**Decided (2026-10-02):**
+- The customer chooses the method at checkout, from those the store has on (`payment_config`). Only method names are public; account details and the KHQR code come with the order.
+- **Payment timing: pay right after ordering.** The order page shows how to pay as soon as the order is placed, before the seller accepts it. If the seller then rejects or cancels an order that was already paid, they refund it themselves.
+- **Every payment is confirmed by hand by the seller**, for all three methods.
+- Payment details shown are the store's current ones, not a copy from ordering time, and disappear if the seller turns that method off.
+
 ## 10.1 Cash on Delivery (COD)
-No integration. `payment.status` starts `pending`, seller manually marks `paid` after collecting cash (`PATCH /orders/{id}/payment`).
+No integration. `payment.status` starts `pending`, seller manually marks `paid` after collecting cash (`PATCH /seller/orders/{id}/payment`). A COD order can be completed without the cash being recorded (§7.4).
 
 ## 10.2 Manual Bank Transfer
-No integration. Store's `payment_config.bank_transfer` holds account details shown to the customer at checkout. Customer transfers manually; seller manually marks `paid` after checking their bank app. `payment.reference` can store a free-text note (e.g., last 4 digits, transfer time) for reconciliation.
+No integration. Store's `payment_config.bank_transfer` holds account details (bank, name on the account, account number), shown to the customer on the order page right after they order, with the amount and a request to put the order number (e.g. "#1001") in the transfer note. Customer transfers manually; seller manually marks `paid` after checking their bank app. `payment.reference` can store a free-text note (e.g., last 4 digits, transfer time) for reconciliation.
 
 ## 10.3 KHQR
-- Generated via the **Bakong Open API** (NBC's KHQR standard), which most Cambodian banks/wallets support for QR-based payment.
+- NBC's KHQR standard, which all Bakong member banks/wallets (ABA, ACLEDA, Wing, …) can scan and pay.
+- **Generated on our own server, without the Bakong API (spike result, 2026-10-02).** A KHQR is an EMVCo QR payload pointing at the seller's Bakong ID, so building one needs no Bakong account, API token, or network call. The store's `payment_config.khqr` holds the seller's Bakong ID (e.g. `name@aclb`, from their bank app) and the name customers see (English letters, max 25). The format follows NBC's KHQR SDK (v2.9); tests pin it to strings the official SDK generated.
 - Flow:
-  1. On checkout with `method=khqr`, backend calls Bakong API to generate a KHQR string/image for the order total.
-  2. Frontend displays the QR code.
+  1. When the customer opens the order page (`method=khqr`, payment pending, order not rejected/cancelled), the backend builds a KHQR string for the order total in the order's currency, with the order number as the bill number. A KHQR with an amount must expire: each code works for 24 hours, and the order page makes a fresh one each time it opens. Riel totals with cents get no code (the SDK refuses them too).
+  2. Frontend draws the QR code, with a "Save QR code" button: customers usually order on the same phone they pay with, so they save the image and scan it from their gallery in their bank app.
   3. **MVP approach: manual confirmation.** Seller checks their bank app for the incoming transfer and marks the order `paid` manually — same UX as bank transfer, just with a QR code for convenience. This avoids needing Bakong's transaction-verification/webhook API (which requires additional merchant onboarding) before validating the product.
   4. **Post-MVP upgrade path:** integrate Bakong's transaction check/webhook API for automatic payment confirmation once a seller's volume justifies the integration effort — flagged in §14 as a fast-follow, not blocking MVP launch.
+
+- Automatic confirmation (step 4) needs the Bakong Open API: a token from api-bakong.nbc.gov.kh, renewed every 90 days, and its transaction check is reported to work only from servers in Cambodia.
+- Opening the customer's bank app with the amount filled in ("one-tap pay") isn't possible for free: each bank's app-to-app payment is its own merchant service. Logged in the Requirements Log (`03_DEVELOPMENT.md` §6) as Validate First.
 
 This mirrors `01_PRODUCT.md` §38.4's guidance: "start with the simplest validated payment workflow."
 
@@ -569,7 +584,7 @@ Customer taps "Ask Seller" on product page
 Not required to launch, but designed for in the schema/architecture so they don't require rework:
 
 - Bakong webhook-based automatic KHQR payment confirmation (§10.3)
-- Stock reservation on "add to cart" (currently: stock checked at order-creation time only, per `01_PRODUCT.md` §32 Rule 3 — reservation logic is deferred until abandoned-cart overselling is shown to be a real problem)
+- Stock reservation on "add to cart" (currently, decided 2026-10-02: stock is checked and taken when the order is placed, in one statement per line so two checkouts can't oversell, and returned when the order is rejected or cancelled; per `01_PRODUCT.md` §32 Rule 3 — reservation logic is deferred until abandoned-cart overselling is shown to be a real problem)
 - Background worker (Celery/RQ) if notification/tracking volume outgrows `BackgroundTasks`
 - Delivery-provider API integrations (replacing free-text `assignee_note`)
 - Customer accounts (replacing phone-based guest lookup)
