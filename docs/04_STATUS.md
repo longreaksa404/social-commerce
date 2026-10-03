@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-03 (Phase 5 closed after the founder's live test)
+> **Last updated:** 2026-10-03 (Phase 6 built; waiting for the founder's bot)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,7 +15,12 @@
 
 ## Current Phase
 
-**Next: Phase 6 — Telegram** (not started)
+**Phase 6 — Telegram: built and tested locally, not deployed.** Its
+definition of done needs a real bot, which only the founder can create
+(@BotFather), then three env vars in Render (see In Progress). With the
+founder's decision, "Ask Seller" opens the seller's own Telegram instead of
+a bot conversation, so that half of the definition of done changes too
+(proposed text under "Decisions Made This Session").
 
 Phase 5 met its definition of done on 2026-10-03 and the founder closed
 it after testing on the live site: delivery fee, couriers, discount, an
@@ -345,9 +350,80 @@ shows "API: ok" from the deployed backend.
       collected; reworked flow (couriers, GPS, one fee) re-checked at 390
       px. axe-core: no WCAG 2.1 A/AA violations; no console errors.
 
+**Phase 6 (built 2026-10-03; not deployed, needs the founder's bot):**
+
+- [x] Migration `3867d44e4db7`: `store.telegram_username` and the
+      `notification_log` table from 02 §5.2 (RLS like the other tenant
+      tables). Built now rather than in Phase 7, because 02 §12.1 has
+      every Telegram alert write a row.
+- [x] Bot API over plain `httpx` (`app/services/telegram.py`), not
+      python-telegram-bot: sendMessage plus one /start command don't need
+      a framework. Off until `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`
+      and `TELEGRAM_WEBHOOK_SECRET` are set. The webhook is registered
+      with Telegram at startup only where `PUBLIC_API_URL` is set
+      (production), so a laptop never takes the bot over.
+- [x] Connecting: `POST /seller/store/telegram/link` returns
+      `t.me/<bot>?start=<code>`. The code is signed, not stored (store id
+      + 30-minute expiry + HMAC from `JWT_SECRET`, 43 characters).
+      `POST /api/v1/telegram/webhook` checks the secret-token header (404
+      otherwise), and `/start <code>` in a private chat saves the chat on
+      the store and replies "Connected to <shop>". Anything else gets
+      help text; groups are ignored. `DELETE /seller/store/telegram`
+      disconnects. If the seller blocks the bot, the next alert
+      disconnects the store.
+- [x] Alerts (`app/services/notifications.py`), only for things the seller
+      didn't do: each new order (number, items, discount, delivery fee,
+      total, payment and delivery method, customer name and phone,
+      address or "location shared", note, "Open order" button; "(accepted
+      automatically)" in automatic mode), and low stock when an order
+      takes a product or option to 5 or fewer, or sells it out (once at
+      each step, not on every sale). Sent after the response
+      (BackgroundTasks); each writes a `notification_log` row (sent /
+      failed + error). A failure never touches the order.
+- [x] "Ask seller": the seller's Telegram username in `GET/PATCH
+      /seller/store` (`@name`, `name`, `t.me/name` all saved as `name`;
+      empty clears), public on the shop page. The chat id stays private.
+- [x] Frontend: Settings → Telegram ("Connect Telegram", fetched ahead
+      so a phone doesn't block the new tab; the page polls until the chat
+      connects, then shows Connected / Disconnect; "Your Telegram
+      username"). Product page: "Ask seller on Telegram" under Add to
+      cart opens `t.me/<username>?text=…` with "Hi! I'd like to ask about
+      <product (option)>: <link>". Hidden without a username.
+- [x] 404 pytest tests (39 new): link codes (round trip, expiry,
+      forged, swapped signature), webhook secret, connect only that store,
+      groups ignored, settings, username normalizing and refusal, the
+      low-stock crossing rule, alert text (escaping, riel, automatic
+      mode), no alert without a chat, blocked bot, tenant isolation of
+      the log (RLS) and of disconnect (API).
+- [x] Clicked through in headless Chromium at 390 and 1280 px with a
+      fake bot and the webhook called directly: connect → Connected
+      without a reload, bad username shown by its field, username kept,
+      Ask seller link and pre-filled text, an order's alerts logged as
+      failed (this container can't reach Telegram) while the order went
+      through, disconnect, no button without a username. axe-core: no
+      WCAG 2.1 A/AA violations; no console errors.
+- [ ] **Not yet checked with real Telegram:** that the message arrives
+      and looks right, the "Open order" button, and that
+      `t.me/<username>?text=` pre-fills the message on iPhone and
+      Android (if it doesn't, the chat still opens, just empty).
+
 ---
 
 ## In Progress
+
+- [ ] **Phase 6, founder (needed to deploy and test):**
+      1. In Telegram, message @BotFather → `/newbot`; pick a name (e.g.
+         "Dara Shop Alerts") and a username ending in `bot`. It replies
+         with a token.
+      2. Render → social-commerce-api → Environment: add
+         `TELEGRAM_BOT_TOKEN` (the token), `TELEGRAM_BOT_USERNAME` (without
+         @), `TELEGRAM_WEBHOOK_SECRET` (any random letters/numbers, 20+),
+         `PUBLIC_API_URL` = `https://social-commerce-api.onrender.com`,
+         `PUBLIC_APP_URL` = `https://social-commerce-eight.vercel.app`.
+         (They are in `render.yaml`, but an existing service may not
+         pick up new Blueprint variables by itself.)
+      3. Push, let it deploy, then Settings → Telegram → Connect, tap
+         Start, place a test order, and tap Ask seller on a phone.
 
 - [ ] **Carried over from Phase 1 (founder, later):** Cloudflare R2 bucket +
       API token + public dev URL + CORS, then the five `R2_*` env vars in
@@ -452,6 +528,19 @@ Resolved:
       stays dark on light so bank apps can scan it. No backend or data
       model change expected.
 
+- [x] **"Ask Seller" opens the seller's own Telegram** (2026-10-03,
+      founder chose it over a bot relay): `t.me/<username>?text=` with the
+      product and its link typed in; the seller answers from their normal
+      account and sees the customer's. The username is in Settings; no
+      username, no button. The bot is only for alerts.
+- [x] **Telegram alerts only for what the seller didn't do** (2026-10-03):
+      new order and low stock / sold out. Cancellation, payment and
+      delivery changes are the seller's own taps in the MVP, so they send
+      nothing. Revisit if customers can cancel or payments are confirmed
+      automatically.
+- [x] **`store.telegram_username`**, and `notification_log` built in
+      Phase 6 (2026-10-03).
+
 Still open (noticed in Phase 2, not built; founder to decide):
 
 - [ ] **Link previews when sharing.** Facebook, Messenger, Telegram and
@@ -471,6 +560,12 @@ Still open (noticed in Phase 2, not built; founder to decide):
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
+Phase 6 (2026-10-03), to apply to 01/02/03 when the founder asks:
+"Ask Seller" goes to the seller's own Telegram (01 §11, §27, §46; 02
+§12.2, §5.2 `store.telegram_username`, §6.2 the two settings endpoints;
+03 Phase 6 tasks and definition of done); alerts only for new orders and
+low stock (01 §19, 02 §12.1); httpx instead of python-telegram-bot (02
+§3); `notification_log` moves from Phase 7 to Phase 6 (03).
 
 - Development moved from a Claude Project chat to Claude Code. Docs live in
   `docs/` in the monorepo; `CLAUDE.md` is at the repo root.
@@ -565,7 +660,17 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   layout, so a product link costs one round trip. New public endpoints go
   under `/shop/{store_slug}` (`app/api/shop.py`) and use the `Shop` /
   `ShopDb` dependencies; the router-level rate limit covers them.
-- Bundle: 155 KB gzipped after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
+- Low stock for alerts is 5 or fewer, the same line as the shop's "Only
+  N left" (`LOW_STOCK` in `notifications.py` and `ShopProduct.tsx`).
+  Seller edits and returned stock never alert.
+- Telegram's webhook wakes the sleeping Render free service; the first
+  update can time out and Telegram retries it, so a /start reply may
+  take up to a minute after a quiet spell. Alerts are sent by our side
+  and aren't affected.
+- A "Connect Telegram" link works for 30 minutes and for anyone who has
+  it; it is only shown to the logged-in seller. Connecting again moves
+  alerts to the new chat (one chat per store).
+- Bundle: 156 KB gzipped after Phase 6, 155 KB after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
   after Phase 2), mostly
   React DOM, React Router and TanStack Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
   customers) and skipped for now; revisit when later phases make the
@@ -589,7 +694,10 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Phase 6: Telegram (seller notifications, "Ask Seller"). Needs a bot
-   from @BotFather, which only the founder can create.
-2. Decide on the two Phase 2 proposals above (link previews, grid photos).
+1. Phase 6: founder creates the bot and sets the Render env vars (In
+   Progress), then the live test; then apply the Phase 6 decisions to
+   01/02/03.
+2. Phase 7: web notifications + customer list (the `notification_log`
+   table already exists).
+3. Decide on the two Phase 2 proposals above (link previews, grid photos).
 R2 setup whenever the founder is ready.
