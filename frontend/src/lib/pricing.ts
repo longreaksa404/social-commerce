@@ -36,3 +36,29 @@ export function nextDiscount(subtotal: number, rules: DiscountRule[]): { missing
     .sort((a, b) => a.missing - b.missing)
   return better[0] ?? null
 }
+
+export type FreeDeliveryNudge =
+  | { kind: 'free' }
+  | { kind: 'amount'; missing: number; progress: number }
+  | { kind: 'items'; missing: number; progress: number }
+
+/** How close the items are to free delivery, for a nudge in the cart:
+ * free already, or what's missing toward the rule the cart is closest to
+ * (`progress` 0–1). Null when there's nothing to say: no fee, no rule, or
+ * pickup only. */
+export function freeDeliveryNudge(
+  subtotal: number,
+  itemCount: number,
+  delivery: ShopStore['delivery'],
+): FreeDeliveryNudge | null {
+  const delivers = delivery.own_delivery || delivery.couriers.length > 0
+  const amount = delivery.free_from_amount === null ? null : toCents(delivery.free_from_amount)
+  const items = delivery.free_from_items
+  if (!delivers || toCents(delivery.fee) === 0 || (amount === null && items === null)) return null
+  if (deliveryFeeCents('seller_delivery', subtotal, itemCount, delivery) === 0) return { kind: 'free' }
+  const byAmount = amount === null ? -1 : subtotal / amount
+  const byItems = items === null ? -1 : itemCount / items
+  return byAmount >= byItems
+    ? { kind: 'amount', missing: amount! - subtotal, progress: byAmount }
+    : { kind: 'items', missing: items! - itemCount, progress: byItems }
+}

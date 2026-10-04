@@ -128,6 +128,15 @@ export const shop = {
       en: (missing: string, off: string) => `Add ${missing} more to get ${off} off.`,
       km: (missing: string, off: string) => `ទិញបន្ថែម ${missing} ទៀត ដើម្បីទទួលបានការបញ្ចុះតម្លៃ ${off}។`,
     },
+    addMoreForFreeDelivery: {
+      en: (missing: string) => `Add ${missing} more for free delivery.`,
+      km: (missing: string) => `ទិញបន្ថែម ${missing} ទៀត ដើម្បីបានដឹកជូនឥតគិតថ្លៃ។`,
+    },
+    addItemsForFreeDelivery: {
+      en: (n: number) => (n === 1 ? 'Add 1 more item for free delivery.' : `Add ${n} more items for free delivery.`),
+      km: (n: number) => `ទិញទំនិញ ${n} ទៀត ដើម្បីបានដឹកជូនឥតគិតថ្លៃ។`,
+    },
+    deliveryIsFree: { en: 'Your delivery is free.', km: 'ការដឹករបស់អ្នកឥតគិតថ្លៃ។' },
     fixItems: { en: 'Fix the items marked in red to continue.', km: 'សូមកែទំនិញដែលមានសញ្ញាក្រហម ដើម្បីបន្ត។' },
     checkout: { en: 'Checkout', km: 'បន្តទៅកុម្ម៉ង់' },
     continueShopping: { en: 'Continue shopping', km: 'ទិញបន្តទៀត' },
