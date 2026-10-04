@@ -55,7 +55,7 @@ Build a **modular monolith**, not microservices. `01_PRODUCT.md` §28 explicitly
 | Unit | Description |
 |---|---|
 | `api` | FastAPI backend, serves REST API + Telegram webhook endpoint |
-| `web` | React SPA, static build served via CDN/static host |
+| `web` | React SPA, static build served via CDN/static host; on Vercel, a Routing Middleware (`frontend/middleware.ts`) gives preview bots on `/shop/*` the page's title, description and photo (link previews, §9.3) |
 | `db` | Single PostgreSQL instance (managed) |
 | `storage` | Object storage bucket for product images |
 | `worker` (later) | Background jobs (notifications, link analytics rollups) — deferred until needed; run as FastAPI `BackgroundTasks` in MVP instead of a separate worker process |
@@ -265,10 +265,10 @@ seller
 | created_at / updated_at | timestamptz | |
 
 ### `shareable_link`
-| id, store_id (FK), target_type (`store`,`product`,`category`), target_id (nullable for store links), slug/token, source (nullable, e.g. `tiktok`), campaign (nullable), created_at |
+| id, store_id (FK), target_type (`store`,`product`,`category`), target_id (nullable for store links; no foreign key, as it points at a product or a category), token (8 lowercase letters/digits, unique), source (where it's posted, e.g. `tiktok`), campaign (nullable; the seller's own name for it, e.g. "Video 3 Oct"), created_at |
 
 ### `link_event`
-| id, link_id (FK), event_type (`view`,`order`), order_id (nullable FK), created_at |
+| id, store_id (FK; for RLS, like the other tenant tables), link_id (FK), event_type (`view`,`order`), order_id (nullable FK, unique: an order counts for one link at most), created_at |
 
 > Kept deliberately minimal per `01_PRODUCT.md` §20.1 — "advanced marketing analytics are not required for the first MVP." This just supports counting views/orders per link/source.
 
@@ -388,6 +388,7 @@ GET    /api/v1/shop/{store_slug}/products/{product_slug}
 GET    /api/v1/shop/{store_slug}/categories/{category_slug}
 POST   /api/v1/shop/{store_slug}/orders        # create order (guest checkout)
 GET    /api/v1/shop/{store_slug}/orders/{order_id}?phone={phone}   # order tracking lookup
+POST   /api/v1/shop/{store_slug}/track-view    # a page opened through a link (§9.2)
 ```
 
 ### Telegram
@@ -487,19 +488,20 @@ GET /api/v1/shop/{store_slug}/orders/{order_id}?phone={phone}
 /shop/{store_slug}/category/{category_slug}        → category link
 ```
 
-Optional query params for source tracking, appended by the seller when sharing:
-```
-?src=tiktok&campaign=september_sale
-```
+A seller's link is the page's own address plus `?l=<token>`, e.g. `/shop/dara/product/red-dress?l=k3f9a2x7`. The seller makes one per place they post (decided 2026-10-03): what it opens, where it's posted (`source`), and an optional name (`campaign`), all saved on the `shareable_link` row. Making the same link again returns the existing one. The address is built from the current slugs, so it changes if the seller renames the shop or product.
 
 ## 9.2 Tracking Flow
 
-1. Frontend reads `src`/`campaign` query params on page load.
-2. Frontend calls a lightweight `POST /api/v1/shop/{store_slug}/track-view` (fire-and-forget) with `target_type`, `target_id`, `source`, `campaign`.
-3. Backend writes a `link_event(event_type=view)` row via `BackgroundTasks` (non-blocking).
-4. At checkout, if an order is created within the same browser session (tracked via a short-lived cookie/localStorage value, **not** a database session), the `order.source` field is populated and a `link_event(event_type=order)` is written.
+1. Frontend reads the `l` query param on page load.
+2. Frontend calls a lightweight `POST /api/v1/shop/{store_slug}/track-view` (fire-and-forget) with `{token}`, once per device per link per 30 minutes (reloads don't count again).
+3. Backend writes a `link_event(event_type=view)` row via `BackgroundTasks` (non-blocking). An unknown token, or another shop's, is ignored with the same answer.
+4. The device remembers the last link opened per shop for 7 days (localStorage, **not** a database session; decided 2026-10-03). An order placed in that time sends the token: the order gets the link's `source` and a `link_event(event_type=order)` is written in the order's transaction.
 
 This is intentionally simple — no attribution modeling, no multi-touch tracking, consistent with `01_PRODUCT.md` §20.1's explicit scope limit.
+
+## 9.3 Link Previews
+
+Facebook, Messenger, Telegram, TikTok and similar apps build a link's preview card from the HTML without running JavaScript. A Vercel Routing Middleware (`frontend/middleware.ts`, decided 2026-10-03) on `/shop/*` gives those preview bots `index.html` with `og:` title, description and photo from the storefront API; people pass through untouched, so a slow API never slows a customer. If the API doesn't answer in 6 s (e.g. Render asleep), the bot gets the generic card. Preview bots don't run JavaScript, so they never count as views.
 
 ---
 

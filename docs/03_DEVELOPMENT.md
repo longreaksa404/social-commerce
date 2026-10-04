@@ -240,8 +240,16 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Link generation endpoint + UI (store/product/category) | 4 |
 | View/order tracking (background task write) | 3 |
 | Basic link stats view (views, orders per link) | 4 |
+| Link previews: Open Graph tags for preview bots (decided 2026-10-03) | 4 |
 
-**Subtotal:** ~13 hours (**~1 week**)
+**Subtotal:** ~17 hours (**~1.5 weeks**)
+
+> **Decided (2026-10-03):** the seller makes a named link per place they
+> post (`?l=<token>`); an order counts for the last link opened on that
+> device in the last 7 days; a Links tab replaces Categories in the phone's
+> tabs; link previews built here. See `02_TECHNICAL.md` §9.
+
+**Definition of done:** a seller makes a link for a product and shares it; it previews with the product's name and photo; opening it and ordering shows one view and one order on the link's page.
 
 ---
 
@@ -278,9 +286,9 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 5 — Delivery | 24 | 2 wks |
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
-| 8 — Links/Tracking | 13 | 1 wk |
+| 8 — Links/Tracking | 17 | 1.5 wks |
 | 9 — Polish/First Seller | 60 | 4.5 wks |
-| **Total** | **~284 hrs** | **~22 weeks (~5 months)** |
+| **Total** | **~288 hrs** | **~22 weeks (~5 months)** |
 
 This is a planning estimate, not a commitment.
 

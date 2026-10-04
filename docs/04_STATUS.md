@@ -21,8 +21,7 @@ Phase 8 met its definition of done on 2026-10-04 and the founder closed
 it after testing on the live site: a link made from a product's Share
 button previewed with the product's name and photo, and opening it and
 ordering showed the view and the order on the link's page. (Definition
-of done is still to be added to 03; suggested text in "Decisions Made
-This Session".)
+of done now in 03.)
 
 Phase 7 met its definition of done on 2026-10-03 and the founder closed
 it after testing on the live site: a test order showed on the bell,
@@ -702,36 +701,18 @@ Still open (noticed in Phase 2, not built; founder to decide):
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-Phase 8 (2026-10-03), to apply to 01/02/03 when the founder asks:
-
-- 02 §5.2 `shareable_link`: `target_id` has no foreign key (product or
-  category); `token` is 8 lowercase letters/digits, unique; `source` is
-  where it's posted, `campaign` the seller's name for it.
-- 02 §5.2 `link_event`: add `store_id (FK)` for RLS; `order_id` unique.
-- 02 §9.1: replace the `?src=tiktok&campaign=...` paragraph with: "A
-  seller's link is the page's own address plus `?l=<token>`; the link's
-  `source` and `campaign` are saved with it."
-- 02 §9.2 step 2: `POST /shop/{slug}/track-view` takes `{token}`. Step 4:
-  "the device remembers the last link opened per shop for 7 days; an
-  order placed in that time sends its token, gets the link's `source` and
-  writes `link_event(order)`. A view counts once per device per link per
-  30 minutes."
-- 02 §6.2 Storefront: add `POST /api/v1/shop/{store_slug}/track-view`.
-- 02 §3 / §1.3: Vercel Routing Middleware (`frontend/middleware.ts`) adds
-  link-preview tags for preview bots on `/shop/*`.
-- 03 Phase 8: add a task "Link previews (Open Graph tags for preview
-  bots) | 4" (subtotal ~17 hrs; §4 total ~288 hrs) and a definition of
-  done: "A seller makes a link for a product and shares it; it previews
-  with the product's name and photo; opening it and ordering shows one
-  view and one order on the link's page."
-
-
 - Development moved from a Claude Project chat to Claude Code. Docs live in
   `docs/` in the monorepo; `CLAUDE.md` is at the repo root.
 - `01_PROJECT.md` renamed to `01_PRODUCT.md` to match cross-references.
 - Hour estimates are now an upper bound. Time tracking dropped (2026-10-02):
   `docs/TIME_LOG.md` removed; actual hours are not logged.
 - Notion kanban dropped; Phase task tables in 03 are the checklist.
+
+Applied to 01/02/03 on 2026-10-04 (at the founder's request): the
+Phase 8 decisions (01 §20.1; 02 §1.3, §5.2 `shareable_link` /
+`link_event`, §6.2 `track-view`, §9.1–9.3; 03 Phase 8 previews task,
+decisions and definition of done, §4 totals: Phase 8 ~17 hrs, total
+~288 hrs).
 
 Applied to 01/02/03 on 2026-10-03 (at the founder's request): the
 Phase 7 decisions (customer "spent" in 01 §16; web notifications in 01
@@ -914,8 +895,6 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Apply the Phase 8 changes to 01/02/03 (listed above) when the
-   founder asks.
-2. Phase 9: polish, hardening, first real seller.
-3. Manual regression checklist (03 §7), still missing.
-4. Decide on the remaining Phase 2 proposal (small grid photos).
+1. Phase 9: polish, hardening, first real seller.
+2. Manual regression checklist (03 §7), still missing.
+3. Decide on the remaining Phase 2 proposal (small grid photos).

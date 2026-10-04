@@ -781,6 +781,8 @@ campaign = september_sale
 
 Advanced marketing analytics are not required for the first MVP unless validation shows a strong need.
 
+**Decided (2026-10-03):** the MVP counts views and orders per link. The seller makes a link for each place they post (the shop, a product or a category; where it's posted; an optional name) and sees each link's views, orders and the orders themselves. An order counts for the last link the customer opened on that phone in the last 7 days. Shared links preview with the shop's or product's name and photo.
+
 # 21. Multi-Tenancy
 
 The product should be designed as a multi-tenant SaaS.
