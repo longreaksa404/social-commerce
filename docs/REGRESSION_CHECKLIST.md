@@ -78,5 +78,8 @@ phone or laptop) before going on.
 
 **Settings**
 
+- [ ] Settings → your shop → Add logo. It shows in the shop header and the dashboard header; Remove logo takes it away.
+- [ ] Settings → Delivery: change the fee, Save. The Settings row and the shop's delivery line show the new fee. Leaving with unsaved changes asks first.
+- [ ] The shop page and a product page show delivery, pickup, ways to pay and discounts as set.
 - [ ] Telegram: Disconnect, then Connect again; a test order alerts the new chat.
 - [ ] "Ask seller on Telegram" on a product opens the seller's chat with the product typed in.

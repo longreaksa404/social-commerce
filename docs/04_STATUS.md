@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-04 (Phase 9 started: hardening, Khmer/English, dark mode, grid photos, backups)
+> **Last updated:** 2026-10-04 (Phase 9: UX pass on shop, Settings, order page and product options; not deployed yet)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -608,6 +608,42 @@ photos live 2026-10-03):**
       Khmer and English, light and dark; no console errors. Clicked
       through in headless Chromium at 320/360 px with a Khmer test shop.
 
+**Phase 9 UX pass (founder's request 2026-10-04, all four items approved;
+committed, not pushed or deployed):**
+
+- [x] Shop: the shop and product pages show how buying works before
+      checkout: delivery fee and free-delivery rule, who delivers, free
+      pickup and where, ways to pay, bill discounts (`ShopInfo`; no API
+      change). Product page on phones: quantity + Add to cart pinned to
+      the bottom; the quantity buttons hide while the item can't be added
+      (the reason fits one line in Khmer at 320 px).
+- [x] Shop logo: `POST /api/v1/seller/store/logo` signs an upload into
+      `stores/<id>/logo/`; `PATCH /seller/store` takes `logo_url` (only
+      from that folder; null removes it). Settings → Shop: Add / Change /
+      Remove logo, cropped on the phone to a 256 px square JPEG, saved at
+      once. Shown in the shop header and the dashboard header. No data
+      model change (`store.logo_url` existed).
+- [x] Settings is a menu: the shop (logo, name), then Orders, Payments,
+      Delivery, Discounts, Telegram, Shop link, each row saying what's set
+      now. Each opens `/dashboard/settings/<part>` with only its fields
+      and a pinned Save bar; it saves only its own part. Language, theme
+      and Log out stay on the menu.
+- [x] Seller's order page: a summary first (total, item count, and the
+      order, payment and delivery statuses on their own lines; tapping
+      payment or delivery scrolls to its card), then items, customer,
+      delivery, payment. Wider with two columns on a laptop. The three
+      statuses are only shown side by side (02 §7 unchanged).
+- [x] Product form: one row per option (name · stock · price · delete),
+      headings once; two lines each below 18rem (320 px phones). SKU
+      fields only after "Add SKU codes", or when an option has one.
+- [x] 445 pytest tests (2 new: logo signing and attach; another store's
+      logo or a product photo refused). axe-core: no violations on any
+      screen (Khmer light, English dark, 320/390/1280 px). Clicked
+      through in headless Chromium: logo upload and remove (R2 upload
+      intercepted), saving a settings page, discard prompt, shop-link
+      prompt, order jump links and back arrow, accepting an order, saving
+      edited options. No console errors.
+
 ---
 
 ## In Progress
@@ -616,7 +652,7 @@ Phase 9, waiting on the founder:
 
 - **Domain:** buy a .com on Cloudflare (decided 2026-10-04, name not
   chosen yet). Then: Vercel + Render custom domains, Cloudflare DNS,
-  R2 photos on `images.<domain>` (existing photo URLs need rewriting in
+  R2 photos on `images.<domain>` (existing photo and logo URLs need rewriting in
   the database, or saving a product with old photos is refused as
   "Invalid product image"), the refresh token moved to an httpOnly
   cookie, `PUBLIC_API_URL` / `PUBLIC_APP_URL` / `CORS_ORIGINS` updated.
@@ -778,6 +814,18 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
+Not yet applied (2026-10-04, UX pass; founder approved the four items):
+
+- 02 §6 "Seller — Store": add
+  `POST   /api/v1/seller/store/logo              # presigned logo upload, see §11`;
+  and note that `PATCH /seller/store` takes `logo_url` (a URL from that
+  upload only; null removes the logo).
+- 03 Phase 9 table: add the row "UX pass: delivery/payment info on shop
+  and product pages, pinned Add to cart, shop logo; Settings as a menu;
+  order page summary; one row per product option (founder's request
+  2026-10-04) | 15"; subtotal ~80 hours (~6 weeks); §4 totals: Phase 9
+  80 hrs / 6 wks, total ~308 hrs (~24 weeks, ~5.5 months).
+
 Applied to 01/02/03 on 2026-10-04 (at the founder's request): the
 Phase 9 decisions so far (01 §40 Khmer / English built; 02 §2 languages
 and light / dark rows, §3 Render stays free and the Cloudflare domain,
@@ -917,7 +965,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 - A "Connect Telegram" link works for 30 minutes and for anyone who has
   it; it is only shown to the logged-in seller. Connecting again moves
   alerts to the new chat (one chat per store).
-- Bundle: 178 KB gzipped with both languages and dark mode (Phase 9),
+- Bundle: 182 KB gzipped after the Phase 9 UX pass; 178 KB with both languages and dark mode (Phase 9),
   162 KB after Phase 8, 159 KB after Phase 7, 156 KB after Phase 6, 155 KB after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
   after Phase 2), mostly
   React DOM, React Router and TanStack Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
@@ -994,10 +1042,14 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: read the Khmer on the live site; try dark mode; run the
+1. Founder: say when to push the UX pass (4 commits + fix, not pushed).
+   After it deploys, check on your phone: the shop's delivery/payment
+   box, Add to cart pinned on a product, add a logo in Settings → your
+   shop, the Settings menu, an order's summary, a product's options.
+2. Founder: read the Khmer on the live site; try dark mode; run the
    rate-limit check (Notes).
-2. Founder: choose and buy the domain; then Claude does DNS, R2 photo
+3. Founder: choose and buy the domain; then Claude does DNS, R2 photo
    domain, cookie sessions.
-3. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
-4. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
+4. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
+5. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
    Part A on the live site, revoke the Telegram token.
