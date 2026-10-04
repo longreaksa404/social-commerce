@@ -96,9 +96,10 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
       </div>
 
       {order.next_statuses.length > 0 && (
-        // Pinned to the bottom on phones, in reach of a thumb.
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:mt-4 lg:border-0 lg:bg-transparent lg:pb-0">
-          <div className="mx-auto flex max-w-3xl gap-3 px-4 py-3 lg:max-w-none lg:px-0">
+        // Pinned to the bottom, in reach of a thumb (floating at the bottom
+        // of the page on wide screens, so the next step needs no scrolling).
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
+          <div className="mx-auto flex max-w-3xl gap-3 px-4 py-3 lg:max-w-none">
             {ends.map((status) => (
               <Button key={status} variant="danger" disabled={change.isPending} onClick={(e) => move(status, e.currentTarget)}>
                 {o.action[status as keyof typeof o.action]}

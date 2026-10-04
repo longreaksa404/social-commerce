@@ -322,9 +322,10 @@ export function ShopCheckout() {
 
       <ErrorMessage error={formError(place.error, FIELDS)} />
 
-      {/* Pinned to the bottom on phones so the button is always in reach. */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:pb-0">
-        <div className="mx-auto flex max-w-xl items-center gap-3 px-4 py-3 lg:px-0">
+      {/* Pinned to the bottom so the button is always in reach (floating
+          at the bottom of the column on wide screens). */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
+        <div className="mx-auto flex max-w-xl items-center gap-3 px-4 py-3">
           <span className="min-w-0 flex-1">
             <span className="block text-xs text-slate-500">{price.fee === null ? c.totalBeforeDelivery : t.shop.summary.total}</span>
             <span className="block truncate text-lg font-bold text-slate-900">
