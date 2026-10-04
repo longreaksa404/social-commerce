@@ -1,5 +1,18 @@
 @import 'tailwindcss';
 
+/* Kantumruy Pro for Khmer (decided 2026-10-04): one variable file (every
+   weight, ~57 KB) with only the Khmer letters, from @fontsource-variable.
+   A phone downloads it once, the first time it shows Khmer. */
+@font-face {
+  font-family: 'Kantumruy Pro';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 700;
+  src: url('../node_modules/@fontsource-variable/kantumruy-pro/files/kantumruy-pro-khmer-wght-normal.woff2')
+    format('woff2');
+  unicode-range: U+1780-17FF, U+19E0-19FF, U+200C-200D, U+25CC;
+}
+
 /* Light / dark (Phase 9). Dark mode flips the gray, emerald, red, amber and
    sky scales (below), so text-slate-900 is light on a dark page and a
    bg-emerald-50 tint turns deep green: write classes for light mode.
@@ -20,11 +33,14 @@
      dark mode turns into a faint light line) instead of a grey border. */
   --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px -4px rgb(15 23 42 / 0.08);
 
-  /* System fonts first (fast, native feel). Khmer falls back to the phone's
-     own Khmer font: Noto Sans Khmer on Android, Khmer Sangam on iOS. */
+  /* Khmer letters in Kantumruy Pro (the face below holds only those, so
+     it must come first: Apple's system font would otherwise draw Khmer in
+     its own older-style font). Latin letters and numbers in the phone's
+     own font (fast, native feel); the phone's Khmer font until Kantumruy
+     has loaded. */
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Khmer', 'Khmer UI',
-    'Khmer Sangam MN', 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    'Kantumruy Pro', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Khmer',
+    'Khmer UI', 'Khmer Sangam MN', 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
 
   /* Motion: short and soft, so a tap gets an answer without anyone
      waiting on it. Keyframes are below; the reduced-motion rule at the end
