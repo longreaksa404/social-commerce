@@ -3,6 +3,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { formatPriceRange } from '../lib/money.ts'
+import { useT } from '../i18n/useT.ts'
 import type { ShopProductCard, ShopStore } from '../lib/types.ts'
 
 /** A product photo, or a grey placeholder when the seller has none. */
@@ -41,6 +42,7 @@ export function ProductImage({
 export function CategoryChips({ shop }: { shop: ShopStore }) {
   const nav = useRef<HTMLElement>(null)
   const { pathname } = useLocation()
+  const t = useT()
 
   // Someone landing on a category link should see which chip is theirs,
   // even when it starts off-screen. Sideways only: the page doesn't move.
@@ -58,13 +60,13 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
         : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100'
     }`
   return (
-    <nav ref={nav} aria-label="Categories" className="relative -mx-4 mb-5 overflow-x-auto [scrollbar-width:none]">
+    <nav ref={nav} aria-label={t.shop.categories} className="relative -mx-4 mb-5 overflow-x-auto [scrollbar-width:none]">
       {/* Padding on the list, not the nav, so the last chip keeps its gap
           from the screen edge when scrolled all the way. */}
       <ul className="flex w-max gap-2 px-4">
         <li>
           <NavLink to={`/shop/${shop.slug}`} end className={chip}>
-            All
+            {t.shop.all}
           </NavLink>
         </li>
         {shop.categories.map((category) => (
@@ -80,6 +82,7 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
 }
 
 export function ProductGrid({ shop, products }: { shop: ShopStore; products: ShopProductCard[] }) {
+  const t = useT()
   return (
     <ul className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4">
       {products.map((product) => (
@@ -98,7 +101,7 @@ export function ProductGrid({ shop, products }: { shop: ShopStore; products: Sho
               />
               {!product.in_stock && (
                 <span className="absolute top-2 left-2 rounded-full bg-slate-900/80 px-2.5 py-1 text-xs font-semibold text-white">
-                  Sold out
+                  {t.shop.soldOut}
                 </span>
               )}
             </div>
@@ -147,7 +150,7 @@ export function QuantityStepper({
   max,
   onChange,
   disabled = false,
-  label = 'Quantity',
+  label,
 }: {
   value: number
   max: number
@@ -155,12 +158,13 @@ export function QuantityStepper({
   disabled?: boolean
   label?: string
 }) {
+  const t = useT()
   const button = 'border border-slate-300 bg-white shadow-xs'
   return (
-    <div role="group" aria-label={label} className="flex shrink-0 items-center gap-1">
+    <div role="group" aria-label={label ?? t.shop.quantity} className="flex shrink-0 items-center gap-1">
       <IconButton
         icon={Minus}
-        label="One less"
+        label={t.shop.oneLess}
         disabled={disabled || value <= 1}
         onClick={() => onChange(value - 1)}
         className={button}
@@ -170,7 +174,7 @@ export function QuantityStepper({
       </output>
       <IconButton
         icon={Plus}
-        label="One more"
+        label={t.shop.oneMore}
         disabled={disabled || value >= max}
         onClick={() => onChange(value + 1)}
         className={button}

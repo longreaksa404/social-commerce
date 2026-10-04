@@ -1,13 +1,14 @@
 import { ImagePlus, LoaderCircle, X } from 'lucide-react'
 import { useRef, useState, type ChangeEvent } from 'react'
 import { useFeedback } from '../../components/feedback.ts'
-import { ApiError } from '../../lib/api.ts'
+import { useT } from '../../i18n/useT.ts'
+import { errorText } from '../../lib/errors.ts'
 import { prepareImage, uploadProductImage } from '../../lib/images.ts'
 import type { Product } from '../../lib/types.ts'
 import { useSaveProduct } from '../queries.ts'
 
+// Also in the API (MAX_IMAGES) and the message t.products.photo.tooMany.
 const MAX_PHOTOS = 5
-const TOO_MANY = `A product can have up to ${MAX_PHOTOS} photos.`
 
 export type LocalPhoto = { key: string; image: Blob; preview: string }
 
@@ -30,6 +31,7 @@ function PhotoGrid({
   onMakeMain: (key: string) => void
 }) {
   const input = useRef<HTMLInputElement>(null)
+  const words = useT().products.photo
   const room = MAX_PHOTOS - photos.length - uploading
 
   function pick(event: ChangeEvent<HTMLInputElement>) {
@@ -45,7 +47,7 @@ function PhotoGrid({
           <img src={photo.src} alt="" className="size-full rounded-xl object-cover ring-1 ring-slate-200" />
           {index === 0 ? (
             <span className="absolute bottom-1.5 left-1.5 rounded-md bg-slate-900/75 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-              Main
+              {words.main}
             </span>
           ) : (
             <button
@@ -54,13 +56,13 @@ function PhotoGrid({
               onClick={() => onMakeMain(photo.key)}
               className="absolute bottom-1.5 left-1.5 rounded-md bg-white/90 px-1.5 py-0.5 text-[11px] font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 after:absolute after:-inset-2 disabled:opacity-50"
             >
-              Set main
+              {words.setMain}
             </button>
           )}
           <button
             type="button"
             disabled={disabled}
-            aria-label={`Remove photo ${index + 1}`}
+            aria-label={words.remove(index + 1)}
             onClick={() => onRemove(photo.key)}
             className="absolute -right-2 -top-2 flex size-8 items-center justify-center rounded-full bg-white text-slate-700 shadow ring-1 ring-slate-200 after:absolute after:-inset-1.5 disabled:opacity-50"
           >
@@ -75,7 +77,7 @@ function PhotoGrid({
           className="flex aspect-square items-center justify-center rounded-xl bg-slate-100 text-slate-400"
         >
           <LoaderCircle aria-hidden className="size-6 animate-spin" />
-          <span className="sr-only">Uploading photo</span>
+          <span className="sr-only">{words.uploading}</span>
         </div>
       ))}
       {room > 0 && (
@@ -86,7 +88,7 @@ function PhotoGrid({
           className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 transition hover:border-emerald-500 hover:text-emerald-700 active:bg-slate-50 disabled:opacity-50"
         >
           <ImagePlus aria-hidden className="size-6" />
-          <span className="text-xs font-medium">Add photo</span>
+          <span className="text-xs font-medium">{words.add}</span>
         </button>
       )}
       {/* image/*: phones offer the camera as well as the gallery. */}
@@ -100,6 +102,8 @@ export function ProductPhotos({ product }: { product: Product }) {
   const save = useSaveProduct()
   const { toast, confirm } = useFeedback()
   const [uploading, setUploading] = useState(0)
+  const t = useT()
+  const words = t.products.photo
   const urls = product.image_urls
 
   const setUrls = async (image_urls: string[]) =>
@@ -107,7 +111,7 @@ export function ProductPhotos({ product }: { product: Product }) {
 
   async function add(files: File[]) {
     const accepted = files.slice(0, MAX_PHOTOS - urls.length)
-    if (accepted.length < files.length) toast(TOO_MANY, 'error')
+    if (accepted.length < files.length) toast(words.tooMany, 'error')
     setUploading(accepted.length)
     let current = urls
     try {
@@ -117,16 +121,16 @@ export function ProductPhotos({ product }: { product: Product }) {
         setUploading((n) => n - 1)
       }
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : 'The photo upload failed. Please try again.', 'error')
+      toast(errorText(err, words.uploadFailed), 'error')
     } finally {
       setUploading(0)
     }
   }
 
   async function remove(url: string) {
-    const ok = await confirm({ title: 'Remove this photo?', confirmLabel: 'Remove', danger: true })
+    const ok = await confirm({ title: words.removeTitle, confirmLabel: t.common.remove, danger: true })
     if (!ok) return
-    await setUrls(urls.filter((u) => u !== url)).catch((err) => toast(err.message, 'error'))
+    await setUrls(urls.filter((u) => u !== url)).catch((err) => toast(errorText(err), 'error'))
   }
 
   return (
@@ -136,7 +140,7 @@ export function ProductPhotos({ product }: { product: Product }) {
       disabled={uploading > 0 || save.isPending}
       onAdd={add}
       onRemove={remove}
-      onMakeMain={(url) => setUrls([url, ...urls.filter((u) => u !== url)]).catch((err) => toast(err.message, 'error'))}
+      onMakeMain={(url) => setUrls([url, ...urls.filter((u) => u !== url)]).catch((err) => toast(errorText(err), 'error'))}
     />
   )
 }
@@ -150,11 +154,12 @@ export function NewProductPhotos({
   onChange: (photos: LocalPhoto[]) => void
 }) {
   const { toast } = useFeedback()
+  const words = useT().products.photo
   const [preparing, setPreparing] = useState(0)
 
   async function add(files: File[]) {
     const accepted = files.slice(0, MAX_PHOTOS - photos.length)
-    if (accepted.length < files.length) toast(TOO_MANY, 'error')
+    if (accepted.length < files.length) toast(words.tooMany, 'error')
     setPreparing(accepted.length)
     const added: LocalPhoto[] = []
     for (const file of accepted) {
@@ -162,7 +167,7 @@ export function NewProductPhotos({
         const image = await prepareImage(file)
         added.push({ key: crypto.randomUUID(), image, preview: URL.createObjectURL(image) })
       } catch (err) {
-        toast(err instanceof ApiError ? err.message : "Couldn't read this photo.", 'error')
+        toast(errorText(err, words.cantRead), 'error')
       }
       setPreparing((n) => n - 1)
     }

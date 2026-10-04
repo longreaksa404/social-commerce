@@ -4,7 +4,8 @@ import { useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
-import { countLabel, linkPlace, linkTargetName, linkUrl, TARGET_ICONS } from '../../lib/links.ts'
+import { useT } from '../../i18n/useT.ts'
+import { linkPlace, linkTargetName, linkUrl, TARGET_ICONS } from '../../lib/links.ts'
 import { formatDate } from '../../lib/orders.ts'
 import type { LinkStats } from '../../lib/types.ts'
 import { OrderRow } from '../orders/OrderRow.tsx'
@@ -16,12 +17,13 @@ export function LinkDetail() {
   const { linkId = '' } = useParams()
   const link = useLinkStats(linkId)
   const back = useBackTo('/dashboard/links')
+  const t = useT()
 
   if (link.isPending) return <DetailSkeleton back={back} />
   if (link.error) {
     return (
       <>
-        <PageHeader title="Link" back={back} />
+        <PageHeader title={t.links.link} back={back} />
         <ErrorState error={link.error} onRetry={() => link.refetch()} />
       </>
     )
@@ -31,7 +33,9 @@ export function LinkDetail() {
 
 function LinkView({ link, back }: { link: LinkStats; back: string }) {
   const Icon = TARGET_ICONS[link.target_type]
-  const title = linkTargetName(link)
+  const t = useT()
+  const l = t.links
+  const title = linkTargetName(t, link)
   return (
     <>
       <PageHeader title={title} back={back} />
@@ -45,7 +49,7 @@ function LinkView({ link, back }: { link: LinkStats; back: string }) {
             </span>
             <div className="min-w-0">
               <p className="font-semibold break-words text-slate-900">{linkPlace(link)}</p>
-              <p className="text-sm text-slate-500">Made {formatDate(link.created_at)}</p>
+              <p className="text-sm text-slate-500">{l.made(formatDate(link.created_at))}</p>
             </div>
           </div>
 
@@ -53,26 +57,25 @@ function LinkView({ link, back }: { link: LinkStats; back: string }) {
 
           <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
             <div>
-              <dt className="text-sm text-slate-500">Views</dt>
+              <dt className="text-sm text-slate-500">{l.viewsLabel}</dt>
               <dd className="text-lg font-bold text-slate-900">{link.view_count}</dd>
             </div>
             <div>
-              <dt className="text-sm text-slate-500">Orders</dt>
+              <dt className="text-sm text-slate-500">{l.ordersLabel}</dt>
               <dd className="text-lg font-bold text-slate-900">{link.order_count}</dd>
             </div>
           </dl>
           <p className="mt-2 text-xs leading-5 text-slate-500">
-            A view counts once per phone every 30 minutes. An order counts if it's placed on the same phone within 7 days
-            of opening this link.
+            {l.howCounted}
           </p>
         </Card>
 
         <section aria-labelledby="link-orders">
           <h2 id="link-orders" className="mb-2 px-1 font-semibold text-slate-900">
-            Orders
+            {l.ordersLabel}
           </h2>
           {link.orders.length === 0 ? (
-            <Card className="p-4 text-sm text-slate-500 sm:p-6">No orders from this link yet.</Card>
+            <Card className="p-4 text-sm text-slate-500 sm:p-6">{l.noOrders}</Card>
           ) : (
             <Card className="divide-y divide-slate-100 overflow-hidden">
               {link.orders.map((order) => (
@@ -82,7 +85,7 @@ function LinkView({ link, back }: { link: LinkStats; back: string }) {
           )}
           {link.order_count > link.orders.length && (
             <p className="mt-2 px-1 text-sm text-slate-500">
-              The latest {link.orders.length} of {countLabel(link.order_count, 'order', 'orders')}.
+              {l.latestOrders(link.orders.length, link.order_count)}
             </p>
           )}
         </section>
@@ -96,16 +99,17 @@ function LinkView({ link, back }: { link: LinkStats; back: string }) {
 function ShareBox({ url, title }: { url: string; title: string }) {
   const { toast } = useFeedback()
   const [copied, setCopied] = useState(false)
+  const t = useT()
   const canShare = typeof navigator.share === 'function'
 
   async function copy() {
     try {
       await navigator.clipboard.writeText(url)
       setCopied(true)
-      toast('Link copied')
+      toast(t.links.linkCopied)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      toast("Couldn't copy. Press and hold the link to copy it.", 'error')
+      toast(t.links.copyFailed, 'error')
     }
   }
 
@@ -122,17 +126,17 @@ function ShareBox({ url, title }: { url: string; title: string }) {
       <p className="rounded-xl bg-slate-50 px-3.5 py-2.5 font-mono text-sm break-all text-slate-700 select-all">{url}</p>
       <div className="flex flex-wrap gap-2">
         <Button icon={copied ? Check : Copy} onClick={copy} className="flex-1 sm:flex-none">
-          {copied ? 'Copied' : 'Copy link'}
+          {copied ? t.common.copied : t.links.copyLink}
         </Button>
         {canShare && (
           <Button variant="secondary" icon={Share2} onClick={share} className="flex-1 sm:flex-none">
-            Share
+            {t.common.share}
           </Button>
         )}
         {/* Without the token, so the seller's own look isn't a view. */}
         <a href={url.split('?')[0]} target="_blank" rel="noopener" className={`${buttonClass('ghost')} flex-1 sm:flex-none`}>
           <ExternalLink aria-hidden className="size-4" />
-          Open
+          {t.common.open}
         </a>
       </div>
     </div>
@@ -140,10 +144,8 @@ function ShareBox({ url, title }: { url: string; title: string }) {
 }
 
 function NotWorking({ link }: { link: LinkStats }) {
-  const message =
-    link.target_type === 'category'
-      ? 'This category was deleted, so the link shows “not found”.'
-      : 'This product is hidden from your shop, so the link shows “not found”. Show the product again and the link works again.'
+  const t = useT()
+  const message = link.target_type === 'category' ? t.links.categoryDeleted : t.links.productHidden
   return (
     <p className="mt-4 flex gap-2.5 rounded-xl bg-amber-50 px-3.5 py-3 text-sm text-amber-900">
       <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
@@ -153,9 +155,10 @@ function NotWorking({ link }: { link: LinkStats }) {
 }
 
 function DetailSkeleton({ back }: { back: string }) {
+  const t = useT()
   return (
     <>
-      <PageHeader title="Link" back={back} />
+      <PageHeader title={t.links.link} back={back} />
       <Card className="space-y-3 p-4 sm:p-6">
         <Skeleton className="h-5 w-40" />
         <Skeleton className="h-4 w-28" />

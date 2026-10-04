@@ -18,8 +18,9 @@ import {
   Switch,
   TextArea,
 } from '../../components/ui.tsx'
+import { useT } from '../../i18n/useT.ts'
 import { ApiError } from '../../lib/api.ts'
-import { fieldError, formError } from '../../lib/errors.ts'
+import { errorText, fieldError, formError } from '../../lib/errors.ts'
 import { uploadProductImage } from '../../lib/images.ts'
 import type { Currency, Product, ProductStatus } from '../../lib/types.ts'
 import { useCategories, useProduct, useSaveProduct, useStore } from '../queries.ts'
@@ -107,12 +108,13 @@ const sameBody = (a: Draft, b: Draft, isNew: boolean) =>
 export function ProductEdit() {
   const { productId } = useParams()
   const product = useProduct(productId)
+  const t = useT()
 
   if (productId && product.isPending) return <FormSkeleton />
   if (productId && product.error) {
     return (
       <>
-        <PageHeader title="Product" back="/dashboard/products" />
+        <PageHeader title={t.products.product} back="/dashboard/products" />
         <ErrorState error={product.error} onRetry={() => product.refetch()} />
       </>
     )
@@ -131,6 +133,8 @@ function ProductForm({ product }: { product?: Product }) {
   const [draft, setDraft] = useState(baseline)
   const [newPhotos, setNewPhotos] = useState<LocalPhoto[]>([])
   const [progress, setProgress] = useState<string | null>(null)
+  const t = useT()
+  const p = t.products
 
   const dirty = !sameBody(draft, baseline, isNew) || newPhotos.length > 0
   const { allowLeave } = useUnsavedChanges(dirty)
@@ -144,7 +148,7 @@ function ProductForm({ product }: { product?: Product }) {
     event.preventDefault()
     let saved: Product
     try {
-      setProgress('Saving…')
+      setProgress(t.common.saving)
       saved = await save.mutateAsync({ id: product?.id, body: toBody(draft, isNew, isNew ? undefined : baseline) })
     } catch {
       setProgress(null)
@@ -155,7 +159,7 @@ function ProductForm({ product }: { product?: Product }) {
       setProgress(null)
       setBaseline(toDraft(saved))
       setDraft(toDraft(saved))
-      toast('Changes saved')
+      toast(p.changesSaved)
       return
     }
 
@@ -164,16 +168,16 @@ function ProductForm({ product }: { product?: Product }) {
     try {
       const urls: string[] = []
       for (const [i, photo] of newPhotos.entries()) {
-        setProgress(`Uploading photo ${i + 1} of ${newPhotos.length}…`)
+        setProgress(p.uploadingPhotoOf(i + 1, newPhotos.length))
         urls.push(await uploadProductImage(saved.id, photo.image))
       }
       if (urls.length) await save.mutateAsync({ id: saved.id, body: { image_urls: urls } })
       newPhotos.forEach((p) => URL.revokeObjectURL(p.preview))
-      toast('Product added')
+      toast(p.productAdded)
       navigate('/dashboard/products', { replace: true })
     } catch (err) {
-      const reason = err instanceof ApiError ? err.message : 'Please try again.'
-      toast(`Product saved, but photos weren't uploaded. ${reason}`, 'error')
+      const reason = err instanceof ApiError ? errorText(err) : t.common.somethingWrong
+      toast(p.photosNotUploaded(reason), 'error')
       navigate(`/dashboard/products/${saved.id}`, { replace: true })
     }
   }
@@ -185,7 +189,7 @@ function ProductForm({ product }: { product?: Product }) {
   return (
     <>
       <PageHeader
-        title={isNew ? 'New product' : 'Edit product'}
+        title={isNew ? p.newProduct : p.editProduct}
         back="/dashboard/products"
         action={
           // A hidden product's page doesn't open, so there's nothing to share.
@@ -193,7 +197,7 @@ function ProductForm({ product }: { product?: Product }) {
           baseline.status === 'active' && (
             <Link to={`/dashboard/links/new?product=${product.id}`} className={`${buttonClass('secondary')} shrink-0`}>
               <Share2 aria-hidden className="size-4" />
-              Share
+              {t.common.share}
             </Link>
           )
         }
@@ -201,24 +205,24 @@ function ProductForm({ product }: { product?: Product }) {
 
       <form onSubmit={submit} className="space-y-4">
         <Section
-          title="Photos"
-          description={isNew ? 'The first photo is the main one customers see.' : 'Changes to photos save right away.'}
+          title={p.photos}
+          description={isNew ? p.photosHintNew : p.photosHintSaved}
         >
           {isNew ? <NewProductPhotos photos={newPhotos} onChange={setNewPhotos} /> : <ProductPhotos product={product} />}
         </Section>
 
-        <Section title="Details">
-          <Field label="Product name" error={fieldError(save.error, 'name')}>
+        <Section title={p.details}>
+          <Field label={p.name} error={fieldError(save.error, 'name')}>
             <Input
               required
               maxLength={100}
               autoCapitalize="sentences"
-              placeholder="e.g. Leather sandal"
+              placeholder={p.namePlaceholder}
               value={draft.name}
               onChange={(e) => set('name', e.target.value)}
             />
           </Field>
-          <Field label="Description" hint="Optional. Size, material, how to care for it…" error={fieldError(save.error, 'description')}>
+          <Field label={p.description} hint={p.descriptionHint} error={fieldError(save.error, 'description')}>
             <TextArea
               rows={4}
               maxLength={2000}
@@ -228,21 +232,21 @@ function ProductForm({ product }: { product?: Product }) {
             />
           </Field>
           <Field
-            label="Category"
+            label={p.category}
             error={fieldError(save.error, 'category_id')}
             hint={
               categories.data?.length === 0 ? (
                 <>
-                  No categories yet.{' '}
+                  {p.noCategoriesYet}{' '}
                   <Link to="/dashboard/categories" className="font-medium text-emerald-700 underline">
-                    Create one
+                    {p.createOne}
                   </Link>
                 </>
               ) : undefined
             }
           >
             <Select value={draft.category_id} onChange={(e) => set('category_id', e.target.value)}>
-              <option value="">No category</option>
+              <option value="">{p.noCategory}</option>
               {categories.data?.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -252,16 +256,16 @@ function ProductForm({ product }: { product?: Product }) {
           </Field>
         </Section>
 
-        <Section title="Price and stock">
-          <Field label="Price" error={fieldError(save.error, 'price')}>
+        <Section title={p.priceAndStock}>
+          <Field label={p.price} error={fieldError(save.error, 'price')}>
             <MoneyInput required currency={currency} value={draft.price} onChange={(v) => set('price', v)} />
           </Field>
 
           <Switch
             checked={draft.has_variants}
             onChange={(on) => set('has_variants', on)}
-            label="This product has variants"
-            description="Different sizes or colors, each with its own stock."
+            label={p.hasVariants}
+            description={p.hasVariantsHint}
           />
 
           {draft.has_variants ? (
@@ -269,11 +273,11 @@ function ProductForm({ product }: { product?: Product }) {
               {draft.variants.map((variant, index) => (
                 <div key={variant.key} className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-slate-700">Variant {index + 1}</span>
+                    <span className="text-sm font-semibold text-slate-700">{p.variant(index + 1)}</span>
                     <IconButton
                       icon={Trash2}
                       tone="danger"
-                      label={`Remove variant ${index + 1}`}
+                      label={p.removeVariant(index + 1)}
                       disabled={draft.variants.length === 1}
                       onClick={() => set('variants', draft.variants.filter((v) => v.key !== variant.key))}
                       className="-my-2 -mr-2"
@@ -281,17 +285,17 @@ function ProductForm({ product }: { product?: Product }) {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="col-span-2">
-                      <Field label="Name">
+                      <Field label={p.variantName}>
                         <Input
                           required
-                          placeholder="e.g. Red / M"
+                          placeholder={p.variantNamePlaceholder}
                           maxLength={100}
                           value={variant.name}
                           onChange={(e) => setVariant(variant.key, { name: e.target.value })}
                         />
                       </Field>
                     </div>
-                    <Field label="Stock">
+                    <Field label={p.stock}>
                       <Input
                         type="number"
                         inputMode="numeric"
@@ -302,16 +306,16 @@ function ProductForm({ product }: { product?: Product }) {
                         onChange={(e) => setVariant(variant.key, { stock_quantity: e.target.value })}
                       />
                     </Field>
-                    <Field label="Price">
+                    <Field label={p.price}>
                       <MoneyInput
                         currency={currency}
-                        placeholder={draft.price || 'Same'}
+                        placeholder={draft.price || p.samePrice}
                         value={variant.price_override}
                         onChange={(v) => setVariant(variant.key, { price_override: v })}
                       />
                     </Field>
                     <div className="col-span-2">
-                      <Field label="SKU (optional)">
+                      <Field label={p.sku}>
                         <Input
                           maxLength={64}
                           autoCapitalize="characters"
@@ -323,44 +327,40 @@ function ProductForm({ product }: { product?: Product }) {
                   </div>
                 </div>
               ))}
-              <p className="text-xs text-slate-500">Leave a variant's price empty to use the product price.</p>
+              <p className="text-xs text-slate-500">{p.variantPriceHint}</p>
               <button
                 type="button"
                 onClick={() => set('variants', [...draft.variants, blankVariant()])}
                 className={`${buttonClass('secondary')} w-full border-dashed`}
               >
                 <Plus aria-hidden className="size-4" />
-                Add variant
+                {p.addVariant}
               </button>
             </div>
           ) : (
-            <Field label="Stock" error={fieldError(save.error, 'stock_quantity')} hint="How many you have to sell.">
+            <Field label={p.stock} error={fieldError(save.error, 'stock_quantity')} hint={p.stockHint}>
               <StockStepper value={draft.stock_quantity} onChange={(v) => set('stock_quantity', v)} />
             </Field>
           )}
         </Section>
 
-        <Section title="Visibility">
+        <Section title={p.visibility}>
           <Switch
             checked={draft.status === 'active'}
             onChange={(on) => set('status', on ? 'active' : 'inactive')}
-            label="Show in shop"
-            description={
-              draft.status === 'active'
-                ? 'Customers can see and order this product.'
-                : 'Hidden from customers. You can show it again any time.'
-            }
+            label={p.showInShop}
+            description={draft.status === 'active' ? p.shownHint : p.hiddenHint}
           />
         </Section>
 
         {!isNew && (
           <details open={slugError ? true : undefined} className="group rounded-2xl border border-slate-200 bg-white px-4 shadow-xs sm:px-6">
             <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between text-base font-semibold text-slate-900">
-              Advanced
+              {p.advanced}
               <Plus aria-hidden className="size-5 text-slate-400 transition-transform group-open:rotate-45" />
             </summary>
             <div className="pb-5">
-              <Field label="Link name" error={slugError} hint="Part of this product's link. Changing it breaks links you already shared.">
+              <Field label={p.linkName} error={slugError} hint={p.linkNameHint}>
                 <Input
                   autoCapitalize="none"
                   autoCorrect="off"
@@ -379,10 +379,10 @@ function ProductForm({ product }: { product?: Product }) {
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:pb-0">
           <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3 lg:px-0">
             <span className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
-              {progress ?? (dirty ? 'Unsaved changes' : isNew ? '' : 'All changes saved')}
+              {progress ?? (dirty ? p.unsaved : isNew ? '' : p.allSaved)}
             </span>
             <Button type="submit" loading={busy} disabled={!isNew && !dirty} className="min-w-32">
-              {isNew ? 'Add product' : 'Save'}
+              {isNew ? p.addProduct : t.common.save}
             </Button>
           </div>
         </div>
@@ -394,11 +394,12 @@ function ProductForm({ product }: { product?: Product }) {
 /** Number field with − / + buttons: quick stock changes with a thumb. */
 function StockStepper({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const n = Number(value || 0)
+  const p = useT().products
   return (
     <div className="flex items-center gap-2">
       <IconButton
         icon={Minus}
-        label="Decrease stock"
+        label={p.decreaseStock}
         disabled={n <= 0}
         onClick={() => onChange(String(Math.max(0, n - 1)))}
         className="border border-slate-300 bg-white shadow-xs"
@@ -415,7 +416,7 @@ function StockStepper({ value, onChange }: { value: string; onChange: (value: st
       />
       <IconButton
         icon={Plus}
-        label="Increase stock"
+        label={p.increaseStock}
         onClick={() => onChange(String(n + 1))}
         className="border border-slate-300 bg-white shadow-xs"
       />
@@ -424,9 +425,10 @@ function StockStepper({ value, onChange }: { value: string; onChange: (value: st
 }
 
 function FormSkeleton() {
+  const p = useT().products
   return (
     <>
-      <PageHeader title="Edit product" back="/dashboard/products" />
+      <PageHeader title={p.editProduct} back="/dashboard/products" />
       <div className="space-y-4">
         {[120, 260, 180].map((h) => (
           <Skeleton key={h} className="w-full rounded-2xl" style={{ height: h }} />

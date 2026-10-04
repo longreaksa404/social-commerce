@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router'
 import { useAuth, type RegisterInput } from '../auth/useAuth.ts'
 import { Button, ErrorMessage, Field, Input, PasswordInput } from '../components/ui.tsx'
 import { fieldError, formError } from '../lib/errors.ts'
+import { useT } from '../i18n/useT.ts'
 import { AuthLayout } from './AuthLayout.tsx'
 
 const empty: RegisterInput = { store_name: '', full_name: '', phone: '', email: '', password: '' }
@@ -13,6 +14,7 @@ export function Register() {
   const [form, setForm] = useState(empty)
   const [error, setError] = useState<unknown>(null)
   const [pending, setPending] = useState(false)
+  const t = useT()
 
   if (status === 'authenticated') return <Navigate to="/dashboard" replace />
 
@@ -35,30 +37,30 @@ export function Register() {
 
   return (
     <AuthLayout
-      title="Create your store"
-      subtitle="It takes about a minute."
+      title={t.auth.createYourStore}
+      subtitle={t.auth.register.subtitle}
       footer={
         <>
-          Already have an account?{' '}
+          {t.auth.register.haveAccount}{' '}
           <Link to="/login" className="font-semibold text-emerald-700 hover:underline">
-            Log in
+            {t.auth.logIn}
           </Link>
         </>
       }
     >
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Store name" error={fieldError(error, 'store_name')} hint="What customers will see. You can change it later.">
+        <Field label={t.auth.register.storeName} error={fieldError(error, 'store_name')} hint={t.auth.register.storeNameHint}>
           <Input
             required
             maxLength={100}
             autoCapitalize="words"
             enterKeyHint="next"
-            placeholder="e.g. Sokha Fashion"
+            placeholder={t.common.example('Sokha Fashion')}
             value={form.store_name}
             onChange={set('store_name')}
           />
         </Field>
-        <Field label="Your name" error={fieldError(error, 'full_name')}>
+        <Field label={t.auth.register.yourName} error={fieldError(error, 'full_name')}>
           <Input
             required
             autoComplete="name"
@@ -69,7 +71,7 @@ export function Register() {
             onChange={set('full_name')}
           />
         </Field>
-        <Field label="Phone number" error={fieldError(error, 'phone')}>
+        <Field label={t.auth.register.phone} error={fieldError(error, 'phone')}>
           <Input
             required
             type="tel"
@@ -81,7 +83,7 @@ export function Register() {
             onChange={set('phone')}
           />
         </Field>
-        <Field label="Email" error={fieldError(error, 'email')} hint="You'll use this to log in.">
+        <Field label={t.auth.email} error={fieldError(error, 'email')} hint={t.auth.register.emailHint}>
           <Input
             required
             type="email"
@@ -95,7 +97,7 @@ export function Register() {
             onChange={set('email')}
           />
         </Field>
-        <Field label="Password" error={fieldError(error, 'password')} hint="At least 8 characters.">
+        <Field label={t.auth.password} error={fieldError(error, 'password')} hint={t.auth.register.passwordHint}>
           <PasswordInput
             required
             autoComplete="new-password"
@@ -107,7 +109,7 @@ export function Register() {
         </Field>
         <ErrorMessage error={formError(error, Object.keys(empty))} />
         <Button type="submit" size="lg" loading={pending} className="w-full">
-          Create store
+          {t.auth.register.submit}
         </Button>
       </form>
     </AuthLayout>

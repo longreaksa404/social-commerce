@@ -14,7 +14,9 @@ import {
   PageHeader,
   Skeleton,
 } from '../components/ui.tsx'
+import { useT } from '../i18n/useT.ts'
 import { api } from '../lib/api.ts'
+import { errorText } from '../lib/errors.ts'
 import type { Category } from '../lib/types.ts'
 import { keys, useCategories } from './queries.ts'
 
@@ -23,6 +25,8 @@ export function Categories() {
   const queryClient = useQueryClient()
   const { toast } = useFeedback()
   const [name, setName] = useState('')
+  const t = useT()
+  const c = t.categories
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: keys.categories })
@@ -32,7 +36,7 @@ export function Categories() {
     mutationFn: (name: string) => api<Category>('/seller/categories', { method: 'POST', body: { name } }),
     onSuccess: (category) => {
       setName('')
-      toast(`Added “${category.name}”`)
+      toast(c.added(category.name))
       refresh()
     },
   })
@@ -44,14 +48,14 @@ export function Categories() {
 
   return (
     <>
-      <PageHeader title="Categories" back="/dashboard/products" />
+      <PageHeader title={c.title} back="/dashboard/products" />
 
       <Card className="mb-4 p-4">
         <form onSubmit={submit} className="flex gap-2">
           <div className="min-w-0 flex-1">
             <Input
-              aria-label="New category name"
-              placeholder="e.g. Shoes"
+              aria-label={c.newName}
+              placeholder={c.namePlaceholder}
               maxLength={100}
               autoCapitalize="words"
               enterKeyHint="done"
@@ -60,7 +64,7 @@ export function Categories() {
             />
           </div>
           <Button type="submit" icon={Plus} loading={create.isPending} disabled={!name.trim()}>
-            Add
+            {t.common.add}
           </Button>
         </form>
         {create.error && (
@@ -82,8 +86,8 @@ export function Categories() {
       ) : categories.error ? (
         <ErrorState error={categories.error} onRetry={() => categories.refetch()} />
       ) : categories.data.length === 0 ? (
-        <EmptyState icon={Tags} title="No categories yet">
-          Group your products, like “Shoes” or “Bags”, so customers can browse them.
+        <EmptyState icon={Tags} title={c.emptyTitle}>
+          {c.emptyText}
         </EmptyState>
       ) : (
         <Card className="divide-y divide-slate-100">
@@ -101,33 +105,33 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(category.name)
+  const t = useT()
+  const c = t.categories
 
   const rename = useMutation({
     mutationFn: () =>
       api<Category>(`/seller/categories/${category.id}`, { method: 'PATCH', body: { name: name.trim() } }),
     onSuccess: () => {
       setEditing(false)
-      toast('Category renamed')
+      toast(c.renamed)
       onChanged()
     },
   })
   const remove = useMutation({
     mutationFn: () => api(`/seller/categories/${category.id}`, { method: 'DELETE' }),
     onSuccess: () => {
-      toast(`Deleted “${category.name}”`)
+      toast(c.deleted(category.name))
       onChanged()
     },
-    onError: (err) => toast(err.message, 'error'),
+    onError: (err) => toast(errorText(err), 'error'),
   })
 
   async function confirmDelete() {
     const count = category.product_count
     const ok = await confirm({
-      title: `Delete “${category.name}”?`,
-      message: count
-        ? `Its ${count} product${count === 1 ? '' : 's'} will stay in your shop, just without a category.`
-        : undefined,
-      confirmLabel: 'Delete',
+      title: c.deleteTitle(category.name),
+      message: count ? c.deleteMessage(count) : undefined,
+      confirmLabel: t.common.delete,
       danger: true,
     })
     if (ok) remove.mutate()
@@ -146,17 +150,17 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
           <div className="min-w-0 flex-1">
             <Input
               autoFocus
-              aria-label="Category name"
+              aria-label={c.name}
               maxLength={100}
               enterKeyHint="done"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
-          <IconButton type="submit" icon={Check} label="Save name" disabled={rename.isPending || !name.trim()} className="text-emerald-700" />
+          <IconButton type="submit" icon={Check} label={c.saveName} disabled={rename.isPending || !name.trim()} className="text-emerald-700" />
           <IconButton
             icon={X}
-            label="Cancel"
+            label={t.common.cancel}
             onClick={() => {
               setName(category.name)
               setEditing(false)
@@ -182,22 +186,22 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
             to={`/dashboard/products?category=${category.id}`}
             className="text-sm text-emerald-700 hover:underline"
           >
-            {count} product{count === 1 ? '' : 's'}
+            {c.productCount(count)}
           </Link>
         ) : (
-          <p className="text-sm text-slate-500">No products yet</p>
+          <p className="text-sm text-slate-500">{c.noProducts}</p>
         )}
       </div>
       <IconButton
         icon={Share2}
-        label={`Share ${category.name}`}
+        label={c.share(category.name)}
         onClick={() => navigate(`/dashboard/links/new?category=${category.id}`)}
       />
-      <IconButton icon={Pencil} label={`Rename ${category.name}`} onClick={() => setEditing(true)} />
+      <IconButton icon={Pencil} label={c.rename(category.name)} onClick={() => setEditing(true)} />
       <IconButton
         icon={Trash2}
         tone="danger"
-        label={`Delete ${category.name}`}
+        label={c.delete(category.name)}
         disabled={remove.isPending}
         onClick={confirmDelete}
       />

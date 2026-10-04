@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { Button, ErrorMessage, Field, Input, PasswordInput } from '../components/ui.tsx'
+import { useT } from '../i18n/useT.ts'
 import { AuthLayout } from './AuthLayout.tsx'
 
 export function Login() {
@@ -12,6 +13,7 @@ export function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<unknown>(null)
   const [pending, setPending] = useState(false)
+  const t = useT()
 
   const from = (location.state as { from?: string } | null)?.from ?? '/dashboard'
   if (status === 'authenticated') return <Navigate to={from} replace />
@@ -32,19 +34,19 @@ export function Login() {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Log in to manage your shop."
+      title={t.auth.login.title}
+      subtitle={t.auth.login.subtitle}
       footer={
         <>
-          New here?{' '}
+          {t.auth.login.newHere}{' '}
           <Link to="/register" className="font-semibold text-emerald-700 hover:underline">
-            Create your store
+            {t.auth.createYourStore}
           </Link>
         </>
       }
     >
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Email">
+        <Field label={t.auth.email}>
           <Input
             type="email"
             inputMode="email"
@@ -58,7 +60,7 @@ export function Login() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </Field>
-        <Field label="Password">
+        <Field label={t.auth.password}>
           <PasswordInput
             autoComplete="current-password"
             enterKeyHint="go"
@@ -69,7 +71,7 @@ export function Login() {
         </Field>
         <ErrorMessage error={error} />
         <Button type="submit" size="lg" loading={pending} className="w-full">
-          Log in
+          {t.auth.logIn}
         </Button>
       </form>
     </AuthLayout>

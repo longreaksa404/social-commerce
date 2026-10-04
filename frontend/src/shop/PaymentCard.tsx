@@ -4,35 +4,37 @@ import { encode } from 'uqr'
 import { useFeedback } from '../components/feedback.ts'
 import { Button, Card, IconButton } from '../components/ui.tsx'
 import { formatMoney } from '../lib/money.ts'
-import { PAYMENT_METHOD_LABELS } from '../lib/payments.ts'
+import { useT } from '../i18n/useT.ts'
 import type { BankAccount, ShopOrder, ShopStore } from '../lib/types.ts'
 
 /** How to pay for the order, and whether the seller has received it. */
 export function PaymentCard({ shop, order }: { shop: ShopStore; order: ShopOrder }) {
   const { payment } = order
   const total = formatMoney(payment.amount, order.currency)
+  const t = useT()
+  const p = t.order.pay
   return (
     <Card className="p-4 sm:p-6">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-semibold text-slate-900">Payment</h2>
-        <span className="text-sm text-slate-500">{PAYMENT_METHOD_LABELS[payment.method]}</span>
+        <h2 className="font-semibold text-slate-900">{p.title}</h2>
+        <span className="text-sm text-slate-500">{t.status.paymentMethod[payment.method]}</span>
       </div>
 
       {payment.status === 'paid' ? (
         <p className="mt-2 flex items-center gap-1.5 font-medium text-emerald-700">
           <CircleCheck aria-hidden className="size-4.5" />
-          Paid · {total}
+          {p.paid(total)}
         </p>
       ) : payment.status === 'failed' ? (
         <p className="mt-2 flex items-start gap-1.5 text-sm text-red-700">
           <XCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
-          {shop.name} couldn't confirm your payment. Contact them about it.
+          {p.failed(shop.name)}
         </p>
       ) : payment.status === 'refunded' ? (
-        <p className="mt-2 text-sm text-slate-600">Refunded.</p>
+        <p className="mt-2 text-sm text-slate-600">{p.refunded}</p>
       ) : payment.method === 'cod' ? (
         <p className="mt-2 text-sm text-slate-600">
-          Pay <span className="font-semibold text-slate-900">{total}</span> in cash when you get your order.
+          {p.codBefore} <span className="font-semibold text-slate-900">{total}</span> {p.codAfter}
         </p>
       ) : payment.khqr ? (
         <KhqrPayment shop={shop} order={order} code={payment.khqr.code} name={payment.khqr.merchant_name} />
@@ -41,7 +43,7 @@ export function PaymentCard({ shop, order }: { shop: ShopStore; order: ShopOrder
       ) : (
         // The seller turned this way to pay off after the order was placed.
         <p className="mt-2 text-sm text-slate-600">
-          Not paid yet. Contact {shop.name} to ask how to pay {total}.
+          {p.askHow(shop.name, total)}
         </p>
       )}
     </Card>
@@ -50,11 +52,11 @@ export function PaymentCard({ shop, order }: { shop: ShopStore; order: ShopOrder
 
 function KhqrPayment({ shop, order, code, name }: { shop: ShopStore; order: ShopOrder; code: string; name: string }) {
   const { toast } = useFeedback()
+  const t = useT()
+  const p = t.order.pay
   const total = formatMoney(order.payment.amount, order.currency)
-  const image = useMemo(
-    () => drawKhqr({ code, name, amount: total, caption: `Order #${order.number} · ${shop.name}` }),
-    [code, name, total, order.number, shop.name],
-  )
+  const caption = `${t.shop.orderNumber(order.number)} · ${shop.name}`
+  const image = useMemo(() => drawKhqr({ code, name, amount: total, caption }), [code, name, total, caption])
   const fileName = `order-${order.number}-khqr.png`
 
   async function save() {
@@ -74,30 +76,29 @@ function KhqrPayment({ shop, order, code, name }: { shop: ShopStore; order: Shop
     link.href = image.url
     link.download = fileName
     link.click()
-    toast('QR code saved')
+    toast(p.qrSaved)
   }
 
   return (
     <div className="mt-3">
       <p className="text-sm text-slate-600">
-        Not paid yet. Pay <span className="font-semibold text-slate-900">{total}</span> with your bank app:
+        {p.khqrBefore} <span className="font-semibold text-slate-900">{total}</span> {p.khqrAfter}
       </p>
       <img
         src={image.url}
-        alt={`KHQR code to pay ${total} to ${name}`}
+        alt={p.khqrAlt(total, name)}
         className="mx-auto mt-3 w-full max-w-72 rounded-xl border border-slate-200"
       />
       <Button variant="secondary" icon={Download} onClick={save} className="mt-3 w-full">
-        Save QR code
+        {p.saveQr}
       </Button>
       <ol className="mt-4 list-decimal space-y-1 pl-5 text-sm text-slate-600">
-        <li>Save the QR code, or take a screenshot.</li>
-        <li>Open your bank app (ABA, ACLEDA, Wing, or another) and tap Scan.</li>
-        <li>Choose the saved image from your photos, check the amount, and pay.</li>
+        <li>{p.khqrStep1}</li>
+        <li>{p.khqrStep2}</li>
+        <li>{p.khqrStep3}</li>
       </ol>
       <p className="mt-3 text-sm text-slate-500">
-        Paying from another phone? Scan the code on this screen. The code works for 24 hours; open this page again
-        for a new one. {shop.name} checks the payment and confirms it here.
+        {p.khqrNote(shop.name)}
       </p>
     </div>
   )
@@ -105,39 +106,58 @@ function KhqrPayment({ shop, order, code, name }: { shop: ShopStore; order: Shop
 
 function BankPayment({ account, total, orderNumber }: { account: BankAccount; total: string; orderNumber: number }) {
   const { toast } = useFeedback()
-  async function copy(text: string, what: string) {
+  const t = useT()
+  const p = t.order.pay
+  async function copy(text: string, copied: string) {
     try {
       await navigator.clipboard.writeText(text)
-      toast(`${what} copied`)
+      toast(copied)
     } catch {
-      toast("Couldn't copy. Select the text instead.", 'error')
+      toast(p.copyFailed, 'error')
     }
   }
   return (
     <div className="mt-3">
       <p className="text-sm text-slate-600">
-        Not paid yet. Transfer <span className="font-semibold text-slate-900">{total}</span> to:
+        {p.bankBefore} <span className="font-semibold text-slate-900">{total}</span> {p.bankAfter}
       </p>
       <dl className="mt-3 divide-y divide-slate-100 rounded-xl border border-slate-200 text-sm">
-        <Row label="Bank" value={account.bank_name} />
-        <Row label="Name" value={account.account_name} />
+        <Row label={p.bank} value={account.bank_name} />
+        <Row label={p.name} value={account.account_name} />
         <Row
-          label="Account"
+          label={p.account}
           value={account.account_number}
-          onCopy={() => copy(account.account_number, 'Account number')}
+          copyLabel={p.copyAccount}
+          onCopy={() => copy(account.account_number, p.accountCopied)}
           mono
         />
-        <Row label="Amount" value={total} onCopy={() => copy(total.replace(/[^\d.]/g, ''), 'Amount')} />
+        <Row
+          label={p.amount}
+          value={total}
+          copyLabel={p.copyAmount}
+          onCopy={() => copy(total.replace(/[^\d.]/g, ''), p.amountCopied)}
+        />
       </dl>
       <p className="mt-3 text-sm text-slate-500">
-        Write “#{orderNumber}” in the transfer's note so the seller can find your payment. They check it and confirm
-        it here.
+        {p.bankNote(orderNumber)}
       </p>
     </div>
   )
 }
 
-function Row({ label, value, onCopy, mono }: { label: string; value: string; onCopy?: () => void; mono?: boolean }) {
+function Row({
+  label,
+  value,
+  copyLabel,
+  onCopy,
+  mono,
+}: {
+  label: string
+  value: string
+  copyLabel?: string
+  onCopy?: () => void
+  mono?: boolean
+}) {
   return (
     <div className="flex min-h-11 items-center gap-3 py-1 pr-1 pl-3.5">
       <dt className="w-20 shrink-0 text-slate-500">{label}</dt>
@@ -145,7 +165,7 @@ function Row({ label, value, onCopy, mono }: { label: string; value: string; onC
         <span className={`min-w-0 flex-1 font-medium break-words text-slate-900 ${mono ? 'tabular-nums' : ''}`}>
           {value}
         </span>
-        {onCopy && <IconButton label={`Copy ${label.toLowerCase()}`} icon={Copy} onClick={onCopy} />}
+        {onCopy && copyLabel && <IconButton label={copyLabel} icon={Copy} onClick={onCopy} />}
       </dd>
     </div>
   )

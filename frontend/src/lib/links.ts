@@ -1,4 +1,5 @@
 import { Package, Store, Tags } from 'lucide-react'
+import type { Messages } from '../i18n/core.ts'
 import type { LinkTarget, ShareLink } from './types.ts'
 
 export const TARGET_ICONS: Record<LinkTarget, typeof Store> = { store: Store, product: Package, category: Tags }
@@ -19,10 +20,10 @@ export function sourceLabel(source: string): string {
 }
 
 /** What the link opens: "Whole shop", a product's or a category's name. */
-export function linkTargetName(link: ShareLink): string {
-  if (link.target_type === 'store') return 'Whole shop'
+export function linkTargetName(t: Messages, link: ShareLink): string {
+  if (link.target_type === 'store') return t.links.wholeShop
   if (link.target_name) return link.target_name
-  return link.target_type === 'category' ? 'Deleted category' : 'Product'
+  return link.target_type === 'category' ? t.links.deletedCategory : t.links.product
 }
 
 /** "TikTok · September sale" */
@@ -33,8 +34,4 @@ export function linkPlace(link: ShareLink): string {
 /** The full address to share, on this site. */
 export function linkUrl(path: string): string {
   return `${window.location.origin}${path}`
-}
-
-export function countLabel(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`
 }

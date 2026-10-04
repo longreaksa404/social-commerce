@@ -21,6 +21,8 @@ import {
   Switch,
   TextArea,
 } from '../components/ui.tsx'
+import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
+import { useT } from '../i18n/useT.ts'
 import { api } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
 import type {
@@ -36,9 +38,10 @@ import { useUnsavedChanges } from './useUnsavedChanges.ts'
 
 export function Settings() {
   const store = useStore()
+  const t = useT()
   return (
     <>
-      <PageHeader title="Settings" />
+      <PageHeader title={t.settings.title} />
       {store.isPending ? (
         <div className="space-y-4">
           <Skeleton className="h-80 w-full rounded-2xl" />
@@ -49,7 +52,10 @@ export function Settings() {
       ) : (
         <StoreForm store={store.data} />
       )}
-      <AccountSection />
+      <div className="space-y-4">
+        <DisplaySection />
+        <AccountSection />
+      </div>
     </>
   )
 }
@@ -143,6 +149,8 @@ function StoreForm({ store }: { store: Store }) {
   const queryClient = useQueryClient()
   const { toast, confirm } = useFeedback()
   const [form, setForm] = useState(() => toForm(store))
+  const t = useT()
+  const s = t.settings
   const dirty = JSON.stringify(toBody(form)) !== JSON.stringify(toBody(toForm(store)))
   useUnsavedChanges(dirty)
 
@@ -151,7 +159,7 @@ function StoreForm({ store }: { store: Store }) {
     onSuccess: (updated) => {
       queryClient.setQueryData(keys.store, updated)
       setForm(toForm(updated))
-      toast('Settings saved')
+      toast(s.saved)
     },
   })
 
@@ -167,9 +175,9 @@ function StoreForm({ store }: { store: Store }) {
     event.preventDefault()
     if (form.slug !== store.slug) {
       const ok = await confirm({
-        title: 'Change your shop link?',
-        message: 'Links you already shared on social media will stop working.',
-        confirmLabel: 'Change link',
+        title: s.changeLinkTitle,
+        message: s.changeLinkMessage,
+        confirmLabel: s.changeLink,
       })
       if (!ok) return
     }
@@ -178,8 +186,8 @@ function StoreForm({ store }: { store: Store }) {
 
   return (
     <form onSubmit={submit} className="mb-4 space-y-4">
-      <Section title="Store">
-        <Field label="Store name" error={fieldError(save.error, 'name')}>
+      <Section title={s.store}>
+        <Field label={s.storeName} error={fieldError(save.error, 'name')}>
           <Input
             required
             maxLength={100}
@@ -189,9 +197,9 @@ function StoreForm({ store }: { store: Store }) {
           />
         </Field>
         <Field
-          label="Description"
+          label={s.description}
           error={fieldError(save.error, 'description')}
-          hint="Optional. A line about what you sell, shown on your shop page."
+          hint={s.descriptionHint}
         >
           <TextArea
             maxLength={2000}
@@ -200,24 +208,20 @@ function StoreForm({ store }: { store: Store }) {
             onChange={(e) => set('description', e.target.value)}
           />
         </Field>
-        <Field label="Currency" hint="Prices are shown in this currency. Existing prices are not converted.">
+        <Field label={s.currency} hint={s.currencyHint}>
           <Select value={form.currency} onChange={(e) => set('currency', e.target.value as Currency)}>
-            <option value="USD">US dollar ($)</option>
-            <option value="KHR">Cambodian riel (៛)</option>
+            <option value="USD">{s.usd}</option>
+            <option value="KHR">{s.khr}</option>
           </Select>
         </Field>
       </Section>
 
-      <Section title="Orders">
+      <Section title={s.orders}>
         <Switch
           checked={form.order_confirmation_mode === 'automatic'}
           onChange={(on) => set('order_confirmation_mode', on ? 'automatic' : 'manual')}
-          label="Accept new orders automatically"
-          description={
-            form.order_confirmation_mode === 'automatic'
-              ? 'New orders are accepted right away. You can still cancel one later.'
-              : 'New orders wait for you to accept or reject them.'
-          }
+          label={s.autoAccept}
+          description={form.order_confirmation_mode === 'automatic' ? s.autoAcceptOn : s.autoAcceptOff}
         />
       </Section>
 
@@ -244,14 +248,14 @@ function StoreForm({ store }: { store: Store }) {
         error={save.error}
       />
 
-      <Section title="Shop link" description="The address you share with customers.">
-        <Field label="Link name" error={fieldError(save.error, 'slug')}>
+      <Section title={s.shopLink} description={s.shopLinkHint}>
+        <Field label={s.linkName} error={fieldError(save.error, 'slug')}>
           <Input
             required
             minLength={2}
             maxLength={50}
             pattern="[a-z0-9]+(-[a-z0-9]+)*"
-            title="Lowercase letters, numbers, and single hyphens"
+            title={s.linkNameTitle}
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
@@ -270,11 +274,11 @@ function StoreForm({ store }: { store: Store }) {
             className={`${buttonClass('secondary')} w-full sm:w-auto`}
           >
             <ExternalLink aria-hidden className="size-4" />
-            Open shop
+            {s.openShop}
           </Link>
           <Link to="/dashboard/links/new" className={`${buttonClass('secondary')} w-full sm:w-auto`}>
             <Share2 aria-hidden className="size-4" />
-            Share with a tracked link
+            {s.shareTracked}
           </Link>
         </div>
       </Section>
@@ -291,7 +295,7 @@ function StoreForm({ store }: { store: Store }) {
         ])}
       />
       <Button type="submit" size="lg" loading={save.isPending} disabled={!dirty} className="w-full sm:w-auto">
-        Save settings
+        {s.save}
       </Button>
     </form>
   )
@@ -307,25 +311,27 @@ function PaymentsSection({
   error: unknown
 }) {
   const { cod, bank_transfer: bank, khqr } = settings
+  const t = useT()
+  const s = t.settings
   const noneOn = !cod.enabled && !bank.enabled && !khqr.enabled
   const fieldErr = (field: string) => fieldError(error, `payment_settings.${field}`)
   return (
     <Section
-      title="Payments"
-      description="How customers can pay. You confirm each payment yourself on the order, after checking your bank app."
+      title={s.payments}
+      description={s.paymentsHint}
     >
       <Switch
         checked={khqr.enabled}
         onChange={(enabled) => onChange('khqr', { enabled })}
-        label="KHQR"
-        description="Customers get a QR code for their exact total, to scan with any Cambodian bank app."
+        label={t.status.paymentMethod.khqr}
+        description={s.khqrHint}
       />
       {khqr.enabled && (
         <div className="space-y-4 border-l-2 border-slate-100 pl-4">
           <Field
-            label="Bakong ID"
+            label={s.bakongId}
             error={fieldErr('khqr.bakong_account_id')}
-            hint="In your bank app, with your Bakong or KHQR details. It looks like name@aclb."
+            hint={s.bakongIdHint}
           >
             <Input
               required
@@ -339,15 +345,15 @@ function PaymentsSection({
             />
           </Field>
           <Field
-            label="Name customers see"
+            label={s.merchantName}
             error={fieldErr('khqr.merchant_name')}
-            hint="Shown in the customer's bank app when they scan. Use the name on your account, in English letters."
+            hint={s.merchantNameHint}
           >
             <Input
               required
               maxLength={25}
               pattern="[ -~]*"
-              title="English letters, numbers, and spaces"
+              title={s.merchantNameTitle}
               autoCapitalize="characters"
               value={khqr.merchant_name}
               onChange={(e) => onChange('khqr', { merchant_name: e.target.value })}
@@ -359,12 +365,12 @@ function PaymentsSection({
       <Switch
         checked={bank.enabled}
         onChange={(enabled) => onChange('bank_transfer', { enabled })}
-        label="Bank transfer"
-        description="Customers see this account after they order, and transfer the total."
+        label={t.status.paymentMethod.bank_transfer}
+        description={s.bankHint}
       />
       {bank.enabled && (
         <div className="space-y-4 border-l-2 border-slate-100 pl-4">
-          <Field label="Bank" error={fieldErr('bank_transfer.bank_name')}>
+          <Field label={s.bank} error={fieldErr('bank_transfer.bank_name')}>
             <Input
               required
               maxLength={50}
@@ -373,7 +379,7 @@ function PaymentsSection({
               onChange={(e) => onChange('bank_transfer', { bank_name: e.target.value })}
             />
           </Field>
-          <Field label="Name on the account" error={fieldErr('bank_transfer.account_name')}>
+          <Field label={s.accountName} error={fieldErr('bank_transfer.account_name')}>
             <Input
               required
               maxLength={100}
@@ -382,7 +388,7 @@ function PaymentsSection({
               onChange={(e) => onChange('bank_transfer', { account_name: e.target.value })}
             />
           </Field>
-          <Field label="Account number" error={fieldErr('bank_transfer.account_number')}>
+          <Field label={s.accountNumber} error={fieldErr('bank_transfer.account_number')}>
             <Input
               required
               maxLength={50}
@@ -397,13 +403,13 @@ function PaymentsSection({
       <Switch
         checked={cod.enabled}
         onChange={(enabled) => onChange('cod', { enabled })}
-        label="Cash on delivery"
-        description="Customers pay in cash when they get their order."
+        label={t.status.paymentMethod.cod}
+        description={s.codHint}
       />
 
       {(noneOn || fieldError(error, 'payment_settings')) && (
         <p role="alert" className="text-sm text-red-600">
-          {fieldError(error, 'payment_settings') ?? 'Turn on at least one way to pay.'}
+          {fieldError(error, 'payment_settings') ?? s.noPayment}
         </p>
       )}
     </Section>
@@ -455,36 +461,37 @@ function DeliverySection({
   )
   const delivers = delivery.own || couriers.length > 0
   const noneOn = !delivers && !pickup.enabled
+  const s = useT().settings
   return (
-    <Section title="Delivery" description="How customers get their orders. You update each delivery on the order.">
+    <Section title={s.delivery} description={s.deliveryHint}>
       <Field
-        label="Delivery fee"
+        label={s.fee}
         error={fieldErr('fee')}
-        hint="One price wherever the customer lives, for your own delivery or a courier. Leave empty for free delivery."
+        hint={s.feeHint}
       >
         <MoneyInput
           currency={currency}
-          placeholder="Free"
+          placeholder={s.free}
           value={delivery.fee}
           onChange={(fee) => onChange({ fee })}
         />
       </Field>
       <Field
-        label="Free delivery from"
+        label={s.freeFrom}
         error={fieldErr('free_from_amount')}
-        hint="Optional. Free when the items come to this much or more."
+        hint={s.freeFromHint}
       >
         <MoneyInput
           currency={currency}
-          placeholder="Off"
+          placeholder={s.off}
           value={delivery.free_from_amount}
           onChange={(free_from_amount) => onChange({ free_from_amount })}
         />
       </Field>
       <Field
-        label="Free delivery from (items)"
+        label={s.freeFromItems}
         error={fieldErr('free_from_items')}
-        hint="Optional. Free when the customer buys this many items or more, e.g. 3."
+        hint={s.freeFromItemsHint}
       >
         <Input
           type="number"
@@ -492,7 +499,7 @@ function DeliverySection({
           min="1"
           max="999"
           step="1"
-          placeholder="Off"
+          placeholder={s.off}
           value={delivery.free_from_items}
           onWheel={(e) => e.currentTarget.blur()}
           onChange={(e) => onChange({ free_from_items: e.target.value })}
@@ -502,21 +509,20 @@ function DeliverySection({
       <Switch
         checked={delivery.own}
         onChange={(own) => onChange({ own })}
-        label="Own delivery"
-        description="You, or someone you send, bring the order to the customer."
+        label={s.ownDelivery}
+        description={s.ownDeliveryHint}
       />
 
       <div>
-        <h3 className="text-sm font-medium text-slate-900">Couriers</h3>
+        <h3 className="text-sm font-medium text-slate-900">{s.couriers}</h3>
         <p className="mt-0.5 text-xs leading-5 text-slate-500">
-          Delivery companies you send with. The customer chooses one at checkout, and you see their location to pick
-          the branch.
+          {s.couriersHint}
         </p>
       </div>
       {couriers.map((courier, index) => (
         <div key={courier.key} className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
-            <Field label="Courier" error={fieldErr(`couriers.${index}`)}>
+            <Field label={s.courier} error={fieldErr(`couriers.${index}`)}>
               <Input
                 required
                 maxLength={50}
@@ -529,7 +535,7 @@ function DeliverySection({
           <IconButton
             icon={Trash2}
             tone="danger"
-            label={`Remove ${courier.name || 'courier'}`}
+            label={s.removeCourier(courier.name || s.thisCourier)}
             className="mt-7"
             onClick={() => onChange({ couriers: couriers.filter((c) => c.key !== courier.key) })}
           />
@@ -543,7 +549,7 @@ function DeliverySection({
             </Button>
           ))}
           <Button variant="secondary" icon={Plus} onClick={() => addCourier('')}>
-            Other courier
+            {s.otherCourier}
           </Button>
         </div>
       )}
@@ -551,21 +557,21 @@ function DeliverySection({
       <Switch
         checked={pickup.enabled}
         onChange={(enabled) => onChange({ pickup: { ...pickup, enabled } })}
-        label="Pickup"
-        description="Customers collect their order from you, for free."
+        label={s.pickup}
+        description={s.pickupHint}
       />
       {pickup.enabled && (
         <div className="border-l-2 border-slate-100 pl-4">
           <Field
-            label="Pickup address"
+            label={s.pickupAddress}
             error={fieldErr('pickup.address')}
-            hint="Shown at checkout and on the order page."
+            hint={s.pickupAddressHint}
           >
             <TextArea
               required
               maxLength={500}
               autoCapitalize="sentences"
-              placeholder="Shop 12, Orussey Market, Phnom Penh"
+              placeholder={s.pickupPlaceholder}
               value={pickup.address}
               onChange={(e) => onChange({ pickup: { ...pickup, address: e.target.value } })}
             />
@@ -575,7 +581,7 @@ function DeliverySection({
 
       {(noneOn || fieldError(error, 'delivery_settings')) && (
         <p role="alert" className="text-sm text-red-600">
-          {fieldError(error, 'delivery_settings') ?? 'Turn on your own delivery, add a courier, or turn on pickup.'}
+          {fieldError(error, 'delivery_settings') ?? s.noDelivery}
         </p>
       )}
     </Section>
@@ -595,16 +601,17 @@ function DiscountsSection({
 }) {
   const setRule = (key: string, changes: Partial<RuleRow>) =>
     onChange(rules.map((r) => (r.key === key ? { ...r, ...changes } : r)))
+  const s = useT().settings
   return (
     <Section
-      title="Discounts"
-      description="Money off when the items in an order come to an amount. If an order reaches more than one, the biggest applies."
+      title={s.discounts}
+      description={s.discountsHint}
     >
-      {rules.length === 0 && <p className="text-sm text-slate-500">No discounts.</p>}
+      {rules.length === 0 && <p className="text-sm text-slate-500">{s.noDiscounts}</p>}
       {rules.map((rule, index) => (
         <div key={rule.key} className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
-            <Field label="When items reach" error={fieldError(error, `discount_settings.rules.${index}.min_subtotal`)}>
+            <Field label={s.whenItemsReach} error={fieldError(error, `discount_settings.rules.${index}.min_subtotal`)}>
               <MoneyInput
                 required
                 currency={currency}
@@ -614,7 +621,7 @@ function DiscountsSection({
             </Field>
           </div>
           <div className="min-w-0 flex-1">
-            <Field label="Take off" error={fieldError(error, `discount_settings.rules.${index}.amount_off`)}>
+            <Field label={s.takeOff} error={fieldError(error, `discount_settings.rules.${index}.amount_off`)}>
               <MoneyInput
                 required
                 currency={currency}
@@ -626,7 +633,7 @@ function DiscountsSection({
           <IconButton
             icon={Trash2}
             tone="danger"
-            label="Remove discount"
+            label={s.removeDiscount}
             className="mt-7"
             onClick={() => onChange(rules.filter((r) => r.key !== rule.key))}
           />
@@ -638,7 +645,7 @@ function DiscountsSection({
           icon={Plus}
           onClick={() => onChange([...rules, { key: crypto.randomUUID(), min_subtotal: '', amount_off: '' }])}
         >
-          Add discount
+          {s.addDiscount}
         </Button>
       )}
     </Section>
@@ -666,6 +673,7 @@ function TelegramSection({
   const queryClient = useQueryClient()
   const { toast, confirm } = useFeedback()
   const [opened, setOpened] = useState(false)
+  const s = useT().settings
   const connected = store.telegram_connected
   // Opened the link and not connected yet: poll until the bot has the chat.
   const waiting = opened && !connected
@@ -692,37 +700,33 @@ function TelegramSection({
     onSuccess: (updated) => {
       queryClient.setQueryData(keys.store, updated)
       setOpened(false)
-      toast('Telegram disconnected')
+      toast(s.disconnected)
     },
   })
 
   async function askDisconnect() {
     const ok = await confirm({
-      title: 'Disconnect Telegram?',
-      message: "You won't get Telegram messages about new orders until you connect again.",
-      confirmLabel: 'Disconnect',
+      title: s.disconnectTitle,
+      message: s.disconnectMessage,
+      confirmLabel: s.disconnect,
     })
     if (ok) disconnect.mutate()
   }
 
   return (
-    <Section title="Telegram" description="Hear about new orders on your phone, and let customers message you.">
+    <Section title={s.telegram} description={s.telegramHint}>
       <div>
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-sm font-medium text-slate-900">Order alerts</h3>
+          <h3 className="text-sm font-medium text-slate-900">{s.orderAlerts}</h3>
           {connected && (
             <Badge tone="green">
               <CircleCheck aria-hidden className="mr-1 size-3.5" />
-              Connected
+              {s.connected}
             </Badge>
           )}
         </div>
         <p className="mt-0.5 text-xs leading-5 text-slate-500">
-          {!store.telegram_bot_available
-            ? "Order alerts on Telegram aren't available yet."
-            : connected
-              ? 'A message for every new order, and when a product is running low or sold out.'
-              : 'Get a Telegram message for every new order, and when a product is running low or sold out.'}
+          {!store.telegram_bot_available ? s.alertsUnavailable : connected ? s.alertsOn : s.alertsOff}
         </p>
       </div>
       {connected ? (
@@ -732,7 +736,7 @@ function TelegramSection({
           onClick={askDisconnect}
           className="w-full sm:w-auto"
         >
-          Disconnect
+          {s.disconnect}
         </Button>
       ) : (
         canConnect && (
@@ -749,13 +753,11 @@ function TelegramSection({
                 className={`${buttonClass('primary')} w-full sm:w-auto ${link.data ? '' : 'pointer-events-none opacity-50'}`}
               >
                 <Send aria-hidden className="size-4" />
-                Connect Telegram
+                {s.connect}
               </a>
             )}
             <p className="mt-2 text-xs leading-5 text-slate-500">
-              {waiting
-                ? 'In Telegram, tap Start. This page updates once you have.'
-                : 'Telegram opens our bot. Tap Start, then come back here.'}
+              {waiting ? s.connectWaiting : s.connectHint}
             </p>
           </div>
         )
@@ -763,9 +765,9 @@ function TelegramSection({
       {disconnect.error && <ErrorMessage error={disconnect.error} />}
 
       <Field
-        label="Your Telegram username"
+        label={s.username}
         error={fieldError(error, 'telegram_username')}
-        hint="Optional. Customers tap “Ask seller” on a product to message you here. Leave empty to hide the button."
+        hint={s.usernameHint}
       >
         <Input
           maxLength={60}
@@ -782,12 +784,23 @@ function TelegramSection({
   )
 }
 
+/** Applies at once and stays on this device; not part of the store's settings. */
+function DisplaySection() {
+  const s = useT().settings
+  return (
+    <Section title={s.display} description={s.displayHint}>
+      <LanguageSwitch />
+    </Section>
+  )
+}
+
 function AccountSection() {
   const { logout } = useAuth()
+  const s = useT().settings
   return (
-    <Section title="Account">
+    <Section title={s.account}>
       <Button variant="secondary" icon={LogOut} onClick={logout} className="w-full sm:w-auto">
-        Log out
+        {s.logOut}
       </Button>
     </Section>
   )

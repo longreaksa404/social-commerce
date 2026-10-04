@@ -1,0 +1,16 @@
+import type { Tree } from '../core.ts'
+import { auth } from './auth.ts'
+import { categories } from './categories.ts'
+import { checkout } from './checkout.ts'
+import { common } from './common.ts'
+import { customers } from './customers.ts'
+import { links } from './links.ts'
+import { dashboard } from './dashboard.ts'
+import { order } from './order.ts'
+import { orders } from './orders.ts'
+import { products } from './products.ts'
+import { settings } from './settings.ts'
+import { shop } from './shop.ts'
+import { status } from './status.ts'
+
+export const messageTree = { common, auth, shop, checkout, order, status, dashboard, orders, customers, products, categories, links, settings } satisfies Tree

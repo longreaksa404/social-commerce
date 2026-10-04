@@ -2,7 +2,8 @@ import { ChevronRight, Link2, Plus } from 'lucide-react'
 import { Link } from 'react-router'
 import { Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
-import { countLabel, linkPlace, linkTargetName, TARGET_ICONS } from '../../lib/links.ts'
+import { useT } from '../../i18n/useT.ts'
+import { linkPlace, linkTargetName, TARGET_ICONS } from '../../lib/links.ts'
 import type { ShareLink } from '../../lib/types.ts'
 import { useLinks } from '../queries.ts'
 
@@ -10,11 +11,13 @@ import { useLinks } from '../queries.ts'
  * orders each brought. */
 export function LinkList() {
   const links = useLinks()
+  const t = useT()
+  const l = t.links
 
   const newButton = (
     <Link to="/dashboard/links/new" className={`${buttonClass('primary')} shrink-0`}>
       <Plus aria-hidden className="size-4" />
-      New link
+      {l.newLink}
     </Link>
   )
 
@@ -22,7 +25,7 @@ export function LinkList() {
   if (links.error) {
     return (
       <>
-        <PageHeader title="Links" />
+        <PageHeader title={l.title} />
         <ErrorState error={links.error} onRetry={() => links.refetch()} />
       </>
     )
@@ -30,19 +33,18 @@ export function LinkList() {
   if (links.data.length === 0) {
     return (
       <>
-        <PageHeader title="Links" />
+        <PageHeader title={l.title} />
         <EmptyState
           icon={Link2}
-          title="See which posts bring orders"
+          title={l.emptyTitle}
           action={
             <Link to="/dashboard/links/new" className={buttonClass('primary', 'lg')}>
               <Plus aria-hidden className="size-5" />
-              New link
+              {l.newLink}
             </Link>
           }
         >
-          Make a link for each place you post, like your TikTok video or a Facebook group. Each one counts its own views and
-          orders.
+          {l.emptyText}
         </EmptyState>
       </>
     )
@@ -50,7 +52,7 @@ export function LinkList() {
 
   return (
     <>
-      <PageHeader title="Links" action={newButton} />
+      <PageHeader title={l.title} action={newButton} />
       <Card className="divide-y divide-slate-100 overflow-hidden">
         {links.data.map((link) => (
           <LinkRow key={link.id} link={link} />
@@ -62,6 +64,7 @@ export function LinkList() {
 
 function LinkRow({ link }: { link: ShareLink }) {
   const Icon = TARGET_ICONS[link.target_type]
+  const t = useT()
   return (
     <Link
       to={`/dashboard/links/${link.id}`}
@@ -71,11 +74,11 @@ function LinkRow({ link }: { link: ShareLink }) {
         <Icon aria-hidden className="size-5" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-semibold text-slate-900">{linkTargetName(link)}</span>
+        <span className="block truncate font-semibold text-slate-900">{linkTargetName(t, link)}</span>
         <span className="mt-0.5 block truncate text-sm text-slate-700">{linkPlace(link)}</span>
         <span className="mt-0.5 block text-xs text-slate-500">
-          {countLabel(link.view_count, 'view', 'views')} · {countLabel(link.order_count, 'order', 'orders')}
-          {link.path === null && ' · not working'}
+          {t.links.views(link.view_count)} · {t.links.orders(link.order_count)}
+          {link.path === null && t.links.notWorkingTag}
         </span>
       </span>
       <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-300" />
@@ -84,9 +87,10 @@ function LinkRow({ link }: { link: ShareLink }) {
 }
 
 function ListSkeleton() {
+  const l = useT().links
   return (
     <>
-      <PageHeader title="Links" />
+      <PageHeader title={l.title} />
       <Card className="divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="flex items-center gap-3 p-3 sm:p-4">

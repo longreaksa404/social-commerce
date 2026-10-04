@@ -2,6 +2,8 @@ import { Bell, ShoppingBag, TriangleAlert, type LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { Button, Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../components/ui.tsx'
+import type { Messages } from '../i18n/core.ts'
+import { useT } from '../i18n/useT.ts'
 import { formatMoney } from '../lib/money.ts'
 import { formatOrderTime } from '../lib/orders.ts'
 import type { SellerNotification } from '../lib/types.ts'
@@ -15,6 +17,7 @@ export function Notifications() {
   // The ones that were unread when they came on screen: marked read at
   // once, but highlighted until the seller leaves the page.
   const [fresh, setFresh] = useState<ReadonlySet<string>>(() => new Set())
+  const t = useT()
 
   // Seeing them is reading them: the bell clears, on every device.
   useEffect(() => {
@@ -30,7 +33,7 @@ export function Notifications() {
   if (list.error) {
     return (
       <>
-        <PageHeader title="Notifications" />
+        <PageHeader title={t.dashboard.notifications} />
         <ErrorState error={list.error} onRetry={() => list.refetch()} />
       </>
     )
@@ -39,10 +42,10 @@ export function Notifications() {
   const shown = uniqueById(list.data.pages.flatMap((page) => page.notifications))
   return (
     <>
-      <PageHeader title="Notifications" />
+      <PageHeader title={t.dashboard.notifications} />
       {shown.length === 0 ? (
-        <EmptyState icon={Bell} title="No notifications yet">
-          New orders show up here, and products running low or sold out.
+        <EmptyState icon={Bell} title={t.customers.notifications.emptyTitle}>
+          {t.customers.notifications.emptyText}
         </EmptyState>
       ) : (
         <Card className="divide-y divide-slate-100 overflow-hidden">
@@ -58,7 +61,7 @@ export function Notifications() {
           onClick={() => list.fetchNextPage()}
           className="mt-4 w-full"
         >
-          Show more
+          {t.orders.showMore}
         </Button>
       )}
     </>
@@ -84,16 +87,16 @@ type Shown = {
   to: string
 }
 
-function describe(n: SellerNotification): Shown | null {
+function describe(t: Messages, n: SellerNotification): Shown | null {
+  const words = t.customers.notifications
   if (n.event_type === 'new_order' && n.order) {
     const { order } = n
-    const items = `${order.item_count} ${order.item_count === 1 ? 'item' : 'items'}`
-    const parts = [order.customer_name, items, formatMoney(order.total, order.currency)]
-    if (order.accepted_automatically) parts.push('Accepted automatically')
+    const parts = [order.customer_name, t.orders.items(order.item_count), formatMoney(order.total, order.currency)]
+    if (order.accepted_automatically) parts.push(words.acceptedAutomatically)
     return {
       icon: ShoppingBag,
       iconClass: 'bg-emerald-50 text-emerald-700',
-      title: `New order #${order.number}`,
+      title: words.newOrder(order.number),
       body: parts.join(' · '),
       to: `/dashboard/orders/${order.id}`,
     }
@@ -103,8 +106,10 @@ function describe(n: SellerNotification): Shown | null {
     return {
       icon: TriangleAlert,
       iconClass: 'bg-amber-50 text-amber-700',
-      title: n.items.every((item) => item.left === 0) ? 'Sold out' : 'Running low',
-      body: n.items.map((item) => `${item.name}: ${item.left === 0 ? 'sold out' : `${item.left} left`}`).join(' · '),
+      title: n.items.every((item) => item.left === 0) ? words.soldOut : words.runningLow,
+      body: n.items
+        .map((item) => (item.left === 0 ? words.itemSoldOut(item.name) : words.itemLeft(item.name, item.left)))
+        .join(' · '),
       // One product (maybe several of its options): straight to it.
       to: products.size === 1 ? `/dashboard/products/${n.items[0].product_id}` : '/dashboard/products',
     }
@@ -113,7 +118,8 @@ function describe(n: SellerNotification): Shown | null {
 }
 
 function NotificationRow({ notification, unread }: { notification: SellerNotification; unread: boolean }) {
-  const shown = describe(notification)
+  const t = useT()
+  const shown = describe(t, notification)
   if (!shown) return null
   const { icon: Icon } = shown
   return (
@@ -130,7 +136,7 @@ function NotificationRow({ notification, unread }: { notification: SellerNotific
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className={`truncate text-slate-900 ${unread ? 'font-semibold' : 'font-medium'}`}>
-            {unread && <span className="sr-only">Unread: </span>}
+            {unread && <span className="sr-only">{t.customers.notifications.unread}</span>}
             {shown.title}
           </span>
           <time dateTime={notification.created_at} className="shrink-0 text-xs text-slate-500">
@@ -148,9 +154,10 @@ function NotificationRow({ notification, unread }: { notification: SellerNotific
 }
 
 function ListSkeleton() {
+  const t = useT()
   return (
     <>
-      <PageHeader title="Notifications" />
+      <PageHeader title={t.dashboard.notifications} />
       <Card className="divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="flex gap-3 p-3 sm:p-4">

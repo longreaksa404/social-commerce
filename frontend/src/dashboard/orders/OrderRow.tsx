@@ -1,9 +1,10 @@
 import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router'
 import { Badge } from '../../components/ui.tsx'
+import { useT } from '../../i18n/useT.ts'
 import { deliveryBadge } from '../../lib/delivery.ts'
 import { formatMoney } from '../../lib/money.ts'
-import { formatOrderTime, ORDER_STATUS_LABELS, ORDER_STATUS_TONES } from '../../lib/orders.ts'
+import { formatOrderTime, ORDER_STATUS_TONES } from '../../lib/orders.ts'
 import { paymentBadge } from '../../lib/payments.ts'
 import type { OrderSummary } from '../../lib/types.ts'
 
@@ -18,13 +19,14 @@ export function OrderRow({
   showCustomer?: boolean
   back?: string
 }) {
-  const payment = paymentBadge(order.payment_method, order.payment_status)
+  const t = useT()
+  const payment = paymentBadge(t, order.payment_method, order.payment_status)
   // Only what needs the seller's eye: a pickup, or a delivery that failed.
   const delivery =
     order.delivery_status === 'failed'
-      ? deliveryBadge(order.delivery_method, 'failed')
+      ? deliveryBadge(t, order.delivery_method, 'failed')
       : order.delivery_method === 'pickup'
-        ? { label: 'Pickup', tone: 'neutral' as const }
+        ? { label: t.checkout.pickup, tone: 'neutral' as const }
         : null
   return (
     <Link
@@ -35,13 +37,13 @@ export function OrderRow({
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="font-semibold text-slate-900">#{order.number}</span>
-          <Badge tone={ORDER_STATUS_TONES[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>
+          <Badge tone={ORDER_STATUS_TONES[order.status]}>{t.status.order[order.status]}</Badge>
           <Badge tone={payment.tone}>{payment.label}</Badge>
           {delivery && <Badge tone={delivery.tone}>{delivery.label}</Badge>}
         </span>
         {showCustomer && <span className="mt-0.5 block truncate text-sm text-slate-700">{order.customer_name}</span>}
         <span className="mt-0.5 block text-xs text-slate-500">
-          {order.item_count} {order.item_count === 1 ? 'item' : 'items'} · {formatOrderTime(order.created_at)}
+          {t.orders.items(order.item_count)} · {formatOrderTime(order.created_at)}
         </span>
       </span>
       <span className="shrink-0 font-semibold text-slate-900">{formatMoney(order.total, order.currency)}</span>

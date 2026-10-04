@@ -7,7 +7,3 @@ export function formatSpent(spent: Amount[], currency: Currency): string {
   if (spent.length === 0) return formatMoney(0, currency)
   return spent.map((a) => formatMoney(a.amount, a.currency)).join(' + ')
 }
-
-export function formatOrderCount(count: number): string {
-  return `${count} ${count === 1 ? 'order' : 'orders'}`
-}

@@ -20,6 +20,8 @@ const PREVIEW_BOTS =
   /facebookexternalhit|facebookcatalog|meta-externalagent|telegrambot|twitterbot|whatsapp|slackbot|discordbot|linkedinbot|skypeuripreview|bytespider|tiktok.*bot|googlebot|bingbot|pinterest|embedly|redditbot|applebot|line-poker|viber|zalo/i
 
 const API_TIMEOUT_MS = 6000
+// The card's own words are in Khmer, the shop's default language (Phase 9).
+const ORDER_ONLINE = 'កុម្ម៉ង់តាមអនឡាញ។'
 
 type Currency = 'USD' | 'KHR'
 type Store = { name: string; description: string | null; logo_url: string | null; currency: Currency }
@@ -78,12 +80,12 @@ async function describe(pathname: string): Promise<Preview | null> {
     const count = page.products.length
     return {
       title: `${page.category.name} · ${store.name}`,
-      description: `${count} ${count === 1 ? 'product' : 'products'}. Order online.`,
+      description: `ទំនិញ ${count}។ ${ORDER_ONLINE}`,
       image: page.products.find((p) => p.image_url)?.image_url ?? store.logo_url,
     }
   }
   if (kind && kind !== 'cart' && kind !== 'checkout') return null
-  return { title: store.name, description: store.description || 'Order online.', image: store.logo_url }
+  return { title: store.name, description: store.description || ORDER_ONLINE, image: store.logo_url }
 }
 
 async function api<T>(path: string): Promise<T> {

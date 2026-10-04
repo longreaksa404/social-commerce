@@ -2,7 +2,8 @@ import { ChevronRight, Search, SearchX, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Button, Card, EmptyState, ErrorState, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
-import { formatOrderCount, formatSpent } from '../../lib/customers.ts'
+import { useT } from '../../i18n/useT.ts'
+import { formatSpent } from '../../lib/customers.ts'
 import { formatOrderTime, formatPhone } from '../../lib/orders.ts'
 import type { Currency, CustomerSummary } from '../../lib/types.ts'
 import { useDebounced } from '../../lib/useDebounced.ts'
@@ -23,12 +24,14 @@ export function CustomerList() {
 
   const list = useCustomers(search)
   const currency = useStore().data?.currency ?? 'USD'
+  const t = useT()
+  const c = t.customers
 
   if (list.isPending) return <ListSkeleton />
   if (list.error) {
     return (
       <>
-        <PageHeader title="Customers" />
+        <PageHeader title={c.title} />
         <ErrorState error={list.error} onRetry={() => list.refetch()} />
       </>
     )
@@ -39,9 +42,9 @@ export function CustomerList() {
   if (total === 0 && !search) {
     return (
       <>
-        <PageHeader title="Customers" />
-        <EmptyState icon={Users} title="No customers yet">
-          Everyone who orders from your shop shows up here, with their phone number and orders.
+        <PageHeader title={c.title} />
+        <EmptyState icon={Users} title={c.emptyTitle}>
+          {c.emptyText}
         </EmptyState>
       </>
     )
@@ -49,11 +52,11 @@ export function CustomerList() {
 
   return (
     <>
-      <PageHeader title="Customers" />
+      <PageHeader title={c.title} />
       <Input
         type="search"
-        aria-label="Search customers"
-        placeholder="Name or phone number"
+        aria-label={c.search}
+        placeholder={c.searchPlaceholder}
         enterKeyHint="search"
         autoComplete="off"
         value={typed}
@@ -61,14 +64,12 @@ export function CustomerList() {
         leading={<Search aria-hidden className="size-4.5" />}
       />
       <p aria-live="polite" className="mt-3 mb-2 px-1 text-sm text-slate-500">
-        {search
-          ? `${total} found`
-          : `${total} ${total === 1 ? 'customer' : 'customers'}`}
+        {search ? c.found(total) : c.count(total)}
       </p>
 
       {shown.length === 0 ? (
-        <EmptyState icon={SearchX} title="No customers found">
-          No name or phone number matches “{search}”.
+        <EmptyState icon={SearchX} title={c.notFoundTitle}>
+          {c.notFoundText(search)}
         </EmptyState>
       ) : (
         <Card className={`divide-y divide-slate-100 overflow-hidden transition-opacity ${list.isPlaceholderData ? 'opacity-60' : ''}`}>
@@ -84,7 +85,7 @@ export function CustomerList() {
           onClick={() => list.fetchNextPage()}
           className="mt-4 w-full"
         >
-          Show more
+          {t.orders.showMore}
         </Button>
       )}
     </>
@@ -100,6 +101,7 @@ function CustomerRow({
   currency: Currency
   search: string
 }) {
+  const t = useT()
   return (
     <Link
       to={`/dashboard/customers/${customer.id}`}
@@ -111,8 +113,8 @@ function CustomerRow({
         <span className="block truncate font-semibold text-slate-900">{customer.name}</span>
         <span className="mt-0.5 block text-sm text-slate-700">{formatPhone(customer.phone)}</span>
         <span className="mt-0.5 block text-xs text-slate-500">
-          {formatOrderCount(customer.order_count)}
-          {customer.last_order_at && ` · last ${formatOrderTime(customer.last_order_at)}`}
+          {t.customers.orderCount(customer.order_count)}
+          {customer.last_order_at && t.customers.lastOrder(formatOrderTime(customer.last_order_at))}
         </span>
       </span>
       <span className="shrink-0 text-right font-semibold text-slate-900">{formatSpent(customer.spent, currency)}</span>
@@ -122,9 +124,11 @@ function CustomerRow({
 }
 
 function ListSkeleton() {
+  const t = useT()
+  const c = t.customers
   return (
     <>
-      <PageHeader title="Customers" />
+      <PageHeader title={c.title} />
       <Skeleton className="h-11 w-full rounded-xl" />
       <Skeleton className="mt-3 mb-2 h-4 w-24" />
       <Card className="divide-y divide-slate-100">

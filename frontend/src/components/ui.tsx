@@ -13,7 +13,8 @@ import {
   type TextareaHTMLAttributes,
 } from 'react'
 import { Link } from 'react-router'
-import { ApiError } from '../lib/api.ts'
+import { useT } from '../i18n/useT.ts'
+import { errorText } from '../lib/errors.ts'
 import { priceStep } from '../lib/money.ts'
 import type { Currency } from '../lib/types.ts'
 import { buttonClass, type ButtonSize, type ButtonVariant } from './styles.ts'
@@ -143,6 +144,7 @@ export function MoneyInput({
 
 export function PasswordInput(props: InputHTMLAttributes<HTMLInputElement>) {
   const [visible, setVisible] = useState(false)
+  const t = useT()
   const Icon = visible ? EyeOff : Eye
   return (
     <Input
@@ -155,7 +157,7 @@ export function PasswordInput(props: InputHTMLAttributes<HTMLInputElement>) {
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          aria-label={visible ? 'Hide password' : 'Show password'}
+          aria-label={visible ? t.common.hidePassword : t.common.showPassword}
           className="flex size-10 items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-emerald-600"
         >
           <Icon aria-hidden className="size-5" />
@@ -321,12 +323,13 @@ export function Section({
 /** Page title row. `back` adds a back arrow (a real link, so it works with
  * open-in-new-tab and the browser's back stack stays predictable). */
 export function PageHeader({ title, back, action }: { title: ReactNode; back?: string; action?: ReactNode }) {
+  const t = useT()
   return (
     <div className="mb-4 flex items-center gap-2 sm:mb-6">
       {back && (
         <Link
           to={back}
-          aria-label="Back"
+          aria-label={t.common.back}
           className="-ml-2 inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-emerald-600"
         >
           <ChevronLeft aria-hidden className="size-6" />
@@ -388,6 +391,7 @@ export function EmptyState({
 
 /** Message for a failed request, or null. */
 export function ErrorMessage({ error }: { error: unknown }) {
+  useT() // re-render in the new language
   if (!error) return null
   return (
     <p role="alert" className="flex items-start gap-2 rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">
@@ -399,30 +403,28 @@ export function ErrorMessage({ error }: { error: unknown }) {
 
 /** A failed page load, with a way to try again (flaky mobile data). */
 export function ErrorState({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+  const t = useT()
   return (
     <Card className="flex flex-col items-center px-6 py-10 text-center">
       <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-red-50 text-red-600">
         <AlertCircle aria-hidden className="size-6" />
       </span>
-      <p className="font-semibold text-slate-900">Couldn't load this page</p>
+      <p className="font-semibold text-slate-900">{t.common.couldNotLoad}</p>
       <p className="mt-1 max-w-xs text-sm text-slate-500">{errorText(error)}</p>
       <Button variant="secondary" icon={RotateCw} className="mt-5" onClick={onRetry}>
-        Try again
+        {t.common.tryAgain}
       </Button>
     </Card>
   )
 }
 
-function errorText(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Something went wrong. Please try again.'
-}
-
 /** Full-area loading indicator (used while the session is restored). */
-export function Spinner({ label = 'Loading' }: { label?: string }) {
+export function Spinner({ label }: { label?: string }) {
+  const t = useT()
   return (
     <div role="status" className="flex min-h-40 items-center justify-center text-slate-400">
       <LoaderCircle aria-hidden className="size-6 animate-spin" />
-      <span className="sr-only">{label}</span>
+      <span className="sr-only">{label ?? t.common.loading}</span>
     </div>
   )
 }

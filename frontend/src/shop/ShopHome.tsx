@@ -2,6 +2,7 @@ import { PackageOpen } from 'lucide-react'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import { EmptyState, ErrorState, Skeleton } from '../components/ui.tsx'
+import { useT } from '../i18n/useT.ts'
 import { CategoryChips, ProductGrid, ProductGridSkeleton } from './components.tsx'
 import { useShop, useShopProducts } from './queries.ts'
 
@@ -10,6 +11,7 @@ export function ShopHome() {
   const { storeSlug = '' } = useParams()
   const shop = useShop(storeSlug)
   const products = useShopProducts(storeSlug)
+  const t = useT()
 
   if (!shop.data) {
     return (
@@ -34,8 +36,8 @@ export function ShopHome() {
       ) : !products.data ? (
         <ProductGridSkeleton />
       ) : products.data.length === 0 ? (
-        <EmptyState icon={PackageOpen} title="No products yet">
-          This shop hasn't added any products. Check back soon.
+        <EmptyState icon={PackageOpen} title={t.shop.home.emptyTitle}>
+          {t.shop.home.emptyText}
         </EmptyState>
       ) : (
         <ProductGrid shop={shop.data} products={products.data} />
@@ -50,6 +52,7 @@ function Description({ text }: { text: string }) {
   const ref = useRef<HTMLParagraphElement>(null)
   const [open, setOpen] = useState(false)
   const [clamped, setClamped] = useState(false)
+  const t = useT()
 
   useLayoutEffect(() => {
     const el = ref.current
@@ -74,7 +77,7 @@ function Description({ text }: { text: string }) {
           aria-expanded={open}
           className="-mx-1 mt-0.5 min-h-8 rounded px-1 font-medium text-emerald-700 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600"
         >
-          {open ? 'Show less' : 'Show more'}
+          {open ? t.shop.home.showLess : t.shop.home.showMore}
         </button>
       )}
     </div>

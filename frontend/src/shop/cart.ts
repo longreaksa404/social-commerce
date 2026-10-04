@@ -1,5 +1,6 @@
 import { useQueries } from '@tanstack/react-query'
 import { useSyncExternalStore } from 'react'
+import { useT } from '../i18n/useT.ts'
 import { toCents } from '../lib/money.ts'
 import { isNotFound, shopProductQuery } from './queries.ts'
 
@@ -129,6 +130,7 @@ export type CheckedLine = CartLine & {
  * all of this again when the order is placed.
  */
 export function useCheckedCart(shop: string, lines: CartLine[]) {
+  const t = useT()
   const slugs = [...new Set(lines.map((line) => line.productSlug))]
   const results = useQueries({
     queries: slugs.map((slug) => ({ ...shopProductQuery(shop, slug), staleTime: 0 })),
@@ -138,7 +140,7 @@ export function useCheckedCart(shop: string, lines: CartLine[]) {
   const checked = lines.map((line): CheckedLine => {
     const result = bySlug.get(line.productSlug)
     const product = result?.data
-    const gone = { ...line, problem: 'No longer available', available: 0 }
+    const gone = { ...line, problem: t.shop.noLongerAvailable, available: 0 }
     if (!product) return isNotFound(result?.error) ? gone : { ...line, problem: null, available: null }
     if (product.id !== line.productId) return gone
 
@@ -152,7 +154,7 @@ export function useCheckedCart(shop: string, lines: CartLine[]) {
       price: variant?.price ?? product.price,
       imageUrl: product.image_urls[0] ?? null,
       available: stock,
-      problem: stock <= 0 ? 'Sold out' : line.quantity > stock ? `Only ${stock} left` : null,
+      problem: stock <= 0 ? t.shop.soldOut : line.quantity > stock ? t.shop.onlyLeft(stock) : null,
     }
   })
 

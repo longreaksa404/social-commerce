@@ -2,6 +2,7 @@ import { PackageOpen } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import { EmptyState, ErrorState, Skeleton } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
+import { useT } from '../i18n/useT.ts'
 import { CategoryChips, NotFound, ProductGrid, ProductGridSkeleton } from './components.tsx'
 import { isNotFound, useShop, useShopCategory } from './queries.ts'
 
@@ -10,9 +11,10 @@ export function ShopCategory() {
   const { storeSlug = '', categorySlug = '' } = useParams()
   const shop = useShop(storeSlug)
   const page = useShopCategory(storeSlug, categorySlug)
+  const t = useT()
   const allProducts = (
     <Link to={`/shop/${storeSlug}`} className={buttonClass('primary')}>
-      See all products
+      {t.shop.seeAllProducts}
     </Link>
   )
 
@@ -32,9 +34,9 @@ export function ShopCategory() {
   if (isNotFound(page.error)) {
     return (
       <>
-        <title>{`Category not found · ${shop.data.name}`}</title>
-        <NotFound title="This category doesn't exist" action={allProducts}>
-          The shop may have renamed or removed it.
+        <title>{t.shop.category.notFoundTab(shop.data.name)}</title>
+        <NotFound title={t.shop.category.notFoundTitle} action={allProducts}>
+          {t.shop.category.notFoundText}
         </NotFound>
       </>
     )
@@ -48,8 +50,8 @@ export function ShopCategory() {
       <h1 className="mb-4 text-2xl font-bold tracking-tight break-words text-slate-900">{category.name}</h1>
       <CategoryChips shop={shop.data} />
       {products.length === 0 ? (
-        <EmptyState icon={PackageOpen} title="Nothing here right now" action={allProducts}>
-          There are no products in this category at the moment.
+        <EmptyState icon={PackageOpen} title={t.shop.category.emptyTitle} action={allProducts}>
+          {t.shop.category.emptyText}
         </EmptyState>
       ) : (
         <ProductGrid shop={shop.data} products={products} />

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
 import { Button, Card, ErrorMessage, Field, Input, PageHeader, Select, Skeleton } from '../../components/ui.tsx'
 import { fieldError, formError } from '../../lib/errors.ts'
+import { useT } from '../../i18n/useT.ts'
 import { LINK_SOURCES } from '../../lib/links.ts'
 import type { LinkTarget } from '../../lib/types.ts'
 import { useCategories, useCreateLink, useProducts } from '../queries.ts'
@@ -24,6 +25,8 @@ export function NewLink() {
   const products = useProducts()
   const categories = useCategories()
   const create = useCreateLink()
+  const t = useT()
+  const l = t.links
 
   const [target, setTarget] = useState(() => {
     const product = params.get('product')
@@ -47,7 +50,7 @@ export function NewLink() {
       { ...parseTarget(target), source: place, campaign: campaign.trim() || null },
       {
         onSuccess: (link) => {
-          toast('Link ready. Copy it or share it.')
+          toast(l.ready)
           navigate(`/dashboard/links/${link.id}`, { replace: true })
         },
       },
@@ -56,19 +59,19 @@ export function NewLink() {
 
   return (
     <>
-      <PageHeader title="New link" back="/dashboard/links" />
-      <title>New link</title>
+      <PageHeader title={l.newLink} back="/dashboard/links" />
+      <title>{l.newLink}</title>
 
       <form onSubmit={submit} className="space-y-4">
         <Card className="space-y-5 p-4 sm:p-6">
-          <Field label="What it opens" error={fieldError(create.error, 'target_id')}>
+          <Field label={l.whatItOpens} error={fieldError(create.error, 'target_id')}>
             {loading ? (
               <Skeleton className="h-11 w-full rounded-xl" />
             ) : (
               <Select value={target} onChange={(e) => setTarget(e.target.value)}>
-                <option value="store">Whole shop</option>
+                <option value="store">{l.wholeShop}</option>
                 {shown.length > 0 && (
-                  <optgroup label="Products">
+                  <optgroup label={l.products}>
                     {shown.map((p) => (
                       <option key={p.id} value={`product:${p.id}`}>
                         {p.name}
@@ -77,7 +80,7 @@ export function NewLink() {
                   </optgroup>
                 )}
                 {categories.data && categories.data.length > 0 && (
-                  <optgroup label="Categories">
+                  <optgroup label={l.categories}>
                     {categories.data.map((c) => (
                       <option key={c.id} value={`category:${c.id}`}>
                         {c.name}
@@ -90,9 +93,9 @@ export function NewLink() {
           </Field>
 
           <fieldset>
-            <legend className="mb-1.5 block text-sm font-medium text-slate-700">Where you'll post it</legend>
+            <legend className="mb-1.5 block text-sm font-medium text-slate-700">{l.wherePost}</legend>
             <div className="flex flex-wrap gap-2">
-              {[...LINK_SOURCES, { key: OTHER, label: 'Other' }].map((s) => (
+              {[...LINK_SOURCES, { key: OTHER, label: l.other }].map((s) => (
                 <button
                   key={s.key}
                   type="button"
@@ -111,12 +114,12 @@ export function NewLink() {
           </fieldset>
 
           {source === OTHER && (
-            <Field label="Where?" error={fieldError(create.error, 'source')}>
+            <Field label={l.where} error={fieldError(create.error, 'source')}>
               <Input
                 autoFocus
                 required
                 maxLength={30}
-                placeholder="e.g. YouTube, my Facebook group"
+                placeholder={l.wherePlaceholder}
                 value={otherSource}
                 onChange={(e) => setOtherSource(e.target.value)}
               />
@@ -124,8 +127,8 @@ export function NewLink() {
           )}
 
           <Field
-            label="Name (optional)"
-            hint="To tell your links apart, like “Video 3 Oct” or “September sale”."
+            label={l.name}
+            hint={l.nameHint}
             error={fieldError(create.error, 'campaign')}
           >
             <Input maxLength={60} value={campaign} onChange={(e) => setCampaign(e.target.value)} />
@@ -134,7 +137,7 @@ export function NewLink() {
 
         <ErrorMessage error={formError(create.error, ['target_id', 'source', 'campaign'])} />
         <Button type="submit" size="lg" loading={create.isPending} disabled={!place || loading} className="w-full sm:w-auto">
-          Make link
+          {l.make}
         </Button>
       </form>
     </>

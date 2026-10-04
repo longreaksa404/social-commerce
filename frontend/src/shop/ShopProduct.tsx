@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router'
 import { Button, ErrorState, Skeleton } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
 import { formatMoney, formatPriceRange } from '../lib/money.ts'
+import { useT } from '../i18n/useT.ts'
 import type { ShopProduct as Product, ShopStore, ShopVariant } from '../lib/types.ts'
 import { MAX_QUANTITY, useCart } from './cart.ts'
 import { NotFound, ProductImage, QuantityStepper } from './components.tsx'
@@ -14,6 +15,7 @@ export function ShopProduct() {
   const { storeSlug = '', productSlug = '' } = useParams()
   const shop = useShop(storeSlug)
   const product = useShopProduct(storeSlug, productSlug)
+  const t = useT()
 
   // A 404 before the shop has loaded may mean the shop is gone, which the
   // layout shows instead.
@@ -24,16 +26,16 @@ export function ShopProduct() {
   if (isNotFound(product.error)) {
     return (
       <>
-        <title>{`Product not available · ${shop.data.name}`}</title>
+        <title>{t.shop.product.notFoundTab(shop.data.name)}</title>
         <NotFound
-          title="This product isn't available"
+          title={t.shop.product.notFoundTitle}
           action={
             <Link to={`/shop/${storeSlug}`} className={buttonClass('primary')}>
-              See all products
+              {t.shop.seeAllProducts}
             </Link>
           }
         >
-          It may have been sold or removed. The shop may have something similar.
+          {t.shop.product.notFoundText}
         </NotFound>
       </>
     )
@@ -48,6 +50,7 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
     product.variants.length === 1 ? product.variants[0].id : null,
   )
   const variant = product.variants.find((v) => v.id === variantId) ?? null
+  const t = useT()
 
   return (
     <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-10">
@@ -78,7 +81,7 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
 
         {product.description && (
           <div className="mt-6 border-t border-slate-200 pt-5">
-            <h2 className="text-sm font-semibold text-slate-900">Details</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{t.shop.product.details}</h2>
             <p className="mt-2 text-[15px] leading-7 whitespace-pre-line break-words text-slate-700">
               {product.description}
             </p>
@@ -100,6 +103,7 @@ function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Produ
   const cart = useCart(shop.slug)
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
+  const t = useT()
 
   const variantId = variant?.id ?? null
   const stock = variant
@@ -112,9 +116,9 @@ function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Produ
   const amount = Math.max(1, Math.min(quantity, room))
 
   let blocked: string | null = null
-  if (stock <= 0) blocked = 'Sold out'
-  else if (product.has_variants && !variant) blocked = 'Choose an option'
-  else if (room <= 0) blocked = 'All in your cart'
+  if (stock <= 0) blocked = t.shop.soldOut
+  else if (product.has_variants && !variant) blocked = t.shop.product.chooseOptionFirst
+  else if (room <= 0) blocked = t.shop.product.allInCart
 
   function add() {
     cart.add({
@@ -136,7 +140,7 @@ function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Produ
       <div className="flex items-center gap-3">
         <QuantityStepper value={amount} max={Math.max(1, room)} onChange={setQuantity} disabled={blocked !== null} />
         <Button size="lg" icon={ShoppingBag} disabled={blocked !== null} onClick={add} className="flex-1">
-          {blocked ?? 'Add to cart'}
+          {blocked ?? t.shop.product.addToCart}
         </Button>
       </div>
       {added && (
@@ -145,9 +149,9 @@ function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Produ
           className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 py-1.5 pr-1.5 pl-3.5 text-sm font-medium text-emerald-800"
         >
           <CircleCheck aria-hidden className="size-4.5 shrink-0" />
-          <span className="flex-1">Added to your cart</span>
+          <span className="flex-1">{t.shop.product.added}</span>
           <Link to={`/shop/${shop.slug}/cart`} className={`${buttonClass('secondary')} shrink-0`}>
-            View cart ({cart.count})
+            {t.shop.product.viewCart(cart.count)}
           </Link>
         </p>
       )}
@@ -158,8 +162,9 @@ function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Produ
 /** Opens a Telegram chat with the seller's own account, the question
  * started for them. Ordering stays on the shop (01_PRODUCT.md section 11). */
 function AskSeller({ username, product, variant }: { username: string; product: Product; variant: ShopVariant | null }) {
+  const t = useT()
   const name = variant ? `${product.name} (${variant.name})` : product.name
-  const text = `Hi! I'd like to ask about ${name}: ${window.location.href}`
+  const text = t.shop.product.askSellerText(name, window.location.href)
   return (
     <a
       href={`https://t.me/${username}?text=${encodeURIComponent(text)}`}
@@ -168,7 +173,7 @@ function AskSeller({ username, product, variant }: { username: string; product: 
       className={`${buttonClass('secondary')} mt-3 w-full`}
     >
       <Send aria-hidden className="size-4" />
-      Ask seller on Telegram
+      {t.shop.product.askSeller}
     </a>
   )
 }
@@ -177,6 +182,7 @@ function AskSeller({ username, product, variant }: { username: string; product: 
 const LOW_STOCK = 5
 
 function StockLine({ product, variant }: { product: Product; variant: ShopVariant | null }) {
+  const t = useT()
   let quantity: number | null
   if (variant) quantity = variant.stock_quantity
   else if (!product.has_variants) quantity = product.stock_quantity ?? 0
@@ -186,10 +192,10 @@ function StockLine({ product, variant }: { product: Product; variant: ShopVarian
 
   const [text, dot, color] =
     quantity <= 0
-      ? ['Sold out', 'bg-red-500', 'text-red-700']
+      ? [t.shop.soldOut, 'bg-red-500', 'text-red-700']
       : quantity <= LOW_STOCK
-        ? [`Only ${quantity} left`, 'bg-amber-500', 'text-amber-800']
-        : ['In stock', 'bg-emerald-500', 'text-emerald-800']
+        ? [t.shop.onlyLeft(quantity), 'bg-amber-500', 'text-amber-800']
+        : [t.shop.inStock, 'bg-emerald-500', 'text-emerald-800']
   return (
     <p className={`mt-1.5 flex items-center gap-2 text-sm font-medium ${color}`}>
       <span aria-hidden className={`size-2 rounded-full ${dot}`} />
@@ -207,9 +213,10 @@ function VariantPicker({
   value: string | null
   onChange: (id: string) => void
 }) {
+  const t = useT()
   return (
     <fieldset className="mt-5">
-      <legend className="mb-2 text-sm font-semibold text-slate-900">Choose an option</legend>
+      <legend className="mb-2 text-sm font-semibold text-slate-900">{t.shop.product.chooseOption}</legend>
       <div className="flex flex-wrap gap-2">
         {variants.map((v) => {
           const soldOut = v.stock_quantity <= 0
@@ -228,7 +235,7 @@ function VariantPicker({
                   which turns a one-letter size like "S" into "$". */}
               <span className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-800 transition-colors peer-checked:border-emerald-700 peer-checked:bg-emerald-50 peer-checked:text-emerald-800 peer-checked:ring-1 peer-checked:ring-emerald-700 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-emerald-600 peer-disabled:border-slate-200 peer-disabled:bg-[linear-gradient(to_top_right,transparent_calc(50%-0.5px),var(--color-slate-300)_50%,transparent_calc(50%+0.5px))] peer-disabled:text-slate-400">
                 {v.name}
-                {soldOut && <span className="sr-only"> (sold out)</span>}
+                {soldOut && <span className="sr-only">{t.shop.product.optionSoldOut}</span>}
               </span>
             </label>
           )
@@ -242,6 +249,7 @@ function VariantPicker({
 function Gallery({ images, name }: { images: string[]; name: string }) {
   const track = useRef<HTMLDivElement>(null)
   const [index, setIndex] = useState(0)
+  const t = useT()
   const frame = '-mx-4 -mt-4 sm:mx-0 sm:mt-0 sm:overflow-hidden sm:rounded-2xl'
 
   if (images.length <= 1) {
@@ -258,7 +266,7 @@ function Gallery({ images, name }: { images: string[]; name: string }) {
   }
 
   return (
-    <div className={`relative ${frame}`} role="region" aria-label="Product photos">
+    <div className={`relative ${frame}`} role="region" aria-label={t.shop.product.photos}>
       {/* Focusable so keyboard users can scroll it with the arrow keys. */}
       <div
         ref={track}
@@ -270,7 +278,7 @@ function Gallery({ images, name }: { images: string[]; name: string }) {
           <ProductImage
             key={src}
             src={src}
-            alt={`${name}, photo ${i + 1} of ${images.length}`}
+            alt={t.shop.product.photoOf(name, i + 1, images.length)}
             eager={i === 0}
             className="aspect-square w-full shrink-0 snap-center"
           />
@@ -282,7 +290,7 @@ function Gallery({ images, name }: { images: string[]; name: string }) {
             key={src}
             type="button"
             onClick={() => show(i)}
-            aria-label={`Show photo ${i + 1}`}
+            aria-label={t.shop.product.showPhoto(i + 1)}
             aria-current={i === index || undefined}
             className="flex size-6 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-white"
           >
@@ -295,8 +303,8 @@ function Gallery({ images, name }: { images: string[]; name: string }) {
         ))}
       </div>
       {[
-        { label: 'Previous photo', icon: ChevronLeft, to: index - 1, side: 'left-3' },
-        { label: 'Next photo', icon: ChevronRight, to: index + 1, side: 'right-3' },
+        { label: t.shop.product.previousPhoto, icon: ChevronLeft, to: index - 1, side: 'left-3' },
+        { label: t.shop.product.nextPhoto, icon: ChevronRight, to: index + 1, side: 'right-3' },
       ].map(({ label, icon: Icon, to, side }) => (
         <button
           key={label}

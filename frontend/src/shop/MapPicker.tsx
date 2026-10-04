@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css'
 import { LoaderCircle, LocateFixed, MapPin, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '../components/ui.tsx'
+import { useT } from '../i18n/useT.ts'
 
 export type LatLng = { lat: number; lng: number }
 
@@ -34,10 +35,12 @@ export default function MapPicker({
   const [placed, setPlaced] = useState(initial !== null)
   const [locating, setLocating] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
+  const t = useT()
+  const m = t.checkout.map
 
   function locate() {
     if (!('geolocation' in navigator)) {
-      setProblem("This phone can't share its location. Move the map to your house instead.")
+      setProblem(m.noGeolocation)
       return
     }
     setLocating(true)
@@ -51,9 +54,7 @@ export default function MapPicker({
       (failure) => {
         setLocating(false)
         setProblem(
-          failure.code === failure.PERMISSION_DENIED
-            ? 'Location is off on this phone. Move the map to your house instead.'
-            : "Couldn't find you. Move the map to your house instead.",
+          failure.code === failure.PERMISSION_DENIED ? m.denied : m.notFound,
         )
       },
       { enableHighAccuracy: true, timeout: 15_000, maximumAge: 60_000 },
@@ -106,11 +107,7 @@ export default function MapPicker({
   }
 
   const ready = placed && zoom >= CONFIRM_ZOOM
-  const hint = !placed
-    ? 'Move the map until the pin is on your house.'
-    : zoom < CONFIRM_ZOOM
-      ? 'Zoom in closer so the pin is on your house.'
-      : 'The pin is where the driver will come.'
+  const hint = !placed ? m.hintMove : zoom < CONFIRM_ZOOM ? m.hintZoom : m.hintReady
 
   return (
     <div
@@ -124,18 +121,18 @@ export default function MapPicker({
           ref={closeButton}
           type="button"
           onClick={onClose}
-          aria-label="Close map"
+          aria-label={m.close}
           className="flex size-11 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-emerald-600"
         >
           <X aria-hidden className="size-5" />
         </button>
         <h2 id="map-picker-title" className="text-base font-semibold text-slate-900">
-          Pin your location
+          {m.title}
         </h2>
       </div>
 
       <div className="relative min-h-0 flex-1">
-        <div ref={container} className="absolute inset-0" aria-label="Map" />
+        <div ref={container} className="absolute inset-0" aria-label={m.map} />
         {/* The pin's tip marks the middle of the map. */}
         <div className="pointer-events-none absolute top-1/2 left-1/2 z-[450] -translate-x-1/2 -translate-y-full">
           <MapPin aria-hidden className="size-11 fill-emerald-700 text-white drop-shadow-md" strokeWidth={1.5} />
@@ -155,7 +152,7 @@ export default function MapPicker({
           type="button"
           onClick={locate}
           disabled={locating}
-          aria-label="Go to my location"
+          aria-label={m.locate}
           className="absolute right-3 bottom-6 z-[1000] flex size-12 items-center justify-center rounded-full bg-white text-emerald-700 shadow-md hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-emerald-600"
         >
           {locating ? (
@@ -171,7 +168,7 @@ export default function MapPicker({
           {hint}
         </p>
         <Button onClick={confirm} disabled={!ready} className="w-full">
-          Confirm location
+          {m.confirm}
         </Button>
       </div>
     </div>

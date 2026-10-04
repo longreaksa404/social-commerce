@@ -2,7 +2,9 @@ import { ChevronRight, ShoppingBag, Trash2 } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import { Card, EmptyState, ErrorState, IconButton, Skeleton } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
+import { useT } from '../i18n/useT.ts'
 import { formatMoney, toCents } from '../lib/money.ts'
+import { formatDate } from '../lib/orders.ts'
 import { discountCents, nextDiscount } from '../lib/pricing.ts'
 import type { Currency } from '../lib/types.ts'
 import { MAX_QUANTITY, useCart, useCheckedCart, type CheckedLine } from './cart.ts'
@@ -16,6 +18,9 @@ export function ShopCart() {
   const shop = useShop(storeSlug)
   const cart = useCart(storeSlug)
   const checked = useCheckedCart(storeSlug, cart.lines)
+  const t = useT()
+  const page = t.shop.cartPage
+  const summary = t.shop.summary
 
   if (!shop.data) return <CartSkeleton />
   const currency = shop.data.currency
@@ -27,20 +32,20 @@ export function ShopCart() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <title>{`Your cart · ${shop.data.name}`}</title>
-      <h1 className="mb-4 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Your cart</h1>
+      <title>{page.tab(shop.data.name)}</title>
+      <h1 className="mb-4 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{page.title}</h1>
 
       {cart.lines.length === 0 ? (
         <EmptyState
           icon={ShoppingBag}
-          title="Your cart is empty"
+          title={page.emptyTitle}
           action={
             <Link to={`/shop/${storeSlug}`} className={buttonClass('primary')}>
-              Browse products
+              {page.browse}
             </Link>
           }
         >
-          Add products from the shop, then come back here to order.
+          {page.emptyText}
         </EmptyState>
       ) : checked.error ? (
         <ErrorState error={checked.error} onRetry={() => checked.refetch()} />
@@ -62,17 +67,17 @@ export function ShopCart() {
           {!checked.loading && discount > 0 && (
             <dl className="mt-4 space-y-1 px-1 text-sm">
               <div className="flex justify-between">
-                <dt className="text-slate-600">Items</dt>
+                <dt className="text-slate-600">{summary.items}</dt>
                 <dd className="text-slate-900">{money(checked.subtotalCents)}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-slate-600">Discount</dt>
+                <dt className="text-slate-600">{summary.discount}</dt>
                 <dd className="font-medium text-emerald-700">−{money(discount)}</dd>
               </div>
             </dl>
           )}
           <div className="mt-4 flex items-baseline justify-between px-1">
-            <span className="font-medium text-slate-700">Total</span>
+            <span className="font-medium text-slate-700">{summary.total}</span>
             {checked.loading ? (
               <Skeleton className="h-7 w-24" />
             ) : (
@@ -80,27 +85,27 @@ export function ShopCart() {
             )}
           </div>
           {!checked.loading && feeLater && (
-            <p className="px-1 text-right text-xs text-slate-500">Delivery fee is added at checkout.</p>
+            <p className="px-1 text-right text-xs text-slate-500">{page.feeAtCheckout}</p>
           )}
           {!checked.loading && next && (
             <p className="mt-3 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-800">
-              Add {money(next.missing)} more to get {money(next.off)} off.
+              {page.addMoreForDiscount(money(next.missing), money(next.off))}
             </p>
           )}
           {!checked.loading && !checked.ready && (
-            <p className="mt-2 px-1 text-sm text-red-700">Fix the items marked in red to continue.</p>
+            <p className="mt-2 px-1 text-sm text-red-700">{page.fixItems}</p>
           )}
           {checked.ready ? (
             <Link to={`/shop/${storeSlug}/checkout`} className={`${buttonClass('primary', 'lg')} mt-4 w-full`}>
-              Checkout
+              {page.checkout}
             </Link>
           ) : (
             <button type="button" disabled className={`${buttonClass('primary', 'lg')} mt-4 w-full`}>
-              Checkout
+              {page.checkout}
             </button>
           )}
           <Link to={`/shop/${storeSlug}`} className={`${buttonClass('ghost')} mt-2 w-full`}>
-            Continue shopping
+            {page.continueShopping}
           </Link>
         </>
       )}
@@ -123,6 +128,7 @@ function CartRow({
   onQuantity: (quantity: number) => void
   onRemove: () => void
 }) {
+  const t = useT()
   const unavailable = line.available === 0
   const max = Math.min(MAX_QUANTITY, Math.max(line.available ?? MAX_QUANTITY, line.quantity))
   return (
@@ -147,12 +153,12 @@ function CartRow({
             {line.variantName && <p className="mt-0.5 text-sm text-slate-500">{line.variantName}</p>}
             <p className="mt-0.5 text-sm text-slate-700">{formatMoney(line.price, currency)}</p>
           </div>
-          <IconButton icon={Trash2} label={`Remove ${line.name}`} onClick={onRemove} className="-mt-2 -mr-2" />
+          <IconButton icon={Trash2} label={t.shop.cartPage.remove(line.name)} onClick={onRemove} className="-mt-2 -mr-2" />
         </div>
         {line.problem && <p className="mt-1 text-sm font-medium text-red-700">{line.problem}</p>}
         {!unavailable && (
           <div className="mt-2 flex items-center justify-between gap-2">
-            <QuantityStepper value={line.quantity} max={max} onChange={onQuantity} label={`Quantity of ${line.name}`} />
+            <QuantityStepper value={line.quantity} max={max} onChange={onQuantity} label={t.shop.quantityOf(line.name)} />
             <span className="font-semibold text-slate-900">
               {formatMoney((toCents(line.price) * line.quantity) / 100, currency)}
             </span>
@@ -166,10 +172,11 @@ function CartRow({
 /** Orders placed on this device, so customers can find them again. */
 function YourOrders({ shop }: { shop: string }) {
   const orders = placedOrders(shop)
+  const t = useT()
   if (orders.length === 0) return null
   return (
     <section className="mt-8">
-      <h2 className="mb-2 px-1 text-sm font-semibold text-slate-900">Your orders</h2>
+      <h2 className="mb-2 px-1 text-sm font-semibold text-slate-900">{t.shop.cartPage.yourOrders}</h2>
       <Card className="divide-y divide-slate-100 overflow-hidden">
         {orders.map((order) => (
           <Link
@@ -178,9 +185,9 @@ function YourOrders({ shop }: { shop: string }) {
             className="flex min-h-14 items-center gap-3 px-4 py-2 transition-colors hover:bg-slate-50 active:bg-slate-100"
           >
             <span className="flex-1">
-              <span className="block font-medium text-slate-900">Order #{order.number}</span>
+              <span className="block font-medium text-slate-900">{t.shop.orderNumber(order.number)}</span>
               <span className="block text-sm text-slate-500">
-                {new Date(order.placedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                {formatDate(order.placedAt)}
               </span>
             </span>
             <ChevronRight aria-hidden className="size-5 text-slate-300" />

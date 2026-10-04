@@ -2,6 +2,8 @@ import { ShoppingBag, Store } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, Outlet, useParams, useSearchParams } from 'react-router'
 import { ErrorState, Skeleton } from '../components/ui.tsx'
+import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
+import { useT } from '../i18n/useT.ts'
 import type { ShopStore } from '../lib/types.ts'
 import { useCart } from './cart.ts'
 import { NotFound } from './components.tsx'
@@ -14,13 +16,14 @@ import { isNotFound, trackView, useShop } from './queries.ts'
 export function ShopLayout() {
   const { storeSlug = '' } = useParams()
   const shop = useShop(storeSlug)
+  const t = useT()
   useLinkTracking(storeSlug)
 
   if (isNotFound(shop.error)) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4">
-        <title>Shop not found</title>
-        <NotFound title="Shop not found">Check the link, or ask the seller to send it again.</NotFound>
+        <title>{t.shop.shopNotFound}</title>
+        <NotFound title={t.shop.shopNotFound}>{t.shop.shopNotFoundText}</NotFound>
       </main>
     )
   }
@@ -69,7 +72,10 @@ function Header({ shop, slug }: { shop: ShopStore | undefined; slug: string }) {
             <Skeleton className="h-5 w-36" />
           )}
         </Link>
-        <CartButton slug={slug} />
+        <div className="flex shrink-0 items-center gap-2">
+          <LanguageSwitch />
+          <CartButton slug={slug} />
+        </div>
       </div>
     </header>
   )
@@ -77,10 +83,11 @@ function Header({ shop, slug }: { shop: ShopStore | undefined; slug: string }) {
 
 function CartButton({ slug }: { slug: string }) {
   const { count } = useCart(slug)
+  const t = useT()
   return (
     <Link
       to={`/shop/${slug}/cart`}
-      aria-label={count ? `Cart, ${count} ${count === 1 ? 'item' : 'items'}` : 'Cart'}
+      aria-label={count ? t.shop.cartWithCount(count) : t.shop.cart}
       className="relative -mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-emerald-600"
     >
       <ShoppingBag aria-hidden className="size-6" />

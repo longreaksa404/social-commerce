@@ -2,18 +2,22 @@ import { Bell, Inbox, Link2, Package, Settings, Store, Tags, Users } from 'lucid
 import { NavLink, Navigate, Outlet, useLocation, useMatch } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { Skeleton, Spinner } from '../components/ui.tsx'
+import type { Messages } from '../i18n/core.ts'
+import { useT } from '../i18n/useT.ts'
 import { useStore, useUnreadNotifications } from './queries.ts'
 
 // Five tabs fit a 320px phone. Categories is a button on Products there,
 // and its own entry in the wider sidebar.
 const tabs = [
-  { to: '/dashboard/orders', label: 'Orders', icon: Inbox },
-  { to: '/dashboard/customers', label: 'Customers', icon: Users },
-  { to: '/dashboard/products', label: 'Products', icon: Package },
-  { to: '/dashboard/links', label: 'Links', icon: Link2 },
-  { to: '/dashboard/settings', label: 'Settings', icon: Settings },
-]
-const sidebarLinks = [...tabs.slice(0, 3), { to: '/dashboard/categories', label: 'Categories', icon: Tags }, ...tabs.slice(3)]
+  { to: '/dashboard/orders', key: 'orders', icon: Inbox },
+  { to: '/dashboard/customers', key: 'customers', icon: Users },
+  { to: '/dashboard/products', key: 'products', icon: Package },
+  { to: '/dashboard/links', key: 'links', icon: Link2 },
+  { to: '/dashboard/settings', key: 'settings', icon: Settings },
+] as const
+const sidebarLinks = [...tabs.slice(0, 3), { to: '/dashboard/categories', key: 'categories', icon: Tags } as const, ...tabs.slice(3)]
+
+const tabLabel = (t: Messages, key: (typeof sidebarLinks)[number]['key']) => t.dashboard.tab[key]
 
 /** Dashboard shell; also the login guard for everything under /dashboard. */
 export function DashboardLayout() {
@@ -66,10 +70,11 @@ function StoreName() {
 /** New orders and low stock since the seller last looked, on any device. */
 function NotificationBell() {
   const unread = useUnreadNotifications().data ?? 0
+  const t = useT()
   return (
     <NavLink
       to="/dashboard/notifications"
-      aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+      aria-label={unread > 0 ? t.dashboard.notificationsUnread(unread) : t.dashboard.notifications}
       className={({ isActive }) =>
         `relative inline-flex size-11 shrink-0 items-center justify-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-emerald-600 ${
           isActive ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -105,13 +110,14 @@ function MobileTopBar() {
 
 function BottomTabBar() {
   const onCategories = useMatch('/dashboard/categories') !== null
+  const t = useT()
   return (
     <nav
-      aria-label="Main"
+      aria-label={t.dashboard.mainNav}
       className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
     >
       <div className="mx-auto flex max-w-md">
-        {tabs.map(({ to, label, icon: Icon }) => (
+        {tabs.map(({ to, key, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
@@ -133,7 +139,7 @@ function BottomTabBar() {
                 >
                   <Icon aria-hidden className="size-5" strokeWidth={isActive ? 2.25 : 1.75} />
                 </span>
-                {label}
+                {tabLabel(t, key)}
               </>
               )
             }}
@@ -145,6 +151,7 @@ function BottomTabBar() {
 }
 
 function Sidebar() {
+  const t = useT()
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
       <div className="flex h-16 items-center gap-2.5 border-b border-slate-100 pr-3 pl-5">
@@ -154,8 +161,8 @@ function Sidebar() {
         <StoreName />
         <NotificationBell />
       </div>
-      <nav aria-label="Main" className="flex flex-col gap-1 p-3">
-        {sidebarLinks.map(({ to, label, icon: Icon }) => (
+      <nav aria-label={t.dashboard.mainNav} className="flex flex-col gap-1 p-3">
+        {sidebarLinks.map(({ to, key, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
@@ -166,7 +173,7 @@ function Sidebar() {
             }
           >
             <Icon aria-hidden className="size-5" />
-            {label}
+            {tabLabel(t, key)}
           </NavLink>
         ))}
       </nav>

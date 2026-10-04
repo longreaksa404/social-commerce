@@ -1,0 +1,190 @@
+import type { Tree } from '../core.ts'
+
+/** The seller's Settings tab. */
+export const settings = {
+  title: { en: 'Settings', km: 'ការកំណត់' },
+  saved: { en: 'Settings saved', km: 'បានរក្សាទុកការកំណត់' },
+  save: { en: 'Save settings', km: 'រក្សាទុកការកំណត់' },
+  changeLinkTitle: { en: 'Change your shop link?', km: 'ប្ដូរតំណហាងរបស់អ្នក?' },
+  changeLinkMessage: {
+    en: 'Links you already shared on social media will stop working.',
+    km: 'តំណដែលអ្នកបានចែករំលែករួចនៅលើបណ្ដាញសង្គម នឹងលែងដំណើរការ។',
+  },
+  changeLink: { en: 'Change link', km: 'ប្ដូរតំណ' },
+
+  store: { en: 'Store', km: 'ហាង' },
+  storeName: { en: 'Store name', km: 'ឈ្មោះហាង' },
+  description: { en: 'Description', km: 'ការពិពណ៌នា' },
+  descriptionHint: {
+    en: 'Optional. A line about what you sell, shown on your shop page.',
+    km: 'មិនចាំបាច់។ មួយឃ្លាអំពីអ្វីដែលអ្នកលក់ បង្ហាញនៅលើទំព័រហាងរបស់អ្នក។',
+  },
+  currency: { en: 'Currency', km: 'រូបិយប័ណ្ណ' },
+  currencyHint: {
+    en: 'Prices are shown in this currency. Existing prices are not converted.',
+    km: 'តម្លៃបង្ហាញជារូបិយប័ណ្ណនេះ។ តម្លៃដែលមានស្រាប់មិនត្រូវបានប្ដូរទេ។',
+  },
+  usd: { en: 'US dollar ($)', km: 'ដុល្លារអាមេរិក ($)' },
+  khr: { en: 'Cambodian riel (៛)', km: 'ប្រាក់រៀល (៛)' },
+
+  orders: { en: 'Orders', km: 'ការកុម្ម៉ង់' },
+  autoAccept: { en: 'Accept new orders automatically', km: 'ទទួលការកុម្ម៉ង់ថ្មីដោយស្វ័យប្រវត្តិ' },
+  autoAcceptOn: {
+    en: 'New orders are accepted right away. You can still cancel one later.',
+    km: 'ការកុម្ម៉ង់ថ្មីត្រូវបានទទួលភ្លាមៗ។ អ្នកនៅតែអាចលុបចោលវាពេលក្រោយបាន។',
+  },
+  autoAcceptOff: {
+    en: 'New orders wait for you to accept or reject them.',
+    km: 'ការកុម្ម៉ង់ថ្មីរង់ចាំអ្នកទទួល ឬបដិសេធ។',
+  },
+
+  payments: { en: 'Payments', km: 'ការបង់ប្រាក់' },
+  paymentsHint: {
+    en: 'How customers can pay. You confirm each payment yourself on the order, after checking your bank app.',
+    km: 'វិធីដែលអតិថិជនអាចបង់ប្រាក់។ អ្នកបញ្ជាក់ការបង់ប្រាក់នីមួយៗដោយខ្លួនឯងលើការកុម្ម៉ង់ ក្រោយពីពិនិត្យកម្មវិធីធនាគាររបស់អ្នក។',
+  },
+  khqrHint: {
+    en: 'Customers get a QR code for their exact total, to scan with any Cambodian bank app.',
+    km: 'អតិថិជនទទួលបាន QR សម្រាប់ចំនួនទឹកប្រាក់ត្រឹមត្រូវ ដើម្បីស្កេនជាមួយកម្មវិធីធនាគារណាមួយនៅកម្ពុជា។',
+  },
+  bakongId: { en: 'Bakong ID', km: 'Bakong ID' },
+  bakongIdHint: {
+    en: 'In your bank app, with your Bakong or KHQR details. It looks like name@aclb.',
+    km: 'មាននៅក្នុងកម្មវិធីធនាគាររបស់អ្នក ជាមួយព័ត៌មាន Bakong ឬ KHQR។ វាមានទម្រង់ដូចជា name@aclb។',
+  },
+  merchantName: { en: 'Name customers see', km: 'ឈ្មោះដែលអតិថិជនឃើញ' },
+  merchantNameHint: {
+    en: "Shown in the customer's bank app when they scan. Use the name on your account, in English letters.",
+    km: 'បង្ហាញក្នុងកម្មវិធីធនាគាររបស់អតិថិជនពេលគេស្កេន។ សូមប្រើឈ្មោះលើគណនីរបស់អ្នក ជាអក្សរអង់គ្លេស។',
+  },
+  merchantNameTitle: { en: 'English letters, numbers, and spaces', km: 'អក្សរអង់គ្លេស លេខ និងដកឃ្លា' },
+  bankHint: {
+    en: 'Customers see this account after they order, and transfer the total.',
+    km: 'អតិថិជនឃើញគណនីនេះក្រោយពេលកុម្ម៉ង់ ហើយផ្ទេរប្រាក់សរុប។',
+  },
+  bank: { en: 'Bank', km: 'ធនាគារ' },
+  accountName: { en: 'Name on the account', km: 'ឈ្មោះលើគណនី' },
+  accountNumber: { en: 'Account number', km: 'លេខគណនី' },
+  codHint: { en: 'Customers pay in cash when they get their order.', km: 'អតិថិជនបង់ជាសាច់ប្រាក់ ពេលទទួលបានទំនិញ។' },
+  noPayment: { en: 'Turn on at least one way to pay.', km: 'សូមបើកវិធីបង់ប្រាក់យ៉ាងតិចមួយ។' },
+
+  delivery: { en: 'Delivery', km: 'ការដឹកជញ្ជូន' },
+  deliveryHint: {
+    en: 'How customers get their orders. You update each delivery on the order.',
+    km: 'របៀបដែលអតិថិជនទទួលការកុម្ម៉ង់។ អ្នកកែស្ថានភាពការដឹកនីមួយៗលើការកុម្ម៉ង់។',
+  },
+  fee: { en: 'Delivery fee', km: 'ថ្លៃដឹក' },
+  feeHint: {
+    en: 'One price wherever the customer lives, for your own delivery or a courier. Leave empty for free delivery.',
+    km: 'តម្លៃតែមួយ មិនថាអតិថិជននៅទីណា សម្រាប់ការដឹកផ្ទាល់ ឬក្រុមហ៊ុនដឹក។ ទុកទទេ បើដឹកឥតគិតថ្លៃ។',
+  },
+  free: { en: 'Free', km: 'ឥតគិតថ្លៃ' },
+  off: { en: 'Off', km: 'បិទ' },
+  freeFrom: { en: 'Free delivery from', km: 'ដឹកឥតគិតថ្លៃ ចាប់ពី' },
+  freeFromHint: {
+    en: 'Optional. Free when the items come to this much or more.',
+    km: 'មិនចាំបាច់។ ដឹកឥតគិតថ្លៃ នៅពេលទំនិញសរុបដល់ចំនួននេះ ឬលើសពីនេះ។',
+  },
+  freeFromItems: { en: 'Free delivery from (items)', km: 'ដឹកឥតគិតថ្លៃ ចាប់ពី (ចំនួនទំនិញ)' },
+  freeFromItemsHint: {
+    en: 'Optional. Free when the customer buys this many items or more, e.g. 3.',
+    km: 'មិនចាំបាច់។ ដឹកឥតគិតថ្លៃ នៅពេលអតិថិជនទិញទំនិញចំនួននេះ ឬច្រើនជាងនេះ ឧ. 3។',
+  },
+  ownDelivery: { en: 'Own delivery', km: 'ដឹកផ្ទាល់' },
+  ownDeliveryHint: {
+    en: 'You, or someone you send, bring the order to the customer.',
+    km: 'អ្នក ឬអ្នកដែលអ្នកចាត់ឱ្យទៅ ដឹកការកុម្ម៉ង់ទៅដល់អតិថិជន។',
+  },
+  couriers: { en: 'Couriers', km: 'ក្រុមហ៊ុនដឹកជញ្ជូន' },
+  couriersHint: {
+    en: 'Delivery companies you send with. The customer chooses one at checkout, and you see their location to pick the branch.',
+    km: 'ក្រុមហ៊ុនដឹកជញ្ជូនដែលអ្នកផ្ញើតាម។ អតិថិជនជ្រើសមួយពេលកុម្ម៉ង់ ហើយអ្នកឃើញទីតាំងរបស់គេ ដើម្បីជ្រើសសាខា។',
+  },
+  courier: { en: 'Courier', km: 'ក្រុមហ៊ុនដឹក' },
+  removeCourier: { en: (name: string) => `Remove ${name}`, km: (name: string) => `ដក ${name} ចេញ` },
+  thisCourier: { en: 'courier', km: 'ក្រុមហ៊ុនដឹកនេះ' },
+  otherCourier: { en: 'Other courier', km: 'ក្រុមហ៊ុនដឹកផ្សេង' },
+  pickup: { en: 'Pickup', km: 'មកយកផ្ទាល់' },
+  pickupHint: {
+    en: 'Customers collect their order from you, for free.',
+    km: 'អតិថិជនមកយកការកុម្ម៉ង់ពីអ្នកដោយខ្លួនឯង ដោយឥតគិតថ្លៃ។',
+  },
+  pickupAddress: { en: 'Pickup address', km: 'អាសយដ្ឋានមកយក' },
+  pickupAddressHint: { en: 'Shown at checkout and on the order page.', km: 'បង្ហាញពេលកុម្ម៉ង់ និងនៅលើទំព័រការកុម្ម៉ង់។' },
+  pickupPlaceholder: { en: 'Shop 12, Orussey Market, Phnom Penh', km: 'តូបលេខ 12 ផ្សារអូរឫស្សី ភ្នំពេញ' },
+  noDelivery: {
+    en: 'Turn on your own delivery, add a courier, or turn on pickup.',
+    km: 'សូមបើកការដឹកផ្ទាល់ បន្ថែមក្រុមហ៊ុនដឹក ឬបើកការមកយកផ្ទាល់។',
+  },
+
+  discounts: { en: 'Discounts', km: 'ការបញ្ចុះតម្លៃ' },
+  discountsHint: {
+    en: 'Money off when the items in an order come to an amount. If an order reaches more than one, the biggest applies.',
+    km: 'បញ្ចុះទឹកប្រាក់ នៅពេលទំនិញក្នុងការកុម្ម៉ង់សរុបដល់ចំនួនមួយ។ បើការកុម្ម៉ង់ដល់លើសពីមួយ ការបញ្ចុះធំជាងគេត្រូវបានប្រើ។',
+  },
+  noDiscounts: { en: 'No discounts.', km: 'គ្មានការបញ្ចុះតម្លៃ។' },
+  whenItemsReach: { en: 'When items reach', km: 'នៅពេលទំនិញដល់' },
+  takeOff: { en: 'Take off', km: 'បញ្ចុះ' },
+  removeDiscount: { en: 'Remove discount', km: 'ដកការបញ្ចុះតម្លៃចេញ' },
+  addDiscount: { en: 'Add discount', km: 'បន្ថែមការបញ្ចុះតម្លៃ' },
+
+  telegram: { en: 'Telegram', km: 'Telegram' },
+  telegramHint: {
+    en: 'Hear about new orders on your phone, and let customers message you.',
+    km: 'ទទួលដំណឹងអំពីការកុម្ម៉ង់ថ្មីនៅលើទូរស័ព្ទ ហើយឱ្យអតិថិជនផ្ញើសារមកអ្នក។',
+  },
+  orderAlerts: { en: 'Order alerts', km: 'ការជូនដំណឹងការកុម្ម៉ង់' },
+  connected: { en: 'Connected', km: 'បានភ្ជាប់' },
+  alertsUnavailable: {
+    en: "Order alerts on Telegram aren't available yet.",
+    km: 'ការជូនដំណឹងតាម Telegram មិនទាន់មាននៅឡើយ។',
+  },
+  alertsOn: {
+    en: 'A message for every new order, and when a product is running low or sold out.',
+    km: 'មានសារសម្រាប់រាល់ការកុម្ម៉ង់ថ្មី និងនៅពេលទំនិញជិតអស់ ឬអស់ស្តុក។',
+  },
+  alertsOff: {
+    en: 'Get a Telegram message for every new order, and when a product is running low or sold out.',
+    km: 'ទទួលសារ Telegram សម្រាប់រាល់ការកុម្ម៉ង់ថ្មី និងនៅពេលទំនិញជិតអស់ ឬអស់ស្តុក។',
+  },
+  disconnect: { en: 'Disconnect', km: 'ផ្ដាច់' },
+  disconnectTitle: { en: 'Disconnect Telegram?', km: 'ផ្ដាច់ Telegram?' },
+  disconnectMessage: {
+    en: "You won't get Telegram messages about new orders until you connect again.",
+    km: 'អ្នកនឹងមិនទទួលសារ Telegram អំពីការកុម្ម៉ង់ថ្មីទេ រហូតដល់អ្នកភ្ជាប់ម្ដងទៀត។',
+  },
+  disconnected: { en: 'Telegram disconnected', km: 'បានផ្ដាច់ Telegram' },
+  connect: { en: 'Connect Telegram', km: 'ភ្ជាប់ Telegram' },
+  connectWaiting: {
+    en: 'In Telegram, tap Start. This page updates once you have.',
+    km: 'នៅក្នុង Telegram សូមចុច Start។ ទំព័រនេះនឹងប្ដូរភ្លាមៗក្រោយអ្នកចុច។',
+  },
+  connectHint: {
+    en: 'Telegram opens our bot. Tap Start, then come back here.',
+    km: 'Telegram នឹងបើក bot របស់យើង។ ចុច Start រួចត្រឡប់មកទីនេះវិញ។',
+  },
+  username: { en: 'Your Telegram username', km: 'ឈ្មោះអ្នកប្រើ Telegram របស់អ្នក' },
+  usernameHint: {
+    en: 'Optional. Customers tap “Ask seller” on a product to message you here. Leave empty to hide the button.',
+    km: 'មិនចាំបាច់។ អតិថិជនចុច “សួរអ្នកលក់” លើទំនិញ ដើម្បីផ្ញើសារមកអ្នកនៅទីនេះ។ ទុកទទេ ដើម្បីលាក់ប៊ូតុងនេះ។',
+  },
+
+  shopLink: { en: 'Shop link', km: 'តំណហាង' },
+  shopLinkHint: { en: 'The address you share with customers.', km: 'អាសយដ្ឋានដែលអ្នកចែករំលែកជាមួយអតិថិជន។' },
+  linkName: { en: 'Link name', km: 'ឈ្មោះក្នុងតំណ' },
+  linkNameTitle: {
+    en: 'Lowercase letters, numbers, and single hyphens',
+    km: 'អក្សរអង់គ្លេសតូច លេខ និងសញ្ញា - មួយៗ',
+  },
+  openShop: { en: 'Open shop', km: 'បើកហាង' },
+  shareTracked: { en: 'Share with a tracked link', km: 'ចែករំលែកជាមួយតំណតាមដាន' },
+
+  display: { en: 'Language', km: 'ភាសា' },
+  displayHint: {
+    en: 'For this phone. Customers choose their own in your shop.',
+    km: 'សម្រាប់ទូរស័ព្ទនេះ។ អតិថិជនជ្រើសដោយខ្លួនឯងនៅក្នុងហាងរបស់អ្នក។',
+  },
+
+  account: { en: 'Account', km: 'គណនី' },
+  logOut: { en: 'Log out', km: 'ចាកចេញ' },
+} satisfies Tree

@@ -1,5 +1,6 @@
 import { AlertCircle, CircleCheck } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useT } from '../i18n/useT.ts'
 import { FeedbackContext, type ConfirmOptions, type ToastTone } from './feedback.ts'
 import { buttonClass } from './styles.ts'
 
@@ -11,11 +12,12 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   const [pending, setPending] = useState<PendingConfirm | null>(null)
   const dialog = useRef<HTMLDialogElement>(null)
   const nextId = useRef(0)
+  const t = useT()
 
   const toast = useCallback((message: string, tone: ToastTone = 'success') => {
     const id = ++nextId.current
     setToasts((list) => [...list.slice(-2), { id, message, tone }])
-    setTimeout(() => setToasts((list) => list.filter((t) => t.id !== id)), tone === 'error' ? 5000 : 3000)
+    setTimeout(() => setToasts((list) => list.filter((item) => item.id !== id)), tone === 'error' ? 5000 : 3000)
   }, [])
 
   const confirm = useCallback(
@@ -44,18 +46,18 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
         aria-live="polite"
         className="pointer-events-none fixed inset-x-0 top-0 z-50 flex flex-col items-center gap-2 px-4 pt-[calc(env(safe-area-inset-top)+0.75rem)]"
       >
-        {toasts.map((t) => (
+        {toasts.map((item) => (
           <div
-            key={t.id}
-            role={t.tone === 'error' ? 'alert' : 'status'}
+            key={item.id}
+            role={item.tone === 'error' ? 'alert' : 'status'}
             className="flex max-w-sm items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-lg"
           >
-            {t.tone === 'error' ? (
+            {item.tone === 'error' ? (
               <AlertCircle aria-hidden className="size-5 shrink-0 text-red-400" />
             ) : (
               <CircleCheck aria-hidden className="size-5 shrink-0 text-emerald-400" />
             )}
-            {t.message}
+            {item.message}
           </div>
         ))}
       </div>
@@ -80,7 +82,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
             {pending.message && <p className="mt-2 text-sm leading-6 text-slate-600">{pending.message}</p>}
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button type="button" className={buttonClass('secondary')} onClick={() => close(false)}>
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="button"
@@ -88,7 +90,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                 className={buttonClass(pending.danger ? 'destructive' : 'primary')}
                 onClick={() => close(true)}
               >
-                {pending.confirmLabel ?? 'Confirm'}
+                {pending.confirmLabel ?? t.common.confirm}
               </button>
             </div>
           </div>

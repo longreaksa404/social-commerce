@@ -12,10 +12,11 @@ import {
   Skeleton,
   TextArea,
 } from '../components/ui.tsx'
+import { useT } from '../i18n/useT.ts'
 import { ApiError } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
 import { formatMoney, fromCents, toCents } from '../lib/money.ts'
-import { PAYMENT_METHOD_LABELS, PAYMENT_METHOD_ORDER } from '../lib/payments.ts'
+import { PAYMENT_METHOD_ORDER } from '../lib/payments.ts'
 import { deliveryFeeCents, discountCents } from '../lib/pricing.ts'
 import type { Currency, PaymentMethod, ShopStore } from '../lib/types.ts'
 import { useCart, useCheckedCart, type CheckedLine } from './cart.ts'
@@ -67,14 +68,6 @@ function deliveryChoices(options: ShopStore['delivery']): string[] {
  * chosen how to get the order (and where). */
 type Price = { subtotal: number; discount: number; fee: number | null; total: number }
 
-// Payment details (QR code, bank account) come on the order page, once
-// the order and its total exist.
-const PAYMENT_HINTS: Record<PaymentMethod, string> = {
-  khqr: "Scan a QR code with your bank app. You'll get it after placing the order.",
-  bank_transfer: "Transfer to the seller's account. You'll see it after placing the order.",
-  cod: 'Pay in cash when you get your order.',
-}
-
 /** /shop/:storeSlug/checkout: guest checkout (customer, delivery or
  * pickup, payment, review). */
 export function ShopCheckout() {
@@ -84,6 +77,8 @@ export function ShopCheckout() {
   const cart = useCart(storeSlug)
   const checked = useCheckedCart(storeSlug, cart.lines)
   const place = usePlaceOrder(storeSlug)
+  const t = useT()
+  const c = t.checkout
   // Prefilled from this device's last order.
   const [form, setForm] = useState<Form>(() => {
     const saved = loadCustomerDetails()
@@ -175,11 +170,11 @@ export function ShopCheckout() {
 
   return (
     <form onSubmit={submit} className="mx-auto max-w-xl space-y-4 pb-24 lg:pb-0">
-      <title>{`Checkout · ${shop.data.name}`}</title>
-      <PageHeader title="Checkout" back={`/shop/${storeSlug}/cart`} />
+      <title>{c.tab(shop.data.name)}</title>
+      <PageHeader title={c.title} back={`/shop/${storeSlug}/cart`} />
 
-      <Section title="Your details">
-        <Field label="Name" error={fieldError(place.error, 'name')}>
+      <Section title={c.yourDetails}>
+        <Field label={c.name} error={fieldError(place.error, 'name')}>
           <Input
             required
             maxLength={100}
@@ -190,8 +185,8 @@ export function ShopCheckout() {
           />
         </Field>
         <Field
-          label="Phone number"
-          hint="The seller will contact you on this number. You'll also need it to check your order."
+          label={c.phone}
+          hint={c.phoneHint}
           error={fieldError(place.error, 'phone')}
         >
           <Input
@@ -224,12 +219,8 @@ export function ShopCheckout() {
               error={fieldError(place.error, 'delivery_lat')}
             />
             <Field
-              label={form.location ? 'Address (optional)' : 'Address'}
-              hint={
-                form.location
-                  ? 'Your location is pinned. Add the address too if you can.'
-                  : 'House and street number, village, district, and province. Or pin your location above.'
-              }
+              label={form.location ? c.addressOptional : c.address}
+              hint={form.location ? c.addressHintPinned : c.addressHint}
               error={fieldError(place.error, 'delivery_address')}
             >
               <TextArea
@@ -243,8 +234,8 @@ export function ShopCheckout() {
               />
             </Field>
             <Field
-              label="Address note"
-              hint="Optional. Helps the driver find you, e.g. blue gate, next to the pagoda."
+              label={c.addressNote}
+              hint={c.addressNoteHint}
               error={fieldError(place.error, 'delivery_address_note')}
             >
               <Input
@@ -257,8 +248,8 @@ export function ShopCheckout() {
           </>
         )}
         <Field
-          label="Note for the seller"
-          hint={pickup ? 'Optional. For example, when you will come.' : 'Optional. For example, the best time to deliver.'}
+          label={c.noteForSeller}
+          hint={pickup ? c.noteHintPickup : c.noteHintDelivery}
           error={fieldError(place.error, 'notes')}
         >
           <TextArea
@@ -271,9 +262,9 @@ export function ShopCheckout() {
         </Field>
       </DeliverySection>
 
-      <Section title="Payment">
+      <Section title={c.payment}>
         <fieldset aria-describedby={fieldError(place.error, 'payment_method') ? 'payment-error' : undefined}>
-          <legend className="sr-only">How will you pay?</legend>
+          <legend className="sr-only">{c.howPay}</legend>
           <div className="space-y-2">
             {methods.map((method) => (
               <label
@@ -290,8 +281,8 @@ export function ShopCheckout() {
                   className="mt-0.5 size-5 shrink-0 accent-emerald-700"
                 />
                 <span className="min-w-0">
-                  <span className="block font-medium text-slate-900">{PAYMENT_METHOD_LABELS[method]}</span>
-                  <span className="mt-0.5 block text-sm text-slate-500">{PAYMENT_HINTS[method]}</span>
+                  <span className="block font-medium text-slate-900">{t.status.paymentMethod[method]}</span>
+                  <span className="mt-0.5 block text-sm text-slate-500">{c.paymentHint[method]}</span>
                 </span>
               </label>
             ))}
@@ -305,13 +296,13 @@ export function ShopCheckout() {
       </Section>
 
       <Section
-        title="Your order"
+        title={c.yourOrder}
         action={
           <Link
             to={`/shop/${storeSlug}/cart`}
             className="-my-2 -mr-2 inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-medium text-emerald-700 hover:underline"
           >
-            Edit cart
+            {c.editCart}
           </Link>
         }
       >
@@ -334,13 +325,13 @@ export function ShopCheckout() {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:pb-0">
         <div className="mx-auto flex max-w-xl items-center gap-3 px-4 py-3 lg:px-0">
           <span className="min-w-0 flex-1">
-            <span className="block text-xs text-slate-500">{price.fee === null ? 'Total before delivery' : 'Total'}</span>
+            <span className="block text-xs text-slate-500">{price.fee === null ? c.totalBeforeDelivery : t.shop.summary.total}</span>
             <span className="block truncate text-lg font-bold text-slate-900">
               {checked.loading ? '…' : formatMoney(price.total / 100, currency)}
             </span>
           </span>
           <Button type="submit" size="lg" loading={place.isPending} disabled={!checked.ready} className="min-w-40">
-            Place order
+            {c.placeOrder}
           </Button>
         </div>
       </div>
@@ -367,29 +358,26 @@ function DeliverySection({
   onChoose: (choice: string) => void
   children: ReactNode
 }) {
+  const t = useT()
+  const c = t.checkout
+  const free = t.shop.summary.free
   const money = (amount: string) => formatMoney(amount, currency)
-  const feeText = Number(options.fee) > 0 ? money(options.fee) : 'Free'
+  const feeText = Number(options.fee) > 0 ? money(options.fee) : free
   const freeRules = [
-    options.free_from_amount !== null && `orders from ${money(options.free_from_amount)}`,
-    options.free_from_items !== null && `${options.free_from_items} or more items`,
-  ].filter(Boolean)
+    options.free_from_amount !== null && c.freeFromAmount(money(options.free_from_amount)),
+    options.free_from_items !== null && c.freeFromItems(options.free_from_items),
+  ].filter((rule) => rule !== false)
   const delivering = how !== null && how !== PICKUP
   // A free-delivery rule applies to this order (the shop charges otherwise).
   const freeNow = delivering && price.fee === 0 && Number(options.fee) > 0
-  const label = (choice: string) =>
-    choice === OWN ? 'Delivery by the shop' : choice === PICKUP ? 'Pickup' : choice
-  const hint = (choice: string) =>
-    choice === OWN
-      ? 'The seller brings it to you.'
-      : choice === PICKUP
-        ? 'Collect it from the seller.'
-        : 'Sent with this delivery company.'
+  const label = (choice: string) => (choice === OWN ? c.deliveryByShop : choice === PICKUP ? c.pickup : choice)
+  const hint = (choice: string) => (choice === OWN ? c.hintOwn : choice === PICKUP ? c.hintPickup : c.hintCourier)
   const choiceError = fieldError(error, 'delivery_method') ?? fieldError(error, 'courier')
   return (
-    <Section title={choices.length === 1 && choices[0] === PICKUP ? 'Pickup' : 'Delivery'}>
+    <Section title={choices.length === 1 && choices[0] === PICKUP ? c.pickup : c.delivery}>
       {choices.length > 1 ? (
         <fieldset aria-describedby={choiceError ? 'delivery-choice-error' : undefined}>
-          <legend className="mb-1.5 block text-sm font-medium text-slate-700">How do you want to get your order?</legend>
+          <legend className="mb-1.5 block text-sm font-medium text-slate-700">{c.howGet}</legend>
           <div className="space-y-2">
             {choices.map((choice) => (
               <ChoiceCard
@@ -399,7 +387,7 @@ function DeliverySection({
                 onChange={() => onChoose(choice)}
                 label={label(choice)}
                 hint={hint(choice)}
-                trailing={choice === PICKUP ? 'Free' : feeText}
+                trailing={choice === PICKUP ? free : feeText}
               />
             ))}
           </div>
@@ -411,20 +399,20 @@ function DeliverySection({
         </fieldset>
       ) : (
         <p className="text-sm text-slate-700">
-          {label(choices[0])}: {choices[0] === PICKUP ? 'Free' : feeText}
+          {label(choices[0])}: {choices[0] === PICKUP ? free : feeText}
         </p>
       )}
       {delivering && freeRules.length > 0 && Number(options.fee) > 0 && (
         <p
           className={`rounded-xl px-3.5 py-2.5 text-sm ${freeNow ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-50 text-slate-700'}`}
         >
-          {freeNow ? 'Your delivery is free' : 'Free delivery'} on {freeRules.join(' or ')}.
+          {c.freeDelivery(freeRules, freeNow)}
         </p>
       )}
 
       {how === PICKUP && options.pickup && (
         <div className="rounded-xl bg-slate-50 px-3.5 py-2.5">
-          <p className="text-xs font-medium text-slate-500">Pick up at</p>
+          <p className="text-xs font-medium text-slate-500">{c.pickUpAt}</p>
           <p className="mt-0.5 whitespace-pre-line break-words text-sm text-slate-900">{options.pickup.address}</p>
         </div>
       )}
@@ -454,6 +442,7 @@ function LocationField({
 }) {
   const [open, setOpen] = useState(false)
   const close = useCallback(() => setOpen(false), [])
+  const t = useT()
 
   return (
     <div>
@@ -461,9 +450,9 @@ function LocationField({
         <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-800">
           <Check aria-hidden className="size-4 shrink-0" />
           <span className="min-w-0 flex-1">
-            Location pinned.{' '}
+            {t.checkout.locationPinned}{' '}
             <button type="button" onClick={() => setOpen(true)} className="font-medium underline">
-              Change
+              {t.checkout.change}
             </button>
           </span>
           <button
@@ -471,12 +460,12 @@ function LocationField({
             onClick={() => onChange(null)}
             className="-my-2 -mr-2 min-h-11 rounded-lg px-2 font-medium hover:underline"
           >
-            Remove
+            {t.common.remove}
           </button>
         </div>
       ) : (
         <Button variant="secondary" icon={MapPin} onClick={() => setOpen(true)} className="w-full">
-          Pin my location on the map
+          {t.checkout.pinLocation}
         </Button>
       )}
       {error && (
@@ -501,15 +490,17 @@ function LocationField({
 }
 
 function MapLoading() {
+  const t = useT()
   return (
     <div role="status" className="fixed inset-0 z-50 flex items-center justify-center bg-white text-slate-600">
       <LoaderCircle aria-hidden className="mr-2 size-5 animate-spin" />
-      Opening the map…
+      {t.checkout.openingMap}
     </div>
   )
 }
 
 function MapUnavailable({ onClose }: { onClose: () => void }) {
+  const t = useT()
   return (
     <div
       role="alertdialog"
@@ -518,10 +509,10 @@ function MapUnavailable({ onClose }: { onClose: () => void }) {
       className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white px-6 text-center"
     >
       <p id="map-unavailable" className="text-slate-800">
-        Couldn't open the map. Check your connection, or just type your address.
+        {t.checkout.mapUnavailable}
       </p>
       <Button variant="secondary" onClick={onClose}>
-        Back to checkout
+        {t.checkout.backToCheckout}
       </Button>
     </div>
   )
@@ -575,6 +566,8 @@ function OrderReview({
   price: Price
   cartPath: string
 }) {
+  const t = useT()
+  const summary = t.shop.summary
   const problems = lines.some((line) => line.problem)
   const money = (cents: number) => formatMoney(cents / 100, currency)
   return (
@@ -601,25 +594,31 @@ function OrderReview({
       {!loading && (
         <dl className="mt-2 space-y-1 border-t border-slate-200 pt-3 text-sm">
           <div className="flex justify-between">
-            <dt className="text-slate-600">Items</dt>
+            <dt className="text-slate-600">{summary.items}</dt>
             <dd className="text-slate-900">{money(price.subtotal)}</dd>
           </div>
           {price.discount > 0 && (
             <div className="flex justify-between">
-              <dt className="text-slate-600">Discount</dt>
+              <dt className="text-slate-600">{summary.discount}</dt>
               <dd className="font-medium text-emerald-700">−{money(price.discount)}</dd>
             </div>
           )}
           <div className="flex justify-between">
-            <dt className="text-slate-600">Delivery</dt>
+            <dt className="text-slate-600">{summary.delivery}</dt>
             <dd className="text-slate-900">
-              {price.fee === null ? <span className="text-slate-500">Choose above</span> : price.fee === 0 ? 'Free' : money(price.fee)}
+              {price.fee === null ? (
+                <span className="text-slate-500">{t.checkout.chooseAbove}</span>
+              ) : price.fee === 0 ? (
+                summary.free
+              ) : (
+                money(price.fee)
+              )}
             </dd>
           </div>
         </dl>
       )}
       <div className="mt-2 flex items-baseline justify-between border-t border-slate-200 pt-3">
-        <span className="font-semibold text-slate-900">Total</span>
+        <span className="font-semibold text-slate-900">{summary.total}</span>
         {loading ? (
           <Skeleton className="h-6 w-20" />
         ) : (
@@ -628,11 +627,11 @@ function OrderReview({
       </div>
       {problems && (
         <p className="mt-2 text-sm text-red-700">
-          Some items changed since you added them.{' '}
+          {t.checkout.itemsChanged}{' '}
           <Link to={cartPath} className="font-medium underline">
-            Update your cart
+            {t.checkout.updateCart}
           </Link>{' '}
-          to continue.
+          {t.checkout.toContinue}
         </p>
       )}
     </div>

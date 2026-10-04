@@ -2,17 +2,19 @@ import { ChevronRight, ImageIcon, Package, Plus, SearchX, Tags } from 'lucide-re
 import { Link, useSearchParams } from 'react-router'
 import { Badge, Card, EmptyState, ErrorState, PageHeader, Select, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
+import { useT } from '../../i18n/useT.ts'
 import { priceLabel, totalStock } from '../../lib/products.ts'
 import type { Currency, Product } from '../../lib/types.ts'
 import { useCategories, useProducts, useStore } from '../queries.ts'
 
 type StatusFilter = 'all' | 'active' | 'inactive'
-const STATUS_LABELS: Record<StatusFilter, string> = { all: 'All', active: 'Active', inactive: 'Hidden' }
 
 export function ProductList() {
   const products = useProducts()
   const categories = useCategories()
   const store = useStore()
+  const t = useT()
+  const p = t.products
   // Filters live in the URL: they survive opening a product and coming back,
   // and the Categories page can link straight to a filtered list.
   const [params, setParams] = useSearchParams()
@@ -32,7 +34,7 @@ export function ProductList() {
   const addButton = (
     <Link to="/dashboard/products/new" className={`${buttonClass('primary')} shrink-0`}>
       <Plus aria-hidden className="size-4" />
-      Add
+      {t.common.add}
     </Link>
   )
 
@@ -40,7 +42,7 @@ export function ProductList() {
   if (products.error) {
     return (
       <>
-        <PageHeader title="Products" />
+        <PageHeader title={p.title} />
         <ErrorState error={products.error} onRetry={() => products.refetch()} />
       </>
     )
@@ -50,18 +52,18 @@ export function ProductList() {
   if (all.length === 0) {
     return (
       <>
-        <PageHeader title="Products" />
+        <PageHeader title={p.title} />
         <EmptyState
           icon={Package}
-          title="Add your first product"
+          title={p.emptyTitle}
           action={
             <Link to="/dashboard/products/new" className={buttonClass('primary', 'lg')}>
               <Plus aria-hidden className="size-5" />
-              Add product
+              {p.addProduct}
             </Link>
           }
         >
-          Products you add here will appear in your shop for customers to order.
+          {p.emptyText}
         </EmptyState>
       </>
     )
@@ -75,10 +77,10 @@ export function ProductList() {
 
   return (
     <>
-      <PageHeader title="Products" action={addButton} />
+      <PageHeader title={p.title} action={addButton} />
 
       <div className="mb-4 space-y-3">
-        <div role="tablist" aria-label="Filter by visibility" className="grid grid-cols-3 rounded-xl bg-slate-200/70 p-1">
+        <div role="tablist" aria-label={p.filterVisibility} className="grid grid-cols-3 rounded-xl bg-slate-200/70 p-1">
           {(['all', 'active', 'inactive'] as const).map((value) => (
             <button
               key={value}
@@ -90,7 +92,7 @@ export function ProductList() {
                 status === value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
               }`}
             >
-              {STATUS_LABELS[value]} <span className="text-slate-400">{count(value)}</span>
+              {p.status[value]} <span className="text-slate-400">{count(value)}</span>
             </button>
           ))}
         </div>
@@ -98,11 +100,11 @@ export function ProductList() {
           {categories.data && categories.data.length > 0 && (
             <div className="min-w-0 flex-1">
               <Select
-                aria-label="Filter by category"
+                aria-label={p.filterCategory}
                 value={categoryId}
                 onChange={(e) => setFilter('category', e.target.value)}
               >
-                <option value="">All categories</option>
+                <option value="">{p.allCategories}</option>
                 {categories.data.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -114,7 +116,7 @@ export function ProductList() {
           {/* On phones the tab bar has no room for Categories. */}
           <Link to="/dashboard/categories" className={`${buttonClass('secondary')} shrink-0`}>
             <Tags aria-hidden className="size-4" />
-            Categories
+            {t.dashboard.tab.categories}
           </Link>
         </div>
       </div>
@@ -122,14 +124,14 @@ export function ProductList() {
       {shown.length === 0 ? (
         <EmptyState
           icon={SearchX}
-          title="No products here"
+          title={p.noneHereTitle}
           action={
             <button type="button" className={buttonClass('secondary')} onClick={() => setParams({}, { replace: true })}>
-              Show all products
+              {p.showAll}
             </button>
           }
         >
-          No products match these filters.
+          {p.noneHereText}
         </EmptyState>
       ) : (
         <Card className="divide-y divide-slate-100 overflow-hidden">
@@ -149,6 +151,7 @@ export function ProductList() {
 
 function ProductRow({ product, currency, category }: { product: Product; currency: Currency; category?: string }) {
   const stock = totalStock(product)
+  const p = useT().products
   return (
     <Link
       to={`/dashboard/products/${product.id}`}
@@ -170,9 +173,9 @@ function ProductRow({ product, currency, category }: { product: Product; currenc
         <span className="line-clamp-2 font-medium leading-normal text-slate-900">{product.name}</span>
         <span className="mt-0.5 block font-semibold text-slate-900">{priceLabel(product, currency)}</span>
         <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-          {product.status === 'inactive' && <Badge>Hidden</Badge>}
-          {stock === 0 ? <Badge tone="red">Out of stock</Badge> : <span>{stock} in stock</span>}
-          {product.has_variants && <span>· {product.variants.length} variants</span>}
+          {product.status === 'inactive' && <Badge>{p.hidden}</Badge>}
+          {stock === 0 ? <Badge tone="red">{p.outOfStock}</Badge> : <span>{p.inStock(stock)}</span>}
+          {product.has_variants && <span>· {p.variantCount(product.variants.length)}</span>}
           {category && <span>· {category}</span>}
         </span>
       </span>
@@ -182,9 +185,10 @@ function ProductRow({ product, currency, category }: { product: Product; currenc
 }
 
 function ListSkeleton() {
+  const p = useT().products
   return (
     <>
-      <PageHeader title="Products" />
+      <PageHeader title={p.title} />
       <Skeleton className="mb-4 h-12 w-full rounded-xl" />
       <Card className="divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (

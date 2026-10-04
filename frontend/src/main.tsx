@@ -7,6 +7,7 @@ import './index.css'
 import { router } from './router.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
 import { FeedbackProvider } from './components/FeedbackProvider.tsx'
+import { LanguageProvider } from './i18n/LanguageProvider.tsx'
 
 // Error tracking is off unless a DSN is set (production only).
 if (import.meta.env.VITE_SENTRY_DSN) {
@@ -19,12 +20,14 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <FeedbackProvider>
-          <RouterProvider router={router} />
-        </FeedbackProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <LanguageProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <FeedbackProvider>
+            <RouterProvider router={router} />
+          </FeedbackProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </LanguageProvider>
   </StrictMode>,
 )

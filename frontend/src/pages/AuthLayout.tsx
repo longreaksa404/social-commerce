@@ -1,6 +1,7 @@
 import { Store } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 
 export function BrandMark({ className = '' }: { className?: string }) {
   return (
@@ -28,7 +29,10 @@ export function AuthLayout({
 }) {
   return (
     <main className="flex min-h-dvh flex-col bg-white px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:items-center sm:justify-center sm:bg-slate-50 sm:px-4">
-      <BrandMark className="mb-8 sm:mb-6" />
+      <div className="mb-8 flex items-center justify-between gap-3 sm:mb-6 sm:w-full sm:max-w-md">
+        <BrandMark />
+        <LanguageSwitch />
+      </div>
       <div className="w-full sm:max-w-md sm:rounded-2xl sm:border sm:border-slate-200 sm:bg-white sm:p-8 sm:shadow-sm">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
         {subtitle && <p className="mt-1.5 text-sm text-slate-500">{subtitle}</p>}

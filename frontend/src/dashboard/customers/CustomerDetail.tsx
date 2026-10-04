@@ -1,6 +1,7 @@
 import { MapPin, Phone } from 'lucide-react'
 import { useParams } from 'react-router'
 import { Card, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
+import { useT } from '../../i18n/useT.ts'
 import { formatSpent } from '../../lib/customers.ts'
 import { formatDate, formatPhone } from '../../lib/orders.ts'
 import type { CustomerDetail as Customer } from '../../lib/types.ts'
@@ -13,12 +14,13 @@ export function CustomerDetail() {
   const { customerId = '' } = useParams()
   const customer = useCustomer(customerId)
   const back = useBackTo('/dashboard/customers')
+  const t = useT()
 
   if (customer.isPending) return <DetailSkeleton back={back} />
   if (customer.error) {
     return (
       <>
-        <PageHeader title="Customer" back={back} />
+        <PageHeader title={t.customers.customer} back={back} />
         <ErrorState error={customer.error} onRetry={() => customer.refetch()} />
       </>
     )
@@ -28,6 +30,8 @@ export function CustomerDetail() {
 
 function CustomerView({ customer, back }: { customer: Customer; back: string }) {
   const currency = useStore().data?.currency ?? 'USD'
+  const t = useT()
+  const c = t.customers
   const leftOut = customer.orders.some((o) => o.status === 'rejected' || o.status === 'cancelled')
   return (
     <>
@@ -47,31 +51,31 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
             <div className="mt-1 flex gap-2">
               <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-slate-400" />
               <div className="min-w-0">
-                <p className="text-sm text-slate-500">Latest address</p>
+                <p className="text-sm text-slate-500">{c.latestAddress}</p>
                 <p className="whitespace-pre-line break-words text-slate-900">{customer.address}</p>
               </div>
             </div>
           )}
-          <p className="mt-3 text-sm text-slate-500">Customer since {formatDate(customer.created_at)}</p>
+          <p className="mt-3 text-sm text-slate-500">{c.since(formatDate(customer.created_at))}</p>
 
           <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
             <div>
-              <dt className="text-sm text-slate-500">Orders</dt>
+              <dt className="text-sm text-slate-500">{c.orders}</dt>
               <dd className="text-lg font-bold text-slate-900">{customer.order_count}</dd>
             </div>
             <div>
-              <dt className="text-sm text-slate-500">Spent</dt>
+              <dt className="text-sm text-slate-500">{c.spent}</dt>
               <dd className="text-lg font-bold break-words text-slate-900">{formatSpent(customer.spent, currency)}</dd>
             </div>
           </dl>
           {leftOut && (
-            <p className="mt-2 text-xs text-slate-500">Rejected and cancelled orders don't count toward what they spent.</p>
+            <p className="mt-2 text-xs text-slate-500">{c.leftOut}</p>
           )}
         </Card>
 
         <section aria-labelledby="customer-orders">
           <h2 id="customer-orders" className="mb-2 px-1 font-semibold text-slate-900">
-            Orders
+            {c.orders}
           </h2>
           <Card className="divide-y divide-slate-100 overflow-hidden">
             {customer.orders.map((order) => (
@@ -85,7 +89,7 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
           </Card>
           {customer.order_count > customer.orders.length && (
             <p className="mt-2 px-1 text-sm text-slate-500">
-              Their latest {customer.orders.length} of {customer.order_count} orders. The older ones are in Orders.
+              {c.latestOrders(customer.orders.length, customer.order_count)}
             </p>
           )}
         </section>
@@ -95,9 +99,10 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
 }
 
 function DetailSkeleton({ back }: { back: string }) {
+  const t = useT()
   return (
     <>
-      <PageHeader title="Customer" back={back} />
+      <PageHeader title={t.customers.customer} back={back} />
       <div className="space-y-4">
         <Card className="space-y-3 p-4 sm:p-6">
           <Skeleton className="h-5 w-32" />
