@@ -1139,7 +1139,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: say "push" for UX pass 2 (8 commits, not pushed). Then on
+1. Founder: say "push" for UX pass 2 (9 commits, not pushed). Then on
    your phone: add something to the cart (the photo flies into the bag),
    watch the cart's bars, place an order (tick and confetti), and in the
    dashboard accept it and walk it to Completed (confetti). Read the
