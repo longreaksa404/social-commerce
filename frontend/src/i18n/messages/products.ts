@@ -67,6 +67,7 @@ export const products = {
   stock: { en: 'Stock', km: 'ស្តុក' },
   samePrice: { en: 'Same', km: 'ដូចគ្នា' },
   sku: { en: 'SKU (optional)', km: 'SKU (មិនចាំបាច់)' },
+  addSkus: { en: 'Add SKU codes (optional)', km: 'បន្ថែមលេខកូដ SKU (មិនចាំបាច់)' },
   variantPriceHint: {
     en: "Leave a variant's price empty to use the product price.",
     km: 'ទុកតម្លៃជម្រើសឱ្យនៅទទេ ដើម្បីប្រើតម្លៃទំនិញ។',

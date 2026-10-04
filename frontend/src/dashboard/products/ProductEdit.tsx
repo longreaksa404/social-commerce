@@ -1,4 +1,4 @@
-import { Minus, Plus, Share2, Trash2 } from 'lucide-react'
+import { Minus, Plus, Share2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
@@ -26,8 +26,8 @@ import type { Currency, Product, ProductStatus } from '../../lib/types.ts'
 import { useCategories, useProduct, useSaveProduct, useStore } from '../queries.ts'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
 import { NewProductPhotos, ProductPhotos, type LocalPhoto } from './ProductPhotos.tsx'
+import { VariantList, type VariantDraft } from './VariantList.tsx'
 
-type VariantDraft = { key: string; id?: string; name: string; sku: string; price_override: string; stock_quantity: string }
 
 type Draft = {
   name: string
@@ -141,8 +141,6 @@ function ProductForm({ product }: { product?: Product }) {
 
   const currency: Currency = store.data?.currency ?? 'USD'
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft((d) => ({ ...d, [key]: value }))
-  const setVariant = (key: string, change: Partial<VariantDraft>) =>
-    setDraft((d) => ({ ...d, variants: d.variants.map((v) => (v.key === key ? { ...v, ...change } : v)) }))
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -269,74 +267,13 @@ function ProductForm({ product }: { product?: Product }) {
           />
 
           {draft.has_variants ? (
-            <div className="space-y-3">
-              {draft.variants.map((variant, index) => (
-                <div key={variant.key} className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-slate-700">{p.variant(index + 1)}</span>
-                    <IconButton
-                      icon={Trash2}
-                      tone="danger"
-                      label={p.removeVariant(index + 1)}
-                      disabled={draft.variants.length === 1}
-                      onClick={() => set('variants', draft.variants.filter((v) => v.key !== variant.key))}
-                      className="-my-2 -mr-2"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="col-span-2">
-                      <Field label={p.variantName}>
-                        <Input
-                          required
-                          placeholder={p.variantNamePlaceholder}
-                          maxLength={100}
-                          value={variant.name}
-                          onChange={(e) => setVariant(variant.key, { name: e.target.value })}
-                        />
-                      </Field>
-                    </div>
-                    <Field label={p.stock}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        step="1"
-                        value={variant.stock_quantity}
-                        onWheel={(e) => e.currentTarget.blur()}
-                        onChange={(e) => setVariant(variant.key, { stock_quantity: e.target.value })}
-                      />
-                    </Field>
-                    <Field label={p.price}>
-                      <MoneyInput
-                        currency={currency}
-                        placeholder={draft.price || p.samePrice}
-                        value={variant.price_override}
-                        onChange={(v) => setVariant(variant.key, { price_override: v })}
-                      />
-                    </Field>
-                    <div className="col-span-2">
-                      <Field label={p.sku}>
-                        <Input
-                          maxLength={64}
-                          autoCapitalize="characters"
-                          value={variant.sku}
-                          onChange={(e) => setVariant(variant.key, { sku: e.target.value })}
-                        />
-                      </Field>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <p className="text-xs text-slate-500">{p.variantPriceHint}</p>
-              <button
-                type="button"
-                onClick={() => set('variants', [...draft.variants, blankVariant()])}
-                className={`${buttonClass('secondary')} w-full border-dashed`}
-              >
-                <Plus aria-hidden className="size-4" />
-                {p.addVariant}
-              </button>
-            </div>
+            <VariantList
+              variants={draft.variants}
+              currency={currency}
+              productPrice={draft.price}
+              onChange={(variants) => set('variants', variants)}
+              onAdd={() => set('variants', [...draft.variants, blankVariant()])}
+            />
           ) : (
             <Field label={p.stock} error={fieldError(save.error, 'stock_quantity')} hint={p.stockHint}>
               <StockStepper value={draft.stock_quantity} onChange={(v) => set('stock_quantity', v)} />
