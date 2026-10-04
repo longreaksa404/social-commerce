@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-04 (Phase 9: layout pass, phones edge to edge; committed, not pushed)
+> **Last updated:** 2026-10-04 (Phase 9: layout pass, phones edge to edge; deployed)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -725,7 +725,8 @@ deployed 2026-10-04, founder to check on the live site):**
 **Phase 9 layout pass (founder's request 2026-10-04: "improve and review
 again with layout for the whole project. i also want full width"; full
 width = phones edge to edge, the founder's choice over a full-width
-laptop layout; committed, not pushed):**
+laptop layout; deployed 2026-10-04, founder to check on the live
+site):**
 
 - [x] Phones: cards and lists are full-width white blocks with a line
       above and below and grey gaps between them, like a phone app;
@@ -923,13 +924,9 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-Layout pass (2026-10-04), text for 03 (not applied yet):
-
-- 03 Phase 9 table: add the row "Layout pass: phones edge to edge,
-  lists aligned, action and Save bars floating on wide screens
-  (founder's request 2026-10-04) | 3"; subtotal ~100 hours (~7.5
-  weeks); §4 totals: Phase 9 100 hrs / 7.5 wks, total ~328 hrs (~25
-  weeks, ~5.75 months).
+Applied to 03 on 2026-10-04 (at the founder's request): the layout pass
+(03 Phase 9 row, subtotal ~100 hrs, §4 totals: Phase 9 100 hrs, total
+~328 hrs).
 
 Applied to 02/03 on 2026-10-04 (at the founder's request): UX pass 2
 (02 §2 fonts and motion rows; 03 Phase 9 row, subtotal ~97 hrs, §4
@@ -1168,8 +1165,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: say "push" for the layout pass (committed on main, not
-   pushed). Then on your phone: the shop, the cart and the dashboard
+1. Founder: check the layout pass (live since 2026-10-04). On your
+   phone: the shop, the cart and the dashboard
    with cards running to the screen edges; on the laptop, an order or a
    product: the buttons stay at the bottom while you scroll.
 2. Founder: check UX pass 2 on your phone (live since 2026-10-04):

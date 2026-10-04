@@ -273,9 +273,10 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | UX pass: delivery/payment info on shop and product pages, pinned Add to cart, shop logo; Settings as a menu; order page summary; one row per product option (founder's request 2026-10-04) | 15 |
 | Order tracking for customers: current-order bar, Your orders page, auto-refresh, ask about an order on Telegram (founder's request 2026-10-04) | 7 |
 | UX pass 2: effects in the shop and the dashboard, cart bars toward a discount and free delivery with a pinned Checkout, numbered checkout, shop logo beside the name, softer cards, Kantumruy Pro for Khmer (founder's request 2026-10-04) | 10 |
+| Layout pass: phones edge to edge, lists aligned, action and Save bars floating on wide screens (founder's request 2026-10-04) | 3 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~97 hours (**~7.5 weeks**)
+**Subtotal:** ~100 hours (**~7.5 weeks**)
 
 > **Decided (2026-10-04):** a .com domain bought through Cloudflare; Render
 > stays on the free plan for the first seller (the app says when the
@@ -299,8 +300,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 17 | 1.5 wks |
-| 9 — Polish/First Seller | 97 | 7.5 wks |
-| **Total** | **~325 hrs** | **~25 weeks (~5.75 months)** |
+| 9 — Polish/First Seller | 100 | 7.5 wks |
+| **Total** | **~328 hrs** | **~25 weeks (~5.75 months)** |
 
 This is a planning estimate, not a commitment.
 
