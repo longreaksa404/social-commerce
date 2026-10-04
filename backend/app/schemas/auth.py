@@ -26,11 +26,13 @@ class RegisterIn(BaseModel):
 
 class LoginIn(BaseModel):
     email: EmailStr
-    password: str
+    # Room for any password that could be registered (72 bytes), but no
+    # megabyte bodies.
+    password: str = Field(max_length=200)
 
 
 class RefreshIn(BaseModel):
-    refresh_token: str
+    refresh_token: str = Field(max_length=1000)
 
 
 class TokenPair(BaseModel):
