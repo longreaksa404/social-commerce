@@ -643,6 +643,12 @@ deployed 2026-10-04, founder to check on the live site):**
       intercepted), saving a settings page, discard prompt, shop-link
       prompt, order jump links and back arrow, accepting an order, saving
       edited options. No console errors.
+- [x] Light / dark button for customers (founder's request 2026-10-04):
+      moon / sun beside the language button in the shop header; per
+      device (`sc.theme`); switching to what the phone shows goes back to
+      following the phone. Customers still start with their phone's
+      setting. At 320 px a long shop name in the header is cut short
+      (the full name is the page title just below). Committed, not pushed.
 
 ---
 
@@ -813,6 +819,19 @@ Resolved:
 ---
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
+
+Not yet applied (2026-10-04, founder's request): customers get a light /
+dark button in the shop.
+
+- 02 §2, "Light / dark" row, Notes column: replace "Follows the phone,
+  with Auto / Light / Dark per device;" with "Follows the phone; sellers
+  have Auto / Light / Dark in Settings and customers a light / dark
+  button in the shop header, both per device;".
+- 03 Phase 9 table: replace "Light / dark mode (follows phone setting +
+  Light/Dark/Auto switch; KHQR stays dark on light)" with "Light / dark
+  mode (follows phone setting + Light/Dark/Auto switch in Settings and a
+  light/dark button in the shop; KHQR stays dark on light)". Hours
+  unchanged (8).
 
 Applied to 02/03 on 2026-10-04 (at the founder's request): the Phase 9
 UX pass (02 §5.2 `logo_url`, §6.2 the logo endpoint and `logo_url` on
