@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-04 (Phase 9: UX pass on shop, Settings, order page and product options; not deployed yet)
+> **Last updated:** 2026-10-04 (Phase 9: UX pass on shop, Settings, order page and product options; deployed)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -609,7 +609,7 @@ photos live 2026-10-03):**
       through in headless Chromium at 320/360 px with a Khmer test shop.
 
 **Phase 9 UX pass (founder's request 2026-10-04, all four items approved;
-committed, not pushed or deployed):**
+deployed 2026-10-04, founder to check on the live site):**
 
 - [x] Shop: the shop and product pages show how buying works before
       checkout: delivery fee and free-delivery rule, who delivers, free
@@ -1035,10 +1035,11 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: say when to push the UX pass (4 commits + fix, not pushed).
-   After it deploys, check on your phone: the shop's delivery/payment
-   box, Add to cart pinned on a product, add a logo in Settings → your
-   shop, the Settings menu, an order's summary, a product's options.
+1. Founder: check the UX pass on your phone (live since 2026-10-04): the
+   shop's delivery/payment box, Add to cart pinned on a product, add a
+   logo in Settings → your shop (the first real logo upload to R2), the
+   Settings menu, an order's summary, a product's options. Read the new
+   Khmer with the rest.
 2. Founder: read the Khmer on the live site; try dark mode; run the
    rate-limit check (Notes).
 3. Founder: choose and buy the domain; then Claude does DNS, R2 photo
