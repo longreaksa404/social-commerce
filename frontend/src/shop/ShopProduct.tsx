@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, CircleCheck, Send, ShoppingBag } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useRef, useState, type MouseEvent, type Ref, type RefObject } from 'react'
 import { Link, useParams } from 'react-router'
+import { buzz } from '../components/effects.ts'
 import { Button, ErrorState, Skeleton } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
 import { formatMoney, formatPriceRange } from '../lib/money.ts'
@@ -8,6 +9,7 @@ import { useT } from '../i18n/useT.ts'
 import type { ShopProduct as Product, ShopStore, ShopVariant } from '../lib/types.ts'
 import { MAX_QUANTITY, useCart } from './cart.ts'
 import { NotFound, ProductImage, QuantityStepper } from './components.tsx'
+import { flyToCart } from './fly.ts'
 import { isNotFound, useShop, useShopProduct } from './queries.ts'
 import { ShopInfo } from './ShopInfo.tsx'
 
@@ -51,13 +53,15 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
     product.variants.length === 1 ? product.variants[0].id : null,
   )
   const variant = product.variants.find((v) => v.id === variantId) ?? null
+  // Where Add to cart flies the photo from, while it's on screen.
+  const photos = useRef<HTMLDivElement>(null)
   const t = useT()
 
   return (
     // Bottom padding on phones: room for the pinned Add to cart bar.
     <div className="pb-24 lg:grid lg:grid-cols-2 lg:items-start lg:gap-10 lg:pb-0">
       <title>{`${product.name} · ${shop.name}`}</title>
-      <Gallery images={product.image_urls} name={product.name} />
+      <Gallery ref={photos} images={product.image_urls} name={product.name} />
       <div className="mt-4 lg:mt-0">
         {product.category && (
           <Link
@@ -76,7 +80,7 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
         {product.has_variants && (
           <VariantPicker variants={product.variants} value={variantId} onChange={setVariantId} />
         )}
-        <AddToCart shop={shop} product={product} variant={variant} />
+        <AddToCart shop={shop} product={product} variant={variant} photos={photos} />
         {shop.telegram_username && (
           <AskSeller username={shop.telegram_username} product={product} variant={variant} />
         )}
@@ -102,10 +106,21 @@ function priceText(product: Product, variant: ShopVariant | null, shop: ShopStor
   return formatPriceRange(Math.min(...prices), Math.max(...prices), shop.currency)
 }
 
-function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Product; variant: ShopVariant | null }) {
+function AddToCart({
+  shop,
+  product,
+  variant,
+  photos,
+}: {
+  shop: ShopStore
+  product: Product
+  variant: ShopVariant | null
+  photos: RefObject<HTMLDivElement | null>
+}) {
   const cart = useCart(shop.slug)
   const [quantity, setQuantity] = useState(1)
-  const [added, setAdded] = useState(false)
+  // How many times it was added here: the "Added" line slides in again each time.
+  const [adds, setAdds] = useState(0)
   const t = useT()
 
   const variantId = variant?.id ?? null
@@ -123,7 +138,9 @@ function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Produ
   else if (product.has_variants && !variant) blocked = t.shop.product.chooseOptionFirst
   else if (room <= 0) blocked = t.shop.product.allInCart
 
-  function add() {
+  function add(event: MouseEvent<HTMLButtonElement>) {
+    flyToCart(...flightStart(photos.current, event.currentTarget))
+    buzz()
     cart.add({
       productId: product.id,
       variantId,
@@ -135,7 +152,7 @@ function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Produ
       imageUrl: product.image_urls[0] ?? null,
     })
     setQuantity(1)
-    setAdded(true)
+    setAdds((n) => n + 1)
   }
 
   // Pinned to the bottom of the screen on phones, so it stays one tap away
@@ -152,12 +169,13 @@ function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Produ
         </div>
         {/* Above the buttons in the bar (it grows upwards, the button stays
             put); below them on wide screens. */}
-        {added && (
+        {adds > 0 && (
           <p
+            key={adds}
             role="status"
-            className="order-first mb-3 flex items-center gap-2 rounded-xl bg-emerald-50 py-1.5 pr-1.5 pl-3.5 text-sm font-medium text-emerald-800 lg:order-last lg:mt-3 lg:mb-0"
+            className="order-first mb-3 flex animate-rise items-center gap-2 rounded-xl bg-emerald-50 py-1.5 pr-1.5 pl-3.5 text-sm font-medium text-emerald-800 lg:order-last lg:mt-3 lg:mb-0"
           >
-            <CircleCheck aria-hidden className="size-4.5 shrink-0" />
+            <CircleCheck aria-hidden className="size-4.5 shrink-0 animate-pop-in [animation-delay:150ms]" />
             <span className="flex-1">{t.shop.product.added}</span>
             <Link to={`/shop/${shop.slug}/cart`} className={`${buttonClass('secondary')} shrink-0`}>
               {t.shop.product.viewCart(cart.count)}
@@ -167,6 +185,18 @@ function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Produ
       </div>
     </div>
   )
+}
+
+/** The photo showing, if most of it is on screen (under the header, above
+ * the pinned bar); else the button itself, with the first photo. */
+function flightStart(photos: HTMLDivElement | null, button: HTMLElement): [Element, string | null] {
+  const box = photos?.getBoundingClientRect()
+  const img = photos?.querySelectorAll('img')[Number(photos.dataset.index ?? 0)]
+  if (box && img?.currentSrc && box.top + box.height / 3 > 56 && box.bottom - box.height / 3 < innerHeight - 96) {
+    return [photos!, img.currentSrc]
+  }
+  const first = photos?.querySelector('img')?.currentSrc
+  return [button, first || null]
 }
 
 /** Opens a Telegram chat with the seller's own account, the question
@@ -256,7 +286,7 @@ function VariantPicker({
 }
 
 /** Swipeable photos on phones; arrows for mouse users on wider screens. */
-function Gallery({ images, name }: { images: string[]; name: string }) {
+function Gallery({ images, name, ref }: { images: string[]; name: string; ref: Ref<HTMLDivElement> }) {
   const track = useRef<HTMLDivElement>(null)
   const [index, setIndex] = useState(0)
   const t = useT()
@@ -264,7 +294,7 @@ function Gallery({ images, name }: { images: string[]; name: string }) {
 
   if (images.length <= 1) {
     return (
-      <div className={frame}>
+      <div ref={ref} className={frame}>
         <ProductImage src={images[0]} alt={name} eager className="aspect-square w-full" />
       </div>
     )
@@ -276,7 +306,7 @@ function Gallery({ images, name }: { images: string[]; name: string }) {
   }
 
   return (
-    <div className={`relative ${frame}`} role="region" aria-label={t.shop.product.photos}>
+    <div ref={ref} data-index={index} className={`relative ${frame}`} role="region" aria-label={t.shop.product.photos}>
       {/* Focusable so keyboard users can scroll it with the arrow keys. */}
       <div
         ref={track}

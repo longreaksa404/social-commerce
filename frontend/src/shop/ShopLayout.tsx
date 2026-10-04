@@ -1,5 +1,5 @@
 import { ShoppingBag, Store } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useMatch, useParams, useSearchParams } from 'react-router'
 import { ErrorState, PageOutlet, Skeleton, SlowNotice } from '../components/ui.tsx'
 import { LanguageToggle } from '../i18n/LanguageSwitch.tsx'
@@ -10,6 +10,7 @@ import { useCart } from './cart.ts'
 import { NotFound } from './components.tsx'
 import { CurrentOrderBar } from './CurrentOrderBar.tsx'
 import { openedLink } from './device.ts'
+import { onCartLanded } from './fly.ts'
 import { isNotFound, trackView, useShop } from './queries.ts'
 
 /** Customer-facing shell for /shop/:storeSlug/*. Pages render right away
@@ -94,17 +95,23 @@ function Header({ shop, slug }: { shop: ShopStore | undefined; slug: string }) {
 function CartButton({ slug }: { slug: string }) {
   const { count } = useCart(slug)
   const t = useT()
+  // Bumps each time something added lands in it (shop/fly.ts).
+  const [bumps, setBumps] = useState(0)
+  useEffect(() => onCartLanded(() => setBumps((n) => n + 1)), [])
+  const bump = bumps > 0 ? 'animate-pop' : ''
   return (
     <Link
       to={`/shop/${slug}/cart`}
+      data-cart-button
       aria-label={count ? t.shop.cartWithCount(count) : t.shop.cart}
       className="relative -mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-emerald-600"
     >
-      <ShoppingBag aria-hidden className="size-6" />
+      <ShoppingBag key={bumps} aria-hidden className={`size-6 ${bump}`} />
       {count > 0 && (
         <span
+          key={`count-${bumps}`}
           aria-hidden
-          className="absolute top-0.5 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-bold text-white tabular-nums"
+          className={`absolute top-0.5 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-bold text-white tabular-nums ${bump}`}
         >
           {count > 99 ? '99+' : count}
         </span>

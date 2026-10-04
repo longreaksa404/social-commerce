@@ -1,9 +1,10 @@
-import { Check, CircleCheck, Copy, MapPin, Send, Truck, XCircle } from 'lucide-react'
-import { useEffect, useState, type FormEvent } from 'react'
+import { Check, Copy, MapPin, Send, Truck, XCircle } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent, type RefObject } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
+import { buzz, confettiFrom } from '../components/effects.ts'
 import { useFeedback } from '../components/feedback.ts'
 import { buttonClass } from '../components/styles.ts'
-import { Button, Card, ErrorState, Field, Input, Skeleton } from '../components/ui.tsx'
+import { Button, Card, ErrorState, Field, Input, Skeleton, SuccessTick } from '../components/ui.tsx'
 import type { Messages } from '../i18n/core.ts'
 import { useT } from '../i18n/useT.ts'
 import { formatMoney } from '../lib/money.ts'
@@ -126,6 +127,8 @@ function OrderView({
 }) {
   const { toast } = useFeedback()
   const t = useT()
+  const tick = useRef<HTMLSpanElement>(null)
+  useCelebration(justPlaced ? order.id : null, tick)
   // Opened with a typed phone: remember it, so next time it opens directly
   // and the order shows in "Your orders" on the cart page.
   useEffect(() => {
@@ -152,9 +155,7 @@ function OrderView({
 
       {justPlaced && (
         <div className="flex flex-col items-center px-4 pt-2 pb-2 text-center">
-          <span className="mb-3 flex size-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-            <CircleCheck aria-hidden className="size-8" />
-          </span>
+          <SuccessTick ref={tick} className="mb-3" />
           <h1 className="text-xl font-bold text-slate-900">{t.order.thanks}</h1>
           <p className="mt-1 text-sm text-slate-600">
             {order.status === 'pending' ? t.order.willConfirm(shop.name) : t.order.willContact(shop.name)}
@@ -264,6 +265,34 @@ function OrderView({
   )
 }
 
+/** Straight after checkout: confetti from the tick, once per order (not
+ * again when the page is reloaded). Marked when it plays, so React's
+ * development double run doesn't use it up. */
+function useCelebration(orderId: string | null, from: RefObject<Element | null>) {
+  useEffect(() => {
+    const key = `sc.celebrated.${orderId}`
+    if (!orderId || sessionValue(key)) return
+    const timer = setTimeout(() => {
+      try {
+        sessionStorage.setItem(key, '1')
+      } catch {
+        // Storage blocked: it may play again on a reload. Harmless.
+      }
+      buzz(20)
+      confettiFrom(from.current)
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [orderId, from])
+}
+
+function sessionValue(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
 function DeliveryCard({ order }: { order: ShopOrder }) {
   const { delivery } = order
   const pickup = delivery.method === 'pickup'
@@ -315,7 +344,9 @@ function Progress({ status, method }: { status: OrderStatus; method: DeliveryMet
                 done ? 'bg-brand text-white' : 'border-2 border-slate-200 bg-surface'
               }`}
             >
-              {done && <Check className="size-3.5" strokeWidth={3} />}
+              {/* Where it is now, while there are steps to go. */}
+              {latest && i < STEPS.length - 1 && <span className="absolute inset-0 animate-live rounded-full bg-brand/50" />}
+              {done && <Check className="relative size-3.5" strokeWidth={3} />}
             </span>
             <span
               aria-current={latest ? 'step' : undefined}

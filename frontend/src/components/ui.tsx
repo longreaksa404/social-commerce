@@ -10,6 +10,7 @@ import {
   type CSSProperties,
   type InputHTMLAttributes,
   type ReactNode,
+  type Ref,
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react'
@@ -411,6 +412,22 @@ export function EmptyState({
       {children && <p className="mt-1 max-w-xs text-sm text-slate-500">{children}</p>}
       {action && <div className="mt-5">{action}</div>}
     </Card>
+  )
+}
+
+/** A green circle popping in with a tick that draws itself: it went
+ * through. */
+export function SuccessTick({ className = '', ref }: { className?: string; ref?: Ref<HTMLSpanElement> }) {
+  return (
+    <span
+      ref={ref}
+      aria-hidden
+      className={`flex size-16 animate-success items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ${className}`}
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="size-9">
+        <path d="M5 12.5l4.5 4.5L19 7.5" pathLength={1} strokeDasharray={1} className="animate-tick" />
+      </svg>
+    </span>
   )
 }
 

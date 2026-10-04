@@ -35,6 +35,11 @@
   --animate-zoom-in: zoom-in 0.2s ease-out;
   --animate-toast: toast 3s ease backwards;
   --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-tick: tick 0.4s 0.25s cubic-bezier(0.65, 0, 0.35, 1) both;
+  --animate-success:
+    pop-in 0.4s cubic-bezier(0.3, 1.5, 0.6, 1) backwards, ring 0.9s ease-out 0.2s backwards;
+  /* The step an order is at: a soft, slow ping around its dot. */
+  --animate-live: live 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 @keyframes rise {
@@ -97,6 +102,46 @@
   }
   to {
     background-position: -100% 0;
+  }
+}
+/* A tick drawing itself: on a path with pathLength="1" and a dash of 1. */
+@keyframes tick {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+/* A ring spreading out from a circle that just appeared. */
+@keyframes ring {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-brand) 45%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 18px transparent;
+  }
+}
+@keyframes live {
+  75%,
+  100% {
+    scale: 2;
+    opacity: 0;
+  }
+}
+/* One piece of confetti (components/effects.ts): bursts out, then falls. */
+@keyframes confetti {
+  from {
+    animation-timing-function: cubic-bezier(0.1, 0.7, 0.3, 1);
+  }
+  45% {
+    transform: translate(calc(var(--x) * 0.85), var(--y)) rotate(calc(var(--r) * 0.5));
+    opacity: 1;
+    animation-timing-function: ease-in;
+  }
+  to {
+    transform: translate(var(--x), calc(var(--y) + 110px)) rotate(var(--r));
+    opacity: 0;
   }
 }
 
