@@ -649,6 +649,19 @@ deployed 2026-10-04, founder to check on the live site):**
       following the phone. Customers still start with their phone's
       setting. At 320 px a long shop name in the header is cut short
       (the full name is the page title just below). Committed, not pushed.
+- [x] Order tracking for customers (founder's request 2026-10-04, all
+      four items approved): a bar at the top of the shop's pages while an
+      order placed on this phone is in progress ("Order #1001 · Being
+      prepared · Not paid yet"; several: "3 orders in progress"); a
+      "Your orders" page (`/shop/:slug/orders`) with each order's status
+      and total, linked from the bar, the cart and the order page; the
+      order page checks every 30 s while open and in progress and says
+      "Updated 12:36"; "Ask about this order on Telegram" with the order
+      number typed in. Frontend only, through the existing tracking
+      endpoint and the phone the device remembered. Checked in headless
+      Chromium: bar with one and three orders, the list, the open order
+      page changing from "Confirmed" to "Being prepared" by itself after
+      the seller moved it; axe clean. Committed, not pushed.
 
 ---
 
@@ -827,6 +840,20 @@ dark button in the shop.
   with Auto / Light / Dark per device;" with "Follows the phone; sellers
   have Auto / Light / Dark in Settings and customers a light / dark
   button in the shop header, both per device;".
+- 02 §8, after the "Decided (2026-10-02)" bullet, add: "**The device's
+  orders (Phase 9, 2026-10-04):** the shop's pages show a bar while an
+  order placed (or opened) on this device is in progress, and
+  `/shop/{store_slug}/orders` lists them with their status; each is read
+  through the endpoint above with the remembered phone (the last 3 of
+  the past 30 days for the bar). The order page checks again every 30
+  seconds while it's open and the order is in progress."
+- 02 §9.1, add the line `/shop/{store_slug}/orders  → this device's
+  orders (not a shared link)`.
+- 03 Phase 9 table: add the row "Order tracking for customers:
+  current-order bar, Your orders page, auto-refresh, ask about an order
+  on Telegram (founder's request 2026-10-04) | 7"; subtotal ~87 hours
+  (~6.5 weeks); §4 totals: Phase 9 87 hrs / 6.5 wks, total ~315 hrs
+  (~24 weeks, ~5.5 months).
 - 03 Phase 9 table: replace "Light / dark mode (follows phone setting +
   Light/Dark/Auto switch; KHQR stays dark on light)" with "Light / dark
   mode (follows phone setting + Light/Dark/Auto switch in Settings and a
@@ -1054,15 +1081,20 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: check the UX pass on your phone (live since 2026-10-04): the
+1. Founder: say "apply and push" for the light / dark button and the
+   order tracking (4 commits, not pushed). Then on your phone: order
+   something from your shop, go back to the shop (the bar at the top),
+   open Your orders, and leave the order open while you accept it on
+   another device (it updates within 30 s).
+2. Founder: check the UX pass on your phone (live since 2026-10-04): the
    shop's delivery/payment box, Add to cart pinned on a product, add a
    logo in Settings → your shop (the first real logo upload to R2), the
    Settings menu, an order's summary, a product's options. Read the new
    Khmer with the rest.
-2. Founder: read the Khmer on the live site; try dark mode; run the
+3. Founder: read the Khmer on the live site; try dark mode; run the
    rate-limit check (Notes).
-3. Founder: choose and buy the domain; then Claude does DNS, R2 photo
+4. Founder: choose and buy the domain; then Claude does DNS, R2 photo
    domain, cookie sessions.
-4. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
-5. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
+5. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
+6. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
    Part A on the live site, revoke the Telegram token.
