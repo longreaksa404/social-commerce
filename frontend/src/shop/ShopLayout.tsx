@@ -1,4 +1,4 @@
-import { ShoppingBag, Store } from 'lucide-react'
+import { ShoppingBag } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useMatch, useParams, useSearchParams } from 'react-router'
 import { ErrorState, PageOutlet, Skeleton, SlowNotice } from '../components/ui.tsx'
@@ -7,7 +7,7 @@ import { ThemeToggle } from '../theme/ThemeSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
 import type { ShopStore } from '../lib/types.ts'
 import { useCart } from './cart.ts'
-import { NotFound } from './components.tsx'
+import { NotFound, ShopLogo } from './components.tsx'
 import { CurrentOrderBar } from './CurrentOrderBar.tsx'
 import { openedLink } from './device.ts'
 import { onCartLanded } from './fly.ts'
@@ -69,13 +69,7 @@ function Header({ shop, slug }: { shop: ShopStore | undefined; slug: string }) {
           to={`/shop/${slug}`}
           className="-mx-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2 focus-visible:outline-2 focus-visible:outline-emerald-600"
         >
-          {shop?.logo_url ? (
-            <img src={shop.logo_url} alt="" className="size-8 shrink-0 rounded-full object-cover" />
-          ) : (
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-white">
-              <Store aria-hidden className="size-4.5" />
-            </span>
-          )}
+          <ShopLogo shop={shop} />
           {shop ? (
             <span className="truncate font-semibold text-slate-900">{shop.name}</span>
           ) : (

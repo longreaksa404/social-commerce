@@ -3,9 +3,12 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import { EmptyState, ErrorState, Skeleton } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
-import { CategoryChips, ProductGrid, ProductGridSkeleton } from './components.tsx'
+import { CategoryChips, ProductGrid, ProductGridSkeleton, ShopLogo } from './components.tsx'
 import { ShopInfo } from './ShopInfo.tsx'
 import { useShop, useShopProducts } from './queries.ts'
+
+const band =
+  '-mx-4 -mt-4 mb-5 flex items-start gap-4 bg-linear-to-b from-emerald-50 to-transparent px-4 pt-5 sm:-mt-6 sm:rounded-b-3xl sm:pt-7'
 
 /** /shop/:storeSlug: the store link a seller shares. */
 export function ShopHome() {
@@ -17,8 +20,13 @@ export function ShopHome() {
   if (!shop.data) {
     return (
       <>
-        <Skeleton className="mb-2 h-7 w-48" />
-        <Skeleton className="mb-6 h-4 w-64" />
+        <div className={band}>
+          <Skeleton className="size-16 shrink-0 rounded-full" />
+          <div className="flex-1 pt-2">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="mt-2 h-4 w-56 max-w-full" />
+          </div>
+        </div>
         <ProductGridSkeleton />
       </>
     )
@@ -27,9 +35,14 @@ export function ShopHome() {
   return (
     <>
       <title>{shop.data.name}</title>
-      <div className="mb-5">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">{shop.data.name}</h1>
-        {shop.data.description && <Description text={shop.data.description} />}
+      {/* The shop's own header, like its page on social media: logo beside
+          the name, on a soft green that fades into the page. */}
+      <div className={band}>
+        <ShopLogo shop={shop.data} className="size-16 shadow-md ring-4 ring-surface" />
+        <div className="min-w-0 flex-1 pt-1">
+          <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900">{shop.data.name}</h1>
+          {shop.data.description && <Description text={shop.data.description} />}
+        </div>
       </div>
       <ShopInfo shop={shop.data} className="mb-5" />
       <CategoryChips shop={shop.data} />

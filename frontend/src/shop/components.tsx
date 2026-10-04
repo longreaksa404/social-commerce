@@ -1,4 +1,4 @@
-import { ImageOff, Minus, Plus, SearchX } from 'lucide-react'
+import { ImageOff, Minus, Plus, SearchX, Store } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { Card, IconButton, Skeleton } from '../components/ui.tsx'
@@ -153,6 +153,17 @@ export function ProductGridSkeleton() {
         </div>
       ))}
     </div>
+  )
+}
+
+/** The shop's logo, round as on social media, or the shop icon on green
+ * when it has none. `className` sizes it. */
+export function ShopLogo({ shop, className = 'size-8' }: { shop: ShopStore | undefined; className?: string }) {
+  if (shop?.logo_url) return <img src={shop.logo_url} alt="" className={`shrink-0 rounded-full object-cover ${className}`} />
+  return (
+    <span className={`flex shrink-0 items-center justify-center rounded-full bg-brand text-white ${className}`}>
+      <Store aria-hidden className="size-[55%]" />
+    </span>
   )
 }
 
