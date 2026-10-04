@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-03 (Phase 8 built locally, waiting for the founder's live test)
+> **Last updated:** 2026-10-04 (Phase 8 closed after the founder's live test)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,13 +15,14 @@
 
 ## Current Phase
 
-**Phase 8 — Shareable links + basic tracking: built, not pushed yet.**
-Waiting for the founder to push and test on the live site: make a link
-from a product's Share button, open it on a phone, place an order, and
-see the view and the order on the link's page; paste a product link in
-Messenger or Telegram and see its name in the preview. 03 has no
-definition of done for Phase 8; suggested text is in "Decisions Made
-This Session".
+**Next: Phase 9 — Polish, hardening, first real seller** (not started)
+
+Phase 8 met its definition of done on 2026-10-04 and the founder closed
+it after testing on the live site: a link made from a product's Share
+button previewed with the product's name and photo, and opening it and
+ordering showed the view and the order on the link's page. (Definition
+of done is still to be added to 03; suggested text in "Decisions Made
+This Session".)
 
 Phase 7 met its definition of done on 2026-10-03 and the founder closed
 it after testing on the live site: a test order showed on the bell,
@@ -492,7 +493,7 @@ photos live 2026-10-03):**
       another shop's customer not found. axe-core: no WCAG 2.1 A/AA
       violations; no console errors.
 
-**Phase 8 (built 2026-10-03, local only; not pushed or tested live yet):**
+**Phase 8 (deployed 2026-10-03; founder closed it on the live site 2026-10-04):**
 
 - [x] Migration `883276fadeed`: `shareable_link` (as 02 §5.2, `target_id`
       with no foreign key since it points at a product or a category;
@@ -913,8 +914,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: push and test Phase 8 on the live site (see Current Phase);
-   then close it and apply the 01/02/03 changes listed above.
+1. Apply the Phase 8 changes to 01/02/03 (listed above) when the
+   founder asks.
 2. Phase 9: polish, hardening, first real seller.
 3. Manual regression checklist (03 §7), still missing.
 4. Decide on the remaining Phase 2 proposal (small grid photos).
