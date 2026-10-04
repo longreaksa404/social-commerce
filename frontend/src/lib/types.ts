@@ -95,6 +95,8 @@ export type ImageUpload = {
   upload_url: string
   public_url: string
   headers: Record<string, string>
+  /** Where the small copy goes (as image/jpeg), when one was asked for. */
+  thumbnail_upload_url: string | null
 }
 
 // Public storefront (/shop/{slug}): only what customers may see.

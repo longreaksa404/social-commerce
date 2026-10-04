@@ -169,7 +169,7 @@ function ProductForm({ product }: { product?: Product }) {
       const urls: string[] = []
       for (const [i, photo] of newPhotos.entries()) {
         setProgress(p.uploadingPhotoOf(i + 1, newPhotos.length))
-        urls.push(await uploadProductImage(saved.id, photo.image))
+        urls.push(await uploadProductImage(saved.id, photo.photo))
       }
       if (urls.length) await save.mutateAsync({ id: saved.id, body: { image_urls: urls } })
       newPhotos.forEach((p) => URL.revokeObjectURL(p.preview))

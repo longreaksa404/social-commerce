@@ -136,6 +136,7 @@ function CartRow({
       {/* Same place as the name's link, so hidden from screen readers and Tab. */}
       <Link to={`/shop/${shop}/product/${line.productSlug}`} aria-hidden tabIndex={-1} className="shrink-0 rounded-xl">
         <ProductImage
+          small
           src={line.imageUrl}
           alt=""
           className={`size-20 rounded-xl ${unavailable ? 'opacity-50' : ''}`}

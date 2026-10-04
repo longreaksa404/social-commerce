@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router'
 import { Badge, Card, EmptyState, ErrorState, PageHeader, Select, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
 import { useT } from '../../i18n/useT.ts'
+import { thumbnailUrl } from '../../lib/images.ts'
 import { priceLabel, totalStock } from '../../lib/products.ts'
 import type { Currency, Product } from '../../lib/types.ts'
 import { useCategories, useProducts, useStore } from '../queries.ts'
@@ -159,7 +160,11 @@ function ProductRow({ product, currency, category }: { product: Product; currenc
     >
       {product.image_urls[0] ? (
         <img
-          src={product.image_urls[0]}
+          src={thumbnailUrl(product.image_urls[0])}
+          onError={(e) => {
+            const full = product.image_urls[0]
+            if (e.currentTarget.src !== full) e.currentTarget.src = full
+          }}
           alt=""
           loading="lazy"
           className={`size-16 shrink-0 rounded-xl object-cover ${product.status === 'inactive' ? 'opacity-50' : ''}`}

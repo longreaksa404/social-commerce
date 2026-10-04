@@ -46,22 +46,32 @@ async def create_upload(
     if len(product.image_urls) >= MAX_IMAGES:
         raise AppError(422, "TOO_MANY_IMAGES", f"A product can have up to {MAX_IMAGES} images.")
 
-    prefix = image_prefix(store_id, product.id)
-    key = prefix.removeprefix(f"{settings.r2_public_url}/") + (
-        f"{uuid.uuid4().hex}.{EXTENSIONS[data.content_type]}"
-    )
-    upload_url = _r2_client().generate_presigned_url(
-        "put_object",
-        Params={
-            "Bucket": settings.r2_bucket,
-            "Key": key,
-            "ContentType": data.content_type,
-            "ContentLength": data.size,
-        },
-        ExpiresIn=UPLOAD_URL_SECONDS,
-    )
+    folder = image_prefix(store_id, product.id).removeprefix(f"{settings.r2_public_url}/")
+    name = uuid.uuid4().hex
+    extension = EXTENSIONS[data.content_type]
+    thumbnail_url = None
+    if data.thumbnail_size is None:
+        key = f"{folder}{name}.{extension}"
+    else:
+        key = f"{folder}{name}-m.{extension}"
+        thumbnail_url = _signed_put(f"{folder}{name}-s.jpg", "image/jpeg", data.thumbnail_size)
     return ImageUploadOut(
-        upload_url=upload_url,
+        upload_url=_signed_put(key, data.content_type, data.size),
         public_url=f"{settings.r2_public_url}/{key}",
         headers={"Content-Type": data.content_type},
+        thumbnail_upload_url=thumbnail_url,
+    )
+
+
+def _signed_put(key: str, content_type: str, size: int) -> str:
+    """A PUT URL that R2 accepts only for this exact type and size."""
+    return _r2_client().generate_presigned_url(
+        "put_object",
+        Params={
+            "Bucket": get_settings().r2_bucket,
+            "Key": key,
+            "ContentType": content_type,
+            "ContentLength": size,
+        },
+        ExpiresIn=UPLOAD_URL_SECONDS,
     )

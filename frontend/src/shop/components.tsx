@@ -2,21 +2,26 @@ import { ImageOff, Minus, Plus, SearchX } from 'lucide-react'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { Card, IconButton, Skeleton } from '../components/ui.tsx'
+import { thumbnailUrl } from '../lib/images.ts'
 import { formatPriceRange } from '../lib/money.ts'
 import { useT } from '../i18n/useT.ts'
 import type { ShopProductCard, ShopStore } from '../lib/types.ts'
 
-/** A product photo, or a grey placeholder when the seller has none. */
+/** A product photo, or a grey placeholder when the seller has none.
+ * `small` uses the photo's small copy (grids, lists), or the photo itself
+ * if it has none or the copy won't load. */
 export function ProductImage({
   src,
   alt,
   className = '',
   eager = false,
+  small = false,
 }: {
   src: string | null | undefined
   alt: string
   className?: string
   eager?: boolean
+  small?: boolean
 }) {
   if (!src) {
     return (
@@ -27,7 +32,8 @@ export function ProductImage({
   }
   return (
     <img
-      src={src}
+      src={small ? thumbnailUrl(src) : src}
+      onError={(e) => small && e.currentTarget.src !== src && (e.currentTarget.src = src)}
       alt={alt}
       loading={eager ? 'eager' : 'lazy'}
       fetchPriority={eager ? 'high' : undefined}
@@ -93,6 +99,7 @@ export function ProductGrid({ shop, products }: { shop: ShopStore; products: Sho
           >
             <div className="relative overflow-hidden rounded-2xl">
               <ProductImage
+                small
                 src={product.image_url}
                 alt=""
                 className={`aspect-square w-full transition-transform group-hover:scale-[1.03] ${

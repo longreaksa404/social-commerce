@@ -53,6 +53,42 @@ async def test_upload_url_is_signed_for_exact_type_and_size(client, auth_headers
     assert attach.json()["image_urls"] == [upload["public_url"]]
 
 
+async def test_upload_with_a_thumbnail_signs_both_next_to_each_other(client, auth_headers, r2):
+    headers = await auth_headers()
+    product = await _product(client, headers)
+
+    response = await client.post(
+        f"/api/v1/seller/products/{product['id']}/images",
+        headers=headers,
+        json={"content_type": "image/webp", "size": 50_000, "thumbnail_size": 9_000},
+    )
+    upload = response.json()
+    photo_key = urlparse(upload["upload_url"]).path
+    thumb = urlparse(upload["thumbnail_upload_url"])
+
+    assert response.status_code == 200, upload
+    assert upload["public_url"].endswith("-m.webp")
+    assert photo_key.endswith("-m.webp")
+    assert thumb.path == photo_key.removesuffix("-m.webp") + "-s.jpg"
+    assert parse_qs(thumb.query)["X-Amz-SignedHeaders"] == ["content-length;content-type;host"]
+
+
+async def test_upload_without_a_thumbnail_keeps_the_plain_name(client, auth_headers, r2):
+    headers = await auth_headers()
+    product = await _product(client, headers)
+
+    upload = (
+        await client.post(
+            f"/api/v1/seller/products/{product['id']}/images",
+            headers=headers,
+            json={"content_type": "image/jpeg", "size": 1234},
+        )
+    ).json()
+
+    assert upload["thumbnail_upload_url"] is None
+    assert not upload["public_url"].endswith("-m.jpg")
+
+
 async def test_upload_rejects_large_or_wrong_files(client, auth_headers, r2):
     headers = await auth_headers()
     product = await _product(client, headers)
@@ -62,9 +98,15 @@ async def test_upload_rejects_large_or_wrong_files(client, auth_headers, r2):
         url, headers=headers, json={"content_type": "image/png", "size": 6 * 1024 * 1024}
     )
     gif = await client.post(url, headers=headers, json={"content_type": "image/gif", "size": 10})
+    big_thumb = await client.post(
+        url,
+        headers=headers,
+        json={"content_type": "image/jpeg", "size": 10, "thumbnail_size": 600 * 1024},
+    )
 
     assert too_big.status_code == 422
     assert gif.status_code == 422
+    assert big_thumb.status_code == 422
 
 
 async def test_upload_needs_r2_settings(client, auth_headers, monkeypatch):

@@ -3,16 +3,16 @@ import { useRef, useState, type ChangeEvent } from 'react'
 import { useFeedback } from '../../components/feedback.ts'
 import { useT } from '../../i18n/useT.ts'
 import { errorText } from '../../lib/errors.ts'
-import { prepareImage, uploadProductImage } from '../../lib/images.ts'
+import { prepareImage, thumbnailUrl, uploadProductImage, type PreparedPhoto } from '../../lib/images.ts'
 import type { Product } from '../../lib/types.ts'
 import { useSaveProduct } from '../queries.ts'
 
 // Also in the API (MAX_IMAGES) and the message t.products.photo.tooMany.
 const MAX_PHOTOS = 5
 
-export type LocalPhoto = { key: string; image: Blob; preview: string }
+export type LocalPhoto = { key: string; photo: PreparedPhoto; preview: string }
 
-type GridPhoto = { key: string; src: string }
+type GridPhoto = { key: string; src: string; fallback?: string }
 
 /** Photo tiles: 3 per row on phones. The first photo is the main one. */
 function PhotoGrid({
@@ -44,7 +44,12 @@ function PhotoGrid({
     <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
       {photos.map((photo, index) => (
         <div key={photo.key} className="relative aspect-square">
-          <img src={photo.src} alt="" className="size-full rounded-xl object-cover ring-1 ring-slate-200" />
+          <img
+            src={photo.src}
+            alt=""
+            onError={(e) => photo.fallback && e.currentTarget.src !== photo.fallback && (e.currentTarget.src = photo.fallback)}
+            className="size-full rounded-xl object-cover ring-1 ring-slate-200"
+          />
           {index === 0 ? (
             <span className="absolute bottom-1.5 left-1.5 rounded-md bg-black/70 px-1.5 py-0.5 text-[11px] font-semibold text-white">
               {words.main}
@@ -135,7 +140,7 @@ export function ProductPhotos({ product }: { product: Product }) {
 
   return (
     <PhotoGrid
-      photos={urls.map((url) => ({ key: url, src: url }))}
+      photos={urls.map((url) => ({ key: url, src: thumbnailUrl(url), fallback: url }))}
       uploading={uploading}
       disabled={uploading > 0 || save.isPending}
       onAdd={add}
@@ -164,8 +169,9 @@ export function NewProductPhotos({
     const added: LocalPhoto[] = []
     for (const file of accepted) {
       try {
-        const image = await prepareImage(file)
-        added.push({ key: crypto.randomUUID(), image, preview: URL.createObjectURL(image) })
+        const photo = await prepareImage(file)
+        const preview = URL.createObjectURL(photo.thumbnail ?? photo.image)
+        added.push({ key: crypto.randomUUID(), photo, preview })
       } catch (err) {
         toast(errorText(err, words.cantRead), 'error')
       }
