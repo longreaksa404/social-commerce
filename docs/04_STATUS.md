@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-04 (Phase 8 closed after the founder's live test)
+> **Last updated:** 2026-10-04 (Phase 9 started: hardening, Khmer/English, dark mode, grid photos, backups)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -15,7 +15,12 @@
 
 ## Current Phase
 
-**Next: Phase 9 — Polish, hardening, first real seller** (not started)
+**Phase 9 — Polish, hardening, first real seller** (in progress since
+2026-10-04; built locally, not pushed or deployed yet)
+
+Proposed definition of done (03 has none for Phase 9; founder to
+confirm): a real seller runs their shop on the live site in Khmer, and a
+real customer's order goes from a shared link to completed.
 
 Phase 8 met its definition of done on 2026-10-04 and the founder closed
 it after testing on the live site: a link made from a product's Share
@@ -547,11 +552,80 @@ photos live 2026-10-03):**
       app: product and shop cards filled in, unknown product → generic
       card, Facebook's in-app browser passed through.
 
+**Phase 9 so far (2026-10-04; committed, not pushed or deployed):**
+
+- [x] Security review against 02 §13. Fixed: rate limits were keyed on
+      the first `X-Forwarded-For` entry, which the client writes and
+      Render keeps (Render only appends), so a made-up header gave every
+      request a fresh budget. Now keyed on `CF-Connecting-IP` (set by
+      Render's Cloudflare edge), falling back to the connection's address
+      when absent (`client_ip` in `app/core/ratelimit.py`). Also: login
+      password / refresh token bodies have a maximum length; the frontend
+      sends `frame-ancestors 'none'` / `X-Frame-Options: DENY` and
+      `nosniff` (`frontend/vercel.json`). Checked and fine: bcrypt and
+      timing, token rotation and reuse, every seller route on
+      `TenantDb`, no raw SQL, uploads signed per product, webhook secret,
+      input lengths, React escaping (no raw HTML), preview-card escaping.
+      Git history: only the known Telegram token (revoke at launch).
+      `/docs` stays public (the endpoints are in the app's JavaScript
+      anyway).
+- [x] Manual regression checklist: `docs/REGRESSION_CHECKLIST.md` (03 §7).
+- [x] Khmer / English switch, Khmer by default (decided 2026-10-02). All
+      of the platform's own text is in `frontend/src/i18n/messages/*.ts`
+      as `{ en, km }` pairs side by side (the build fails if one is
+      missing); components use `useT()`. Choice per device (`sc.lang`),
+      sets `<html lang>`. Switch: shop header (one button showing the
+      other language), landing, login, register, Settings. API errors are
+      translated on the frontend by exact message, then code
+      (`apiErrors.ts`). Khmer dates are spelled out by the app
+      ("4 តុលា 2026", 24-hour): Chrome builds without Khmer locale data
+      would show English. Link-preview cards and `index.html` in Khmer.
+      **The Khmer was written by Claude: the founder still has to read
+      it** (in the app, or in the message files).
+- [x] Light / dark mode (decided 2026-10-02): follows the phone; Settings
+      → Language and theme has Auto / Light / Dark (per device,
+      `sc.theme`). Dark mode flips the color scales in `index.css`, so
+      classes are written for light mode; fills that must not flip use
+      `bg-surface`, `bg-raised`, `bg-accent`, `bg-brand`, `bg-danger`
+      (rules at the top of `index.css`). Applied before the first paint
+      by a script in `index.html`. The KHQR code is an image: always
+      black on white.
+- [x] Polish: 320 px with Khmer (five tabs fit; shop name fits beside the
+      language button; one-line Add to cart); after 4 s of loading the
+      shop, login, register and session restore say the first visit can
+      take a minute (Render free wakes up).
+- [x] Small photo copies (closes the Phase 2 proposal, decided
+      2026-10-04): the phone uploads a ~480 px JPEG next to each new
+      photo (`<name>-m.<ext>` + `<name>-s.jpg`); grid, cart and lists use
+      it, older photos and a missing copy fall back to the photo. No data
+      model change; `POST .../images` takes `thumbnail_size`.
+- [x] Nightly database backup (decided 2026-10-04):
+      `.github/workflows/backup.yml` dumps Neon at 02:00 Phnom Penh into a
+      private R2 bucket; skips until its secrets exist. Setup and restore:
+      `docs/BACKUPS.md` (restore tested locally).
+- [x] 443 pytest tests (5 new: client IP for rate limits, thumbnail
+      signing). axe-core: no WCAG 2.1 A/AA violations on any screen in
+      Khmer and English, light and dark; no console errors. Clicked
+      through in headless Chromium at 320/360 px with a Khmer test shop.
+
 ---
 
 ## In Progress
 
-- Nothing in progress.
+Phase 9, waiting on the founder:
+
+- **Domain:** buy a .com on Cloudflare (decided 2026-10-04, name not
+  chosen yet). Then: Vercel + Render custom domains, Cloudflare DNS,
+  R2 photos on `images.<domain>` (existing photo URLs need rewriting in
+  the database, or saving a product with old photos is refused as
+  "Invalid product image"), the refresh token moved to an httpOnly
+  cookie, `PUBLIC_API_URL` / `PUBLIC_APP_URL` / `CORS_ORIGINS` updated.
+- **Backups:** the bucket, token and five GitHub secrets
+  (`docs/BACKUPS.md`).
+- **Read the Khmer** and send corrections.
+- **Live check of the rate-limit fix** after deploying (see Notes).
+- **First real seller:** who, their products, walkthrough; revoke the
+  Telegram bot token at launch; final end-to-end pass on the live site.
 
 ---
 
@@ -689,17 +763,35 @@ Resolved:
 - [x] **`link_event` gets `store_id`** (2026-10-03, CLAUDE.md hard rule 1,
       like `delivery` and `order_item`).
 
-Still open (noticed in Phase 2, not built; founder to decide):
-
-- [ ] **Small photos for the product grid.** The grid loads each product's
-      full photo (up to 1600px, a few hundred KB); 20 products can be
-      several MB on mobile data. Fix: the phone also makes a ~480px copy
-      at upload time and the grid uses it (no new service). About 2–3 hrs.
-      Matters once R2 is live and shops have many photos.
+- [x] **Domain: a .com bought on Cloudflare** (2026-10-04); name to be
+      chosen by the founder.
+- [x] **Render stays on the free plan for now** (2026-10-04); revisit if
+      the first seller's customers find the first visit slow ($7/month
+      Starter keeps it awake).
+- [x] **Small photos for the product grid: built in Phase 9**
+      (2026-10-04; closes the Phase 2 proposal).
+- [x] **Nightly database backup to a private R2 bucket via GitHub
+      Actions** (2026-10-04, founder took the recommendation). Not in 03
+      before.
 
 ---
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
+
+Phase 9 (2026-10-04), to apply when the founder asks:
+
+- 03 Phase 9: a definition of done (proposed above); tasks "Small photo
+  copies for grids (Phase 2 proposal)" and "Nightly database backup".
+- 02 §11 Image Storage: "New photos are uploaded with a small JPEG copy
+  (short side ~480 px) next to them: `<name>-m.<ext>` and `<name>-s.jpg`.
+  Grids and lists use the copy when the name has `-m`; older photos are
+  used as they are."
+- 02 §13: "Rate limits count per client IP from `CF-Connecting-IP`
+  (Render's Cloudflare edge), not `X-Forwarded-For`, which clients can
+  write." and "Nightly `pg_dump` to a private R2 bucket
+  (docs/BACKUPS.md)."
+- 02 (frontend): Khmer / English messages in `frontend/src/i18n`; theme
+  tokens in `index.css`.
 
 - Development moved from a Claude Project chat to Claude Code. Docs live in
   `docs/` in the monorepo; `CLAUDE.md` is at the repo root.
@@ -832,7 +924,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 - A "Connect Telegram" link works for 30 minutes and for anyone who has
   it; it is only shown to the logged-in seller. Connecting again moves
   alerts to the new chat (one chat per store).
-- Bundle: 162 KB gzipped after Phase 8, 159 KB after Phase 7, 156 KB after Phase 6, 155 KB after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
+- Bundle: 178 KB gzipped with both languages and dark mode (Phase 9),
+  162 KB after Phase 8, 159 KB after Phase 7, 156 KB after Phase 6, 155 KB after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
   after Phase 2), mostly
   React DOM, React Router and TanStack Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
   customers) and skipped for now; revisit when later phases make the
@@ -850,8 +943,21 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   watch Neon's usage page once there are several.
 - `notification_log` keeps every row. Delete old ones only if it ever
   matters (one row per order plus low-stock ones, small).
-- Five tabs on phones: at 320 px the labels just fit. Check again with
-  the Khmer labels in Phase 9.
+- Five tabs on phones: at 320 px the labels fit in English and Khmer
+  (checked 2026-10-04).
+- **Rate-limit fix, live check after deploying:** 11 wrong-password
+  logins within a minute from one phone, each with a different made-up
+  `X-Forwarded-For` header (e.g. with curl), must end in a 429. If
+  `CF-Connecting-IP` were missing on Render, behavior is as before (no
+  worse). Claude's own attempt to probe production was blocked by the
+  permission check.
+- Translations: new or changed text goes into both languages in
+  `frontend/src/i18n/messages/`; a new backend error message also needs
+  its Khmer in `apiErrors.ts` (otherwise Khmer shows a general line).
+  Telegram alerts (backend) are still English only.
+- Anyone can still create a store at `/register` (03 says onboarding is
+  manual for now). Founder to decide whether to close sign-up before
+  launch.
 - A customer's page lists their latest 100 orders; older ones are still
   in the Orders tab.
 - Back arrows on the order and customer pages go to the `back` the link
@@ -895,6 +1001,10 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Phase 9: polish, hardening, first real seller.
-2. Manual regression checklist (03 §7), still missing.
-3. Decide on the remaining Phase 2 proposal (small grid photos).
+1. Founder: push and deploy the Phase 9 work; read the Khmer on the live
+   site; run the rate-limit check (Notes).
+2. Founder: choose and buy the domain; then Claude does DNS, R2 photo
+   domain, cookie sessions.
+3. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
+4. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
+   Part A on the live site, revoke the Telegram token.
