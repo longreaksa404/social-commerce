@@ -77,6 +77,8 @@ No separate worker service in the MVP. No message queue in the MVP. `BackgroundT
 | Routing | **React Router** | Standard for SPA |
 | Languages | Own typed messages, no library (`frontend/src/i18n`, Phase 9) | Khmer / English: each text is an `{ en, km }` pair, and the build fails if one is missing; Khmer by default, chosen per device. API errors stay English and are translated on the frontend by message, then code |
 | Light / dark | Tailwind color scales flipped in `index.css` (Phase 9) | Follows the phone; sellers have Auto / Light / Dark in Settings and customers a light / dark button in the shop header, both per device; classes are written for light mode only, plus a few fixed tokens (`bg-surface`, `bg-accent`, …) for fills that must not flip |
+| Fonts | The phone's own font for Latin; **Kantumruy Pro** for Khmer (`@fontsource-variable`, self-hosted, Khmer letters only) | Khmer looks the same, and modern, on every phone; one 57 KB variable file covers every weight and loads once, only where Khmer shows (decided 2026-10-04) |
+| Motion | CSS keyframes (`index.css`) and the Web Animations API, no library | Taps get an answer (add to cart, order placed, a status moving on) without adding weight; off when the phone asks for reduced motion |
 | Database | **PostgreSQL 16** | Relational integrity for orders/payments/inventory; JSONB available for flexible fields (e.g., variant attributes) without needing a second database |
 | Auth | **JWT (access + refresh)**, `bcrypt` (used directly; passlib is unmaintained) for password hashing | Stateless, simple, no session-store dependency |
 | Image storage | **S3-compatible object storage** (see §11) | Decoupled from app servers, cheap, standard presigned-upload pattern |

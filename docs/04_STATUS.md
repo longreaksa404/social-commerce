@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-04 (Phase 9: UX pass 2, effects, cart bars, Khmer font; committed, not pushed)
+> **Last updated:** 2026-10-04 (Phase 9: UX pass 2, effects, cart bars, Khmer font; deployed)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -665,7 +665,7 @@ deployed 2026-10-04, founder to check on the live site):**
 
 **Phase 9 UX pass 2 (founder's request 2026-10-04: "easy to use, simple
 but modern, effects for some actions"; all four parts approved;
-committed, not pushed):**
+deployed 2026-10-04, founder to check on the live site):**
 
 - [x] Motion basics, shop and dashboard: a new page fades in, cards rise
       into place, loading boxes shimmer, product photos fade in over the
@@ -889,22 +889,9 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-UX pass 2 (2026-10-04), text for 02/03 (not applied yet):
-
-- 02 §2, add after the "Light / dark" row: "| Fonts | The phone's own
-  font for Latin; **Kantumruy Pro** for Khmer (`@fontsource-variable`,
-  self-hosted, Khmer letters only) | Khmer looks the same, and modern,
-  on every phone; one 57 KB variable file covers every weight and loads
-  once, only where Khmer shows (decided 2026-10-04) |" and "| Motion |
-  CSS keyframes (`index.css`) and the Web Animations API, no library |
-  Taps get an answer (add to cart, order placed, a status moving on)
-  without adding weight; off when the phone asks for reduced motion |".
-- 03 Phase 9 table: add the row "UX pass 2: effects in the shop and the
-  dashboard, cart bars toward a discount and free delivery with a pinned
-  Checkout, numbered checkout, shop logo beside the name, softer cards,
-  Kantumruy Pro for Khmer (founder's request 2026-10-04) | 10";
-  subtotal ~97 hours (~7.5 weeks); §4 totals: Phase 9 97 hrs / 7.5 wks,
-  total ~325 hrs (~25 weeks, ~5.75 months).
+Applied to 02/03 on 2026-10-04 (at the founder's request): UX pass 2
+(02 §2 fonts and motion rows; 03 Phase 9 row, subtotal ~97 hrs, §4
+totals: Phase 9 97 hrs, total ~325 hrs).
 
 Applied to 02/03 on 2026-10-04 (at the founder's request): the shop's
 light / dark button (02 §2, 03 Phase 9 light / dark row) and customer
@@ -1139,8 +1126,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: say "push" for UX pass 2 (committed on main, not pushed). Then on
-   your phone: add something to the cart (the photo flies into the bag),
+1. Founder: check UX pass 2 on your phone (live since 2026-10-04):
+   add something to the cart (the photo flies into the bag),
    watch the cart's bars, place an order (tick and confetti), and in the
    dashboard accept it and walk it to Completed (confetti). Read the
    new Khmer lines (cart: free delivery) and see the Khmer font.
