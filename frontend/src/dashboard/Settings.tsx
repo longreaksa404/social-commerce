@@ -23,6 +23,7 @@ import {
 } from '../components/ui.tsx'
 import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
+import { ThemeSwitch } from '../theme/ThemeSwitch.tsx'
 import { api } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
 import type {
@@ -789,7 +790,14 @@ function DisplaySection() {
   const s = useT().settings
   return (
     <Section title={s.display} description={s.displayHint}>
-      <LanguageSwitch />
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <span className="text-sm font-medium text-slate-900">{s.language}</span>
+        <LanguageSwitch />
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <span className="text-sm font-medium text-slate-900">{s.theme}</span>
+        <ThemeSwitch />
+      </div>
     </Section>
   )
 }

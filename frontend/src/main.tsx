@@ -8,11 +8,14 @@ import { router } from './router.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
 import { FeedbackProvider } from './components/FeedbackProvider.tsx'
 import { LanguageProvider } from './i18n/LanguageProvider.tsx'
+import { initTheme } from './theme/theme.ts'
 
 // Error tracking is off unless a DSN is set (production only).
 if (import.meta.env.VITE_SENTRY_DSN) {
   Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN, environment: import.meta.env.MODE })
 }
+
+initTheme()
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },

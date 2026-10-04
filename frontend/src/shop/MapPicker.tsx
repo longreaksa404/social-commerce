@@ -114,7 +114,7 @@ export default function MapPicker({
       role="dialog"
       aria-modal="true"
       aria-labelledby="map-picker-title"
-      className="fixed inset-0 z-50 flex flex-col bg-white"
+      className="fixed inset-0 z-50 flex flex-col bg-surface"
     >
       <div className="flex items-center gap-2 border-b border-slate-200 px-2 py-1.5">
         <button
@@ -135,14 +135,14 @@ export default function MapPicker({
         <div ref={container} className="absolute inset-0" aria-label={m.map} />
         {/* The pin's tip marks the middle of the map. */}
         <div className="pointer-events-none absolute top-1/2 left-1/2 z-[450] -translate-x-1/2 -translate-y-full">
-          <MapPin aria-hidden className="size-11 fill-emerald-700 text-white drop-shadow-md" strokeWidth={1.5} />
+          <MapPin aria-hidden className="size-11 fill-accent text-white drop-shadow-md" strokeWidth={1.5} />
         </div>
-        <div className="pointer-events-none absolute top-1/2 left-1/2 z-[440] size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-900/40" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 z-[440] size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/40" />
 
         {problem && (
           <p
             role="alert"
-            className="absolute top-3 right-14 left-3 z-[1000] rounded-xl bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-md"
+            className="absolute top-3 right-14 left-3 z-[1000] rounded-xl bg-surface px-3.5 py-2.5 text-sm text-slate-800 shadow-md"
           >
             {problem}
           </p>
@@ -153,7 +153,7 @@ export default function MapPicker({
           onClick={locate}
           disabled={locating}
           aria-label={m.locate}
-          className="absolute right-3 bottom-6 z-[1000] flex size-12 items-center justify-center rounded-full bg-white text-emerald-700 shadow-md hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-emerald-600"
+          className="absolute right-3 bottom-6 z-[1000] flex size-12 items-center justify-center rounded-full bg-surface text-emerald-700 shadow-md hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-emerald-600"
         >
           {locating ? (
             <LoaderCircle aria-hidden className="size-5 animate-spin" />

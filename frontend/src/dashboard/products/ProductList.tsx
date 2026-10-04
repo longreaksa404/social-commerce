@@ -89,7 +89,7 @@ export function ProductList() {
               aria-selected={status === value}
               onClick={() => setFilter('status', value)}
               className={`min-h-10 rounded-lg text-sm font-medium transition ${
-                status === value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
+                status === value ? 'bg-raised text-slate-900 shadow-sm' : 'text-slate-600'
               }`}
             >
               {p.status[value]} <span className="text-slate-400">{count(value)}</span>

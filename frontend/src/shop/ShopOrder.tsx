@@ -289,13 +289,13 @@ function Progress({ status, method }: { status: OrderStatus; method: DeliveryMet
             {i < STEPS.length - 1 && (
               <span
                 aria-hidden
-                className={`absolute top-6 left-[11px] h-[calc(100%-1rem)] w-0.5 ${i < reached ? 'bg-emerald-600' : 'bg-slate-200'}`}
+                className={`absolute top-6 left-[11px] h-[calc(100%-1rem)] w-0.5 ${i < reached ? 'bg-brand' : 'bg-slate-200'}`}
               />
             )}
             <span
               aria-hidden
               className={`relative flex size-6 shrink-0 items-center justify-center rounded-full ${
-                done ? 'bg-emerald-600 text-white' : 'border-2 border-slate-200 bg-white'
+                done ? 'bg-brand text-white' : 'border-2 border-slate-200 bg-surface'
               }`}
             >
               {done && <Check className="size-3.5" strokeWidth={3} />}

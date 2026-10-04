@@ -147,7 +147,7 @@ function NotificationRow({ notification, unread }: { notification: SellerNotific
       </span>
       <span
         aria-hidden
-        className={`mt-1.5 size-2.5 shrink-0 rounded-full ${unread ? 'bg-emerald-600' : 'bg-transparent'}`}
+        className={`mt-1.5 size-2.5 shrink-0 rounded-full ${unread ? 'bg-brand' : 'bg-transparent'}`}
       />
     </Link>
   )

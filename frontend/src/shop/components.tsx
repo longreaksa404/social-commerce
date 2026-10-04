@@ -56,8 +56,8 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
   const chip = ({ isActive }: { isActive: boolean }) =>
     `flex min-h-10 shrink-0 items-center rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
       isActive
-        ? 'border-emerald-700 bg-emerald-700 text-white'
-        : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100'
+        ? 'border-accent bg-accent text-white'
+        : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50 active:bg-slate-100'
     }`
   return (
     <nav ref={nav} aria-label={t.shop.categories} className="relative -mx-4 mb-5 overflow-x-auto [scrollbar-width:none]">
@@ -100,7 +100,7 @@ export function ProductGrid({ shop, products }: { shop: ShopStore; products: Sho
                 }`}
               />
               {!product.in_stock && (
-                <span className="absolute top-2 left-2 rounded-full bg-slate-900/80 px-2.5 py-1 text-xs font-semibold text-white">
+                <span className="absolute top-2 left-2 rounded-full bg-black/70 px-2.5 py-1 text-xs font-semibold text-white">
                   {t.shop.soldOut}
                 </span>
               )}
@@ -159,7 +159,7 @@ export function QuantityStepper({
   label?: string
 }) {
   const t = useT()
-  const button = 'border border-slate-300 bg-white shadow-xs'
+  const button = 'border border-slate-300 bg-surface shadow-xs'
   return (
     <div role="group" aria-label={label ?? t.shop.quantity} className="flex shrink-0 items-center gap-1">
       <IconButton

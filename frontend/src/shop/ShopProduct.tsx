@@ -233,7 +233,7 @@ function VariantPicker({
               />
               {/* Sold out: crossed out with a diagonal line, not line-through,
                   which turns a one-letter size like "S" into "$". */}
-              <span className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-800 transition-colors peer-checked:border-emerald-700 peer-checked:bg-emerald-50 peer-checked:text-emerald-800 peer-checked:ring-1 peer-checked:ring-emerald-700 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-emerald-600 peer-disabled:border-slate-200 peer-disabled:bg-[linear-gradient(to_top_right,transparent_calc(50%-0.5px),var(--color-slate-300)_50%,transparent_calc(50%+0.5px))] peer-disabled:text-slate-400">
+              <span className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-300 bg-surface px-4 text-sm font-medium text-slate-800 transition-colors peer-checked:border-emerald-700 peer-checked:bg-emerald-50 peer-checked:text-emerald-800 peer-checked:ring-1 peer-checked:ring-emerald-700 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-emerald-600 peer-disabled:border-slate-200 peer-disabled:bg-[linear-gradient(to_top_right,transparent_calc(50%-0.5px),var(--color-slate-300)_50%,transparent_calc(50%+0.5px))] peer-disabled:text-slate-400">
                 {v.name}
                 {soldOut && <span className="sr-only">{t.shop.product.optionSoldOut}</span>}
               </span>
@@ -312,7 +312,7 @@ function Gallery({ images, name }: { images: string[]; name: string }) {
           onClick={() => show(to)}
           disabled={to < 0 || to >= images.length}
           aria-label={label}
-          className={`absolute top-1/2 ${side} hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow transition hover:bg-white focus-visible:outline-2 focus-visible:outline-emerald-600 disabled:opacity-0 sm:flex`}
+          className={`absolute top-1/2 ${side} hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface/90 text-slate-800 shadow transition hover:bg-surface focus-visible:outline-2 focus-visible:outline-emerald-600 disabled:opacity-0 sm:flex`}
         >
           <Icon aria-hidden className="size-5" />
         </button>

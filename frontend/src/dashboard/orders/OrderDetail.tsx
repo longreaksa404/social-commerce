@@ -191,7 +191,7 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
 
       {order.next_statuses.length > 0 && (
         // Pinned to the bottom on phones, in reach of a thumb.
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:mt-4 lg:border-0 lg:bg-transparent lg:pb-0">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:mt-4 lg:border-0 lg:bg-transparent lg:pb-0">
           <div className="mx-auto flex max-w-3xl gap-3 px-4 py-3 lg:px-0">
             {ends.map((status) => (
               <Button key={status} variant="danger" disabled={change.isPending} onClick={() => move(status)}>

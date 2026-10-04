@@ -8,10 +8,10 @@ const buttonBase =
   'active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50'
 
 const buttonVariants: Record<ButtonVariant, string> = {
-  primary: 'bg-emerald-700 text-white shadow-sm hover:bg-emerald-800',
-  secondary: 'border border-slate-300 bg-white text-slate-800 shadow-xs hover:bg-slate-50',
-  danger: 'border border-red-200 bg-white text-red-600 shadow-xs hover:bg-red-50',
-  destructive: 'bg-red-600 text-white shadow-sm hover:bg-red-700',
+  primary: 'bg-accent text-white shadow-sm hover:bg-accent-hover',
+  secondary: 'border border-slate-300 bg-surface text-slate-800 shadow-xs hover:bg-slate-50',
+  danger: 'border border-red-200 bg-surface text-red-600 shadow-xs hover:bg-red-50',
+  destructive: 'bg-danger text-white shadow-sm hover:bg-danger-hover',
   ghost: 'text-slate-700 hover:bg-slate-100',
 }
 

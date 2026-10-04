@@ -1,11 +1,89 @@
 @import 'tailwindcss';
 
+/* Light / dark (Phase 9). Dark mode flips the gray, emerald, red, amber and
+   sky scales (below), so text-slate-900 is light on a dark page and a
+   bg-emerald-50 tint turns deep green: write classes for light mode.
+   Solid fills that must not flip use these instead: bg-surface (cards,
+   bars, inputs; never bg-white), bg-raised (the chosen segment of a
+   switch), bg-accent / bg-brand / bg-danger with text-white, and black
+   for labels laid over photos. */
 @theme {
+  --color-surface: #fff;
+  --color-raised: #fff;
+  --color-accent: oklch(50.8% 0.118 165.612);
+  --color-accent-hover: oklch(43.2% 0.095 166.913);
+  --color-brand: oklch(59.6% 0.145 163.225);
+  --color-danger: oklch(57.7% 0.245 27.325);
+  --color-danger-hover: oklch(50.5% 0.213 27.518);
+
   /* System fonts first (fast, native feel). Khmer falls back to the phone's
      own Khmer font: Noto Sans Khmer on Android, Khmer Sangam on iOS. */
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Khmer', 'Khmer UI',
     'Khmer Sangam MN', 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+}
+
+/* Set on <html> before the first paint by the script in index.html. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-surface: oklch(20.8% 0.042 265.755);
+  --color-raised: oklch(37.2% 0.044 257.287);
+  /* Grays */
+  --color-slate-50: oklch(12.9% 0.042 264.695);
+  --color-slate-100: oklch(24.5% 0.042 262);
+  --color-slate-200: oklch(27.9% 0.041 260.031);
+  --color-slate-300: oklch(37.2% 0.044 257.287);
+  --color-slate-400: oklch(55.4% 0.046 257.417);
+  --color-slate-500: oklch(70.4% 0.04 256.788);
+  --color-slate-600: oklch(86.9% 0.022 252.894);
+  --color-slate-700: oklch(92.9% 0.013 255.508);
+  --color-slate-800: oklch(92.9% 0.013 255.508);
+  --color-slate-900: oklch(96.8% 0.007 247.896);
+  --color-slate-950: oklch(98.4% 0.003 247.858);
+  /* Emerald: tints turn deep, text turns light */
+  --color-emerald-50: oklch(26.2% 0.051 172.552);
+  --color-emerald-100: oklch(37.8% 0.077 168.94);
+  --color-emerald-200: oklch(43.2% 0.095 166.913);
+  --color-emerald-300: oklch(50.8% 0.118 165.612);
+  --color-emerald-400: oklch(59.6% 0.145 163.225);
+  --color-emerald-600: oklch(76.5% 0.177 163.223);
+  --color-emerald-700: oklch(84.5% 0.143 164.978);
+  --color-emerald-800: oklch(90.5% 0.093 164.15);
+  --color-emerald-900: oklch(95% 0.052 163.051);
+  --color-emerald-950: oklch(97.9% 0.021 166.113);
+  /* Red: tints turn deep, text turns light */
+  --color-red-50: oklch(25.8% 0.092 26.042);
+  --color-red-100: oklch(39.6% 0.141 25.723);
+  --color-red-200: oklch(44.4% 0.177 26.899);
+  --color-red-300: oklch(50.5% 0.213 27.518);
+  --color-red-400: oklch(57.7% 0.245 27.325);
+  --color-red-600: oklch(70.4% 0.191 22.216);
+  --color-red-700: oklch(80.8% 0.114 19.571);
+  --color-red-800: oklch(88.5% 0.062 18.334);
+  --color-red-900: oklch(93.6% 0.032 17.717);
+  --color-red-950: oklch(97.1% 0.013 17.38);
+  /* Amber: tints turn deep, text turns light */
+  --color-amber-50: oklch(27.9% 0.077 45.635);
+  --color-amber-100: oklch(41.4% 0.112 45.904);
+  --color-amber-200: oklch(47.3% 0.137 46.201);
+  --color-amber-300: oklch(55.5% 0.163 48.998);
+  --color-amber-400: oklch(66.6% 0.179 58.318);
+  --color-amber-600: oklch(82.8% 0.189 84.429);
+  --color-amber-700: oklch(87.9% 0.169 91.605);
+  --color-amber-800: oklch(92.4% 0.12 95.746);
+  --color-amber-900: oklch(96.2% 0.059 95.617);
+  --color-amber-950: oklch(98.7% 0.022 95.277);
+  /* Sky: tints turn deep, text turns light */
+  --color-sky-50: oklch(29.3% 0.066 243.157);
+  --color-sky-100: oklch(39.1% 0.09 240.876);
+  --color-sky-200: oklch(44.3% 0.11 240.79);
+  --color-sky-300: oklch(50% 0.134 242.749);
+  --color-sky-400: oklch(58.8% 0.158 241.966);
+  --color-sky-600: oklch(74.6% 0.16 232.661);
+  --color-sky-700: oklch(82.8% 0.111 230.318);
+  --color-sky-800: oklch(90.1% 0.058 230.902);
+  --color-sky-900: oklch(95.1% 0.026 236.824);
+  --color-sky-950: oklch(97.7% 0.013 236.62);
 }
 
 @layer base {

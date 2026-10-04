@@ -322,7 +322,7 @@ export function ShopCheckout() {
       <ErrorMessage error={formError(place.error, FIELDS)} />
 
       {/* Pinned to the bottom on phones so the button is always in reach. */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:pb-0">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:pb-0">
         <div className="mx-auto flex max-w-xl items-center gap-3 px-4 py-3 lg:px-0">
           <span className="min-w-0 flex-1">
             <span className="block text-xs text-slate-500">{price.fee === null ? c.totalBeforeDelivery : t.shop.summary.total}</span>
@@ -492,7 +492,7 @@ function LocationField({
 function MapLoading() {
   const t = useT()
   return (
-    <div role="status" className="fixed inset-0 z-50 flex items-center justify-center bg-white text-slate-600">
+    <div role="status" className="fixed inset-0 z-50 flex items-center justify-center bg-surface text-slate-600">
       <LoaderCircle aria-hidden className="mr-2 size-5 animate-spin" />
       {t.checkout.openingMap}
     </div>
@@ -506,7 +506,7 @@ function MapUnavailable({ onClose }: { onClose: () => void }) {
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="map-unavailable"
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white px-6 text-center"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-surface px-6 text-center"
     >
       <p id="map-unavailable" className="text-slate-800">
         {t.checkout.mapUnavailable}

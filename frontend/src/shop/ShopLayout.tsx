@@ -53,7 +53,7 @@ function useLinkTracking(slug: string) {
 
 function Header({ shop, slug }: { shop: ShopStore | undefined; slug: string }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 pt-[env(safe-area-inset-top)] backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
         <Link
           to={`/shop/${slug}`}
@@ -62,7 +62,7 @@ function Header({ shop, slug }: { shop: ShopStore | undefined; slug: string }) {
           {shop?.logo_url ? (
             <img src={shop.logo_url} alt="" className="size-8 shrink-0 rounded-full object-cover" />
           ) : (
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-white">
               <Store aria-hidden className="size-4.5" />
             </span>
           )}
@@ -94,7 +94,7 @@ function CartButton({ slug }: { slug: string }) {
       {count > 0 && (
         <span
           aria-hidden
-          className="absolute top-0.5 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-700 px-1 text-xs font-bold text-white tabular-nums"
+          className="absolute top-0.5 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-bold text-white tabular-nums"
         >
           {count > 99 ? '99+' : count}
         </span>

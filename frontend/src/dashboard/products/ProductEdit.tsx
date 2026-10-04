@@ -354,7 +354,7 @@ function ProductForm({ product }: { product?: Product }) {
         </Section>
 
         {!isNew && (
-          <details open={slugError ? true : undefined} className="group rounded-2xl border border-slate-200 bg-white px-4 shadow-xs sm:px-6">
+          <details open={slugError ? true : undefined} className="group rounded-2xl border border-slate-200 bg-surface px-4 shadow-xs sm:px-6">
             <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between text-base font-semibold text-slate-900">
               {p.advanced}
               <Plus aria-hidden className="size-5 text-slate-400 transition-transform group-open:rotate-45" />
@@ -376,7 +376,7 @@ function ProductForm({ product }: { product?: Product }) {
         <ErrorMessage error={formError(save.error, fields)} />
 
         {/* Pinned to the bottom on phones so Save is always in reach. */}
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:pb-0">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:pb-0">
           <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3 lg:px-0">
             <span className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
               {progress ?? (dirty ? p.unsaved : isNew ? '' : p.allSaved)}
@@ -402,7 +402,7 @@ function StockStepper({ value, onChange }: { value: string; onChange: (value: st
         label={p.decreaseStock}
         disabled={n <= 0}
         onClick={() => onChange(String(Math.max(0, n - 1)))}
-        className="border border-slate-300 bg-white shadow-xs"
+        className="border border-slate-300 bg-surface shadow-xs"
       />
       <Input
         type="number"
@@ -418,7 +418,7 @@ function StockStepper({ value, onChange }: { value: string; onChange: (value: st
         icon={Plus}
         label={p.increaseStock}
         onClick={() => onChange(String(n + 1))}
-        className="border border-slate-300 bg-white shadow-xs"
+        className="border border-slate-300 bg-surface shadow-xs"
       />
     </div>
   )

@@ -21,7 +21,7 @@ export function LanguageSwitch({ className = '' }: { className?: string }) {
           aria-pressed={lang === option.lang}
           onClick={() => setLang(option.lang)}
           className={`min-h-10 min-w-11 rounded-[10px] px-2.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-emerald-600 ${
-            lang === option.lang ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            lang === option.lang ? 'bg-raised text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           {option.label}

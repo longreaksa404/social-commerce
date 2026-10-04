@@ -27,7 +27,7 @@ type FieldState = { id?: string; invalid: boolean; describedBy?: string }
 const FieldContext = createContext<FieldState>({ invalid: false })
 
 const control =
-  'block w-full rounded-xl border bg-white px-3.5 py-2.5 text-base leading-6 text-slate-900 shadow-xs ' +
+  'block w-full rounded-xl border bg-surface px-3.5 py-2.5 text-base leading-6 text-slate-900 shadow-xs ' +
   'placeholder:text-slate-400 transition-colors focus:outline-none focus:ring-4 ' +
   'disabled:bg-slate-100 disabled:text-slate-500 sm:py-2 sm:text-sm'
 
@@ -217,7 +217,7 @@ export function Switch({
       />
       <span
         aria-hidden
-        className="relative h-7 w-12 shrink-0 rounded-full bg-slate-300 transition-colors peer-checked:bg-emerald-600 peer-focus-visible:ring-4 peer-focus-visible:ring-emerald-600/25 after:absolute after:left-0.5 after:top-0.5 after:size-6 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5"
+        className="relative h-7 w-12 shrink-0 rounded-full bg-slate-300 transition-colors peer-checked:bg-brand peer-focus-visible:ring-4 peer-focus-visible:ring-emerald-600/25 after:absolute after:left-0.5 after:top-0.5 after:size-6 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5"
       />
     </label>
   )
@@ -291,7 +291,7 @@ export function IconButton({
 // Layout pieces
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border border-slate-200 bg-white shadow-xs ${className}`}>{children}</div>
+  return <div className={`rounded-2xl border border-slate-200 bg-surface shadow-xs ${className}`}>{children}</div>
 }
 
 /** A titled card section of a form or settings page. */

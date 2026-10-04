@@ -46,7 +46,7 @@ function PhotoGrid({
         <div key={photo.key} className="relative aspect-square">
           <img src={photo.src} alt="" className="size-full rounded-xl object-cover ring-1 ring-slate-200" />
           {index === 0 ? (
-            <span className="absolute bottom-1.5 left-1.5 rounded-md bg-slate-900/75 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+            <span className="absolute bottom-1.5 left-1.5 rounded-md bg-black/70 px-1.5 py-0.5 text-[11px] font-semibold text-white">
               {words.main}
             </span>
           ) : (
@@ -54,7 +54,7 @@ function PhotoGrid({
               type="button"
               disabled={disabled}
               onClick={() => onMakeMain(photo.key)}
-              className="absolute bottom-1.5 left-1.5 rounded-md bg-white/90 px-1.5 py-0.5 text-[11px] font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 after:absolute after:-inset-2 disabled:opacity-50"
+              className="absolute bottom-1.5 left-1.5 rounded-md bg-surface/90 px-1.5 py-0.5 text-[11px] font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 after:absolute after:-inset-2 disabled:opacity-50"
             >
               {words.setMain}
             </button>
@@ -64,7 +64,7 @@ function PhotoGrid({
             disabled={disabled}
             aria-label={words.remove(index + 1)}
             onClick={() => onRemove(photo.key)}
-            className="absolute -right-2 -top-2 flex size-8 items-center justify-center rounded-full bg-white text-slate-700 shadow ring-1 ring-slate-200 after:absolute after:-inset-1.5 disabled:opacity-50"
+            className="absolute -right-2 -top-2 flex size-8 items-center justify-center rounded-full bg-surface text-slate-700 shadow ring-1 ring-slate-200 after:absolute after:-inset-1.5 disabled:opacity-50"
           >
             <X aria-hidden className="size-4" />
           </button>

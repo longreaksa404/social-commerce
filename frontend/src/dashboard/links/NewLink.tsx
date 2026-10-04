@@ -104,7 +104,7 @@ export function NewLink() {
                   className={`min-h-11 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-emerald-600 ${
                     source === s.key
                       ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                      : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   {s.label}

@@ -6,7 +6,7 @@ import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 export function BrandMark({ className = '' }: { className?: string }) {
   return (
     <Link to="/" className={`inline-flex items-center gap-2.5 font-bold tracking-tight text-slate-900 ${className}`}>
-      <span className="flex size-9 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
+      <span className="flex size-9 items-center justify-center rounded-xl bg-brand text-white shadow-sm">
         <Store aria-hidden className="size-5" />
       </span>
       Social Commerce
@@ -28,12 +28,12 @@ export function AuthLayout({
   footer: ReactNode
 }) {
   return (
-    <main className="flex min-h-dvh flex-col bg-white px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:items-center sm:justify-center sm:bg-slate-50 sm:px-4">
+    <main className="flex min-h-dvh flex-col bg-surface px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:items-center sm:justify-center sm:bg-slate-50 sm:px-4">
       <div className="mb-8 flex items-center justify-between gap-3 sm:mb-6 sm:w-full sm:max-w-md">
         <BrandMark />
         <LanguageSwitch />
       </div>
-      <div className="w-full sm:max-w-md sm:rounded-2xl sm:border sm:border-slate-200 sm:bg-white sm:p-8 sm:shadow-sm">
+      <div className="w-full sm:max-w-md sm:rounded-2xl sm:border sm:border-slate-200 sm:bg-surface sm:p-8 sm:shadow-sm">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
         {subtitle && <p className="mt-1.5 text-sm text-slate-500">{subtitle}</p>}
         <div className="mt-6">{children}</div>

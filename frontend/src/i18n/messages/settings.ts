@@ -179,10 +179,17 @@ export const settings = {
   openShop: { en: 'Open shop', km: 'បើកហាង' },
   shareTracked: { en: 'Share with a tracked link', km: 'ចែករំលែកជាមួយតំណតាមដាន' },
 
-  display: { en: 'Language', km: 'ភាសា' },
+  display: { en: 'Language and theme', km: 'ភាសា និងរូបរាង' },
   displayHint: {
-    en: 'For this phone. Customers choose their own in your shop.',
-    km: 'សម្រាប់ទូរស័ព្ទនេះ។ អតិថិជនជ្រើសដោយខ្លួនឯងនៅក្នុងហាងរបស់អ្នក។',
+    en: 'For this phone. Customers choose their own language in your shop, and see light or dark as their phone is set.',
+    km: 'សម្រាប់ទូរស័ព្ទនេះ។ អតិថិជនជ្រើសភាសាដោយខ្លួនឯងនៅក្នុងហាងរបស់អ្នក ហើយឃើញពណ៌ភ្លឺ ឬងងឹតតាមការកំណត់ទូរស័ព្ទរបស់គេ។',
+  },
+  language: { en: 'Language', km: 'ភាសា' },
+  theme: { en: 'Theme', km: 'រូបរាង' },
+  themeChoice: {
+    auto: { en: 'Auto', km: 'តាមទូរស័ព្ទ' },
+    light: { en: 'Light', km: 'ភ្លឺ' },
+    dark: { en: 'Dark', km: 'ងងឹត' },
   },
 
   account: { en: 'Account', km: 'គណនី' },

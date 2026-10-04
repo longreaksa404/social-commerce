@@ -50,7 +50,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
           <div
             key={item.id}
             role={item.tone === 'error' ? 'alert' : 'status'}
-            className="flex max-w-sm items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-lg"
+            className="flex max-w-sm items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-slate-50 shadow-lg"
           >
             {item.tone === 'error' ? (
               <AlertCircle aria-hidden className="size-5 shrink-0 text-red-400" />
@@ -72,7 +72,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
         }}
         onClick={(e) => e.target === dialog.current && close(false)}
         aria-labelledby="confirm-title"
-        className="m-0 mt-auto w-full max-w-none rounded-t-2xl bg-white p-0 shadow-xl sm:m-auto sm:max-w-sm sm:rounded-2xl"
+        className="m-0 mt-auto w-full max-w-none rounded-t-2xl bg-surface p-0 shadow-xl sm:m-auto sm:max-w-sm sm:rounded-2xl"
       >
         {pending && (
           <div className="p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] sm:pb-5">

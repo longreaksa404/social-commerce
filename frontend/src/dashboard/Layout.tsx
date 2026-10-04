@@ -85,7 +85,7 @@ function NotificationBell() {
       {unread > 0 && (
         <span
           aria-hidden
-          className="absolute top-1 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-semibold text-white ring-2 ring-white"
+          className="absolute top-1 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-semibold text-white ring-2 ring-surface"
         >
           {unread > 99 ? '99+' : unread}
         </span>
@@ -96,9 +96,9 @@ function NotificationBell() {
 
 function MobileTopBar() {
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
+    <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
       <div className="flex h-14 items-center gap-2.5 pr-2 pl-4">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
           <Store aria-hidden className="size-4.5" />
         </span>
         <StoreName />
@@ -114,7 +114,7 @@ function BottomTabBar() {
   return (
     <nav
       aria-label={t.dashboard.mainNav}
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
     >
       <div className="mx-auto flex max-w-md">
         {tabs.map(({ to, key, icon: Icon }) => (
@@ -153,9 +153,9 @@ function BottomTabBar() {
 function Sidebar() {
   const t = useT()
   return (
-    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
+    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-slate-200 bg-surface lg:flex">
       <div className="flex h-16 items-center gap-2.5 border-b border-slate-100 pr-3 pl-5">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
           <Store aria-hidden className="size-4.5" />
         </span>
         <StoreName />

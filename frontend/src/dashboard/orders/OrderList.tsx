@@ -75,12 +75,12 @@ export function OrderList() {
                   onClick={() => setParams(f.key === 'all' ? {} : { show: f.key }, { replace: true })}
                   className={`flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                     active
-                      ? 'border-emerald-700 bg-emerald-700 text-white'
-                      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                      ? 'border-accent bg-accent text-white'
+                      : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   {t.orders.filter[f.key]}
-                  <span className={active ? 'text-emerald-100' : 'text-slate-500'}>{countOf(f.statuses)}</span>
+                  <span className={active ? 'text-white/80' : 'text-slate-500'}>{countOf(f.statuses)}</span>
                 </button>
               </li>
             )
