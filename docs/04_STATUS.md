@@ -700,6 +700,11 @@ deployed 2026-10-04, founder to check on the live site):**
       name, on a soft green that fades into the page. Softer cards
       everywhere (shadow and faint outline instead of a grey border); a
       soft green glow on the landing, login and register pages.
+- [x] Found on the live check: where `r2.dev` is blocked (the work
+      network, some office Wi-Fi), the shop logo showed a broken image.
+      It now falls back to the shop icon (shop header and page,
+      dashboard header), as product photos fall back to the grey
+      placeholder.
 - [x] Kantumruy Pro for all Khmer text (founder approved 2026-10-04):
       one variable file with every weight and only the Khmer letters,
       57 KB (estimated ~40 KB when the founder was asked), self-hosted from

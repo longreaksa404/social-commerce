@@ -1,4 +1,5 @@
 import { Bell, Inbox, Link2, Package, Settings, Store, Tags, Users } from 'lucide-react'
+import { useState } from 'react'
 import { NavLink, Navigate, useLocation, useMatch } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { PageOutlet, Skeleton, Spinner } from '../components/ui.tsx'
@@ -55,10 +56,14 @@ function Shell() {
   )
 }
 
-/** The shop's logo, round as customers see it, or a plain shop icon. */
+/** The shop's logo, round as customers see it, or a plain shop icon (also
+ * when the logo won't load). */
 function StoreMark() {
   const logo = useStore().data?.logo_url
-  if (logo) return <img src={logo} alt="" className="size-8 shrink-0 rounded-full object-cover" />
+  const [failed, setFailed] = useState<string | null>(null)
+  if (logo && failed !== logo) {
+    return <img src={logo} alt="" onError={() => setFailed(logo)} className="size-8 shrink-0 rounded-full object-cover" />
+  }
   return (
     <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
       <Store aria-hidden className="size-4.5" />

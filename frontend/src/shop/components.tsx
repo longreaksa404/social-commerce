@@ -157,9 +157,20 @@ export function ProductGridSkeleton() {
 }
 
 /** The shop's logo, round as on social media, or the shop icon on green
- * when it has none. `className` sizes it. */
+ * when it has none or it won't load. `className` sizes it. */
 export function ShopLogo({ shop, className = 'size-8' }: { shop: ShopStore | undefined; className?: string }) {
-  if (shop?.logo_url) return <img src={shop.logo_url} alt="" className={`shrink-0 rounded-full object-cover ${className}`} />
+  const [failed, setFailed] = useState<string | null>(null)
+  const logo = shop?.logo_url
+  if (logo && failed !== logo) {
+    return (
+      <img
+        src={logo}
+        alt=""
+        onError={() => setFailed(logo)}
+        className={`shrink-0 rounded-full object-cover ${className}`}
+      />
+    )
+  }
   return (
     <span className={`flex shrink-0 items-center justify-center rounded-full bg-brand text-white ${className}`}>
       <Store aria-hidden className="size-[55%]" />
