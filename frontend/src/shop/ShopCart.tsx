@@ -66,7 +66,7 @@ export function ShopCart() {
             ))}
           </Card>
           {!checked.loading && !checked.ready && (
-            <p className="mt-2 px-1 text-sm text-red-700">{page.fixItems}</p>
+            <p className="mt-2 sm:px-1 text-sm text-red-700">{page.fixItems}</p>
           )}
 
           {/* What a little more would get them, with bars filling up. */}
@@ -79,7 +79,7 @@ export function ShopCart() {
                 />
               )}
               {freeDelivery?.kind === 'free' ? (
-                <p className="flex animate-rise items-center gap-2 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-sm font-medium text-emerald-800">
+                <p className="-mx-4 flex animate-rise items-center gap-2 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-800 sm:mx-0 sm:rounded-xl sm:px-3.5">
                   <Truck aria-hidden className="size-4.5 shrink-0" />
                   {page.deliveryIsFree}
                 </p>
@@ -99,7 +99,7 @@ export function ShopCart() {
           )}
 
           {!checked.loading && discount > 0 && (
-            <dl className="mt-4 space-y-1 px-1 text-sm">
+            <dl className="mt-4 space-y-1 sm:px-1 text-sm">
               <div className="flex justify-between">
                 <dt className="text-slate-600">{summary.items}</dt>
                 <dd className="text-slate-900">{money(checked.subtotalCents)}</dd>
@@ -110,7 +110,7 @@ export function ShopCart() {
               </div>
             </dl>
           )}
-          {!checked.loading && feeLater && <p className="mt-2 px-1 text-xs text-slate-500">{page.feeAtCheckout}</p>}
+          {!checked.loading && feeLater && <p className="mt-2 sm:px-1 text-xs text-slate-500">{page.feeAtCheckout}</p>}
 
           {/* Pinned to the bottom on phones, like checkout's Place order. */}
           <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:mt-2 lg:border-0 lg:bg-transparent lg:pb-0">
@@ -151,7 +151,7 @@ export function ShopCart() {
  * fills as the cart gets closer (it says the same as the line). */
 function Nudge({ text, progress }: { text: string; progress: number }) {
   return (
-    <div className="rounded-xl bg-emerald-50 px-3.5 py-2.5">
+    <div className="-mx-4 bg-emerald-50 px-4 py-2.5 sm:mx-0 sm:rounded-xl sm:px-3.5">
       <p className="text-sm text-emerald-800">{text}</p>
       <div aria-hidden className="mt-2 h-1.5 overflow-hidden rounded-full bg-emerald-100">
         <div
@@ -180,7 +180,7 @@ function CartRow({
   const unavailable = line.available === 0
   const max = Math.min(MAX_QUANTITY, Math.max(line.available ?? MAX_QUANTITY, line.quantity))
   return (
-    <div className="flex gap-3 p-3 sm:p-4">
+    <div className="flex gap-3 px-4 py-3 sm:p-4">
       {/* Same place as the name's link, so hidden from screen readers and Tab. */}
       <Link to={`/shop/${shop}/product/${line.productSlug}`} aria-hidden tabIndex={-1} className="shrink-0 rounded-xl">
         <ProductImage

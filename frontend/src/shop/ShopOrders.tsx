@@ -42,7 +42,7 @@ export function ShopOrders() {
           {past.length > 0 && <OrderGroup title={m.past} orders={past} slug={storeSlug} />}
         </div>
       )}
-      <p className="mt-6 px-1 text-sm leading-6 text-slate-500">{m.otherPhone}</p>
+      <p className="mt-6 sm:px-1 text-sm leading-6 text-slate-500">{m.otherPhone}</p>
     </div>
   )
 }
@@ -50,7 +50,7 @@ export function ShopOrders() {
 function OrderGroup({ title, orders, slug }: { title: string; orders: MyOrder[]; slug: string }) {
   return (
     <section>
-      <h2 className="mb-2 px-1 text-sm font-semibold text-slate-500">{title}</h2>
+      <h2 className="mb-2 sm:px-1 text-sm font-semibold text-slate-500">{title}</h2>
       <Card className="divide-y divide-slate-100 overflow-hidden">
         {orders.map((o) => (
           <OrderRow key={o.id} item={o} slug={slug} />

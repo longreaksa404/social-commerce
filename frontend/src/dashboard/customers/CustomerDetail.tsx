@@ -74,7 +74,7 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
         </Card>
 
         <section aria-labelledby="customer-orders">
-          <h2 id="customer-orders" className="mb-2 px-1 font-semibold text-slate-900">
+          <h2 id="customer-orders" className="mb-2 sm:px-1 font-semibold text-slate-900">
             {c.orders}
           </h2>
           <Card className="divide-y divide-slate-100 overflow-hidden">
@@ -88,7 +88,7 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
             ))}
           </Card>
           {customer.order_count > customer.orders.length && (
-            <p className="mt-2 px-1 text-sm text-slate-500">
+            <p className="mt-2 sm:px-1 text-sm text-slate-500">
               {c.latestOrders(customer.orders.length, customer.order_count)}
             </p>
           )}
@@ -115,7 +115,7 @@ function DetailSkeleton({ back }: { back: string }) {
         </Card>
         <Card className="divide-y divide-slate-100">
           {Array.from({ length: 3 }, (_, i) => (
-            <div key={i} className="space-y-2 p-3 sm:p-4">
+            <div key={i} className="space-y-2 px-4 py-3 sm:p-4">
               <Skeleton className="h-4 w-36" />
               <Skeleton className="h-3 w-24" />
             </div>

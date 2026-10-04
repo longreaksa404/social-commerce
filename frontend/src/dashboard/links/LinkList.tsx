@@ -68,7 +68,7 @@ function LinkRow({ link }: { link: ShareLink }) {
   return (
     <Link
       to={`/dashboard/links/${link.id}`}
-      className="flex items-center gap-3 p-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
+      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
     >
       <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
         <Icon aria-hidden className="size-5" />
@@ -93,7 +93,7 @@ function ListSkeleton() {
       <PageHeader title={l.title} />
       <Card className="divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="flex items-center gap-3 p-3 sm:p-4">
+          <div key={i} className="flex items-center gap-3 px-4 py-3 sm:p-4">
             <Skeleton className="size-10 shrink-0 rounded-full" />
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-36" />

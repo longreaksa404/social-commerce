@@ -35,7 +35,7 @@ export function OrderRow({
     <Link
       to={`/dashboard/orders/${order.id}`}
       state={back ? { back } : undefined}
-      className={`flex items-center gap-3 p-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4 ${arrived ? 'animate-arrive' : ''}`}
+      className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4 ${arrived ? 'animate-arrive' : ''}`}
     >
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">

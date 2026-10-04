@@ -156,7 +156,7 @@ function ProductRow({ product, currency, category }: { product: Product; currenc
   return (
     <Link
       to={`/dashboard/products/${product.id}`}
-      className="flex items-center gap-3 p-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
+      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
     >
       {product.image_urls[0] ? (
         <img
@@ -197,7 +197,7 @@ function ListSkeleton() {
       <Skeleton className="mb-4 h-12 w-full rounded-xl" />
       <Card className="divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="flex items-center gap-3 p-3 sm:p-4">
+          <div key={i} className="flex items-center gap-3 px-4 py-3 sm:p-4">
             <Skeleton className="size-16 rounded-xl" />
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-3/4" />

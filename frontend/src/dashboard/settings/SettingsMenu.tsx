@@ -72,7 +72,7 @@ function StoreRows({ store }: { store: Store }) {
         />
       </Card>
       <section aria-labelledby="selling">
-        <h2 id="selling" className="mb-2 px-1 text-sm font-semibold text-slate-500">
+        <h2 id="selling" className="mb-2 sm:px-1 text-sm font-semibold text-slate-500">
           {s.menu.selling}
         </h2>
         <Card>
@@ -102,7 +102,7 @@ function MenuRow({ to, icon, title, summary }: { to: string; icon: ReactNode; ti
   return (
     <Link
       to={to}
-      className="flex min-h-16 items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-600 active:bg-slate-100 [li:first-child>&]:rounded-t-2xl [li:last-child>&]:rounded-b-2xl"
+      className="flex min-h-16 items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-600 active:bg-slate-100 sm:[li:first-child>&]:rounded-t-2xl sm:[li:last-child>&]:rounded-b-2xl"
     >
       {icon}
       <span className="min-w-0 flex-1">

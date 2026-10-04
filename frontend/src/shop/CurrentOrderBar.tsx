@@ -19,7 +19,7 @@ export function CurrentOrderBar({ slug }: { slug: string }) {
   return (
     <Link
       to={one ? `/shop/${slug}/order/${one.id}` : `/shop/${slug}/orders`}
-      className="mb-4 flex min-h-14 items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 sm:mb-6"
+      className="-mx-4 -mt-4 mb-4 flex min-h-14 items-center gap-3 border-b border-emerald-200 bg-emerald-50 px-4 py-2.5 transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-600 sm:mx-0 sm:mt-0 sm:mb-6 sm:rounded-2xl sm:border sm:px-3.5 sm:focus-visible:outline-offset-2"
     >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-white">
         <Package aria-hidden className="size-4.5" />

@@ -71,7 +71,7 @@ function LinkView({ link, back }: { link: LinkStats; back: string }) {
         </Card>
 
         <section aria-labelledby="link-orders">
-          <h2 id="link-orders" className="mb-2 px-1 font-semibold text-slate-900">
+          <h2 id="link-orders" className="mb-2 sm:px-1 font-semibold text-slate-900">
             {l.ordersLabel}
           </h2>
           {link.orders.length === 0 ? (
@@ -84,7 +84,7 @@ function LinkView({ link, back }: { link: LinkStats; back: string }) {
             </Card>
           )}
           {link.order_count > link.orders.length && (
-            <p className="mt-2 px-1 text-sm text-slate-500">
+            <p className="mt-2 sm:px-1 text-sm text-slate-500">
               {l.latestOrders(link.orders.length, link.order_count)}
             </p>
           )}

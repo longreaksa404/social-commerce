@@ -24,5 +24,8 @@ export function buttonClass(variant: ButtonVariant = 'primary', size: ButtonSize
   return `${buttonBase} ${buttonVariants[variant]} ${buttonSizes[size]}`
 }
 
-/** A card's look (Card, and lists drawn as cards). */
-export const cardClass = 'rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6'
+/** A card's look (Card, and lists drawn as cards). On phones it runs to
+ * the screen's edges, out of the page's 16px padding, square, with a line
+ * above and below (founder's choice 2026-10-04, like a phone app); from
+ * `sm` up a rounded card. Only for boxes sitting straight in the page. */
+export const cardClass = '-mx-4 bg-surface shadow-card ring-1 ring-slate-900/6 sm:mx-0 sm:rounded-2xl'

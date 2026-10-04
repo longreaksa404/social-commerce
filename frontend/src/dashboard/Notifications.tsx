@@ -126,7 +126,7 @@ function NotificationRow({ notification, unread }: { notification: SellerNotific
     <Link
       to={shown.to}
       state={{ back: '/dashboard/notifications' }}
-      className={`flex items-start gap-3 p-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4 ${
+      className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4 ${
         unread ? 'bg-emerald-50/50' : ''
       }`}
     >
@@ -160,7 +160,7 @@ function ListSkeleton() {
       <PageHeader title={t.dashboard.notifications} />
       <Card className="divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="flex gap-3 p-3 sm:p-4">
+          <div key={i} className="flex gap-3 px-4 py-3 sm:p-4">
             <Skeleton className="size-10 shrink-0 rounded-full" />
             <div className="flex-1 space-y-2 pt-0.5">
               <Skeleton className="h-4 w-32" />

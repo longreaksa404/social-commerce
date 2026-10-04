@@ -145,7 +145,7 @@ function ListSkeleton() {
       <Skeleton className="mb-4 h-10 w-full rounded-full" />
       <Card className="divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="space-y-2 p-3 sm:p-4">
+          <div key={i} className="space-y-2 px-4 py-3 sm:p-4">
             <Skeleton className="h-4 w-28" />
             <Skeleton className="h-4 w-40" />
             <Skeleton className="h-3 w-24" />

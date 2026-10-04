@@ -3,7 +3,7 @@ import { useRef, useState, type MouseEvent, type Ref, type RefObject } from 'rea
 import { Link, useParams } from 'react-router'
 import { buzz } from '../components/effects.ts'
 import { Button, ErrorState, Skeleton } from '../components/ui.tsx'
-import { buttonClass } from '../components/styles.ts'
+import { buttonClass, cardClass } from '../components/styles.ts'
 import { formatMoney, formatPriceRange } from '../lib/money.ts'
 import { useT } from '../i18n/useT.ts'
 import type { ShopProduct as Product, ShopStore, ShopVariant } from '../lib/types.ts'
@@ -87,7 +87,7 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
         <ShopInfo shop={shop} className="mt-6" />
 
         {product.description && (
-          <div className="mt-6 border-t border-slate-200 pt-5">
+          <div className={`mt-4 p-4 ${cardClass}`}>
             <h2 className="text-sm font-semibold text-slate-900">{t.shop.product.details}</h2>
             <p className="mt-2 text-[15px] leading-7 whitespace-pre-line break-words text-slate-700">
               {product.description}

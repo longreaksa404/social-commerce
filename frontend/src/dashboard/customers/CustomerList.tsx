@@ -63,7 +63,7 @@ export function CustomerList() {
         onChange={(e) => setTyped(e.target.value)}
         leading={<Search aria-hidden className="size-4.5" />}
       />
-      <p aria-live="polite" className="mt-3 mb-2 px-1 text-sm text-slate-500">
+      <p aria-live="polite" className="mt-3 mb-2 sm:px-1 text-sm text-slate-500">
         {search ? c.found(total) : c.count(total)}
       </p>
 
@@ -107,7 +107,7 @@ function CustomerRow({
       to={`/dashboard/customers/${customer.id}`}
       // Back to this list with this search.
       state={{ back: search ? `/dashboard/customers?q=${encodeURIComponent(search)}` : '/dashboard/customers' }}
-      className="flex items-center gap-3 p-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
+      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
     >
       <span className="min-w-0 flex-1">
         <span className="block truncate font-semibold text-slate-900">{customer.name}</span>
@@ -133,7 +133,7 @@ function ListSkeleton() {
       <Skeleton className="mt-3 mb-2 h-4 w-24" />
       <Card className="divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="space-y-2 p-3 sm:p-4">
+          <div key={i} className="space-y-2 px-4 py-3 sm:p-4">
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-3 w-40" />
