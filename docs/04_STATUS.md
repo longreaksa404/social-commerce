@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-04 (Phase 9: UX pass 2, effects, cart bars, Khmer font; deployed)
+> **Last updated:** 2026-10-04 (Phase 9: layout pass, phones edge to edge; committed, not pushed)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -722,6 +722,32 @@ deployed 2026-10-04, founder to check on the live site):**
       no WCAG 2.1 A/AA violations (Khmer light 320 px, English dark 390
       px); no console errors. No backend change.
 
+**Phase 9 layout pass (founder's request 2026-10-04: "improve and review
+again with layout for the whole project. i also want full width"; full
+width = phones edge to edge, the founder's choice over a full-width
+laptop layout; committed, not pushed):**
+
+- [x] Phones: cards and lists are full-width white blocks with a line
+      above and below and grey gaps between them, like a phone app;
+      from tablet width (640 px) up they stay rounded, inset cards. One
+      change in `cardClass` (`components/styles.ts`), so every card
+      follows. List rows (orders, products, customers, links,
+      notifications, cart) have 16 px at the sides on phones so their
+      text lines up with the page titles; labels beside cards lost their
+      extra 4 px there. The shop's order bar is a strip under the
+      header; the cart's discount and free-delivery boxes are strips;
+      the product description is its own block.
+- [x] Wide screens: the order page's action bar and the Save bars
+      (product form, settings pages) and checkout's Place order float
+      at the bottom of the column while scrolling, instead of sitting
+      at the very end of long pages. The laptop layout otherwise stays
+      as it was (centered column, no full width).
+- [x] Reviewed every screen at 320 px (Khmer), 390 px (English, light
+      and dark), 768 and 1440 px. A script checked on all 34 screens at
+      320 and 390 px that each card runs exactly edge to edge and
+      nothing scrolls sideways. axe-core: no WCAG 2.1 A/AA violations
+      (Khmer light 320 px, English dark 390 px); no console errors.
+
 ---
 
 ## In Progress
@@ -889,10 +915,21 @@ Resolved:
       before.
 - [x] **Kantumruy Pro for Khmer text** (2026-10-04, founder approved
       with the UX pass 2), self-hosted, Khmer letters only.
+- [x] **Phones: cards run edge to edge; the laptop keeps its centered
+      column** (2026-10-04, founder's choice; a full-width laptop layout
+      was offered and not chosen).
 
 ---
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
+
+Layout pass (2026-10-04), text for 03 (not applied yet):
+
+- 03 Phase 9 table: add the row "Layout pass: phones edge to edge,
+  lists aligned, action and Save bars floating on wide screens
+  (founder's request 2026-10-04) | 3"; subtotal ~100 hours (~7.5
+  weeks); §4 totals: Phase 9 100 hrs / 7.5 wks, total ~328 hrs (~25
+  weeks, ~5.75 months).
 
 Applied to 02/03 on 2026-10-04 (at the founder's request): UX pass 2
 (02 §2 fonts and motion rows; 03 Phase 9 row, subtotal ~97 hrs, §4
@@ -1047,7 +1084,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 - A "Connect Telegram" link works for 30 minutes and for anyone who has
   it; it is only shown to the logged-in seller. Connecting again moves
   alerts to the new chat (one chat per store).
-- Bundle: 188 KB gzipped JS + 12 KB CSS after UX pass 2 (184.6 + 10.4 KB
+- Bundle: 188.3 KB gzipped JS + 12.2 KB CSS after the layout pass; 188 KB JS + 12 KB CSS after UX pass 2 (184.6 + 10.4 KB
   before it), plus the 57 KB Khmer font, once per phone; 182 KB after the Phase 9 UX pass; 178 KB with both languages and dark mode (Phase 9),
   162 KB after Phase 8, 159 KB after Phase 7, 156 KB after Phase 6, 155 KB after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
   after Phase 2), mostly
@@ -1131,24 +1168,28 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: check UX pass 2 on your phone (live since 2026-10-04):
+1. Founder: say "push" for the layout pass (committed on main, not
+   pushed). Then on your phone: the shop, the cart and the dashboard
+   with cards running to the screen edges; on the laptop, an order or a
+   product: the buttons stay at the bottom while you scroll.
+2. Founder: check UX pass 2 on your phone (live since 2026-10-04):
    add something to the cart (the photo flies into the bag),
    watch the cart's bars, place an order (tick and confetti), and in the
    dashboard accept it and walk it to Completed (confetti). Read the
    new Khmer lines (cart: free delivery) and see the Khmer font.
-2. Founder: on your phone, order something from your shop, go back to
+3. Founder: on your phone, order something from your shop, go back to
    the shop (the bar at the top), open Your orders, leave the order open
    while you accept it on another device (it updates within 30 s); try
    the moon / sun button in the shop header.
-3. Founder: check the UX pass on your phone (live since 2026-10-04): the
+4. Founder: check the UX pass on your phone (live since 2026-10-04): the
    shop's delivery/payment box, Add to cart pinned on a product, add a
    logo in Settings → your shop (the first real logo upload to R2), the
    Settings menu, an order's summary, a product's options. Read the new
    Khmer with the rest.
-4. Founder: read the Khmer on the live site; try dark mode; run the
+5. Founder: read the Khmer on the live site; try dark mode; run the
    rate-limit check (Notes).
-5. Founder: choose and buy the domain; then Claude does DNS, R2 photo
+6. Founder: choose and buy the domain; then Claude does DNS, R2 photo
    domain, cookie sessions.
-6. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
-7. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
+7. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
+8. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
    Part A on the live site, revoke the Telegram token.

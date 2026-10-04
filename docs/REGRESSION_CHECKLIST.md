@@ -74,6 +74,7 @@ phone or laptop) before going on.
 **Look and effects**
 
 - [ ] Add to cart: the photo flies into the cart button and its count goes up. Placing an order shows a tick and confetti; reloading the order page doesn't play it again. Completing an order in the dashboard plays confetti.
+- [ ] On a phone, cards and lists run to the screen edges (no gap at the sides) and rows line up with the page titles; on a laptop they are rounded cards, and the Save / Place order / order action bars stay at the bottom while scrolling.
 - [ ] With the phone set to reduce motion (iPhone: Settings → Accessibility → Motion; Android: Remove animations), nothing moves and everything still works.
 
 **Accounts and devices**
