@@ -135,6 +135,30 @@ export const shop = {
     yourOrders: { en: 'Your orders', km: 'ការកុម្ម៉ង់របស់អ្នក' },
   },
 
+  // The bar on every shop page while an order is on its way, and the
+  // list of the orders placed on this phone.
+  myOrders: {
+    tab: { en: (shop: string) => `Your orders · ${shop}`, km: (shop: string) => `ការកុម្ម៉ង់របស់អ្នក · ${shop}` },
+    title: { en: 'Your orders', km: 'ការកុម្ម៉ង់របស់អ្នក' },
+    inProgressCount: {
+      en: (n: number) => `${n} orders in progress`,
+      km: (n: number) => `ការកុម្ម៉ង់ ${n} កំពុងដំណើរការ`,
+    },
+    seeThem: { en: 'See them', km: 'មើល' },
+    inProgress: { en: 'In progress', km: 'កំពុងដំណើរការ' },
+    past: { en: 'Past orders', km: 'ការកុម្ម៉ង់មុនៗ' },
+    emptyTitle: { en: 'No orders on this phone yet', km: 'មិនទាន់មានការកុម្ម៉ង់នៅលើទូរស័ព្ទនេះទេ' },
+    emptyText: {
+      en: 'Orders you place in this shop on this phone show here.',
+      km: 'ការកុម្ម៉ង់ដែលអ្នកធ្វើនៅហាងនេះ លើទូរស័ព្ទនេះ នឹងបង្ហាញនៅទីនេះ។',
+    },
+    otherPhone: {
+      en: 'Ordered on another phone? Open the order link here and enter the phone number you ordered with.',
+      km: 'បានកុម្ម៉ង់លើទូរស័ព្ទផ្សេង? សូមបើកតំណការកុម្ម៉ង់នៅទីនេះ ហើយបញ្ចូលលេខទូរស័ព្ទដែលអ្នកបានប្រើពេលកុម្ម៉ង់។',
+    },
+    cantOpen: { en: "Can't show this order", km: 'មិនអាចបង្ហាញការកុម្ម៉ង់នេះបានទេ' },
+  },
+
   // The money lines on the cart, checkout and order pages.
   summary: {
     items: { en: 'Items', km: 'ទំនិញ' },

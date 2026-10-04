@@ -1,4 +1,4 @@
-import { Check, CircleCheck, Copy, MapPin, Truck, XCircle } from 'lucide-react'
+import { Check, CircleCheck, Copy, MapPin, Send, Truck, XCircle } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
@@ -7,11 +7,12 @@ import { Button, Card, ErrorState, Field, Input, Skeleton } from '../components/
 import type { Messages } from '../i18n/core.ts'
 import { useT } from '../i18n/useT.ts'
 import { formatMoney } from '../lib/money.ts'
-import { formatDate } from '../lib/orders.ts'
+import { formatDate, formatOrderTime } from '../lib/orders.ts'
 import type { DeliveryMethod, DeliveryStatus, OrderStatus, ShopOrder, ShopStore } from '../lib/types.ts'
 import { orderPhone, rememberOrder } from './device.ts'
+import { orderHeadline, stepLabel } from './orderWords.ts'
 import { PaymentCard } from './PaymentCard.tsx'
-import { isNotFound, useShop, useTrackOrder } from './queries.ts'
+import { inProgress, isNotFound, useShop, useTrackOrder } from './queries.ts'
 
 /**
  * /shop/:storeSlug/order/:orderId: the confirmation right after checkout,
@@ -41,7 +42,15 @@ export function ShopOrderPage() {
   }
   if (order.error) return <ErrorState error={order.error} onRetry={() => order.refetch()} />
   if (!order.data) return <OrderSkeleton />
-  return <OrderView shop={shop.data} order={order.data} phone={phone} justPlaced={placed?.id === orderId} />
+  return (
+    <OrderView
+      shop={shop.data}
+      order={order.data}
+      phone={phone}
+      justPlaced={placed?.id === orderId}
+      updatedAt={order.dataUpdatedAt}
+    />
+  )
 }
 
 function PhoneGate({
@@ -93,13 +102,6 @@ function PhoneGate({
 // The order statuses the progress list shows, in order.
 const STEPS = ['pending', 'accepted', 'processing', 'ready', 'shipped', 'delivered'] as const
 
-// A pickup order goes through the same order statuses; its customer reads
-// some of them differently.
-const stepLabel = (t: Messages, status: OrderStatus, label: string, method: DeliveryMethod) =>
-  (method === 'pickup' && (status === 'ready' || status === 'shipped' || status === 'delivered')
-    ? t.order.pickupStep[status]
-    : null) || label
-
 // The delivery's own status (02 section 7.3), in the customer's words.
 function deliveryWords(t: Messages, method: DeliveryMethod, status: DeliveryStatus): string {
   if (method === 'pickup') {
@@ -113,11 +115,14 @@ function OrderView({
   order,
   phone,
   justPlaced,
+  updatedAt,
 }: {
   shop: ShopStore
   order: ShopOrder
   phone: string
   justPlaced: boolean
+  /** When it was last checked (ms); it checks again by itself while in progress. */
+  updatedAt: number
 }) {
   const { toast } = useFeedback()
   const t = useT()
@@ -175,12 +180,15 @@ function OrderView({
           aria-live="polite"
         >
           {closed && <XCircle aria-hidden className="size-4.5" />}
-          {stepLabel(t, order.status, t.order.headline[order.status], order.delivery_method)}
+          {orderHeadline(t, order)}
         </p>
         {closed ? (
           <p className="mt-2 text-sm text-slate-600">{t.order.contactShop(shop.name)}</p>
         ) : (
           <Progress status={order.status} method={order.delivery_method} />
+        )}
+        {inProgress(order) && (
+          <p className="mt-3 text-xs text-slate-500">{t.order.updated(formatOrderTime(new Date(updatedAt).toISOString()))}</p>
         )}
       </Card>
 
@@ -231,15 +239,24 @@ function OrderView({
       </Card>
 
       <Card className="p-4 sm:p-6">
-        <p className="text-sm text-slate-600">
-          {t.order.comeBack}
-        </p>
+        {shop.telegram_username && (
+          <a
+            href={`https://t.me/${shop.telegram_username}?text=${encodeURIComponent(t.order.askAboutText(order.number, window.location.href))}`}
+            target="_blank"
+            rel="noreferrer"
+            className={`${buttonClass('secondary')} mb-4 w-full`}
+          >
+            <Send aria-hidden className="size-4" />
+            {t.order.askAbout}
+          </a>
+        )}
+        <p className="text-sm text-slate-600">{t.order.comeBack(shop.name)}</p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           <Button variant="secondary" icon={Copy} onClick={copyLink} className="sm:flex-1">
             {t.order.copyLink}
           </Button>
-          <Link to={`/shop/${shop.slug}`} className={`${buttonClass('ghost')} sm:flex-1`}>
-            {t.shop.cartPage.continueShopping}
+          <Link to={`/shop/${shop.slug}/orders`} className={`${buttonClass('ghost')} sm:flex-1`}>
+            {t.order.yourOrders}
           </Link>
         </div>
       </Card>

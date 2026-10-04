@@ -1,6 +1,6 @@
 import { ShoppingBag, Store } from 'lucide-react'
 import { useEffect } from 'react'
-import { Link, Outlet, useParams, useSearchParams } from 'react-router'
+import { Link, Outlet, useMatch, useParams, useSearchParams } from 'react-router'
 import { ErrorState, Skeleton, SlowNotice } from '../components/ui.tsx'
 import { LanguageToggle } from '../i18n/LanguageSwitch.tsx'
 import { ThemeToggle } from '../theme/ThemeSwitch.tsx'
@@ -8,6 +8,7 @@ import { useT } from '../i18n/useT.ts'
 import type { ShopStore } from '../lib/types.ts'
 import { useCart } from './cart.ts'
 import { NotFound } from './components.tsx'
+import { CurrentOrderBar } from './CurrentOrderBar.tsx'
 import { openedLink } from './device.ts'
 import { isNotFound, trackView, useShop } from './queries.ts'
 
@@ -19,6 +20,11 @@ export function ShopLayout() {
   const shop = useShop(storeSlug)
   const t = useT()
   useLinkTracking(storeSlug)
+  // Not where the order itself, checkout or the list of orders is showing.
+  const orderPage = useMatch('/shop/:storeSlug/order/:orderId') !== null
+  const checkout = useMatch('/shop/:storeSlug/checkout') !== null
+  const ordersPage = useMatch('/shop/:storeSlug/orders') !== null
+  const showOrderBar = shop.data && !orderPage && !checkout && !ordersPage
 
   if (isNotFound(shop.error)) {
     return (
@@ -34,6 +40,7 @@ export function ShopLayout() {
       <Header shop={shop.data} slug={storeSlug} />
       <main className="mx-auto w-full max-w-5xl px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+2.5rem)] sm:pt-6">
         {shop.isPending && <SlowNotice className="mb-4" />}
+        {showOrderBar && <CurrentOrderBar slug={storeSlug} />}
         {shop.error ? <ErrorState error={shop.error} onRetry={() => shop.refetch()} /> : <Outlet />}
       </main>
     </div>

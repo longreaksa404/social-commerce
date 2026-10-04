@@ -1,7 +1,10 @@
-import { queryOptions, useMutation, useQuery } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQueries, useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { api, ApiError } from '../lib/api.ts'
+import { placedOrders, type PlacedOrder } from './device.ts'
 import type {
   DeliveryMethod,
+  OrderStatus,
   PaymentMethod,
   ShopCategoryPage,
   ShopOrder,
@@ -89,19 +92,61 @@ export function usePlaceOrder(slug: string) {
 
 /** Order tracking: needs the phone the order was placed with. `placed` is
  * the order just returned by checkout, shown while it's fetched again. */
-export function useTrackOrder(slug: string, orderId: string, phone: string | null, placed?: ShopOrder) {
-  return useQuery({
-    initialData: placed?.id === orderId ? placed : undefined,
+// Finished, from the customer's side: nothing more is coming.
+const DONE = new Set<OrderStatus>(['delivered', 'completed', 'rejected', 'cancelled'])
+
+/** Still on its way to the customer. */
+export const inProgress = (order: ShopOrder) => !DONE.has(order.status)
+
+// While a tracking page is open on an order in progress, check this often.
+const TRACK_REFRESH_MS = 30_000
+
+const trackOrder = (slug: string, orderId: string, phone: string | null) =>
+  queryOptions({
     queryKey: ['shop', slug, 'order', orderId, phone],
     queryFn: () =>
       api<ShopOrder>(`${shopPath(slug)}/orders/${encodeURIComponent(orderId)}?phone=${encodeURIComponent(phone ?? '')}`, {
         auth: false,
       }),
-    enabled: phone !== null,
+    staleTime: options.staleTime,
     retry: options.retry,
-    // Customers come back to this page to see if anything has changed.
+  })
+
+export function useTrackOrder(slug: string, orderId: string, phone: string | null, placed?: ShopOrder) {
+  return useQuery({
+    ...trackOrder(slug, orderId, phone),
+    initialData: placed?.id === orderId ? placed : undefined,
+    enabled: phone !== null,
+    // Customers wait on this page to see what has changed: check again
+    // while it's open (not in a background tab) and when they come back.
+    staleTime: 0,
+    refetchInterval: (query) => (query.state.data && inProgress(query.state.data) ? TRACK_REFRESH_MS : false),
     refetchOnWindowFocus: true,
   })
+}
+
+export type MyOrder = PlacedOrder & {
+  /** Undefined while loading, or if it can't be opened any more. */
+  order: ShopOrder | undefined
+  loading: boolean
+}
+
+// The current-order bar only looks at the last few, recent orders.
+const RECENT_DAYS = 30
+const RECENT_COUNT = 3
+
+/** Orders placed (or opened) on this device in this shop, newest first,
+ * each with its current state from the tracking endpoint. `recent` keeps
+ * to the last few of the past month, for the bar on every page. */
+export function useMyOrders(slug: string, { recent = false } = {}): MyOrder[] {
+  // Once per page: "the past month" doesn't need to move while it's open.
+  const [since] = useState(() => Date.now() - RECENT_DAYS * 86_400_000)
+  let placed = placedOrders(slug)
+  if (recent) {
+    placed = placed.filter((o) => new Date(o.placedAt).getTime() >= since).slice(0, RECENT_COUNT)
+  }
+  const results = useQueries({ queries: placed.map((o) => trackOrder(slug, o.id, o.phone)) })
+  return placed.map((o, i) => ({ ...o, order: results[i].data, loading: results[i].isPending }))
 }
 
 /** A page was opened through one of the shop's links. Fire and forget: a

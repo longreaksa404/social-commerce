@@ -1,10 +1,9 @@
-import { ChevronRight, ShoppingBag, Trash2 } from 'lucide-react'
+import { ChevronRight, ReceiptText, ShoppingBag, Trash2 } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import { Card, EmptyState, ErrorState, IconButton, Skeleton } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
 import { useT } from '../i18n/useT.ts'
 import { formatMoney, toCents } from '../lib/money.ts'
-import { formatDate } from '../lib/orders.ts'
 import { discountCents, nextDiscount } from '../lib/pricing.ts'
 import type { Currency } from '../lib/types.ts'
 import { MAX_QUANTITY, useCart, useCheckedCart, type CheckedLine } from './cart.ts'
@@ -172,30 +171,19 @@ function CartRow({
 
 /** Orders placed on this device, so customers can find them again. */
 function YourOrders({ shop }: { shop: string }) {
-  const orders = placedOrders(shop)
   const t = useT()
-  if (orders.length === 0) return null
+  if (placedOrders(shop).length === 0) return null
   return (
-    <section className="mt-8">
-      <h2 className="mb-2 px-1 text-sm font-semibold text-slate-900">{t.shop.cartPage.yourOrders}</h2>
-      <Card className="divide-y divide-slate-100 overflow-hidden">
-        {orders.map((order) => (
-          <Link
-            key={order.id}
-            to={`/shop/${shop}/order/${order.id}`}
-            className="flex min-h-14 items-center gap-3 px-4 py-2 transition-colors hover:bg-slate-50 active:bg-slate-100"
-          >
-            <span className="flex-1">
-              <span className="block font-medium text-slate-900">{t.shop.orderNumber(order.number)}</span>
-              <span className="block text-sm text-slate-500">
-                {formatDate(order.placedAt)}
-              </span>
-            </span>
-            <ChevronRight aria-hidden className="size-5 text-slate-300" />
-          </Link>
-        ))}
-      </Card>
-    </section>
+    <Card className="mt-8 overflow-hidden">
+      <Link
+        to={`/shop/${shop}/orders`}
+        className="flex min-h-14 items-center gap-3 px-4 py-2 transition-colors hover:bg-slate-50 active:bg-slate-100"
+      >
+        <ReceiptText aria-hidden className="size-5 shrink-0 text-slate-500" />
+        <span className="flex-1 font-medium text-slate-900">{t.shop.cartPage.yourOrders}</span>
+        <ChevronRight aria-hidden className="size-5 text-slate-300" />
+      </Link>
+    </Card>
   )
 }
 

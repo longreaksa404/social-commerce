@@ -28,9 +28,21 @@ export const order = {
   },
   items: { en: 'Items', km: 'ទំនិញ' },
   comeBack: {
-    en: "Come back to this page to see how your order is going. It opens on this phone; on another one, you'll need your phone number.",
-    km: 'ត្រឡប់មកទំព័រនេះវិញ ដើម្បីមើលដំណើរការកុម្ម៉ង់របស់អ្នក។ វាបើកបានភ្លាមៗលើទូរស័ព្ទនេះ; លើទូរស័ព្ទផ្សេង អ្នកត្រូវការលេខទូរស័ព្ទរបស់អ្នក។',
+    en: (shop: string) =>
+      `On this phone, your order shows at the top of ${shop}'s pages until it arrives. On another phone, open this link and enter your phone number.`,
+    km: (shop: string) =>
+      `នៅលើទូរស័ព្ទនេះ ការកុម្ម៉ង់របស់អ្នកបង្ហាញនៅខាងលើទំព័ររបស់ ${shop} រហូតដល់វាមកដល់។ លើទូរស័ព្ទផ្សេង សូមបើកតំណនេះ ហើយបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក។`,
   },
+  // Under the progress list while the page checks for changes by itself.
+  updated: { en: (time: string) => `Updated ${time}`, km: (time: string) => `ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ ${time}` },
+  notPaidYet: { en: 'Not paid yet', km: 'មិនទាន់បង់' },
+  askAbout: { en: 'Ask about this order on Telegram', km: 'សួរអំពីការកុម្ម៉ង់នេះតាម Telegram' },
+  // Typed into the customer's Telegram chat with the seller.
+  askAboutText: {
+    en: (n: number, url: string) => `Hi! I'd like to ask about my order #${n}: ${url}`,
+    km: (n: number, url: string) => `សួស្តី! ខ្ញុំចង់សួរអំពីការកុម្ម៉ង់ #${n} របស់ខ្ញុំ៖ ${url}`,
+  },
+  yourOrders: { en: 'All your orders', km: 'ការកុម្ម៉ង់ទាំងអស់របស់អ្នក' },
   copyLink: { en: 'Copy link', km: 'ចម្លងតំណ' },
   linkCopied: { en: 'Link copied', km: 'បានចម្លងតំណ' },
   copyLinkFailed: {
