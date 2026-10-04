@@ -36,7 +36,8 @@ export function OrderDetail() {
       </>
     )
   }
-  return <OrderView order={order.data} back={back} onStale={() => order.refetch()} />
+  // Keyed: another order starts fresh (its statuses don't pop as changes).
+  return <OrderView key={order.data.id} order={order.data} back={back} onStale={() => order.refetch()} />
 }
 
 function OrderView({ order, back, onStale }: { order: Order; back: string; onStale: () => void }) {
