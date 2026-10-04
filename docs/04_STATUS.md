@@ -16,7 +16,7 @@
 ## Current Phase
 
 **Phase 9 — Polish, hardening, first real seller** (in progress since
-2026-10-04; built locally, not pushed or deployed yet)
+2026-10-04; the work so far deployed 2026-10-04, CI passed)
 
 Definition of done (in 03 since 2026-10-04): a real seller runs their
 shop on the live site in Khmer, and a real customer's order goes from a
@@ -552,7 +552,7 @@ photos live 2026-10-03):**
       app: product and shop cards filled in, unknown product → generic
       card, Facebook's in-app browser passed through.
 
-**Phase 9 so far (2026-10-04; committed, not pushed or deployed):**
+**Phase 9 so far (deployed 2026-10-04; founder to check on the live site):**
 
 - [x] Security review against 02 §13. Fixed: rate limits were keyed on
       the first `X-Forwarded-For` entry, which the client writes and
@@ -994,8 +994,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: push and deploy the Phase 9 work; read the Khmer on the live
-   site; run the rate-limit check (Notes).
+1. Founder: read the Khmer on the live site; try dark mode; run the
+   rate-limit check (Notes).
 2. Founder: choose and buy the domain; then Claude does DNS, R2 photo
    domain, cookie sessions.
 3. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
