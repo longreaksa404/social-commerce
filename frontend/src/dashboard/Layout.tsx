@@ -2,6 +2,7 @@ import { Bell, Inbox, Link2, Package, Settings, Store, Tags, Users } from 'lucid
 import { NavLink, Navigate, useLocation, useMatch } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { PageOutlet, Skeleton, Spinner } from '../components/ui.tsx'
+import { useBump } from '../components/useBump.ts'
 import type { Messages } from '../i18n/core.ts'
 import { useT } from '../i18n/useT.ts'
 import { useStore, useUnreadNotifications } from './queries.ts'
@@ -82,6 +83,8 @@ function StoreName() {
 /** New orders and low stock since the seller last looked, on any device. */
 function NotificationBell() {
   const unread = useUnreadNotifications().data ?? 0
+  // Rings each time the count goes up (a new order, low stock).
+  const rings = useBump(unread, (before, now) => now > before)
   const t = useT()
   return (
     <NavLink
@@ -93,11 +96,12 @@ function NotificationBell() {
         }`
       }
     >
-      <Bell aria-hidden className="size-5.5" />
+      <Bell key={rings} aria-hidden className={`size-5.5 ${rings ? 'origin-top animate-wiggle' : ''}`} />
       {unread > 0 && (
         <span
+          key={`count-${rings}`}
           aria-hidden
-          className="absolute top-1 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-semibold text-white ring-2 ring-surface"
+          className={`absolute top-1 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-semibold text-white ring-2 ring-surface ${rings ? 'animate-pop' : ''}`}
         >
           {unread > 99 ? '99+' : unread}
         </span>
@@ -142,12 +146,15 @@ function BottomTabBar() {
               const isActive = onTab || (onCategories && to === '/dashboard/products')
               return (
               <>
-                <span
-                  className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors ${
-                    isActive ? 'bg-emerald-50' : ''
-                  }`}
-                >
-                  <Icon aria-hidden className="size-5" strokeWidth={isActive ? 2.25 : 1.75} />
+                <span className="relative flex h-8 w-14 items-center justify-center">
+                  {/* Grows into the tab just opened, shrinks out of the last. */}
+                  <span
+                    aria-hidden
+                    className={`absolute inset-0 rounded-full bg-emerald-50 transition duration-300 ease-out ${
+                      isActive ? 'scale-100 opacity-100' : 'scale-50 opacity-0'
+                    }`}
+                  />
+                  <Icon aria-hidden className="relative size-5" strokeWidth={isActive ? 2.25 : 1.75} />
                 </span>
                 {tabLabel(t, key)}
               </>

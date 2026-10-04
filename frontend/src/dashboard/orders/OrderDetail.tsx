@@ -1,9 +1,10 @@
 import { ChevronDown, ChevronRight, Link2, MapPin, MapPinned, MessageSquareText, Phone, Truck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
+import { buzz, confetti } from '../../components/effects.ts'
 import { useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
-import { Badge, Button, Card, ErrorState, Field, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
+import { Button, Card, ErrorState, Field, Input, LiveBadge, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { ApiError } from '../../lib/api.ts'
 import { deliveryAction, deliveryBadge } from '../../lib/delivery.ts'
@@ -46,7 +47,9 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
   const ends = order.next_statuses.filter((s) => ENDS_ORDER.has(s))
   const forward = order.next_statuses.filter((s) => !ENDS_ORDER.has(s))
 
-  async function move(status: OrderStatus) {
+  async function move(status: OrderStatus, button: HTMLElement) {
+    // Read now: the button goes once the order has moved on.
+    const from = button.getBoundingClientRect()
     if (ENDS_ORDER.has(status)) {
       const reject = status === 'rejected'
       const ok = await confirm({
@@ -59,6 +62,9 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
     }
     try {
       await change.mutateAsync(status)
+      buzz()
+      // The end of the road for an order: a little celebration.
+      if (status === 'completed') confetti(from.left + from.width / 2, from.top + from.height / 2)
       toast(o.changed(order.number, t.status.order[status]))
     } catch (error) {
       toast(errorText(error), 'error')
@@ -93,7 +99,7 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:mt-4 lg:border-0 lg:bg-transparent lg:pb-0">
           <div className="mx-auto flex max-w-3xl gap-3 px-4 py-3 lg:max-w-none lg:px-0">
             {ends.map((status) => (
-              <Button key={status} variant="danger" disabled={change.isPending} onClick={() => move(status)}>
+              <Button key={status} variant="danger" disabled={change.isPending} onClick={(e) => move(status, e.currentTarget)}>
                 {o.action[status as keyof typeof o.action]}
               </Button>
             ))}
@@ -102,7 +108,7 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
                 key={status}
                 loading={change.isPending && change.variables === status}
                 disabled={change.isPending}
-                onClick={() => move(status)}
+                onClick={(e) => move(status, e.currentTarget)}
                 className="flex-1"
               >
                 {o.action[status as keyof typeof o.action]}
@@ -125,9 +131,19 @@ function SummaryCard({ order }: { order: Order }) {
   const delivery = deliveryBadge(t, order.delivery.method, order.delivery.status)
   const count = order.items.reduce((sum, item) => sum + item.quantity, 0)
   const rows = [
-    { label: o.order, badge: { label: t.status.order[order.status], tone: ORDER_STATUS_TONES[order.status] }, href: null },
-    { label: o.payment, badge: payment, href: '#payment' },
-    { label: order.delivery.method === 'pickup' ? t.checkout.pickup : o.delivery, badge: delivery, href: '#delivery' },
+    {
+      label: o.order,
+      status: order.status,
+      badge: { label: t.status.order[order.status], tone: ORDER_STATUS_TONES[order.status] },
+      href: null,
+    },
+    { label: o.payment, status: order.payment.status, badge: payment, href: '#payment' },
+    {
+      label: order.delivery.method === 'pickup' ? t.checkout.pickup : o.delivery,
+      status: order.delivery.status,
+      badge: delivery,
+      href: '#delivery',
+    },
   ]
   return (
     <Card className="p-4 sm:p-6">
@@ -139,12 +155,14 @@ function SummaryCard({ order }: { order: Order }) {
         <span className="pt-1.5 text-right text-sm text-slate-500">{o.placed(formatOrderTime(order.created_at))}</span>
       </div>
       <ul className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 lg:grid lg:grid-cols-3 lg:divide-x lg:divide-y-0">
-        {rows.map(({ label, badge, href }) => {
+        {rows.map(({ label, status, badge, href }) => {
           const content = (
             <>
               <span className="text-sm text-slate-600">{label}</span>
               <span className="flex items-center gap-1">
-                <Badge tone={badge.tone}>{badge.label}</Badge>
+                <LiveBadge value={status} tone={badge.tone}>
+                  {badge.label}
+                </LiveBadge>
                 {href && <ChevronDown aria-hidden className="size-4 text-slate-400" />}
               </span>
             </>
@@ -312,6 +330,7 @@ function PaymentSection({ order, onStale }: { order: Order; onStale: () => void 
   async function save(status: 'paid' | 'failed') {
     try {
       await record.mutateAsync({ status, reference: reference.trim() || null })
+      buzz()
       toast(o.changed(order.number, status === 'paid' ? o.paidToast : o.failedToast))
       setConfirming(false)
     } catch (error) {
@@ -339,7 +358,9 @@ function PaymentSection({ order, onStale }: { order: Order; onStale: () => void 
     <Card id="payment" className="scroll-mt-4 p-4 sm:p-6">
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-semibold text-slate-900">{o.payment}</h2>
-        <Badge tone={badge.tone}>{badge.label}</Badge>
+        <LiveBadge value={payment.status} tone={badge.tone}>
+          {badge.label}
+        </LiveBadge>
       </div>
       <p className="mt-2 text-slate-900">
         {t.status.paymentMethod[payment.method]} · {formatMoney(payment.amount, order.currency)}
@@ -420,6 +441,7 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
   async function save(status: DeliveryStatus) {
     try {
       await record.mutateAsync({ status, assignee_note: status === 'assigned' ? note.trim() || null : null })
+      buzz()
       toast(o.changed(order.number, deliveryBadge(t, delivery.method, status).label))
       setAssigning(false)
       setNote('')
@@ -446,7 +468,9 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
           <Icon aria-hidden className="size-4.5 text-slate-500" />
           {pickup ? t.checkout.pickup : o.delivery}
         </h2>
-        <Badge tone={badge.tone}>{badge.label}</Badge>
+        <LiveBadge value={delivery.status} tone={badge.tone}>
+          {badge.label}
+        </LiveBadge>
       </div>
       <p className="mt-2 text-slate-900">
         {pickup ? o.customerCollects : delivery.courier ? o.sendWith(delivery.courier) : o.ownDelivery}

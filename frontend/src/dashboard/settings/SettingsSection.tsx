@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, type ComponentType, type FormEvent } from 'react'
 import { Navigate, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
-import { Button, Card, ErrorMessage, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
+import { Button, Card, ErrorMessage, ErrorState, PageHeader, SavedNote, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
 import { formError } from '../../lib/errors.ts'
@@ -106,7 +106,7 @@ function SectionForm({ id, store }: { id: SectionId; store: Store }) {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:pb-0">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3 lg:px-0">
           <span className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
-            {dirty ? t.common.unsaved : t.common.allSaved}
+            {dirty ? t.common.unsaved : <SavedNote key={save.submittedAt} justSaved={save.isSuccess} />}
           </span>
           <Button type="submit" loading={save.isPending} disabled={!dirty} className="min-w-32">
             {t.common.save}

@@ -35,6 +35,9 @@
   --animate-zoom-in: zoom-in 0.2s ease-out;
   --animate-toast: toast 3s ease backwards;
   --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-wiggle: wiggle 0.8s ease-in-out;
+  --animate-arrive:
+    rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards, highlight 2.5s ease-out 0.2s backwards;
   --animate-tick: tick 0.4s 0.25s cubic-bezier(0.65, 0, 0.35, 1) both;
   --animate-success:
     pop-in 0.4s cubic-bezier(0.3, 1.5, 0.6, 1) backwards, ring 0.9s ease-out 0.2s backwards;
@@ -102,6 +105,30 @@
   }
   to {
     background-position: -100% 0;
+  }
+}
+/* A new row, fading from a soft amber. */
+@keyframes highlight {
+  from {
+    background-color: var(--color-amber-50);
+  }
+}
+/* A bell ringing. */
+@keyframes wiggle {
+  15% {
+    rotate: -16deg;
+  }
+  30% {
+    rotate: 13deg;
+  }
+  45% {
+    rotate: -9deg;
+  }
+  60% {
+    rotate: 5deg;
+  }
+  75% {
+    rotate: -2deg;
   }
 }
 /* A tick drawing itself: on a path with pathLength="1" and a dash of 1. */

@@ -1,9 +1,10 @@
 import { ExternalLink, Inbox, SearchX } from 'lucide-react'
+import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
-import type { OrderStatus } from '../../lib/types.ts'
+import type { OrderStatus, OrderSummary } from '../../lib/types.ts'
 import { useOrders, useStore } from '../queries.ts'
 import { OrderRow } from './OrderRow.tsx'
 
@@ -27,6 +28,7 @@ export function OrderList() {
   const countOf = (statuses: OrderStatus[]) =>
     counts ? Object.entries(counts).reduce((n, [s, c]) => (statuses.length === 0 || statuses.includes(s as OrderStatus) ? n + c : n), 0) : null
   const shown = orders.data?.pages.flatMap((page) => page.orders) ?? []
+  const arrived = useArrivals(orders.data && !orders.isPlaceholderData ? shown : undefined, filter.key)
 
   if (orders.isPending) return <ListSkeleton />
   if (orders.error) {
@@ -95,7 +97,7 @@ export function OrderList() {
       ) : (
         <Card className="divide-y divide-slate-100 overflow-hidden">
           {shown.map((order) => (
-            <OrderRow key={order.id} order={order} />
+            <OrderRow key={order.id} order={order} arrived={arrived.has(order.id)} />
           ))}
         </Card>
       )}
@@ -111,6 +113,28 @@ export function OrderList() {
       )}
     </>
   )
+}
+
+/** Orders that came in while the list was open (it checks every 30 s), to
+ * highlight. Not on the first load, a change of filter, or "Show more"
+ * (older orders): order numbers only go up, so new ones are above the
+ * highest number seen. `orders` is undefined until the filter's own list
+ * has loaded. */
+function useArrivals(orders: OrderSummary[] | undefined, filter: string): Set<string> {
+  const top = orders ? Math.max(0, ...orders.map((o) => o.number)) : null
+  const [seen, setSeen] = useState<{ filter: string; top: number | null }>({ filter, top })
+  const [arrived, setArrived] = useState<Set<string>>(() => new Set())
+  if (seen.filter !== filter) {
+    setSeen({ filter, top })
+    setArrived(new Set())
+  } else if (seen.top === null) {
+    if (top !== null) setSeen({ filter, top })
+  } else if (orders && top !== null && top > seen.top) {
+    const before = seen.top
+    setArrived(new Set(orders.filter((o) => o.number > before).map((o) => o.id)))
+    setSeen({ filter, top })
+  }
+  return arrived
 }
 
 function ListSkeleton() {

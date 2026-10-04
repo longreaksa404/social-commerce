@@ -1,4 +1,4 @@
-import { AlertCircle, ChevronLeft, Eye, EyeOff, LoaderCircle, RotateCw } from 'lucide-react'
+import { AlertCircle, ChevronLeft, CircleCheck, Eye, EyeOff, LoaderCircle, RotateCw } from 'lucide-react'
 import {
   createContext,
   use,
@@ -20,6 +20,7 @@ import { errorText } from '../lib/errors.ts'
 import { priceStep } from '../lib/money.ts'
 import type { Currency } from '../lib/types.ts'
 import { buttonClass, type ButtonSize, type ButtonVariant } from './styles.ts'
+import { useBump } from './useBump.ts'
 
 // ---------------------------------------------------------------------------
 // Form fields. Inputs are 44px tall with 16px text on phones (smaller text
@@ -360,13 +361,9 @@ export function PageHeader({ title, back, action }: { title: ReactNode; back?: s
   )
 }
 
-export function Badge({
-  tone = 'neutral',
-  children,
-}: {
-  tone?: 'neutral' | 'red' | 'green' | 'amber' | 'blue'
-  children: ReactNode
-}) {
+type BadgeTone = 'neutral' | 'red' | 'green' | 'amber' | 'blue'
+
+export function Badge({ tone = 'neutral', children }: { tone?: BadgeTone; children: ReactNode }) {
   const colors = {
     neutral: 'bg-slate-100 text-slate-700 ring-slate-200',
     red: 'bg-red-50 text-red-700 ring-red-200',
@@ -382,6 +379,17 @@ export function Badge({
 }
 
 /** A grey stand-in with a light sweeping across it while loading. */
+/** A Badge for a status that can move on while it's on screen: it pops
+ * when `value` changes, not when it first shows. */
+export function LiveBadge({ value, tone, children }: { value: unknown; tone?: BadgeTone; children: ReactNode }) {
+  const bumps = useBump(value)
+  return (
+    <span key={bumps} className={`inline-flex ${bumps ? 'animate-pop' : ''}`}>
+      <Badge tone={tone}>{children}</Badge>
+    </span>
+  )
+}
+
 export function Skeleton({ className = '', style }: { className?: string; style?: CSSProperties }) {
   return (
     <div
@@ -427,6 +435,19 @@ export function SuccessTick({ className = '', ref }: { className?: string; ref?:
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="size-9">
         <path d="M5 12.5l4.5 4.5L19 7.5" pathLength={1} strokeDasharray={1} className="animate-tick" />
       </svg>
+    </span>
+  )
+}
+
+/** "All changes saved" in a save bar; with a tick popping in right after a
+ * save (key it by the save, so it plays for each one). */
+export function SavedNote({ justSaved }: { justSaved: boolean }) {
+  const t = useT()
+  if (!justSaved) return <>{t.common.allSaved}</>
+  return (
+    <span className="inline-flex max-w-full items-center gap-1.5 align-bottom text-emerald-700">
+      <CircleCheck aria-hidden className="size-4 shrink-0 animate-pop-in" />
+      <span className="truncate">{t.common.allSaved}</span>
     </span>
   )
 }
