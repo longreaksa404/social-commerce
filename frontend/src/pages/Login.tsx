@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
-import { Button, ErrorMessage, Field, Input, PasswordInput } from '../components/ui.tsx'
+import { Button, ErrorMessage, Field, Input, PasswordInput, SlowNotice } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
 import { AuthLayout } from './AuthLayout.tsx'
 
@@ -73,6 +73,7 @@ export function Login() {
         <Button type="submit" size="lg" loading={pending} className="w-full">
           {t.auth.logIn}
         </Button>
+        {pending && <SlowNotice />}
       </form>
     </AuthLayout>
   )

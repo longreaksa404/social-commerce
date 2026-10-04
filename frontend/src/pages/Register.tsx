@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { useAuth, type RegisterInput } from '../auth/useAuth.ts'
-import { Button, ErrorMessage, Field, Input, PasswordInput } from '../components/ui.tsx'
+import { Button, ErrorMessage, Field, Input, PasswordInput, SlowNotice } from '../components/ui.tsx'
 import { fieldError, formError } from '../lib/errors.ts'
 import { useT } from '../i18n/useT.ts'
 import { AuthLayout } from './AuthLayout.tsx'
@@ -111,6 +111,7 @@ export function Register() {
         <Button type="submit" size="lg" loading={pending} className="w-full">
           {t.auth.register.submit}
         </Button>
+        {pending && <SlowNotice />}
       </form>
     </AuthLayout>
   )

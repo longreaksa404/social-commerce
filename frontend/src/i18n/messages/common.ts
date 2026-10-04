@@ -14,6 +14,12 @@ export const common = {
   remove: { en: 'Remove', km: 'ដកចេញ' },
   add: { en: 'Add', km: 'បន្ថែម' },
   loading: { en: 'Loading', km: 'កំពុងផ្ទុក' },
+  // After a few seconds of loading: the free server sleeps when nobody has
+  // visited for a while, and waking it takes up to a minute.
+  slow: {
+    en: 'Still loading. The first visit in a while can take up to a minute.',
+    km: 'កំពុងផ្ទុក… ការចូលលើកដំបូងក្រោយពេលយូរ អាចចំណាយពេលរហូតដល់មួយនាទី។',
+  },
   showPassword: { en: 'Show password', km: 'បង្ហាញពាក្យសម្ងាត់' },
   hidePassword: { en: 'Hide password', km: 'លាក់ពាក្យសម្ងាត់' },
   couldNotLoad: { en: "Couldn't load this page", km: 'មិនអាចបើកទំព័រនេះបានទេ' },
@@ -23,6 +29,8 @@ export const common = {
     km: 'មានបញ្ហាអ្វីមួយ។ សូមព្យាយាមម្ដងទៀត។',
   },
   language: { en: 'Language', km: 'ភាសា' },
+  // The label of the shop header's one-button switch, read in the language it switches to.
+  switchLanguage: { en: 'ប្ដូរទៅភាសាខ្មែរ', km: 'Switch to English' },
   // "e.g. Sokha Fashion": an example of what to type.
   example: { en: (text: string) => `e.g. ${text}`, km: (text: string) => `ឧ. ${text}` },
 } satisfies Tree

@@ -1,8 +1,8 @@
 import { ShoppingBag, Store } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, Outlet, useParams, useSearchParams } from 'react-router'
-import { ErrorState, Skeleton } from '../components/ui.tsx'
-import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
+import { ErrorState, Skeleton, SlowNotice } from '../components/ui.tsx'
+import { LanguageToggle } from '../i18n/LanguageSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
 import type { ShopStore } from '../lib/types.ts'
 import { useCart } from './cart.ts'
@@ -32,6 +32,7 @@ export function ShopLayout() {
     <div className="min-h-dvh">
       <Header shop={shop.data} slug={storeSlug} />
       <main className="mx-auto w-full max-w-5xl px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+2.5rem)] sm:pt-6">
+        {shop.isPending && <SlowNotice className="mb-4" />}
         {shop.error ? <ErrorState error={shop.error} onRetry={() => shop.refetch()} /> : <Outlet />}
       </main>
     </div>
@@ -72,8 +73,8 @@ function Header({ shop, slug }: { shop: ShopStore | undefined; slug: string }) {
             <Skeleton className="h-5 w-36" />
           )}
         </Link>
-        <div className="flex shrink-0 items-center gap-2">
-          <LanguageSwitch />
+        <div className="flex shrink-0 items-center gap-1">
+          <LanguageToggle />
           <CartButton slug={slug} />
         </div>
       </div>

@@ -2,6 +2,7 @@ import { AlertCircle, ChevronLeft, Eye, EyeOff, LoaderCircle, RotateCw } from 'l
 import {
   createContext,
   use,
+  useEffect,
   useId,
   useState,
   type ButtonHTMLAttributes,
@@ -422,9 +423,32 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry: () => 
 export function Spinner({ label }: { label?: string }) {
   const t = useT()
   return (
-    <div role="status" className="flex min-h-40 items-center justify-center text-slate-400">
-      <LoaderCircle aria-hidden className="size-6 animate-spin" />
-      <span className="sr-only">{label ?? t.common.loading}</span>
+    <div className="flex min-h-40 flex-col items-center justify-center gap-3 px-6">
+      <div role="status" className="text-slate-400">
+        <LoaderCircle aria-hidden className="size-6 animate-spin" />
+        <span className="sr-only">{label ?? t.common.loading}</span>
+      </div>
+      <SlowNotice />
     </div>
+  )
+}
+
+const SLOW_MS = 4000
+
+/** Shown once something has been loading for a few seconds: the API on
+ * Render's free plan sleeps after 15 quiet minutes and takes up to a
+ * minute to wake. Render it only while loading. */
+export function SlowNotice({ className = '' }: { className?: string }) {
+  const t = useT()
+  const [slow, setSlow] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setSlow(true), SLOW_MS)
+    return () => clearTimeout(timer)
+  }, [])
+  if (!slow) return null
+  return (
+    <p role="status" className={`text-center text-sm text-slate-500 ${className}`}>
+      {t.common.slow}
+    </p>
   )
 }
