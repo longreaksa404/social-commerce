@@ -267,13 +267,14 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Onboard first real seller (manual walkthrough, not self-serve yet) | 4 |
 | Domain + Cloudflare DNS setup (moved from Phase 0) | 1 |
 | Khmer / English language switch (all UI text in shop + dashboard; default Khmer; seller-entered text not translated) | 12 |
-| Light / dark mode (follows phone setting + Light/Dark/Auto switch; KHQR stays dark on light) | 8 |
+| Light / dark mode (follows phone setting + Light/Dark/Auto switch in Settings and a light/dark button in the shop; KHQR stays dark on light) | 8 |
 | Small photo copies for grids and lists (Phase 2 proposal, decided 2026-10-04) | 3 |
 | Nightly database backup to a private R2 bucket (decided 2026-10-04) | 2 |
 | UX pass: delivery/payment info on shop and product pages, pinned Add to cart, shop logo; Settings as a menu; order page summary; one row per product option (founder's request 2026-10-04) | 15 |
+| Order tracking for customers: current-order bar, Your orders page, auto-refresh, ask about an order on Telegram (founder's request 2026-10-04) | 7 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~80 hours (**~6 weeks**)
+**Subtotal:** ~87 hours (**~6.5 weeks**)
 
 > **Decided (2026-10-04):** a .com domain bought through Cloudflare; Render
 > stays on the free plan for the first seller (the app says when the
@@ -297,8 +298,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 17 | 1.5 wks |
-| 9 — Polish/First Seller | 80 | 6 wks |
-| **Total** | **~308 hrs** | **~23.5 weeks (~5.5 months)** |
+| 9 — Polish/First Seller | 87 | 6.5 wks |
+| **Total** | **~315 hrs** | **~24 weeks (~5.5 months)** |
 
 This is a planning estimate, not a commitment.
 

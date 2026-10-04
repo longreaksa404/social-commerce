@@ -76,7 +76,7 @@ No separate worker service in the MVP. No message queue in the MVP. `BackgroundT
 | State/data fetching | **TanStack Query (React Query)** | Handles server state, caching, and loading/error states with minimal boilerplate |
 | Routing | **React Router** | Standard for SPA |
 | Languages | Own typed messages, no library (`frontend/src/i18n`, Phase 9) | Khmer / English: each text is an `{ en, km }` pair, and the build fails if one is missing; Khmer by default, chosen per device. API errors stay English and are translated on the frontend by message, then code |
-| Light / dark | Tailwind color scales flipped in `index.css` (Phase 9) | Follows the phone, with Auto / Light / Dark per device; classes are written for light mode only, plus a few fixed tokens (`bg-surface`, `bg-accent`, …) for fills that must not flip |
+| Light / dark | Tailwind color scales flipped in `index.css` (Phase 9) | Follows the phone; sellers have Auto / Light / Dark in Settings and customers a light / dark button in the shop header, both per device; classes are written for light mode only, plus a few fixed tokens (`bg-surface`, `bg-accent`, …) for fills that must not flip |
 | Database | **PostgreSQL 16** | Relational integrity for orders/payments/inventory; JSONB available for flexible fields (e.g., variant attributes) without needing a second database |
 | Auth | **JWT (access + refresh)**, `bcrypt` (used directly; passlib is unmaintained) for password hashing | Stateless, simple, no session-store dependency |
 | Image storage | **S3-compatible object storage** (see §11) | Decoupled from app servers, cheap, standard presigned-upload pattern |
@@ -477,6 +477,7 @@ Since there's no customer login (§5.4), order tracking uses:
 GET /api/v1/shop/{store_slug}/orders/{order_id}?phone={phone}
 ```
 - **Decided (2026-10-02): the order link plus the phone used at checkout.** The order ID is in the link given at checkout (or in a Telegram confirmation); the phone is matched however it's typed. A simple shared-secret pattern, not real auth, appropriate for the low-sensitivity data involved (order status, not payment credentials). The device that placed the order remembers the phone, so the customer only types it on another device. A wrong phone gets the same 404 as a missing order.
+- **The device's orders (Phase 9, 2026-10-04):** the shop's pages show a bar while an order placed (or opened) on this device is in progress, and `/shop/{store_slug}/orders` lists them with their status; each is read through the endpoint above with the remembered phone (the last 3 of the past 30 days for the bar). The order page checks again every 30 seconds while it's open and the order is in progress.
 - Returns order status, items, delivery status, and payment status, plus how to pay while the payment is pending and the order isn't rejected or cancelled (the store's bank account, or a KHQR code; §10). No other customer's orders or details are exposed.
 
 ---
@@ -489,6 +490,7 @@ GET /api/v1/shop/{store_slug}/orders/{order_id}?phone={phone}
 /shop/{store_slug}                                → store link
 /shop/{store_slug}/product/{product_slug}          → product link
 /shop/{store_slug}/category/{category_slug}        → category link
+/shop/{store_slug}/orders                          → this device's orders (not a shared link)
 ```
 
 A seller's link is the page's own address plus `?l=<token>`, e.g. `/shop/dara/product/red-dress?l=k3f9a2x7`. The seller makes one per place they post (decided 2026-10-03): what it opens, where it's posted (`source`), and an optional name (`campaign`), all saved on the `shareable_link` row. Making the same link again returns the existing one. The address is built from the current slugs, so it changes if the seller renames the shop or product.

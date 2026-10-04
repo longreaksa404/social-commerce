@@ -648,7 +648,7 @@ deployed 2026-10-04, founder to check on the live site):**
       device (`sc.theme`); switching to what the phone shows goes back to
       following the phone. Customers still start with their phone's
       setting. At 320 px a long shop name in the header is cut short
-      (the full name is the page title just below). Committed, not pushed.
+      (the full name is the page title just below). Deployed 2026-10-04.
 - [x] Order tracking for customers (founder's request 2026-10-04, all
       four items approved): a bar at the top of the shop's pages while an
       order placed on this phone is in progress ("Order #1001 · Being
@@ -661,7 +661,7 @@ deployed 2026-10-04, founder to check on the live site):**
       endpoint and the phone the device remembered. Checked in headless
       Chromium: bar with one and three orders, the list, the open order
       page changing from "Confirmed" to "Being prepared" by itself after
-      the seller moved it; axe clean. Committed, not pushed.
+      the seller moved it; axe clean. Deployed 2026-10-04.
 
 ---
 
@@ -833,32 +833,10 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-Not yet applied (2026-10-04, founder's request): customers get a light /
-dark button in the shop.
-
-- 02 §2, "Light / dark" row, Notes column: replace "Follows the phone,
-  with Auto / Light / Dark per device;" with "Follows the phone; sellers
-  have Auto / Light / Dark in Settings and customers a light / dark
-  button in the shop header, both per device;".
-- 02 §8, after the "Decided (2026-10-02)" bullet, add: "**The device's
-  orders (Phase 9, 2026-10-04):** the shop's pages show a bar while an
-  order placed (or opened) on this device is in progress, and
-  `/shop/{store_slug}/orders` lists them with their status; each is read
-  through the endpoint above with the remembered phone (the last 3 of
-  the past 30 days for the bar). The order page checks again every 30
-  seconds while it's open and the order is in progress."
-- 02 §9.1, add the line `/shop/{store_slug}/orders  → this device's
-  orders (not a shared link)`.
-- 03 Phase 9 table: add the row "Order tracking for customers:
-  current-order bar, Your orders page, auto-refresh, ask about an order
-  on Telegram (founder's request 2026-10-04) | 7"; subtotal ~87 hours
-  (~6.5 weeks); §4 totals: Phase 9 87 hrs / 6.5 wks, total ~315 hrs
-  (~24 weeks, ~5.5 months).
-- 03 Phase 9 table: replace "Light / dark mode (follows phone setting +
-  Light/Dark/Auto switch; KHQR stays dark on light)" with "Light / dark
-  mode (follows phone setting + Light/Dark/Auto switch in Settings and a
-  light/dark button in the shop; KHQR stays dark on light)". Hours
-  unchanged (8).
+Applied to 02/03 on 2026-10-04 (at the founder's request): the shop's
+light / dark button (02 §2, 03 Phase 9 light / dark row) and customer
+order tracking (02 §8 the device's orders, §9.1 `/orders`; 03 Phase 9
+row, subtotal ~87 hrs, §4 totals: Phase 9 87 hrs, total ~315 hrs).
 
 Applied to 02/03 on 2026-10-04 (at the founder's request): the Phase 9
 UX pass (02 §5.2 `logo_url`, §6.2 the logo endpoint and `logo_url` on
@@ -1081,11 +1059,10 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: say "apply and push" for the light / dark button and the
-   order tracking (4 commits, not pushed). Then on your phone: order
-   something from your shop, go back to the shop (the bar at the top),
-   open Your orders, and leave the order open while you accept it on
-   another device (it updates within 30 s).
+1. Founder: on your phone, order something from your shop, go back to
+   the shop (the bar at the top), open Your orders, leave the order open
+   while you accept it on another device (it updates within 30 s); try
+   the moon / sun button in the shop header.
 2. Founder: check the UX pass on your phone (live since 2026-10-04): the
    shop's delivery/payment box, Add to cart pinned on a product, add a
    logo in Settings → your shop (the first real logo upload to R2), the
