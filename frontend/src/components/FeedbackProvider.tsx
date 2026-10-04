@@ -4,7 +4,7 @@ import { useT } from '../i18n/useT.ts'
 import { FeedbackContext, type ConfirmOptions, type ToastTone } from './feedback.ts'
 import { buttonClass } from './styles.ts'
 
-type Toast = { id: number; message: string; tone: ToastTone }
+type Toast = { id: number; message: string; tone: ToastTone; life: number }
 type PendingConfirm = ConfirmOptions & { resolve: (ok: boolean) => void }
 
 export function FeedbackProvider({ children }: { children: ReactNode }) {
@@ -16,8 +16,9 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
 
   const toast = useCallback((message: string, tone: ToastTone = 'success') => {
     const id = ++nextId.current
-    setToasts((list) => [...list.slice(-2), { id, message, tone }])
-    setTimeout(() => setToasts((list) => list.filter((item) => item.id !== id)), tone === 'error' ? 5000 : 3000)
+    const life = tone === 'error' ? 5000 : 3000
+    setToasts((list) => [...list.slice(-2), { id, message, tone, life }])
+    setTimeout(() => setToasts((list) => list.filter((item) => item.id !== id)), life)
   }, [])
 
   const confirm = useCallback(
@@ -50,20 +51,21 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
           <div
             key={item.id}
             role={item.tone === 'error' ? 'alert' : 'status'}
-            className="flex max-w-sm items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-slate-50 shadow-lg"
+            style={{ animationDuration: `${item.life}ms` }}
+            className="flex max-w-sm animate-toast items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-slate-50 shadow-lg"
           >
             {item.tone === 'error' ? (
               <AlertCircle aria-hidden className="size-5 shrink-0 text-red-400" />
             ) : (
-              <CircleCheck aria-hidden className="size-5 shrink-0 text-emerald-400" />
+              <CircleCheck aria-hidden className="size-5 shrink-0 animate-pop-in text-emerald-400 [animation-delay:120ms]" />
             )}
             {item.message}
           </div>
         ))}
       </div>
 
-      {/* Bottom sheet on phones, centered card from `sm` up. Esc / backdrop
-          tap cancel (the dialog's cancel event). */}
+      {/* Bottom sheet on phones (slides up), centered card from `sm` up.
+          Esc / backdrop tap cancel (the dialog's cancel event). */}
       <dialog
         ref={dialog}
         onCancel={(e) => {
@@ -72,7 +74,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
         }}
         onClick={(e) => e.target === dialog.current && close(false)}
         aria-labelledby="confirm-title"
-        className="m-0 mt-auto w-full max-w-none rounded-t-2xl bg-surface p-0 shadow-xl sm:m-auto sm:max-w-sm sm:rounded-2xl"
+        className="m-0 mt-auto w-full max-w-none rounded-t-2xl bg-surface p-0 shadow-xl open:animate-sheet-up sm:m-auto sm:max-w-sm sm:rounded-2xl sm:open:animate-zoom-in"
       >
         {pending && (
           <div className="p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] sm:pb-5">

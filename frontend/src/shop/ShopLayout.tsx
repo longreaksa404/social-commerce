@@ -1,7 +1,7 @@
 import { ShoppingBag, Store } from 'lucide-react'
 import { useEffect } from 'react'
-import { Link, Outlet, useMatch, useParams, useSearchParams } from 'react-router'
-import { ErrorState, Skeleton, SlowNotice } from '../components/ui.tsx'
+import { Link, useMatch, useParams, useSearchParams } from 'react-router'
+import { ErrorState, PageOutlet, Skeleton, SlowNotice } from '../components/ui.tsx'
 import { LanguageToggle } from '../i18n/LanguageSwitch.tsx'
 import { ThemeToggle } from '../theme/ThemeSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
@@ -41,7 +41,7 @@ export function ShopLayout() {
       <main className="mx-auto w-full max-w-5xl px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+2.5rem)] sm:pt-6">
         {shop.isPending && <SlowNotice className="mb-4" />}
         {showOrderBar && <CurrentOrderBar slug={storeSlug} />}
-        {shop.error ? <ErrorState error={shop.error} onRetry={() => shop.refetch()} /> : <Outlet />}
+        {shop.error ? <ErrorState error={shop.error} onRetry={() => shop.refetch()} /> : <PageOutlet depth={2} />}
       </main>
     </div>
   )

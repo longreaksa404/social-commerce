@@ -1,5 +1,5 @@
 import { ImageOff, Minus, Plus, SearchX } from 'lucide-react'
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { thumbnailUrl } from '../lib/images.ts'
@@ -7,9 +7,10 @@ import { formatPriceRange } from '../lib/money.ts'
 import { useT } from '../i18n/useT.ts'
 import type { ShopProductCard, ShopStore } from '../lib/types.ts'
 
-/** A product photo, or a grey placeholder when the seller has none.
- * `small` uses the photo's small copy (grids, lists), or the photo itself
- * if it has none or the copy won't load. */
+/** A product photo, or a grey placeholder when the seller has none (or it
+ * won't load). It fades in once loaded, over the grey. `className` sizes
+ * and shapes it. `small` uses the photo's small copy (grids, lists), or
+ * the photo itself if it has none or the copy won't load. */
 export function ProductImage({
   src,
   alt,
@@ -23,7 +24,14 @@ export function ProductImage({
   eager?: boolean
   small?: boolean
 }) {
-  if (!src) {
+  const [state, setState] = useState<'loading' | 'loaded' | 'failed'>('loading')
+  // Another photo in the same place starts over.
+  const [shown, setShown] = useState(src)
+  if (shown !== src) {
+    setShown(src)
+    setState('loading')
+  }
+  if (!src || state === 'failed') {
     return (
       <div className={`flex items-center justify-center bg-slate-100 text-slate-300 ${className}`}>
         <ImageOff aria-hidden className="size-8" />
@@ -31,15 +39,25 @@ export function ProductImage({
     )
   }
   return (
-    <img
-      src={small ? thumbnailUrl(src) : src}
-      onError={(e) => small && e.currentTarget.src !== src && (e.currentTarget.src = src)}
-      alt={alt}
-      loading={eager ? 'eager' : 'lazy'}
-      fetchPriority={eager ? 'high' : undefined}
-      decoding="async"
-      className={`bg-slate-100 object-cover ${className}`}
-    />
+    <div className={`overflow-hidden bg-slate-100 ${className}`}>
+      <img
+        key={src}
+        src={small ? thumbnailUrl(src) : src}
+        onLoad={() => setState('loaded')}
+        onError={(e) => {
+          const img = e.currentTarget
+          if (small && !img.dataset.full) {
+            img.dataset.full = '1'
+            img.src = src
+          } else setState('failed')
+        }}
+        alt={alt}
+        loading={eager ? 'eager' : 'lazy'}
+        fetchPriority={eager ? 'high' : undefined}
+        decoding="async"
+        className={`size-full object-cover transition-opacity duration-300 ${state === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
+      />
+    </div>
   )
 }
 
@@ -91,11 +109,12 @@ export function ProductGrid({ shop, products }: { shop: ShopStore; products: Sho
   const t = useT()
   return (
     <ul className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4">
-      {products.map((product) => (
-        <li key={product.id}>
+      {products.map((product, i) => (
+        // The first rows come in one after another.
+        <li key={product.id} className="animate-rise" style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}>
           <Link
             to={`/shop/${shop.slug}/product/${product.slug}`}
-            className="group block rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-600"
+            className="group block rounded-2xl transition-transform focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-600 active:scale-[0.97]"
           >
             <div className="relative overflow-hidden rounded-2xl">
               <ProductImage

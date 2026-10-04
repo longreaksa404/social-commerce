@@ -1,7 +1,7 @@
 import { Bell, Inbox, Link2, Package, Settings, Store, Tags, Users } from 'lucide-react'
-import { NavLink, Navigate, Outlet, useLocation, useMatch } from 'react-router'
+import { NavLink, Navigate, useLocation, useMatch } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
-import { Skeleton, Spinner } from '../components/ui.tsx'
+import { PageOutlet, Skeleton, Spinner } from '../components/ui.tsx'
 import type { Messages } from '../i18n/core.ts'
 import { useT } from '../i18n/useT.ts'
 import { useStore, useUnreadNotifications } from './queries.ts'
@@ -47,7 +47,7 @@ function Shell() {
           focused ? 'pt-2 pb-28 lg:pb-8' : 'pt-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] lg:pb-8'
         }`}
       >
-        <Outlet />
+        <PageOutlet depth={2} />
       </main>
       {!focused && <BottomTabBar />}
     </div>

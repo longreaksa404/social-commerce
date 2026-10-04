@@ -13,7 +13,7 @@ import {
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react'
-import { Link } from 'react-router'
+import { Link, Outlet, useMatches } from 'react-router'
 import { useT } from '../i18n/useT.ts'
 import { errorText } from '../lib/errors.ts'
 import { priceStep } from '../lib/money.ts'
@@ -291,10 +291,23 @@ export function IconButton({
 // ---------------------------------------------------------------------------
 // Layout pieces
 
+/** Rises into place when it first shows (a page opening, data arriving). */
 export function Card({ children, className = '', id }: { children: ReactNode; className?: string; id?: string }) {
   return (
-    <div id={id} className={`rounded-2xl border border-slate-200 bg-surface shadow-xs ${className}`}>
+    <div id={id} className={`animate-rise rounded-2xl border border-slate-200 bg-surface shadow-xs ${className}`}>
       {children}
+    </div>
+  )
+}
+
+/** The layout's page, fading in when another page opens (not when only the
+ * page's params or search change). `depth`: the page's place in the route
+ * tree (1 for the root's children, 2 for a layout's). */
+export function PageOutlet({ depth }: { depth: number }) {
+  const page = useMatches()[depth]?.id
+  return (
+    <div key={page} className="animate-fade-in">
+      <Outlet />
     </div>
   )
 }
@@ -367,8 +380,15 @@ export function Badge({
   )
 }
 
+/** A grey stand-in with a light sweeping across it while loading. */
 export function Skeleton({ className = '', style }: { className?: string; style?: CSSProperties }) {
-  return <div aria-hidden style={style} className={`animate-pulse rounded-lg bg-slate-200/80 ${className}`} />
+  return (
+    <div
+      aria-hidden
+      style={style}
+      className={`animate-shimmer rounded-lg bg-[linear-gradient(90deg,var(--color-slate-200)_30%,var(--color-slate-100)_50%,var(--color-slate-200)_70%)] bg-size-[200%_100%] ${className}`}
+    />
+  )
 }
 
 export function EmptyState({

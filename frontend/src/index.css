@@ -21,6 +21,83 @@
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Khmer', 'Khmer UI',
     'Khmer Sangam MN', 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+
+  /* Motion: short and soft, so a tap gets an answer without anyone
+     waiting on it. Keyframes are below; the reduced-motion rule at the end
+     of this file turns all of it off. `backwards` ones leave nothing behind
+     once played (a lingering transform would pin the fixed bottom bars
+     inside a card to it). */
+  --animate-rise: rise 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  --animate-fade-in: fade-in 0.2s ease-out backwards;
+  --animate-pop: pop 0.45s cubic-bezier(0.3, 1.5, 0.6, 1);
+  --animate-pop-in: pop-in 0.4s cubic-bezier(0.3, 1.5, 0.6, 1) backwards;
+  --animate-sheet-up: sheet-up 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+  --animate-zoom-in: zoom-in 0.2s ease-out;
+  --animate-toast: toast 3s ease backwards;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+/* A count or status that just changed. */
+@keyframes pop {
+  40% {
+    scale: 1.22;
+  }
+}
+/* Something appearing with a little bounce: a tick, a badge. */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+}
+@keyframes sheet-up {
+  from {
+    translate: 0 100%;
+  }
+}
+@keyframes zoom-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+/* A toast's whole life: slides in, stays, fades out as it's removed. Its
+   length is set to the toast's own (FeedbackProvider). */
+@keyframes toast {
+  0% {
+    opacity: 0;
+    translate: 0 -12px;
+    scale: 0.96;
+  }
+  6%,
+  94% {
+    opacity: 1;
+    translate: none;
+    scale: none;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 -8px;
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
 }
 
 /* Set on <html> before the first paint by the script in index.html. */
@@ -112,13 +189,19 @@
   dialog::backdrop {
     background: rgb(15 23 42 / 0.45);
   }
+  dialog[open]::backdrop {
+    animation: fade-in 0.2s ease-out;
+  }
 }
 
+/* Effects end where they would have ended; nothing loops or waits. */
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
   ::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
