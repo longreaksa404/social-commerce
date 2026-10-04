@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-04 (Phase 9: UX pass on shop, Settings, order page and product options; deployed)
+> **Last updated:** 2026-10-04 (Phase 9: UX pass 2, effects, cart bars, Khmer font; committed, not pushed)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -663,6 +663,60 @@ deployed 2026-10-04, founder to check on the live site):**
       page changing from "Confirmed" to "Being prepared" by itself after
       the seller moved it; axe clean. Deployed 2026-10-04.
 
+**Phase 9 UX pass 2 (founder's request 2026-10-04: "easy to use, simple
+but modern, effects for some actions"; all four parts approved;
+committed, not pushed):**
+
+- [x] Motion basics, shop and dashboard: a new page fades in, cards rise
+      into place, loading boxes shimmer, product photos fade in over the
+      grey (and show the placeholder if they won't load), the shop grid
+      comes in one after another, toasts slide in and out, the confirm
+      sheet slides up. Plain CSS keyframes in `index.css` and the Web
+      Animations API, no animation library. A phone set to reduce motion
+      gets none of it.
+- [x] Shop effects: Add to cart flies a round copy of the photo along a
+      curve into the header's cart button, whose bag and count bump as
+      it lands (from the button when the photo is scrolled away); a
+      short vibration on Android (iPhones don't allow it). After Place
+      order: the circle pops in, the tick draws itself, then confetti,
+      once per order (`sessionStorage`, so a reload doesn't repeat it).
+      The order page's current step pulses slowly.
+- [x] Dashboard effects: Accept / Mark paid / Delivered / ... pop the
+      status that moved (summary and card), with a short vibration;
+      completing an order bursts confetti from the button. An order that
+      arrives while the Orders tab is open (30 s check) slides in on a
+      fading amber, not on first load, a filter change or "Show more".
+      The bell rings and its count pops when the count goes up. The
+      bottom tabs' pill grows into the tab opened. Save (settings,
+      product) pops a tick beside "All changes saved".
+- [x] Easier screens: the cart shows bars filling toward the next
+      discount and toward free delivery ("Add $21.50 more for free
+      delivery", or "Add 2 more items ..." for an items rule, whichever
+      is closer; then "Your delivery is free."), with the total and
+      Checkout pinned to the bottom on phones. Fixed: a cart line's
+      total stuck out of the card at 320 px for amounts like $66.00; it
+      now moves under the -/+ buttons. Checkout's parts are numbered
+      1-4. The shop page shows the logo big and round beside the shop's
+      name, on a soft green that fades into the page. Softer cards
+      everywhere (shadow and faint outline instead of a grey border); a
+      soft green glow on the landing, login and register pages.
+- [x] Kantumruy Pro for all Khmer text (founder approved 2026-10-04):
+      one variable file with every weight and only the Khmer letters,
+      57 KB (estimated ~40 KB when the founder was asked), self-hosted from
+      `@fontsource-variable/kantumruy-pro`; downloaded once, the first
+      time a phone shows Khmer. Latin letters and numbers stay in the
+      phone's font. Static files would be ~23 KB per weight, ~93 KB for
+      the four weights the app uses, so the variable file is smaller.
+- [x] Checked in headless Chromium: frames of every effect (flight path
+      traced into the cart at 390 and 1280 px, tick and confetti, a
+      reload not repeating it, badge pops, completion confetti, a new
+      order arriving, the bell, the tab pill, the save tick); every
+      screen at 320 px Khmer, 390 px English light and dark, 1280 px;
+      the browser confirms Khmer is drawn in Kantumruy Pro and Latin in
+      the system font; nothing sticks out of a card at 320 px; axe-core:
+      no WCAG 2.1 A/AA violations (Khmer light 320 px, English dark 390
+      px); no console errors. No backend change.
+
 ---
 
 ## In Progress
@@ -828,10 +882,29 @@ Resolved:
 - [x] **Nightly database backup to a private R2 bucket via GitHub
       Actions** (2026-10-04, founder took the recommendation). Not in 03
       before.
+- [x] **Kantumruy Pro for Khmer text** (2026-10-04, founder approved
+      with the UX pass 2), self-hosted, Khmer letters only.
 
 ---
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
+
+UX pass 2 (2026-10-04), text for 02/03 (not applied yet):
+
+- 02 §2, add after the "Light / dark" row: "| Fonts | The phone's own
+  font for Latin; **Kantumruy Pro** for Khmer (`@fontsource-variable`,
+  self-hosted, Khmer letters only) | Khmer looks the same, and modern,
+  on every phone; one 57 KB variable file covers every weight and loads
+  once, only where Khmer shows (decided 2026-10-04) |" and "| Motion |
+  CSS keyframes (`index.css`) and the Web Animations API, no library |
+  Taps get an answer (add to cart, order placed, a status moving on)
+  without adding weight; off when the phone asks for reduced motion |".
+- 03 Phase 9 table: add the row "UX pass 2: effects in the shop and the
+  dashboard, cart bars toward a discount and free delivery with a pinned
+  Checkout, numbered checkout, shop logo beside the name, softer cards,
+  Kantumruy Pro for Khmer (founder's request 2026-10-04) | 10";
+  subtotal ~97 hours (~7.5 weeks); §4 totals: Phase 9 97 hrs / 7.5 wks,
+  total ~325 hrs (~25 weeks, ~5.75 months).
 
 Applied to 02/03 on 2026-10-04 (at the founder's request): the shop's
 light / dark button (02 §2, 03 Phase 9 light / dark row) and customer
@@ -982,7 +1055,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 - A "Connect Telegram" link works for 30 minutes and for anyone who has
   it; it is only shown to the logged-in seller. Connecting again moves
   alerts to the new chat (one chat per store).
-- Bundle: 182 KB gzipped after the Phase 9 UX pass; 178 KB with both languages and dark mode (Phase 9),
+- Bundle: 188 KB gzipped JS + 12 KB CSS after UX pass 2 (184.6 + 10.4 KB
+  before it), plus the 57 KB Khmer font, once per phone; 182 KB after the Phase 9 UX pass; 178 KB with both languages and dark mode (Phase 9),
   162 KB after Phase 8, 159 KB after Phase 7, 156 KB after Phase 6, 155 KB after Phase 5, 149 KB after Phase 4 (141 KB after Phase 3, 131 KB
   after Phase 2), mostly
   React DOM, React Router and TanStack Query. Lazy-loading the seller dashboard was measured (saves ~8 KB for
@@ -1044,6 +1118,12 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   product's link name still breaks links already shared, tracked or not.
 - Links are never deleted (no endpoint); the Links page shows the latest
   200. Add archiving if sellers make many.
+- Effects (UX pass 2): `components/effects.ts` (confetti, vibration,
+  reduced motion), `shop/fly.ts` (photo to the cart), `useBump` (an
+  effect when a value changes, not on first show). Animations that
+  leave a transform behind would pin the fixed bottom bars inside a
+  card to it, so entrance animations use `backwards` fill. The order
+  placed confetti is remembered per browser tab (`sessionStorage`).
 - Use Neon's **direct** connection string, not the pooled (`-pooler`) one:
   asyncpg's prepared statements don't work through PgBouncer by default.
 
@@ -1059,19 +1139,24 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-1. Founder: on your phone, order something from your shop, go back to
+1. Founder: say "push" for UX pass 2 (8 commits, not pushed). Then on
+   your phone: add something to the cart (the photo flies into the bag),
+   watch the cart's bars, place an order (tick and confetti), and in the
+   dashboard accept it and walk it to Completed (confetti). Read the
+   new Khmer lines (cart: free delivery) and see the Khmer font.
+2. Founder: on your phone, order something from your shop, go back to
    the shop (the bar at the top), open Your orders, leave the order open
    while you accept it on another device (it updates within 30 s); try
    the moon / sun button in the shop header.
-2. Founder: check the UX pass on your phone (live since 2026-10-04): the
+3. Founder: check the UX pass on your phone (live since 2026-10-04): the
    shop's delivery/payment box, Add to cart pinned on a product, add a
    logo in Settings → your shop (the first real logo upload to R2), the
    Settings menu, an order's summary, a product's options. Read the new
    Khmer with the rest.
-3. Founder: read the Khmer on the live site; try dark mode; run the
+4. Founder: read the Khmer on the live site; try dark mode; run the
    rate-limit check (Notes).
-4. Founder: choose and buy the domain; then Claude does DNS, R2 photo
+5. Founder: choose and buy the domain; then Claude does DNS, R2 photo
    domain, cookie sessions.
-5. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
-6. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
+6. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
+7. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
    Part A on the live site, revoke the Telegram token.

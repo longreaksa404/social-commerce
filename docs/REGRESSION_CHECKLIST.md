@@ -69,7 +69,12 @@ phone or laptop) before going on.
 
 **Prices**
 
-- [ ] With a discount rule and free delivery from an amount: the cart shows "Add $X more to get $Y off"; reaching it shows the discount and free delivery in the total.
+- [ ] With a discount rule and free delivery from an amount: the cart shows "Add $X more to get $Y off" and "Add $Z more for free delivery", each with a bar that fills as items are added; reaching them shows the discount and "Your delivery is free.", and free delivery in the checkout total.
+
+**Look and effects**
+
+- [ ] Add to cart: the photo flies into the cart button and its count goes up. Placing an order shows a tick and confetti; reloading the order page doesn't play it again. Completing an order in the dashboard plays confetti.
+- [ ] With the phone set to reduce motion (iPhone: Settings → Accessibility → Motion; Android: Remove animations), nothing moves and everything still works.
 
 **Accounts and devices**
 
