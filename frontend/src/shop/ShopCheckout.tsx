@@ -173,7 +173,7 @@ export function ShopCheckout() {
       <title>{c.tab(shop.data.name)}</title>
       <PageHeader title={c.title} back={`/shop/${storeSlug}/cart`} />
 
-      <Section title={c.yourDetails}>
+      <Section step={1} title={c.yourDetails}>
         <Field label={c.name} error={fieldError(place.error, 'name')}>
           <Input
             required
@@ -262,7 +262,7 @@ export function ShopCheckout() {
         </Field>
       </DeliverySection>
 
-      <Section title={c.payment}>
+      <Section step={3} title={c.payment}>
         <fieldset aria-describedby={fieldError(place.error, 'payment_method') ? 'payment-error' : undefined}>
           <legend className="sr-only">{c.howPay}</legend>
           <div className="space-y-2">
@@ -296,6 +296,7 @@ export function ShopCheckout() {
       </Section>
 
       <Section
+        step={4}
         title={c.yourOrder}
         action={
           <Link
@@ -374,7 +375,7 @@ function DeliverySection({
   const hint = (choice: string) => (choice === OWN ? c.hintOwn : choice === PICKUP ? c.hintPickup : c.hintCourier)
   const choiceError = fieldError(error, 'delivery_method') ?? fieldError(error, 'courier')
   return (
-    <Section title={choices.length === 1 && choices[0] === PICKUP ? c.pickup : c.delivery}>
+    <Section step={2} title={choices.length === 1 && choices[0] === PICKUP ? c.pickup : c.delivery}>
       {choices.length > 1 ? (
         <fieldset aria-describedby={choiceError ? 'delivery-choice-error' : undefined}>
           <legend className="mb-1.5 block text-sm font-medium text-slate-700">{c.howGet}</legend>

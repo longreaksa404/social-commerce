@@ -19,7 +19,7 @@ import { useT } from '../i18n/useT.ts'
 import { errorText } from '../lib/errors.ts'
 import { priceStep } from '../lib/money.ts'
 import type { Currency } from '../lib/types.ts'
-import { buttonClass, type ButtonSize, type ButtonVariant } from './styles.ts'
+import { buttonClass, cardClass, type ButtonSize, type ButtonVariant } from './styles.ts'
 import { useBump } from './useBump.ts'
 
 // ---------------------------------------------------------------------------
@@ -296,7 +296,7 @@ export function IconButton({
 /** Rises into place when it first shows (a page opening, data arriving). */
 export function Card({ children, className = '', id }: { children: ReactNode; className?: string; id?: string }) {
   return (
-    <div id={id} className={`animate-rise rounded-2xl border border-slate-200 bg-surface shadow-xs ${className}`}>
+    <div id={id} className={`animate-rise ${cardClass} ${className}`}>
       {children}
     </div>
   )
@@ -314,23 +314,36 @@ export function PageOutlet({ depth }: { depth: number }) {
   )
 }
 
-/** A titled card section of a form or settings page. */
+/** A titled card section of a form or settings page. `step` numbers it,
+ * for a form in parts (checkout). */
 export function Section({
   title,
   description,
   action,
+  step,
   children,
 }: {
   title: string
   description?: ReactNode
   action?: ReactNode
+  step?: number
   children: ReactNode
 }) {
   return (
     <Card className="p-4 sm:p-6">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+          <h2 className="flex items-center gap-2.5 text-base font-semibold text-slate-900">
+            {step !== undefined && (
+              <span
+                aria-hidden
+                className="flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-700 tabular-nums"
+              >
+                {step}
+              </span>
+            )}
+            {title}
+          </h2>
           {description && <p className="mt-0.5 text-sm text-slate-500">{description}</p>}
         </div>
         {action}

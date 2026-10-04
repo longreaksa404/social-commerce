@@ -5,7 +5,7 @@ import { Spinner } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
 import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
-import { BrandMark } from './AuthLayout.tsx'
+import { BrandMark, Glow } from './AuthLayout.tsx'
 
 export function Home() {
   const { status } = useAuth()
@@ -21,7 +21,8 @@ export function Home() {
   if (status === 'authenticated') return <Navigate to="/dashboard" replace />
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:justify-center">
+    <main className="relative isolate mx-auto flex min-h-dvh max-w-md flex-col px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:justify-center">
+      <Glow />
       <div className="flex items-center justify-between gap-3">
         <BrandMark />
         <LanguageSwitch />

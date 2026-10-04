@@ -1,4 +1,5 @@
 import { Store, Tag, Truck, Wallet, type LucideIcon } from 'lucide-react'
+import { cardClass } from '../components/styles.ts'
 import { useT } from '../i18n/useT.ts'
 import { formatMoney } from '../lib/money.ts'
 import { PAYMENT_METHOD_ORDER } from '../lib/payments.ts'
@@ -40,7 +41,7 @@ export function ShopInfo({ shop, className = '' }: { shop: ShopStore; className?
 
   return (
     <section aria-label={i.title} className={className}>
-      <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-surface">
+      <ul className={`divide-y divide-slate-100 ${cardClass}`}>
         {rows.map(({ icon: Icon, text, detail }) => (
           <li key={text} className="flex gap-3 px-3.5 py-2.5">
             <Icon aria-hidden className="mt-0.5 size-4.5 shrink-0 text-emerald-700" />

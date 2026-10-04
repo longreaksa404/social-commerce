@@ -16,6 +16,10 @@
   --color-danger: oklch(57.7% 0.245 27.325);
   --color-danger-hover: oklch(50.5% 0.213 27.518);
 
+  /* Cards: a soft shadow and a faint outline (ring-slate-900/6, which
+     dark mode turns into a faint light line) instead of a grey border. */
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px -4px rgb(15 23 42 / 0.08);
+
   /* System fonts first (fast, native feel). Khmer falls back to the phone's
      own Khmer font: Noto Sans Khmer on Android, Khmer Sangam on iOS. */
   --font-sans:
@@ -177,6 +181,7 @@
   color-scheme: dark;
   --color-surface: oklch(20.8% 0.042 265.755);
   --color-raised: oklch(37.2% 0.044 257.287);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
   /* Grays */
   --color-slate-50: oklch(12.9% 0.042 264.695);
   --color-slate-100: oklch(24.5% 0.042 262);

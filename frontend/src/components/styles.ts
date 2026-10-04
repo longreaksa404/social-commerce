@@ -23,3 +23,6 @@ const buttonSizes: Record<ButtonSize, string> = {
 export function buttonClass(variant: ButtonVariant = 'primary', size: ButtonSize = 'md') {
   return `${buttonBase} ${buttonVariants[variant]} ${buttonSizes[size]}`
 }
+
+/** A card's look (Card, and lists drawn as cards). */
+export const cardClass = 'rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6'

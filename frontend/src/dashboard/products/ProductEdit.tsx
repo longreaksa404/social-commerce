@@ -2,7 +2,7 @@ import { Minus, Plus, Share2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
-import { buttonClass } from '../../components/styles.ts'
+import { buttonClass, cardClass } from '../../components/styles.ts'
 import {
   Button,
   ErrorMessage,
@@ -292,7 +292,7 @@ function ProductForm({ product }: { product?: Product }) {
         </Section>
 
         {!isNew && (
-          <details open={slugError ? true : undefined} className="group rounded-2xl border border-slate-200 bg-surface px-4 shadow-xs sm:px-6">
+          <details open={slugError ? true : undefined} className={`group px-4 sm:px-6 ${cardClass}`}>
             <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between text-base font-semibold text-slate-900">
               {p.advanced}
               <Plus aria-hidden className="size-5 text-slate-400 transition-transform group-open:rotate-45" />
