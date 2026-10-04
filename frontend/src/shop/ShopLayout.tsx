@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Link, Outlet, useParams, useSearchParams } from 'react-router'
 import { ErrorState, Skeleton, SlowNotice } from '../components/ui.tsx'
 import { LanguageToggle } from '../i18n/LanguageSwitch.tsx'
+import { ThemeToggle } from '../theme/ThemeSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
 import type { ShopStore } from '../lib/types.ts'
 import { useCart } from './cart.ts'
@@ -73,7 +74,8 @@ function Header({ shop, slug }: { shop: ShopStore | undefined; slug: string }) {
             <Skeleton className="h-5 w-36" />
           )}
         </Link>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center">
+          <ThemeToggle />
           <LanguageToggle />
           <CartButton slug={slug} />
         </div>

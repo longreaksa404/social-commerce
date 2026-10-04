@@ -191,8 +191,8 @@ export const settings = {
 
   display: { en: 'Language and theme', km: 'ភាសា និងរូបរាង' },
   displayHint: {
-    en: 'For this phone. Customers choose their own language in your shop, and see light or dark as their phone is set.',
-    km: 'សម្រាប់ទូរស័ព្ទនេះ។ អតិថិជនជ្រើសភាសាដោយខ្លួនឯងនៅក្នុងហាងរបស់អ្នក ហើយឃើញពណ៌ភ្លឺ ឬងងឹតតាមការកំណត់ទូរស័ព្ទរបស់គេ។',
+    en: 'For this phone. Customers see light or dark as their phone is set, and can switch it and the language in your shop.',
+    km: 'សម្រាប់ទូរស័ព្ទនេះ។ អតិថិជនឃើញពណ៌ភ្លឺ ឬងងឹតតាមការកំណត់ទូរស័ព្ទរបស់គេ ហើយអាចប្ដូរវា និងភាសា នៅក្នុងហាងរបស់អ្នក។',
   },
   language: { en: 'Language', km: 'ភាសា' },
   theme: { en: 'Theme', km: 'រូបរាង' },

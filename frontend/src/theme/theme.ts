@@ -20,10 +20,33 @@ export function storedTheme(): ThemeChoice {
   }
 }
 
+export type Theme = 'light' | 'dark'
+
+/** What's showing now. */
+export function currentTheme(): Theme {
+  return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
+}
+
+const listeners = new Set<() => void>()
+
+/** Called whenever what's showing changes (a choice, or the phone). */
+export function onThemeChange(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
 function apply(choice: ThemeChoice) {
   const theme = choice === 'dark' || (choice === 'auto' && phoneDark.matches) ? 'dark' : 'light'
   document.documentElement.dataset.theme = theme
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', BAR_COLORS[theme])
+  listeners.forEach((listener) => listener())
+}
+
+/** Show the other one. Landing on what the phone shows anyway goes back
+ * to following the phone, so it keeps up if the phone switches later. */
+export function toggleTheme() {
+  const next: Theme = currentTheme() === 'dark' ? 'light' : 'dark'
+  setTheme(next === (phoneDark.matches ? 'dark' : 'light') ? 'auto' : next)
 }
 
 export function setTheme(choice: ThemeChoice) {

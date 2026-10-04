@@ -34,6 +34,9 @@ export const common = {
   language: { en: 'Language', km: 'ភាសា' },
   // The label of the shop header's one-button switch, read in the language it switches to.
   switchLanguage: { en: 'ប្ដូរទៅភាសាខ្មែរ', km: 'Switch to English' },
+  // The shop header's light / dark button.
+  switchToDark: { en: 'Switch to dark mode', km: 'ប្ដូរទៅរូបរាងងងឹត' },
+  switchToLight: { en: 'Switch to light mode', km: 'ប្ដូរទៅរូបរាងភ្លឺ' },
   // "e.g. Sokha Fashion": an example of what to type.
   example: { en: (text: string) => `e.g. ${text}`, km: (text: string) => `ឧ. ${text}` },
 } satisfies Tree
