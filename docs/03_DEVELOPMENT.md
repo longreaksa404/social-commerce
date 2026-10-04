@@ -270,9 +270,10 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Light / dark mode (follows phone setting + Light/Dark/Auto switch; KHQR stays dark on light) | 8 |
 | Small photo copies for grids and lists (Phase 2 proposal, decided 2026-10-04) | 3 |
 | Nightly database backup to a private R2 bucket (decided 2026-10-04) | 2 |
+| UX pass: delivery/payment info on shop and product pages, pinned Add to cart, shop logo; Settings as a menu; order page summary; one row per product option (founder's request 2026-10-04) | 15 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~65 hours (**~5 weeks**)
+**Subtotal:** ~80 hours (**~6 weeks**)
 
 > **Decided (2026-10-04):** a .com domain bought through Cloudflare; Render
 > stays on the free plan for the first seller (the app says when the
@@ -296,8 +297,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 17 | 1.5 wks |
-| 9 — Polish/First Seller | 65 | 5 wks |
-| **Total** | **~293 hrs** | **~22.5 weeks (~5 months)** |
+| 9 — Polish/First Seller | 80 | 6 wks |
+| **Total** | **~308 hrs** | **~23.5 weeks (~5.5 months)** |
 
 This is a planning estimate, not a commitment.
 

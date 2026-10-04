@@ -814,17 +814,10 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-Not yet applied (2026-10-04, UX pass; founder approved the four items):
-
-- 02 §6 "Seller — Store": add
-  `POST   /api/v1/seller/store/logo              # presigned logo upload, see §11`;
-  and note that `PATCH /seller/store` takes `logo_url` (a URL from that
-  upload only; null removes the logo).
-- 03 Phase 9 table: add the row "UX pass: delivery/payment info on shop
-  and product pages, pinned Add to cart, shop logo; Settings as a menu;
-  order page summary; one row per product option (founder's request
-  2026-10-04) | 15"; subtotal ~80 hours (~6 weeks); §4 totals: Phase 9
-  80 hrs / 6 wks, total ~308 hrs (~24 weeks, ~5.5 months).
+Applied to 02/03 on 2026-10-04 (at the founder's request): the Phase 9
+UX pass (02 §5.2 `logo_url`, §6.2 the logo endpoint and `logo_url` on
+PATCH, §11 shop logo; 03 Phase 9 UX row, subtotal ~80 hrs, §4 totals:
+Phase 9 80 hrs, total ~308 hrs).
 
 Applied to 01/02/03 on 2026-10-04 (at the founder's request): the
 Phase 9 decisions so far (01 §40 Khmer / English built; 02 §2 languages

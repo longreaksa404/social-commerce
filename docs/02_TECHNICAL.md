@@ -172,7 +172,7 @@ seller
 | name | text | |
 | slug | text, unique | used in shareable URLs, e.g. `/shop/{slug}` |
 | description | text, nullable | |
-| logo_url | text, nullable | |
+| logo_url | text, nullable | the shop's logo, uploaded with `POST /seller/store/logo` (Phase 9); shown in the shop and dashboard headers |
 | telegram_chat_id | text, nullable | for seller notifications; private, never shown on the shop |
 | telegram_username | text, nullable | the seller's own Telegram username (without @), public on the shop page for "Ask seller" |
 | payment_config | JSONB | which methods are on, with their details: `{"cod": {"enabled": true}, "bank_transfer": {"enabled", "bank_name", "account_name", "account_number"}, "khqr": {"enabled", "bakong_account_id", "merchant_name"}}`. A method can only be on with its details filled in; at least one must be on. Missing parts read as the defaults (cash on delivery on, the others off), so a new store takes cash on delivery. Details are kept while a method is off. |
@@ -330,7 +330,8 @@ POST   /api/v1/auth/logout
 ### Seller — Store
 ```
 GET    /api/v1/seller/store
-PATCH  /api/v1/seller/store
+PATCH  /api/v1/seller/store                   # takes logo_url only from a logo upload below; null removes it
+POST   /api/v1/seller/store/logo              # presigned logo upload, see §11
 POST   /api/v1/seller/store/telegram/link     # signed t.me/<bot>?start=<code> link, 30 min
 DELETE /api/v1/seller/store/telegram          # disconnect the seller's chat
 ```
@@ -545,6 +546,7 @@ This mirrors `01_PRODUCT.md` §38.4's guidance: "start with the simplest validat
 - Upload flow: backend issues a **presigned upload URL** (`POST /seller/products/{id}/images` returns a presigned PUT URL) → frontend uploads the file directly to storage → frontend confirms completion → backend stores the resulting public URL in `product.image_urls`.
 - This keeps large file bytes off the FastAPI service entirely (no multipart handling on the app server), which matters for keeping the backend lightweight and cheap to run.
 - Basic constraints enforced client-side and re-validated server-side: max 5 images per product, max 5MB per image, JPEG/PNG/WebP only.
+- **Shop logo (Phase 9, 2026-10-04):** `POST /seller/store/logo` signs one PUT into `stores/<store_id>/logo/`; the seller's phone first crops the picture to a 256 px square JPEG. `PATCH /seller/store` accepts a `logo_url` only from that store's folder (null removes the logo). Uses the existing `store.logo_url`; no data model change.
 - **Small copies (Phase 9, decided 2026-10-04):** the seller's phone also makes a small JPEG copy of each new photo (short side ~480 px, max 512 KB) and uploads it first, next to the photo: the photo is named `<name>-m.<ext>`, the copy `<name>-s.jpg` (the images endpoint takes `thumbnail_size` and signs a second PUT). Product grids, the cart and the seller's lists use the copy when the photo's name ends in `-m`; older photos, and a copy that fails to load, fall back to the photo itself. No data model change.
 
 ---
