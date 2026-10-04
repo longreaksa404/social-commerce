@@ -88,8 +88,6 @@ export const products = {
     en: "Part of this product's link. Changing it breaks links you already shared.",
     km: 'ជាផ្នែកមួយនៃតំណទំនិញនេះ។ ការប្ដូរវានឹងធ្វើឱ្យតំណដែលអ្នកបានចែករំលែករួច លែងដំណើរការ។',
   },
-  unsaved: { en: 'Unsaved changes', km: 'មានការកែប្រែមិនទាន់រក្សាទុក' },
-  allSaved: { en: 'All changes saved', km: 'បានរក្សាទុកការកែប្រែទាំងអស់' },
 
   photo: {
     tooMany: { en: 'A product can have up to 5 photos.', km: 'ទំនិញមួយអាចមានរូបថតបានច្រើនបំផុត 5។' },

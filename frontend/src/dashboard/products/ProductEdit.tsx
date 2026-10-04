@@ -379,7 +379,7 @@ function ProductForm({ product }: { product?: Product }) {
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:pb-0">
           <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3 lg:px-0">
             <span className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
-              {progress ?? (dirty ? p.unsaved : isNew ? '' : p.allSaved)}
+              {progress ?? (dirty ? t.common.unsaved : isNew ? '' : t.common.allSaved)}
             </span>
             <Button type="submit" loading={busy} disabled={!isNew && !dirty} className="min-w-32">
               {isNew ? p.addProduct : t.common.save}

@@ -7,6 +7,9 @@ export const common = {
   confirm: { en: 'Confirm', km: 'បញ្ជាក់' },
   save: { en: 'Save', km: 'រក្សាទុក' },
   saving: { en: 'Saving…', km: 'កំពុងរក្សាទុក…' },
+  // Beside Save in a form's pinned bar.
+  unsaved: { en: 'Unsaved changes', km: 'មានការកែប្រែមិនទាន់រក្សាទុក' },
+  allSaved: { en: 'All changes saved', km: 'បានរក្សាទុកការកែប្រែទាំងអស់' },
   copied: { en: 'Copied', km: 'បានចម្លង' },
   share: { en: 'Share', km: 'ចែករំលែក' },
   open: { en: 'Open', km: 'បើក' },

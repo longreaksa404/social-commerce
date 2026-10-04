@@ -12,7 +12,8 @@ import { OrderDetail } from './dashboard/orders/OrderDetail.tsx'
 import { OrderList } from './dashboard/orders/OrderList.tsx'
 import { ProductEdit } from './dashboard/products/ProductEdit.tsx'
 import { ProductList } from './dashboard/products/ProductList.tsx'
-import { Settings } from './dashboard/Settings.tsx'
+import { SettingsMenu } from './dashboard/settings/SettingsMenu.tsx'
+import { SettingsSection } from './dashboard/settings/SettingsSection.tsx'
 import { Home } from './pages/Home.tsx'
 import { Login } from './pages/Login.tsx'
 import { Register } from './pages/Register.tsx'
@@ -49,7 +50,8 @@ export const router = createBrowserRouter([
           { path: 'links', element: <LinkList /> },
           { path: 'links/new', element: <NewLink /> },
           { path: 'links/:linkId', element: <LinkDetail /> },
-          { path: 'settings', element: <Settings /> },
+          { path: 'settings', element: <SettingsMenu /> },
+          { path: 'settings/:section', element: <SettingsSection /> },
           { path: 'notifications', element: <Notifications /> },
         ],
       },

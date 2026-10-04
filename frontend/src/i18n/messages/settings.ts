@@ -202,6 +202,25 @@ export const settings = {
     dark: { en: 'Dark', km: 'ងងឹត' },
   },
 
+  // The Settings menu: each row says what's set now.
+  menu: {
+    shopHint: { en: 'Logo, name, description, currency', km: 'ឡូហ្គោ ឈ្មោះ ការពិពណ៌នា រូបិយប័ណ្ណ' },
+    selling: { en: 'Selling', km: 'ការលក់' },
+    autoOn: { en: 'Accepted automatically', km: 'ទទួលដោយស្វ័យប្រវត្តិ' },
+    autoOff: { en: 'You accept each one', km: 'អ្នកទទួលម្ដងមួយៗ' },
+    noneOn: { en: 'None turned on', km: 'មិនទាន់បើកទេ' },
+    deliveryFee: { en: (fee: string) => `Delivery ${fee}`, km: (fee: string) => `ថ្លៃដឹក ${fee}` },
+    freeDelivery: { en: 'Free delivery', km: 'ដឹកឥតគិតថ្លៃ' },
+    freeFrom: { en: (amount: string) => `free from ${amount}`, km: (amount: string) => `ឥតគិតថ្លៃចាប់ពី ${amount}` },
+    discount: {
+      en: (off: string, from: string) => `${off} off from ${from}`,
+      km: (off: string, from: string) => `បញ្ចុះ ${off} ចាប់ពី ${from}`,
+    },
+    none: { en: 'None', km: 'គ្មាន' },
+    alertsOn: { en: 'Order alerts on', km: 'ការជូនដំណឹងបានបើក' },
+    alertsOff: { en: 'Order alerts off', km: 'ការជូនដំណឹងបានបិទ' },
+  },
+
   account: { en: 'Account', km: 'គណនី' },
   logOut: { en: 'Log out', km: 'ចាកចេញ' },
 } satisfies Tree

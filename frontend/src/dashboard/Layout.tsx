@@ -30,12 +30,13 @@ export function DashboardLayout() {
 }
 
 function Shell() {
-  // Product create/edit and an order are focused task screens on phones:
-  // no app bar or tab bar; the page brings its own back button and a
-  // pinned bar with its buttons.
+  // Product create/edit, an order and a settings page are focused task
+  // screens on phones: no app bar or tab bar; the page brings its own back
+  // button and a pinned bar with its buttons.
   const productScreen = useMatch('/dashboard/products/:productId') !== null
   const orderScreen = useMatch('/dashboard/orders/:orderId') !== null
-  const focused = productScreen || orderScreen
+  const settingsScreen = useMatch('/dashboard/settings/:section') !== null
+  const focused = productScreen || orderScreen || settingsScreen
 
   return (
     <div className="min-h-dvh lg:flex">
