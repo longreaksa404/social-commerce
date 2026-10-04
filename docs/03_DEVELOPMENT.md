@@ -268,9 +268,18 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Domain + Cloudflare DNS setup (moved from Phase 0) | 1 |
 | Khmer / English language switch (all UI text in shop + dashboard; default Khmer; seller-entered text not translated) | 12 |
 | Light / dark mode (follows phone setting + Light/Dark/Auto switch; KHQR stays dark on light) | 8 |
+| Small photo copies for grids and lists (Phase 2 proposal, decided 2026-10-04) | 3 |
+| Nightly database backup to a private R2 bucket (decided 2026-10-04) | 2 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~60 hours (**~4.5 weeks**)
+**Subtotal:** ~65 hours (**~5 weeks**)
+
+> **Decided (2026-10-04):** a .com domain bought through Cloudflare; Render
+> stays on the free plan for the first seller (the app says when the
+> server is waking up); small photo copies and nightly backups built here.
+> See `02_TECHNICAL.md` §3, §11, §15.
+
+**Definition of done:** a real seller runs their shop on the live site in Khmer, and a real customer's order goes from a shared link to completed.
 
 ---
 
@@ -287,8 +296,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 17 | 1.5 wks |
-| 9 — Polish/First Seller | 60 | 4.5 wks |
-| **Total** | **~288 hrs** | **~22 weeks (~5 months)** |
+| 9 — Polish/First Seller | 65 | 5 wks |
+| **Total** | **~293 hrs** | **~22.5 weeks (~5 months)** |
 
 This is a planning estimate, not a commitment.
 
@@ -337,7 +346,7 @@ No heavy test infrastructure — matches the "low operating cost / narrow scope"
 
 - **Backend:** `pytest` for state-machine transition logic (§7 in `02_TECHNICAL.md`) and order/payment total calculations — these are the places a silent bug directly costs money or breaks trust with a seller. Skip exhaustive endpoint testing at MVP stage; cover the arithmetic and state-transition rules, not every CRUD path.
 - **Frontend:** no automated test suite required for MVP. Manual click-through testing of the checkout flow before each deploy is sufficient at this scale.
-- **Manual regression checklist:** maintain a short markdown checklist (create product → share link → place order → accept → pay → deliver → complete) and run it manually before onboarding a new seller or after a risky change.
+- **Manual regression checklist:** `docs/REGRESSION_CHECKLIST.md` (create product → share link → place order → accept → pay → deliver → complete, plus other paths); run it manually before onboarding a new seller or after a risky change.
 
 Expand automated coverage only once a second developer joins or the manual checklist becomes a bottleneck — not preemptively.
 
@@ -349,6 +358,7 @@ Expand automated coverage only once a second developer joins or the manual check
 - **Environments:** `production` only for the MVP. A `staging` environment is a "build later" per `01_PRODUCT.md` §44's decision framework — add it once a second seller's data must not be put at risk by testing.
 - **Migrations:** Alembic migrations run at container start while the backend is on Render's free plan (no pre-deploy command); move them to a pre-deploy command once on a paid instance.
 - **Rollback:** rely on the hosting platform's one-click redeploy of the previous build; no custom rollback tooling needed at this scale.
+- **Backups:** nightly database copy to a private R2 bucket by GitHub Actions; setup and restore in `docs/BACKUPS.md`.
 
 ---
 

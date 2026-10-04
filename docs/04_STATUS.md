@@ -18,9 +18,9 @@
 **Phase 9 — Polish, hardening, first real seller** (in progress since
 2026-10-04; built locally, not pushed or deployed yet)
 
-Proposed definition of done (03 has none for Phase 9; founder to
-confirm): a real seller runs their shop on the live site in Khmer, and a
-real customer's order goes from a shared link to completed.
+Definition of done (in 03 since 2026-10-04): a real seller runs their
+shop on the live site in Khmer, and a real customer's order goes from a
+shared link to completed.
 
 Phase 8 met its definition of done on 2026-10-04 and the founder closed
 it after testing on the live site: a link made from a product's Share
@@ -778,20 +778,13 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-Phase 9 (2026-10-04), to apply when the founder asks:
-
-- 03 Phase 9: a definition of done (proposed above); tasks "Small photo
-  copies for grids (Phase 2 proposal)" and "Nightly database backup".
-- 02 §11 Image Storage: "New photos are uploaded with a small JPEG copy
-  (short side ~480 px) next to them: `<name>-m.<ext>` and `<name>-s.jpg`.
-  Grids and lists use the copy when the name has `-m`; older photos are
-  used as they are."
-- 02 §13: "Rate limits count per client IP from `CF-Connecting-IP`
-  (Render's Cloudflare edge), not `X-Forwarded-For`, which clients can
-  write." and "Nightly `pg_dump` to a private R2 bucket
-  (docs/BACKUPS.md)."
-- 02 (frontend): Khmer / English messages in `frontend/src/i18n`; theme
-  tokens in `index.css`.
+Applied to 01/02/03 on 2026-10-04 (at the founder's request): the
+Phase 9 decisions so far (01 §40 Khmer / English built; 02 §2 languages
+and light / dark rows, §3 Render stays free and the Cloudflare domain,
+§9.3 Khmer preview cards, §11 small photo copies, §13 client IP for rate
+limits and framing, §15 nightly backups; 03 Phase 9 tasks, decisions and
+definition of done, §4 totals: Phase 9 ~65 hrs, total ~293 hrs, §7
+regression checklist, §8 backups).
 
 - Development moved from a Claude Project chat to Claude Code. Docs live in
   `docs/` in the monorepo; `CLAUDE.md` is at the repo root.

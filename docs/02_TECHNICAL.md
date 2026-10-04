@@ -75,6 +75,8 @@ No separate worker service in the MVP. No message queue in the MVP. `BackgroundT
 | Styling | **Tailwind CSS** | Fast to build simple, consistent seller/customer UI without a design system overhead |
 | State/data fetching | **TanStack Query (React Query)** | Handles server state, caching, and loading/error states with minimal boilerplate |
 | Routing | **React Router** | Standard for SPA |
+| Languages | Own typed messages, no library (`frontend/src/i18n`, Phase 9) | Khmer / English: each text is an `{ en, km }` pair, and the build fails if one is missing; Khmer by default, chosen per device. API errors stay English and are translated on the frontend by message, then code |
+| Light / dark | Tailwind color scales flipped in `index.css` (Phase 9) | Follows the phone, with Auto / Light / Dark per device; classes are written for light mode only, plus a few fixed tokens (`bg-surface`, `bg-accent`, …) for fills that must not flip |
 | Database | **PostgreSQL 16** | Relational integrity for orders/payments/inventory; JSONB available for flexible fields (e.g., variant attributes) without needing a second database |
 | Auth | **JWT (access + refresh)**, `bcrypt` (used directly; passlib is unmaintained) for password hashing | Stateless, simple, no session-store dependency |
 | Image storage | **S3-compatible object storage** (see §11) | Decoupled from app servers, cheap, standard presigned-upload pattern |
@@ -92,11 +94,11 @@ Given the constraint of a solo, part-time founder (`01_PRODUCT.md` §2.3, §38.8
 
 | Component | Recommendation | Reasoning |
 |---|---|---|
-| Backend hosting | **Render** (Docker deploy of FastAPI; free web service, Singapore, for the MVP) | Git-push deploys, managed TLS, no server patching, environment variables UI, built-in logs |
+| Backend hosting | **Render** (Docker deploy of FastAPI; free web service, Singapore, for the MVP; stays free for the first seller, decided 2026-10-04: the first visit after 15 quiet minutes waits up to a minute, and the app says so) | Git-push deploys, managed TLS, no server patching, environment variables UI, built-in logs |
 | Database | **Neon** (free plan, Singapore region) for the MVP; Render Postgres is the upgrade path if Neon's limits are hit | No manual DB ops, branching useful for staging; Render's free Postgres expires after 30 days |
 | Frontend hosting | **Vercel** or **Netlify** (static React build) | Free tier sufficient at MVP scale, instant rollbacks, preview deployments per PR |
 | Object storage | **Cloudflare R2** or **AWS S3** | R2 has no egress fees, which matters once product images are viewed at volume by customers in Cambodia |
-| Domain/DNS | **Cloudflare** | Free, also gives CDN + basic DDoS protection in front of the frontend |
+| Domain/DNS | **Cloudflare** (a .com bought through Cloudflare Registrar, decided 2026-10-04) | Free DNS, at-cost domain, also gives CDN + basic DDoS protection in front of the frontend |
 | Telegram webhook | Hosted on the same FastAPI service (`api`), no separate infra | One less moving part |
 
 A VPS (DigitalOcean/Hetzner) is **not recommended** for the MVP: it trades a small cost saving for meaningful ongoing operational burden (patching, TLS renewal, process supervision, backups) that directly works against the founder's time constraint. Revisit VPS/self-hosting only if managed-platform costs become material at scale — this is a "build later" decision per the `01_PRODUCT.md` §44 decision framework, not a day-one one.
@@ -501,7 +503,7 @@ This is intentionally simple — no attribution modeling, no multi-touch trackin
 
 ## 9.3 Link Previews
 
-Facebook, Messenger, Telegram, TikTok and similar apps build a link's preview card from the HTML without running JavaScript. A Vercel Routing Middleware (`frontend/middleware.ts`, decided 2026-10-03) on `/shop/*` gives those preview bots `index.html` with `og:` title, description and photo from the storefront API; people pass through untouched, so a slow API never slows a customer. If the API doesn't answer in 6 s (e.g. Render asleep), the bot gets the generic card. Preview bots don't run JavaScript, so they never count as views.
+Facebook, Messenger, Telegram, TikTok and similar apps build a link's preview card from the HTML without running JavaScript. A Vercel Routing Middleware (`frontend/middleware.ts`, decided 2026-10-03) on `/shop/*` gives those preview bots `index.html` with `og:` title, description and photo from the storefront API; people pass through untouched, so a slow API never slows a customer. If the API doesn't answer in 6 s (e.g. Render asleep), the bot gets the generic card. The card's own words (e.g. "Order online", a category's product count) are in Khmer, the default language. Preview bots don't run JavaScript, so they never count as views.
 
 ---
 
@@ -543,6 +545,7 @@ This mirrors `01_PRODUCT.md` §38.4's guidance: "start with the simplest validat
 - Upload flow: backend issues a **presigned upload URL** (`POST /seller/products/{id}/images` returns a presigned PUT URL) → frontend uploads the file directly to storage → frontend confirms completion → backend stores the resulting public URL in `product.image_urls`.
 - This keeps large file bytes off the FastAPI service entirely (no multipart handling on the app server), which matters for keeping the backend lightweight and cheap to run.
 - Basic constraints enforced client-side and re-validated server-side: max 5 images per product, max 5MB per image, JPEG/PNG/WebP only.
+- **Small copies (Phase 9, decided 2026-10-04):** the seller's phone also makes a small JPEG copy of each new photo (short side ~480 px, max 512 KB) and uploads it first, next to the photo: the photo is named `<name>-m.<ext>`, the copy `<name>-s.jpg` (the images endpoint takes `thumbnail_size` and signs a second PUT). Product grids, the cart and the seller's lists use the copy when the photo's name ends in `-m`; older photos, and a copy that fails to load, fall back to the photo itself. No data model change.
 
 ---
 
@@ -593,10 +596,11 @@ Customer taps "Ask seller on Telegram" on the product page
 - **Passwords:** `bcrypt` (used directly; passlib is unmaintained), never stored/logged in plaintext.
 - **Tokens:** short-lived access JWT (~15 min) + longer-lived refresh JWT (~7 days), refresh rotated on use.
 - **Tenant isolation:** enforced at both application layer (service functions always scope by `store_id` from the authenticated token) and database layer (Postgres RLS, §4.2) — defense in depth, matching Rule 2 (`01_PRODUCT.md` §32).
-- **Rate limiting:** basic IP-based rate limiting on `/auth/login` and public storefront endpoints (e.g., via `slowapi`) to blunt brute-force and scraping — lightweight, no separate infra required.
+- **Rate limiting:** basic IP-based rate limiting on `/auth/login` and public storefront endpoints (e.g., via `slowapi`) to blunt brute-force and scraping — lightweight, no separate infra required. The client IP is taken from `CF-Connecting-IP` (set by Render's Cloudflare edge), not `X-Forwarded-For`, which clients can write and Render keeps (Phase 9 security review).
 - **CORS:** locked to the known frontend origin(s).
 - **Input validation:** all request bodies validated via Pydantic schemas; no raw SQL string interpolation (SQLAlchemy parameterized queries only).
 - **Secrets:** environment variables in the Render and Vercel dashboards, never committed to the repo.
+- **Framing:** the web app sends `frame-ancestors 'none'` / `X-Frame-Options: DENY`, so the dashboard can't be loaded inside another site (`frontend/vercel.json`).
 
 ---
 
@@ -616,7 +620,7 @@ Not required to launch, but designed for in the schema/architecture so they don'
 
 - **Performance:** no specific SLA needed at MVP scale (single-digit sellers, low order volume). Standard indexing (§4.2) and avoiding N+1 queries is sufficient — no caching layer, no read replicas.
 - **Availability:** best-effort; managed platform's default uptime is acceptable. No multi-region, no failover architecture at this stage.
-- **Backups:** rely on Neon's built-in point-in-time restore — no custom backup tooling to build/maintain. The free plan keeps only a 6-hour restore window; move to a paid tier or add backups before the first real seller.
+- **Backups:** a nightly `pg_dump` (GitHub Actions, `.github/workflows/backup.yml`) into a private R2 bucket, last 30 nights kept (decided 2026-10-04; $0, no new service). Neon's free plan only goes back 6 hours, which still covers same-day mistakes. Setup and restore: `docs/BACKUPS.md`.
 - **Observability:** platform-provided logs (Render dashboard) + Sentry (free tier, errors only) for the FastAPI app and the React app. No custom monitoring stack.
 
 ---
