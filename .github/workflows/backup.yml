@@ -1,0 +1,59 @@
+name: Nightly database backup
+
+# A copy of the production database every night, kept in a private R2
+# bucket (Neon free only goes back 6 hours). Setup and restore steps:
+# docs/BACKUPS.md. GitHub emails you if a run fails.
+on:
+  schedule:
+    - cron: '0 19 * * *' # 02:00 in Phnom Penh
+  workflow_dispatch: # "Run workflow" on the Actions tab, e.g. to test it
+
+concurrency:
+  group: backup
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      # R2 doesn't take the checksums newer AWS CLIs add by default.
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+      R2_ENDPOINT: https://${{ secrets.BACKUP_R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      BUCKET: ${{ secrets.BACKUP_R2_BUCKET }}
+    steps:
+      # Until the secrets are added (docs/BACKUPS.md), skip instead of
+      # failing (and emailing) every night.
+      - name: Check setup
+        id: setup
+        run: |
+          if [ -z "$DATABASE_URL" ] || [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$BUCKET" ]; then
+            echo "Backup secrets not set yet: skipped. See docs/BACKUPS.md." >> "$GITHUB_STEP_SUMMARY"
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install pg_dump 17 (dumps Postgres 16 and 17)
+        if: steps.setup.outputs.configured == 'true'
+        run: |
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17
+
+      - name: Dump
+        if: steps.setup.outputs.configured == 'true'
+        # Custom format (compressed, restorable table by table). Owners are
+        # left out; grants are kept, since row-level security needs them.
+        run: /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" --format=custom --no-owner --file=backup.dump
+
+      - name: Upload to R2
+        if: steps.setup.outputs.configured == 'true'
+        run: |
+          name="nightly/social-commerce-$(date -u +%Y-%m-%d).dump"
+          aws s3 cp backup.dump "s3://$BUCKET/$name" --endpoint-url "$R2_ENDPOINT" --no-progress
+          echo "Saved $name ($(du -h backup.dump | cut -f1))" >> "$GITHUB_STEP_SUMMARY"
