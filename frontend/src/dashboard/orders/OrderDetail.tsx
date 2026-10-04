@@ -138,41 +138,42 @@ function SummaryCard({ order }: { order: Order }) {
         </div>
         <span className="pt-1.5 text-right text-sm text-slate-500">{o.placed(formatOrderTime(order.created_at))}</span>
       </div>
-      <dl className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 lg:grid lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+      <ul className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 lg:grid lg:grid-cols-3 lg:divide-x lg:divide-y-0">
         {rows.map(({ label, badge, href }) => {
           const content = (
             <>
-              <dt className="text-sm text-slate-600">{label}</dt>
-              <dd className="flex items-center gap-1">
+              <span className="text-sm text-slate-600">{label}</span>
+              <span className="flex items-center gap-1">
                 <Badge tone={badge.tone}>{badge.label}</Badge>
                 {href && <ChevronDown aria-hidden className="size-4 text-slate-400" />}
-              </dd>
+              </span>
             </>
           )
           const row =
             'flex min-h-11 items-center justify-between gap-3 px-3.5 py-2 lg:flex-col lg:items-start lg:justify-center lg:gap-1 lg:py-3'
-          return href ? (
-            <a
-              key={label}
-              href={href}
-              onClick={(e) => {
-                // Scroll only: a #hash entry would drop the back arrow's
-                // destination (useBackTo reads the page's history state).
-                e.preventDefault()
-                const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-                document.querySelector(href)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
-              }}
-              className={`${row} transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-600`}
-            >
-              {content}
-            </a>
-          ) : (
-            <div key={label} className={row}>
-              {content}
-            </div>
+          return (
+            <li key={label}>
+              {href ? (
+                <a
+                  href={href}
+                  onClick={(e) => {
+                    // Scroll only: a #hash entry would drop the back arrow's
+                    // destination (useBackTo reads the page's history state).
+                    e.preventDefault()
+                    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                    document.querySelector(href)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+                  }}
+                  className={`${row} transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-600`}
+                >
+                  {content}
+                </a>
+              ) : (
+                <div className={row}>{content}</div>
+              )}
+            </li>
           )
         })}
-      </dl>
+      </ul>
       {order.source && (
         <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
           <Link2 aria-hidden className="size-4 shrink-0" />
