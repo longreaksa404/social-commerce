@@ -9,6 +9,7 @@ import type { ShopProduct as Product, ShopStore, ShopVariant } from '../lib/type
 import { MAX_QUANTITY, useCart } from './cart.ts'
 import { NotFound, ProductImage, QuantityStepper } from './components.tsx'
 import { isNotFound, useShop, useShopProduct } from './queries.ts'
+import { ShopInfo } from './ShopInfo.tsx'
 
 /** /shop/:storeSlug/product/:productSlug: the product link a seller shares. */
 export function ShopProduct() {
@@ -53,7 +54,8 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
   const t = useT()
 
   return (
-    <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-10">
+    // Bottom padding on phones: room for the pinned Add to cart bar.
+    <div className="pb-24 lg:grid lg:grid-cols-2 lg:items-start lg:gap-10 lg:pb-0">
       <title>{`${product.name} · ${shop.name}`}</title>
       <Gallery images={product.image_urls} name={product.name} />
       <div className="mt-4 lg:mt-0">
@@ -78,6 +80,7 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
         {shop.telegram_username && (
           <AskSeller username={shop.telegram_username} product={product} variant={variant} />
         )}
+        <ShopInfo shop={shop} className="mt-6" />
 
         {product.description && (
           <div className="mt-6 border-t border-slate-200 pt-5">
@@ -135,26 +138,33 @@ function AddToCart({ shop, product, variant }: { shop: ShopStore; product: Produ
     setAdded(true)
   }
 
+  // Pinned to the bottom of the screen on phones, so it stays one tap away
+  // while reading the details; in place beside the photos on wide screens.
   return (
-    <div className="mt-6">
-      <div className="flex items-center gap-3">
-        <QuantityStepper value={amount} max={Math.max(1, room)} onChange={setQuantity} disabled={blocked !== null} />
-        <Button size="lg" icon={ShoppingBag} disabled={blocked !== null} onClick={add} className="flex-1">
-          {blocked ?? t.shop.product.addToCart}
-        </Button>
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:mt-6 lg:border-0 lg:bg-transparent lg:pb-0 lg:backdrop-blur-none">
+      <div className="mx-auto flex max-w-5xl flex-col px-4 py-3 lg:p-0">
+        <div className="flex items-center gap-3">
+          {/* Hidden until it can be used, so the reason fits on one line. */}
+          {blocked === null && <QuantityStepper value={amount} max={Math.max(1, room)} onChange={setQuantity} />}
+          <Button size="lg" icon={ShoppingBag} disabled={blocked !== null} onClick={add} className="flex-1">
+            {blocked ?? t.shop.product.addToCart}
+          </Button>
+        </div>
+        {/* Above the buttons in the bar (it grows upwards, the button stays
+            put); below them on wide screens. */}
+        {added && (
+          <p
+            role="status"
+            className="order-first mb-3 flex items-center gap-2 rounded-xl bg-emerald-50 py-1.5 pr-1.5 pl-3.5 text-sm font-medium text-emerald-800 lg:order-last lg:mt-3 lg:mb-0"
+          >
+            <CircleCheck aria-hidden className="size-4.5 shrink-0" />
+            <span className="flex-1">{t.shop.product.added}</span>
+            <Link to={`/shop/${shop.slug}/cart`} className={`${buttonClass('secondary')} shrink-0`}>
+              {t.shop.product.viewCart(cart.count)}
+            </Link>
+          </p>
+        )}
       </div>
-      {added && (
-        <p
-          role="status"
-          className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 py-1.5 pr-1.5 pl-3.5 text-sm font-medium text-emerald-800"
-        >
-          <CircleCheck aria-hidden className="size-4.5 shrink-0" />
-          <span className="flex-1">{t.shop.product.added}</span>
-          <Link to={`/shop/${shop.slug}/cart`} className={`${buttonClass('secondary')} shrink-0`}>
-            {t.shop.product.viewCart(cart.count)}
-          </Link>
-        </p>
-      )}
     </div>
   )
 }
@@ -170,7 +180,7 @@ function AskSeller({ username, product, variant }: { username: string; product: 
       href={`https://t.me/${username}?text=${encodeURIComponent(text)}`}
       target="_blank"
       rel="noreferrer"
-      className={`${buttonClass('secondary')} mt-3 w-full`}
+      className={`${buttonClass('secondary')} mt-5 w-full lg:mt-3`}
     >
       <Send aria-hidden className="size-4" />
       {t.shop.product.askSeller}

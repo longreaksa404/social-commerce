@@ -53,6 +53,17 @@ function Shell() {
   )
 }
 
+/** The shop's logo, round as customers see it, or a plain shop icon. */
+function StoreMark() {
+  const logo = useStore().data?.logo_url
+  if (logo) return <img src={logo} alt="" className="size-8 shrink-0 rounded-full object-cover" />
+  return (
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
+      <Store aria-hidden className="size-4.5" />
+    </span>
+  )
+}
+
 /** Takes the room left in its bar, cut short with "…" if it needs more. */
 function StoreName() {
   const store = useStore()
@@ -98,9 +109,7 @@ function MobileTopBar() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
       <div className="flex h-14 items-center gap-2.5 pr-2 pl-4">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
-          <Store aria-hidden className="size-4.5" />
-        </span>
+        <StoreMark />
         <StoreName />
         <NotificationBell />
       </div>
@@ -155,9 +164,7 @@ function Sidebar() {
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-slate-200 bg-surface lg:flex">
       <div className="flex h-16 items-center gap-2.5 border-b border-slate-100 pr-3 pl-5">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
-          <Store aria-hidden className="size-4.5" />
-        </span>
+        <StoreMark />
         <StoreName />
         <NotificationBell />
       </div>

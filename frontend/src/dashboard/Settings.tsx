@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CircleCheck, ExternalLink, LogOut, Plus, Send, Share2, Trash2 } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { CircleCheck, ExternalLink, ImagePlus, LogOut, Plus, Send, Share2, Store as StoreIcon, Trash2 } from 'lucide-react'
+import { useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { useFeedback } from '../components/feedback.ts'
@@ -25,7 +25,8 @@ import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
 import { ThemeSwitch } from '../theme/ThemeSwitch.tsx'
 import { api } from '../lib/api.ts'
-import { fieldError, formError } from '../lib/errors.ts'
+import { errorText, fieldError, formError } from '../lib/errors.ts'
+import { prepareLogo, uploadStoreLogo } from '../lib/images.ts'
 import type {
   Currency,
   DeliverySettings,
@@ -188,6 +189,7 @@ function StoreForm({ store }: { store: Store }) {
   return (
     <form onSubmit={submit} className="mb-4 space-y-4">
       <Section title={s.store}>
+        <LogoField store={store} />
         <Field label={s.storeName} error={fieldError(save.error, 'name')}>
           <Input
             required
@@ -299,6 +301,74 @@ function StoreForm({ store }: { store: Store }) {
         {s.save}
       </Button>
     </form>
+  )
+}
+
+/** Saved as soon as it's picked, like product photos: not part of the
+ * form, so unsaved edits elsewhere are left alone. */
+function LogoField({ store }: { store: Store }) {
+  const queryClient = useQueryClient()
+  const { toast } = useFeedback()
+  const input = useRef<HTMLInputElement>(null)
+  const t = useT()
+  const s = t.settings
+  const save = useMutation({
+    mutationFn: async (file: File | null) => {
+      const logo_url = file ? await uploadStoreLogo(await prepareLogo(file)) : null
+      return api<Store>('/seller/store', { method: 'PATCH', body: { logo_url } })
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(keys.store, updated)
+      toast(updated.logo_url ? s.logoSaved : s.logoRemoved)
+    },
+  })
+
+  function pick(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (file) save.mutate(file)
+  }
+
+  return (
+    <div role="group" aria-labelledby="logo-label" aria-describedby="logo-desc">
+      <p id="logo-label" className="mb-1.5 text-sm font-medium text-slate-700">
+        {s.logo}
+      </p>
+      <div className="flex items-center gap-4">
+        {store.logo_url ? (
+          <img src={store.logo_url} alt="" className="size-16 shrink-0 rounded-full object-cover ring-1 ring-slate-200" />
+        ) : (
+          <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand text-white">
+            <StoreIcon aria-hidden className="size-7" />
+          </span>
+        )}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="secondary"
+            icon={ImagePlus}
+            loading={save.isPending}
+            onClick={() => input.current?.click()}
+          >
+            {store.logo_url ? s.changeLogo : s.addLogo}
+          </Button>
+          {store.logo_url && (
+            <Button variant="ghost" disabled={save.isPending} onClick={() => save.mutate(null)}>
+              {s.removeLogo}
+            </Button>
+          )}
+        </div>
+      </div>
+      <input ref={input} type="file" accept="image/*" tabIndex={-1} hidden onChange={pick} />
+      {save.error ? (
+        <p id="logo-desc" role="alert" className="mt-1.5 text-sm text-red-600">
+          {errorText(save.error)}
+        </p>
+      ) : (
+        <p id="logo-desc" className="mt-1.5 text-xs leading-5 text-slate-500">
+          {s.logoHint}
+        </p>
+      )}
+    </div>
   )
 }
 

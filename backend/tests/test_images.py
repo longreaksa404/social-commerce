@@ -123,3 +123,58 @@ async def test_upload_needs_r2_settings(client, auth_headers, monkeypatch):
 
     assert response.status_code == 503
     assert response.json()["error"]["code"] == "UPLOADS_NOT_CONFIGURED"
+
+
+async def test_logo_upload_goes_in_the_stores_own_folder(client, auth_headers, r2):
+    headers = await auth_headers()
+    store = (await client.get("/api/v1/seller/store", headers=headers)).json()
+
+    response = await client.post(
+        "/api/v1/seller/store/logo",
+        headers=headers,
+        json={"content_type": "image/jpeg", "size": 20_000},
+    )
+    upload = response.json()
+    attach = await client.patch(
+        "/api/v1/seller/store", headers=headers, json={"logo_url": upload["public_url"]}
+    )
+    shop = await client.get(f"/api/v1/shop/{store['slug']}")
+    remove = await client.patch("/api/v1/seller/store", headers=headers, json={"logo_url": None})
+
+    assert response.status_code == 200, upload
+    assert upload["public_url"].startswith(f"https://pub-test.r2.dev/stores/{store['id']}/logo/")
+    query = parse_qs(urlparse(upload["upload_url"]).query)
+    assert query["X-Amz-SignedHeaders"] == ["content-length;content-type;host"]
+    assert attach.json()["logo_url"] == upload["public_url"]
+    assert shop.json()["logo_url"] == upload["public_url"]
+    assert remove.json()["logo_url"] is None
+
+
+async def test_logo_must_be_this_stores_upload(client, auth_headers, r2):
+    other = await auth_headers()
+    other_upload = (
+        await client.post(
+            "/api/v1/seller/store/logo",
+            headers=other,
+            json={"content_type": "image/png", "size": 10},
+        )
+    ).json()
+    headers = await auth_headers()
+    product = await _product(client, headers)
+    product_photo = (
+        await client.post(
+            f"/api/v1/seller/products/{product['id']}/images",
+            headers=headers,
+            json={"content_type": "image/png", "size": 10},
+        )
+    ).json()
+
+    others = [other_upload["public_url"], product_photo["public_url"], "https://x.example/a.png"]
+    for url in others:
+        response = await client.patch(
+            "/api/v1/seller/store", headers=headers, json={"logo_url": url}
+        )
+        assert response.status_code == 422, url
+        assert response.json()["error"]["code"] == "INVALID_IMAGE"
+    store = (await client.get("/api/v1/seller/store", headers=headers)).json()
+    assert store["logo_url"] is None

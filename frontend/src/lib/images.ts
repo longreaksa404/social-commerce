@@ -83,6 +83,45 @@ export async function uploadProductImage(productId: string, { image, thumbnail }
   return upload.public_url
 }
 
+// Logos show at most ~64px wide; this is sharp on any phone screen.
+const LOGO_SIDE = 256
+
+/** The shop's logo: the middle square of the picture, 256px, JPEG. */
+export async function prepareLogo(file: File): Promise<Blob> {
+  if (!file.type.startsWith('image/')) {
+    throw new ApiError(422, 'INVALID_IMAGE', 'Please choose a photo.')
+  }
+  let bitmap: ImageBitmap
+  try {
+    bitmap = await createImageBitmap(file)
+  } catch {
+    throw new ApiError(422, 'INVALID_IMAGE', "This photo format isn't supported. Try a JPEG or PNG.")
+  }
+  const side = Math.min(bitmap.width, bitmap.height)
+  const out = Math.min(LOGO_SIDE, side)
+  const canvas = document.createElement('canvas')
+  canvas.width = out
+  canvas.height = out
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(0, 0, out, out)
+  ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, out, out)
+  bitmap.close()
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9))
+  if (!blob) throw new ApiError(422, 'INVALID_IMAGE', "Couldn't read this photo.")
+  return blob
+}
+
+/** Upload a prepared logo; returns its public URL for the store's logo_url. */
+export async function uploadStoreLogo(logo: Blob): Promise<string> {
+  const upload = await api<ImageUpload>('/seller/store/logo', {
+    method: 'POST',
+    body: { content_type: logo.type, size: logo.size },
+  })
+  await put(upload.upload_url, upload.headers, logo)
+  return upload.public_url
+}
+
 async function put(url: string, headers: Record<string, string>, body: Blob) {
   let response: Response
   try {

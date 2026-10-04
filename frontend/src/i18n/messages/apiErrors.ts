@@ -45,6 +45,7 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   'Add at least one variant, or turn variants off.': 'សូមបន្ថែមជម្រើសយ៉ាងតិចមួយ ឬបិទជម្រើស។',
   'Turn variants on to add variants.': 'សូមបើកជម្រើស ដើម្បីបន្ថែមជម្រើស។',
   'Invalid product image.': 'រូបភាពទំនិញមិនត្រឹមត្រូវ។',
+  'Invalid logo image.': 'រូបឡូហ្គោមិនត្រឹមត្រូវ។',
   'Image uploads are not set up yet.': 'ការបង្ហោះរូបភាពមិនទាន់បានរៀបចំនៅឡើយ។',
   'A product can have up to 5 images.': 'ទំនិញមួយអាចមានរូបភាពបានច្រើនបំផុត 5។',
   // Made by the app while preparing a photo (src/lib/images.ts)

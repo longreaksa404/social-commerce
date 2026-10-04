@@ -4,6 +4,7 @@ import { useParams } from 'react-router'
 import { EmptyState, ErrorState, Skeleton } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
 import { CategoryChips, ProductGrid, ProductGridSkeleton } from './components.tsx'
+import { ShopInfo } from './ShopInfo.tsx'
 import { useShop, useShopProducts } from './queries.ts'
 
 /** /shop/:storeSlug: the store link a seller shares. */
@@ -30,6 +31,7 @@ export function ShopHome() {
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">{shop.data.name}</h1>
         {shop.data.description && <Description text={shop.data.description} />}
       </div>
+      <ShopInfo shop={shop.data} className="mb-5" />
       <CategoryChips shop={shop.data} />
       {products.error ? (
         <ErrorState error={products.error} onRetry={() => products.refetch()} />

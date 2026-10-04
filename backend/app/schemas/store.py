@@ -68,6 +68,8 @@ class StoreUpdate(BaseModel):
     discount_settings: DiscountSettings | None = None
     # "@reaksa_shop", "reaksa_shop" or "t.me/reaksa_shop"; empty or null clears it.
     telegram_username: str | None = None
+    # A public_url from POST /seller/store/logo; null removes the logo.
+    logo_url: str | None = Field(default=None, max_length=500)
 
     @field_validator("telegram_username")
     @classmethod

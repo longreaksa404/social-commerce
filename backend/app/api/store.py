@@ -4,6 +4,8 @@ from app.api.deps import Seller, TenantDb
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.schemas.store import StoreOut, StoreUpdate, TelegramLinkOut
+from app.schemas.upload import ImageUploadIn, ImageUploadOut
+from app.services import images as image_service
 from app.services import store as store_service
 from app.services import telegram
 
@@ -18,6 +20,12 @@ async def get_store(seller: Seller, db: TenantDb) -> StoreOut:
 @router.patch("", response_model=StoreOut)
 async def update_store(data: StoreUpdate, seller: Seller, db: TenantDb) -> StoreOut:
     return await store_service.update_store(db, seller.store_id, data)
+
+
+@router.post("/logo", response_model=ImageUploadOut)
+async def create_logo_upload(data: ImageUploadIn, seller: Seller) -> ImageUploadOut:
+    """Step 1 of a logo upload: PUT the file, then PATCH logo_url."""
+    return image_service.create_logo_upload(seller.store_id, data)
 
 
 @router.post("/telegram/link", response_model=TelegramLinkOut)

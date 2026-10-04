@@ -18,6 +18,7 @@ from app.core.errors import AppError
 from app.schemas.product import MAX_IMAGES
 from app.schemas.upload import EXTENSIONS, ImageUploadIn, ImageUploadOut
 from app.services.product import get_product, image_prefix
+from app.services.store import logo_prefix
 
 UPLOAD_URL_SECONDS = 600
 
@@ -35,13 +36,16 @@ def _r2_client() -> Any:
     )
 
 
+def _check_configured() -> None:
+    if not get_settings().r2_configured:
+        raise AppError(503, "UPLOADS_NOT_CONFIGURED", "Image uploads are not set up yet.")
+
+
 async def create_upload(
     db: AsyncSession, store_id: uuid.UUID, product_id: uuid.UUID, data: ImageUploadIn
 ) -> ImageUploadOut:
     settings = get_settings()
-    if not settings.r2_configured:
-        raise AppError(503, "UPLOADS_NOT_CONFIGURED", "Image uploads are not set up yet.")
-
+    _check_configured()
     product = await get_product(db, store_id, product_id)
     if len(product.image_urls) >= MAX_IMAGES:
         raise AppError(422, "TOO_MANY_IMAGES", f"A product can have up to {MAX_IMAGES} images.")
@@ -60,6 +64,19 @@ async def create_upload(
         public_url=f"{settings.r2_public_url}/{key}",
         headers={"Content-Type": data.content_type},
         thumbnail_upload_url=thumbnail_url,
+    )
+
+
+def create_logo_upload(store_id: uuid.UUID, data: ImageUploadIn) -> ImageUploadOut:
+    """The shop's logo: one small image (the app shrinks it first), no copy."""
+    settings = get_settings()
+    _check_configured()
+    folder = logo_prefix(store_id).removeprefix(f"{settings.r2_public_url}/")
+    key = f"{folder}{uuid.uuid4().hex}.{EXTENSIONS[data.content_type]}"
+    return ImageUploadOut(
+        upload_url=_signed_put(key, data.content_type, data.size),
+        public_url=f"{settings.r2_public_url}/{key}",
+        headers={"Content-Type": data.content_type},
     )
 
 

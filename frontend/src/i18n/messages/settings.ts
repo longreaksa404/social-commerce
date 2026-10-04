@@ -26,6 +26,16 @@ export const settings = {
   },
   usd: { en: 'US dollar ($)', km: 'ដុល្លារអាមេរិក ($)' },
   khr: { en: 'Cambodian riel (៛)', km: 'ប្រាក់រៀល (៛)' },
+  logo: { en: 'Shop logo', km: 'ឡូហ្គោហាង' },
+  logoHint: {
+    en: 'Shown at the top of your shop. A square picture works best. Saved at once.',
+    km: 'បង្ហាញនៅខាងលើហាងរបស់អ្នក។ រូបការ៉េល្អបំផុត។ រក្សាទុកភ្លាមៗ។',
+  },
+  addLogo: { en: 'Add logo', km: 'បន្ថែមឡូហ្គោ' },
+  changeLogo: { en: 'Change logo', km: 'ប្ដូរឡូហ្គោ' },
+  removeLogo: { en: 'Remove logo', km: 'ដកឡូហ្គោចេញ' },
+  logoSaved: { en: 'Logo saved', km: 'បានរក្សាទុកឡូហ្គោ' },
+  logoRemoved: { en: 'Logo removed', km: 'បានដកឡូហ្គោចេញ' },
 
   orders: { en: 'Orders', km: 'ការកុម្ម៉ង់' },
   autoAccept: { en: 'Accept new orders automatically', km: 'ទទួលការកុម្ម៉ង់ថ្មីដោយស្វ័យប្រវត្តិ' },
