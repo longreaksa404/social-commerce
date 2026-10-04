@@ -1,4 +1,4 @@
-import { ChevronRight, Link2, MapPin, MapPinned, MessageSquareText, Phone, Truck } from 'lucide-react'
+import { ChevronDown, ChevronRight, Link2, MapPin, MapPinned, MessageSquareText, Phone, Truck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
@@ -72,127 +72,26 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
       <PageHeader title={t.shop.orderNumber(order.number)} back={back} />
       <title>{t.shop.orderNumber(order.number)}</title>
 
+      {/* Phones: one column, what was ordered first. Wide screens: items and
+          customer beside delivery and payment. */}
       <div className="space-y-4">
-        <Card className="p-4 sm:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <Badge tone={ORDER_STATUS_TONES[order.status]}>{t.status.order[order.status]}</Badge>
-            <span className="text-sm text-slate-500">{o.placed(formatOrderTime(order.created_at))}</span>
+        <SummaryCard order={order} />
+        <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0">
+          <div className="space-y-4">
+            <ItemsCard order={order} />
+            <CustomerCard order={order} />
           </div>
-          {order.source && (
-            <p className="mt-2 flex items-center gap-1.5 text-sm text-slate-500">
-              <Link2 aria-hidden className="size-4 shrink-0" />
-              {o.cameThrough(sourceLabel(order.source))}
-            </p>
-          )}
-          {order.notes && (
-            <div className="mt-4 flex gap-2.5 rounded-xl bg-amber-50 px-3.5 py-3 text-sm text-amber-900">
-              <MessageSquareText aria-hidden className="mt-0.5 size-4 shrink-0" />
-              <p>
-                <span className="font-semibold">{o.noteFromCustomer}</span>
-                <span className="whitespace-pre-line break-words">{order.notes}</span>
-              </p>
-            </div>
-          )}
-        </Card>
-
-        <DeliverySection order={order} onStale={onStale} />
-
-        <PaymentSection order={order} onStale={onStale} />
-
-        <Card className="p-4 sm:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="font-semibold text-slate-900">{o.customer}</h2>
-            <Link
-              to={`/dashboard/customers/${order.customer.id}`}
-              state={{ back: `/dashboard/orders/${order.id}` }}
-              className="-my-2 -mr-2 inline-flex min-h-11 items-center gap-0.5 rounded-lg px-2 text-sm font-medium text-emerald-700 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600"
-            >
-              {o.viewCustomer}
-              <ChevronRight aria-hidden className="size-4" />
-            </Link>
+          <div className="space-y-4">
+            <DeliverySection order={order} onStale={onStale} />
+            <PaymentSection order={order} onStale={onStale} />
           </div>
-          <p className="mt-2 break-words text-slate-900">{order.customer.name}</p>
-          <a
-            href={`tel:${order.customer.phone}`}
-            className="-mx-2 mt-1 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium text-emerald-700 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600"
-          >
-            <Phone aria-hidden className="size-4" />
-            {formatPhone(order.customer.phone)}
-          </a>
-          {order.delivery_method === 'seller_delivery' && (
-            <>
-              <h3 className="mt-3 text-sm font-medium text-slate-500">{o.deliverTo}</h3>
-              {order.delivery_address && (
-                <p className="mt-0.5 whitespace-pre-line break-words text-slate-900">{order.delivery_address}</p>
-              )}
-              {order.delivery_address_note && (
-                <p className="mt-1 text-sm break-words text-slate-600">
-                  <span className="text-slate-500">{o.note}</span>
-                  {order.delivery_address_note}
-                </p>
-              )}
-              {order.delivery_lat !== null && order.delivery_lng !== null && (
-                <a
-                  href={`https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`${buttonClass('secondary')} mt-3 w-full sm:w-auto`}
-                >
-                  <MapPinned aria-hidden className="size-4" />
-                  {o.openMaps}
-                </a>
-              )}
-            </>
-          )}
-        </Card>
-
-        <Card className="p-4 sm:p-6">
-          <h2 className="mb-2 font-semibold text-slate-900">{t.order.items}</h2>
-          <ul className="divide-y divide-slate-100">
-            {order.items.map((item, i) => (
-              <li key={i} className="flex gap-3 py-2.5">
-                <span className="min-w-0 flex-1">
-                  <span className="block break-words text-slate-900">
-                    {item.product_name}
-                    {item.variant_name && <span className="text-slate-500"> · {item.variant_name}</span>}
-                  </span>
-                  <span className="text-sm text-slate-500">
-                    {item.quantity} × {formatMoney(item.unit_price, order.currency)}
-                  </span>
-                </span>
-                <span className="font-medium text-slate-900">{formatMoney(item.line_total, order.currency)}</span>
-              </li>
-            ))}
-          </ul>
-          <dl className="mt-2 space-y-1 border-t border-slate-200 pt-3 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-slate-600">{t.shop.summary.items}</dt>
-              <dd className="text-slate-900">{formatMoney(order.subtotal, order.currency)}</dd>
-            </div>
-            {Number(order.discount) > 0 && (
-              <div className="flex justify-between">
-                <dt className="text-slate-600">{t.shop.summary.discount}</dt>
-                <dd className="text-slate-900">−{formatMoney(order.discount, order.currency)}</dd>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <dt className="text-slate-600">{order.delivery_method === 'pickup' ? t.checkout.pickup : t.shop.summary.delivery}</dt>
-              <dd className="text-slate-900">
-                {Number(order.delivery_fee) > 0 ? formatMoney(order.delivery_fee, order.currency) : t.shop.summary.free}
-              </dd>
-            </div>
-          </dl>
-          <div className="mt-2 flex items-baseline justify-between border-t border-slate-200 pt-3">
-            <span className="font-semibold text-slate-900">{t.shop.summary.total}</span>
-            <span className="text-lg font-bold text-slate-900">{formatMoney(order.total, order.currency)}</span>
-          </div>
-        </Card>
+        </div>
       </div>
 
       {order.next_statuses.length > 0 && (
         // Pinned to the bottom on phones, in reach of a thumb.
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:mt-4 lg:border-0 lg:bg-transparent lg:pb-0">
-          <div className="mx-auto flex max-w-3xl gap-3 px-4 py-3 lg:px-0">
+          <div className="mx-auto flex max-w-3xl gap-3 px-4 py-3 lg:max-w-none lg:px-0">
             {ends.map((status) => (
               <Button key={status} variant="danger" disabled={change.isPending} onClick={() => move(status)}>
                 {o.action[status as keyof typeof o.action]}
@@ -213,6 +112,182 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
         </div>
       )}
     </>
+  )
+}
+
+/** The order at a glance: what it comes to, and where each of its three
+ * statuses stands. They move independently (02 section 7); each line
+ * jumps to its card. */
+function SummaryCard({ order }: { order: Order }) {
+  const t = useT()
+  const o = t.orders
+  const payment = paymentBadge(t, order.payment.method, order.payment.status)
+  const delivery = deliveryBadge(t, order.delivery.method, order.delivery.status)
+  const count = order.items.reduce((sum, item) => sum + item.quantity, 0)
+  const rows = [
+    { label: o.order, badge: { label: t.status.order[order.status], tone: ORDER_STATUS_TONES[order.status] }, href: null },
+    { label: o.payment, badge: payment, href: '#payment' },
+    { label: order.delivery.method === 'pickup' ? t.checkout.pickup : o.delivery, badge: delivery, href: '#delivery' },
+  ]
+  return (
+    <Card className="p-4 sm:p-6">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-2xl font-bold tracking-tight text-slate-900">{formatMoney(order.total, order.currency)}</p>
+          <p className="mt-0.5 text-sm text-slate-500">{o.items(count)}</p>
+        </div>
+        <span className="pt-1.5 text-right text-sm text-slate-500">{o.placed(formatOrderTime(order.created_at))}</span>
+      </div>
+      <dl className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 lg:grid lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+        {rows.map(({ label, badge, href }) => {
+          const content = (
+            <>
+              <dt className="text-sm text-slate-600">{label}</dt>
+              <dd className="flex items-center gap-1">
+                <Badge tone={badge.tone}>{badge.label}</Badge>
+                {href && <ChevronDown aria-hidden className="size-4 text-slate-400" />}
+              </dd>
+            </>
+          )
+          const row =
+            'flex min-h-11 items-center justify-between gap-3 px-3.5 py-2 lg:flex-col lg:items-start lg:justify-center lg:gap-1 lg:py-3'
+          return href ? (
+            <a
+              key={label}
+              href={href}
+              onClick={(e) => {
+                // Scroll only: a #hash entry would drop the back arrow's
+                // destination (useBackTo reads the page's history state).
+                e.preventDefault()
+                const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                document.querySelector(href)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+              }}
+              className={`${row} transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-600`}
+            >
+              {content}
+            </a>
+          ) : (
+            <div key={label} className={row}>
+              {content}
+            </div>
+          )
+        })}
+      </dl>
+      {order.source && (
+        <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
+          <Link2 aria-hidden className="size-4 shrink-0" />
+          {o.cameThrough(sourceLabel(order.source))}
+        </p>
+      )}
+      {order.notes && (
+        <div className="mt-3 flex gap-2.5 rounded-xl bg-amber-50 px-3.5 py-3 text-sm text-amber-900">
+          <MessageSquareText aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <p>
+            <span className="font-semibold">{o.noteFromCustomer}</span>
+            <span className="whitespace-pre-line break-words">{order.notes}</span>
+          </p>
+        </div>
+      )}
+    </Card>
+  )
+}
+
+function ItemsCard({ order }: { order: Order }) {
+  const t = useT()
+  return (
+    <Card className="p-4 sm:p-6">
+      <h2 className="mb-2 font-semibold text-slate-900">{t.order.items}</h2>
+      <ul className="divide-y divide-slate-100">
+        {order.items.map((item, i) => (
+          <li key={i} className="flex gap-3 py-2.5">
+            <span className="min-w-0 flex-1">
+              <span className="block break-words text-slate-900">
+                {item.product_name}
+                {item.variant_name && <span className="text-slate-500"> · {item.variant_name}</span>}
+              </span>
+              <span className="text-sm text-slate-500">
+                {item.quantity} × {formatMoney(item.unit_price, order.currency)}
+              </span>
+            </span>
+            <span className="font-medium text-slate-900">{formatMoney(item.line_total, order.currency)}</span>
+          </li>
+        ))}
+      </ul>
+      <dl className="mt-2 space-y-1 border-t border-slate-200 pt-3 text-sm">
+        <div className="flex justify-between">
+          <dt className="text-slate-600">{t.shop.summary.items}</dt>
+          <dd className="text-slate-900">{formatMoney(order.subtotal, order.currency)}</dd>
+        </div>
+        {Number(order.discount) > 0 && (
+          <div className="flex justify-between">
+            <dt className="text-slate-600">{t.shop.summary.discount}</dt>
+            <dd className="text-slate-900">−{formatMoney(order.discount, order.currency)}</dd>
+          </div>
+        )}
+        <div className="flex justify-between">
+          <dt className="text-slate-600">{order.delivery_method === 'pickup' ? t.checkout.pickup : t.shop.summary.delivery}</dt>
+          <dd className="text-slate-900">
+            {Number(order.delivery_fee) > 0 ? formatMoney(order.delivery_fee, order.currency) : t.shop.summary.free}
+          </dd>
+        </div>
+      </dl>
+      <div className="mt-2 flex items-baseline justify-between border-t border-slate-200 pt-3">
+        <span className="font-semibold text-slate-900">{t.shop.summary.total}</span>
+        <span className="text-lg font-bold text-slate-900">{formatMoney(order.total, order.currency)}</span>
+      </div>
+    </Card>
+  )
+}
+
+function CustomerCard({ order }: { order: Order }) {
+  const o = useT().orders
+  return (
+    <Card className="p-4 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-semibold text-slate-900">{o.customer}</h2>
+        <Link
+          to={`/dashboard/customers/${order.customer.id}`}
+          state={{ back: `/dashboard/orders/${order.id}` }}
+          className="-my-2 -mr-2 inline-flex min-h-11 items-center gap-0.5 rounded-lg px-2 text-sm font-medium text-emerald-700 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600"
+        >
+          {o.viewCustomer}
+          <ChevronRight aria-hidden className="size-4" />
+        </Link>
+      </div>
+      <p className="mt-2 break-words text-slate-900">{order.customer.name}</p>
+      <a
+        href={`tel:${order.customer.phone}`}
+        className="-mx-2 mt-1 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium text-emerald-700 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600"
+      >
+        <Phone aria-hidden className="size-4" />
+        {formatPhone(order.customer.phone)}
+      </a>
+      {order.delivery_method === 'seller_delivery' && (
+        <>
+          <h3 className="mt-3 text-sm font-medium text-slate-500">{o.deliverTo}</h3>
+          {order.delivery_address && (
+            <p className="mt-0.5 whitespace-pre-line break-words text-slate-900">{order.delivery_address}</p>
+          )}
+          {order.delivery_address_note && (
+            <p className="mt-1 text-sm break-words text-slate-600">
+              <span className="text-slate-500">{o.note}</span>
+              {order.delivery_address_note}
+            </p>
+          )}
+          {order.delivery_lat !== null && order.delivery_lng !== null && (
+            <a
+              href={`https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}`}
+              target="_blank"
+              rel="noreferrer"
+              className={`${buttonClass('secondary')} mt-3 w-full sm:w-auto`}
+            >
+              <MapPinned aria-hidden className="size-4" />
+              {o.openMaps}
+            </a>
+          )}
+        </>
+      )}
+    </Card>
   )
 }
 
@@ -260,7 +335,7 @@ function PaymentSection({ order, onStale }: { order: Order; onStale: () => void 
   }
 
   return (
-    <Card className="p-4 sm:p-6">
+    <Card id="payment" className="scroll-mt-4 p-4 sm:p-6">
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-semibold text-slate-900">{o.payment}</h2>
         <Badge tone={badge.tone}>{badge.label}</Badge>
@@ -364,7 +439,7 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
   }
 
   return (
-    <Card className="p-4 sm:p-6">
+    <Card id="delivery" className="scroll-mt-4 p-4 sm:p-6">
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 font-semibold text-slate-900">
           <Icon aria-hidden className="size-4.5 text-slate-500" />

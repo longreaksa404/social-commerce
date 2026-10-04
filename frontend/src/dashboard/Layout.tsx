@@ -43,7 +43,7 @@ function Shell() {
       <Sidebar />
       {!focused && <MobileTopBar />}
       <main
-        className={`mx-auto w-full max-w-3xl px-4 lg:px-8 lg:py-8 ${
+        className={`mx-auto w-full px-4 lg:px-8 lg:py-8 ${orderScreen ? 'max-w-3xl lg:max-w-5xl' : 'max-w-3xl'} ${
           focused ? 'pt-2 pb-28 lg:pb-8' : 'pt-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] lg:pb-8'
         }`}
       >

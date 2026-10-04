@@ -291,8 +291,12 @@ export function IconButton({
 // ---------------------------------------------------------------------------
 // Layout pieces
 
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border border-slate-200 bg-surface shadow-xs ${className}`}>{children}</div>
+export function Card({ children, className = '', id }: { children: ReactNode; className?: string; id?: string }) {
+  return (
+    <div id={id} className={`rounded-2xl border border-slate-200 bg-surface shadow-xs ${className}`}>
+      {children}
+    </div>
+  )
 }
 
 /** A titled card section of a form or settings page. */
