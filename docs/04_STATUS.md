@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-04 (Phase 9: layout pass, phones edge to edge; deployed)
+> **Last updated:** 2026-10-05 (Phase 9: domain name khmerorder.com chosen, not bought yet)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -755,9 +755,10 @@ site):**
 
 Phase 9, waiting on the founder:
 
-- **Domain:** buy a .com on Cloudflare (decided 2026-10-04, name not
-  chosen yet). Then: Vercel + Render custom domains, Cloudflare DNS,
-  R2 photos on `images.<domain>` (existing photo and logo URLs need rewriting in
+- **Domain:** buy **khmerorder.com** on Cloudflare (name chosen
+  2026-10-05, not bought yet; Domains → Register domain, in the same
+  account as R2). Then: Vercel + Render custom domains, Cloudflare DNS,
+  R2 photos on `images.khmerorder.com` (existing photo and logo URLs need rewriting in
   the database, or saving a product with old photos is refused as
   "Invalid product image"), the refresh token moved to an httpOnly
   cookie, `PUBLIC_API_URL` / `PUBLIC_APP_URL` / `CORS_ORIGINS` updated.
@@ -904,8 +905,12 @@ Resolved:
 - [x] **`link_event` gets `store_id`** (2026-10-03, CLAUDE.md hard rule 1,
       like `delivery` and `order_item`).
 
-- [x] **Domain: a .com bought on Cloudflare** (2026-10-04); name to be
-      chosen by the founder.
+- [x] **Domain: a .com bought on Cloudflare** (2026-10-04); name
+      **khmerorder.com** chosen by the founder (2026-10-05), not bought
+      yet ($10.46/year, same to renew). Picked over rielmart.com and
+      tinhlink.com: "order" is the word sellers already use, and the
+      seller's shop stays the brand. Whether it is also the product's
+      name (01 §1.1, §46) is still open.
 - [x] **Render stays on the free plan for now** (2026-10-04); revisit if
       the first seller's customers find the first visit slow ($7/month
       Starter keeps it awake).
@@ -1133,6 +1138,10 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   and change `R2_PUBLIC_URL`; no code change. Photos uploaded before
   then keep their `r2.dev` address, so switch before real sellers add
   many photos.
+- **Similar app in Cambodia: Kommong** (kommong.com, App Store and
+  Google Play), found while choosing the domain (2026-10-05). Its site
+  says it records orders and manages stock for sellers. Avoid
+  "kommong" in any name.
 - Links: counts are per device, so a customer who opens the link on
   their phone and orders on a laptop isn't counted; the seller tapping
   their own link in TikTok counts as a view (the dashboard's Open button
@@ -1185,7 +1194,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
    Khmer with the rest.
 5. Founder: read the Khmer on the live site; try dark mode; run the
    rate-limit check (Notes).
-6. Founder: choose and buy the domain; then Claude does DNS, R2 photo
+6. Founder: buy khmerorder.com (chosen 2026-10-05); then Claude does DNS, R2 photo
    domain, cookie sessions.
 7. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
 8. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
