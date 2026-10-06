@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-06 (Phase 9: brand Sroul chosen, sroul.com not bought yet)
+> **Last updated:** 2026-10-06 (Phase 9: load test built and run locally; bcrypt fix)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -749,11 +749,48 @@ site):**
       nothing scrolls sideways. axe-core: no WCAG 2.1 A/AA violations
       (Khmer light 320 px, English dark 390 px); no console errors.
 
+**Phase 9 load test (founder's request 2026-10-06: "how strong of
+performance this project can handle?"; committed, not pushed):**
+
+- [x] Fix: password checks (bcrypt) run in a worker thread
+      (`core/security.py`). On the event loop, one seller logging in
+      froze every shop for ~2.5 s on Render's 0.1 CPU (a login took
+      6.9 s under load in the test). Test: the server keeps serving
+      during a check. 447 pytest tests.
+- [x] `backend/loadtest/` (Locust 2.46.7, own `requirements.txt`, not in
+      CI or the Docker image; how to run in its `README.md`): `seed.py`
+      makes a test shop through the API (30 products, a third with
+      sizes, a Facebook link); `locustfile.py` = customers who open the
+      link, view 1-3 products (3-10 s a page), 1 in 10 orders, plus one
+      seller polling the dashboard every 30 s; people grow one step a
+      minute and each run ends with one line per step; `race.py` = 30
+      orders at once for the last 5 units.
+- [x] **Run locally (2026-10-06)** on the production Docker image limited
+      to Render's CPU and memory (`--cpus`, `--memory 512m`), local
+      Postgres, rate limits off. "People" = customers in the shop at the
+      same moment; ok = 95% of answers under 1 s, none failed.
+
+      | CPU (Render plan) | Fine up to | Requests/s there | Over the limit |
+      |---|---|---|---|
+      | 0.1 (free) | **40 people** (95% under 0.3 s) | 10 | 60 people: 95% take 2.7 s; at 100, 8.8 s. Tops out at ~14.5 requests/s |
+      | 0.5 (Starter, $7/month) | **200 people** (95% under 0.3 s) | 50 | 300 people: still 95% under 0.6 s, 72 requests/s |
+
+      Memory ~90 MB of 512 MB throughout. Race: 5 orders placed, 25
+      told sold out, 0 left (**PASS**), 30 answers in 4.5 s at 0.1 CPU.
+      Starting the server at 0.1 CPU (migrations + Python) takes ~35 s,
+      which is part of the wait after Render's free plan sleeps.
+
 ---
 
 ## In Progress
 
 Phase 9, waiting on the founder:
+
+- **Live load test**, once, before the first real seller, from home
+  (`backend/loadtest/README.md` "On the live site"): time the wait
+  after 20 quiet minutes, rate limits off in Render, seed + Locust +
+  race, rate limits back on, hide the test shop. Send Claude the
+  summary lines.
 
 - **Domain:** buy **sroul.com** on Cloudflare (brand chosen
   2026-10-06, not bought yet; Domains → Register domain, in the same
@@ -947,6 +984,13 @@ Resolved:
 ---
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
+
+Not yet in 03 (founder said yes 2026-10-06): **load test before the
+first real seller.** Proposed 03 Phase 9 row, after "Layout pass":
+"| Load test before the first seller (`backend/loadtest/`: locally at
+Render's CPU, then once on the live site) and the bcrypt fix it found
+| 4 |"; subtotal ~104 hours (~8 weeks); §4: Phase 9 104, total ~332
+hrs.
 
 Applied to 03 on 2026-10-04 (at the founder's request): the layout pass
 (03 Phase 9 row, subtotal ~100 hrs, §4 totals: Phase 9 100 hrs, total
@@ -1144,6 +1188,22 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   in the Orders tab.
 - Back arrows on the order and customer pages go to the `back` the link
   passed in its state (`useBackTo`), else to their list.
+- **Load test numbers in shop terms (local, 2026-10-06):** a simulated
+  visit lasts ~20 s and makes ~5 requests, so "40 people at once" ≈ 2
+  new visitors a second ≈ **~120 people tapping a link per minute** on
+  the free plan, **~600 per minute** on Starter. A post that 300 people
+  tap in its first 10 minutes (30 a minute) is well inside the free
+  plan; a viral post or a TikTok live that brings 1,000 taps in 5
+  minutes is not. Local numbers; the live test confirms them.
+- Load test: 10 of 3,535 requests failed with "connection reset" at
+  0.1 CPU (none in the settled half of the 10-40 people steps), and
+  13 of 15,595 at 0.5 CPU (11 of
+  them in the first half of a step, while 50 more people arrive within
+  5 s). Nothing in the server log. Probably uvicorn closing an idle
+  keep-alive connection (after 5 s) just as the test client reuses it,
+  which happens more often when the server is slow; browsers retry
+  these. If the live test shows errors (502s) at normal load, raise
+  uvicorn's `--timeout-keep-alive` in the Dockerfile.
 - Free-tier limits to revisit before the first real seller (Phase 9): the
   Render free web service sleeps after 15 min idle (slow first request);
   Neon free keeps only a 6-hour restore window, not daily backups. When the
@@ -1219,3 +1279,6 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 7. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
 8. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
    Part A on the live site, revoke the Telegram token.
+9. Founder: push (the bcrypt fix deploys with it), then the live load
+   test from home (`backend/loadtest/README.md`); send Claude the
+   summary lines. Decide Render free vs Starter with those numbers.

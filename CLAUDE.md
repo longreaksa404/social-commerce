@@ -94,6 +94,8 @@ Backend (from `backend/`, with `source .venv/bin/activate`):
 - `ruff check . && ruff format --check .`: lint (`ruff format .` to fix formatting)
 - `alembic upgrade head`: apply migrations
 - `alembic revision --autogenerate -m "message"`: create a migration
+- Load test: `backend/loadtest/README.md` (own venv; a local container at
+  Render's CPU, or the live API)
 
 Frontend (from `frontend/`):
 - `npm run dev`: dev server on http://localhost:5173
