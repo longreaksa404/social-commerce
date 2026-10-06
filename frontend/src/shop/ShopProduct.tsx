@@ -1,7 +1,8 @@
-import { ChevronLeft, ChevronRight, CircleCheck, Send, ShoppingBag } from 'lucide-react'
-import { useRef, useState, type MouseEvent, type Ref, type RefObject } from 'react'
-import { Link, useParams } from 'react-router'
+import { ChevronLeft, ChevronRight, Send, ShoppingBag } from 'lucide-react'
+import { useRef, useState, type Ref, type RefObject } from 'react'
+import { Link, useNavigate, useParams } from 'react-router'
 import { buzz } from '../components/effects.ts'
+import { useFeedback } from '../components/feedback.ts'
 import { Button, ErrorState, Skeleton } from '../components/ui.tsx'
 import { buttonClass, cardClass } from '../components/styles.ts'
 import { formatMoney, formatPriceRange } from '../lib/money.ts'
@@ -118,9 +119,9 @@ function AddToCart({
   photos: RefObject<HTMLDivElement | null>
 }) {
   const cart = useCart(shop.slug)
+  const navigate = useNavigate()
+  const { toast } = useFeedback()
   const [quantity, setQuantity] = useState(1)
-  // How many times it was added here: the "Added" line slides in again each time.
-  const [adds, setAdds] = useState(0)
   const t = useT()
 
   const variantId = variant?.id ?? null
@@ -136,10 +137,10 @@ function AddToCart({
   let blocked: string | null = null
   if (stock <= 0) blocked = t.shop.soldOut
   else if (product.has_variants && !variant) blocked = t.shop.product.chooseOptionFirst
-  else if (room <= 0) blocked = t.shop.product.allInCart
+  const full = blocked === null && room <= 0
 
-  function add(event: MouseEvent<HTMLButtonElement>) {
-    flyToCart(...flightStart(photos.current, event.currentTarget))
+  function add(button: HTMLElement) {
+    flyToCart(...flightStart(photos.current, button))
     buzz()
     cart.add({
       productId: product.id,
@@ -152,38 +153,63 @@ function AddToCart({
       imageUrl: product.image_urls[0] ?? null,
     })
     setQuantity(1)
-    setAdds((n) => n + 1)
   }
 
-  // Pinned to the bottom of the screen on phones, so it stays one tap away
-  // while reading the details; in place beside the photos on wide screens.
+  const cartPath = `/shop/${shop.slug}/cart`
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:mt-6 lg:border-0 lg:bg-transparent lg:pb-0 lg:backdrop-blur-none">
-      <div className="mx-auto flex max-w-5xl flex-col px-4 py-3 lg:p-0">
-        <div className="flex items-center gap-3">
-          {/* Hidden until it can be used, so the reason fits on one line. */}
-          {blocked === null && <QuantityStepper value={amount} max={Math.max(1, room)} onChange={setQuantity} />}
-          <Button size="lg" icon={ShoppingBag} disabled={blocked !== null} onClick={add} className="flex-1">
-            {blocked ?? t.shop.product.addToCart}
-          </Button>
+    <>
+      {/* How many: beside the price, not in the bar, so the bar's two
+          buttons get the whole width. */}
+      {blocked === null && !full && (
+        <div className="mt-5 flex items-center justify-between gap-3">
+          <span className="text-sm font-semibold text-slate-900">{t.shop.quantity}</span>
+          <QuantityStepper value={amount} max={Math.max(1, room)} onChange={setQuantity} />
         </div>
-        {/* Above the buttons in the bar (it grows upwards, the button stays
-            put); below them on wide screens. */}
-        {adds > 0 && (
-          <p
-            key={adds}
-            role="status"
-            className="order-first mb-3 flex animate-rise items-center gap-2 rounded-xl bg-emerald-50 py-1.5 pr-1.5 pl-3.5 text-sm font-medium text-emerald-800 lg:order-last lg:mt-3 lg:mb-0"
-          >
-            <CircleCheck aria-hidden className="size-4.5 shrink-0 animate-pop-in [animation-delay:150ms]" />
-            <span className="flex-1">{t.shop.product.added}</span>
-            <Link to={`/shop/${shop.slug}/cart`} className={`${buttonClass('secondary')} shrink-0`}>
-              {t.shop.product.viewCart(cart.count)}
+      )}
+      {/* Pinned to the bottom of the screen on phones, so it stays one tap
+          away while reading the details; in place on wide screens. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:mt-6 lg:border-0 lg:bg-transparent lg:pb-0 lg:backdrop-blur-none">
+        <div className="mx-auto flex max-w-5xl gap-3 px-4 py-3 lg:p-0">
+          {blocked !== null ? (
+            <Button size="lg" disabled className="flex-1">
+              {blocked}
+            </Button>
+          ) : full ? (
+            // All the stock is in the cart already: the way there.
+            <Link to={cartPath} className={`${buttonClass('primary', 'lg')} flex-1`}>
+              {t.shop.product.allInCart}: {t.shop.product.viewCart(cart.count)}
             </Link>
-          </p>
-        )}
+          ) : (
+            <>
+              <Button
+                size="lg"
+                variant="secondary"
+                icon={ShoppingBag}
+                onClick={(event) => {
+                  add(event.currentTarget)
+                  toast(t.shop.product.added)
+                }}
+                className="flex-1"
+              >
+                {t.shop.product.addToCart}
+              </Button>
+              {/* Most customers from a post want just this: into the cart
+                  and straight to ordering. */}
+              <Button
+                size="lg"
+                onClick={(event) => {
+                  add(event.currentTarget)
+                  navigate(cartPath)
+                }}
+                className="flex-1"
+              >
+                {t.shop.product.buyNow}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 

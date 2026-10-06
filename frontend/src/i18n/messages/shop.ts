@@ -71,6 +71,7 @@ export const shop = {
     optionSoldOut: { en: ' (sold out)', km: ' (អស់ស្តុក)' },
     allInCart: { en: 'All in your cart', km: 'មានក្នុងកន្ត្រកអស់ហើយ' },
     addToCart: { en: 'Add to cart', km: 'ដាក់កន្ត្រក' },
+    buyNow: { en: 'Buy now', km: 'ទិញឥឡូវនេះ' },
     added: { en: 'Added to your cart', km: 'បានដាក់កន្ត្រកហើយ' },
     viewCart: { en: (n: number) => `View cart (${n})`, km: (n: number) => `មើលកន្ត្រក (${n})` },
     askSeller: { en: 'Ask seller on Telegram', km: 'សួរអ្នកលក់តាម Telegram' },
