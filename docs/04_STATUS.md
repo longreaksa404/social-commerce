@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-05 (Phase 9: domain name khmerorder.com chosen, not bought yet)
+> **Last updated:** 2026-10-06 (Phase 9: brand Srual chosen, srual.com + sroul.com not bought yet)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -755,10 +755,13 @@ site):**
 
 Phase 9, waiting on the founder:
 
-- **Domain:** buy **khmerorder.com** on Cloudflare (name chosen
-  2026-10-05, not bought yet; Domains → Register domain, in the same
-  account as R2). Then: Vercel + Render custom domains, Cloudflare DNS,
-  R2 photos on `images.khmerorder.com` (existing photo and logo URLs need rewriting in
+- **Domain:** buy **srual.com** and **sroul.com** on Cloudflare (brand
+  chosen 2026-10-06, not bought yet; Domains → Register domain, in the
+  same account as R2). First check that "Srual" is free as a Facebook
+  page name and @srual on TikTok, Instagram and Telegram. Then: this
+  product on `order.srual.com` (Vercel + Render custom domains,
+  Cloudflare DNS), `srual.com` and `sroul.com` forward to it for now,
+  R2 photos on `images.srual.com` (existing photo and logo URLs need rewriting in
   the database, or saving a product with old photos is refused as
   "Invalid product image"), the refresh token moved to an httpOnly
   cookie, `PUBLIC_API_URL` / `PUBLIC_APP_URL` / `CORS_ORIGINS` updated.
@@ -905,12 +908,23 @@ Resolved:
 - [x] **`link_event` gets `store_id`** (2026-10-03, CLAUDE.md hard rule 1,
       like `delivery` and `order_item`).
 
-- [x] **Domain: a .com bought on Cloudflare** (2026-10-04); name
-      **khmerorder.com** chosen by the founder (2026-10-05), not bought
-      yet ($10.46/year, same to renew). Picked over rielmart.com and
-      tinhlink.com: "order" is the word sellers already use, and the
-      seller's shop stays the brand. Whether it is also the product's
-      name (01 §1.1, §46) is still open.
+- [x] **Domain: a .com bought on Cloudflare** (2026-10-04).
+- [x] **Brand: Srual (ស្រួល, "easy"); this product is Srual Order**
+      (2026-10-06, replaces khmerorder.com from 2026-10-05, which was
+      never bought). One brand for all of the founder's projects, so
+      marketing builds one name: each product is "Srual + a plain
+      word" on its own subdomain (`order.srual.com`; later e.g.
+      `pay.srual.com`), and `srual.com` is the brand's home (forwards
+      to Srual Order until there's a second product). The product is
+      on `order.` from the start because shop links stay in Facebook
+      posts forever and must never move. Buy srual.com and sroul.com
+      (the other common spelling, forwards to srual.com), $10.46/year
+      each, same to renew. Always show ស្រួល next to "Srual". The
+      seller's shop stays the brand inside the shop. Picked over Lak
+      Dach (លក់ដាច់, lakdach.com: only fits selling tools) and Sramoch
+      (ស្រមោច, ant: hard to spell, sromoch.com owned by someone else);
+      Tinh Lak dropped (too close to Tinh Tinh and TENH24). No
+      Cambodian app or company named Srual or Sroul found.
 - [x] **Render stays on the free plan for now** (2026-10-04); revisit if
       the first seller's customers find the first visit slow ($7/month
       Starter keeps it awake).
@@ -1194,8 +1208,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
    Khmer with the rest.
 5. Founder: read the Khmer on the live site; try dark mode; run the
    rate-limit check (Notes).
-6. Founder: buy khmerorder.com (chosen 2026-10-05); then Claude does DNS, R2 photo
-   domain, cookie sessions.
+6. Founder: check "Srual" is free on Facebook, TikTok, Instagram and
+   Telegram, then buy srual.com + sroul.com (chosen 2026-10-06); then
+   Claude does DNS, `order.srual.com`, R2 photo domain, cookie sessions.
 7. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
 8. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
    Part A on the live site, revoke the Telegram token.
