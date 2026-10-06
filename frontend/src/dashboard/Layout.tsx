@@ -96,8 +96,8 @@ function NotificationBell() {
       to="/dashboard/notifications"
       aria-label={unread > 0 ? t.dashboard.notificationsUnread(unread) : t.dashboard.notifications}
       className={({ isActive }) =>
-        `relative inline-flex size-11 shrink-0 items-center justify-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-emerald-600 ${
-          isActive ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+        `relative inline-flex size-11 shrink-0 items-center justify-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-navy-600 ${
+          isActive ? 'bg-navy-50 text-navy-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
         }`
       }
     >
@@ -142,7 +142,7 @@ function BottomTabBar() {
             to={to}
             className={({ isActive }) =>
               `flex min-h-16 flex-1 flex-col items-center justify-center gap-1 text-xs font-medium transition-colors ${
-                isActive ? 'text-emerald-700' : 'text-slate-500 active:text-slate-900'
+                isActive ? 'text-navy-700' : 'text-slate-500 active:text-slate-900'
               }`
             }
           >
@@ -155,7 +155,7 @@ function BottomTabBar() {
                   {/* Grows into the tab just opened, shrinks out of the last. */}
                   <span
                     aria-hidden
-                    className={`absolute inset-0 rounded-full bg-emerald-50 transition duration-300 ease-out ${
+                    className={`absolute inset-0 rounded-full bg-navy-50 transition duration-300 ease-out ${
                       isActive ? 'scale-100 opacity-100' : 'scale-50 opacity-0'
                     }`}
                   />
@@ -188,7 +188,7 @@ function Sidebar() {
             to={to}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                isActive ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                isActive ? 'bg-navy-50 text-navy-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`
             }
           >

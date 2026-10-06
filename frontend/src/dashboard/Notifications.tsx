@@ -95,7 +95,7 @@ function describe(t: Messages, n: SellerNotification): Shown | null {
     if (order.accepted_automatically) parts.push(words.acceptedAutomatically)
     return {
       icon: ShoppingBag,
-      iconClass: 'bg-emerald-50 text-emerald-700',
+      iconClass: 'bg-navy-50 text-navy-700',
       title: words.newOrder(order.number),
       body: parts.join(' · '),
       to: `/dashboard/orders/${order.id}`,
@@ -127,7 +127,7 @@ function NotificationRow({ notification, unread }: { notification: SellerNotific
       to={shown.to}
       state={{ back: '/dashboard/notifications' }}
       className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4 ${
-        unread ? 'bg-emerald-50/50' : ''
+        unread ? 'bg-navy-50/50' : ''
       }`}
     >
       <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${shown.iconClass}`}>

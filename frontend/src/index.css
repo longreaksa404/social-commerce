@@ -1,8 +1,10 @@
 @import 'tailwindcss';
 
-/* Kantumruy Pro for Khmer (decided 2026-10-04): one variable file (every
-   weight, ~57 KB) with only the Khmer letters, from @fontsource-variable.
-   A phone downloads it once, the first time it shows Khmer. */
+/* Kantumruy Pro for all text (Khmer 2026-10-04; Latin letters and numbers
+   too since the 2026-10-06 redesign, so English and prices match the
+   Khmer beside them). Two variable files (every weight) from
+   @fontsource-variable: Khmer ~57 KB, Latin ~33 KB. A phone downloads each
+   once, the first time it shows those letters. */
 @font-face {
   font-family: 'Kantumruy Pro';
   font-style: normal;
@@ -12,10 +14,26 @@
     format('woff2');
   unicode-range: U+1780-17FF, U+19E0-19FF, U+200C-200D, U+25CC;
 }
+@font-face {
+  font-family: 'Kantumruy Pro';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 700;
+  src: url('../node_modules/@fontsource-variable/kantumruy-pro/files/kantumruy-pro-latin-wght-normal.woff2')
+    format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
-/* Light / dark (Phase 9). Dark mode flips the gray, emerald, red, amber and
-   sky scales (below), so text-slate-900 is light on a dark page and a
-   bg-emerald-50 tint turns deep green: write classes for light mode.
+/* Brand: Navy (founder's choice 2026-10-06, a calm look: one quiet colour
+   on white and grey). navy-* is the brand scale (links, the chosen item,
+   focus rings, tints); emerald-* now means only success (paid, delivered,
+   saved, a discount, in stock).
+
+   Light / dark (Phase 9). Dark mode flips the gray, navy, emerald, red,
+   amber and sky scales (below), so text-slate-900 is light on a dark page
+   and a bg-navy-50 tint turns deep blue: write classes for light mode.
    Solid fills that must not flip use these instead: bg-surface (cards,
    bars, inputs; never bg-white), bg-raised (the chosen segment of a
    switch), bg-accent / bg-brand / bg-danger with text-white, and black
@@ -23,9 +41,21 @@
 @theme {
   --color-surface: #fff;
   --color-raised: #fff;
-  --color-accent: oklch(50.8% 0.118 165.612);
-  --color-accent-hover: oklch(43.2% 0.095 166.913);
-  --color-brand: oklch(59.6% 0.145 163.225);
+  --color-accent: #1f3350;
+  --color-accent-hover: #182841;
+  --color-brand: #2f4669;
+
+  --color-navy-50: #eef2f7;
+  --color-navy-100: #e3e8ef;
+  --color-navy-200: #c8d2e0;
+  --color-navy-300: #a1b1c8;
+  --color-navy-400: #6f84a3;
+  --color-navy-500: #4a6080;
+  --color-navy-600: #2f4669;
+  --color-navy-700: #1f3350;
+  --color-navy-800: #182841;
+  --color-navy-900: #121e31;
+  --color-navy-950: #0b1320;
   --color-danger: oklch(57.7% 0.245 27.325);
   --color-danger-hover: oklch(50.5% 0.213 27.518);
 
@@ -163,7 +193,7 @@
 /* A ring spreading out from a circle that just appeared. */
 @keyframes ring {
   from {
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-brand) 45%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-emerald-500) 45%, transparent);
   }
   to {
     box-shadow: 0 0 0 18px transparent;
@@ -195,11 +225,28 @@
 /* Set on <html> before the first paint by the script in index.html. */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --color-surface: oklch(20.8% 0.042 265.755);
-  --color-raised: oklch(37.2% 0.044 257.287);
+  --color-surface: #181d25;
+  --color-raised: #2c3442;
+  /* Solid buttons stay white-on-blue: a lighter navy that shows on the
+     dark page. */
+  --color-accent: #415f92;
+  --color-accent-hover: #4a6a9e;
+  --color-brand: #5a7bb0;
+  /* Navy: tints turn deep, text turns light */
+  --color-navy-50: #1c2636;
+  --color-navy-100: #243149;
+  --color-navy-200: #2c3b56;
+  --color-navy-300: #3a4c6c;
+  --color-navy-400: #5a7095;
+  --color-navy-500: #7f96ba;
+  --color-navy-600: #9fb7d9;
+  --color-navy-700: #b8cbe6;
+  --color-navy-800: #d3dff0;
+  --color-navy-900: #e7eef8;
+  --color-navy-950: #f3f7fc;
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
   /* Grays */
-  --color-slate-50: oklch(12.9% 0.042 264.695);
+  --color-slate-50: #10141a;
   --color-slate-100: oklch(24.5% 0.042 262);
   --color-slate-200: oklch(27.9% 0.041 260.031);
   --color-slate-300: oklch(37.2% 0.044 257.287);

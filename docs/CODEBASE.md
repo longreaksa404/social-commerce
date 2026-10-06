@@ -912,7 +912,7 @@ message needs a Khmer entry there.** What sellers type is shown as typed.
   the sidebar layout. The dashboard column is `max-w-3xl` (order detail
   `lg:max-w-5xl`); the shop is `max-w-5xl`.
 - **Write classes for light mode only.** Dark mode (`:root[data-theme='dark']`
-  in `index.css`) flips the slate, emerald, red, amber and sky scales.
+  in `index.css`) flips the slate, navy, emerald, red, amber and sky scales.
   Solid fills that must not flip use the tokens `bg-surface` (cards, bars,
   inputs; **never `bg-white`**), `bg-raised`, `bg-accent` / `hover:bg-accent-hover`,
   `bg-brand` and `bg-danger`, with `text-white`.
@@ -920,14 +920,21 @@ message needs a Khmer entry there.** What sellers type is shown as typed.
   `shadow-card` plus `ring-1 ring-slate-900/6`, not a grey border.
 - Touch targets at least 44 px (`min-h-11`); inputs at 16 px (no iOS
   zoom); safe-area insets on fixed bars (`pb-[calc(env(safe-area-inset-bottom)+...)]`).
-- Accent colour is emerald; focus rings `focus-visible:outline-emerald-600`.
+- Brand colour is **navy** (founder's choice 2026-10-06; a calm look, one
+  quiet colour on white and grey): a custom `navy-50`..`navy-950` scale in
+  `index.css`, `bg-accent` = navy-700, focus rings
+  `focus-visible:outline-navy-600`, links `text-navy-700`, the chosen item
+  `bg-navy-50 text-navy-700`. **Emerald means success only** (paid,
+  delivered, saved, a discount, free delivery, in stock, the success
+  tick); don't use it for brand things.
 - Animations are theme tokens (`animate-rise`, `animate-fade-in`,
   `animate-pop`, `animate-sheet-up`, `animate-shimmer`, `animate-wiggle`,
   `animate-arrive`, ...); a `prefers-reduced-motion` rule turns them off.
   Entrance animations use `backwards` fill so no transform lingers (it
   would pin fixed bars inside cards).
-- Font: Kantumruy Pro for Khmer letters only (`unicode-range`), the system
-  font for Latin.
+- Font: Kantumruy Pro for everything (2026-10-06): two self-hosted
+  variable files picked by `unicode-range`, Khmer (~57 KB) and Latin
+  (~33 KB), each downloaded once; the system fonts are the fallback.
 
 ### Link previews (`frontend/middleware.ts`)
 

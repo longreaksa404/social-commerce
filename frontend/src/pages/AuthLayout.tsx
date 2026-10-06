@@ -20,7 +20,7 @@ export function Glow() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(70%_100%_at_50%_0%,var(--color-emerald-100),transparent)] opacity-70"
+      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(70%_100%_at_50%_0%,var(--color-navy-100),transparent)] opacity-70"
     />
   )
 }

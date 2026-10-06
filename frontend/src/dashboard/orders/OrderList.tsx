@@ -75,7 +75,7 @@ export function OrderList() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => setParams(f.key === 'all' ? {} : { show: f.key }, { replace: true })}
-                  className={`flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
+                  className={`flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 ${
                     active
                       ? 'border-accent bg-accent text-white'
                       : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50'

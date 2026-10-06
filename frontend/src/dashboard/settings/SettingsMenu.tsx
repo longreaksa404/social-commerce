@@ -82,7 +82,7 @@ function StoreRows({ store }: { store: Store }) {
                 <MenuRow
                   to={id}
                   icon={
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
                       <Icon aria-hidden className="size-4.5" />
                     </span>
                   }
@@ -102,7 +102,7 @@ function MenuRow({ to, icon, title, summary }: { to: string; icon: ReactNode; ti
   return (
     <Link
       to={to}
-      className="flex min-h-16 items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-600 active:bg-slate-100 sm:[li:first-child>&]:rounded-t-2xl sm:[li:last-child>&]:rounded-b-2xl"
+      className="flex min-h-16 items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100 sm:[li:first-child>&]:rounded-t-2xl sm:[li:last-child>&]:rounded-b-2xl"
     >
       {icon}
       <span className="min-w-0 flex-1">

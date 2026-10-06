@@ -42,7 +42,7 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
         <Card className="p-4 sm:p-6">
           <a
             href={`tel:${customer.phone}`}
-            className="-mx-2 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium text-emerald-700 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600"
+            className="-mx-2 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
           >
             <Phone aria-hidden className="size-4" />
             {formatPhone(customer.phone)}

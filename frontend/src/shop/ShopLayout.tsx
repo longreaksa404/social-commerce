@@ -67,7 +67,7 @@ function Header({ shop, slug }: { shop: ShopStore | undefined; slug: string }) {
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
         <Link
           to={`/shop/${slug}`}
-          className="-mx-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2 focus-visible:outline-2 focus-visible:outline-emerald-600"
+          className="-mx-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2 focus-visible:outline-2 focus-visible:outline-navy-600"
         >
           <ShopLogo shop={shop} />
           {shop ? (
@@ -98,7 +98,7 @@ function CartButton({ slug }: { slug: string }) {
       to={`/shop/${slug}/cart`}
       data-cart-button
       aria-label={count ? t.shop.cartWithCount(count) : t.shop.cart}
-      className="relative -mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-emerald-600"
+      className="relative -mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
     >
       <ShoppingBag key={bumps} aria-hidden className={`size-6 ${bump}`} />
       {count > 0 && (

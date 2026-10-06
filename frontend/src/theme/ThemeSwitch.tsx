@@ -20,7 +20,7 @@ export function ThemeSwitch() {
             setTheme(option)
             setChoice(option)
           }}
-          className={`min-h-10 rounded-[10px] px-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-emerald-600 ${
+          className={`min-h-10 rounded-[10px] px-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-navy-600 ${
             choice === option ? 'bg-raised text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -43,7 +43,7 @@ export function ThemeToggle() {
       aria-label={theme === 'dark' ? t.common.switchToLight : t.common.switchToDark}
       title={theme === 'dark' ? t.common.switchToLight : t.common.switchToDark}
       onClick={toggleTheme}
-      className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-emerald-600"
+      className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
     >
       <Icon aria-hidden className="size-5" />
     </button>

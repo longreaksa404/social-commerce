@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-06 (Phase 9: load test built and run locally; bcrypt fix)
+> **Last updated:** 2026-10-06 (Phase 9: redesign step 1, Navy colour and font)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -784,6 +784,17 @@ performance this project can handle?"; committed, not pushed):**
 
 ## In Progress
 
+**Redesign of the whole frontend** (founder asked 2026-10-06; a full
+redesign, calm look). Steps, each committed on its own:
+
+1. [x] Foundations: Navy brand colour (light and dark), emerald kept
+   for success only, Kantumruy Pro for Latin letters and numbers too.
+2. [ ] Customer shop: home, product, cart (mockup first, founder approves)
+3. [ ] Checkout and the customer's order page (mockup first)
+4. [ ] Seller orders: list and detail (mockup first)
+5. [ ] Rest of the dashboard: products, customers, links, settings (mockup first)
+6. [ ] Login and Register (mockup first)
+
 Phase 9, waiting on the founder:
 
 - **Live load test**, once, before the first real seller, from home
@@ -980,10 +991,26 @@ Resolved:
 - [x] **Phones: cards run edge to edge; the laptop keeps its centered
       column** (2026-10-04, founder's choice; a full-width laptop layout
       was offered and not chosen).
+- [x] **Brand colour Navy, calm look** (2026-10-06, founder chose from 14
+      calm options after rejecting a colourful set): one quiet colour
+      (#1f3350) on white and grey; green only for success.
+- [x] **Kantumruy Pro for Latin letters and numbers too** (2026-10-06,
+      founder chose it over the phone's font; +33 KB once per phone).
+- [x] **Redesign approach** (2026-10-06): a full redesign, one area at a
+      time; for each layout change Claude shows a mockup first and the
+      founder approves before it is built.
 
 ---
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
+
+Not yet in 02 (founder chose 2026-10-06): **fonts.** 02 §2 "Fonts" row
+should read: "| Fonts | **Kantumruy Pro** for all text, Khmer and Latin
+(`@fontsource-variable`, self-hosted, two variable files picked by
+`unicode-range`) | One look for Khmer, English and prices on every phone;
+Khmer 57 KB + Latin 33 KB, each loaded once (Khmer 2026-10-04, Latin
+2026-10-06) |". Not yet in 03: **the frontend redesign** (founder asked
+2026-10-06), a Phase 9 row to be sized once the shop mockup is agreed.
 
 Not yet in 03 (founder said yes 2026-10-06): **load test before the
 first real seller.** Proposed 03 Phase 9 row, after "Layout pass":

@@ -8,7 +8,7 @@ import { ShopInfo } from './ShopInfo.tsx'
 import { useShop, useShopProducts } from './queries.ts'
 
 const band =
-  '-mx-4 -mt-4 mb-5 flex items-start gap-4 bg-linear-to-b from-emerald-50 to-transparent px-4 pt-5 sm:-mt-6 sm:rounded-b-3xl sm:pt-7'
+  '-mx-4 -mt-4 mb-5 flex items-start gap-4 bg-linear-to-b from-navy-50 to-transparent px-4 pt-5 sm:-mt-6 sm:rounded-b-3xl sm:pt-7'
 
 /** /shop/:storeSlug: the store link a seller shares. */
 export function ShopHome() {
@@ -90,7 +90,7 @@ function Description({ text }: { text: string }) {
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="-mx-1 mt-0.5 min-h-8 rounded px-1 font-medium text-emerald-700 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600"
+          className="-mx-1 mt-0.5 min-h-8 rounded px-1 font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
         >
           {open ? t.shop.home.showLess : t.shop.home.showMore}
         </button>

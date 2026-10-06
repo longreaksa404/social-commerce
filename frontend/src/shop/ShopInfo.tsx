@@ -44,7 +44,7 @@ export function ShopInfo({ shop, className = '' }: { shop: ShopStore; className?
       <ul className={`divide-y divide-slate-100 ${cardClass}`}>
         {rows.map(({ icon: Icon, text, detail }) => (
           <li key={text} className="flex gap-3 px-3.5 py-2.5">
-            <Icon aria-hidden className="mt-0.5 size-4.5 shrink-0 text-emerald-700" />
+            <Icon aria-hidden className="mt-0.5 size-4.5 shrink-0 text-navy-700" />
             <div className="min-w-0 text-sm leading-5">
               <p className="text-slate-800">{text}</p>
               {detail && <p className="mt-0.5 line-clamp-2 break-words text-xs leading-5 text-slate-500">{detail}</p>}

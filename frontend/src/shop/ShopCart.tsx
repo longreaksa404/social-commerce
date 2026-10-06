@@ -155,7 +155,7 @@ function Nudge({ text, progress }: { text: string; progress: number }) {
       <p className="text-sm text-emerald-800">{text}</p>
       <div aria-hidden className="mt-2 h-1.5 overflow-hidden rounded-full bg-emerald-100">
         <div
-          className="h-full rounded-full bg-brand transition-[width] duration-500 ease-out"
+          className="h-full rounded-full bg-emerald-600 transition-[width] duration-500 ease-out"
           style={{ width: `${Math.max(4, Math.min(100, Math.round(progress * 100)))}%` }}
         />
       </div>

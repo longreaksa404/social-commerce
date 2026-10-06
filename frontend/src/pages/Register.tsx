@@ -42,7 +42,7 @@ export function Register() {
       footer={
         <>
           {t.auth.register.haveAccount}{' '}
-          <Link to="/login" className="font-semibold text-emerald-700 hover:underline">
+          <Link to="/login" className="font-semibold text-navy-700 hover:underline">
             {t.auth.logIn}
           </Link>
         </>

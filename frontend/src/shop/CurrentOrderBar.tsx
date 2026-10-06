@@ -19,18 +19,18 @@ export function CurrentOrderBar({ slug }: { slug: string }) {
   return (
     <Link
       to={one ? `/shop/${slug}/order/${one.id}` : `/shop/${slug}/orders`}
-      className="-mx-4 -mt-4 mb-4 flex min-h-14 items-center gap-3 border-b border-emerald-200 bg-emerald-50 px-4 py-2.5 transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-600 sm:mx-0 sm:mt-0 sm:mb-6 sm:rounded-2xl sm:border sm:px-3.5 sm:focus-visible:outline-offset-2"
+      className="-mx-4 -mt-4 mb-4 flex min-h-14 items-center gap-3 border-b border-navy-200 bg-navy-50 px-4 py-2.5 transition-colors hover:bg-navy-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 sm:mx-0 sm:mt-0 sm:mb-6 sm:rounded-2xl sm:border sm:px-3.5 sm:focus-visible:outline-offset-2"
     >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-white">
         <Package aria-hidden className="size-4.5" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold text-emerald-900">
+        <span className="block truncate text-sm font-semibold text-navy-900">
           {one ? t.shop.orderNumber(one.number) : t.shop.myOrders.inProgressCount(active.length)}
         </span>
-        <span className="block truncate text-sm text-emerald-800">{text}</span>
+        <span className="block truncate text-sm text-navy-800">{text}</span>
       </span>
-      <ChevronRight aria-hidden className="size-5 shrink-0 text-emerald-700" />
+      <ChevronRight aria-hidden className="size-5 shrink-0 text-navy-700" />
     </Link>
   )
 }

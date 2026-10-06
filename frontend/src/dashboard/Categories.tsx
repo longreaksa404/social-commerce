@@ -157,7 +157,7 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
               onChange={(e) => setName(e.target.value)}
             />
           </div>
-          <IconButton type="submit" icon={Check} label={c.saveName} disabled={rename.isPending || !name.trim()} className="text-emerald-700" />
+          <IconButton type="submit" icon={Check} label={c.saveName} disabled={rename.isPending || !name.trim()} className="text-navy-700" />
           <IconButton
             icon={X}
             label={t.common.cancel}
@@ -184,7 +184,7 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
         {count > 0 ? (
           <Link
             to={`/dashboard/products?category=${category.id}`}
-            className="text-sm text-emerald-700 hover:underline"
+            className="text-sm text-navy-700 hover:underline"
           >
             {c.productCount(count)}
           </Link>

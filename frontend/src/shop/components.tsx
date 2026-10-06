@@ -78,7 +78,7 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
 
   if (shop.categories.length === 0) return null
   const chip = ({ isActive }: { isActive: boolean }) =>
-    `flex min-h-10 shrink-0 items-center rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
+    `flex min-h-10 shrink-0 items-center rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 ${
       isActive
         ? 'border-accent bg-accent text-white'
         : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50 active:bg-slate-100'
@@ -114,7 +114,7 @@ export function ProductGrid({ shop, products }: { shop: ShopStore; products: Sho
         <li key={product.id} className="animate-rise" style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}>
           <Link
             to={`/shop/${shop.slug}/product/${product.slug}`}
-            className="group block rounded-2xl transition-transform focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-600 active:scale-[0.97]"
+            className="group block rounded-2xl transition-transform focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy-600 active:scale-[0.97]"
           >
             <div className="relative overflow-hidden rounded-2xl">
               <ProductImage

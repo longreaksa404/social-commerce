@@ -4,7 +4,7 @@ export type ButtonSize = 'md' | 'lg'
 
 const buttonBase =
   'inline-flex select-none items-center justify-center gap-2 rounded-xl font-semibold transition ' +
-  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ' +
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 ' +
   'active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50'
 
 const buttonVariants: Record<ButtonVariant, string> = {

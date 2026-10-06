@@ -39,7 +39,7 @@ export function Login() {
       footer={
         <>
           {t.auth.login.newHere}{' '}
-          <Link to="/register" className="font-semibold text-emerald-700 hover:underline">
+          <Link to="/register" className="font-semibold text-navy-700 hover:underline">
             {t.auth.createYourStore}
           </Link>
         </>

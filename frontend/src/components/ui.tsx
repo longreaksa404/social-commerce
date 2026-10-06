@@ -37,7 +37,7 @@ const control =
 function controlClass(invalid: boolean, extra = '') {
   const tone = invalid
     ? 'border-red-400 focus:border-red-500 focus:ring-red-500/15'
-    : 'border-slate-300 focus:border-emerald-600 focus:ring-emerald-600/15'
+    : 'border-slate-300 focus:border-navy-600 focus:ring-navy-600/15'
   return `${control} ${tone} ${extra}`
 }
 
@@ -161,7 +161,7 @@ export function PasswordInput(props: InputHTMLAttributes<HTMLInputElement>) {
           type="button"
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? t.common.hidePassword : t.common.showPassword}
-          className="flex size-10 items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-emerald-600"
+          className="flex size-10 items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-navy-600"
         >
           <Icon aria-hidden className="size-5" />
         </button>
@@ -220,7 +220,7 @@ export function Switch({
       />
       <span
         aria-hidden
-        className="relative h-7 w-12 shrink-0 rounded-full bg-slate-300 transition-colors peer-checked:bg-brand peer-focus-visible:ring-4 peer-focus-visible:ring-emerald-600/25 after:absolute after:left-0.5 after:top-0.5 after:size-6 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5"
+        className="relative h-7 w-12 shrink-0 rounded-full bg-slate-300 transition-colors peer-checked:bg-brand peer-focus-visible:ring-4 peer-focus-visible:ring-navy-600/25 after:absolute after:left-0.5 after:top-0.5 after:size-6 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5"
       />
     </label>
   )
@@ -283,7 +283,7 @@ export function IconButton({
       aria-label={label}
       title={label}
       {...props}
-      className={`inline-flex size-11 shrink-0 items-center justify-center rounded-xl transition focus-visible:outline-2 focus-visible:outline-emerald-600 active:scale-95 disabled:pointer-events-none disabled:opacity-40 ${colors} ${className}`}
+      className={`inline-flex size-11 shrink-0 items-center justify-center rounded-xl transition focus-visible:outline-2 focus-visible:outline-navy-600 active:scale-95 disabled:pointer-events-none disabled:opacity-40 ${colors} ${className}`}
     >
       <Icon aria-hidden className="size-5" />
     </button>
@@ -337,7 +337,7 @@ export function Section({
             {step !== undefined && (
               <span
                 aria-hidden
-                className="flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-700 tabular-nums"
+                className="flex size-6 shrink-0 items-center justify-center rounded-full bg-navy-50 text-xs font-bold text-navy-700 tabular-nums"
               >
                 {step}
               </span>
@@ -363,7 +363,7 @@ export function PageHeader({ title, back, action }: { title: ReactNode; back?: s
         <Link
           to={back}
           aria-label={t.common.back}
-          className="-ml-2 inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-emerald-600"
+          className="-ml-2 inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
         >
           <ChevronLeft aria-hidden className="size-6" />
         </Link>
@@ -426,7 +426,7 @@ export function EmptyState({
 }) {
   return (
     <Card className="flex flex-col items-center px-6 py-10 text-center">
-      <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+      <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-navy-50 text-navy-600">
         <Icon aria-hidden className="size-6" />
       </span>
       <p className="font-semibold text-slate-900">{title}</p>

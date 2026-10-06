@@ -177,7 +177,7 @@ function OrderView({
           </span>
         </div>
         <p
-          className={`mt-1 flex items-center gap-1.5 font-medium ${closed ? 'text-red-700' : 'text-emerald-700'}`}
+          className={`mt-1 flex items-center gap-1.5 font-medium ${closed ? 'text-red-700' : 'text-navy-700'}`}
           aria-live="polite"
         >
           {closed && <XCircle aria-hidden className="size-4.5" />}

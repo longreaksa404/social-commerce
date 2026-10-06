@@ -183,7 +183,7 @@ function SummaryCard({ order }: { order: Order }) {
                     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
                     document.querySelector(href)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
                   }}
-                  className={`${row} transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-600`}
+                  className={`${row} transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600`}
                 >
                   {content}
                 </a>
@@ -269,7 +269,7 @@ function CustomerCard({ order }: { order: Order }) {
         <Link
           to={`/dashboard/customers/${order.customer.id}`}
           state={{ back: `/dashboard/orders/${order.id}` }}
-          className="-my-2 -mr-2 inline-flex min-h-11 items-center gap-0.5 rounded-lg px-2 text-sm font-medium text-emerald-700 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600"
+          className="-my-2 -mr-2 inline-flex min-h-11 items-center gap-0.5 rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
         >
           {o.viewCustomer}
           <ChevronRight aria-hidden className="size-4" />
@@ -278,7 +278,7 @@ function CustomerCard({ order }: { order: Order }) {
       <p className="mt-2 break-words text-slate-900">{order.customer.name}</p>
       <a
         href={`tel:${order.customer.phone}`}
-        className="-mx-2 mt-1 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium text-emerald-700 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600"
+        className="-mx-2 mt-1 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
       >
         <Phone aria-hidden className="size-4" />
         {formatPhone(order.customer.phone)}

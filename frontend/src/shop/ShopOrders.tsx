@@ -64,7 +64,7 @@ function OrderRow({ item, slug }: { item: MyOrder; slug: string }) {
   const t = useT()
   const { order } = item
   const closed = order?.status === 'rejected' || order?.status === 'cancelled'
-  const color = !order ? 'text-slate-500' : closed ? 'text-red-700' : inProgress(order) ? 'text-emerald-700' : 'text-slate-600'
+  const color = !order ? 'text-slate-500' : closed ? 'text-red-700' : inProgress(order) ? 'text-navy-700' : 'text-slate-600'
   return (
     <Link
       to={`/shop/${slug}/order/${item.id}`}

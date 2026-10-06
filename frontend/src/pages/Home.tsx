@@ -38,7 +38,7 @@ export function Home() {
       <ul className="mt-8 space-y-4">
         {points.map(({ icon: Icon, title, text }) => (
           <li key={title} className="flex gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
               <Icon aria-hidden className="size-5" />
             </span>
             <span>

@@ -269,7 +269,7 @@ export function ShopCheckout() {
             {methods.map((method) => (
               <label
                 key={method}
-                className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-slate-200 px-3.5 py-3 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-emerald-600/15"
+                className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-slate-200 px-3.5 py-3 has-[:checked]:border-navy-600 has-[:checked]:bg-navy-50/50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-navy-600/15"
               >
                 <input
                   type="radio"
@@ -278,7 +278,7 @@ export function ShopCheckout() {
                   value={method}
                   checked={payment === method}
                   onChange={() => setForm((f) => ({ ...f, payment: method }))}
-                  className="mt-0.5 size-5 shrink-0 accent-emerald-700"
+                  className="mt-0.5 size-5 shrink-0 accent-navy-700"
                 />
                 <span className="min-w-0">
                   <span className="block font-medium text-slate-900">{t.status.paymentMethod[method]}</span>
@@ -301,7 +301,7 @@ export function ShopCheckout() {
         action={
           <Link
             to={`/shop/${storeSlug}/cart`}
-            className="-my-2 -mr-2 inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-medium text-emerald-700 hover:underline"
+            className="-my-2 -mr-2 inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline"
           >
             {c.editCart}
           </Link>
@@ -537,14 +537,14 @@ function ChoiceCard({
   trailing?: string
 }) {
   return (
-    <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-slate-200 px-3.5 py-3 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-emerald-600/15">
+    <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-slate-200 px-3.5 py-3 has-[:checked]:border-navy-600 has-[:checked]:bg-navy-50/50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-navy-600/15">
       <input
         type="radio"
         name={name}
         required
         checked={checked}
         onChange={onChange}
-        className="mt-0.5 size-5 shrink-0 accent-emerald-700"
+        className="mt-0.5 size-5 shrink-0 accent-navy-700"
       />
       <span className="min-w-0 flex-1">
         <span className="block break-words font-medium text-slate-900">{label}</span>

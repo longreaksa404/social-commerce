@@ -66,7 +66,7 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
         {product.category && (
           <Link
             to={`/shop/${shop.slug}/category/${product.category.slug}`}
-            className="-mx-1 inline-flex min-h-8 items-center rounded px-1 text-sm font-medium text-emerald-700 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600"
+            className="-mx-1 inline-flex min-h-8 items-center rounded px-1 text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
           >
             {product.category.name}
           </Link>
@@ -273,7 +273,7 @@ function VariantPicker({
               />
               {/* Sold out: crossed out with a diagonal line, not line-through,
                   which turns a one-letter size like "S" into "$". */}
-              <span className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-300 bg-surface px-4 text-sm font-medium text-slate-800 transition-colors peer-checked:border-emerald-700 peer-checked:bg-emerald-50 peer-checked:text-emerald-800 peer-checked:ring-1 peer-checked:ring-emerald-700 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-emerald-600 peer-disabled:border-slate-200 peer-disabled:bg-[linear-gradient(to_top_right,transparent_calc(50%-0.5px),var(--color-slate-300)_50%,transparent_calc(50%+0.5px))] peer-disabled:text-slate-400">
+              <span className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-300 bg-surface px-4 text-sm font-medium text-slate-800 transition-colors peer-checked:border-navy-700 peer-checked:bg-navy-50 peer-checked:text-navy-800 peer-checked:ring-1 peer-checked:ring-navy-700 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-navy-600 peer-disabled:border-slate-200 peer-disabled:bg-[linear-gradient(to_top_right,transparent_calc(50%-0.5px),var(--color-slate-300)_50%,transparent_calc(50%+0.5px))] peer-disabled:text-slate-400">
                 {v.name}
                 {soldOut && <span className="sr-only">{t.shop.product.optionSoldOut}</span>}
               </span>
@@ -312,7 +312,7 @@ function Gallery({ images, name, ref }: { images: string[]; name: string; ref: R
         ref={track}
         tabIndex={0}
         onScroll={(e) => setIndex(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}
-        className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-600"
+        className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600"
       >
         {images.map((src, i) => (
           <ProductImage
@@ -352,7 +352,7 @@ function Gallery({ images, name, ref }: { images: string[]; name: string; ref: R
           onClick={() => show(to)}
           disabled={to < 0 || to >= images.length}
           aria-label={label}
-          className={`absolute top-1/2 ${side} hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface/90 text-slate-800 shadow transition hover:bg-surface focus-visible:outline-2 focus-visible:outline-emerald-600 disabled:opacity-0 sm:flex`}
+          className={`absolute top-1/2 ${side} hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface/90 text-slate-800 shadow transition hover:bg-surface focus-visible:outline-2 focus-visible:outline-navy-600 disabled:opacity-0 sm:flex`}
         >
           <Icon aria-hidden className="size-5" />
         </button>

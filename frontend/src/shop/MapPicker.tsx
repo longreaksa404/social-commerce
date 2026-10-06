@@ -122,7 +122,7 @@ export default function MapPicker({
           type="button"
           onClick={onClose}
           aria-label={m.close}
-          className="flex size-11 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-emerald-600"
+          className="flex size-11 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
         >
           <X aria-hidden className="size-5" />
         </button>
@@ -153,7 +153,7 @@ export default function MapPicker({
           onClick={locate}
           disabled={locating}
           aria-label={m.locate}
-          className="absolute right-3 bottom-6 z-[1000] flex size-12 items-center justify-center rounded-full bg-surface text-emerald-700 shadow-md hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-emerald-600"
+          className="absolute right-3 bottom-6 z-[1000] flex size-12 items-center justify-center rounded-full bg-surface text-navy-700 shadow-md hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-navy-600"
         >
           {locating ? (
             <LoaderCircle aria-hidden className="size-5 animate-spin" />

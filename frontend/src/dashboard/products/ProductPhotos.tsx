@@ -90,7 +90,7 @@ function PhotoGrid({
           type="button"
           disabled={disabled}
           onClick={() => input.current?.click()}
-          className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 transition hover:border-emerald-500 hover:text-emerald-700 active:bg-slate-50 disabled:opacity-50"
+          className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 transition hover:border-navy-500 hover:text-navy-700 active:bg-slate-50 disabled:opacity-50"
         >
           <ImagePlus aria-hidden className="size-6" />
           <span className="text-xs font-medium">{words.add}</span>

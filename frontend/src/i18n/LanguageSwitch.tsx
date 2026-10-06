@@ -19,7 +19,7 @@ export function LanguageToggle() {
       lang={other.lang}
       aria-label={t.common.switchLanguage}
       onClick={() => setLang(other.lang)}
-      className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-emerald-600"
+      className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
     >
       {other.label}
     </button>
@@ -39,7 +39,7 @@ export function LanguageSwitch({ className = '' }: { className?: string }) {
           lang={option.lang}
           aria-pressed={lang === option.lang}
           onClick={() => setLang(option.lang)}
-          className={`min-h-10 min-w-11 rounded-[10px] px-2.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-emerald-600 ${
+          className={`min-h-10 min-w-11 rounded-[10px] px-2.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-navy-600 ${
             lang === option.lang ? 'bg-raised text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
