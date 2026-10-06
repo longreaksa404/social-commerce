@@ -1,9 +1,5 @@
 import type { Tree } from '../core.ts'
 
-/** "A", "A or B", "A, B or C". */
-const orList = (items: string[], or: string) =>
-  items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} ${or} ${items[items.length - 1]}`
-
 /** The customer's shop: browsing, product page, cart. */
 export const shop = {
   shopNotFound: { en: 'Shop not found', km: 'រកមិនឃើញហាង' },
@@ -27,6 +23,17 @@ export const shop = {
   oneLess: { en: 'One less', km: 'បន្ថយមួយ' },
   oneMore: { en: 'One more', km: 'បន្ថែមមួយ' },
   seeAllProducts: { en: 'See all products', km: 'មើលទំនិញទាំងអស់' },
+  // The + on a product photo in the grid (products without options).
+  quickAdd: {
+    en: (name: string, inCart: number) => (inCart ? `${name}: ${inCart} in cart. Add one more` : `Add ${name} to cart`),
+    km: (name: string, inCart: number) =>
+      inCart ? `${name}៖ មាន ${inCart} ក្នុងកន្ត្រក។ បន្ថែមមួយទៀត` : `ដាក់ ${name} ចូលកន្ត្រក`,
+  },
+  // The bar at the bottom of the shop while the cart has something in it.
+  cartBar: {
+    items: { en: (n: number) => (n === 1 ? '1 item' : `${n} items`), km: (n: number) => `ទំនិញ ${n}` },
+    view: { en: 'View cart', km: 'មើលកន្ត្រក' },
+  },
 
   home: {
     emptyTitle: { en: 'No products yet', km: 'មិនទាន់មានទំនិញនៅឡើយ' },
@@ -82,32 +89,18 @@ export const shop = {
     nextPhoto: { en: 'Next photo', km: 'រូបបន្ទាប់' },
   },
 
-  // How buying from the shop works, on the shop and product pages: what
-  // customers would otherwise ask in chat before ordering.
+  // How buying from the shop works, as tags on the shop and product pages:
+  // what customers would otherwise ask in chat before ordering.
   info: {
     title: { en: 'Delivery and payment', km: 'ការដឹកជញ្ជូន និងការបង់ប្រាក់' },
     deliveryFee: { en: (fee: string) => `Delivery ${fee}`, km: (fee: string) => `ថ្លៃដឹក ${fee}` },
     freeDelivery: { en: 'Free delivery', km: 'ដឹកជូនឥតគិតថ្លៃ' },
-    // After the fee, e.g. "Delivery $1.50 · free on orders from $30.00".
+    // A tag of its own beside "Delivery $1.50".
     freeOn: {
-      en: (rules: string[]) => `free on ${rules.join(' or ')}`,
-      km: (rules: string[]) => `ឥតគិតថ្លៃ សម្រាប់${rules.join(' ឬ ')}`,
+      en: (rules: string[]) => `Free delivery on ${rules.join(' or ')}`,
+      km: (rules: string[]) => `ដឹកឥតគិតថ្លៃ សម្រាប់${rules.join(' ឬ ')}`,
     },
-    deliveredBy: {
-      en: (by: string[]) => `By ${orList(by, 'or')}`,
-      km: (by: string[]) => `ដឹកដោយ ${orList(by, 'ឬ')}`,
-    },
-    theShop: { en: 'the shop', km: 'ហាងផ្ទាល់' },
     pickup: { en: 'Free pickup', km: 'មកយកផ្ទាល់ ឥតគិតថ្លៃ' },
-    pay: {
-      en: (methods: string[]) => `Pay by ${orList(methods, 'or')}`,
-      km: (methods: string[]) => `បង់ប្រាក់តាម ${orList(methods, 'ឬ')}`,
-    },
-    method: {
-      khqr: { en: 'KHQR', km: 'KHQR' },
-      bank_transfer: { en: 'bank transfer', km: 'ផ្ទេរតាមធនាគារ' },
-      cod: { en: 'cash on delivery', km: 'សាច់ប្រាក់ពេលទទួលទំនិញ' },
-    },
     discount: {
       en: (off: string, from: string) => `${off} off orders from ${from}`,
       km: (off: string, from: string) => `បញ្ចុះ ${off} សម្រាប់ការកុម្ម៉ង់ចាប់ពី ${from}`,

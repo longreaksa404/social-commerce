@@ -1,11 +1,14 @@
 import { ImageOff, Minus, Plus, SearchX, Store } from 'lucide-react'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { thumbnailUrl } from '../lib/images.ts'
 import { formatPriceRange } from '../lib/money.ts'
 import { useT } from '../i18n/useT.ts'
 import type { ShopProductCard, ShopStore } from '../lib/types.ts'
+import { buzz } from '../components/effects.ts'
+import { MAX_QUANTITY, useCart } from './cart.ts'
+import { flyToCart } from './fly.ts'
 
 /** A product photo, or a grey placeholder when the seller has none (or it
  * won't load). It fades in once loaded, over the grey. `className` sizes
@@ -111,7 +114,7 @@ export function ProductGrid({ shop, products }: { shop: ShopStore; products: Sho
     <ul className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4">
       {products.map((product, i) => (
         // The first rows come in one after another.
-        <li key={product.id} className="animate-rise" style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}>
+        <li key={product.id} className="relative animate-rise" style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}>
           <Link
             to={`/shop/${shop.slug}/product/${product.slug}`}
             className="group block rounded-2xl transition-transform focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy-600 active:scale-[0.97]"
@@ -136,9 +139,60 @@ export function ProductGrid({ shop, products }: { shop: ShopStore; products: Sho
               {formatPriceRange(product.price_min, product.price_max, shop.currency)}
             </p>
           </Link>
+          {/* Beside the link, not in it (a button can't sit inside a link),
+              placed over the photo's corner. */}
+          {!product.has_variants && product.in_stock && <QuickAdd shop={shop} product={product} />}
         </li>
       ))}
     </ul>
+  )
+}
+
+/** + on the photo: one into the cart without opening the product. Shows
+ * how many are in the cart once there are some. */
+function QuickAdd({ shop, product }: { shop: ShopStore; product: ShopProductCard }) {
+  const cart = useCart(shop.slug)
+  const t = useT()
+  const inCart = cart.quantityOf(product.id, null)
+  const full = inCart >= Math.min(MAX_QUANTITY, product.stock_quantity ?? 0)
+
+  function add(event: MouseEvent<HTMLButtonElement>) {
+    const photo = event.currentTarget.parentElement?.querySelector('img')
+    flyToCart(photo ?? event.currentTarget, photo?.currentSrc || null)
+    buzz()
+    cart.add({
+      productId: product.id,
+      variantId: null,
+      quantity: 1,
+      productSlug: product.slug,
+      name: product.name,
+      variantName: null,
+      price: product.price_min,
+      imageUrl: product.image_url,
+    })
+  }
+
+  return (
+    // The photo is square and as wide as the cell: its bottom corner sits
+    // a cell-width down from the top.
+    <div className="pointer-events-none absolute inset-x-0 top-0 aspect-square">
+      <button
+        type="button"
+        onClick={add}
+        disabled={full}
+        aria-label={t.shop.quickAdd(product.name, inCart)}
+        className={`pointer-events-auto absolute right-1 bottom-1 flex size-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 disabled:opacity-60`}
+      >
+        <span
+          key={inCart}
+          className={`flex size-9 items-center justify-center rounded-full text-sm font-bold shadow-md ring-1 ring-slate-900/5 tabular-nums transition-colors ${
+            inCart ? 'animate-pop bg-accent text-white' : 'bg-surface text-navy-700 active:bg-slate-100'
+          }`}
+        >
+          {inCart ? inCart : <Plus aria-hidden className="size-5" />}
+        </span>
+      </button>
+    </div>
   )
 }
 

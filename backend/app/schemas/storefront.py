@@ -52,6 +52,10 @@ class ShopProductCard(BaseModel):
     price_min: Decimal
     price_max: Decimal
     in_stock: bool
+    # For adding to the cart from the grid: only products without options,
+    # up to their stock (null when has_variants: stock is per variant).
+    has_variants: bool
+    stock_quantity: int | None
 
 
 class ShopVariantOut(BaseModel):

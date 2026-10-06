@@ -1,11 +1,12 @@
-import { ShoppingBag } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ChevronRight, ShoppingBag } from 'lucide-react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Link, useMatch, useParams, useSearchParams } from 'react-router'
 import { ErrorState, PageOutlet, Skeleton, SlowNotice } from '../components/ui.tsx'
 import { LanguageToggle } from '../i18n/LanguageSwitch.tsx'
 import { ThemeToggle } from '../theme/ThemeSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
-import type { ShopStore } from '../lib/types.ts'
+import { formatMoney, toCents } from '../lib/money.ts'
+import type { Currency, ShopStore } from '../lib/types.ts'
 import { useCart } from './cart.ts'
 import { NotFound, ShopLogo } from './components.tsx'
 import { CurrentOrderBar } from './CurrentOrderBar.tsx'
@@ -26,6 +27,12 @@ export function ShopLayout() {
   const checkout = useMatch('/shop/:storeSlug/checkout') !== null
   const ordersPage = useMatch('/shop/:storeSlug/orders') !== null
   const showOrderBar = shop.data && !orderPage && !checkout && !ordersPage
+  // The grid pages: where the cart bar sits at the bottom.
+  const home = useMatch('/shop/:storeSlug') !== null
+  const category = useMatch('/shop/:storeSlug/category/:categorySlug') !== null
+  const browsing = home || category
+  const { count } = useCart(storeSlug)
+  const cartBar = browsing && count > 0
 
   if (isNotFound(shop.error)) {
     return (
@@ -38,12 +45,22 @@ export function ShopLayout() {
 
   return (
     <div className="min-h-dvh">
-      <Header shop={shop.data} slug={storeSlug} />
-      <main className="mx-auto w-full max-w-5xl px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+2.5rem)] sm:pt-6">
+      <Header shop={shop.data} slug={storeSlug} home={home} />
+      <main className="mx-auto w-full max-w-5xl px-4 pt-4 sm:pt-6">
         {shop.isPending && <SlowNotice className="mb-4" />}
         {showOrderBar && <CurrentOrderBar slug={storeSlug} />}
         {shop.error ? <ErrorState error={shop.error} onRetry={() => shop.refetch()} /> : <PageOutlet depth={2} />}
       </main>
+      {/* Light / dark: the phone's setting picks it; this is for changing
+          it, so it waits at the bottom rather than crowding the header. */}
+      <footer
+        className={`mx-auto flex max-w-5xl justify-center px-4 pt-8 ${
+          cartBar ? 'pb-28' : 'pb-[calc(env(safe-area-inset-bottom)+1.5rem)]'
+        }`}
+      >
+        <ThemeToggle withLabel />
+      </footer>
+      {cartBar && <CartBar slug={storeSlug} currency={shop.data?.currency} />}
     </div>
   )
 }
@@ -61,13 +78,21 @@ function useLinkTracking(slug: string) {
   }, [slug, token])
 }
 
-function Header({ shop, slug }: { shop: ShopStore | undefined; slug: string }) {
+function Header({ shop, slug, home }: { shop: ShopStore | undefined; slug: string; home: boolean }) {
+  // On the shop's home its name is already big on the page: the header
+  // shows it only once that has scrolled away.
+  const scrolled = useScrolledPast(home ? 96 : 0)
+  const hideName = home && !scrolled
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
         <Link
           to={`/shop/${slug}`}
-          className="-mx-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2 focus-visible:outline-2 focus-visible:outline-navy-600"
+          aria-hidden={hideName || undefined}
+          tabIndex={hideName ? -1 : undefined}
+          className={`-mx-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2 transition-opacity duration-200 focus-visible:outline-2 focus-visible:outline-navy-600 ${
+            hideName ? 'pointer-events-none opacity-0' : 'opacity-100'
+          }`}
         >
           <ShopLogo shop={shop} />
           {shop ? (
@@ -77,12 +102,46 @@ function Header({ shop, slug }: { shop: ShopStore | undefined; slug: string }) {
           )}
         </Link>
         <div className="flex shrink-0 items-center">
-          <ThemeToggle />
           <LanguageToggle />
           <CartButton slug={slug} />
         </div>
       </div>
     </header>
+  )
+}
+
+/** True once the page has scrolled more than `px` (always true for 0). */
+function useScrolledPast(px: number) {
+  return useSyncExternalStore(onScroll, () => px === 0 || window.scrollY > px)
+}
+
+function onScroll(notify: () => void) {
+  window.addEventListener('scroll', notify, { passive: true })
+  return () => window.removeEventListener('scroll', notify)
+}
+
+/** At the bottom of the shop's grid pages while the cart has something:
+ * how many, the total, and the way to the cart, always in reach. */
+function CartBar({ slug, currency }: { slug: string; currency: Currency | undefined }) {
+  const { lines, count } = useCart(slug)
+  const t = useT()
+  // The prices saved when added; the cart page checks them again.
+  const total = lines.reduce((sum, line) => sum + toCents(line.price) * line.quantity, 0)
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-30 animate-rise px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+      <Link
+        to={`/shop/${slug}/cart`}
+        className="mx-auto flex min-h-14 max-w-xl items-center gap-3 rounded-2xl bg-accent px-4 text-white shadow-lg transition-colors hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-[0.99]"
+      >
+        <ShoppingBag aria-hidden className="size-5 shrink-0" />
+        <span className="text-sm text-white/85">{t.shop.cartBar.items(count)}</span>
+        {currency && <span className="font-bold tabular-nums">{formatMoney(total / 100, currency)}</span>}
+        <span className="ml-auto flex items-center gap-1 font-semibold">
+          {t.shop.cartBar.view}
+          <ChevronRight aria-hidden className="size-4.5" />
+        </span>
+      </Link>
+    </div>
   )
 }
 

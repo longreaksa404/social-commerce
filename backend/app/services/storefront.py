@@ -155,4 +155,6 @@ def _card(product: Product) -> ShopProductCard:
         price_min=min(prices),
         price_max=max(prices),
         in_stock=in_stock,
+        has_variants=product.has_variants,
+        stock_quantity=None if product.has_variants else (product.stock_quantity or 0),
     )

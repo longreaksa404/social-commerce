@@ -72,6 +72,8 @@ async def test_products_are_this_stores_active_products_only(client, two_stores)
             "price_min": "10.00",
             "price_max": "10.00",
             "in_stock": False,
+            "has_variants": False,
+            "stock_quantity": 0,
         }
     ]
 
@@ -86,6 +88,7 @@ async def test_product_card_price_range_and_stock_come_from_variants(client, mak
 
     [card] = response.json()
     assert (card["price_min"], card["price_max"], card["in_stock"]) == ("10.00", "12.50", True)
+    assert (card["has_variants"], card["stock_quantity"]) == (True, None)
 
 
 async def test_product_page_shows_effective_variant_prices_and_no_skus(client, make_store):

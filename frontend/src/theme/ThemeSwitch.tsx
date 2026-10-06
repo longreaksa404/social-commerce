@@ -31,21 +31,26 @@ export function ThemeSwitch() {
   )
 }
 
-/** One button that switches light / dark (a moon while light), for the
- * shop's header beside the language button. Remembered on this device. */
-export function ThemeToggle() {
+/** One button that switches light / dark (a moon while light), at the
+ * bottom of the shop; `withLabel` adds what it does in words.
+ * Remembered on this device. */
+export function ThemeToggle({ withLabel = false }: { withLabel?: boolean }) {
   const theme = useSyncExternalStore(onThemeChange, currentTheme)
   const t = useT()
   const Icon = theme === 'dark' ? Sun : Moon
+  const label = theme === 'dark' ? t.common.switchToLight : t.common.switchToDark
   return (
     <button
       type="button"
-      aria-label={theme === 'dark' ? t.common.switchToLight : t.common.switchToDark}
-      title={theme === 'dark' ? t.common.switchToLight : t.common.switchToDark}
+      aria-label={withLabel ? undefined : label}
+      title={withLabel ? undefined : label}
       onClick={toggleTheme}
-      className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
+      className={`inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600 ${
+        withLabel ? 'px-3 text-sm font-medium' : 'size-11'
+      }`}
     >
       <Icon aria-hidden className="size-5" />
+      {withLabel && label}
     </button>
   )
 }

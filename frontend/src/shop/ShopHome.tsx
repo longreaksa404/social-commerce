@@ -36,7 +36,8 @@ export function ShopHome() {
     <>
       <title>{shop.data.name}</title>
       {/* The shop's own header, like its page on social media: logo beside
-          the name, on a soft green that fades into the page. */}
+          the name, on a soft navy that fades into the page (the header
+          shows the name only once this has scrolled away). */}
       <div className={band}>
         <ShopLogo shop={shop.data} className="size-16 shadow-md ring-4 ring-surface" />
         <div className="min-w-0 flex-1 pt-1">

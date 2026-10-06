@@ -132,6 +132,9 @@ export type ShopProductCard = {
   price_min: string
   price_max: string
   in_stock: boolean
+  has_variants: boolean
+  /** null when has_variants: stock is per variant. */
+  stock_quantity: number | null
 }
 
 export type ShopVariant = { id: string; name: string; price: string; stock_quantity: number }
