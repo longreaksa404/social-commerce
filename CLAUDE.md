@@ -10,6 +10,9 @@ maintainable by one person.
 - docs/03_DEVELOPMENT.md: the plan and phase task tables
 - docs/01_PRODUCT.md: scope, MVP boundaries, business rules (read when relevant)
 - docs/02_TECHNICAL.md: architecture, data model, API, state machines (read when relevant)
+- [docs/CODEBASE.md](docs/CODEBASE.md): how the code works today (layout, tenancy/RLS,
+  models, state machines, every endpoint, frontend patterns, key files, deviations
+  from 02). Also the reference for the claude.ai Project, which can't see the repo.
 
 04_STATUS.md wins for "what exists." 03_DEVELOPMENT.md wins for "what's scoped."
 Confirm what we're working on before writing code, unless I've already stated it.
@@ -106,3 +109,5 @@ commands above on every push.
 - When I say a phase is complete, update "Done" before starting the next phase.
 - If a decision changes 01, 02, or 03, say so and give me the exact section and
   text to update.
+- When a change touches models, endpoints, state machines, env vars, or the key
+  files list, update docs/CODEBASE.md in the same commit.
