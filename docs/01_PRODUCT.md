@@ -18,11 +18,13 @@
 
 ## 1.1 Project Name
 
-Working name:
+Brand: **Sroul** (ស្រួល, "easy"). One brand for all of the founder's
+projects; each product is "Sroul + a plain word" on its own subdomain
+of sroul.com.
 
-**Social Commerce SaaS**
+This product: **Sroul Order**, at order.sroul.com.
 
-The final product name has not yet been decided.
+Always show the Khmer ស្រួល next to "Sroul".
 
 ---
 
@@ -1779,7 +1781,6 @@ The following are intentionally not finalized.
 
 ## Product
 
-- Final product name
 - Exact initial seller vertical
 - Exact target seller size
 
@@ -1820,6 +1821,7 @@ Decided so far (details in §24, §25 and `02_TECHNICAL.md`):
 - KHQR: generated from the seller's Bakong ID, no payment provider (2026-10-02)
 - Payment timing: the customer sees how to pay right after ordering (2026-10-02)
 - Payment confirmation: by hand by the seller, for every method (2026-10-02)
+- Product name: Sroul Order, under the brand Sroul (2026-10-06)
 
 # 47. Relationship With Other Project Documents
 
