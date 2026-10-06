@@ -1,3 +1,8 @@
+import asyncio
+
+from app.core import security
+
+
 async def test_login_with_wrong_password_uses_error_envelope(client, register):
     seller = await register()
 
@@ -74,3 +79,21 @@ async def test_access_token_is_not_accepted_as_refresh_token(client, register):
     )
 
     assert response.status_code == 401
+
+
+async def test_password_check_leaves_the_server_free_for_other_requests():
+    """bcrypt runs in a worker thread: while one login is checked, the event
+    loop keeps serving (on Render's 0.1 CPU a check takes seconds)."""
+    ticks = 0
+
+    async def other_requests():
+        nonlocal ticks
+        while True:
+            await asyncio.sleep(0.005)
+            ticks += 1
+
+    task = asyncio.create_task(other_requests())
+    await security.verify_password("wrong-password", security.DUMMY_PASSWORD_HASH)
+    task.cancel()
+
+    assert ticks >= 5

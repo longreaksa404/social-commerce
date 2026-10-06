@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
@@ -12,20 +13,31 @@ ALGORITHM = "HS256"
 TokenType = Literal["access", "refresh"]
 
 
-def hash_password(password: str) -> str:
+def _hash(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
-def verify_password(password: str, password_hash: str) -> bool:
+def _check(password: str, password_hash: str) -> bool:
     try:
         return bcrypt.checkpw(password.encode(), password_hash.encode())
     except ValueError:  # malformed hash
         return False
 
 
+# bcrypt takes ~0.25 s of a full CPU on purpose, ~2.5 s on Render's free
+# 0.1 CPU. Run on the event loop, every other request (customers in their
+# shops) would wait for it, so it runs in a worker thread.
+async def hash_password(password: str) -> str:
+    return await asyncio.to_thread(_hash, password)
+
+
+async def verify_password(password: str, password_hash: str) -> bool:
+    return await asyncio.to_thread(_check, password, password_hash)
+
+
 # Checked against when the email doesn't exist, so a login for an unknown
 # email takes as long as one with a wrong password.
-DUMMY_PASSWORD_HASH = hash_password("not-a-real-password")
+DUMMY_PASSWORD_HASH = _hash("not-a-real-password")
 
 
 def _encode(claims: dict[str, Any], lifetime: timedelta) -> str:

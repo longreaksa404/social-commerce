@@ -37,7 +37,7 @@ async def register(db: AsyncSession, data: RegisterIn) -> TokenPair:
 
     seller = Seller(
         email=email,
-        password_hash=security.hash_password(data.password),
+        password_hash=await security.hash_password(data.password),
         full_name=data.full_name,
         phone=data.phone,
     )
@@ -56,9 +56,9 @@ async def register(db: AsyncSession, data: RegisterIn) -> TokenPair:
 async def login(db: AsyncSession, data: LoginIn) -> TokenPair:
     seller = await db.scalar(select(Seller).where(Seller.email == data.email.lower()))
     if seller is None:
-        security.verify_password(data.password, security.DUMMY_PASSWORD_HASH)
+        await security.verify_password(data.password, security.DUMMY_PASSWORD_HASH)
         raise _invalid_credentials()
-    if not security.verify_password(data.password, seller.password_hash):
+    if not await security.verify_password(data.password, seller.password_hash):
         raise _invalid_credentials()
     if not seller.is_active:
         raise AppError(403, "ACCOUNT_DISABLED", "This account has been disabled.")
