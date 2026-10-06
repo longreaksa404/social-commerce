@@ -1,0 +1,2 @@
+# Load test tools only (README.md). Not installed by CI or the Docker image.
+locust==2.46.7
