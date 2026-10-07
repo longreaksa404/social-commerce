@@ -31,9 +31,9 @@ export function ThemeSwitch() {
   )
 }
 
-/** One button that switches light / dark (a moon while light), at the
- * bottom of the shop; `withLabel` adds what it does in words.
- * Remembered on this device. */
+/** One button that switches light / dark (a moon while light), for the
+ * shop's header beside the language button; `withLabel` adds what it does
+ * in words. Remembered on this device. */
 export function ThemeToggle({ withLabel = false }: { withLabel?: boolean }) {
   const theme = useSyncExternalStore(onThemeChange, currentTheme)
   const t = useT()

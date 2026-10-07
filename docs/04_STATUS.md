@@ -791,8 +791,9 @@ redesign, calm look). Steps, each committed on its own:
    for success only, Kantumruy Pro for Latin letters and numbers too.
 2. [x] Customer shop (mockup approved 2026-10-06, changes 1–11; search
    logged for later): + on product photos, a cart bar at the bottom,
-   the shop name once, delivery / payment as tags, light / dark at the
-   bottom; Buy now on the product page; the cart and checkout are one
+   the shop name once, delivery / payment as tags (light / dark tried
+   at the bottom, back in the header 2026-10-07 at the founder's
+   choice); Buy now on the product page; the cart and checkout are one
    page (`/cart`; `/checkout` forwards there), returning customers see
    their name and phone as one line, the total on Place order. Phones:
    the cart and order page run edge to edge (founder asked).

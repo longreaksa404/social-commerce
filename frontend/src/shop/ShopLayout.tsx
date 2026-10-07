@@ -59,15 +59,8 @@ export function ShopLayout() {
         {showOrderBar && <CurrentOrderBar slug={storeSlug} />}
         {shop.error ? <ErrorState error={shop.error} onRetry={() => shop.refetch()} /> : <PageOutlet depth={2} />}
       </main>
-      {/* Light / dark: the phone's setting picks it; this is for changing
-          it, so it waits at the bottom rather than crowding the header. */}
-      <footer
-        className={`mx-auto mt-10 max-w-6xl px-4 lg:pb-6 ${cartBar ? 'pb-28' : 'pb-[calc(env(safe-area-inset-bottom)+1.5rem)]'}`}
-      >
-        <div className="flex justify-center border-t border-slate-200 pt-4">
-          <ThemeToggle withLabel />
-        </div>
-      </footer>
+      {/* Room under the last row, and for the cart bar over it on phones. */}
+      <div aria-hidden className={cartBar ? 'h-28 lg:h-10' : 'h-[calc(env(safe-area-inset-bottom)+2.5rem)]'} />
       {cartBar && <CartBar slug={storeSlug} currency={shop.data?.currency} />}
     </div>
   )
@@ -123,6 +116,7 @@ function Header({ shop, slug, home }: { shop: ShopStore | undefined; slug: strin
           )}
         </Link>
         <div className="flex shrink-0 items-center">
+          <ThemeToggle />
           <LanguageToggle />
           <CartButton slug={slug} />
         </div>
