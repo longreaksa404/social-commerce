@@ -8,8 +8,7 @@ import { LinkDetail } from './dashboard/links/LinkDetail.tsx'
 import { LinkList } from './dashboard/links/LinkList.tsx'
 import { NewLink } from './dashboard/links/NewLink.tsx'
 import { Notifications } from './dashboard/Notifications.tsx'
-import { OrderDetail } from './dashboard/orders/OrderDetail.tsx'
-import { OrderList } from './dashboard/orders/OrderList.tsx'
+import { OrdersPage } from './dashboard/orders/OrderList.tsx'
 import { ProductEdit } from './dashboard/products/ProductEdit.tsx'
 import { ProductList } from './dashboard/products/ProductList.tsx'
 import { SettingsMenu } from './dashboard/settings/SettingsMenu.tsx'
@@ -39,8 +38,9 @@ export const router = createBrowserRouter([
         element: <DashboardLayout />,
         children: [
           { index: true, element: <Navigate to="orders" replace /> },
-          { path: 'orders', element: <OrderList /> },
-          { path: 'orders/:orderId', element: <OrderDetail /> },
+          // One page: on laptops the list stays beside the open order.
+          { path: 'orders', element: <OrdersPage /> },
+          { path: 'orders/:orderId', element: <OrdersPage /> },
           { path: 'customers', element: <CustomerList /> },
           { path: 'customers/:customerId', element: <CustomerDetail /> },
           { path: 'products', element: <ProductList /> },

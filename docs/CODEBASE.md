@@ -767,7 +767,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/` | `pages/Home` | Landing: Register / Log in |
 | `/login`, `/register` | `pages/Login`, `pages/Register` | |
 | `/dashboard` | `dashboard/Layout` (`DashboardLayout`) | **Auth guard**: spinner while loading, `Navigate` to `/login` if anonymous; index redirects to `orders` |
-| `/dashboard/orders`, `/orders/:orderId` | `OrderList`, `OrderDetail` | Orders tab is the start page |
+| `/dashboard/orders`, `/orders/:orderId` | `OrdersPage` (`OrderList.tsx`: the list, with `OrderDetail` beside it on laptops) | Orders tab is the start page; phones show the list or the order; new orders have Accept / Reject in the list (`useMoveOrder.ts`, shared with the order page) |
 | `/dashboard/customers`, `/customers/:customerId` | `CustomerList`, `CustomerDetail` | |
 | `/dashboard/products`, `/products/new`, `/products/:productId` | `ProductList`, `ProductEdit` | |
 | `/dashboard/categories` | `Categories` | Button on Products on phones; sidebar entry on desktop |

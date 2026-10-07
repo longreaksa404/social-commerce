@@ -274,6 +274,10 @@ export type OrderSummary = {
   customer_name: string
   /** Units, not lines. */
   item_count: number
+  /** What the row leads with: the biggest line, how many lines, its photo now. */
+  first_item_name: string
+  line_count: number
+  first_item_image_url: string | null
   payment_method: PaymentMethod
   payment_status: PaymentStatus
   delivery_method: DeliveryMethod

@@ -4,6 +4,27 @@ import type { Tree } from '../core.ts'
 export const orders = {
   title: { en: 'Orders', km: 'ការកុម្ម៉ង់' },
   order: { en: 'Order', km: 'ការកុម្ម៉ង់' },
+  // The list's days.
+  today: { en: 'Today', km: 'ថ្ងៃនេះ' },
+  yesterday: { en: 'Yesterday', km: 'ម្សិលមិញ' },
+  // A row's second line.
+  rowMeta: {
+    en: (customer: string, n: number, time: string) => `${customer}, #${n}, ${time}`,
+    km: (customer: string, n: number, time: string) => `${customer}, #${n}, ${time}`,
+  },
+  rowMetaNoCustomer: { en: (n: number, time: string) => `#${n}, ${time}`, km: (n: number, time: string) => `#${n}, ${time}` },
+  // Laptops: the list beside an empty space for the order.
+  pickOrder: { en: 'Choose an order to see it here.', km: 'ជ្រើសរើសការកុម្ម៉ង់ ដើម្បីមើលវានៅទីនេះ។' },
+  // The card at the top of an order: what to do next.
+  todo: {
+    label: { en: 'To do', km: 'ត្រូវធ្វើ' },
+    accept: { en: 'New order: accept or reject', km: 'ការកុម្ម៉ង់ថ្មី៖ ទទួល ឬបដិសេធ' },
+    next: { en: 'Next step', km: 'ជំហានបន្ទាប់' },
+    payment: { en: 'Check the payment, then mark it paid', km: 'ពិនិត្យការបង់ប្រាក់ រួចកត់ថាបានបង់' },
+    cash: { en: 'Mark the cash as received when you get it', km: 'កត់ថាបានទទួលសាច់ប្រាក់ ពេលអ្នកទទួលបាន' },
+    driver: { en: 'Assign a driver', km: 'ចាត់អ្នកដឹក' },
+    delivery: { en: 'Update the delivery', km: 'ធ្វើបច្ចុប្បន្នភាពការដឹកជញ្ជូន' },
+  },
   filterLabel: { en: 'Filter orders', km: 'ច្រោះការកុម្ម៉ង់' },
   filter: {
     all: { en: 'All', km: 'ទាំងអស់' },

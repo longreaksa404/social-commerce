@@ -1,7 +1,7 @@
-import { ChevronDown, ChevronRight, Link2, MapPin, MapPinned, MessageSquareText, Phone, Truck } from 'lucide-react'
+import { ChevronDown, ChevronRight, Link2, MapPin, MapPinned, MessageSquareText, Phone, ShoppingBag, Truck, Wallet } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
-import { buzz, confetti } from '../../components/effects.ts'
+import { buzz } from '../../components/effects.ts'
 import { useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card, ErrorState, Field, Input, LiveBadge, PageHeader, Skeleton } from '../../components/ui.tsx'
@@ -14,11 +14,9 @@ import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, formatPhone, ORDER_STATUS_TONES } from '../../lib/orders.ts'
 import { paymentBadge } from '../../lib/payments.ts'
 import type { DeliveryStatus, Order, OrderStatus } from '../../lib/types.ts'
-import { useChangeOrderStatus, useOrder, useRecordDelivery, useRecordPayment } from '../queries.ts'
+import { useOrder, useRecordDelivery, useRecordPayment } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
-
-// Ending an order: asks first, and its items go back into stock.
-const ENDS_ORDER = new Set<OrderStatus>(['rejected', 'cancelled'])
+import { ENDS_ORDER, useMoveOrder } from './useMoveOrder.ts'
 
 /** /dashboard/orders/:orderId */
 export function OrderDetail() {
@@ -31,7 +29,7 @@ export function OrderDetail() {
   if (order.error) {
     return (
       <>
-        <PageHeader title={t.orders.order} back={back} />
+        <PageHeader title={t.orders.order} back={back} backOnPhonesOnly />
         <ErrorState error={order.error} onRetry={() => order.refetch()} />
       </>
     )
@@ -41,65 +39,69 @@ export function OrderDetail() {
 }
 
 function OrderView({ order, back, onStale }: { order: Order; back: string; onStale: () => void }) {
-  const { toast, confirm } = useFeedback()
   const t = useT()
-  const o = t.orders
-  const change = useChangeOrderStatus(order.id)
-  const ends = order.next_statuses.filter((s) => ENDS_ORDER.has(s))
-  const forward = order.next_statuses.filter((s) => !ENDS_ORDER.has(s))
-
-  async function move(status: OrderStatus, button: HTMLElement) {
-    // Read now: the button goes once the order has moved on.
-    const from = button.getBoundingClientRect()
-    if (ENDS_ORDER.has(status)) {
-      const reject = status === 'rejected'
-      const ok = await confirm({
-        title: reject ? o.rejectTitle(order.number) : o.cancelTitle(order.number),
-        message: reject ? o.rejectMessage : o.cancelMessage,
-        confirmLabel: reject ? o.rejectConfirm : o.cancelConfirm,
-        danger: true,
-      })
-      if (!ok) return
-    }
-    try {
-      await change.mutateAsync(status)
-      buzz()
-      // The end of the road for an order: a little celebration.
-      if (status === 'completed') confetti(from.left + from.width / 2, from.top + from.height / 2)
-      toast(o.changed(order.number, t.status.order[status]))
-    } catch (error) {
-      toast(errorText(error), 'error')
-      // Most likely changed on another device: show where it is now.
-      if (error instanceof ApiError && error.status === 409) onStale()
-    }
-  }
-
   return (
     <>
-      <PageHeader title={t.shop.orderNumber(order.number)} back={back} />
+      <PageHeader
+        title={t.shop.orderNumber(order.number)}
+        back={back}
+        backOnPhonesOnly
+        action={<span className="shrink-0 text-sm text-slate-500">{formatOrderTime(order.created_at)}</span>}
+      />
       <title>{t.shop.orderNumber(order.number)}</title>
-
-      {/* Phones: one column, what was ordered first. Wide screens: items and
-          customer beside delivery and payment. */}
       <div className="space-y-4">
+        <TodoCard order={order} onStale={onStale} />
         <SummaryCard order={order} />
-        <div className="space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0">
-          <div className="space-y-4">
-            <ItemsCard order={order} />
-            <CustomerCard order={order} />
-          </div>
-          <div className="space-y-4">
-            <DeliverySection order={order} onStale={onStale} />
-            <PaymentSection order={order} onStale={onStale} />
-          </div>
-        </div>
+        <CustomerCard order={order} />
+        <ItemsCard order={order} />
+        <DeliverySection order={order} onStale={onStale} />
+        <PaymentSection order={order} onStale={onStale} />
       </div>
+    </>
+  )
+}
 
-      {order.next_statuses.length > 0 && (
-        // Pinned to the bottom, in reach of a thumb (floating at the bottom
-        // of the page on wide screens, so the next step needs no scrolling).
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
-          <div className="mx-auto flex max-w-3xl gap-3 px-4 py-3 lg:max-w-none">
+function scrollToSection(id: string) {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  document.getElementById(id)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+}
+
+/** What the order needs from the seller now, first thing on the page: the
+ * order's own next step with its buttons (accept or reject a new order;
+ * move it on, or cancel), and, as links to their cards, a payment to check
+ * or a driver to assign. The three never set each other (02 section 7). */
+function TodoCard({ order, onStale }: { order: Order; onStale: () => void }) {
+  const t = useT()
+  const o = t.orders
+  const { move, change } = useMoveOrder(order.id, order.number, onStale)
+  const ends = order.next_statuses.filter((s) => ENDS_ORDER.has(s))
+  const forward = order.next_statuses.filter((s) => !ENDS_ORDER.has(s))
+  const closed = CLOSED.has(order.status)
+  const { payment, delivery } = order
+
+  const links: { id: string; text: string }[] = []
+  if (!closed && order.status !== 'pending' && payment.next_statuses.includes('paid')) {
+    if (payment.method !== 'cod') links.push({ id: 'payment', text: o.todo.payment })
+    // Cash is in hand once it's been handed over.
+    else if (delivery.status === 'delivered' || order.status === 'delivered') links.push({ id: 'payment', text: o.todo.cash })
+  }
+  if (!closed && order.status !== 'pending' && delivery.method !== 'pickup' && delivery.status === 'not_assigned') {
+    links.push({ id: 'delivery', text: o.todo.driver })
+  }
+  if (ends.length + forward.length + links.length === 0) return null
+
+  return (
+    <section
+      aria-label={o.todo.label}
+      className="-mx-4 border-y-2 border-brand/40 bg-surface p-4 sm:mx-0 sm:rounded-2xl sm:border-2 sm:p-5"
+    >
+      <p className="text-xs font-bold tracking-wide text-brand">{o.todo.label}</p>
+      {(ends.length > 0 || forward.length > 0) && (
+        <>
+          <h2 className="mt-1 text-lg font-bold text-slate-900">
+            {order.status === 'pending' ? o.todo.accept : o.todo.next}
+          </h2>
+          <div className="mt-3 flex gap-3">
             {ends.map((status) => (
               <Button key={status} variant="danger" disabled={change.isPending} onClick={(e) => move(status, e.currentTarget)}>
                 {o.action[status as keyof typeof o.action]}
@@ -117,78 +119,107 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
               </Button>
             ))}
           </div>
-        </div>
+        </>
       )}
-    </>
+      {links.length > 0 && (
+        <ul className={`divide-y divide-slate-100 ${ends.length + forward.length > 0 ? 'mt-3 border-t border-slate-100' : 'mt-1'}`}>
+          {links.map((link) => (
+            <li key={link.text}>
+              <button
+                type="button"
+                onClick={() => scrollToSection(link.id)}
+                className="flex min-h-11 w-full items-center gap-2 py-2 text-left font-medium text-slate-900 hover:text-navy-700 focus-visible:outline-2 focus-visible:outline-navy-600"
+              >
+                <span className="flex-1">{link.text}</span>
+                <ChevronDown aria-hidden className="size-4.5 text-slate-400" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }
 
-/** The order at a glance: what it comes to, and where each of its three
- * statuses stands. They move independently (02 section 7); each line
- * jumps to its card. */
+/** The order at a glance: what it comes to, and its three statuses as
+ * tiles. They move independently (02 section 7); the one waiting on the
+ * seller has a coloured edge, and payment and delivery jump to their
+ * cards. */
 function SummaryCard({ order }: { order: Order }) {
   const t = useT()
   const o = t.orders
   const payment = paymentBadge(t, order.payment.method, order.payment.status)
   const delivery = deliveryBadge(t, order.delivery.method, order.delivery.status)
   const count = order.items.reduce((sum, item) => sum + item.quantity, 0)
-  const rows = [
+  const closed = CLOSED.has(order.status)
+  const tiles = [
     {
+      key: 'order',
+      icon: ShoppingBag,
       label: o.order,
       status: order.status,
       badge: { label: t.status.order[order.status], tone: ORDER_STATUS_TONES[order.status] },
-      href: null,
+      needs: order.status === 'pending',
+      target: null,
     },
-    { label: o.payment, status: order.payment.status, badge: payment, href: '#payment' },
     {
+      key: 'payment',
+      icon: Wallet,
+      label: o.payment,
+      status: order.payment.status,
+      badge: payment,
+      needs: !closed && order.payment.status === 'pending' && order.payment.method !== 'cod' && order.status !== 'pending',
+      target: 'payment',
+    },
+    {
+      key: 'delivery',
+      icon: order.delivery.method === 'pickup' ? MapPin : Truck,
       label: order.delivery.method === 'pickup' ? t.checkout.pickup : o.delivery,
       status: order.delivery.status,
       badge: delivery,
-      href: '#delivery',
+      needs:
+        !closed &&
+        (order.delivery.status === 'failed' ||
+          (order.status !== 'pending' && order.delivery.method !== 'pickup' && order.delivery.status === 'not_assigned')),
+      target: 'delivery',
     },
   ]
   return (
     <Card className="p-4 sm:p-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-2xl font-bold tracking-tight text-slate-900">{formatMoney(order.total, order.currency)}</p>
-          <p className="mt-0.5 text-sm text-slate-500">{o.items(count)}</p>
-        </div>
-        <span className="pt-1.5 text-right text-sm text-slate-500">{o.placed(formatOrderTime(order.created_at))}</span>
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">{formatMoney(order.total, order.currency)}</p>
+        <p className="text-sm text-slate-500">{o.items(count)}</p>
       </div>
-      <ul className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 lg:grid lg:grid-cols-3 lg:divide-x lg:divide-y-0">
-        {rows.map(({ label, status, badge, href }) => {
-          const content = (
+      <ul className="mt-4 grid grid-cols-3 gap-2">
+        {tiles.map(({ key, icon: Icon, label, status, badge, needs, target }) => {
+          const body = (
             <>
-              <span className="text-sm text-slate-600">{label}</span>
-              <span className="flex items-center gap-1">
+              <span className="flex size-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                <Icon aria-hidden className="size-4.5" />
+              </span>
+              <span className="mt-1.5 block text-xs text-slate-500">{label}</span>
+              <span className="mt-1 block">
                 <LiveBadge value={status} tone={badge.tone}>
                   {badge.label}
                 </LiveBadge>
-                {href && <ChevronDown aria-hidden className="size-4 text-slate-400" />}
               </span>
             </>
           )
-          const row =
-            'flex min-h-11 items-center justify-between gap-3 px-3.5 py-2 lg:flex-col lg:items-start lg:justify-center lg:gap-1 lg:py-3'
+          const tile = `block h-full w-full rounded-xl border p-2.5 text-left sm:p-3 ${
+            needs ? 'border-amber-400 bg-amber-50/40' : 'border-slate-200'
+          }`
           return (
-            <li key={label}>
-              {href ? (
-                <a
-                  href={href}
-                  onClick={(e) => {
-                    // Scroll only: a #hash entry would drop the back arrow's
-                    // destination (useBackTo reads the page's history state).
-                    e.preventDefault()
-                    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-                    document.querySelector(href)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
-                  }}
-                  className={`${row} transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600`}
+            <li key={key}>
+              {target ? (
+                <button
+                  type="button"
+                  onClick={() => scrollToSection(target)}
+                  className={`${tile} transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600`}
                 >
-                  {content}
-                </a>
+                  {body}
+                </button>
               ) : (
-                <div className={row}>{content}</div>
+                <div className={tile}>{body}</div>
               )}
             </li>
           )
@@ -540,7 +571,7 @@ function DetailSkeleton({ back }: { back: string }) {
   const t = useT()
   return (
     <>
-      <PageHeader title={t.orders.order} back={back} />
+      <PageHeader title={t.orders.order} back={back} backOnPhonesOnly />
       <div aria-hidden className="space-y-4">
         <Skeleton className="h-20 w-full rounded-2xl" />
         <Skeleton className="h-36 w-full rounded-2xl" />

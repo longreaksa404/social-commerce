@@ -355,7 +355,19 @@ export function Section({
 
 /** Page title row. `back` adds a back arrow (a real link, so it works with
  * open-in-new-tab and the browser's back stack stays predictable). */
-export function PageHeader({ title, back, action }: { title: ReactNode; back?: string; action?: ReactNode }) {
+/** `backOnPhonesOnly`: where a laptop shows the page beside the one the
+ * arrow goes back to (an order beside the order list). */
+export function PageHeader({
+  title,
+  back,
+  action,
+  backOnPhonesOnly = false,
+}: {
+  title: ReactNode
+  back?: string
+  action?: ReactNode
+  backOnPhonesOnly?: boolean
+}) {
   const t = useT()
   return (
     <div className="mb-4 flex items-center gap-2 sm:mb-6">
@@ -363,7 +375,7 @@ export function PageHeader({ title, back, action }: { title: ReactNode; back?: s
         <Link
           to={back}
           aria-label={t.common.back}
-          className="-ml-2 inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
+          className={`-ml-2 ${backOnPhonesOnly ? 'lg:hidden' : ''} inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600`}
         >
           <ChevronLeft aria-hidden className="size-6" />
         </Link>

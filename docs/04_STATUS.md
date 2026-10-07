@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-07 (Phase 9: redesign step 3, customer's order page)
+> **Last updated:** 2026-10-07 (Phase 9: redesign step 4, seller's orders)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -806,7 +806,15 @@ redesign, calm look). Steps, each committed on its own:
    in two columns; Your orders with each order's photo, what was bought,
    and status / paid tags). API: tracked order items carry the product's
    current photo.
-4. [ ] Seller orders: list and detail (mockup first)
+4. [x] Seller orders (founder picked 1A 2B 3A 4A 5A 6A, 2026-10-07):
+   rows led by what was bought (photo, item name, customer, number,
+   time, tags; New in blue, apart from amber "not paid"); the list by
+   day under the status tabs; Accept / Reject on new orders right in the
+   list; an order opens with a "To do" card (its next step and buttons,
+   plus a payment to check or a driver to assign); the three statuses
+   as tiles, the one waiting on the seller edged in amber; laptops show
+   the list with the open order beside it. API: order rows carry the
+   biggest line, line count and its photo.
 5. [ ] Rest of the dashboard: products, customers, links, settings (mockup first)
 6. [ ] Login and Register (mockup first)
 

@@ -3,12 +3,14 @@ import type { OrderStatus } from './types.ts'
 
 export type StatusTone = 'amber' | 'blue' | 'green' | 'red' | 'neutral'
 
+// New orders in blue, so they don't look like the amber "not paid" beside
+// them; orders under way stay quiet (redesign 2026-10-07).
 export const ORDER_STATUS_TONES: Record<OrderStatus, StatusTone> = {
-  pending: 'amber',
-  accepted: 'blue',
-  processing: 'blue',
-  ready: 'blue',
-  shipped: 'blue',
+  pending: 'blue',
+  accepted: 'neutral',
+  processing: 'neutral',
+  ready: 'neutral',
+  shipped: 'neutral',
   delivered: 'green',
   completed: 'green',
   rejected: 'red',
@@ -22,6 +24,22 @@ const KHMER_MONTHS = ['មករា', 'កុម្ភៈ', 'មីនា', 'ម
 
 const khmerDay = (date: Date) => `${date.getDate()} ${KHMER_MONTHS[date.getMonth()]}`
 const khmerTime = (date: Date) => `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`
+
+/** "2:15 PM" (Khmer "14:15"): the time only, under a day heading. */
+export function formatClock(iso: string): string {
+  const date = new Date(iso)
+  if (currentLang() === 'km') return khmerTime(date)
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+}
+
+/** A day heading: "Mon, Oct 5" this year, "Oct 5, 2025" before (Khmer:
+ * "5 តុលា", "5 តុលា 2025"); Today and Yesterday are the caller's. */
+export function formatDay(iso: string, now = new Date()): string {
+  const date = new Date(iso)
+  if (date.getFullYear() !== now.getFullYear()) return formatDate(iso)
+  if (currentLang() === 'km') return khmerDay(date)
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+}
 
 /** "2:15 PM" today, "Oct 2, 2:15 PM" this year, "Oct 2, 2025" before
  * (Khmer: "14:15", "2 តុលា, 14:15", "2 តុលា 2025"). */
