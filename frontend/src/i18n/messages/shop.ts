@@ -110,14 +110,12 @@ export const shop = {
 
   cartPage: {
     tab: { en: (shop: string) => `Your cart · ${shop}`, km: (shop: string) => `កន្ត្រករបស់អ្នក · ${shop}` },
-    title: { en: 'Your cart', km: 'កន្ត្រករបស់អ្នក' },
     emptyTitle: { en: 'Your cart is empty', km: 'កន្ត្រករបស់អ្នកនៅទទេ' },
     emptyText: {
       en: 'Add products from the shop, then come back here to order.',
       km: 'សូមដាក់ទំនិញពីហាងចូលកន្ត្រក រួចត្រឡប់មកទីនេះដើម្បីកុម្ម៉ង់។',
     },
     browse: { en: 'Browse products', km: 'មើលទំនិញ' },
-    feeAtCheckout: { en: 'Delivery fee is added at checkout.', km: 'ថ្លៃដឹកនឹងបូកបញ្ចូលនៅពេលកុម្ម៉ង់។' },
     addMoreForDiscount: {
       en: (missing: string, off: string) => `Add ${missing} more to get ${off} off.`,
       km: (missing: string, off: string) => `ទិញបន្ថែម ${missing} ទៀត ដើម្បីទទួលបានការបញ្ចុះតម្លៃ ${off}។`,
@@ -132,8 +130,6 @@ export const shop = {
     },
     deliveryIsFree: { en: 'Your delivery is free.', km: 'ការដឹករបស់អ្នកឥតគិតថ្លៃ។' },
     fixItems: { en: 'Fix the items marked in red to continue.', km: 'សូមកែទំនិញដែលមានសញ្ញាក្រហម ដើម្បីបន្ត។' },
-    checkout: { en: 'Checkout', km: 'បន្តទៅកុម្ម៉ង់' },
-    continueShopping: { en: 'Continue shopping', km: 'ទិញបន្តទៀត' },
     remove: { en: (name: string) => `Remove ${name}`, km: (name: string) => `ដក ${name} ចេញ` },
     yourOrders: { en: 'Your orders', km: 'ការកុម្ម៉ង់របស់អ្នក' },
   },

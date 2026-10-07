@@ -777,7 +777,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public |
 | `/shop/:storeSlug/product/:productSlug` | `ShopProduct` | |
 | `/shop/:storeSlug/category/:categorySlug` | `ShopCategory` | |
-| `/shop/:storeSlug/cart`, `/checkout` | `ShopCart`, `ShopCheckout` | |
+| `/shop/:storeSlug/cart` (`/checkout` forwards here) | `ShopCheckout` (with `CartItems` / `EmptyCart` from `ShopCart.tsx`) | The cart and checkout on one page (redesign 2026-10-06) |
 | `/shop/:storeSlug/order/:orderId` | `ShopOrderPage` | Confirmation + tracking |
 | `/shop/:storeSlug/orders` | `ShopOrders` | Orders placed on this device |
 | `*` | redirect to `/` | |

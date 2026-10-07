@@ -24,7 +24,7 @@ export function ShopLayout() {
   useLinkTracking(storeSlug)
   // Not where the order itself, checkout or the list of orders is showing.
   const orderPage = useMatch('/shop/:storeSlug/order/:orderId') !== null
-  const checkout = useMatch('/shop/:storeSlug/checkout') !== null
+  const checkout = useMatch('/shop/:storeSlug/cart') !== null
   const ordersPage = useMatch('/shop/:storeSlug/orders') !== null
   const showOrderBar = shop.data && !orderPage && !checkout && !ordersPage
   // The grid pages: where the cart bar sits at the bottom.

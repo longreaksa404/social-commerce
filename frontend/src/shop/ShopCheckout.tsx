@@ -1,8 +1,9 @@
-import { Check, LoaderCircle, MapPin } from 'lucide-react'
+import { Banknote, Check, Landmark, LoaderCircle, MapPin, Plus, QrCode, UserRound, type LucideIcon } from 'lucide-react'
 import { lazy, Suspense, useCallback, useState, type FormEvent, type ReactNode } from 'react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import {
   Button,
+  Card,
   ErrorMessage,
   ErrorState,
   Field,
@@ -15,11 +16,12 @@ import {
 import { useT } from '../i18n/useT.ts'
 import { ApiError } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
-import { formatMoney, fromCents, toCents } from '../lib/money.ts'
+import { formatMoney, fromCents } from '../lib/money.ts'
 import { PAYMENT_METHOD_ORDER } from '../lib/payments.ts'
 import { deliveryFeeCents, discountCents } from '../lib/pricing.ts'
 import type { Currency, PaymentMethod, ShopStore } from '../lib/types.ts'
-import { useCart, useCheckedCart, type CheckedLine } from './cart.ts'
+import { useCart, useCheckedCart } from './cart.ts'
+import { CartItems, EmptyCart } from './ShopCart.tsx'
 import { loadCustomerDetails, rememberedLink, rememberOrder, saveCustomerDetails } from './device.ts'
 import { usePlaceOrder, useShop } from './queries.ts'
 
@@ -54,6 +56,8 @@ type Form = {
 
 type Location = { lat: number; lng: number }
 
+const PAYMENT_ICON: Record<PaymentMethod, LucideIcon> = { khqr: QrCode, bank_transfer: Landmark, cod: Banknote }
+
 // Delivery choices besides the shop's couriers (whose names can't clash
 // with these: they're typed by people).
 const OWN = '\u0000own'
@@ -68,8 +72,10 @@ function deliveryChoices(options: ShopStore['delivery']): string[] {
  * chosen how to get the order (and where). */
 type Price = { subtotal: number; discount: number; fee: number | null; total: number }
 
-/** /shop/:storeSlug/checkout: guest checkout (customer, delivery or
- * pickup, payment, review). */
+/** /shop/:storeSlug/cart: the cart and guest checkout on one page
+ * (redesign 2026-10-06): the items, the customer, delivery or pickup,
+ * payment, and the total on the Place order button. /checkout, its old
+ * address, comes here too. */
 export function ShopCheckout() {
   const { storeSlug = '' } = useParams()
   const navigate = useNavigate()
@@ -95,10 +101,24 @@ export function ShopCheckout() {
   })
   const set = (key: 'name' | 'phone' | 'address' | 'notes' | 'addressNote', value: string) =>
     setForm((f) => ({ ...f, [key]: value }))
+  // Someone who ordered on this phone before sees their name and phone as
+  // one line, with Change, rather than the fields filled in again.
+  const [editDetails, setEditDetails] = useState(() => {
+    const saved = loadCustomerDetails()
+    return !saved?.name || !saved.phone
+  })
 
   // After a successful order the cart is emptied while leaving this page.
-  if (cart.lines.length === 0 && !place.isSuccess) return <Navigate to={`/shop/${storeSlug}/cart`} replace />
   if (!shop.data) return <CheckoutSkeleton />
+  if (cart.lines.length === 0 && !place.isSuccess) {
+    return (
+      <>
+        <title>{t.shop.cartPage.tab(shop.data.name)}</title>
+        <PageHeader title={c.yourOrder} back={`/shop/${storeSlug}`} />
+        <EmptyCart shop={storeSlug} />
+      </>
+    )
+  }
   const currency = shop.data.currency
   const methods = PAYMENT_METHOD_ORDER.filter((m) => shop.data.payment_methods.includes(m))
   // No choice to make when there's one way to pay; otherwise the customer
@@ -111,6 +131,7 @@ export function ShopCheckout() {
   const pickup = how === PICKUP
   const courier = how && how !== OWN && how !== PICKUP ? how : null
 
+  const detailsError = fieldError(place.error, 'name') ?? fieldError(place.error, 'phone')
   const discount = discountCents(checked.subtotalCents, shop.data.discounts)
   const fee =
     how === null
@@ -171,35 +192,74 @@ export function ShopCheckout() {
   return (
     <form onSubmit={submit} className="mx-auto max-w-xl space-y-4 pb-24 lg:pb-0">
       <title>{c.tab(shop.data.name)}</title>
-      <PageHeader title={c.title} back={`/shop/${storeSlug}/cart`} />
+      <PageHeader title={c.yourOrder} back={`/shop/${storeSlug}`} />
 
-      <Section step={1} title={c.yourDetails}>
-        <Field label={c.name} error={fieldError(place.error, 'name')}>
-          <Input
-            required
-            maxLength={100}
-            autoComplete="name"
-            autoCapitalize="words"
-            value={form.name}
-            onChange={(e) => set('name', e.target.value)}
-          />
-        </Field>
-        <Field
-          label={c.phone}
-          hint={c.phoneHint}
-          error={fieldError(place.error, 'phone')}
-        >
-          <Input
-            required
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            maxLength={32}
-            placeholder="012 345 678"
-            value={form.phone}
-            onChange={(e) => set('phone', e.target.value)}
-          />
-        </Field>
+      <Section
+        step={1}
+        title={t.shop.cartBar.items(cart.count)}
+        action={
+          <Link
+            to={`/shop/${storeSlug}`}
+            className="-my-2 -mr-2 inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline"
+          >
+            <Plus aria-hidden className="size-4" />
+            {c.addMore}
+          </Link>
+        }
+      >
+        {checked.error ? (
+          <ErrorState error={checked.error} onRetry={() => checked.refetch()} />
+        ) : (
+          <CartItems shop={shop.data} checked={checked} />
+        )}
+      </Section>
+
+      <Section step={2} title={c.yourDetails}>
+        {!editDetails && form.name && form.phone && !detailsError ? (
+          <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3.5 py-2.5">
+            <UserRound aria-hidden className="size-5 shrink-0 text-slate-500" />
+            <p className="min-w-0 flex-1 text-sm leading-5">
+              <span className="block truncate font-medium text-slate-900">{form.name}</span>
+              <span className="block text-slate-600 tabular-nums">{form.phone}</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => setEditDetails(true)}
+              className="-my-2 -mr-2 min-h-11 shrink-0 rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline"
+            >
+              {c.change}
+            </button>
+          </div>
+        ) : (
+          <>
+            <Field label={c.name} error={fieldError(place.error, 'name')}>
+              <Input
+                required
+                maxLength={100}
+                autoComplete="name"
+                autoCapitalize="words"
+                value={form.name}
+                onChange={(e) => set('name', e.target.value)}
+              />
+            </Field>
+            <Field
+              label={c.phone}
+              hint={c.phoneHint}
+              error={fieldError(place.error, 'phone')}
+            >
+              <Input
+                required
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                maxLength={32}
+                placeholder="012 345 678"
+                value={form.phone}
+                onChange={(e) => set('phone', e.target.value)}
+              />
+            </Field>
+          </>
+        )}
       </Section>
 
       <DeliverySection
@@ -262,31 +322,35 @@ export function ShopCheckout() {
         </Field>
       </DeliverySection>
 
-      <Section step={3} title={c.payment}>
+      <Section step={4} title={c.payment}>
         <fieldset aria-describedby={fieldError(place.error, 'payment_method') ? 'payment-error' : undefined}>
           <legend className="sr-only">{c.howPay}</legend>
-          <div className="space-y-2">
-            {methods.map((method) => (
-              <label
-                key={method}
-                className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-slate-200 px-3.5 py-3 has-[:checked]:border-navy-600 has-[:checked]:bg-navy-50/50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-navy-600/15"
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  required
-                  value={method}
-                  checked={payment === method}
-                  onChange={() => setForm((f) => ({ ...f, payment: method }))}
-                  className="mt-0.5 size-5 shrink-0 accent-navy-700"
-                />
-                <span className="min-w-0">
-                  <span className="block font-medium text-slate-900">{t.status.paymentMethod[method]}</span>
-                  <span className="mt-0.5 block text-sm text-slate-500">{c.paymentHint[method]}</span>
-                </span>
-              </label>
-            ))}
+          {/* Side by side with short names; what the chosen one means goes
+              underneath, so the three fit a 320px phone in Khmer too. */}
+          <div className={`grid gap-2 ${methods.length === 1 ? 'grid-cols-1' : methods.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+            {methods.map((method) => {
+              const Icon = PAYMENT_ICON[method]
+              return (
+                <label
+                  key={method}
+                  className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-2 py-3 text-center text-slate-700 transition-colors has-[:checked]:border-navy-600 has-[:checked]:bg-navy-50/50 has-[:checked]:text-navy-800 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-navy-600/15"
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    required
+                    value={method}
+                    checked={payment === method}
+                    onChange={() => setForm((f) => ({ ...f, payment: method }))}
+                    className="sr-only"
+                  />
+                  <Icon aria-hidden className="size-6" />
+                  <span className="text-sm leading-tight font-medium">{c.paymentShort[method]}</span>
+                </label>
+              )
+            })}
           </div>
+          {payment && <p className="mt-2.5 text-sm text-slate-600">{c.paymentHint[payment]}</p>}
           {fieldError(place.error, 'payment_method') && (
             <p id="payment-error" className="mt-2 text-sm text-red-600">
               {fieldError(place.error, 'payment_method')}
@@ -295,45 +359,22 @@ export function ShopCheckout() {
         </fieldset>
       </Section>
 
-      <Section
-        step={4}
-        title={c.yourOrder}
-        action={
-          <Link
-            to={`/shop/${storeSlug}/cart`}
-            className="-my-2 -mr-2 inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline"
-          >
-            {c.editCart}
-          </Link>
-        }
-      >
-        {checked.error ? (
-          <ErrorState error={checked.error} onRetry={() => checked.refetch()} />
-        ) : (
-          <OrderReview
-            lines={checked.lines}
-            currency={currency}
-            loading={checked.loading}
-            price={price}
-            cartPath={`/shop/${storeSlug}/cart`}
-          />
-        )}
-      </Section>
+      {!checked.error && <Totals currency={currency} loading={checked.loading} price={price} />}
 
       <ErrorMessage error={formError(place.error, FIELDS)} />
 
       {/* Pinned to the bottom so the button is always in reach (floating
           at the bottom of the column on wide screens). */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
-        <div className="mx-auto flex max-w-xl items-center gap-3 px-4 py-3">
-          <span className="min-w-0 flex-1">
-            <span className="block text-xs text-slate-500">{price.fee === null ? c.totalBeforeDelivery : t.shop.summary.total}</span>
-            <span className="block truncate text-lg font-bold text-slate-900">
+        <div className="mx-auto max-w-xl px-4 py-3">
+          {/* The amount on the button: what tapping it commits to, which
+              matters most before paying by KHQR or bank transfer. */}
+          <Button type="submit" size="lg" loading={place.isPending} disabled={!checked.ready} className="w-full justify-between!">
+            <span>{c.placeOrder}</span>
+            <span className="tabular-nums">
               {checked.loading ? '…' : formatMoney(price.total / 100, currency)}
+              {price.fee === null && <span className="ml-1 text-sm font-normal opacity-80">{c.plusDelivery}</span>}
             </span>
-          </span>
-          <Button type="submit" size="lg" loading={place.isPending} disabled={!checked.ready} className="min-w-40">
-            {c.placeOrder}
           </Button>
         </div>
       </div>
@@ -376,7 +417,7 @@ function DeliverySection({
   const hint = (choice: string) => (choice === OWN ? c.hintOwn : choice === PICKUP ? c.hintPickup : c.hintCourier)
   const choiceError = fieldError(error, 'delivery_method') ?? fieldError(error, 'courier')
   return (
-    <Section step={2} title={choices.length === 1 && choices[0] === PICKUP ? c.pickup : c.delivery}>
+    <Section step={3} title={choices.length === 1 && choices[0] === PICKUP ? c.pickup : c.delivery}>
       {choices.length > 1 ? (
         <fieldset aria-describedby={choiceError ? 'delivery-choice-error' : undefined}>
           <legend className="mb-1.5 block text-sm font-medium text-slate-700">{c.howGet}</legend>
@@ -555,59 +596,28 @@ function ChoiceCard({
   )
 }
 
-function OrderReview({
-  lines,
-  currency,
-  loading,
-  price,
-  cartPath,
-}: {
-  lines: CheckedLine[]
-  currency: Currency
-  loading: boolean
-  price: Price
-  cartPath: string
-}) {
+/** What the order comes to: items, discount, delivery, total. */
+function Totals({ currency, loading, price }: { currency: Currency; loading: boolean; price: Price }) {
   const t = useT()
   const summary = t.shop.summary
-  const problems = lines.some((line) => line.problem)
   const money = (cents: number) => formatMoney(cents / 100, currency)
   return (
-    <div>
-      <ul className="divide-y divide-slate-100">
-        {lines.map((line) => (
-          <li key={`${line.productId}:${line.variantId}`} className="flex gap-3 py-2.5 first:pt-0">
-            <span className="min-w-0 flex-1 text-sm">
-              <span className="block break-words text-slate-900">
-                {line.name}
-                {line.variantName && <span className="text-slate-500"> · {line.variantName}</span>}
-              </span>
-              <span className="text-slate-500">
-                {line.quantity} × {formatMoney(line.price, currency)}
-              </span>
-              {line.problem && <span className="block font-medium text-red-700">{line.problem}</span>}
-            </span>
-            <span className="text-sm font-medium text-slate-900">
-              {formatMoney((toCents(line.price) * line.quantity) / 100, currency)}
-            </span>
-          </li>
-        ))}
-      </ul>
+    <Card className="p-4 sm:p-6">
       {!loading && (
-        <dl className="mt-2 space-y-1 border-t border-slate-200 pt-3 text-sm">
+        <dl className="space-y-1 text-sm">
           <div className="flex justify-between">
             <dt className="text-slate-600">{summary.items}</dt>
-            <dd className="text-slate-900">{money(price.subtotal)}</dd>
+            <dd className="text-slate-900 tabular-nums">{money(price.subtotal)}</dd>
           </div>
           {price.discount > 0 && (
             <div className="flex justify-between">
               <dt className="text-slate-600">{summary.discount}</dt>
-              <dd className="font-medium text-emerald-700">−{money(price.discount)}</dd>
+              <dd className="font-medium text-emerald-700 tabular-nums">−{money(price.discount)}</dd>
             </div>
           )}
           <div className="flex justify-between">
             <dt className="text-slate-600">{summary.delivery}</dt>
-            <dd className="text-slate-900">
+            <dd className="text-slate-900 tabular-nums">
               {price.fee === null ? (
                 <span className="text-slate-500">{t.checkout.chooseAbove}</span>
               ) : price.fee === 0 ? (
@@ -619,24 +629,15 @@ function OrderReview({
           </div>
         </dl>
       )}
-      <div className="mt-2 flex items-baseline justify-between border-t border-slate-200 pt-3">
+      <div className={`flex items-baseline justify-between ${loading ? '' : 'mt-2 border-t border-slate-200 pt-3'}`}>
         <span className="font-semibold text-slate-900">{summary.total}</span>
         {loading ? (
           <Skeleton className="h-6 w-20" />
         ) : (
-          <span className="text-lg font-bold text-slate-900">{money(price.total)}</span>
+          <span className="text-lg font-bold text-slate-900 tabular-nums">{money(price.total)}</span>
         )}
       </div>
-      {problems && (
-        <p className="mt-2 text-sm text-red-700">
-          {t.checkout.itemsChanged}{' '}
-          <Link to={cartPath} className="font-medium underline">
-            {t.checkout.updateCart}
-          </Link>{' '}
-          {t.checkout.toContinue}
-        </p>
-      )}
-    </div>
+    </Card>
   )
 }
 

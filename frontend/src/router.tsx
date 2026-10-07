@@ -17,7 +17,6 @@ import { SettingsSection } from './dashboard/settings/SettingsSection.tsx'
 import { Home } from './pages/Home.tsx'
 import { Login } from './pages/Login.tsx'
 import { Register } from './pages/Register.tsx'
-import { ShopCart } from './shop/ShopCart.tsx'
 import { ShopCategory } from './shop/ShopCategory.tsx'
 import { ShopCheckout } from './shop/ShopCheckout.tsx'
 import { ShopHome } from './shop/ShopHome.tsx'
@@ -64,8 +63,9 @@ export const router = createBrowserRouter([
           { index: true, element: <ShopHome /> },
           { path: 'product/:productSlug', element: <ShopProduct /> },
           { path: 'category/:categorySlug', element: <ShopCategory /> },
-          { path: 'cart', element: <ShopCart /> },
-          { path: 'checkout', element: <ShopCheckout /> },
+          { path: 'cart', element: <ShopCheckout /> },
+          // The cart and checkout are one page since the 2026-10-06 redesign.
+          { path: 'checkout', element: <Navigate to="../cart" replace /> },
           // The order's link: its confirmation page and tracking page.
           { path: 'order/:orderId', element: <ShopOrderPage /> },
           // The orders placed on this phone.

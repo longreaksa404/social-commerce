@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-06 (Phase 9: redesign step 1, Navy colour and font)
+> **Last updated:** 2026-10-07 (Phase 9: redesign step 2, customer shop)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -789,8 +789,14 @@ redesign, calm look). Steps, each committed on its own:
 
 1. [x] Foundations: Navy brand colour (light and dark), emerald kept
    for success only, Kantumruy Pro for Latin letters and numbers too.
-2. [ ] Customer shop: home, product, cart (mockup first, founder approves)
-3. [ ] Checkout and the customer's order page (mockup first)
+2. [x] Customer shop (mockup approved 2026-10-06, changes 1–11; search
+   logged for later): + on product photos, a cart bar at the bottom,
+   the shop name once, delivery / payment as tags, light / dark at the
+   bottom; Buy now on the product page; the cart and checkout are one
+   page (`/cart`; `/checkout` forwards there), returning customers see
+   their name and phone as one line, the total on Place order. Phones:
+   the cart and order page run edge to edge (founder asked).
+3. [ ] The customer's order page and order list (mockup first)
 4. [ ] Seller orders: list and detail (mockup first)
 5. [ ] Rest of the dashboard: products, customers, links, settings (mockup first)
 6. [ ] Login and Register (mockup first)
@@ -1274,6 +1280,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 | Date | Source | Request | Status |
 |---|---|---|---|
+| 2026-10-06 | Founder (shop redesign) | Search in the shop | Logged for later; build when a seller has 30+ products. Details in 03 §6. |
 | 2026-10-02 | Founder (testing Phase 4) | One-tap pay for several banks (ABA, ACLEDA, Wing): open the customer's bank app with the amount filled in, and mark it paid automatically | Validate First: ask first sellers which banks their customers use, whether they're a registered business, and whether they'd pay per-payment fees. Details in 03 §6. |
 
 ---

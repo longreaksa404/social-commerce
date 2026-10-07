@@ -335,6 +335,7 @@ Maintain a **Requirements Log** for anything a seller asks for that isn't in thi
 | Date | Seller | Request | Category | Seen from other sellers? |
 |---|---|---|---|---|
 | 2026-10-02 | Founder (own idea while testing Phase 4; no seller yet) | **One-tap pay for several banks.** A "Pay" button that opens the customer's own bank app (ABA, ACLEDA, Wing, …) with the amount filled in, and marks the payment paid automatically. Today the customer saves the KHQR and scans it from their gallery, and the seller confirms by hand. | Possibly repeated. **Validate First** (`01_PRODUCT.md` §44) | Not yet; ask the first sellers |
+| 2026-10-06 | Founder (shop redesign; no seller yet) | **Search in the shop.** A search box above the products, for shops with many products (30+). Not in the MVP customer features (`01_PRODUCT.md` §24). | Possibly repeated. **Validate First**: build when a seller's shop is big enough to need it | Not yet |
 
 Notes on the 2026-10-02 one-tap pay request:
 

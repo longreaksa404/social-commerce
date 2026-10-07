@@ -38,6 +38,12 @@ export const checkout = {
   payment: { en: 'Payment', km: 'ការបង់ប្រាក់' },
   howPay: { en: 'How will you pay?', km: 'តើអ្នកនឹងបង់ប្រាក់តាមរបៀបណា?' },
   // Payment details (QR code, bank account) come on the order page.
+  // On the payment tiles, side by side.
+  paymentShort: {
+    khqr: { en: 'KHQR', km: 'KHQR' },
+    bank_transfer: { en: 'Bank', km: 'ធនាគារ' },
+    cod: { en: 'Cash', km: 'សាច់ប្រាក់' },
+  },
   paymentHint: {
     khqr: {
       en: "Scan a QR code with your bank app. You'll get it after placing the order.",
@@ -50,16 +56,11 @@ export const checkout = {
     cod: { en: 'Pay in cash when you get your order.', km: 'បង់ជាសាច់ប្រាក់ ពេលទទួលបានទំនិញ។' },
   },
   yourOrder: { en: 'Your order', km: 'ការកុម្ម៉ង់របស់អ្នក' },
-  editCart: { en: 'Edit cart', km: 'កែកន្ត្រក' },
-  totalBeforeDelivery: { en: 'Total before delivery', km: 'សរុប (មិនទាន់គិតថ្លៃដឹក)' },
   placeOrder: { en: 'Place order', km: 'បញ្ជាក់ការកុម្ម៉ង់' },
+  // After the amount on Place order until delivery is chosen.
+  plusDelivery: { en: '+ delivery', km: '+ ថ្លៃដឹក' },
+  addMore: { en: 'Add more', km: 'ទិញបន្ថែម' },
   chooseAbove: { en: 'Choose above', km: 'ជ្រើសនៅខាងលើ' },
-  itemsChanged: {
-    en: 'Some items changed since you added them.',
-    km: 'ទំនិញខ្លះបានផ្លាស់ប្ដូរ តាំងពីអ្នកដាក់ចូលកន្ត្រក។',
-  },
-  updateCart: { en: 'Update your cart', km: 'កែកន្ត្រករបស់អ្នក' },
-  toContinue: { en: 'to continue.', km: 'ដើម្បីបន្ត។' },
 
   delivery: { en: 'Delivery', km: 'ការដឹកជញ្ជូន' },
   pickup: { en: 'Pickup', km: 'មកយកផ្ទាល់' },

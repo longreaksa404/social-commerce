@@ -24,7 +24,9 @@ phone or laptop) before going on.
 **Customer: order**
 
 - [ ] Open the link on the customer screen. The product page shows the photo, both options, the price.
-- [ ] Choose M, Add to cart, open the cart, Checkout.
+- [ ] Choose M, Buy now: the cart opens with the items at the top and the order form below (one page).
+- [ ] On the shop, + on a product without options adds one (the number shows on the photo); the bar at the bottom shows the count and total and opens the cart. A product with options has no +.
+- [ ] Order a second time on the same phone: name and phone show as one line with Change. Place order shows the total.
 - [ ] Name, phone, delivery by the shop, "Pin my location on the map" → move the map → Confirm. Choose KHQR. The breakdown shows items, delivery, total.
 - [ ] Place order. The order page shows the KHQR code with the exact total; "Save QR code" works.
 
@@ -81,7 +83,7 @@ phone or laptop) before going on.
 
 - [ ] Log out, log in. Open the dashboard on a second device: notifications read on one are read on the other.
 - [ ] Open the customer's order link on another device: it asks for the phone; the wrong phone is refused.
-- [ ] After ordering, go back to the shop: a bar at the top shows the order and its status; it opens the order. Cart → Your orders lists it.
+- [ ] After ordering, go back to the shop: a bar at the top shows the order and its status; it opens the order. With the cart empty, the cart page's Your orders lists it.
 - [ ] Leave the order page open and accept the order from the dashboard: within 30 s the page shows the new step without reloading.
 
 **Settings**
