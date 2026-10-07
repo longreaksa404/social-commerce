@@ -2,7 +2,7 @@ import { ExternalLink, Inbox, MousePointerClick, SearchX } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { buttonClass } from '../../components/styles.ts'
-import { Button, Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
+import { Button, Card, EmptyState, ErrorState, Skeleton } from '../../components/ui.tsx'
 import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { formatDay } from '../../lib/orders.ts'
@@ -42,7 +42,7 @@ export function OrdersPage() {
           </div>
         ) : (
           <div className="hidden lg:block">
-            <Card className="mt-4 flex flex-col items-center px-6 py-16 text-center">
+            <Card className="flex flex-col items-center px-6 py-16 text-center">
               <MousePointerClick aria-hidden className="mb-3 size-8 text-slate-300" />
               <p className="text-sm text-slate-500">{t.orders.pickOrder}</p>
             </Card>
@@ -67,36 +67,50 @@ function useFiltered() {
   return { filter, orders, countOf, choose }
 }
 
+/** "Orders" and the status tabs. Laptops: one slim line, the tabs beside
+ * the title (founder's pick, 2026-10-07), so the list and the open order
+ * below start level. Phones: the title, then the tabs in one row that
+ * scrolls sideways. Underline tabs: the chosen one has a navy line under
+ * it; New's count is filled in while there are new orders. */
 function OrdersHeader() {
   const { filter, orders, countOf, choose } = useFiltered()
   const t = useT()
   return (
-    <>
-      <PageHeader title={t.orders.title} />
+    <div className="mb-2 lg:mb-5 lg:flex lg:items-center lg:gap-8">
+      <h1 className="mb-3 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl lg:mb-0">{t.orders.title}</h1>
       {orders.isPending ? (
-        <Skeleton className="mb-2 h-10 w-full rounded-full lg:w-2/3" />
+        <Skeleton className="h-10 w-full rounded-lg lg:w-[32rem]" />
       ) : (
         countOf([]) !== 0 &&
         !orders.error && (
-          // One row; on a phone it scrolls sideways.
-          <nav aria-label={t.orders.filterLabel} className="-mx-4 mb-2 overflow-x-auto [scrollbar-width:none] lg:mx-0 lg:mb-4">
-            <ul className="flex w-max gap-2 px-4 lg:px-0">
+          <nav
+            aria-label={t.orders.filterLabel}
+            className="-mx-4 min-w-0 overflow-x-auto [scrollbar-width:none] lg:mx-0 lg:flex-1"
+          >
+            <ul className="flex w-max min-w-full gap-1 border-b border-slate-200 px-4 lg:px-0">
               {FILTERS.map((f) => {
                 const active = f.key === filter.key
+                const count = countOf(f.statuses)
+                const hot = f.key === 'new' && (count ?? 0) > 0
                 return (
                   <li key={f.key}>
                     <button
                       type="button"
                       aria-pressed={active}
                       onClick={() => choose(f.key)}
-                      className={`flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 ${
-                        active
-                          ? 'border-accent bg-accent text-white'
-                          : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50'
+                      className={`relative flex min-h-11 items-center gap-2 rounded-t-lg px-3 text-sm font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 ${
+                        active ? 'text-slate-900' : 'text-slate-500 hover:text-slate-900'
                       }`}
                     >
                       {t.orders.filter[f.key]}
-                      <span className={active ? 'text-white/80' : 'text-slate-500'}>{countOf(f.statuses)}</span>
+                      <span
+                        className={`min-w-6 rounded-full px-1.5 text-center text-xs font-bold tabular-nums ${
+                          hot ? 'bg-brand text-white' : `bg-slate-100 text-slate-500 ${count === 0 ? 'opacity-60' : ''}`
+                        }`}
+                      >
+                        {count}
+                      </span>
+                      {active && <span aria-hidden className="absolute inset-x-2 -bottom-px h-[3px] rounded-t-full bg-brand" />}
                     </button>
                   </li>
                 )
@@ -105,7 +119,7 @@ function OrdersHeader() {
           </nav>
         )
       )}
-    </>
+    </div>
   )
 }
 
@@ -148,9 +162,11 @@ function OrderList({ selectedId }: { selectedId: string | undefined }) {
         </EmptyState>
       ) : (
         <div className="space-y-1">
-          {byDay(shown).map(({ day, orders: ofDay }) => (
+          {byDay(shown).map(({ day, orders: ofDay }, i) => (
             <section key={day} aria-label={dayHeading(t, ofDay[0].created_at)}>
-              <h2 className="px-1 pt-4 pb-2 text-sm font-semibold text-slate-500">{dayHeading(t, ofDay[0].created_at)}</h2>
+              <h2 className={`px-1 pb-2 text-sm font-semibold text-slate-500 ${i === 0 ? 'pt-4 lg:pt-0' : 'pt-4'}`}>
+                {dayHeading(t, ofDay[0].created_at)}
+              </h2>
               <Card className="divide-y divide-slate-100 overflow-hidden">
                 {ofDay.map((order) => (
                   <OrderRow

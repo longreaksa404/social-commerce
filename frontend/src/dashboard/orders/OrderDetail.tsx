@@ -220,7 +220,10 @@ function SummaryCard({ order }: { order: Order }) {
       {/* One strip in three (three rows on a phone): an icon in the
           status's colour, the name small, the status in bold; a dot on
           the icon marks what waits on the seller. */}
-      <ul className="mt-4 grid divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      {/* Side by side only where the card itself is wide enough (it can be
+          a narrow column beside the order list), else three rows. */}
+      <div className="@container mt-4">
+      <ul className="grid divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 @xl:grid-cols-3 @xl:divide-x @xl:divide-y-0">
         {parts.map(({ key, icon: Icon, label, status, badge, needs, target }) => {
           const body = (
             <>
@@ -232,11 +235,11 @@ function SummaryCard({ order }: { order: Order }) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-xs text-slate-500">{label}</span>
-                <span key={status} className="block animate-pop truncate font-semibold text-slate-900">
+                <span key={status} className="block animate-pop font-semibold break-words text-slate-900">
                   {badge.label}
                 </span>
               </span>
-              {target && <ChevronDown aria-hidden className="size-4 shrink-0 text-slate-400 sm:hidden" />}
+              {target && <ChevronDown aria-hidden className="size-4 shrink-0 text-slate-400 @xl:hidden" />}
             </>
           )
           // A closed order's delivery and payment no longer matter: faded.
@@ -258,6 +261,7 @@ function SummaryCard({ order }: { order: Order }) {
           )
         })}
       </ul>
+      </div>
       {order.source && (
         <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
           <Link2 aria-hidden className="size-4 shrink-0" />
