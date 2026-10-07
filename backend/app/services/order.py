@@ -22,6 +22,7 @@ from app.core.errors import AppError, NotFound
 from app.models import (
     DeliveryStatus,
     Order,
+    OrderItem,
     OrderStatus,
     PaymentMethod,
     PaymentStatus,
@@ -193,8 +194,16 @@ SUMMARY_LOADS = (
 )
 
 
-def order_summary(order: Order) -> OrderSummaryOut:
-    """A row in an order list (the Orders tab, a customer's orders)."""
+def _main_item(order: Order) -> OrderItem:
+    """The line a row leads with: the biggest by total (then by name, so
+    it's always the same one)."""
+    return min(order.items, key=lambda item: (-item.line_total, item.product_name_snapshot))
+
+
+def order_summary(order: Order, photos: dict[uuid.UUID, str] | None = None) -> OrderSummaryOut:
+    """A row in an order list (the Orders tab, a customer's orders).
+    `photos`: each product's first photo, from order_summaries."""
+    main = _main_item(order)
     return OrderSummaryOut(
         id=order.id,
         number=order.number,
@@ -204,11 +213,31 @@ def order_summary(order: Order) -> OrderSummaryOut:
         total=order.total,
         customer_name=order.customer.name,
         item_count=sum(item.quantity for item in order.items),
+        first_item_name=main.product_name_snapshot,
+        line_count=len(order.items),
+        first_item_image_url=(photos or {}).get(main.product_id),
         payment_method=order.payment.method,
         payment_status=order.payment.status,
         delivery_method=order.delivery.method,
         delivery_status=order.delivery.status,
     )
+
+
+async def order_summaries(
+    db: AsyncSession, store_id: uuid.UUID, orders: list[Order]
+) -> list[OrderSummaryOut]:
+    """Rows for `orders` (loaded with SUMMARY_LOADS), each with its main
+    item's photo, in one query for the whole list."""
+    product_ids = {_main_item(order).product_id for order in orders}
+    photos: dict[uuid.UUID, str] = {}
+    if product_ids:
+        rows = await db.execute(
+            select(Product.id, Product.image_urls).where(
+                Product.store_id == store_id, Product.id.in_(product_ids)
+            )
+        )
+        photos = {product_id: urls[0] for product_id, urls in rows if urls}
+    return [order_summary(order, photos) for order in orders]
 
 
 async def list_orders(
@@ -245,7 +274,7 @@ async def list_orders(
     )
     counts = dict(count_rows.all())
     return OrderListOut(
-        orders=[order_summary(order) for order in orders[:limit]],
+        orders=await order_summaries(db, store_id, orders[:limit]),
         has_more=len(orders) > limit,
         counts={status: counts.get(status, 0) for status in S},
     )

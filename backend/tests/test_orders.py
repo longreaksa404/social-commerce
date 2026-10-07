@@ -7,6 +7,7 @@ from itertools import product
 import pytest
 
 from app.core.errors import AppError
+from app.db.session import unscoped_session
 from app.models import (
     Delivery,
     DeliveryMethod,
@@ -225,6 +226,24 @@ async def test_order_list_is_newest_first_with_counts_and_filters(client, auth_h
     assert [o["number"] for o in page["orders"]] == [1003]
     assert page["has_more"] is True
     assert page["counts"]["accepted"] == 1  # counts ignore the status filter
+
+
+async def test_order_rows_lead_with_the_biggest_line_and_its_photo(client, auth_headers):
+    headers, store_id, slug = await _seller(client, auth_headers)
+    cap = await add_product(store_id, "cap", stock=10)
+    bag = await add_product(store_id, "bag", stock=10)
+    async with unscoped_session() as db:
+        (await db.get(Product, bag)).image_urls = ["https://img/bag.jpg"]
+        await db.commit()
+    # 1 bag ($10) and 3 caps ($30): the caps lead, and caps have no photo.
+    await place_order(client, slug, [(bag, None, 1), (cap, None, 3)], total="40.00")
+    await place_order(client, slug, [(bag, None, 1)], total="10.00")
+
+    rows = (await client.get("/api/v1/seller/orders", headers=headers)).json()["orders"]
+    assert [(o["first_item_name"], o["line_count"], o["first_item_image_url"]) for o in rows] == [
+        ("Bag", 1, "https://img/bag.jpg"),
+        ("Cap", 2, None),
+    ]
 
 
 async def test_seller_cannot_see_or_change_another_stores_orders(client, auth_headers):

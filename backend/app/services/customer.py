@@ -117,7 +117,7 @@ async def get_customer(
         created_at=customer.created_at,
         order_count=order_count or 0,
         spent=spent.get(customer.id, []),
-        orders=[order_service.order_summary(order) for order in orders],
+        orders=await order_service.order_summaries(db, store_id, list(orders)),
     )
 
 

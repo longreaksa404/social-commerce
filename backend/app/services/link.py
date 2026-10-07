@@ -227,7 +227,8 @@ async def link_stats(db: AsyncSession, store_id: uuid.UUID, link_id: uuid.UUID) 
         .order_by(Order.number.desc())
         .limit(MAX_ORDERS)
     )
-    return LinkStatsOut(**out.model_dump(), orders=[order_service.order_summary(o) for o in orders])
+    rows = await order_service.order_summaries(db, store_id, list(orders))
+    return LinkStatsOut(**out.model_dump(), orders=rows)
 
 
 async def find(db: AsyncSession, store_id: uuid.UUID, token: str) -> ShareableLink | None:

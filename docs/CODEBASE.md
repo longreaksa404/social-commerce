@@ -697,7 +697,7 @@ from the schema.
 | PATCH | `/seller/products/{product_id}` | seller | `ProductUpdate` | `ProductOut` | `variants` = full new list (id keeps, missing deletes); omitted `stock_quantity` = unchanged; `image_urls` prefix-checked |
 | DELETE | `/seller/products/{product_id}` | seller | — | 204 | Soft: `status=inactive` |
 | POST | `/seller/products/{product_id}/images` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT (+ thumbnail PUT if `thumbnail_size`); max 5 images, 5 MB, JPEG/PNG/WebP |
-| GET | `/seller/orders` | seller | `?status=` (repeatable) `&created_from=&created_to=&limit=1..100(50)&offset=` | `OrderListOut` | By number desc; `counts` per status ignore the status filter |
+| GET | `/seller/orders` | seller | `?status=` (repeatable) `&created_from=&created_to=&limit=1..100(50)&offset=` | `OrderListOut` | By number desc; `counts` per status ignore the status filter; each row leads with its biggest line (`first_item_name`, `line_count`, `first_item_image_url`: that product's photo now), also on a customer's and a link's orders |
 | GET | `/seller/orders/{order_id}` | seller | — | `OrderOut` | With `next_statuses` on order, payment, delivery |
 | PATCH | `/seller/orders/{order_id}/status` | seller | `OrderStatusUpdate` | `OrderOut` | §6 |
 | PATCH | `/seller/orders/{order_id}/payment` | seller | `PaymentUpdate` | `OrderOut` | §6 |

@@ -152,6 +152,11 @@ class OrderSummaryOut(BaseModel):
     total: Decimal
     customer_name: str
     item_count: int  # units, not lines
+    # What was bought, for the row: the line with the highest total, how
+    # many lines there are, and that product's first photo now (or null).
+    first_item_name: str
+    line_count: int
+    first_item_image_url: str | None = None
     payment_method: PaymentMethod
     payment_status: PaymentStatus
     delivery_method: DeliveryMethod
