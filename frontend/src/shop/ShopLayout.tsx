@@ -46,7 +46,7 @@ export function ShopLayout() {
   return (
     <div className="min-h-dvh">
       <Header shop={shop.data} slug={storeSlug} home={home} />
-      <main className="mx-auto w-full max-w-5xl px-4 pt-4 sm:pt-6">
+      <main className="mx-auto w-full max-w-6xl px-4 pt-4 sm:pt-6">
         {shop.isPending && <SlowNotice className="mb-4" />}
         {showOrderBar && <CurrentOrderBar slug={storeSlug} />}
         {shop.error ? <ErrorState error={shop.error} onRetry={() => shop.refetch()} /> : <PageOutlet depth={2} />}
@@ -54,7 +54,7 @@ export function ShopLayout() {
       {/* Light / dark: the phone's setting picks it; this is for changing
           it, so it waits at the bottom rather than crowding the header. */}
       <footer
-        className={`mx-auto flex max-w-5xl justify-center px-4 pt-8 ${
+        className={`mx-auto flex max-w-6xl justify-center px-4 pt-8 ${
           cartBar ? 'pb-28' : 'pb-[calc(env(safe-area-inset-bottom)+1.5rem)]'
         }`}
       >
@@ -79,13 +79,15 @@ function useLinkTracking(slug: string) {
 }
 
 function Header({ shop, slug, home }: { shop: ShopStore | undefined; slug: string; home: boolean }) {
-  // On the shop's home its name is already big on the page: the header
-  // shows it only once that has scrolled away.
+  // On a phone, the shop's home already shows its name big on the page:
+  // the header shows it only once that has scrolled away. A laptop has
+  // room for both (and an empty bar looks broken there).
   const scrolled = useScrolledPast(home ? 96 : 0)
-  const hideName = home && !scrolled
+  const wide = useSyncExternalStore(onWideChange, () => WIDE.matches)
+  const hideName = home && !scrolled && !wide
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
         <Link
           to={`/shop/${slug}`}
           aria-hidden={hideName || undefined}
@@ -113,6 +115,14 @@ function Header({ shop, slug, home }: { shop: ShopStore | undefined; slug: strin
 /** True once the page has scrolled more than `px` (always true for 0). */
 function useScrolledPast(px: number) {
   return useSyncExternalStore(onScroll, () => px === 0 || window.scrollY > px)
+}
+
+// Tailwind's lg: the laptop layout.
+const WIDE = window.matchMedia('(min-width: 1024px)')
+
+function onWideChange(notify: () => void) {
+  WIDE.addEventListener('change', notify)
+  return () => WIDE.removeEventListener('change', notify)
 }
 
 function onScroll(notify: () => void) {

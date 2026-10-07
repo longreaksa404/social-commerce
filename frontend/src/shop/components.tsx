@@ -111,7 +111,7 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
 export function ProductGrid({ shop, products }: { shop: ShopStore; products: ShopProductCard[] }) {
   const t = useT()
   return (
-    <ul className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4">
+    <ul className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4 xl:grid-cols-5">
       {products.map((product, i) => (
         // The first rows come in one after another.
         <li key={product.id} className="relative animate-rise" style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}>
@@ -198,7 +198,7 @@ function QuickAdd({ shop, product }: { shop: ShopStore; product: ShopProductCard
 
 export function ProductGridSkeleton() {
   return (
-    <div aria-hidden className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4">
+    <div aria-hidden className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4 xl:grid-cols-5">
       {Array.from({ length: 6 }, (_, i) => (
         <div key={i}>
           <Skeleton className="aspect-square w-full rounded-2xl" />

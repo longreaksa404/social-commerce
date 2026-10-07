@@ -190,192 +190,199 @@ export function ShopCheckout() {
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto max-w-xl space-y-4 pb-24 lg:pb-0">
+    <form onSubmit={submit} className="mx-auto max-w-xl pb-24 lg:max-w-6xl lg:pb-0">
       <title>{c.tab(shop.data.name)}</title>
       <PageHeader title={c.yourOrder} back={`/shop/${storeSlug}`} />
-
-      <Section
-        step={1}
-        title={t.shop.cartBar.items(cart.count)}
-        action={
-          <Link
-            to={`/shop/${storeSlug}`}
-            className="-my-2 -mr-2 inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline"
+      {/* One column on phones; on laptops the form on the left and the
+          total with Place order on the right, staying in view. */}
+      <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-6 lg:space-y-0">
+        <div className="min-w-0 space-y-4">
+          <Section
+            step={1}
+            title={t.shop.cartBar.items(cart.count)}
+            action={
+              <Link
+                to={`/shop/${storeSlug}`}
+                className="-my-2 -mr-2 inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline"
+              >
+                <Plus aria-hidden className="size-4" />
+                {c.addMore}
+              </Link>
+            }
           >
-            <Plus aria-hidden className="size-4" />
-            {c.addMore}
-          </Link>
-        }
-      >
-        {checked.error ? (
-          <ErrorState error={checked.error} onRetry={() => checked.refetch()} />
-        ) : (
-          <CartItems shop={shop.data} checked={checked} />
-        )}
-      </Section>
+            {checked.error ? (
+              <ErrorState error={checked.error} onRetry={() => checked.refetch()} />
+            ) : (
+              <CartItems shop={shop.data} checked={checked} />
+            )}
+          </Section>
 
-      <Section step={2} title={c.yourDetails}>
-        {!editDetails && form.name && form.phone && !detailsError ? (
-          <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3.5 py-2.5">
-            <UserRound aria-hidden className="size-5 shrink-0 text-slate-500" />
-            <p className="min-w-0 flex-1 text-sm leading-5">
-              <span className="block truncate font-medium text-slate-900">{form.name}</span>
-              <span className="block text-slate-600 tabular-nums">{form.phone}</span>
-            </p>
-            <button
-              type="button"
-              onClick={() => setEditDetails(true)}
-              className="-my-2 -mr-2 min-h-11 shrink-0 rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline"
-            >
-              {c.change}
-            </button>
-          </div>
-        ) : (
-          <>
-            <Field label={c.name} error={fieldError(place.error, 'name')}>
-              <Input
-                required
-                maxLength={100}
-                autoComplete="name"
-                autoCapitalize="words"
-                value={form.name}
-                onChange={(e) => set('name', e.target.value)}
-              />
-            </Field>
-            <Field
-              label={c.phone}
-              hint={c.phoneHint}
-              error={fieldError(place.error, 'phone')}
-            >
-              <Input
-                required
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                maxLength={32}
-                placeholder="012 345 678"
-                value={form.phone}
-                onChange={(e) => set('phone', e.target.value)}
-              />
-            </Field>
-          </>
-        )}
-      </Section>
+          <Section step={2} title={c.yourDetails}>
+            {!editDetails && form.name && form.phone && !detailsError ? (
+              <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3.5 py-2.5">
+                <UserRound aria-hidden className="size-5 shrink-0 text-slate-500" />
+                <p className="min-w-0 flex-1 text-sm leading-5">
+                  <span className="block truncate font-medium text-slate-900">{form.name}</span>
+                  <span className="block text-slate-600 tabular-nums">{form.phone}</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setEditDetails(true)}
+                  className="-my-2 -mr-2 min-h-11 shrink-0 rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline"
+                >
+                  {c.change}
+                </button>
+              </div>
+            ) : (
+              <>
+                <Field label={c.name} error={fieldError(place.error, 'name')}>
+                  <Input
+                    required
+                    maxLength={100}
+                    autoComplete="name"
+                    autoCapitalize="words"
+                    value={form.name}
+                    onChange={(e) => set('name', e.target.value)}
+                  />
+                </Field>
+                <Field
+                  label={c.phone}
+                  hint={c.phoneHint}
+                  error={fieldError(place.error, 'phone')}
+                >
+                  <Input
+                    required
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    maxLength={32}
+                    placeholder="012 345 678"
+                    value={form.phone}
+                    onChange={(e) => set('phone', e.target.value)}
+                  />
+                </Field>
+              </>
+            )}
+          </Section>
 
-      <DeliverySection
-        options={options}
-        choices={choices}
-        how={how}
-        currency={currency}
-        price={price}
-        error={place.error}
-        onChoose={(choice) => setForm((f) => ({ ...f, how: choice }))}
-      >
-        {how !== null && !pickup && (
-          <>
-            <LocationField
-              location={form.location}
-              onChange={(location) => setForm((f) => ({ ...f, location }))}
-              error={fieldError(place.error, 'delivery_lat')}
-            />
+          <DeliverySection
+            options={options}
+            choices={choices}
+            how={how}
+            currency={currency}
+            price={price}
+            error={place.error}
+            onChoose={(choice) => setForm((f) => ({ ...f, how: choice }))}
+          >
+            {how !== null && !pickup && (
+              <>
+                <LocationField
+                  location={form.location}
+                  onChange={(location) => setForm((f) => ({ ...f, location }))}
+                  error={fieldError(place.error, 'delivery_lat')}
+                />
+                <Field
+                  label={form.location ? c.addressOptional : c.address}
+                  hint={form.location ? c.addressHintPinned : c.addressHint}
+                  error={fieldError(place.error, 'delivery_address')}
+                >
+                  <TextArea
+                    required={!form.location}
+                    minLength={3}
+                    maxLength={500}
+                    autoComplete="street-address"
+                    autoCapitalize="sentences"
+                    value={form.address}
+                    onChange={(e) => set('address', e.target.value)}
+                  />
+                </Field>
+                <Field
+                  label={c.addressNote}
+                  hint={c.addressNoteHint}
+                  error={fieldError(place.error, 'delivery_address_note')}
+                >
+                  <Input
+                    maxLength={500}
+                    autoCapitalize="sentences"
+                    value={form.addressNote}
+                    onChange={(e) => set('addressNote', e.target.value)}
+                  />
+                </Field>
+              </>
+            )}
             <Field
-              label={form.location ? c.addressOptional : c.address}
-              hint={form.location ? c.addressHintPinned : c.addressHint}
-              error={fieldError(place.error, 'delivery_address')}
+              label={c.noteForSeller}
+              hint={pickup ? c.noteHintPickup : c.noteHintDelivery}
+              error={fieldError(place.error, 'notes')}
             >
               <TextArea
-                required={!form.location}
-                minLength={3}
-                maxLength={500}
-                autoComplete="street-address"
-                autoCapitalize="sentences"
-                value={form.address}
-                onChange={(e) => set('address', e.target.value)}
-              />
-            </Field>
-            <Field
-              label={c.addressNote}
-              hint={c.addressNoteHint}
-              error={fieldError(place.error, 'delivery_address_note')}
-            >
-              <Input
+                rows={2}
                 maxLength={500}
                 autoCapitalize="sentences"
-                value={form.addressNote}
-                onChange={(e) => set('addressNote', e.target.value)}
+                value={form.notes}
+                onChange={(e) => set('notes', e.target.value)}
               />
             </Field>
-          </>
-        )}
-        <Field
-          label={c.noteForSeller}
-          hint={pickup ? c.noteHintPickup : c.noteHintDelivery}
-          error={fieldError(place.error, 'notes')}
-        >
-          <TextArea
-            rows={2}
-            maxLength={500}
-            autoCapitalize="sentences"
-            value={form.notes}
-            onChange={(e) => set('notes', e.target.value)}
-          />
-        </Field>
-      </DeliverySection>
+          </DeliverySection>
 
-      <Section step={4} title={c.payment}>
-        <fieldset aria-describedby={fieldError(place.error, 'payment_method') ? 'payment-error' : undefined}>
-          <legend className="sr-only">{c.howPay}</legend>
-          {/* Side by side with short names; what the chosen one means goes
-              underneath, so the three fit a 320px phone in Khmer too. */}
-          <div className={`grid gap-2 ${methods.length === 1 ? 'grid-cols-1' : methods.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
-            {methods.map((method) => {
-              const Icon = PAYMENT_ICON[method]
-              return (
-                <label
-                  key={method}
-                  className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-2 py-3 text-center text-slate-700 transition-colors has-[:checked]:border-navy-600 has-[:checked]:bg-navy-50/50 has-[:checked]:text-navy-800 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-navy-600/15"
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    required
-                    value={method}
-                    checked={payment === method}
-                    onChange={() => setForm((f) => ({ ...f, payment: method }))}
-                    className="sr-only"
-                  />
-                  <Icon aria-hidden className="size-6" />
-                  <span className="text-sm leading-tight font-medium">{c.paymentShort[method]}</span>
-                </label>
-              )
-            })}
+          <Section step={4} title={c.payment}>
+            <fieldset aria-describedby={fieldError(place.error, 'payment_method') ? 'payment-error' : undefined}>
+              <legend className="sr-only">{c.howPay}</legend>
+              {/* Side by side with short names; what the chosen one means goes
+                  underneath, so the three fit a 320px phone in Khmer too. */}
+              <div className={`grid gap-2 ${methods.length === 1 ? 'grid-cols-1' : methods.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                {methods.map((method) => {
+                  const Icon = PAYMENT_ICON[method]
+                  return (
+                    <label
+                      key={method}
+                      className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-2 py-3 text-center text-slate-700 transition-colors has-[:checked]:border-navy-600 has-[:checked]:bg-navy-50/50 has-[:checked]:text-navy-800 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-navy-600/15"
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        required
+                        value={method}
+                        checked={payment === method}
+                        onChange={() => setForm((f) => ({ ...f, payment: method }))}
+                        className="sr-only"
+                      />
+                      <Icon aria-hidden className="size-6" />
+                      <span className="text-sm leading-tight font-medium">{c.paymentShort[method]}</span>
+                    </label>
+                  )
+                })}
+              </div>
+              {payment && <p className="mt-2.5 text-sm text-slate-600">{c.paymentHint[payment]}</p>}
+              {fieldError(place.error, 'payment_method') && (
+                <p id="payment-error" className="mt-2 text-sm text-red-600">
+                  {fieldError(place.error, 'payment_method')}
+                </p>
+              )}
+            </fieldset>
+          </Section>
+        </div>
+
+        <div className="space-y-4 lg:sticky lg:top-20">
+          {!checked.error && <Totals currency={currency} loading={checked.loading} price={price} />}
+
+          <ErrorMessage error={formError(place.error, FIELDS)} />
+
+          {/* Pinned to the bottom on phones so the button is always in reach;
+              under the total on laptops. */}
+          <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:pb-0 lg:backdrop-blur-none">
+            <div className="mx-auto max-w-xl px-4 py-3 lg:p-0">
+              {/* The amount on the button: what tapping it commits to, which
+                  matters most before paying by KHQR or bank transfer. */}
+              <Button type="submit" size="lg" loading={place.isPending} disabled={!checked.ready} className="w-full justify-between!">
+                <span>{c.placeOrder}</span>
+                <span className="tabular-nums">
+                  {checked.loading ? '…' : formatMoney(price.total / 100, currency)}
+                  {price.fee === null && <span className="ml-1 text-sm font-normal opacity-80">{c.plusDelivery}</span>}
+                </span>
+              </Button>
+            </div>
           </div>
-          {payment && <p className="mt-2.5 text-sm text-slate-600">{c.paymentHint[payment]}</p>}
-          {fieldError(place.error, 'payment_method') && (
-            <p id="payment-error" className="mt-2 text-sm text-red-600">
-              {fieldError(place.error, 'payment_method')}
-            </p>
-          )}
-        </fieldset>
-      </Section>
-
-      {!checked.error && <Totals currency={currency} loading={checked.loading} price={price} />}
-
-      <ErrorMessage error={formError(place.error, FIELDS)} />
-
-      {/* Pinned to the bottom so the button is always in reach (floating
-          at the bottom of the column on wide screens). */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
-        <div className="mx-auto max-w-xl px-4 py-3">
-          {/* The amount on the button: what tapping it commits to, which
-              matters most before paying by KHQR or bank transfer. */}
-          <Button type="submit" size="lg" loading={place.isPending} disabled={!checked.ready} className="w-full justify-between!">
-            <span>{c.placeOrder}</span>
-            <span className="tabular-nums">
-              {checked.loading ? '…' : formatMoney(price.total / 100, currency)}
-              {price.fee === null && <span className="ml-1 text-sm font-normal opacity-80">{c.plusDelivery}</span>}
-            </span>
-          </Button>
         </div>
       </div>
     </form>

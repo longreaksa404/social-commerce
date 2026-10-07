@@ -169,7 +169,7 @@ function AddToCart({
       {/* Pinned to the bottom of the screen on phones, so it stays one tap
           away while reading the details; in place on wide screens. */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:static lg:mt-6 lg:border-0 lg:bg-transparent lg:pb-0 lg:backdrop-blur-none">
-        <div className="mx-auto flex max-w-5xl gap-3 px-4 py-3 lg:p-0">
+        <div className="mx-auto flex max-w-6xl gap-3 px-4 py-3 lg:p-0">
           {blocked !== null ? (
             <Button size="lg" disabled className="flex-1">
               {blocked}
