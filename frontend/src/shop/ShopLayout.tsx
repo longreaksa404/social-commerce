@@ -62,11 +62,11 @@ export function ShopLayout() {
       {/* Light / dark: the phone's setting picks it; this is for changing
           it, so it waits at the bottom rather than crowding the header. */}
       <footer
-        className={`mx-auto mt-10 flex max-w-6xl justify-center border-t border-slate-200 px-4 pt-4 lg:pb-6 ${
-          cartBar ? 'pb-28' : 'pb-[calc(env(safe-area-inset-bottom)+1.5rem)]'
-        }`}
+        className={`mx-auto mt-10 max-w-6xl px-4 lg:pb-6 ${cartBar ? 'pb-28' : 'pb-[calc(env(safe-area-inset-bottom)+1.5rem)]'}`}
       >
-        <ThemeToggle withLabel />
+        <div className="flex justify-center border-t border-slate-200 pt-4">
+          <ThemeToggle withLabel />
+        </div>
       </footer>
       {cartBar && <CartBar slug={storeSlug} currency={shop.data?.currency} />}
     </div>
@@ -88,8 +88,10 @@ function useLinkTracking(slug: string) {
 
 function Header({ shop, slug, home }: { shop: ShopStore | undefined; slug: string; home: boolean }) {
   // At the top of the shop's home the header is see-through, over the
-  // same wash as the shop's big name, so the name shows once: the header
-  // gets its bar and the small name once that has scrolled away.
+  // same wash as the shop's name, so the name shows once. On phones the
+  // page shows it big and the header's small one waits until that has
+  // scrolled away; on laptops the header itself is the big one (logo and
+  // name beside the language and cart), shrinking to the bar on scroll.
   const scrolled = useScrolledPast(home ? 96 : 0)
   const top = home && !scrolled
   return (
@@ -98,18 +100,24 @@ function Header({ shop, slug, home }: { shop: ShopStore | undefined; slug: strin
         top ? 'border-transparent bg-transparent' : 'border-slate-200 bg-surface/90 backdrop-blur'
       }`}
     >
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
+      <div
+        className={`mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 transition-[height] duration-200 ${
+          top ? 'h-14 lg:h-24' : 'h-14'
+        }`}
+      >
         <Link
           to={`/shop/${slug}`}
-          aria-hidden={top || undefined}
-          tabIndex={top ? -1 : undefined}
           className={`-mx-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2 transition-opacity duration-200 focus-visible:outline-2 focus-visible:outline-navy-600 ${
-            top ? 'pointer-events-none opacity-0' : 'opacity-100'
+            top ? 'max-lg:invisible max-lg:opacity-0 lg:gap-4' : ''
           }`}
         >
-          <ShopLogo shop={shop} />
+          <ShopLogo shop={shop} className={top ? 'size-8 shadow-md ring-4 ring-surface lg:size-16' : 'size-8'} />
           {shop ? (
-            <span className="truncate font-semibold text-slate-900">{shop.name}</span>
+            <span
+              className={`truncate font-semibold text-slate-900 ${top ? 'lg:text-2xl lg:font-bold lg:tracking-tight' : ''}`}
+            >
+              {shop.name}
+            </span>
           ) : (
             <Skeleton className="h-5 w-36" />
           )}

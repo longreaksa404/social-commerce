@@ -185,8 +185,8 @@ function QuickAdd({ shop, product }: { shop: ShopStore; product: ShopProductCard
       >
         <span
           key={inCart}
-          className={`flex size-9 items-center justify-center rounded-full text-sm font-bold shadow-md ring-1 ring-slate-900/5 tabular-nums transition-colors ${
-            inCart ? 'animate-pop bg-accent text-white' : 'bg-surface text-navy-700 active:bg-slate-100'
+          className={`flex size-9 items-center justify-center rounded-full text-sm font-bold shadow-md ring-1 ring-slate-900/10 tabular-nums transition-colors ${
+            inCart ? 'animate-pop bg-accent text-white' : 'bg-raised text-navy-700 active:bg-slate-100'
           }`}
         >
           {inCart ? inCart : <Plus aria-hidden className="size-5" />}

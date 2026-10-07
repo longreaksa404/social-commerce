@@ -112,11 +112,11 @@ export function ShopCheckout() {
   if (!shop.data) return <CheckoutSkeleton />
   if (cart.lines.length === 0 && !place.isSuccess) {
     return (
-      <>
+      <div className="mx-auto max-w-xl">
         <title>{t.shop.cartPage.tab(shop.data.name)}</title>
         <PageHeader title={c.yourOrder} back={`/shop/${storeSlug}`} />
         <EmptyCart shop={storeSlug} />
-      </>
+      </div>
     )
   }
   const currency = shop.data.currency
@@ -328,9 +328,22 @@ export function ShopCheckout() {
           <Section step={4} title={c.payment}>
             <fieldset aria-describedby={fieldError(place.error, 'payment_method') ? 'payment-error' : undefined}>
               <legend className="sr-only">{c.howPay}</legend>
+              {/* One way to pay: nothing to choose, so it's said, not offered. */}
+              {methods.length === 1 && (
+                <div className="flex items-start gap-3 rounded-xl bg-slate-50 px-3.5 py-3">
+                  {(() => {
+                    const Icon = PAYMENT_ICON[methods[0]]
+                    return <Icon aria-hidden className="mt-0.5 size-5 shrink-0 text-navy-700" />
+                  })()}
+                  <p className="min-w-0 text-sm leading-5">
+                    <span className="block font-medium text-slate-900">{t.status.paymentMethod[methods[0]]}</span>
+                    <span className="mt-0.5 block text-slate-600">{c.paymentHint[methods[0]]}</span>
+                  </p>
+                </div>
+              )}
               {/* Side by side with short names; what the chosen one means goes
                   underneath, so the three fit a 320px phone in Khmer too. */}
-              <div className={`grid gap-2 ${methods.length === 1 ? 'grid-cols-1' : methods.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+              <div hidden={methods.length === 1} className={`grid gap-2 ${methods.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                 {methods.map((method) => {
                   const Icon = PAYMENT_ICON[method]
                   return (
@@ -353,7 +366,7 @@ export function ShopCheckout() {
                   )
                 })}
               </div>
-              {payment && <p className="mt-2.5 text-sm text-slate-600">{c.paymentHint[payment]}</p>}
+              {payment && methods.length > 1 && <p className="mt-2.5 text-sm text-slate-600">{c.paymentHint[payment]}</p>}
               {fieldError(place.error, 'payment_method') && (
                 <p id="payment-error" className="mt-2 text-sm text-red-600">
                   {fieldError(place.error, 'payment_method')}

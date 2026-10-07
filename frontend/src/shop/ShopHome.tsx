@@ -9,7 +9,7 @@ import { useShop, useShopProducts } from './queries.ts'
 
 // The shop's name and logo, over the wash ShopLayout draws behind the
 // top of the page.
-const band = 'mb-5 flex items-start gap-4 pt-1 sm:pt-2'
+const band = 'mb-5 flex items-start gap-4 pt-1 sm:pt-2 lg:mb-4 lg:pt-0'
 
 /** /shop/:storeSlug: the store link a seller shares. */
 export function ShopHome() {
@@ -37,12 +37,12 @@ export function ShopHome() {
     <>
       <title>{shop.data.name}</title>
       {/* The shop's own header, like its page on social media: logo beside
-          the name (the header shows the name only once this has scrolled
-          away). */}
+          the name. On laptops the header shows these big instead (only the
+          description stays here). */}
       <div className={band}>
-        <ShopLogo shop={shop.data} className="size-16 shadow-md ring-4 ring-surface" />
-        <div className="min-w-0 flex-1 pt-1">
-          <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900">{shop.data.name}</h1>
+        <ShopLogo shop={shop.data} className="size-16 shadow-md ring-4 ring-surface lg:hidden" />
+        <div className="min-w-0 flex-1 pt-1 lg:pt-0">
+          <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900 lg:sr-only">{shop.data.name}</h1>
           {shop.data.description && <Description text={shop.data.description} />}
         </div>
       </div>
