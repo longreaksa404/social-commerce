@@ -1,4 +1,4 @@
-import { CircleCheck, Copy, Download, XCircle } from 'lucide-react'
+import { ChevronDown, CircleCheck, Copy, Download, XCircle } from 'lucide-react'
 import { useMemo } from 'react'
 import { encode } from 'uqr'
 import { useFeedback } from '../components/feedback.ts'
@@ -16,7 +16,9 @@ export function PaymentCard({ shop, order }: { shop: ShopStore; order: ShopOrder
   return (
     <Card className="p-4 sm:p-6">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-semibold text-slate-900">{p.title}</h2>
+        <h2 className="font-semibold text-slate-900">
+          {payment.status === 'pending' && payment.method !== 'cod' ? p.payTitle(total) : p.title}
+        </h2>
         <span className="text-sm text-slate-500">{t.status.paymentMethod[payment.method]}</span>
       </div>
 
@@ -79,27 +81,40 @@ function KhqrPayment({ shop, order, code, name }: { shop: ShopStore; order: Shop
     toast(p.qrSaved)
   }
 
+  // On a phone the customer can't scan their own screen: saving the QR
+  // (then picking it in the bank app) is the first step, so it's the main
+  // button and the steps fold away. On a laptop they scan the screen with
+  // their phone: a big code, and saving is the smaller button.
   return (
     <div className="mt-3">
-      <p className="text-sm text-slate-600">
-        {p.khqrBefore} <span className="font-semibold text-slate-900">{total}</span> {p.khqrAfter}
-      </p>
       <img
         src={image.url}
         alt={p.khqrAlt(total, name)}
-        className="mx-auto mt-3 w-full max-w-72 rounded-xl border border-slate-200"
+        className="mx-auto w-full max-w-64 rounded-xl border border-slate-200 shadow-sm lg:max-w-80"
       />
-      <Button variant="secondary" icon={Download} onClick={save} className="mt-3 w-full">
-        {p.saveQr}
-      </Button>
-      <ol className="mt-4 list-decimal space-y-1 pl-5 text-sm text-slate-600">
-        <li>{p.khqrStep1}</li>
-        <li>{p.khqrStep2}</li>
-        <li>{p.khqrStep3}</li>
-      </ol>
-      <p className="mt-3 text-sm text-slate-500">
-        {p.khqrNote(shop.name)}
-      </p>
+      <div className="mt-4 lg:hidden">
+        <Button icon={Download} onClick={save} size="lg" className="w-full">
+          {p.saveQrPhotos}
+        </Button>
+        <details className="group mt-2">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-center gap-1 rounded-lg text-sm font-medium text-navy-700 [&::-webkit-details-marker]:hidden">
+            {p.howToPay}
+            <ChevronDown aria-hidden className="size-4 transition-transform group-open:rotate-180" />
+          </summary>
+          <ol className="mt-1 list-decimal space-y-1 pl-5 text-sm text-slate-600">
+            <li>{p.khqrStep1}</li>
+            <li>{p.khqrStep2}</li>
+            <li>{p.khqrStep3}</li>
+          </ol>
+          <p className="mt-3 text-sm text-slate-500">{p.khqrNote(shop.name)}</p>
+        </details>
+      </div>
+      <div className="mt-4 hidden lg:block">
+        <p className="text-center text-sm text-slate-600">{p.scanThis}</p>
+        <Button variant="secondary" icon={Download} onClick={save} className="mt-3 w-full">
+          {p.saveQr}
+        </Button>
+      </div>
     </div>
   )
 }

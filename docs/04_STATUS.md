@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-07 (Phase 9: redesign step 2, customer shop)
+> **Last updated:** 2026-10-07 (Phase 9: redesign step 3, customer's order page)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -797,7 +797,15 @@ redesign, calm look). Steps, each committed on its own:
    page (`/cart`; `/checkout` forwards there), returning customers see
    their name and phone as one line, the total on Place order. Phones:
    the cart and order page run edge to edge (founder asked).
-3. [ ] The customer's order page and order list (mockup first)
+3. [x] The customer's order page and order list (founder picked from
+   options 2026-10-07: celebration thank-you with the customer's name and
+   what's left to do; KHQR card first with "Save QR to photos" as the main
+   button on phones and a big code to scan on laptops; a progress bar that
+   fills step by step with a truck driving to the current step; the shop
+   with a Telegram button beside it; items folded into one line; laptops
+   in two columns; Your orders with each order's photo, what was bought,
+   and status / paid tags). API: tracked order items carry the product's
+   current photo.
 4. [ ] Seller orders: list and detail (mockup first)
 5. [ ] Rest of the dashboard: products, customers, links, settings (mockup first)
 6. [ ] Login and Register (mockup first)

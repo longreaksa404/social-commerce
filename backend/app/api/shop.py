@@ -87,7 +87,7 @@ async def place_order(
     order, stock_alerts = await checkout_service.place_order(db, shop.id, data)
     # After the response, so a slow Telegram never holds up the customer.
     background.add_task(notifications.notify_new_order, shop.id, order.id, stock_alerts)
-    return checkout_service.shop_order_out(shop, order)
+    return await checkout_service.shop_order_out(db, shop, order)
 
 
 @router.get("/orders/{order_id}", response_model=ShopOrderOut)
@@ -100,7 +100,7 @@ async def track_order(
     """Order tracking: the order link plus the phone it was placed with
     (02_TECHNICAL.md section 8)."""
     order = await checkout_service.track_order(db, shop.id, order_id, phone)
-    return checkout_service.shop_order_out(shop, order)
+    return await checkout_service.shop_order_out(db, shop, order)
 
 
 @router.post(

@@ -14,6 +14,32 @@ export const order = {
   },
   showOrder: { en: 'Show my order', km: 'បង្ហាញការកុម្ម៉ង់របស់ខ្ញុំ' },
   thanks: { en: 'Thank you! Your order is placed.', km: 'អរគុណ! យើងបានទទួលការកុម្ម៉ង់របស់អ្នកហើយ។' },
+  // Straight after checkout, with the name the customer gave.
+  thanksName: { en: (name: string) => `Thank you, ${name}!`, km: (name: string) => `អរគុណ ${name}!` },
+  placedTag: {
+    en: (n: number, total: string) => `Order #${n}, ${total}`,
+    km: (n: number, total: string) => `ការកុម្ម៉ង់ #${n}, ${total}`,
+  },
+  // Under the thank-you: what the customer still has to do.
+  nextPay: {
+    en: (total: string, method: string) => `One step left: pay ${total} by ${method}`,
+    km: (total: string, method: string) => `នៅសល់មួយជំហានទៀត៖ បង់ ${total} តាម ${method}`,
+  },
+  nextCod: {
+    en: (total: string) => `Pay ${total} in cash when it arrives`,
+    km: (total: string) => `បង់ ${total} ជាសាច់ប្រាក់ ពេលទទួលទំនិញ`,
+  },
+  questions: { en: 'Questions about this order?', km: 'មានសំណួរអំពីការកុម្ម៉ង់នេះ?' },
+  showItems: { en: 'Show items', km: 'មើលទំនិញ' },
+  // An order in the list, by what was bought.
+  firstItem: {
+    en: (name: string, more: number) => (more ? `${name} and ${more} more` : name),
+    km: (name: string, more: number) => (more ? `${name} និង ${more} ទៀត` : name),
+  },
+  numberAndDate: {
+    en: (n: number, date: string) => `#${n}, ${date}`,
+    km: (n: number, date: string) => `#${n}, ${date}`,
+  },
   willConfirm: {
     en: (shop: string) => `${shop} will confirm it and contact you soon.`,
     km: (shop: string) => `${shop} នឹងបញ្ជាក់ ហើយទាក់ទងអ្នកឆាប់ៗនេះ។`,
@@ -117,13 +143,19 @@ export const order = {
       km: (shop: string, total: string) => `មិនទាន់បង់។ សូមទាក់ទង ${shop} ដើម្បីសួររបៀបបង់ ${total}។`,
     },
     // "Not paid yet. Pay $12.00 with your bank app:"
-    khqrBefore: { en: 'Not paid yet. Pay', km: 'មិនទាន់បង់។ សូមបង់' },
-    khqrAfter: { en: 'with your bank app:', km: 'តាមកម្មវិធីធនាគាររបស់អ្នក៖' },
     khqrAlt: {
       en: (total: string, name: string) => `KHQR code to pay ${total} to ${name}`,
       km: (total: string, name: string) => `KHQR សម្រាប់បង់ ${total} ទៅ ${name}`,
     },
     saveQr: { en: 'Save QR code', km: 'រក្សាទុក QR' },
+    saveQrPhotos: { en: 'Save QR to photos', km: 'រក្សាទុក QR ក្នុងរូបថត' },
+    howToPay: { en: 'How to pay with the saved QR', km: 'របៀបបង់ជាមួយ QR ដែលបានរក្សាទុក' },
+    // On a laptop: the customer scans the screen with their phone.
+    scanThis: {
+      en: 'Open your bank app on your phone, tap Scan, and scan this code.',
+      km: 'បើកកម្មវិធីធនាគារលើទូរស័ព្ទរបស់អ្នក ចុច Scan ហើយស្កេនកូដនេះ។',
+    },
+    payTitle: { en: (total: string) => `Pay ${total}`, km: (total: string) => `បង់ ${total}` },
     qrSaved: { en: 'QR code saved', km: 'បានរក្សាទុក QR' },
     khqrStep1: { en: 'Save the QR code, or take a screenshot.', km: 'រក្សាទុក QR ឬថតអេក្រង់។' },
     khqrStep2: {

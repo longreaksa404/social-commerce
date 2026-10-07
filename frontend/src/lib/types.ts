@@ -225,6 +225,9 @@ export type Delivery = {
 }
 
 /** What a customer sees: the confirmation page and order tracking. */
+/** On the customer's side, each line also has the product's photo now. */
+export type ShopOrderItem = OrderItem & { image_url: string | null }
+
 export type ShopOrder = {
   id: string
   number: number
@@ -237,12 +240,13 @@ export type ShopOrder = {
   /** subtotal - discount + delivery_fee */
   total: string
   delivery_method: DeliveryMethod
-  items: OrderItem[]
+  items: ShopOrderItem[]
   payment: ShopPayment
   delivery: ShopDelivery
 }
 
-export type Order = Omit<ShopOrder, 'payment' | 'delivery'> & {
+export type Order = Omit<ShopOrder, 'payment' | 'delivery' | 'items'> & {
+  items: OrderItem[]
   payment: Payment
   delivery: Delivery
   updated_at: string

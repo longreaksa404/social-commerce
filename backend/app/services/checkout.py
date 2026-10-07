@@ -191,11 +191,23 @@ async def track_order(
     return order
 
 
-def shop_order_out(store: Store, order: Order) -> ShopOrderOut:
-    """The order as its customer sees it, with how to pay for it and where
-    to collect it."""
-    return ShopOrderOut.model_validate(order).model_copy(
+async def shop_order_out(db: AsyncSession, store: Store, order: Order) -> ShopOrderOut:
+    """The order as its customer sees it, with how to pay for it, where to
+    collect it, and each item's photo."""
+    out = ShopOrderOut.model_validate(order)
+    product_ids = {item.product_id for item in out.items}
+    rows = await db.execute(
+        select(Product.id, Product.image_urls).where(
+            Product.store_id == store.id, Product.id.in_(product_ids)
+        )
+    )
+    photos = {product_id: urls[0] for product_id, urls in rows if urls}
+    return out.model_copy(
         update={
+            "items": [
+                item.model_copy(update={"image_url": photos.get(item.product_id)})
+                for item in out.items
+            ],
             "payment": payment_service.shop_payment_out(store, order),
             "delivery": delivery_service.shop_delivery_out(store, order),
         }

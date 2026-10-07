@@ -224,6 +224,30 @@ async def test_tracking_needs_the_phone_the_order_was_placed_with(client, two_st
         assert response.json()["error"]["code"] == "ORDER_NOT_FOUND"
 
 
+async def test_tracked_items_carry_the_products_current_photo(client, make_store):
+    store = await make_store()
+    slug = await shop_slug(store.store_id)
+    cap = await add_product(store.store_id, "cap")
+    bag = await add_product(store.store_id, "bag")
+    async with unscoped_session() as db:
+        (await db.get(Product, cap)).image_urls = ["https://img/cap-1.jpg", "https://img/cap-2.jpg"]
+        await db.commit()
+    lines = [(cap, None, 1), (bag, None, 1)]
+    placed = (await place_order(client, slug, lines, total="20.00")).json()
+
+    photos = {i["product_id"]: i["image_url"] for i in placed["items"]}
+    assert photos == {str(cap): "https://img/cap-1.jpg", str(bag): None}
+
+    # The photo now, not a snapshot: the list shows what the shop shows.
+    async with unscoped_session() as db:
+        (await db.get(Product, cap)).image_urls = ["https://img/cap-new.jpg"]
+        await db.commit()
+    url = f"/api/v1/shop/{slug}/orders/{placed['id']}?phone=012345678"
+    tracked = (await client.get(url)).json()
+    photos = {i["product_id"]: i["image_url"] for i in tracked["items"]}
+    assert photos[str(cap)] == "https://img/cap-new.jpg"
+
+
 async def test_placing_orders_has_its_own_stricter_rate_limit(client):
     allowed = int(ORDER_RATE_LIMIT.split("/")[0])
     limiter.enabled = True

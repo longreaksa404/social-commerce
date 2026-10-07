@@ -436,14 +436,15 @@ export function EmptyState({
   )
 }
 
-/** A green circle popping in with a tick that draws itself: it went
- * through. */
+/** A solid green circle popping in with a white tick that draws itself:
+ * it went through. (emerald-500 doesn't flip in dark mode, so the white
+ * tick stays readable on it.) */
 export function SuccessTick({ className = '', ref }: { className?: string; ref?: Ref<HTMLSpanElement> }) {
   return (
     <span
       ref={ref}
       aria-hidden
-      className={`flex size-16 animate-success items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ${className}`}
+      className={`flex size-16 animate-success items-center justify-center rounded-full bg-emerald-500 text-white shadow-md ${className}`}
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="size-9">
         <path d="M5 12.5l4.5 4.5L19 7.5" pathLength={1} strokeDasharray={1} className="animate-tick" />

@@ -90,6 +90,12 @@ class OrderItemOut(BaseModel):
     line_total: Decimal
 
 
+class ShopOrderItemOut(OrderItemOut):
+    # The product's first photo now (not a snapshot), for the customer's
+    # order list; null if it has none.
+    image_url: str | None = None
+
+
 class ShopOrderOut(BaseModel):
     """The confirmation page and order tracking (02_TECHNICAL.md section 8)."""
 
@@ -105,7 +111,7 @@ class ShopOrderOut(BaseModel):
     delivery_fee: Decimal
     total: Decimal  # subtotal - discount + delivery_fee
     delivery_method: DeliveryMethod
-    items: list[OrderItemOut]
+    items: list[ShopOrderItemOut]
     payment: ShopPaymentOut
     delivery: ShopDeliveryOut
 

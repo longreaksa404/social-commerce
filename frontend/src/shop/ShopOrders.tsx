@@ -5,6 +5,7 @@ import { buttonClass } from '../components/styles.ts'
 import { useT } from '../i18n/useT.ts'
 import { formatMoney } from '../lib/money.ts'
 import { formatDate } from '../lib/orders.ts'
+import { ProductImage } from './components.tsx'
 import { awaitsPayment, orderHeadline } from './orderWords.ts'
 import { inProgress, useMyOrders, useShop, type MyOrder } from './queries.ts'
 
@@ -60,34 +61,56 @@ function OrderGroup({ title, orders, slug }: { title: string; orders: MyOrder[];
   )
 }
 
+/** One order, by what was bought: its first item's photo and name, the
+ * number and date, where it is and whether it's paid as tags, the total. */
 function OrderRow({ item, slug }: { item: MyOrder; slug: string }) {
   const t = useT()
   const { order } = item
   const closed = order?.status === 'rejected' || order?.status === 'cancelled'
-  const color = !order ? 'text-slate-500' : closed ? 'text-red-700' : inProgress(order) ? 'text-navy-700' : 'text-slate-600'
+  const first = order?.items[0]
+  const more = order ? order.items.length - 1 : 0
+  const tag = 'rounded-full px-2 py-0.5 text-xs font-semibold'
   return (
     <Link
       to={`/shop/${slug}/order/${item.id}`}
       className="flex min-h-16 items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100"
     >
+      <ProductImage small src={first?.image_url} alt="" className="size-14 shrink-0 rounded-xl" />
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-3">
-          <span className="font-semibold text-slate-900">{t.shop.orderNumber(item.number)}</span>
+          <span className="truncate font-semibold text-slate-900">
+            {first ? t.order.firstItem(first.product_name, more) : t.shop.orderNumber(item.number)}
+          </span>
           {order && (
-            <span className="shrink-0 text-sm font-semibold text-slate-900">{formatMoney(order.total, order.currency)}</span>
+            <span className="shrink-0 font-semibold text-slate-900 tabular-nums">
+              {formatMoney(order.total, order.currency)}
+            </span>
           )}
         </span>
+        <span className="mt-0.5 block text-xs text-slate-500">
+          {t.order.numberAndDate(item.number, formatDate(item.placedAt))}
+        </span>
         {item.loading ? (
-          <Skeleton className="mt-1.5 h-4 w-40" />
+          <Skeleton className="mt-1.5 h-5 w-40" />
         ) : (
-          <span className={`mt-0.5 block text-sm font-medium ${color}`}>
-            {order ? orderHeadline(t, order) : t.shop.myOrders.cantOpen}
-            {order && inProgress(order) && awaitsPayment(order) && (
-              <span className="text-amber-700"> · {t.order.notPaidYet}</span>
+          <span className="mt-1.5 flex flex-wrap gap-1.5">
+            {order ? (
+              <>
+                <span className={`${tag} ${closed ? 'bg-red-50 text-red-700' : 'bg-navy-50 text-navy-800'}`}>
+                  {orderHeadline(t, order)}
+                </span>
+                {!closed && order.payment.status === 'paid' && (
+                  <span className={`${tag} bg-emerald-50 text-emerald-800`}>{t.status.paymentBadge.paid}</span>
+                )}
+                {inProgress(order) && awaitsPayment(order) && (
+                  <span className={`${tag} bg-amber-50 text-amber-800`}>{t.order.notPaidYet}</span>
+                )}
+              </>
+            ) : (
+              <span className={`${tag} bg-slate-100 text-slate-600`}>{t.shop.myOrders.cantOpen}</span>
             )}
           </span>
         )}
-        <span className="mt-0.5 block text-xs text-slate-500">{formatDate(item.placedAt)}</span>
       </span>
       <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-300" />
     </Link>

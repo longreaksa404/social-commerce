@@ -1,5 +1,5 @@
-import { Check, Copy, MapPin, Send, Truck, XCircle } from 'lucide-react'
-import { useEffect, useRef, useState, type FormEvent, type RefObject } from 'react'
+import { ChevronDown, Copy, MapPin, Package, Truck, XCircle } from 'lucide-react'
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode, type RefObject } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { buzz, confettiFrom } from '../components/effects.ts'
 import { useFeedback } from '../components/feedback.ts'
@@ -10,7 +10,8 @@ import { useT } from '../i18n/useT.ts'
 import { formatMoney } from '../lib/money.ts'
 import { formatDate, formatOrderTime } from '../lib/orders.ts'
 import type { DeliveryMethod, DeliveryStatus, OrderStatus, ShopOrder, ShopStore } from '../lib/types.ts'
-import { orderPhone, rememberOrder } from './device.ts'
+import { ProductImage, ShopLogo } from './components.tsx'
+import { loadCustomerDetails, orderPhone, rememberOrder } from './device.ts'
 import { orderHeadline, stepLabel } from './orderWords.ts'
 import { PaymentCard } from './PaymentCard.tsx'
 import { inProgress, isNotFound, useShop, useTrackOrder } from './queries.ts'
@@ -149,119 +150,243 @@ function OrderView({
     }
   }
 
-  return (
-    <div className="mx-auto max-w-xl space-y-4">
-      <title>{`${t.shop.orderNumber(order.number)} · ${shop.name}`}</title>
+  const total = formatMoney(order.total, order.currency)
+  const payment = showPayment && <PaymentCard shop={shop} order={order} />
 
-      {justPlaced && (
-        <div className="flex flex-col items-center px-4 pt-2 pb-2 text-center">
-          <SuccessTick ref={tick} className="mb-3" />
-          <h1 className="text-xl font-bold text-slate-900">{t.order.thanks}</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            {order.status === 'pending' ? t.order.willConfirm(shop.name) : t.order.willContact(shop.name)}
-          </p>
-        </div>
-      )}
-
-      {payNow && <PaymentCard shop={shop} order={order} />}
-
-      <Card className="p-4 sm:p-6">
-        <div className="flex items-baseline justify-between gap-3">
-          {justPlaced ? (
-            <h2 className="text-lg font-bold text-slate-900">{t.shop.orderNumber(order.number)}</h2>
-          ) : (
-            <h1 className="text-lg font-bold text-slate-900">{t.shop.orderNumber(order.number)}</h1>
-          )}
-          <span className="text-sm text-slate-500">
-            {formatDate(order.created_at)}
-          </span>
-        </div>
-        <p
-          className={`mt-1 flex items-center gap-1.5 font-medium ${closed ? 'text-red-700' : 'text-navy-700'}`}
-          aria-live="polite"
-        >
-          {closed && <XCircle aria-hidden className="size-4.5" />}
-          {orderHeadline(t, order)}
-        </p>
-        {closed ? (
-          <p className="mt-2 text-sm text-slate-600">{t.order.contactShop(shop.name)}</p>
-        ) : (
-          <Progress status={order.status} method={order.delivery_method} />
-        )}
-        {inProgress(order) && (
-          <p className="mt-3 text-xs text-slate-500">{t.order.updated(formatOrderTime(new Date(updatedAt).toISOString()))}</p>
-        )}
-      </Card>
-
-      {!closed && <DeliveryCard order={order} />}
-
-      {showPayment && !payNow && <PaymentCard shop={shop} order={order} />}
-
-      <Card className="p-4 sm:p-6">
-        <h2 className="mb-2 font-semibold text-slate-900">{t.order.items}</h2>
-        <ul className="divide-y divide-slate-100">
-          {order.items.map((item, i) => (
-            <li key={i} className="flex gap-3 py-2.5 text-sm">
-              <span className="min-w-0 flex-1">
-                <span className="block break-words text-slate-900">
-                  {item.product_name}
-                  {item.variant_name && <span className="text-slate-500"> · {item.variant_name}</span>}
-                </span>
-                <span className="text-slate-500">
-                  {item.quantity} × {formatMoney(item.unit_price, order.currency)}
-                </span>
-              </span>
-              <span className="font-medium text-slate-900">{formatMoney(item.line_total, order.currency)}</span>
-            </li>
-          ))}
-        </ul>
-        <dl className="mt-2 space-y-1 border-t border-slate-200 pt-3 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-slate-600">{t.shop.summary.items}</dt>
-            <dd className="text-slate-900">{formatMoney(order.subtotal, order.currency)}</dd>
-          </div>
-          {Number(order.discount) > 0 && (
-            <div className="flex justify-between">
-              <dt className="text-slate-600">{t.shop.summary.discount}</dt>
-              <dd className="font-medium text-emerald-700">−{formatMoney(order.discount, order.currency)}</dd>
-            </div>
-          )}
-          <div className="flex justify-between">
-            <dt className="text-slate-600">{order.delivery_method === 'pickup' ? t.checkout.pickup : t.shop.summary.delivery}</dt>
-            <dd className="text-slate-900">
-              {Number(order.delivery_fee) > 0 ? formatMoney(order.delivery_fee, order.currency) : t.shop.summary.free}
-            </dd>
-          </div>
-        </dl>
-        <div className="mt-2 flex items-baseline justify-between border-t border-slate-200 pt-3">
-          <span className="font-semibold text-slate-900">{t.shop.summary.total}</span>
-          <span className="text-lg font-bold text-slate-900">{formatMoney(order.total, order.currency)}</span>
-        </div>
-      </Card>
-
-      <Card className="p-4 sm:p-6">
-        {shop.telegram_username && (
-          <a
-            href={`https://t.me/${shop.telegram_username}?text=${encodeURIComponent(t.order.askAboutText(order.number, window.location.href))}`}
-            target="_blank"
-            rel="noreferrer"
-            className={`${buttonClass('secondary')} mb-4 w-full`}
-          >
-            <Send aria-hidden className="size-4" />
-            {t.order.askAbout}
-          </a>
-        )}
-        <p className="text-sm text-slate-600">{t.order.comeBack(shop.name)}</p>
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-          <Button variant="secondary" icon={Copy} onClick={copyLink} className="sm:flex-1">
-            {t.order.copyLink}
-          </Button>
-          <Link to={`/shop/${shop.slug}/orders`} className={`${buttonClass('ghost')} sm:flex-1`}>
-            {t.order.yourOrders}
-          </Link>
-        </div>
-      </Card>
+  // One column on phones; on laptops the order on the left and payment on
+  // the right, staying in view. Paying first on a phone when it's what's
+  // left to do.
+  const left = 'lg:col-start-1'
+  // The payment column runs beside all of the left one's cards.
+  const leftCards = shop.telegram_username ? 4 : 3
+  const payWrap = (card: ReactNode) => (
+    <div
+      style={{ '--left-cards': leftCards } as CSSProperties}
+      className="lg:sticky lg:top-20 lg:col-start-2 lg:[grid-row:1/span_var(--left-cards)]"
+    >
+      {card}
     </div>
+  )
+  return (
+    <div className="mx-auto max-w-xl lg:max-w-6xl">
+      <title>{`${t.shop.orderNumber(order.number)} · ${shop.name}`}</title>
+      {justPlaced && (
+        <ThankYou
+          tick={tick}
+          name={loadCustomerDetails()?.name ?? null}
+          tag={t.order.placedTag(order.number, total)}
+          text={order.status === 'pending' ? t.order.willConfirm(shop.name) : t.order.willContact(shop.name)}
+          next={
+            payNow
+              ? { text: t.order.nextPay(total, t.status.paymentMethod[order.payment.method]), urgent: true }
+              : showPayment && order.payment.method === 'cod' && order.payment.status === 'pending'
+                ? { text: t.order.nextCod(total), urgent: false }
+                : null
+          }
+        />
+      )}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-6">
+        {payNow && payWrap(payment)}
+        <StatusCard order={order} shop={shop} closed={closed} updatedAt={updatedAt} titleIsPage={!justPlaced} className={left} />
+        {shop.telegram_username && <SellerCard shop={shop} order={order} className={left} />}
+        {!payNow && payment && payWrap(payment)}
+        <ItemsCard order={order} className={left} />
+        <Card className={`p-4 sm:p-6 ${left}`}>
+          <p className="text-sm text-slate-600">{t.order.comeBack(shop.name)}</p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <Button variant="secondary" icon={Copy} onClick={copyLink} className="sm:flex-1">
+              {t.order.copyLink}
+            </Button>
+            <Link to={`/shop/${shop.slug}/orders`} className={`${buttonClass('ghost')} sm:flex-1`}>
+              {t.order.yourOrders}
+            </Link>
+          </div>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+/** Straight after checkout: a big tick that draws itself (confetti comes
+ * from it), the customer's name, the order number and total, and what's
+ * left to do. */
+function ThankYou({
+  tick,
+  name,
+  tag,
+  text,
+  next,
+}: {
+  tick: RefObject<HTMLSpanElement | null>
+  name: string | null
+  tag: string
+  text: string
+  next: { text: string; urgent: boolean } | null
+}) {
+  const t = useT()
+  return (
+    <div className="-mx-4 -mt-4 mb-4 bg-linear-to-b from-emerald-50 to-transparent px-4 pt-8 pb-2 text-center sm:-mt-6 sm:pt-10 lg:mx-0 lg:rounded-3xl">
+      <SuccessTick ref={tick} className="mx-auto mb-3" />
+      <h1 className="text-xl font-bold text-balance text-slate-900 sm:text-2xl">
+        {name ? t.order.thanksName(name) : t.order.thanks}
+      </h1>
+      <p className="mt-2 inline-flex rounded-full bg-surface px-3 py-0.5 text-sm font-semibold text-slate-900 ring-1 ring-slate-900/10 tabular-nums">
+        {tag}
+      </p>
+      <p className="mt-2 text-sm text-slate-600">{text}</p>
+      {next && (
+        <p
+          className={`mx-auto mt-4 max-w-md rounded-xl px-3.5 py-2.5 text-sm font-semibold ${
+            next.urgent ? 'bg-amber-50 text-amber-900' : 'bg-slate-100 text-slate-700'
+          }`}
+        >
+          {next.text}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** Where the order is: the number, the step in words, the progress bar
+ * with its truck, and how it's being delivered or collected. */
+function StatusCard({
+  order,
+  shop,
+  closed,
+  updatedAt,
+  titleIsPage,
+  className,
+}: {
+  order: ShopOrder
+  shop: ShopStore
+  closed: boolean
+  updatedAt: number
+  titleIsPage: boolean
+  className: string
+}) {
+  const t = useT()
+  const Title = titleIsPage ? 'h1' : 'h2'
+  return (
+    <Card className={`p-4 sm:p-6 ${className}`}>
+      <div className="flex items-baseline justify-between gap-3">
+        <Title className="text-lg font-bold text-slate-900">{t.shop.orderNumber(order.number)}</Title>
+        <span className="text-sm text-slate-500">{formatDate(order.created_at)}</span>
+      </div>
+      <p
+        className={`mt-1 flex items-center gap-1.5 font-semibold ${closed ? 'text-red-700' : 'text-navy-700'}`}
+        aria-live="polite"
+      >
+        {closed && <XCircle aria-hidden className="size-4.5" />}
+        {orderHeadline(t, order)}
+      </p>
+      {closed ? (
+        <p className="mt-2 text-sm text-slate-600">{t.order.contactShop(shop.name)}</p>
+      ) : (
+        <>
+          <Progress status={order.status} method={order.delivery_method} />
+          <DeliveryLine order={order} />
+        </>
+      )}
+      {inProgress(order) && (
+        <p className="mt-3 text-xs text-slate-500">{t.order.updated(formatOrderTime(new Date(updatedAt).toISOString()))}</p>
+      )}
+    </Card>
+  )
+}
+
+/** The shop, with its Telegram right beside it: asking the seller sits
+ * where the seller is. */
+function SellerCard({ shop, order, className }: { shop: ShopStore; order: ShopOrder; className: string }) {
+  const t = useT()
+  return (
+    <Card className={`flex items-center gap-3 p-4 sm:px-6 ${className}`}>
+      <ShopLogo shop={shop} className="size-11" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold text-slate-900">{shop.name}</p>
+        <p className="text-sm text-slate-500">{t.order.questions}</p>
+      </div>
+      <a
+        href={`https://t.me/${shop.telegram_username}?text=${encodeURIComponent(t.order.askAboutText(order.number, window.location.href))}`}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={t.order.askAbout}
+        className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-slate-300 bg-surface px-4 text-sm font-semibold text-slate-800 shadow-xs transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600"
+      >
+        <TelegramIcon />
+        Telegram
+      </a>
+    </Card>
+  )
+}
+
+/** Telegram's paper plane, in its own blue. */
+function TelegramIcon() {
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className="size-4.5 fill-[#2a9de0]">
+      <path d="M21.9 4.3 18.6 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 13.4l-4.9-1.5c-1.1-.3-1.1-1.1.2-1.6l19.2-7.4c.9-.3 1.7.2 1.4 1.4z" />
+    </svg>
+  )
+}
+
+/** The items fold into one line: the customer just chose them. */
+function ItemsCard({ order, className }: { order: ShopOrder; className: string }) {
+  const t = useT()
+  const money = (amount: string) => formatMoney(amount, order.currency)
+  const count = order.items.reduce((sum, item) => sum + item.quantity, 0)
+  return (
+    <Card className={`${className}`}>
+      <details className="group">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 sm:px-6 [&::-webkit-details-marker]:hidden">
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold text-slate-900">{t.shop.cartBar.items(count)}</span>
+            <span className="block text-sm font-medium text-navy-700">{t.order.showItems}</span>
+          </span>
+          <span className="text-lg font-bold text-slate-900 tabular-nums">{money(order.total)}</span>
+          <ChevronDown aria-hidden className="size-5 shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="border-t border-slate-100 px-4 pb-4 sm:px-6 sm:pb-6">
+          <ul className="divide-y divide-slate-100">
+            {order.items.map((item, i) => (
+              <li key={i} className="flex items-center gap-3 py-3 text-sm">
+                <ProductImage small src={item.image_url} alt="" className="size-12 shrink-0 rounded-lg" />
+                <span className="min-w-0 flex-1">
+                  <span className="block break-words text-slate-900">
+                    {item.product_name}
+                    {item.variant_name && <span className="text-slate-500"> · {item.variant_name}</span>}
+                  </span>
+                  <span className="text-slate-500 tabular-nums">
+                    {item.quantity} × {money(item.unit_price)}
+                  </span>
+                </span>
+                <span className="font-medium text-slate-900 tabular-nums">{money(item.line_total)}</span>
+              </li>
+            ))}
+          </ul>
+          <dl className="space-y-1 border-t border-slate-200 pt-3 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-slate-600">{t.shop.summary.items}</dt>
+              <dd className="text-slate-900 tabular-nums">{money(order.subtotal)}</dd>
+            </div>
+            {Number(order.discount) > 0 && (
+              <div className="flex justify-between">
+                <dt className="text-slate-600">{t.shop.summary.discount}</dt>
+                <dd className="font-medium text-emerald-700 tabular-nums">−{money(order.discount)}</dd>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <dt className="text-slate-600">{order.delivery_method === 'pickup' ? t.checkout.pickup : t.shop.summary.delivery}</dt>
+              <dd className="text-slate-900 tabular-nums">
+                {Number(order.delivery_fee) > 0 ? money(order.delivery_fee) : t.shop.summary.free}
+              </dd>
+            </div>
+          </dl>
+          <div className="mt-2 flex items-baseline justify-between border-t border-slate-200 pt-3">
+            <span className="font-semibold text-slate-900">{t.shop.summary.total}</span>
+            <span className="text-lg font-bold text-slate-900 tabular-nums">{money(order.total)}</span>
+          </div>
+        </div>
+      </details>
+    </Card>
   )
 }
 
@@ -293,21 +418,24 @@ function sessionValue(key: string): string | null {
   }
 }
 
-function DeliveryCard({ order }: { order: ShopOrder }) {
+/** How it's being delivered or collected, under the progress bar. */
+function DeliveryLine({ order }: { order: ShopOrder }) {
   const { delivery } = order
   const pickup = delivery.method === 'pickup'
   const Icon = pickup ? MapPin : Truck
   const t = useT()
   return (
-    <Card className="p-4 sm:p-6">
-      <h2 className="flex items-center gap-2 font-semibold text-slate-900">
-        <Icon aria-hidden className="size-4.5 text-slate-500" />
-        {pickup ? t.checkout.pickup : delivery.courier ? t.order.deliveryBy(delivery.courier) : t.checkout.deliveryByShop}
-      </h2>
-      <p
-        className={`mt-1 text-sm font-medium ${delivery.status === 'failed' ? 'text-red-700' : delivery.status === 'delivered' ? 'text-emerald-700' : 'text-slate-700'}`}
-      >
-        {deliveryWords(t, delivery.method, delivery.status)}
+    <div className="mt-4 border-t border-slate-100 pt-3">
+      <p className="flex items-center gap-2 text-sm">
+        <Icon aria-hidden className="size-4.5 shrink-0 text-slate-500" />
+        <span className="min-w-0 flex-1 text-slate-700">
+          {pickup ? t.checkout.pickup : delivery.courier ? t.order.deliveryBy(delivery.courier) : t.checkout.deliveryByShop}
+        </span>
+        <span
+          className={`shrink-0 font-medium ${delivery.status === 'failed' ? 'text-red-700' : delivery.status === 'delivered' ? 'text-emerald-700' : 'text-slate-900'}`}
+        >
+          {deliveryWords(t, delivery.method, delivery.status)}
+        </span>
       </p>
       {pickup && delivery.status !== 'delivered' && (
         <div className="mt-3 rounded-xl bg-slate-50 px-3.5 py-2.5">
@@ -317,48 +445,73 @@ function DeliveryCard({ order }: { order: ShopOrder }) {
           </p>
         </div>
       )}
-    </Card>
+    </div>
   )
 }
 
+// How long each part of the bar takes to fill, one after another.
+const FILL_MS = 260
+
+/** Six parts that fill in turn up to where the order is, with a truck (a
+ * parcel for pickup) driving along to it; it moves on by itself when the
+ * seller updates the order (the page checks every 30 seconds). */
 function Progress({ status, method }: { status: OrderStatus; method: DeliveryMethod }) {
   const t = useT()
   // The last step reached; a completed order has reached them all.
   const reached = status === 'completed' ? STEPS.length - 1 : STEPS.findIndex((step) => step === status)
+  // How far the bar has filled so far: from nothing on opening, then one
+  // part at a time up to `reached`.
+  const [shown, setShown] = useState(-1)
+  useEffect(() => {
+    if (shown === reached) return
+    const timer = setTimeout(() => setShown((n) => n + (n < reached ? 1 : -1)), shown < 0 ? 150 : FILL_MS)
+    return () => clearTimeout(timer)
+  }, [shown, reached])
+  const Icon = method === 'pickup' ? Package : Truck
+  const moving = reached < STEPS.length - 1
+  const at = Math.max(0, shown)
+  const labels = STEPS.map((step) => stepLabel(t, step, t.order.step[step], method))
+
   return (
-    <ol className="mt-4">
-      {STEPS.map((step, i) => {
-        const done = i <= reached
-        const latest = i === reached
-        return (
-          <li key={step} className="relative flex min-h-10 items-start gap-3">
-            {i < STEPS.length - 1 && (
-              <span
-                aria-hidden
-                className={`absolute top-6 left-[11px] h-[calc(100%-1rem)] w-0.5 ${i < reached ? 'bg-brand' : 'bg-slate-200'}`}
-              />
-            )}
-            <span
-              aria-hidden
-              className={`relative flex size-6 shrink-0 items-center justify-center rounded-full ${
-                done ? 'bg-brand text-white' : 'border-2 border-slate-200 bg-surface'
-              }`}
-            >
-              {/* Where it is now, while there are steps to go. */}
-              {latest && i < STEPS.length - 1 && <span className="absolute inset-0 animate-live rounded-full bg-brand/50" />}
-              {done && <Check className="relative size-3.5" strokeWidth={3} />}
-            </span>
-            <span
-              aria-current={latest ? 'step' : undefined}
-              className={`pt-0.5 text-sm ${latest ? 'font-semibold text-slate-900' : done ? 'text-slate-700' : 'text-slate-500'}`}
-            >
-              {stepLabel(t, step, t.order.step[step], method)}
-              <span className="sr-only">{done ? t.order.stepDone : t.order.stepNotYet}</span>
-            </span>
+    <div className="mt-4">
+      {/* For screen readers the steps as a list; the bar is for the eye. */}
+      <ol className="sr-only">
+        {labels.map((label, i) => (
+          <li key={label} aria-current={i === reached ? 'step' : undefined}>
+            {label}
+            {i <= reached ? t.order.stepDone : t.order.stepNotYet}
           </li>
-        )
-      })}
-    </ol>
+        ))}
+      </ol>
+      <div aria-hidden>
+        <div className="relative h-7">
+          <span
+            className="absolute bottom-1 -translate-x-1/2 text-brand transition-[left] duration-300 ease-out"
+            style={{ left: `${((at + 0.5) / STEPS.length) * 100}%` }}
+          >
+            <Icon className={`size-5 ${moving && shown === reached ? 'animate-drive' : ''}`} />
+          </span>
+        </div>
+        <div className="grid grid-cols-6 gap-1">
+          {STEPS.map((step, i) => (
+            <span key={step} className="h-1.5 overflow-hidden rounded-full bg-slate-200">
+              <span
+                className={`block h-full rounded-full bg-brand transition-[width] duration-300 ease-out ${i <= shown ? 'w-full' : 'w-0'}`}
+              />
+            </span>
+          ))}
+        </div>
+        {/* The step names fit from a small tablet up; phones read the
+            step in words above the bar. */}
+        <div className="mt-1.5 hidden grid-cols-6 gap-1 text-center text-xs leading-4 sm:grid">
+          {labels.map((label, i) => (
+            <span key={label} className={i === reached ? 'font-semibold text-slate-900' : 'text-slate-500'}>
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }
 

@@ -93,6 +93,8 @@
     pop-in 0.4s cubic-bezier(0.3, 1.5, 0.6, 1) backwards, ring 0.9s ease-out 0.2s backwards;
   /* The step an order is at: a soft, slow ping around its dot. */
   --animate-live: live 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  /* The truck on an order's progress bar, idling while it's on its way. */
+  --animate-drive: drive 1.2s ease-in-out infinite;
 }
 
 @keyframes rise {
@@ -161,6 +163,12 @@
 @keyframes highlight {
   from {
     background-color: var(--color-amber-50);
+  }
+}
+/* A truck idling: a small bounce. */
+@keyframes drive {
+  50% {
+    translate: 0 -2px;
   }
 }
 /* A bell ringing. */
