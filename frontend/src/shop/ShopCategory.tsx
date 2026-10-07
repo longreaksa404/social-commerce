@@ -1,9 +1,10 @@
 import { PackageOpen } from 'lucide-react'
 import { Link, useParams } from 'react-router'
-import { EmptyState, ErrorState, Skeleton } from '../components/ui.tsx'
+import { EmptyState, ErrorState } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
 import { useT } from '../i18n/useT.ts'
-import { CategoryChips, NotFound, ProductGrid, ProductGridSkeleton } from './components.tsx'
+import { NotFound, ProductGrid, ProductGridSkeleton } from './components.tsx'
+import { ShopIntro, ShopIntroSkeleton } from './ShopHome.tsx'
 import { isNotFound, useShop, useShopCategory } from './queries.ts'
 
 /** /shop/:storeSlug/category/:categorySlug: the category link a seller shares. */
@@ -18,11 +19,13 @@ export function ShopCategory() {
     </Link>
   )
 
-  const skeleton = (
+  const skeleton = shop.data ? (
     <>
-      <Skeleton className="mb-5 h-7 w-40" />
+      <ShopIntro shop={shop.data} />
       <ProductGridSkeleton />
     </>
+  ) : (
+    <ShopIntroSkeleton />
   )
 
   // A 404 before the shop has loaded may mean the shop is gone, which the
@@ -47,8 +50,8 @@ export function ShopCategory() {
   return (
     <>
       <title>{`${category.name} · ${shop.data.name}`}</title>
-      <h1 className="mb-4 text-2xl font-bold tracking-tight break-words text-slate-900">{category.name}</h1>
-      <CategoryChips shop={shop.data} />
+      {/* The same top as All: the chosen tab says which category this is. */}
+      <ShopIntro shop={shop.data} />
       {products.length === 0 ? (
         <EmptyState icon={PackageOpen} title={t.shop.category.emptyTitle} action={allProducts}>
           {t.shop.category.emptyText}

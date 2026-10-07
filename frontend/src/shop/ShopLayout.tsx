@@ -45,15 +45,16 @@ export function ShopLayout() {
 
   return (
     <div className="relative isolate min-h-dvh">
-      {/* The top of the shop's home: one soft wash behind the header and
-          the shop's name, edge to edge, like its page on social media. */}
-      {home && (
+      {/* The top of the shop's grid pages (All and each category): one
+          soft wash behind the header and the shop's name, edge to edge,
+          like its page on social media. */}
+      {browsing && (
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-linear-to-b from-navy-50 to-transparent"
         />
       )}
-      <Header shop={shop.data} slug={storeSlug} home={home} />
+      <Header shop={shop.data} slug={storeSlug} home={browsing} />
       <main className="mx-auto w-full max-w-6xl px-4 pt-4 sm:pt-6">
         {shop.isPending && <SlowNotice className="mb-4" />}
         {showOrderBar && <CurrentOrderBar slug={storeSlug} />}

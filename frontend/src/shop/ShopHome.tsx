@@ -4,6 +4,7 @@ import { useParams } from 'react-router'
 import { EmptyState, ErrorState, Skeleton } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
 import { CategoryChips, ProductGrid, ProductGridSkeleton, ShopLogo } from './components.tsx'
+import type { ShopStore } from '../lib/types.ts'
 import { ShopInfo } from './ShopInfo.tsx'
 import { useShop, useShopProducts } from './queries.ts'
 
@@ -18,36 +19,12 @@ export function ShopHome() {
   const products = useShopProducts(storeSlug)
   const t = useT()
 
-  if (!shop.data) {
-    return (
-      <>
-        <div className={band}>
-          <Skeleton className="size-16 shrink-0 rounded-full" />
-          <div className="flex-1 pt-2">
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="mt-2 h-4 w-56 max-w-full" />
-          </div>
-        </div>
-        <ProductGridSkeleton />
-      </>
-    )
-  }
+  if (!shop.data) return <ShopIntroSkeleton />
 
   return (
     <>
       <title>{shop.data.name}</title>
-      {/* The shop's own header, like its page on social media: logo beside
-          the name. On laptops the header shows these big instead (only the
-          description stays here). */}
-      <div className={band}>
-        <ShopLogo shop={shop.data} className="size-16 shadow-md ring-4 ring-surface lg:hidden" />
-        <div className="min-w-0 flex-1 pt-1 lg:pt-0">
-          <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900 lg:sr-only">{shop.data.name}</h1>
-          {shop.data.description && <Description text={shop.data.description} />}
-        </div>
-      </div>
-      <ShopInfo shop={shop.data} className="mb-5" />
-      <CategoryChips shop={shop.data} />
+      <ShopIntro shop={shop.data} />
       {products.error ? (
         <ErrorState error={products.error} onRetry={() => products.refetch()} />
       ) : !products.data ? (
@@ -59,6 +36,42 @@ export function ShopHome() {
       ) : (
         <ProductGrid shop={shop.data} products={products.data} />
       )}
+    </>
+  )
+}
+
+/** The top of the shop's grid pages, the same on All and on each
+ * category so switching tabs only changes the products: the shop's name
+ * and logo (like its page on social media; on laptops the header shows
+ * these big instead, only the description stays here), how buying works,
+ * and the category tabs. */
+export function ShopIntro({ shop }: { shop: ShopStore }) {
+  return (
+    <>
+      <div className={band}>
+        <ShopLogo shop={shop} className="size-16 shadow-md ring-4 ring-surface lg:hidden" />
+        <div className="min-w-0 flex-1 pt-1 lg:pt-0">
+          <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900 lg:sr-only">{shop.name}</h1>
+          {shop.description && <Description text={shop.description} />}
+        </div>
+      </div>
+      <ShopInfo shop={shop} className="mb-5" />
+      <CategoryChips shop={shop} />
+    </>
+  )
+}
+
+export function ShopIntroSkeleton() {
+  return (
+    <>
+      <div className={band}>
+        <Skeleton className="size-16 shrink-0 rounded-full lg:hidden" />
+        <div className="flex-1 pt-2 lg:pt-0">
+          <Skeleton className="h-7 w-48 lg:hidden" />
+          <Skeleton className="mt-2 h-4 w-56 max-w-full" />
+        </div>
+      </div>
+      <ProductGridSkeleton />
     </>
   )
 }
