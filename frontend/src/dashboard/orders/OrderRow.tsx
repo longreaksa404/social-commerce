@@ -47,6 +47,9 @@ export function OrderRow({
         ? { label: t.checkout.pickup, tone: 'neutral' as const }
         : null
   const isNew = order.status === 'pending'
+  // Unpaid doesn't matter once an order is off; paid (to refund) still does.
+  const closed = order.status === 'rejected' || order.status === 'cancelled'
+  const showPayment = !(closed && order.payment_status === 'pending')
   const time = timeOnly ? formatClock(order.created_at) : formatOrderTime(order.created_at)
   return (
     <div
@@ -78,8 +81,8 @@ export function OrderRow({
           </span>
           <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <Badge tone={ORDER_STATUS_TONES[order.status]}>{t.status.order[order.status]}</Badge>
-            <Badge tone={payment.tone}>{payment.label}</Badge>
-            {delivery && <Badge tone={delivery.tone}>{delivery.label}</Badge>}
+            {showPayment && <Badge tone={payment.tone}>{payment.label}</Badge>}
+            {delivery && !closed && <Badge tone={delivery.tone}>{delivery.label}</Badge>}
           </span>
         </span>
         <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-300" />

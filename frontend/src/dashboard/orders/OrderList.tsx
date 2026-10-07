@@ -95,8 +95,10 @@ function OrderList({ selectedId }: { selectedId: string | undefined }) {
   return (
     <>
       <PageHeader title={t.orders.title} />
-      <nav aria-label={t.orders.filterLabel} className="-mx-4 mb-2 overflow-x-auto [scrollbar-width:none] lg:mx-0">
-        <ul className="flex w-max gap-2 px-4 lg:px-0">
+      {/* Phones: one row that scrolls sideways. Laptops: the list's column
+          is narrow, so the tabs wrap rather than being cut off. */}
+      <nav aria-label={t.orders.filterLabel} className="-mx-4 mb-2 overflow-x-auto [scrollbar-width:none] lg:mx-0 lg:overflow-visible">
+        <ul className="flex w-max gap-2 px-4 lg:w-auto lg:flex-wrap lg:px-0">
           {FILTERS.map((f) => {
             const active = f.key === filter.key
             return (

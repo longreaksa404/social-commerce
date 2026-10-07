@@ -15,6 +15,17 @@ export const orders = {
   rowMetaNoCustomer: { en: (n: number, time: string) => `#${n}, ${time}`, km: (n: number, time: string) => `#${n}, ${time}` },
   // Laptops: the list beside an empty space for the order.
   pickOrder: { en: 'Choose an order to see it here.', km: 'ជ្រើសរើសការកុម្ម៉ង់ ដើម្បីមើលវានៅទីនេះ។' },
+  // At the top of a closed order, in place of the To do card.
+  closedNote: {
+    rejected: {
+      en: 'You rejected this order. Its items went back into stock.',
+      km: 'អ្នកបានបដិសេធការកុម្ម៉ង់នេះ។ ទំនិញបានត្រឡប់ចូលស្តុកវិញ។',
+    },
+    cancelled: {
+      en: 'This order was cancelled. Its items went back into stock.',
+      km: 'ការកុម្ម៉ង់នេះត្រូវបានលុបចោល។ ទំនិញបានត្រឡប់ចូលស្តុកវិញ។',
+    },
+  },
   // The card at the top of an order: what to do next.
   todo: {
     label: { en: 'To do', km: 'ត្រូវធ្វើ' },

@@ -1,6 +1,6 @@
-import { ChevronDown, ChevronRight, Link2, MapPin, MapPinned, MessageSquareText, Phone, ShoppingBag, Truck, Wallet } from 'lucide-react'
+import { ChevronDown, ChevronRight, Link2, MapPin, MapPinned, MessageSquareText, Phone, ShoppingBag, Truck, Wallet, XCircle } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import { buzz } from '../../components/effects.ts'
 import { useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
@@ -22,7 +22,8 @@ import { ENDS_ORDER, useMoveOrder } from './useMoveOrder.ts'
 export function OrderDetail() {
   const { orderId = '' } = useParams()
   const order = useOrder(orderId)
-  const back = useBackTo('/dashboard/orders')
+  // Back to the tab it was opened from (the list keeps it in ?show=).
+  const back = useBackTo(`/dashboard/orders${useLocation().search}`)
   const t = useT()
 
   if (order.isPending) return <DetailSkeleton back={back} />
@@ -50,7 +51,7 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
       />
       <title>{t.shop.orderNumber(order.number)}</title>
       <div className="space-y-4">
-        <TodoCard order={order} onStale={onStale} />
+        {CLOSED.has(order.status) ? <ClosedNote status={order.status} /> : <TodoCard order={order} onStale={onStale} />}
         <SummaryCard order={order} />
         <CustomerCard order={order} />
         <ItemsCard order={order} />
@@ -61,9 +62,34 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
   )
 }
 
+/** A rejected or cancelled order says so first: nothing is left to do. */
+function ClosedNote({ status }: { status: OrderStatus }) {
+  const o = useT().orders
+  return (
+    <p className="-mx-4 flex items-start gap-2.5 bg-red-50 px-4 py-3 text-sm font-medium text-red-800 sm:mx-0 sm:rounded-2xl sm:px-5">
+      <XCircle aria-hidden className="mt-0.5 size-4.5 shrink-0" />
+      {o.closedNote[status as 'rejected' | 'cancelled']}
+    </p>
+  )
+}
+
+/** Scrolls to a card and flashes a ring around it, so it's clear which
+ * block the tap went to. */
 function scrollToSection(id: string) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  document.getElementById(id)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+  const target = document.getElementById(id)
+  if (!target) return
+  target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+  const ring = 'var(--color-brand)'
+  target.animate(
+    [
+      { boxShadow: `0 0 0 3px ${ring}` },
+      { boxShadow: `0 0 0 3px ${ring}`, offset: 0.6 },
+      { boxShadow: '0 0 0 3px transparent' },
+    ],
+    // After a smooth scroll has mostly arrived; held still without motion.
+    { duration: 1800, delay: reduce ? 0 : 300, easing: 'ease-out' },
+  )
 }
 
 /** What the order needs from the seller now, first thing on the page: the
@@ -205,9 +231,11 @@ function SummaryCard({ order }: { order: Order }) {
               </span>
             </>
           )
+          // A closed order's payment and delivery no longer matter: faded.
+          const faded = closed && key !== 'order'
           const tile = `block h-full w-full rounded-xl border p-2.5 text-left sm:p-3 ${
-            needs ? 'border-amber-400 bg-amber-50/40' : 'border-slate-200'
-          }`
+            needs ? 'border-amber-400 bg-amber-50/40' : closed && key === 'order' ? 'border-red-300' : 'border-slate-200'
+          } ${faded ? 'opacity-50' : ''}`
           return (
             <li key={key}>
               {target ? (
@@ -437,7 +465,7 @@ function PaymentSection({ order, onStale }: { order: Order; onStale: () => void 
         ) : (
           <div className="mt-4 flex gap-3">
             {payment.next_statuses.includes('failed') && (
-              <Button variant="ghost" onClick={markFailed} disabled={record.isPending}>
+              <Button variant="danger" onClick={markFailed} disabled={record.isPending}>
                 {o.paymentFailed}
               </Button>
             )}
@@ -544,7 +572,7 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
           <div className="mt-4 flex gap-3">
             {actions.map((status) =>
               status === 'failed' ? (
-                <Button key={status} variant="ghost" onClick={() => save(status)} disabled={record.isPending}>
+                <Button key={status} variant="danger" onClick={() => save(status)} disabled={record.isPending}>
                   {deliveryAction(t, delivery, status)}
                 </Button>
               ) : (
