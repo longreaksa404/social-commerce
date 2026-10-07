@@ -25,55 +25,103 @@ const FILTERS: { key: 'all' | 'new' | 'active' | 'done' | 'closed'; statuses: Or
 export function OrdersPage() {
   const { orderId } = useParams()
   const t = useT()
+  // The title and tabs run across the top on laptops, above both columns,
+  // so all the tabs fit on one line.
   return (
-    <div className="lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,30rem)_minmax(0,1fr)]">
+    <>
       <div className={orderId ? 'max-lg:hidden' : ''}>
-        <OrderList selectedId={orderId} />
+        <OrdersHeader />
       </div>
-      {orderId ? (
-        <div className="lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto lg:rounded-2xl lg:pb-2">
-          <OrderDetail key={orderId} />
+      <div className="lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,30rem)_minmax(0,1fr)]">
+        <div className={orderId ? 'max-lg:hidden' : ''}>
+          <OrderList selectedId={orderId} />
         </div>
+        {orderId ? (
+          <div className="lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto lg:rounded-2xl lg:pb-2">
+            <OrderDetail key={orderId} />
+          </div>
+        ) : (
+          <div className="hidden lg:block">
+            <Card className="mt-4 flex flex-col items-center px-6 py-16 text-center">
+              <MousePointerClick aria-hidden className="mb-3 size-8 text-slate-300" />
+              <p className="text-sm text-slate-500">{t.orders.pickOrder}</p>
+            </Card>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+/** Which tab is showing, from the URL (so it survives opening an order and
+ * coming back), and that tab's orders; the header and the list share the
+ * same query. */
+function useFiltered() {
+  const [params, setParams] = useSearchParams()
+  const filter = FILTERS.find((f) => f.key === params.get('show')) ?? FILTERS[0]
+  const orders = useOrders(filter.statuses)
+  const counts = orders.data?.pages[0].counts
+  const countOf = (statuses: OrderStatus[]) =>
+    counts ? Object.entries(counts).reduce((n, [s, c]) => (statuses.length === 0 || statuses.includes(s as OrderStatus) ? n + c : n), 0) : null
+  const choose = (key: (typeof FILTERS)[number]['key']) => setParams(key === 'all' ? {} : { show: key }, { replace: true })
+  return { filter, orders, countOf, choose }
+}
+
+function OrdersHeader() {
+  const { filter, orders, countOf, choose } = useFiltered()
+  const t = useT()
+  return (
+    <>
+      <PageHeader title={t.orders.title} />
+      {orders.isPending ? (
+        <Skeleton className="mb-2 h-10 w-full rounded-full lg:w-2/3" />
       ) : (
-        <div className="hidden lg:block">
-          <Card className="mt-16 flex flex-col items-center px-6 py-16 text-center">
-            <MousePointerClick aria-hidden className="mb-3 size-8 text-slate-300" />
-            <p className="text-sm text-slate-500">{t.orders.pickOrder}</p>
-          </Card>
-        </div>
+        countOf([]) !== 0 &&
+        !orders.error && (
+          // One row; on a phone it scrolls sideways.
+          <nav aria-label={t.orders.filterLabel} className="-mx-4 mb-2 overflow-x-auto [scrollbar-width:none] lg:mx-0 lg:mb-4">
+            <ul className="flex w-max gap-2 px-4 lg:px-0">
+              {FILTERS.map((f) => {
+                const active = f.key === filter.key
+                return (
+                  <li key={f.key}>
+                    <button
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => choose(f.key)}
+                      className={`flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 ${
+                        active
+                          ? 'border-accent bg-accent text-white'
+                          : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      {t.orders.filter[f.key]}
+                      <span className={active ? 'text-white/80' : 'text-slate-500'}>{countOf(f.statuses)}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
+        )
       )}
-    </div>
+    </>
   )
 }
 
 function OrderList({ selectedId }: { selectedId: string | undefined }) {
-  // In the URL, so it survives opening an order and coming back.
-  const [params, setParams] = useSearchParams()
-  const filter = FILTERS.find((f) => f.key === params.get('show')) ?? FILTERS[0]
-  const orders = useOrders(filter.statuses)
+  const { filter, orders, countOf } = useFiltered()
   const store = useStore()
   const t = useT()
-
-  const counts = orders.data?.pages[0].counts
-  const countOf = (statuses: OrderStatus[]) =>
-    counts ? Object.entries(counts).reduce((n, [s, c]) => (statuses.length === 0 || statuses.includes(s as OrderStatus) ? n + c : n), 0) : null
   const shown = orders.data?.pages.flatMap((page) => page.orders) ?? []
   const arrived = useArrivals(orders.data && !orders.isPlaceholderData ? shown : undefined, filter.key)
 
   if (orders.isPending) return <ListSkeleton />
-  if (orders.error) {
-    return (
-      <>
-        <PageHeader title={t.orders.title} />
-        <ErrorState error={orders.error} onRetry={() => orders.refetch()} />
-      </>
-    )
-  }
+  if (orders.error) return <ErrorState error={orders.error} onRetry={() => orders.refetch()} />
 
   if (countOf([]) === 0) {
     return (
       <>
-        <PageHeader title={t.orders.title} />
         <EmptyState
           icon={Inbox}
           title={t.orders.emptyTitle}
@@ -94,34 +142,6 @@ function OrderList({ selectedId }: { selectedId: string | undefined }) {
 
   return (
     <>
-      <PageHeader title={t.orders.title} />
-      {/* Phones: one row that scrolls sideways. Laptops: the list's column
-          is narrow, so the tabs wrap rather than being cut off. */}
-      <nav aria-label={t.orders.filterLabel} className="-mx-4 mb-2 overflow-x-auto [scrollbar-width:none] lg:mx-0 lg:overflow-visible">
-        <ul className="flex w-max gap-2 px-4 lg:w-auto lg:flex-wrap lg:px-0">
-          {FILTERS.map((f) => {
-            const active = f.key === filter.key
-            return (
-              <li key={f.key}>
-                <button
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => setParams(f.key === 'all' ? {} : { show: f.key }, { replace: true })}
-                  className={`flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 ${
-                    active
-                      ? 'border-accent bg-accent text-white'
-                      : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  {t.orders.filter[f.key]}
-                  <span className={active ? 'text-white/80' : 'text-slate-500'}>{countOf(f.statuses)}</span>
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      </nav>
-
       {shown.length === 0 ? (
         <EmptyState icon={SearchX} title={t.orders.noneHereTitle}>
           {t.orders.noneHereText}
@@ -206,12 +226,9 @@ function useArrivals(orders: OrderSummary[] | undefined, filter: string): Set<st
 }
 
 function ListSkeleton() {
-  const t = useT()
   return (
     <>
-      <PageHeader title={t.orders.title} />
-      <Skeleton className="mb-4 h-10 w-full rounded-full" />
-      <Card className="divide-y divide-slate-100">
+      <Card className="mt-4 divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="space-y-2 px-4 py-3 sm:p-4">
             <Skeleton className="h-4 w-28" />
