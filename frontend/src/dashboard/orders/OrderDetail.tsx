@@ -167,10 +167,10 @@ function TodoCard({ order, onStale }: { order: Order; onStale: () => void }) {
   )
 }
 
-/** The order at a glance: what it comes to, and its three statuses as
- * tiles. They move independently (02 section 7); the one waiting on the
- * seller has a coloured edge, and payment and delivery jump to their
- * cards. */
+/** The order at a glance: what it comes to, and its three statuses in
+ * one strip (order, delivery, payment). They move independently (02
+ * section 7); a dot marks the one waiting on the seller, and delivery and
+ * payment jump to their cards. */
 function SummaryCard({ order }: { order: Order }) {
   const t = useT()
   const o = t.orders
@@ -178,7 +178,8 @@ function SummaryCard({ order }: { order: Order }) {
   const delivery = deliveryBadge(t, order.delivery.method, order.delivery.status)
   const count = order.items.reduce((sum, item) => sum + item.quantity, 0)
   const closed = CLOSED.has(order.status)
-  const tiles = [
+  // Order, then delivery, then payment; each with its own status.
+  const parts = [
     {
       key: 'order',
       icon: ShoppingBag,
@@ -187,15 +188,6 @@ function SummaryCard({ order }: { order: Order }) {
       badge: { label: t.status.order[order.status], tone: ORDER_STATUS_TONES[order.status] },
       needs: order.status === 'pending',
       target: null,
-    },
-    {
-      key: 'payment',
-      icon: Wallet,
-      label: o.payment,
-      status: order.payment.status,
-      badge: payment,
-      needs: !closed && order.payment.status === 'pending' && order.payment.method !== 'cod' && order.status !== 'pending',
-      target: 'payment',
     },
     {
       key: 'delivery',
@@ -209,6 +201,15 @@ function SummaryCard({ order }: { order: Order }) {
           (order.status !== 'pending' && order.delivery.method !== 'pickup' && order.delivery.status === 'not_assigned')),
       target: 'delivery',
     },
+    {
+      key: 'payment',
+      icon: Wallet,
+      label: o.payment,
+      status: order.payment.status,
+      badge: payment,
+      needs: !closed && order.payment.status === 'pending' && order.payment.method !== 'cod' && order.status !== 'pending',
+      target: 'payment',
+    },
   ]
   return (
     <Card className="p-4 sm:p-6">
@@ -216,38 +217,42 @@ function SummaryCard({ order }: { order: Order }) {
         <p className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">{formatMoney(order.total, order.currency)}</p>
         <p className="text-sm text-slate-500">{o.items(count)}</p>
       </div>
-      <ul className="mt-4 grid grid-cols-3 gap-2">
-        {tiles.map(({ key, icon: Icon, label, status, badge, needs, target }) => {
+      {/* One strip in three (three rows on a phone): an icon in the
+          status's colour, the name small, the status in bold; a dot on
+          the icon marks what waits on the seller. */}
+      <ul className="mt-4 grid divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        {parts.map(({ key, icon: Icon, label, status, badge, needs, target }) => {
           const body = (
             <>
-              <span className="flex size-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+              <span className={`relative flex size-9 shrink-0 items-center justify-center rounded-full ${TONE_CIRCLE[badge.tone]}`}>
                 <Icon aria-hidden className="size-4.5" />
+                {needs && (
+                  <span aria-hidden className="absolute -top-0.5 -right-0.5 size-3 rounded-full border-2 border-surface bg-amber-500" />
+                )}
               </span>
-              <span className="mt-1.5 block text-xs text-slate-500">{label}</span>
-              <span className="mt-1 block">
-                <LiveBadge value={status} tone={badge.tone}>
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs text-slate-500">{label}</span>
+                <span key={status} className="block animate-pop truncate font-semibold text-slate-900">
                   {badge.label}
-                </LiveBadge>
+                </span>
               </span>
+              {target && <ChevronDown aria-hidden className="size-4 shrink-0 text-slate-400 sm:hidden" />}
             </>
           )
-          // A closed order's payment and delivery no longer matter: faded.
-          const faded = closed && key !== 'order'
-          const tile = `block h-full w-full rounded-xl border p-2.5 text-left sm:p-3 ${
-            needs ? 'border-amber-400 bg-amber-50/40' : closed && key === 'order' ? 'border-red-300' : 'border-slate-200'
-          } ${faded ? 'opacity-50' : ''}`
+          // A closed order's delivery and payment no longer matter: faded.
+          const cell = `flex min-h-14 w-full items-center gap-3 px-3.5 py-3 text-left ${closed && key !== 'order' ? 'opacity-50' : ''}`
           return (
-            <li key={key}>
+            <li key={key} className="min-w-0">
               {target ? (
                 <button
                   type="button"
                   onClick={() => scrollToSection(target)}
-                  className={`${tile} transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600`}
+                  className={`${cell} transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600`}
                 >
                   {body}
                 </button>
               ) : (
-                <div className={tile}>{body}</div>
+                <div className={cell}>{body}</div>
               )}
             </li>
           )
@@ -479,6 +484,15 @@ function PaymentSection({ order, onStale }: { order: Order; onStale: () => void 
 }
 
 const CLOSED = new Set<OrderStatus>(['rejected', 'cancelled'])
+
+// The status icon's circle, in the status's colour.
+const TONE_CIRCLE: Record<'neutral' | 'red' | 'green' | 'amber' | 'blue', string> = {
+  neutral: 'bg-slate-100 text-slate-600',
+  red: 'bg-red-50 text-red-700',
+  green: 'bg-emerald-50 text-emerald-700',
+  amber: 'bg-amber-50 text-amber-700',
+  blue: 'bg-sky-50 text-sky-700',
+}
 
 /** The delivery is its own state machine too (02 section 7.3): moving it
  * never moves the order, but an order can only be completed once its
