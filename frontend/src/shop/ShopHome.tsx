@@ -7,8 +7,9 @@ import { CategoryChips, ProductGrid, ProductGridSkeleton, ShopLogo } from './com
 import { ShopInfo } from './ShopInfo.tsx'
 import { useShop, useShopProducts } from './queries.ts'
 
-const band =
-  '-mx-4 -mt-4 mb-5 flex items-start gap-4 bg-linear-to-b from-navy-50 to-transparent px-4 pt-5 sm:-mt-6 sm:rounded-b-3xl sm:pt-7'
+// The shop's name and logo, over the wash ShopLayout draws behind the
+// top of the page.
+const band = 'mb-5 flex items-start gap-4 pt-1 sm:pt-2'
 
 /** /shop/:storeSlug: the store link a seller shares. */
 export function ShopHome() {
@@ -36,8 +37,8 @@ export function ShopHome() {
     <>
       <title>{shop.data.name}</title>
       {/* The shop's own header, like its page on social media: logo beside
-          the name, on a soft navy that fades into the page (the header
-          shows the name only once this has scrolled away). */}
+          the name (the header shows the name only once this has scrolled
+          away). */}
       <div className={band}>
         <ShopLogo shop={shop.data} className="size-16 shadow-md ring-4 ring-surface" />
         <div className="min-w-0 flex-1 pt-1">

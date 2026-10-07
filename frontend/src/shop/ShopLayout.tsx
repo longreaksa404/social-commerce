@@ -44,7 +44,15 @@ export function ShopLayout() {
   }
 
   return (
-    <div className="min-h-dvh">
+    <div className="relative isolate min-h-dvh">
+      {/* The top of the shop's home: one soft wash behind the header and
+          the shop's name, edge to edge, like its page on social media. */}
+      {home && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-linear-to-b from-navy-50 to-transparent"
+        />
+      )}
       <Header shop={shop.data} slug={storeSlug} home={home} />
       <main className="mx-auto w-full max-w-6xl px-4 pt-4 sm:pt-6">
         {shop.isPending && <SlowNotice className="mb-4" />}
@@ -54,7 +62,7 @@ export function ShopLayout() {
       {/* Light / dark: the phone's setting picks it; this is for changing
           it, so it waits at the bottom rather than crowding the header. */}
       <footer
-        className={`mx-auto flex max-w-6xl justify-center px-4 pt-8 ${
+        className={`mx-auto mt-10 flex max-w-6xl justify-center border-t border-slate-200 px-4 pt-4 lg:pb-6 ${
           cartBar ? 'pb-28' : 'pb-[calc(env(safe-area-inset-bottom)+1.5rem)]'
         }`}
       >
@@ -79,21 +87,24 @@ function useLinkTracking(slug: string) {
 }
 
 function Header({ shop, slug, home }: { shop: ShopStore | undefined; slug: string; home: boolean }) {
-  // On a phone, the shop's home already shows its name big on the page:
-  // the header shows it only once that has scrolled away. A laptop has
-  // room for both (and an empty bar looks broken there).
+  // At the top of the shop's home the header is see-through, over the
+  // same wash as the shop's big name, so the name shows once: the header
+  // gets its bar and the small name once that has scrolled away.
   const scrolled = useScrolledPast(home ? 96 : 0)
-  const wide = useSyncExternalStore(onWideChange, () => WIDE.matches)
-  const hideName = home && !scrolled && !wide
+  const top = home && !scrolled
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur">
+    <header
+      className={`sticky top-0 z-30 border-b pt-[env(safe-area-inset-top)] transition-colors duration-200 ${
+        top ? 'border-transparent bg-transparent' : 'border-slate-200 bg-surface/90 backdrop-blur'
+      }`}
+    >
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
         <Link
           to={`/shop/${slug}`}
-          aria-hidden={hideName || undefined}
-          tabIndex={hideName ? -1 : undefined}
+          aria-hidden={top || undefined}
+          tabIndex={top ? -1 : undefined}
           className={`-mx-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2 transition-opacity duration-200 focus-visible:outline-2 focus-visible:outline-navy-600 ${
-            hideName ? 'pointer-events-none opacity-0' : 'opacity-100'
+            top ? 'pointer-events-none opacity-0' : 'opacity-100'
           }`}
         >
           <ShopLogo shop={shop} />
@@ -117,14 +128,6 @@ function useScrolledPast(px: number) {
   return useSyncExternalStore(onScroll, () => px === 0 || window.scrollY > px)
 }
 
-// Tailwind's lg: the laptop layout.
-const WIDE = window.matchMedia('(min-width: 1024px)')
-
-function onWideChange(notify: () => void) {
-  WIDE.addEventListener('change', notify)
-  return () => WIDE.removeEventListener('change', notify)
-}
-
 function onScroll(notify: () => void) {
   window.addEventListener('scroll', notify, { passive: true })
   return () => window.removeEventListener('scroll', notify)
@@ -138,7 +141,8 @@ function CartBar({ slug, currency }: { slug: string; currency: Currency | undefi
   // The prices saved when added; the cart page checks them again.
   const total = lines.reduce((sum, line) => sum + toCents(line.price) * line.quantity, 0)
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 animate-rise px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+    // Phones and tablets: on a laptop the cart in the header is in reach.
+    <div className="fixed inset-x-0 bottom-0 z-30 animate-rise px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:hidden">
       <Link
         to={`/shop/${slug}/cart`}
         className="mx-auto flex min-h-14 max-w-xl items-center gap-3 rounded-2xl bg-accent px-4 text-white shadow-lg transition-colors hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-[0.99]"
