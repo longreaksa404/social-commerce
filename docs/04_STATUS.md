@@ -848,8 +848,8 @@ redesign, calm look). Steps, each committed on its own:
    (and no "Sroul means easy" line); the mark and favicon are a tree on
    navy (lucide `TreeDeciduous`); tab title and home-screen name Oak
    Order; `order.sroul.com` removed from the login page until there's a
-   domain. Checked at 390 and 1280 px; lint and build pass. Committed,
-   not pushed.
+   domain. Checked at 390 and 1280 px; lint and build pass. Pushed
+   2026-10-08 (`d513015`).
 
 The redesign is complete and pushed (2026-10-08, with the bcrypt fix and
 load test). Founder: check CI and the live site once Vercel and Render
