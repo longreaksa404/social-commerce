@@ -1,11 +1,11 @@
-import { ExternalLink, Inbox, MousePointerClick, SearchX } from 'lucide-react'
+import { CalendarClock, ChevronRight, ExternalLink, Inbox, MousePointerClick, SearchX } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card, EmptyState, ErrorState, Skeleton } from '../../components/ui.tsx'
 import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
-import { formatDay } from '../../lib/orders.ts'
+import { formatCalendarDay, formatDay } from '../../lib/orders.ts'
 import type { OrderStatus, OrderSummary } from '../../lib/types.ts'
 import { useOrders, useStore } from '../queries.ts'
 import { OrderDetail } from './OrderDetail.tsx'
@@ -42,6 +42,7 @@ export function OrdersPage() {
     <>
       <div className={orderId ? 'max-lg:hidden' : ''}>
         <OrdersHeader />
+        <PausedReminder />
       </div>
       <div className="lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,30rem)_minmax(0,1fr)]">
         <div className={orderId ? 'max-lg:hidden' : ''}>
@@ -64,6 +65,25 @@ export function OrdersPage() {
         )}
       </div>
     </>
+  )
+}
+
+/** While the shop isn't taking orders (Settings → Orders): easy to forget
+ * after a holiday, and new orders simply stop coming. */
+function PausedReminder() {
+  const store = useStore()
+  const t = useT()
+  if (!store.data?.orders_paused) return null
+  const day = store.data.orders_resume_on
+  return (
+    <Link
+      to="/dashboard/settings/orders"
+      className="-mx-4 mb-4 flex min-h-12 items-center gap-3 border-y border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 transition-colors hover:bg-amber-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 sm:mx-0 sm:rounded-2xl sm:border"
+    >
+      <CalendarClock aria-hidden className="size-5 shrink-0 text-amber-700" />
+      <span className="min-w-0 flex-1">{day ? t.orders.pausedUntil(formatCalendarDay(day)) : t.orders.paused}</span>
+      <ChevronRight aria-hidden className="size-5 shrink-0 text-amber-700" />
+    </Link>
   )
 }
 

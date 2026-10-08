@@ -4,6 +4,15 @@ import type { Tree } from '../core.ts'
 export const orders = {
   title: { en: 'Orders', km: 'ការកុម្ម៉ង់' },
   order: { en: 'Order', km: 'ការកុម្ម៉ង់' },
+  // The shop isn't taking orders (Settings → Orders).
+  paused: {
+    en: "Your shop isn't taking orders. Tap to turn them back on.",
+    km: 'ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ទេ។ ចុចដើម្បីបើកវិញ។',
+  },
+  pausedUntil: {
+    en: (day: string) => `Your shop isn't taking orders until ${day}.`,
+    km: (day: string) => `ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់រហូតដល់ ${day}។`,
+  },
   // The list's days.
   today: { en: 'Today', km: 'ថ្ងៃនេះ' },
   yesterday: { en: 'Yesterday', km: 'ម្សិលមិញ' },

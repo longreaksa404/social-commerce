@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core import clock
 from app.core.config import get_settings
 from app.core.errors import AppError, NotFound
 from app.models import Store
@@ -10,7 +11,7 @@ from app.schemas.store import StoreUpdate
 from app.services.delivery import check_delivery_settings, check_discount_settings
 from app.services.payment import check_payment_settings
 
-REQUIRED_FIELDS = {"name", "slug", "currency", "order_confirmation_mode"}
+REQUIRED_FIELDS = {"name", "slug", "currency", "order_confirmation_mode", "orders_paused"}
 # Each saved whole (below), not field by field.
 SETTINGS = {"payment_settings", "delivery_settings", "discount_settings"}
 
@@ -37,6 +38,12 @@ async def update_store(db: AsyncSession, store_id: uuid.UUID, data: StoreUpdate)
         if value is None and field in REQUIRED_FIELDS:
             continue  # null on a required field means "leave it"
         setattr(store, field, value)
+    if not store.orders_paused:
+        store.orders_resume_on = None
+    elif "orders_resume_on" in data.model_fields_set and (
+        store.orders_resume_on is not None and store.orders_resume_on <= clock.today()
+    ):
+        raise AppError(422, "INVALID_RESUME_DATE", "Choose a day after today.", "orders_resume_on")
     if data.payment_settings is not None:
         check_payment_settings(data.payment_settings)
         # Stored whole, defaults included, so parts left out of the request

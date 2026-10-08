@@ -38,6 +38,7 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   'Share your location again.': 'សូមចែករំលែកទីតាំងរបស់អ្នកម្ដងទៀត។',
   'No order matches this link and phone number.': 'រកមិនឃើញការកុម្ម៉ង់ដែលត្រូវនឹងតំណ និងលេខទូរស័ព្ទនេះទេ។',
   'Enter a valid phone number.': 'សូមបញ្ចូលលេខទូរស័ព្ទឱ្យបានត្រឹមត្រូវ។',
+  "This shop isn't taking orders right now.": 'ហាងនេះមិនទទួលការកុម្ម៉ង់នៅពេលនេះទេ។',
 
   // Products and categories
   'Product not found.': 'រកមិនឃើញទំនិញ។',
@@ -70,6 +71,7 @@ export const KM_BY_MESSAGE: Record<string, string> = {
 
   // Settings
   'This store link is already taken.': 'តំណហាងនេះមានគេប្រើរួចហើយ។',
+  'Choose a day after today.': 'សូមជ្រើសថ្ងៃក្រោយថ្ងៃនេះ។',
   'Store not found.': 'រកមិនឃើញហាង។',
   'Turn on at least one way to pay.': 'សូមបើកវិធីបង់ប្រាក់យ៉ាងតិចមួយ។',
   'A Bakong ID has no spaces.': 'Bakong ID មិនមានដកឃ្លាទេ។',

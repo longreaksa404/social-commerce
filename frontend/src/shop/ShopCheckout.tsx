@@ -30,6 +30,7 @@ import { usePlaceOrder, useShop } from './queries.ts'
 const CART_CHANGED = new Set(['PRODUCT_OUT_OF_STOCK', 'PRODUCT_UNAVAILABLE', 'ORDER_TOTAL_CHANGED'])
 // The seller changed how they deliver since the page loaded: reload the shop.
 const DELIVERY_CHANGED = new Set(['DELIVERY_METHOD_UNAVAILABLE', 'DELIVERY_OPTION_UNAVAILABLE', 'ORDER_TOTAL_CHANGED'])
+const SHOP_CHANGED = new Set(['PAYMENT_METHOD_UNAVAILABLE', 'ORDERS_PAUSED'])
 const FIELDS = [
   'name',
   'phone',
@@ -172,8 +173,9 @@ export function ShopCheckout() {
       })
     } catch (error) {
       if (error instanceof ApiError && CART_CHANGED.has(error.code)) checked.refetch()
-      // The seller turned this method off, or changed fees: show what's left.
-      if (error instanceof ApiError && (error.code === 'PAYMENT_METHOD_UNAVAILABLE' || DELIVERY_CHANGED.has(error.code))) {
+      // The seller turned this method off, changed fees, or stopped taking
+      // orders: show the shop as it is now.
+      if (error instanceof ApiError && (SHOP_CHANGED.has(error.code) || DELIVERY_CHANGED.has(error.code))) {
         shop.refetch()
       }
       return // shown via place.error
@@ -387,13 +389,20 @@ export function ShopCheckout() {
             <div className="mx-auto max-w-xl px-4 py-3 lg:p-0">
               {/* The amount on the button: what tapping it commits to, which
                   matters most before paying by KHQR or bank transfer. */}
-              <Button type="submit" size="lg" loading={place.isPending} disabled={!checked.ready} className="w-full justify-between!">
-                <span>{c.placeOrder}</span>
-                <span className="tabular-nums">
-                  {checked.loading ? '…' : formatMoney(price.total / 100, currency)}
-                  {price.fee === null && <span className="ml-1 text-sm font-normal opacity-80">{c.plusDelivery}</span>}
-                </span>
-              </Button>
+              {shop.data.orders_paused ? (
+                // Paused by the seller (the notice at the top says until when).
+                <Button type="button" size="lg" disabled className="w-full">
+                  {c.notTakingOrders}
+                </Button>
+              ) : (
+                <Button type="submit" size="lg" loading={place.isPending} disabled={!checked.ready} className="w-full justify-between!">
+                  <span>{c.placeOrder}</span>
+                  <span className="tabular-nums">
+                    {checked.loading ? '…' : formatMoney(price.total / 100, currency)}
+                    {price.fee === null && <span className="ml-1 text-sm font-normal opacity-80">{c.plusDelivery}</span>}
+                  </span>
+                </Button>
+              )}
             </div>
           </div>
         </div>

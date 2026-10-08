@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { buttonClass } from '../components/styles.ts'
 import { Button, ErrorMessage, Field, PasswordInput, SlowNotice } from '../components/ui.tsx'
@@ -14,7 +14,7 @@ import { AuthLayout } from './AuthLayout.tsx'
 export function ResetPassword() {
   const { startSession } = useAuth()
   const navigate = useNavigate()
-  const [token] = useState(() => window.location.hash.slice(1))
+  const token = useLocation().hash.slice(1)
   const [password, setPassword] = useState('')
   const [error, setError] = useState<unknown>(null)
   const [pending, setPending] = useState(false)

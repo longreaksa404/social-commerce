@@ -7,6 +7,21 @@ export const shop = {
     en: 'Check the link, or ask the seller to send it again.',
     km: 'សូមពិនិត្យតំណ ឬសុំឱ្យអ្នកលក់ផ្ញើវាម្ដងទៀត។',
   },
+  // The seller turned orders off for a while (Settings → Orders).
+  paused: {
+    title: {
+      en: "This shop isn't taking orders right now",
+      km: 'ហាងនេះមិនទទួលការកុម្ម៉ង់នៅពេលនេះទេ',
+    },
+    until: {
+      en: (day: string) => `Orders open again on ${day}. You can still look around.`,
+      km: (day: string) => `នឹងទទួលការកុម្ម៉ង់វិញនៅថ្ងៃ ${day}។ អ្នកនៅតែអាចមើលទំនិញបាន។`,
+    },
+    noDate: {
+      en: 'You can still look around, and ask the shop when it opens again.',
+      km: 'អ្នកនៅតែអាចមើលទំនិញ ហើយសួរហាងថាពេលណាបើកវិញ។',
+    },
+  },
   cart: { en: 'Cart', km: 'កន្ត្រក' },
   cartWithCount: {
     en: (n: number) => `Cart, ${n} ${n === 1 ? 'item' : 'items'}`,

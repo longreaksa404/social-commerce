@@ -38,6 +38,17 @@ export const settings = {
   logoRemoved: { en: 'Logo removed', km: 'បានដកឡូហ្គោចេញ' },
 
   orders: { en: 'Orders', km: 'ការកុម្ម៉ង់' },
+  takeOrders: { en: 'Take orders', km: 'ទទួលការកុម្ម៉ង់' },
+  takeOrdersOn: { en: 'Customers can order from your shop.', km: 'អតិថិជនអាចកុម្ម៉ង់ពីហាងរបស់អ្នក។' },
+  takeOrdersOff: {
+    en: "Customers can look around and message you, but can't order. For a holiday, a trip, or while you wait for stock.",
+    km: 'អតិថិជនអាចមើលទំនិញ និងផ្ញើសារមកអ្នក ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។ សម្រាប់ថ្ងៃឈប់សម្រាក ការធ្វើដំណើរ ឬពេលរង់ចាំស្តុក។',
+  },
+  resumeOn: { en: 'Take orders again on', km: 'ទទួលការកុម្ម៉ង់វិញនៅថ្ងៃ' },
+  resumeOnHint: {
+    en: 'Optional. Orders open again by themselves that morning. Leave empty to turn them back on yourself.',
+    km: 'មិនចាំបាច់។ ការកុម្ម៉ង់បើកវិញដោយខ្លួនឯងនៅព្រឹកថ្ងៃនោះ។ ទុកទទេ ដើម្បីបើកវិញដោយខ្លួនអ្នក។',
+  },
   autoAccept: { en: 'Accept new orders automatically', km: 'ទទួលការកុម្ម៉ង់ថ្មីដោយស្វ័យប្រវត្តិ' },
   autoAcceptOn: {
     en: 'New orders are accepted right away. You can still cancel one later.',
@@ -207,6 +218,11 @@ export const settings = {
     shopHint: { en: 'Logo, name, description, currency', km: 'ឡូហ្គោ ឈ្មោះ ការពិពណ៌នា រូបិយប័ណ្ណ' },
     selling: { en: 'Selling', km: 'ការលក់' },
     autoOn: { en: 'Accepted automatically', km: 'ទទួលដោយស្វ័យប្រវត្តិ' },
+    paused: { en: 'Not taking orders', km: 'មិនទទួលការកុម្ម៉ង់' },
+    pausedUntil: {
+      en: (day: string) => `Not taking orders until ${day}`,
+      km: (day: string) => `មិនទទួលការកុម្ម៉ង់រហូតដល់ ${day}`,
+    },
     autoOff: { en: 'You accept each one', km: 'អ្នកទទួលម្ដងមួយៗ' },
     noneOn: { en: 'None turned on', km: 'មិនទាន់បើកទេ' },
     deliveryFee: { en: (fee: string) => `Delivery ${fee}`, km: (fee: string) => `ថ្លៃដឹក ${fee}` },

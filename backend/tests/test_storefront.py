@@ -37,6 +37,8 @@ async def test_store_page_shows_only_categories_with_active_products(client, mak
         "delivery",
         "discounts",
         "telegram_username",  # for "Ask seller"; the alerts chat id stays private
+        "orders_paused",  # not taking orders for a while
+        "orders_resume_on",
     }
     assert body["telegram_username"] is None
     assert body["currency"] == "USD"

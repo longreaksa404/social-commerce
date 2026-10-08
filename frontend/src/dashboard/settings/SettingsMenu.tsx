@@ -21,6 +21,7 @@ import type { Messages } from '../../i18n/core.ts'
 import { LanguageSwitch } from '../../i18n/LanguageSwitch.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { formatMoney } from '../../lib/money.ts'
+import { formatCalendarDay } from '../../lib/orders.ts'
 import { PAYMENT_METHOD_ORDER } from '../../lib/payments.ts'
 import { SUPPORT_TELEGRAM, supportLink } from '../../lib/support.ts'
 import type { Store } from '../../lib/types.ts'
@@ -191,7 +192,13 @@ function summaries(store: Store, t: Messages): Record<Exclude<SectionId, 'shop'>
   const rules = [...store.discount_settings.rules].sort((a, b) => Number(a.min_subtotal) - Number(b.min_subtotal))
 
   return {
-    orders: store.order_confirmation_mode === 'automatic' ? m.autoOn : m.autoOff,
+    orders: store.orders_paused
+      ? store.orders_resume_on
+        ? m.pausedUntil(formatCalendarDay(store.orders_resume_on))
+        : m.paused
+      : store.order_confirmation_mode === 'automatic'
+        ? m.autoOn
+        : m.autoOff,
     payments: methods.map((method) => t.status.paymentMethod[method]).join(', ') || m.noneOn,
     delivery: deliveryParts.join(' · ') || m.noneOn,
     discounts: rules.map((r) => m.discount(money(r.amount_off), money(r.min_subtotal))).join(' · ') || m.none,

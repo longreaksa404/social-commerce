@@ -50,6 +50,11 @@ export type Store = {
   discount_settings: { rules: DiscountRule[] }
   /** The seller's own Telegram account, no @: "Ask seller" opens it. */
   telegram_username: string | null
+  /** Not taking orders right now (Settings → Orders); false again once
+   * orders_resume_on has come. */
+  orders_paused: boolean
+  /** The first day orders open again ("2027-04-17"); null: until turned back on. */
+  orders_resume_on: string | null
   /** Order alerts go to a Telegram chat. */
   telegram_connected: boolean
   /** False until the platform's bot is set up. */
@@ -125,6 +130,10 @@ export type ShopStore = {
   discounts: DiscountRule[]
   /** null = no "Ask seller" button. */
   telegram_username: string | null
+  /** Not taking orders now: browsing works, checkout is refused. */
+  orders_paused: boolean
+  /** The day it opens again, if the seller set one. */
+  orders_resume_on: string | null
 }
 
 export type ShopProductCard = {

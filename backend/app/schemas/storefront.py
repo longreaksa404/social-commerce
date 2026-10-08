@@ -4,6 +4,7 @@ Delivery fees, the pickup address and discounts are public: checkout shows
 them, and so is the seller's Telegram username, for "Ask seller"."""
 
 import uuid
+from datetime import date
 from decimal import Decimal
 
 from pydantic import BaseModel
@@ -39,6 +40,10 @@ class ShopStoreOut(BaseModel):
     discounts: list[DiscountRule]
     # The seller's own Telegram account (no @); null hides "Ask seller".
     telegram_username: str | None
+    # Not taking orders now: browsing works, checkout is refused. The day
+    # it opens again, if the seller set one.
+    orders_paused: bool
+    orders_resume_on: date | None
 
 
 class ShopProductCard(BaseModel):

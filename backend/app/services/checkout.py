@@ -75,6 +75,8 @@ async def place_order(
     # customers. Fine at MVP volume.
     store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
     assert store is not None  # the shop was found by slug moments ago
+    if store.orders_paused_now:
+        raise AppError(409, "ORDERS_PAUSED", "This shop isn't taking orders right now.")
     payment_service.check_method_available(store, data.payment_method)
     delivery_settings = delivery_service.delivery_settings(store)
     courier = delivery_service.check_checkout_choice(

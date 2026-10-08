@@ -1,12 +1,13 @@
 import enum
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core import clock
 from app.db.base import Base, CreatedAtMixin, UUIDPrimaryKeyMixin
 
 
@@ -81,8 +82,25 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
         default=OrderConfirmationMode.MANUAL,
         server_default="manual",
     )
+    # "Not taking orders" (Settings → Orders): the shop stays open to look
+    # around, but checkout is refused. orders_resume_on is the first day it
+    # takes orders again (null: until the seller turns it back on).
+    orders_paused: Mapped[bool] = mapped_column(default=False, server_default="false")
+    orders_resume_on: Mapped[date | None] = mapped_column(Date)
 
     seller: Mapped[Seller] = relationship(back_populates="store")
+
+    @property
+    def orders_paused_now(self) -> bool:
+        """Paused, and the day it reopens (if set) hasn't started yet in
+        Phnom Penh: it reopens by itself, no scheduled job."""
+        return self.orders_paused and (
+            self.orders_resume_on is None or clock.today() < self.orders_resume_on
+        )
+
+    @property
+    def orders_resume_on_now(self) -> date | None:
+        return self.orders_resume_on if self.orders_paused_now else None
 
 
 class RefreshToken(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):

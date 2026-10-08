@@ -1,6 +1,6 @@
 import re
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
@@ -27,6 +27,10 @@ class StoreOut(BaseModel):
     discount_settings: DiscountSettings = Field(validation_alias="discount_config")
     # "Ask seller" on the shop opens a chat with this account; null hides it.
     telegram_username: str | None
+    # Not taking orders right now (Settings → Orders). Both read as off once
+    # the day it reopens has come (Store.orders_paused_now).
+    orders_paused: bool = Field(validation_alias="orders_paused_now")
+    orders_resume_on: date | None = Field(validation_alias="orders_resume_on_now")
     # Order alerts: is a chat connected (the chat id itself stays private).
     telegram_connected: bool = Field(validation_alias="telegram_chat_id")
     created_at: datetime
@@ -62,6 +66,10 @@ class StoreUpdate(BaseModel):
     description: Description | None = None
     currency: Currency | None = None
     order_confirmation_mode: OrderConfirmationMode | None = None
+    orders_paused: bool | None = None
+    # The first day orders open again (Phnom Penh); null: until the seller
+    # turns them back on. Cleared when orders_paused is false.
+    orders_resume_on: date | None = None
     # All of it at once: the settings screen sends the whole thing.
     payment_settings: PaymentSettings | None = None
     delivery_settings: DeliverySettings | None = None

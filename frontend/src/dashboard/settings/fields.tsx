@@ -20,6 +20,7 @@ import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
 import { errorText, fieldError } from '../../lib/errors.ts'
 import { prepareLogo, uploadStoreLogo } from '../../lib/images.ts'
+import { phnomPenhDate } from '../../lib/orders.ts'
 import type { Currency, PaymentSettings, Store, TelegramLink } from '../../lib/types.ts'
 import { keys } from '../queries.ts'
 import type { DeliveryForm, Form, RuleRow } from './form.ts'
@@ -126,15 +127,36 @@ function LogoField({ store }: { store: Store }) {
   )
 }
 
-export function OrdersFields({ form, update }: FieldsProps) {
+export function OrdersFields({ form, update, error }: FieldsProps) {
   const s = useT().settings
   return (
-    <Switch
+    <>
+      {/* Off for a while (Khmer New Year, a trip, no stock): the shop stays
+          open to look around, checkout is refused. */}
+      <Switch
+        checked={!form.orders_paused}
+        onChange={(on) => update({ orders_paused: !on, orders_resume_on: '' })}
+        label={s.takeOrders}
+        description={form.orders_paused ? s.takeOrdersOff : s.takeOrdersOn}
+      />
+      {form.orders_paused && (
+        <Field label={s.resumeOn} error={fieldError(error, 'orders_resume_on')} hint={s.resumeOnHint}>
+          <Input
+            type="date"
+            min={phnomPenhDate(1)}
+            value={form.orders_resume_on}
+            onChange={(e) => update({ orders_resume_on: e.target.value })}
+          />
+        </Field>
+      )}
+      <hr className="border-slate-100" />
+      <Switch
       checked={form.order_confirmation_mode === 'automatic'}
       onChange={(on) => update({ order_confirmation_mode: on ? 'automatic' : 'manual' })}
-      label={s.autoAccept}
-      description={form.order_confirmation_mode === 'automatic' ? s.autoAcceptOn : s.autoAcceptOff}
-    />
+        label={s.autoAccept}
+        description={form.order_confirmation_mode === 'automatic' ? s.autoAcceptOn : s.autoAcceptOff}
+      />
+    </>
   )
 }
 

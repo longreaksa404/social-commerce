@@ -8,7 +8,7 @@ import { useT } from '../i18n/useT.ts'
 import { formatMoney, toCents } from '../lib/money.ts'
 import type { Currency, ShopStore } from '../lib/types.ts'
 import { useCart } from './cart.ts'
-import { NotFound, ShopLogo } from './components.tsx'
+import { NotFound, PausedNotice, ShopLogo } from './components.tsx'
 import { CurrentOrderBar } from './CurrentOrderBar.tsx'
 import { openedLink } from './device.ts'
 import { onCartLanded } from './fly.ts'
@@ -57,6 +57,7 @@ export function ShopLayout() {
       <Header shop={shop.data} slug={storeSlug} home={browsing} />
       <main className="mx-auto w-full max-w-6xl px-4 pt-4 sm:pt-6">
         {shop.isPending && <SlowNotice className="mb-4" />}
+        {shop.data?.orders_paused && <PausedNotice shop={shop.data} />}
         {showOrderBar && <CurrentOrderBar slug={storeSlug} />}
         {shop.error ? <ErrorState error={shop.error} onRetry={() => shop.refetch()} /> : <PageOutlet depth={2} />}
       </main>

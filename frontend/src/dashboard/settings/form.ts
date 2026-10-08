@@ -20,6 +20,9 @@ export type Form = {
   description: string
   currency: Currency
   order_confirmation_mode: OrderConfirmationMode
+  orders_paused: boolean
+  /** "2027-04-17" or '' (until turned back on). */
+  orders_resume_on: string
   payment_settings: PaymentSettings
   delivery: DeliveryForm
   discounts: RuleRow[]
@@ -37,6 +40,8 @@ export const toForm = (store: Store): Form => {
     description: store.description ?? '',
     currency: store.currency,
     order_confirmation_mode: store.order_confirmation_mode,
+    orders_paused: store.orders_paused,
+    orders_resume_on: store.orders_resume_on ?? '',
     payment_settings: store.payment_settings,
     delivery: {
       fee: Number(delivery.fee) === 0 ? '' : amount(delivery.fee),
@@ -90,8 +95,12 @@ export const SECTIONS: Record<SectionId, Section> = {
   },
   orders: {
     title: (s) => s.orders,
-    body: (form) => ({ order_confirmation_mode: form.order_confirmation_mode }),
-    fields: () => [],
+    body: (form) => ({
+      order_confirmation_mode: form.order_confirmation_mode,
+      orders_paused: form.orders_paused,
+      orders_resume_on: (form.orders_paused && form.orders_resume_on) || null,
+    }),
+    fields: () => ['orders_resume_on'],
   },
   payments: {
     title: (s) => s.payments,

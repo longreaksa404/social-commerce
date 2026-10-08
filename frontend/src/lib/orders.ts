@@ -64,6 +64,22 @@ export function formatDate(iso: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+/** A calendar day from the API ("2027-04-17", no time): "Sat, Apr 17"
+ * (Khmer "17 មេសា"). Read as a local date: `new Date("2027-04-17")` is UTC
+ * midnight, the day before in some places. */
+export function formatCalendarDay(ymd: string): string {
+  const [year, month, day] = ymd.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+  if (currentLang() === 'km') return khmerDay(date)
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+}
+
+/** "2027-04-14": the date in Phnom Penh `days` from today, as the API
+ * counts days (app/core/clock.py). */
+export function phnomPenhDate(days = 0): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Phnom_Penh' }).format(Date.now() + days * 86_400_000)
+}
+
 /** Stored numbers are digits only ("012345678"); shown as "012 345 678". */
 export function formatPhone(phone: string): string {
   if (/^0\d{8}$/.test(phone)) return phone.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')

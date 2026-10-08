@@ -120,7 +120,7 @@ Render's health check.
 | Customer order tracking (order bar, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrderBar.tsx`, `ShopOrders.tsx`, `useMyOrders` |
 | UX pass 2 (effects, cart bars, numbered checkout, Kantumruy Pro) | DONE | `components/effects.ts`, `shop/fly.ts`, `components/useBump.ts` |
 | Layout pass (edge-to-edge on phones, floating bars) | DONE | `cardClass` in `components/styles.ts` |
-| More in Settings (founder's request 2026-10-08): your account, Get help, Forgot password via Telegram | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`); `/forgot-password`, `/reset-password#<token>` |
+| More in Settings (founder's request 2026-10-08): your account, Get help, Forgot password via Telegram, pause orders | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`); `/forgot-password`, `/reset-password#<token>`; `store.orders_paused` / `orders_resume_on` (Settings → Orders), refused at checkout |
 
 None of the "MVP Built" exit criteria in 03 §10 are met yet. They all
 need a real seller and a real customer.
@@ -461,9 +461,9 @@ Codes in use: `ACCOUNT_DISABLED`, `ACCOUNT_NOT_FOUND`, `CATEGORY_NOT_FOUND`,
 `CUSTOMER_NOT_FOUND`, `DELIVERY_METHOD_UNAVAILABLE`,
 `DELIVERY_OPTION_UNAVAILABLE`, `EMAIL_TAKEN`, `INVALID_CREDENTIALS`,
 `INVALID_DELIVERY_TRANSITION`, `INVALID_IMAGE`,
-`INVALID_PAYMENT_TRANSITION`, `INVALID_STATUS_TRANSITION`,
+`INVALID_PAYMENT_TRANSITION`, `INVALID_RESUME_DATE`, `INVALID_STATUS_TRANSITION`,
 `INVALID_TOKEN`, `LINK_NOT_FOUND`, `NOT_AUTHENTICATED`, `NOT_FOUND`,
-`ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`,
+`ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`, `ORDERS_PAUSED`,
 `ORDER_TOTAL_CHANGED`, `PAYMENT_METHOD_UNAVAILABLE`, `PRODUCT_HIDDEN`,
 `PRODUCT_NOT_FOUND`, `PRODUCT_OUT_OF_STOCK`, `PRODUCT_UNAVAILABLE`,
 `RATE_LIMITED`, `RESET_LINK_INVALID`, `SLUG_TAKEN`, `STORE_MISSING`, `STORE_NOT_FOUND`,
@@ -537,7 +537,7 @@ Mixins (`app/db/base.py`):
 | Table | Tenant | Key columns | FKs | Indexes / constraints |
 |---|---|---|---|---|
 | `seller` | **NO** (owns the tenant; no RLS, no `app_user` grant) | `email` (stored lowercased), `password_hash`, `full_name`, `phone`, `is_active` (default true), `created_at` | none | `uq_seller_email` |
-| `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username` (public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
+| `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username` (public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
 | `refresh_token` | **NO** (per seller; no RLS, no `app_user` grant) | `id` (= JWT `jti`), `expires_at`, `revoked_at`, `created_at` | `seller_id → seller` CASCADE | `ix_refresh_token_seller_id` |
 | `category` | yes | `name`, `slug` String(64), `created_at` | none besides `store_id` | UNIQUE (`store_id`, `slug`) |
 | `product` | yes | `name`, `slug`, `description`, `price` Numeric(12,2), `image_urls` JSONB list, `status` (`active`/`inactive`), `has_variants`, `stock_quantity` int NULL (only when no variants), `created_at`, `updated_at` | `category_id → category` ON DELETE SET NULL | UNIQUE (`store_id`, `slug`); (`store_id`, `status`); (`store_id`, `category_id`); CHECK `price >= 0`; CHECK stock NULL or ≥0 |
@@ -568,6 +568,16 @@ missing parts read as the defaults:
 - They are saved **whole** on PATCH (`model_dump(mode="json")`). Parts left
   out of a request reset to defaults.
 
+**Paused orders** (Settings → Orders): `Store.orders_paused_now` is
+`orders_paused and (orders_resume_on is None or clock.today() <
+orders_resume_on)`, with `clock.today()` the date in Phnom Penh
+(`app/core/clock.py`, a fixed UTC+7). So a shop reopens by itself on the
+day set, with no scheduled job; `StoreOut` and `ShopStoreOut` show the
+effective values (`orders_paused_now`, `orders_resume_on_now`). Saving
+`orders_paused=false` clears the date; a date that isn't after today is
+422 `INVALID_RESUME_DATE`. Checkout refuses with 409 `ORDERS_PAUSED`
+(checked after the store row lock).
+
 **Duplicated on purpose:** `order.delivery_method` and `delivery.method` are
 both set at checkout to the same value. `payment.amount` equals
 `order.total` at checkout.
@@ -579,7 +589,8 @@ policies → `8980a033af6d` customer/order/order_item → `ccd5e33eba38` payment
 delivery + discount (backfilled not_assigned deliveries) → `b2f4c81e9d03`
 courier + GPS location → `3867d44e4db7` telegram_username + notification_log
 → `aa40287b7688` notification_log.read_at + index → `883276fadeed`
-shareable_link + link_event (**head**).
+shareable_link + link_event → `5ee23aad5482` store.orders_paused +
+orders_resume_on (**head**).
 
 ---
 
@@ -742,11 +753,11 @@ from the schema.
 | GET | `/seller/links` | seller | — | `list[LinkOut]` | Newest 200, with view/order counts |
 | POST | `/seller/links` | seller | `LinkCreate` | `LinkOut` (201) | Same target + source + campaign returns the existing link; hidden product → 409 `PRODUCT_HIDDEN` |
 | GET | `/seller/links/{link_id}/stats` | seller | — | `LinkStatsOut` | + its orders (≤100) |
-| GET | `/shop/{store_slug}` | public | — | `ShopStoreOut` | Categories with active products, payment method names, delivery options, discounts, telegram_username |
+| GET | `/shop/{store_slug}` | public | — | `ShopStoreOut` | Categories with active products, payment method names, delivery options, discounts, telegram_username, `orders_paused` / `orders_resume_on` |
 | GET | `/shop/{store_slug}/products` | public | — | `list[ShopProductCard]` | Active only; **no paging**; `has_variants` and `stock_quantity` (null with variants) let the grid's + add to the cart |
 | GET | `/shop/{store_slug}/products/{product_slug}` | public | — | `ShopProductOut` | Variants with effective price and stock |
 | GET | `/shop/{store_slug}/categories/{category_slug}` | public | — | `ShopCategoryPageOut` | |
-| POST | `/shop/{store_slug}/orders` | public | `OrderCreate` | `ShopOrderOut` (201) | Guest checkout; +10/min; Telegram alert in background |
+| POST | `/shop/{store_slug}/orders` | public | `OrderCreate` | `ShopOrderOut` (201) | Guest checkout; 409 `ORDERS_PAUSED` while paused; +10/min; Telegram alert in background |
 | GET | `/shop/{store_slug}/orders/{order_id}` | public | `?phone=` (≤32) | `ShopOrderOut` | 404 unless phone matches (any spelling); includes how to pay while pending; each item carries its product's current first photo (`image_url`, not a snapshot) |
 | POST | `/shop/{store_slug}/track-view` | public | `TrackViewIn` (`token`) | 204 | View written in background; unknown token ignored; +60/min |
 | POST | `/telegram/webhook` | header `X-Telegram-Bot-Api-Secret-Token` | Telegram update (raw dict) | Bot API method call as JSON, or `{}` | 404 if the secret is wrong or the bot is off |
@@ -808,7 +819,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/dashboard/links`, `/links/new`, `/links/:linkId` | `LinkList`, `NewLink`, `LinkDetail` | Links as cards with Copy, views, orders and % ordered |
 | `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Store sections (`SECTION_IDS` in `form.ts`, saved with `PATCH /seller/store`): `shop`, `orders`, `payments`, `delivery`, `discounts`, `telegram`, `link`. Pages with their own endpoint (`PAGE_IDS`, `PAGES` in `SettingsSection.tsx`): `account`. Laptops open `shop` when none is chosen |
 | `/dashboard/notifications` | `Notifications` | |
-| `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public |
+| `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public. While paused, `PausedNotice` (`shop/components.tsx`) tops every shop page and the cart's Place order is disabled; the seller's Orders tab shows a reminder |
 | `/shop/:storeSlug/product/:productSlug` | `ShopProduct` | |
 | `/shop/:storeSlug/category/:categorySlug` | `ShopCategory` | |
 | `/shop/:storeSlug/cart` (`/checkout` forwards here) | `ShopCheckout` (with `CartItems` / `EmptyCart` from `ShopCart.tsx`) | The cart and checkout on one page (redesign 2026-10-06) |
@@ -940,7 +951,8 @@ is wrapped in try/catch (private mode).
   while a form is dirty) and `dashboard/useBackTo.ts` (back arrow returns
   to `location.state.back`).
 - `lib/`: `money.ts` (`formatMoney`: "$12.50" or "50,000៛"; cents
-  helpers), `pricing.ts` (**the frontend copy of `services/pricing.py`, in
+  helpers), `orders.ts` date helpers (`formatCalendarDay` for date-only API
+  values, `phnomPenhDate`), `pricing.ts` (**the frontend copy of `services/pricing.py`, in
   integer cents; change both together**), `images.ts` (shrinks to 1600 px
   JPEG and makes the ~480 px thumbnail, then uploads; `thumbnailUrl()`),
   `orders.ts`, `payments.ts`, `delivery.ts` (status tones, badges, labels),

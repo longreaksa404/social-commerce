@@ -57,6 +57,7 @@ export const checkout = {
   },
   yourOrder: { en: 'Your order', km: 'ការកុម្ម៉ង់របស់អ្នក' },
   placeOrder: { en: 'Place order', km: 'បញ្ជាក់ការកុម្ម៉ង់' },
+  notTakingOrders: { en: 'Not taking orders right now', km: 'មិនទទួលការកុម្ម៉ង់នៅពេលនេះទេ' },
   // After the amount on Place order until delivery is chosen.
   plusDelivery: { en: '+ delivery', km: '+ ថ្លៃដឹក' },
   addMore: { en: 'Add more', km: 'ទិញបន្ថែម' },
