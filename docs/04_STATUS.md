@@ -819,6 +819,14 @@ redesign, calm look). Steps, each committed on its own:
    Also from the founder's review: the Orders title and underline
    tabs on one line on laptops; closed orders say so in red; jumping to
    a card flashes it; back returns to the tab it came from.
+   Order rows reworked 2026-10-08 (founder picked 1B 2B 3A 4A 5B):
+   no Accept / Reject in the list any more (they're in the open
+   order's To do card, and accepting or rejecting there opens the next
+   new order; not when it was opened from a customer's or a link's
+   page); the customer's name leads, with the item, number and time
+   below; statuses as quiet words ("● New · Unpaid") instead of tags; a
+   soft bag tile when the item has no photo; the open order marked by a
+   navy line down its left edge; no arrow.
 5. [x] Rest of the dashboard (founder picked 1B+1C 2A 3C 4A 5B 6A,
    2026-10-08): products as a photo wall (cards as tall as the photo)
    or a list / sortable table, the seller's choice, with stock tags;

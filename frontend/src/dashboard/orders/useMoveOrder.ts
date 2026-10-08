@@ -9,17 +9,17 @@ import { useChangeOrderStatus } from '../queries.ts'
 // Ending an order: asks first, and its items go back into stock.
 export const ENDS_ORDER = new Set<OrderStatus>(['rejected', 'cancelled'])
 
-/** Moving an order to its next status (02 section 7.1), the same from the
- * order page and from a new order's buttons in the list: asks before
- * rejecting or cancelling, buzzes, says what changed, confetti on
- * completing. `onStale` runs when it changed on another device. */
+/** Moving an order to its next status (02 section 7.1) from the order
+ * page: asks before rejecting or cancelling, buzzes, says what changed,
+ * confetti on completing. `move` resolves to whether it moved. `onStale`
+ * runs when it changed on another device. */
 export function useMoveOrder(id: string, number: number, onStale: () => void) {
   const { toast, confirm } = useFeedback()
   const t = useT()
   const o = t.orders
   const change = useChangeOrderStatus(id)
 
-  async function move(status: OrderStatus, button: HTMLElement) {
+  async function move(status: OrderStatus, button: HTMLElement): Promise<boolean> {
     // Read now: the button goes once the order has moved on.
     const from = button.getBoundingClientRect()
     if (ENDS_ORDER.has(status)) {
@@ -30,7 +30,7 @@ export function useMoveOrder(id: string, number: number, onStale: () => void) {
         confirmLabel: reject ? o.rejectConfirm : o.cancelConfirm,
         danger: true,
       })
-      if (!ok) return
+      if (!ok) return false
     }
     try {
       await change.mutateAsync(status)
@@ -38,10 +38,12 @@ export function useMoveOrder(id: string, number: number, onStale: () => void) {
       // The end of the road for an order: a little celebration.
       if (status === 'completed') confetti(from.left + from.width / 2, from.top + from.height / 2)
       toast(o.changed(number, t.status.order[status]))
+      return true
     } catch (error) {
       toast(errorText(error), 'error')
       // Most likely changed on another device: show where it is now.
       if (error instanceof ApiError && error.status === 409) onStale()
+      return false
     }
   }
 

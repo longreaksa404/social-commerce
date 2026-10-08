@@ -18,8 +18,9 @@ import { useOrder, useRecordDelivery, useRecordPayment } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
 import { ENDS_ORDER, useMoveOrder } from './useMoveOrder.ts'
 
-/** /dashboard/orders/:orderId */
-export function OrderDetail() {
+/** /dashboard/orders/:orderId. `onDecided` runs once a new order is
+ * accepted or rejected here (OrdersPage opens the next new one). */
+export function OrderDetail({ onDecided }: { onDecided?: () => void }) {
   const { orderId = '' } = useParams()
   const order = useOrder(orderId)
   // Back to the tab it was opened from (the list keeps it in ?show=).
@@ -36,10 +37,28 @@ export function OrderDetail() {
     )
   }
   // Keyed: another order starts fresh (its statuses don't pop as changes).
-  return <OrderView key={order.data.id} order={order.data} back={back} onStale={() => order.refetch()} />
+  return (
+    <OrderView
+      key={order.data.id}
+      order={order.data}
+      back={back}
+      onStale={() => order.refetch()}
+      onDecided={onDecided}
+    />
+  )
 }
 
-function OrderView({ order, back, onStale }: { order: Order; back: string; onStale: () => void }) {
+function OrderView({
+  order,
+  back,
+  onStale,
+  onDecided,
+}: {
+  order: Order
+  back: string
+  onStale: () => void
+  onDecided?: () => void
+}) {
   const t = useT()
   return (
     <>
@@ -51,7 +70,11 @@ function OrderView({ order, back, onStale }: { order: Order; back: string; onSta
       />
       <title>{t.shop.orderNumber(order.number)}</title>
       <div className="space-y-4">
-        {CLOSED.has(order.status) ? <ClosedNote status={order.status} /> : <TodoCard order={order} onStale={onStale} />}
+        {CLOSED.has(order.status) ? (
+          <ClosedNote status={order.status} />
+        ) : (
+          <TodoCard order={order} onStale={onStale} onDecided={onDecided} />
+        )}
         <SummaryCard order={order} />
         <CustomerCard order={order} />
         <ItemsCard order={order} />
@@ -96,10 +119,15 @@ function scrollToSection(id: string) {
  * order's own next step with its buttons (accept or reject a new order;
  * move it on, or cancel), and, as links to their cards, a payment to check
  * or a driver to assign. The three never set each other (02 section 7). */
-function TodoCard({ order, onStale }: { order: Order; onStale: () => void }) {
+function TodoCard({ order, onStale, onDecided }: { order: Order; onStale: () => void; onDecided?: () => void }) {
   const t = useT()
   const o = t.orders
-  const { move, change } = useMoveOrder(order.id, order.number, onStale)
+  const { move: moveOrder, change } = useMoveOrder(order.id, order.number, onStale)
+  // A new order accepted or rejected (`order` as it was when tapped): on to
+  // the next one.
+  async function move(status: OrderStatus, button: HTMLElement) {
+    if ((await moveOrder(status, button)) && order.status === 'pending') onDecided?.()
+  }
   const ends = order.next_statuses.filter((s) => ENDS_ORDER.has(s))
   const forward = order.next_statuses.filter((s) => !ENDS_ORDER.has(s))
   const closed = CLOSED.has(order.status)

@@ -7,12 +7,8 @@ export const orders = {
   // The list's days.
   today: { en: 'Today', km: 'ថ្ងៃនេះ' },
   yesterday: { en: 'Yesterday', km: 'ម្សិលមិញ' },
-  // A row's second line.
-  rowMeta: {
-    en: (customer: string, n: number, time: string) => `${customer}, #${n}, ${time}`,
-    km: (customer: string, n: number, time: string) => `${customer}, #${n}, ${time}`,
-  },
-  rowMetaNoCustomer: { en: (n: number, time: string) => `#${n}, ${time}`, km: (n: number, time: string) => `#${n}, ${time}` },
+  // A row's second line, after what was bought.
+  rowNumberTime: { en: (n: number, time: string) => `#${n} · ${time}`, km: (n: number, time: string) => `#${n} · ${time}` },
   // Laptops: the list beside an empty space for the order.
   pickOrder: { en: 'Choose an order to see it here.', km: 'ជ្រើសរើសការកុម្ម៉ង់ ដើម្បីមើលវានៅទីនេះ។' },
   // At the top of a closed order, in place of the To do card.

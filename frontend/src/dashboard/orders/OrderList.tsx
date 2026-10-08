@@ -1,6 +1,6 @@
 import { ExternalLink, Inbox, MousePointerClick, SearchX } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card, EmptyState, ErrorState, Skeleton } from '../../components/ui.tsx'
 import type { Messages } from '../../i18n/core.ts'
@@ -25,6 +25,17 @@ const FILTERS: { key: 'all' | 'new' | 'active' | 'done' | 'closed'; statuses: Or
 export function OrdersPage() {
   const { orderId } = useParams()
   const t = useT()
+  const navigate = useNavigate()
+  const { search, state } = useLocation()
+  const { orders } = useFiltered()
+  // Going through new orders: once the open one is accepted or rejected,
+  // the next new one opens (founder's pick 1B, 2026-10-08). Not when it
+  // was opened from a customer's or a link's page: back goes there.
+  const fromElsewhere = typeof (state as { back?: unknown } | null)?.back === 'string'
+  const next =
+    orderId && !fromElsewhere
+      ? nextNewOrder(orders.data?.pages.flatMap((page) => page.orders) ?? [], orderId)
+      : undefined
   // The title and tabs run across the top on laptops, above both columns,
   // so all the tabs fit on one line.
   return (
@@ -38,7 +49,10 @@ export function OrdersPage() {
         </div>
         {orderId ? (
           <div className="lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto lg:rounded-2xl lg:pb-2">
-            <OrderDetail key={orderId} />
+            <OrderDetail
+              key={orderId}
+              onDecided={next ? () => navigate(`/dashboard/orders/${next}${search}`, { replace: true }) : undefined}
+            />
           </div>
         ) : (
           <div className="hidden lg:block">
@@ -194,6 +208,16 @@ function OrderList({ selectedId }: { selectedId: string | undefined }) {
       )}
     </>
   )
+}
+
+/** The new order to open after `id`: the next one down the list (older),
+ * else the nearest above; the first new one if `id` isn't in this list. */
+function nextNewOrder(orders: OrderSummary[], id: string): string | undefined {
+  const i = orders.findIndex((o) => o.id === id)
+  const isNew = (o: OrderSummary) => o.status === 'pending' && o.id !== id
+  const below = orders.slice(i + 1).find(isNew)
+  const above = orders.slice(0, Math.max(i, 0)).findLast(isNew)
+  return (below ?? above)?.id
 }
 
 /** The orders split by the day they came in (on this phone's clock),
