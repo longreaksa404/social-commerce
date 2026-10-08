@@ -118,7 +118,9 @@ function withRefreshLock<T>(task: () => Promise<T>): Promise<T> {
 
 type Options = { method?: string; body?: unknown; auth?: boolean }
 
-export async function api<T>(path: string, { method = 'GET', body, auth = true }: Options = {}) {
+/** A request with the access token, refreshed once on a 401; throws
+ * ApiError for any failure. */
+async function authorizedFetch(path: string, { method = 'GET', body, auth = true }: Options): Promise<Response> {
   const request = (): Promise<Response> => {
     const headers: Record<string, string> = {}
     if (body !== undefined) headers['Content-Type'] = 'application/json'
@@ -140,6 +142,16 @@ export async function api<T>(path: string, { method = 'GET', body, auth = true }
     }
   }
   if (!response.ok) throw await toApiError(response)
+  return response
+}
+
+export async function api<T>(path: string, options: Options = {}) {
+  const response = await authorizedFetch(path, options)
   if (response.status === 204) return undefined as T
   return (await response.json()) as T
+}
+
+/** A file from the API (an Excel export), as the logged-in seller. */
+export async function apiBlob(path: string): Promise<Blob> {
+  return (await authorizedFetch(path, {})).blob()
 }

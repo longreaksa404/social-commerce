@@ -263,6 +263,7 @@ export const settings = {
     telegramOff: { en: 'Telegram off', km: 'Telegram បានបិទ' },
     accountHint: { en: 'Name, phone, email, password', km: 'ឈ្មោះ ទូរស័ព្ទ អ៊ីមែល ពាក្យសម្ងាត់' },
     helpHint: { en: 'Message Oak Order on Telegram', km: 'ផ្ញើសារទៅ Oak Order តាម Telegram' },
+    exportHint: { en: 'Your orders as an Excel file', km: 'ការកុម្ម៉ង់របស់អ្នកជាឯកសារ Excel' },
   },
 
   account: { en: 'Account', km: 'គណនី' },
@@ -285,6 +286,24 @@ export const settings = {
   },
   currentPassword: { en: 'Current password', km: 'ពាក្យសម្ងាត់បច្ចុប្បន្ន' },
   newPassword: { en: 'New password', km: 'ពាក្យសម្ងាត់ថ្មី' },
+  exportOrders: { en: 'Export orders', km: 'ទាញយកការកុម្ម៉ង់' },
+  exportHint: {
+    en: 'A spreadsheet for your accounts: one row per order, with the customer, items, totals, payment and delivery. Opens in Excel or Google Sheets.',
+    km: 'តារាងសម្រាប់គណនេយ្យរបស់អ្នក៖ មួយជួរក្នុងមួយការកុម្ម៉ង់ មានអតិថិជន ទំនិញ សរុប ការបង់ប្រាក់ និងការដឹកជញ្ជូន។ បើកបានក្នុង Excel ឬ Google Sheets។',
+  },
+  exportWhich: { en: 'Which orders', km: 'ការកុម្ម៉ង់មួយណា' },
+  exportRange: {
+    thisMonth: { en: 'This month', km: 'ខែនេះ' },
+    lastMonth: { en: 'Last month', km: 'ខែមុន' },
+    days: { en: 'Choose days', km: 'ជ្រើសថ្ងៃ' },
+  },
+  exportFrom: { en: 'From', km: 'ពី' },
+  exportTo: { en: 'To', km: 'ដល់' },
+  exportDays: {
+    en: (first: string, last: string) => `Orders placed from ${first} to ${last}.`,
+    km: (first: string, last: string) => `ការកុម្ម៉ង់ពី ${first} ដល់ ${last}។`,
+  },
+  exportDownload: { en: 'Download Excel file', km: 'ទាញយកឯកសារ Excel' },
   help: { en: 'Get help', km: 'សុំជំនួយ' },
   supportText: {
     en: (shop: string, link: string) => `Hi Oak Order, I need help with my shop ${shop} (${link}).`,

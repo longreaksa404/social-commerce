@@ -120,7 +120,7 @@ Render's health check.
 | Customer order tracking (order bar, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrderBar.tsx`, `ShopOrders.tsx`, `useMyOrders` |
 | UX pass 2 (effects, cart bars, numbered checkout, Kantumruy Pro) | DONE | `components/effects.ts`, `shop/fly.ts`, `components/useBump.ts` |
 | Layout pass (edge-to-edge on phones, floating bars) | DONE | `cardClass` in `components/styles.ts` |
-| More in Settings (founder's request 2026-10-08): your account, Get help, Forgot password via Telegram, pause orders, Call / Messenger buttons, low-stock alert level | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`); `/forgot-password`, `/reset-password#<token>`; `store.orders_paused` / `orders_resume_on` (Settings → Orders), refused at checkout; `store.contact_phone` / `messenger_username` (Settings → Contact) as buttons in the shop (`shop/ContactSeller.tsx`); `store.low_stock_alert` (Settings → Alerts) |
+| More in Settings (founder's request 2026-10-08): your account, Get help, Forgot password via Telegram, pause orders, Call / Messenger buttons, low-stock alert level, export orders to Excel | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`); `/forgot-password`, `/reset-password#<token>`; `store.orders_paused` / `orders_resume_on` (Settings → Orders), refused at checkout; `store.contact_phone` / `messenger_username` (Settings → Contact) as buttons in the shop (`shop/ContactSeller.tsx`); `store.low_stock_alert` (Settings → Alerts); `GET /seller/orders/export` (`services/export.py`, XlsxWriter) |
 
 None of the "MVP Built" exit criteria in 03 §10 are met yet. They all
 need a real seller and a real customer.
@@ -151,7 +151,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 ├── backend/
 │   ├── Dockerfile             python:3.12-slim; CMD runs `alembic upgrade head` then uvicorn
 │   ├── pyproject.toml         ruff (py312, line 100) and pytest (asyncio auto, one session loop)
-│   ├── requirements.txt       Pinned runtime deps (no lock file)
+│   ├── requirements.txt       Pinned runtime deps (no lock file); XlsxWriter for the orders export
 │   ├── requirements-dev.txt   + pytest, pytest-asyncio, httpx2 (test client), ruff
 │   ├── alembic.ini, alembic/env.py   Async Alembic; URL from app settings; imports app.models
 │   ├── alembic/versions/      10 migrations, linear (chain in §5)
@@ -218,6 +218,7 @@ Backend modules, one line each:
 | `services/payment.py` | Payment state machine, payment settings checks, what the customer is shown to pay with |
 | `services/delivery.py` | Delivery state machine, delivery/discount settings checks, checkout delivery choice |
 | `services/khqr.py` | Builds KHQR (EMVCo) strings with CRC16, no network |
+| `services/export.py` | The orders export: a .xlsx with one row per order (XlsxWriter, write-only), headings and statuses in English or Khmer |
 | `services/customer.py` | Customer list with search, detail with history, "spent" per currency |
 | `services/notifications.py` | Web notification rows, Telegram alert text and sending, the low-stock rule |
 | `services/telegram.py` | Bot API over httpx, webhook registration, signed link codes, `/start` handling |
@@ -460,7 +461,7 @@ Every error uses the same envelope:
 Codes in use: `ACCOUNT_DISABLED`, `ACCOUNT_NOT_FOUND`, `CATEGORY_NOT_FOUND`,
 `CUSTOMER_NOT_FOUND`, `DELIVERY_METHOD_UNAVAILABLE`,
 `DELIVERY_OPTION_UNAVAILABLE`, `EMAIL_TAKEN`, `INVALID_CREDENTIALS`,
-`INVALID_DELIVERY_TRANSITION`, `INVALID_IMAGE`,
+`INVALID_DATE_RANGE`, `INVALID_DELIVERY_TRANSITION`, `INVALID_IMAGE`,
 `INVALID_PAYMENT_TRANSITION`, `INVALID_RESUME_DATE`, `INVALID_STATUS_TRANSITION`,
 `INVALID_TOKEN`, `LINK_NOT_FOUND`, `NOT_AUTHENTICATED`, `NOT_FOUND`,
 `ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`, `ORDERS_PAUSED`,
@@ -742,6 +743,7 @@ from the schema.
 | DELETE | `/seller/products/{product_id}` | seller | — | 204 | Soft: `status=inactive` |
 | POST | `/seller/products/{product_id}/images` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT (+ thumbnail PUT if `thumbnail_size`); max 5 images, 5 MB, JPEG/PNG/WebP |
 | GET | `/seller/orders` | seller | `?status=` (repeatable) `&created_from=&created_to=&limit=1..100(50)&offset=` | `OrderListOut` | By number desc; `counts` per status ignore the status filter; each row leads with its biggest line (`first_item_name`, `line_count`, `first_item_image_url`: that product's photo now), also on a customer's and a link's orders |
+| GET | `/seller/orders/export` | seller | `?first=&last=` (dates, Phnom Penh days, both included) `&lang=en\|km` | `.xlsx` file | One row per order, oldest first: number, date, customer, phone (as text), items, the four amounts (number format per currency), payment, delivery, statuses, address, source, note; frozen, filterable heading row. Over a year or ending before it starts → 422 `INVALID_DATE_RANGE`. Declared before `/{order_id}` |
 | GET | `/seller/orders/{order_id}` | seller | — | `OrderOut` | With `next_statuses` on order, payment, delivery; each item carries its product's current first photo (`image_url`, as on the shop's order page; also on the three PATCHes below) |
 | PATCH | `/seller/orders/{order_id}/status` | seller | `OrderStatusUpdate` | `OrderOut` | §6 |
 | PATCH | `/seller/orders/{order_id}/payment` | seller | `PaymentUpdate` | `OrderOut` | §6 |
@@ -818,7 +820,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/dashboard/products`, `/products/new`, `/products/:productId` | `ProductList`, `ProductEdit` | Photos (cards as tall as the photo) or List (rows; a sortable table on laptops), kept in `sc.products.view`; stock tags: the seller's `low_stock_alert` or fewer is "Only N left" |
 | `/dashboard/categories` | `Categories` | Button on Products on phones; sidebar entry on desktop. "New category" opens a labelled form; each row's actions (share link, rename, delete) are in one ⋯ menu (`RowMenu`) |
 | `/dashboard/links`, `/links/new`, `/links/:linkId` | `LinkList`, `NewLink`, `LinkDetail` | Links as cards with Copy, views, orders and % ordered |
-| `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Store sections (`SECTION_IDS` in `form.ts`, saved with `PATCH /seller/store`): `shop`, `orders`, `payments`, `delivery`, `discounts`, `contact` (Telegram username, Messenger page, phone), `telegram` (titled Alerts: the low-stock level, and Telegram, which connects at once; the address stays /telegram because the bot's messages name it), `link`. Pages with their own endpoint (`PAGE_IDS`, `PAGES` in `SettingsSection.tsx`): `account`. Laptops open `shop` when none is chosen |
+| `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Store sections (`SECTION_IDS` in `form.ts`, saved with `PATCH /seller/store`): `shop`, `orders`, `payments`, `delivery`, `discounts`, `contact` (Telegram username, Messenger page, phone), `telegram` (titled Alerts: the low-stock level, and Telegram, which connects at once; the address stays /telegram because the bot's messages name it), `link`. Pages with their own endpoint (`PAGE_IDS`, `PAGES` in `SettingsSection.tsx`): `account`, `export` (This month / Last month / Choose days; downloads with `apiBlob` in `lib/api.ts`). Laptops open `shop` when none is chosen |
 | `/dashboard/notifications` | `Notifications` | |
 | `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public. While paused, `PausedNotice` (`shop/components.tsx`) tops every shop page and the cart's Place order is disabled; the seller's Orders tab shows a reminder |
 | `/shop/:storeSlug/product/:productSlug` | `ShopProduct` | |

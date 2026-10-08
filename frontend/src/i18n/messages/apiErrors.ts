@@ -72,6 +72,7 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   // Settings
   'This store link is already taken.': 'តំណហាងនេះមានគេប្រើរួចហើយ។',
   'Choose a day after today.': 'សូមជ្រើសថ្ងៃក្រោយថ្ងៃនេះ។',
+  'Choose up to a year, ending after it starts.': 'សូមជ្រើសរយៈពេលមិនលើសមួយឆ្នាំ ដែលថ្ងៃបញ្ចប់នៅក្រោយថ្ងៃចាប់ផ្ដើម។',
   'Store not found.': 'រកមិនឃើញហាង។',
   'Turn on at least one way to pay.': 'សូមបើកវិធីបង់ប្រាក់យ៉ាងតិចមួយ។',
   'A Bakong ID has no spaces.': 'Bakong ID មិនមានដកឃ្លាទេ។',

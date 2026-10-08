@@ -1,6 +1,7 @@
 import {
   Bell,
   ChevronRight,
+  Download,
   ExternalLink,
   Inbox,
   LifeBuoy,
@@ -111,6 +112,15 @@ function StoreRows({ store, selected }: { store: Store; selected?: Selected }) {
                 />
               </li>
             ))}
+            <li>
+              <MenuRow
+                to="export"
+                selected={selected === 'export'}
+                icon={<RowIcon icon={Download} />}
+                title={s.exportOrders}
+                summary={s.menu.exportHint}
+              />
+            </li>
           </ul>
         </Card>
       </section>
