@@ -114,11 +114,14 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
   )
 }
 
+/** Few left: "Only 3 left", on the grid and the product page (the
+ * seller's list warns at the same number). */
+export const LOW_STOCK = 5
+
 /** Photos, each card as tall as its photo (no cropping to a square),
  * packed in columns like a photo wall: the same cards as the seller's
- * product list, photo on top and name, price, and Sold out under it. */
+ * product list, photo on top and name, price, and stock under it. */
 export function ProductGrid({ shop, products }: { shop: ShopStore; products: ShopProductCard[] }) {
-  const t = useT()
   return (
     <ul className="columns-2 gap-3 sm:columns-3 lg:columns-4 xl:columns-5">
       {products.map((product, i) => (
@@ -150,16 +153,23 @@ export function ProductGrid({ shop, products }: { shop: ShopStore; products: Sho
             <span className="mt-0.5 block text-sm font-semibold text-slate-900 tabular-nums">
               {formatPriceRange(product.price_min, product.price_max, shop.currency)}
             </span>
-            {!product.in_stock && (
-              <span className="mt-1.5 block">
-                <Badge tone="red">{t.shop.soldOut}</Badge>
-              </span>
-            )}
+            <StockTag product={product} />
           </Link>
         </li>
       ))}
     </ul>
   )
+}
+
+/** Sold out, or Only 3 left when few are left; nothing otherwise. With
+ * options, stock is per option, so only Sold out (every option gone). */
+function StockTag({ product }: { product: ShopProductCard }) {
+  const t = useT()
+  const stock = product.stock_quantity
+  let tag = null
+  if (!product.in_stock) tag = <Badge tone="red">{t.shop.soldOut}</Badge>
+  else if (stock !== null && stock <= LOW_STOCK) tag = <Badge tone="amber">{t.shop.onlyLeft(stock)}</Badge>
+  return tag && <span className="mt-1.5 block">{tag}</span>
 }
 
 /** + on the photo: one into the cart without opening the product. Shows

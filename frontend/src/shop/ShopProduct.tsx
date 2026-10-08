@@ -9,7 +9,7 @@ import { formatMoney, formatPriceRange } from '../lib/money.ts'
 import { useT } from '../i18n/useT.ts'
 import type { ShopProduct as Product, ShopStore, ShopVariant } from '../lib/types.ts'
 import { MAX_QUANTITY, useCart } from './cart.ts'
-import { NotFound, ProductImage, QuantityStepper } from './components.tsx'
+import { LOW_STOCK, NotFound, ProductImage, QuantityStepper } from './components.tsx'
 import { flyToCart } from './fly.ts'
 import { isNotFound, useShop, useShopProduct } from './queries.ts'
 import { ShopInfo } from './ShopInfo.tsx'
@@ -245,8 +245,6 @@ function AskSeller({ username, product, variant }: { username: string; product: 
 }
 
 /** Few left shows the number; plenty just says in stock. */
-const LOW_STOCK = 5
-
 function StockLine({ product, variant }: { product: Product; variant: ShopVariant | null }) {
   const t = useT()
   let quantity: number | null

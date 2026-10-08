@@ -862,8 +862,10 @@ redesign, calm look). Steps, each committed on its own:
    and the name, price, and a red "Sold out" tag inside under it (Sold
    out was a pill on the photo), same gaps as the seller's grid. The +
    stays on the photo; the loading grid shows the same cards. Checked at
-   390 and 1280 px against the seller's grid; lint and build pass. Not
-   pushed.
+   390 and 1280 px against the seller's grid; lint and build pass.
+   Pushed 2026-10-08 (`6db7125`). Then an amber "Only 3 left" tag on
+   cards with 5 or fewer left (products without options; the product
+   page and the seller's list warn at the same number). Not pushed.
 
 The redesign is complete and pushed (2026-10-08, with the bcrypt fix and
 load test). Founder: check CI and the live site once Vercel and Render
