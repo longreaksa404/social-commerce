@@ -96,7 +96,7 @@ Given the constraint of a solo, part-time founder (`01_PRODUCT.md` §2.3, §38.8
 
 | Component | Recommendation | Reasoning |
 |---|---|---|
-| Backend hosting | **Render** (Docker deploy of FastAPI; free web service, Singapore, for the MVP; stays free for the first seller, decided 2026-10-04: the first visit after 15 quiet minutes waits up to a minute, and the app says so) | Git-push deploys, managed TLS, no server patching, environment variables UI, built-in logs |
+| Backend hosting | **Render** (Docker deploy of FastAPI; free web service, Singapore, for the MVP; stays free for the first seller, decided 2026-10-04; a free cron-job.org call to `/health` every 10 minutes keeps it awake from 7:00 to midnight Phnom Penh time, decided 2026-10-08, so only a visit after midnight following 15 quiet minutes waits up to a minute, and the app says so; Starter ($7/month) once the seller is earning or another free Render service is added) | Git-push deploys, managed TLS, no server patching, environment variables UI, built-in logs |
 | Database | **Neon** (free plan, Singapore region) for the MVP; Render Postgres is the upgrade path if Neon's limits are hit | No manual DB ops, branching useful for staging; Render's free Postgres expires after 30 days |
 | Frontend hosting | **Vercel** or **Netlify** (static React build) | Free tier sufficient at MVP scale, instant rollbacks, preview deployments per PR |
 | Object storage | **Cloudflare R2** or **AWS S3** | R2 has no egress fees, which matters once product images are viewed at volume by customers in Cambodia |

@@ -1077,25 +1077,12 @@ Resolved:
 Applied to 02/03 on 2026-10-08 (at the founder's request): Kantumruy
 Pro for all text (02 §2 Fonts row) and the frontend redesign (03 Phase 9
 row, 14 hrs; subtotal ~114 hrs; §4 totals: Phase 9 114 hrs, total ~342
-hrs). The load test row below is still not in 03.
+hrs).
 
-Not yet in 03 (founder said yes 2026-10-06): **load test before the
-first real seller.** Proposed 03 Phase 9 row, after "Layout pass":
-"| Load test before the first seller (`backend/loadtest/`: locally at
-Render's CPU, then once on the live site) and the bcrypt fix it found
-| 4 |"; subtotal ~118 hours; §4: Phase 9 118, total ~346 hrs.
-
-Not yet in 02/03 (founder said yes 2026-10-08): **Render kept awake by
-day.** 02 §3 Backend hosting row, the Render cell: "**Render** (Docker
-deploy of FastAPI; free web service, Singapore, for the MVP; stays free
-for the first seller, decided 2026-10-04; a free cron-job.org call to
-`/health` every 10 minutes keeps it awake from 7:00 to midnight Phnom
-Penh time, decided 2026-10-08, so only a visit after midnight following
-15 quiet minutes waits up to a minute, and the app says so; Starter ($7/month) once the
-seller is earning or another free Render service is added)". 03 Phase 9
-"Decided (2026-10-04)" note: after "(the app says when the server is
-waking up)" add "; a free cron-job.org ping keeps it awake from 7:00
-to midnight (2026-10-08)".
+Applied to 02/03 on 2026-10-08 (at the founder's request): the load
+test (03 Phase 9 row, 4 hrs; subtotal ~118 hrs; §4 totals: Phase 9 118
+hrs, total ~346 hrs) and Render kept awake from 7:00 to midnight by
+cron-job.org (02 §3 Backend hosting row; 03 Phase 9 "Decided" note).
 
 Applied to 03 on 2026-10-04 (at the founder's request): the layout pass
 (03 Phase 9 row, subtotal ~100 hrs, §4 totals: Phase 9 100 hrs, total

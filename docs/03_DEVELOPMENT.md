@@ -274,14 +274,16 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Order tracking for customers: current-order bar, Your orders page, auto-refresh, ask about an order on Telegram (founder's request 2026-10-04) | 7 |
 | UX pass 2: effects in the shop and the dashboard, cart bars toward a discount and free delivery with a pinned Checkout, numbered checkout, shop logo beside the name, softer cards, Kantumruy Pro for Khmer (founder's request 2026-10-04) | 10 |
 | Layout pass: phones edge to edge, lists aligned, action and Save bars floating on wide screens (founder's request 2026-10-04) | 3 |
+| Load test before the first seller (`backend/loadtest/`: locally at Render's CPU, then once on the live site) and the bcrypt fix it found (founder's request 2026-10-06) | 4 |
 | Frontend redesign: Navy brand colour, Kantumruy Pro for all text, every screen reworked from options the founder picked (shop, checkout, order tracking, seller orders, products, customers, links, settings, login, start page), ស្រួល Sroul Order brand (founder's request 2026-10-06, done 2026-10-08) | 14 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~114 hours (**~8.5–9 weeks**)
+**Subtotal:** ~118 hours (**~9 weeks**)
 
 > **Decided (2026-10-04):** a .com domain bought through Cloudflare; Render
 > stays on the free plan for the first seller (the app says when the
-> server is waking up); small photo copies and nightly backups built here.
+> server is waking up; a free cron-job.org ping keeps it awake from 7:00
+> to midnight, 2026-10-08); small photo copies and nightly backups built here.
 > See `02_TECHNICAL.md` §3, §11, §15.
 
 **Definition of done:** a real seller runs their shop on the live site in Khmer, and a real customer's order goes from a shared link to completed.
@@ -301,8 +303,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 17 | 1.5 wks |
-| 9 — Polish/First Seller | 114 | 8.5–9 wks |
-| **Total** | **~342 hrs** | **~26 weeks (~6 months)** |
+| 9 — Polish/First Seller | 118 | 9 wks |
+| **Total** | **~346 hrs** | **~26.5 weeks (~6 months)** |
 
 This is a planning estimate, not a commitment.
 
