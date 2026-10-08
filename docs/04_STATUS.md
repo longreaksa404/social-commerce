@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-08 (renamed to Oak Order; Render kept awake 7:00-midnight)
+> **Last updated:** 2026-10-08 (more in Settings: account, pause orders, contact buttons, alert level, export, close shop, staff)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -865,11 +865,53 @@ redesign, calm look). Steps, each committed on its own:
    390 and 1280 px against the seller's grid; lint and build pass.
    Pushed 2026-10-08 (`6db7125`). Then an amber "Only 3 left" tag on
    cards with 5 or fewer left (products without options; the product
-   page and the seller's list warn at the same number). Not pushed.
+   page warns at the same number; the seller's own list uses their alert
+   level, Settings → Alerts, since later the same day). Not pushed.
 
 The redesign is complete and pushed (2026-10-08, with the bcrypt fix and
 load test). Founder: check CI and the live site once Vercel and Render
 have redeployed.
+
+**More in Settings** (founder asked 2026-10-08 and picked from a list:
+1–8 and 11, then 9; 10 waits for pricing). Each committed on its own;
+**none pushed yet**:
+
+1. [x] **Your account** (`10d6911`): name, phone, login email, change
+   password (needs the current one; every other phone is logged out).
+2. [x] **Stop taking orders for a while** (`7a01da7`): Settings → Orders →
+   Take orders off, with an optional day orders open again (by itself,
+   Phnom Penh date). Customers can still look around; checkout is
+   refused and a notice tops every shop page. The seller's Orders tab
+   shows a reminder.
+3. [x] **Get help** (`99a7d54`): a Settings row (and the Forgot password
+   page) that opens Oak Order's Telegram with the shop named. Hidden
+   until `VITE_SUPPORT_TELEGRAM` is set in Vercel (founder: which
+   account).
+4. [x] **Founder resets a password** (`8a2ac2e`): `python -m app.admin
+   reset-password <email>` (docs/ADMIN.md).
+5. [x] **Call and Messenger buttons** (`f7c682e`) beside Telegram on a
+   product and an order; set in the new Settings → Contact (the Telegram
+   username moved there).
+6. [x] **Low-stock alert level** (`5a600aa`): Settings → Alerts (the
+   Telegram section, renamed). Alerts and the seller's product list use
+   it; customers' "Only N left" stays at 5.
+7. [x] **Export orders to Excel** (`22ee470`): this month, last month or
+   chosen days; one row per order, in English or Khmer.
+8. [x] **Forgot password?** (`4808449`): a link to the shop's Telegram
+   chat, 30 minutes, works once. Owners only (staff ask their owner).
+11. [x] **Close shop** (`ae48902`): with the password; the link and every
+   login stop, nothing is erased. Founder's `close-shop`, `reopen-shop`,
+   `erase-shop` commands (docs/ADMIN.md).
+9. [x] **Staff logins** (`26b42db`): Settings → Staff; helpers log in with
+   their own email and can do everything but Settings. The owner sets a
+   new password for them or removes them.
+10. [ ] **Plan and billing**: waits until pricing is decided (01 §46).
+
+Checked: 521 backend tests pass; ruff, oxlint and the build pass; each
+new screen clicked through in headless Chromium at 390 px (settings
+also at 1280), the shop notice and the export also in Khmer. Four
+migrations to run on deploy (they run on Render's start):
+`5ee23aad5482`, `007ae4403215`, `49da40196f18`, `ae070e4b3006`.
 
 Phase 9, waiting on the founder:
 
@@ -1105,6 +1147,24 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
+From "More in Settings" (2026-10-08, founder's picks; text for 01/02/03
+given to the founder, not applied yet):
+
+- **Data model** (02 §5, approved with the picks): `store.orders_paused`,
+  `store.orders_resume_on`, `store.contact_phone`,
+  `store.messenger_username`, `store.low_stock_alert` (default 5);
+  `seller.role` (owner/staff) and `seller.store_id` (staff only).
+- **Close shop = close now, the founder erases later** on request (not
+  automatic deletion, not immediate erasing).
+- **Staff can do everything but Settings**; the owner adds them with an
+  email and a first password (no email is sent).
+- **Forgot password goes to the shop's Telegram chat**; without
+  Telegram, the founder resets it by command.
+- **Plan and billing wait for pricing** (01 §46 subscription price,
+  free trial).
+- **Orders export is a real .xlsx** (XlsxWriter, a small write-only
+  library), not CSV: phones keep their 0, Khmer reads correctly.
+
 Applied to 01/03 on 2026-10-08 (at the founder's request): the rename
 to Oak Order (01 §1.1 and the §46 decisions list; 03 Phase 9 redesign
 row).
@@ -1308,6 +1368,18 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   `frontend/src/i18n/messages/`; a new backend error message also needs
   its Khmer in `apiErrors.ts` (otherwise Khmer shows a general line).
   Telegram alerts (backend) are still English only.
+- Staff logins (2026-10-08): Telegram alerts go only to the owner's
+  connected chat; the bell's read state is shared by everyone in the
+  shop; a removed helper's open session works up to 15 minutes (until
+  its access token expires), and so does a closed shop's. Forgot
+  password by Telegram is for owners; staff ask their owner (Settings →
+  Staff → New password).
+- Commit `4808449` ("Forgot password", 2026-10-08) also carries another
+  session's uncommitted work on order-detail photos (`api/orders.py`,
+  `services/order.py`, `test_orders.py`, `OrderDetail.tsx`), swept in by
+  a broad `git add`; its docs came in `2a54bd6`. The code is complete
+  and tested; only the commit message doesn't say so. Two Claude
+  sessions worked on the repo at once that day: stage files by name.
 - Anyone can still create a store at `/register` (03 says onboarding is
   manual for now). Founder to decide whether to close sign-up before
   launch.
@@ -1391,12 +1463,19 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 | Date | Source | Request | Status |
 |---|---|---|---|
+| 2026-10-08 | Founder (Settings) | Plan and billing page: the seller's plan, price, paid-until date, how to pay Oak Order | Waiting: build once pricing is decided (01 §46). |
 | 2026-10-06 | Founder (shop redesign) | Search in the shop | Logged for later; build when a seller has 30+ products. Details in 03 §6. |
 | 2026-10-02 | Founder (testing Phase 4) | One-tap pay for several banks (ABA, ACLEDA, Wing): open the customer's bank app with the amount filled in, and mark it paid automatically | Validate First: ask first sellers which banks their customers use, whether they're a registered business, and whether they'd pay per-payment fees. Details in 03 §6. |
 
 ---
 
 ## Next Up
+
+0. Founder: try the new Settings pieces (list under In Progress, "More
+   in Settings") on the dev server or after a push; choose the Oak Order
+   support Telegram account and set `VITE_SUPPORT_TELEGRAM` in Vercel;
+   say whether to apply the 01/02/03 text; then push (four migrations
+   run on Render's start).
 
 1. Founder: check the layout pass (live since 2026-10-04). On your
    phone: the shop, the cart and the dashboard
