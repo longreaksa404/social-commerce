@@ -16,6 +16,7 @@ import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, formatPhone, ORDER_STATUS_TONES } from '../../lib/orders.ts'
 import { paymentBadge } from '../../lib/payments.ts'
 import type { DeliveryStatus, Order, OrderStatus } from '../../lib/types.ts'
+import { ProductImage } from '../../shop/components.tsx'
 import { useOrder, useRecordDelivery, useRecordPayment } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
 import { ENDS_ORDER, useMoveOrder } from './useMoveOrder.ts'
@@ -322,7 +323,15 @@ function ItemsCard({ order }: { order: Order }) {
       <h2 className="mb-2 font-semibold text-slate-900">{t.order.items}</h2>
       <ul className="divide-y divide-slate-100">
         {order.items.map((item, i) => (
-          <li key={i} className="flex gap-3 py-2.5">
+          <li key={i} className="flex items-center gap-3 py-2.5">
+            {item.image_url ? (
+              <ProductImage small src={item.image_url} alt="" className="size-12 shrink-0 rounded-xl" />
+            ) : (
+              // No photo: the same soft bag as the order list.
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-navy-100 text-navy-500">
+                <ShoppingBag aria-hidden className="size-5.5" />
+              </span>
+            )}
             <span className="min-w-0 flex-1">
               <span className="block break-words text-slate-900">
                 {item.product_name}

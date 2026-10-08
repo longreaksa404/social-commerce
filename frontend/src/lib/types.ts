@@ -228,7 +228,7 @@ export type Delivery = {
 }
 
 /** What a customer sees: the confirmation page and order tracking. */
-/** On the customer's side, each line also has the product's photo now. */
+/** Each line also has the product's photo now (not a snapshot). */
 export type ShopOrderItem = OrderItem & { image_url: string | null }
 
 export type ShopOrder = {
@@ -248,8 +248,7 @@ export type ShopOrder = {
   delivery: ShopDelivery
 }
 
-export type Order = Omit<ShopOrder, 'payment' | 'delivery' | 'items'> & {
-  items: OrderItem[]
+export type Order = Omit<ShopOrder, 'payment' | 'delivery'> & {
   payment: Payment
   delivery: Delivery
   updated_at: string

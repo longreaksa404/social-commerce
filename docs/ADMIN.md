@@ -21,6 +21,10 @@ Without it, the command changes your local database.
 
 ## A seller forgot their password
 
+Sellers whose shop has Telegram connected can reset it themselves:
+"Forgot password?" on the login page sends a link to that Telegram chat.
+For anyone else:
+
 ```bash
 python -m app.admin reset-password seller@example.com
 ```

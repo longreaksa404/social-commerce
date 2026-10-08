@@ -120,7 +120,7 @@ Render's health check.
 | Customer order tracking (order bar, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrderBar.tsx`, `ShopOrders.tsx`, `useMyOrders` |
 | UX pass 2 (effects, cart bars, numbered checkout, Kantumruy Pro) | DONE | `components/effects.ts`, `shop/fly.ts`, `components/useBump.ts` |
 | Layout pass (edge-to-edge on phones, floating bars) | DONE | `cardClass` in `components/styles.ts` |
-| More in Settings (founder's request 2026-10-08): your account, Get help | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`) |
+| More in Settings (founder's request 2026-10-08): your account, Get help, Forgot password via Telegram | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`); `/forgot-password`, `/reset-password#<token>` |
 
 None of the "MVP Built" exit criteria in 03 §10 are met yet. They all
 need a real seller and a real customer.
@@ -371,6 +371,18 @@ starts a new transaction.
   a new pair to the caller: other phones are logged out. Deleted, not
   revoked, because a revoked token presented later counts as theft and
   would end the new session too.
+- **Forgot password** (no email in the MVP): `POST /auth/password-reset`
+  answers 202 at once and, after the response (BackgroundTasks, so the
+  answer and its timing don't reveal whether the email exists), sends a
+  link to the shop's Telegram chat (`store.telegram_chat_id`, the alerts
+  chat) if it has one: `PUBLIC_APP_URL/reset-password#<reset JWT>`, as a
+  button when https, else in the text. The reset JWT (`{"type": "reset",
+  "sub", "pwh"}`, 30 min) isn't stored: `pwh` is a fingerprint of the
+  current password hash, so the link works once and dies when the
+  password changes. `POST /auth/password-reset/confirm` sets the password,
+  ends every session (as above) and returns a new pair, so the seller is
+  logged in. Without Telegram, the founder resets it (`python -m app.admin
+  reset-password`, docs/ADMIN.md).
 - bcrypt runs in `asyncio.to_thread` so it doesn't block the event loop.
   Logins for unknown emails check against `DUMMY_PASSWORD_HASH` for equal
   timing. A disabled seller (`is_active=false`) gets 403 `ACCOUNT_DISABLED`,
@@ -454,7 +466,7 @@ Codes in use: `ACCOUNT_DISABLED`, `ACCOUNT_NOT_FOUND`, `CATEGORY_NOT_FOUND`,
 `ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`,
 `ORDER_TOTAL_CHANGED`, `PAYMENT_METHOD_UNAVAILABLE`, `PRODUCT_HIDDEN`,
 `PRODUCT_NOT_FOUND`, `PRODUCT_OUT_OF_STOCK`, `PRODUCT_UNAVAILABLE`,
-`RATE_LIMITED`, `SLUG_TAKEN`, `STORE_MISSING`, `STORE_NOT_FOUND`,
+`RATE_LIMITED`, `RESET_LINK_INVALID`, `SLUG_TAKEN`, `STORE_MISSING`, `STORE_NOT_FOUND`,
 `TELEGRAM_NOT_CONFIGURED`, `TOKEN_EXPIRED`, `TOO_MANY_IMAGES`,
 `UPLOADS_NOT_CONFIGURED`, `VALIDATION_ERROR`, `VARIANT_NOT_FOUND`,
 `VARIANTS_DISABLED`, `VARIANTS_REQUIRED`, `WRONG_PASSWORD` (422, not
@@ -474,6 +486,8 @@ decorated limit per request, so stricter second limits call
 | `POST /auth/register` | 5/min |
 | `POST /auth/login` | 10/min |
 | `POST /auth/refresh` | 30/min |
+| `POST /auth/password-reset` | 5/min |
+| `POST /auth/password-reset/confirm` | 10/min |
 | All `/shop/{slug}/*` (router dependency, shared scope `storefront`, applied before the slug lookup) | 300/min |
 | `POST /shop/{slug}/orders` (on top) | 10/min |
 | `POST /shop/{slug}/track-view` (on top) | 60/min |
@@ -695,6 +709,8 @@ from the schema.
 | POST | `/auth/login` | none | `LoginIn` | `TokenPair` | 10/min |
 | POST | `/auth/refresh` | none | `RefreshIn` | `TokenPair` | Rotates; reuse revokes all; 30/min |
 | POST | `/auth/logout` | none | `RefreshIn` | 204 | Revokes that token; bad tokens ignored |
+| POST | `/auth/password-reset` | none | `PasswordResetIn` | 202 | Telegram link in the background (§4 Auth); same answer for any email; 5/min |
+| POST | `/auth/password-reset/confirm` | none | `PasswordResetConfirm` | `TokenPair` | Bad, expired or used link → 400 `RESET_LINK_INVALID`; 10/min |
 | GET | `/seller/account` | seller | — | `AccountOut` | The person's own email, name, phone (`UnscopedDb`, filtered by the token's seller id) |
 | PATCH | `/seller/account` | seller | `AccountUpdate` | `AccountOut` | Partial; email lowercased, another account's → 409 `EMAIL_TAKEN` |
 | POST | `/seller/account/password` | seller | `PasswordChange` | `TokenPair` | Wrong current password → 422 `WRONG_PASSWORD`; ends every other session (§4 Auth) |
@@ -736,7 +752,7 @@ from the schema.
 | POST | `/telegram/webhook` | header `X-Telegram-Bot-Api-Secret-Token` | Telegram update (raw dict) | Bot API method call as JSON, or `{}` | 404 if the secret is wrong or the bot is off |
 
 Schemas live in `app/schemas/<domain>.py`: auth (`RegisterIn`, `LoginIn`,
-`RefreshIn`, `TokenPair`), account (`AccountOut`, `AccountUpdate`,
+`RefreshIn`, `PasswordResetIn`, `PasswordResetConfirm`, `TokenPair`), account (`AccountOut`, `AccountUpdate`,
 `PasswordChange`), store (`StoreOut`, `StoreUpdate`,
 `TelegramLinkOut`), category, product (`ProductCreate/Update/Out`,
 `VariantIn/Out`, `Money`), upload (`ImageUploadIn/Out`), order
@@ -782,7 +798,8 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | Path | Component | Notes |
 |---|---|---|
 | `/` | `pages/Home` | Landing: Register / Log in |
-| `/login`, `/register` | `pages/Login`, `pages/Register` | |
+| `/login`, `/register` | `pages/Login`, `pages/Register` | Login has "Forgot password?" |
+| `/forgot-password`, `/reset-password#<token>` | `pages/ForgotPassword`, `pages/ResetPassword` | The link goes to the shop's Telegram; without Telegram, "Message Oak Order" (if `VITE_SUPPORT_TELEGRAM`). Saving logs in (`startSession` in `AuthContext`) |
 | `/dashboard` | `dashboard/Layout` (`DashboardLayout`) | **Auth guard**: spinner while loading, retry card if unreachable, `Navigate` to `/login` if anonymous; index redirects to `orders` |
 | `/dashboard/orders`, `/orders/:orderId` | `OrdersPage` (`OrderList.tsx`: the list, with `OrderDetail` beside it on laptops) | Orders tab is the start page; phones show the list or the order; rows (`OrderRow.tsx`) lead with the customer and have no buttons; accepting or rejecting in the open order's To do card (`useMoveOrder.ts`) opens the next new order of the tab (`nextNewOrder`), unless it was opened from a customer's or a link's page |
 | `/dashboard/customers`, `/customers/:customerId` | `CustomerList`, `CustomerDetail` | Laptops: a sortable table (sorts the customers loaded); a customer has Call / Copy phone |
@@ -986,7 +1003,7 @@ through to the SPA.
 
 | Integration | State | Details |
 |---|---|---|
-| **Telegram bot** (seller alerts) | WIRED, env-gated | `services/telegram.py`: plain `httpx` calls to the Bot API (`sendMessage`, `setWebhook`). Webhook registered at startup only when `PUBLIC_API_URL` is set. Webhook checks the secret header with `hmac.compare_digest`. `/start <code>` in a private chat stores `store.telegram_chat_id` (the code is store id + expiry + 12-byte HMAC-SHA256, base64url, 43 chars, key derived from `JWT_SECRET`). Groups are ignored. Replies go back in the webhook response. Alerts (`services/notifications.py`) for new orders and low stock (crossing ≤5, or to 0) go out after the response. Each writes a `notification_log` row (`telegram`, sent or failed). A 403, or a 400 "chat not found", disconnects the store. Alert text is English, HTML-escaped. Live and tested by the founder (04). |
+| **Telegram bot** (seller alerts) | WIRED, env-gated | `services/telegram.py`: plain `httpx` calls to the Bot API (`sendMessage`, `setWebhook`). Webhook registered at startup only when `PUBLIC_API_URL` is set. Webhook checks the secret header with `hmac.compare_digest`. `/start <code>` in a private chat stores `store.telegram_chat_id` (the code is store id + expiry + 12-byte HMAC-SHA256, base64url, 43 chars, key derived from `JWT_SECRET`). Groups are ignored. Replies go back in the webhook response. Alerts (`services/notifications.py`) for new orders and low stock (crossing ≤5, or to 0) go out after the response. Each writes a `notification_log` row (`telegram`, sent or failed). A 403, or a 400 "chat not found", disconnects the store. Alert text is English, HTML-escaped. The same chat gets "Forgot password?" links (`auth.send_password_reset`, no log row). Live and tested by the founder (04). |
 | **Telegram "Ask seller"** | WIRED (no bot) | Frontend link `https://t.me/<telegram_username>?text=...`; hidden when there's no username. |
 | **Web notifications** | WIRED | `notification_log` rows with `channel=web`, written in the checkout transaction; the dashboard polls. No push. |
 | **Payments: COD, bank transfer** | WIRED, manual | No provider. Bank details from `payment_config` (current values, not a copy at order time) are shown on the order page while the payment is pending and the order isn't rejected or cancelled. |

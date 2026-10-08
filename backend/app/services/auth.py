@@ -1,17 +1,24 @@
 """Seller accounts and tokens. Runs on an unscoped session: no tenant is
 known yet, so every query filters by seller explicitly."""
 
+import logging
 import uuid
 from datetime import UTC, datetime
 
+import httpx
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import security
+from app.core.config import get_settings
 from app.core.errors import AppError
+from app.db.session import unscoped_session
 from app.models import RefreshToken, Seller, Store
-from app.schemas.auth import LoginIn, RegisterIn, TokenPair
+from app.schemas.auth import LoginIn, PasswordResetConfirm, RegisterIn, TokenPair
+from app.services import telegram
 from app.services.slugs import slugify, unique_slug
+
+logger = logging.getLogger(__name__)
 
 
 def _invalid_credentials() -> AppError:
@@ -112,6 +119,74 @@ async def logout(db: AsyncSession, refresh_token: str) -> None:
         .values(revoked_at=datetime.now(UTC))
     )
     await db.commit()
+
+
+async def send_password_reset(email: str) -> None:
+    """Forgot password? A "choose a new password" link goes to the shop's
+    Telegram chat, the one its order alerts go to (no email in the MVP).
+
+    Runs after the response (BackgroundTasks), so the answer and its timing
+    are the same whether or not the email exists or has Telegram.
+    """
+    if not get_settings().telegram_configured:
+        return
+    async with unscoped_session() as db:
+        row = (
+            await db.execute(
+                select(Seller, Store.telegram_chat_id)
+                .join(Store, Store.seller_id == Seller.id)
+                .where(Seller.email == email.lower(), Seller.is_active.is_(True))
+            )
+        ).first()
+    if row is None or row.telegram_chat_id is None:
+        return
+    seller, chat_id = row
+    url = f"{get_settings().public_app_url.rstrip('/')}/reset-password#" + (
+        security.create_reset_token(seller.id, seller.password_hash)
+    )
+    text = (
+        "🔑 Someone asked to reset the Oak Order password for "
+        f"<b>{telegram.escape(seller.email)}</b>.\n\n"
+        f"To choose a new one, open the link within {security.RESET_TOKEN_MINUTES} minutes. "
+        "If it wasn't you, ignore this message: the password stays the same."
+    )
+    # Telegram refuses buttons to non-https addresses (localhost): the
+    # link goes in the text instead.
+    button = ("Choose a new password", url) if url.startswith("https://") else None
+    if button is None:
+        text += f"\n\n{telegram.escape(url)}"
+    try:
+        await telegram.send_message(chat_id, text, button)
+    except (telegram.TelegramError, httpx.HTTPError) as exc:
+        logger.error("Password reset message failed: %r", exc)
+
+
+def _invalid_reset_link() -> AppError:
+    return AppError(
+        400,
+        "RESET_LINK_INVALID",
+        "This link has expired or was already used. Ask for a new one.",
+    )
+
+
+async def reset_password(db: AsyncSession, data: PasswordResetConfirm) -> TokenPair:
+    """The link from Telegram: set the new password, end every other
+    session, and log this one in."""
+    try:
+        payload = security.decode_token(data.token, "reset")
+        seller_id = uuid.UUID(payload["sub"])
+    except (AppError, KeyError, ValueError) as exc:
+        raise _invalid_reset_link() from exc
+    seller = await db.scalar(select(Seller).where(Seller.id == seller_id).with_for_update())
+    # Used already (the password changed since), or the account is closed.
+    if (
+        seller is None
+        or not seller.is_active
+        or payload.get("pwh") != security.password_fingerprint(seller.password_hash)
+    ):
+        raise _invalid_reset_link()
+    seller.password_hash = await security.hash_password(data.new_password)
+    return await restart_sessions(db, seller, await _store_id(db, seller.id))
 
 
 async def restart_sessions(db: AsyncSession, seller: Seller, store_id: uuid.UUID) -> TokenPair:

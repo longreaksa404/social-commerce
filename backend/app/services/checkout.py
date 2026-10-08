@@ -195,13 +195,9 @@ async def shop_order_out(db: AsyncSession, store: Store, order: Order) -> ShopOr
     """The order as its customer sees it, with how to pay for it, where to
     collect it, and each item's photo."""
     out = ShopOrderOut.model_validate(order)
-    product_ids = {item.product_id for item in out.items}
-    rows = await db.execute(
-        select(Product.id, Product.image_urls).where(
-            Product.store_id == store.id, Product.id.in_(product_ids)
-        )
+    photos = await order_service.product_photos(
+        db, store.id, {item.product_id for item in out.items}
     )
-    photos = {product_id: urls[0] for product_id, urls in rows if urls}
     return out.model_copy(
         update={
             "items": [

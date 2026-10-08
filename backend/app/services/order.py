@@ -143,8 +143,27 @@ async def get_order(
     return order
 
 
-def order_out(order: Order) -> OrderOut:
+async def product_photos(
+    db: AsyncSession, store_id: uuid.UUID, product_ids: set[uuid.UUID]
+) -> dict[uuid.UUID, str]:
+    """Each product's first photo now (not a snapshot), in one query.
+    Products without photos, or since deleted, are left out."""
+    if not product_ids:
+        return {}
+    rows = await db.execute(
+        select(Product.id, Product.image_urls).where(
+            Product.store_id == store_id, Product.id.in_(product_ids)
+        )
+    )
+    return {product_id: urls[0] for product_id, urls in rows if urls}
+
+
+async def order_out(db: AsyncSession, store_id: uuid.UUID, order: Order) -> OrderOut:
+    """The seller's view of the order, with each item's photo."""
     out = OrderOut.model_validate(order)
+    photos = await product_photos(db, store_id, {item.product_id for item in out.items})
+    for item in out.items:
+        item.image_url = photos.get(item.product_id)
     out.next_statuses = next_statuses(order)
     out.payment.next_statuses = payment_service.next_statuses(order.payment)
     out.delivery.next_statuses = delivery_service.next_statuses(order.delivery)
@@ -228,15 +247,7 @@ async def order_summaries(
 ) -> list[OrderSummaryOut]:
     """Rows for `orders` (loaded with SUMMARY_LOADS), each with its main
     item's photo, in one query for the whole list."""
-    product_ids = {_main_item(order).product_id for order in orders}
-    photos: dict[uuid.UUID, str] = {}
-    if product_ids:
-        rows = await db.execute(
-            select(Product.id, Product.image_urls).where(
-                Product.store_id == store_id, Product.id.in_(product_ids)
-            )
-        )
-        photos = {product_id: urls[0] for product_id, urls in rows if urls}
+    photos = await product_photos(db, store_id, {_main_item(order).product_id for order in orders})
     return [order_summary(order, photos) for order in orders]
 
 

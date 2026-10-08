@@ -35,6 +35,15 @@ class RefreshIn(BaseModel):
     refresh_token: str = Field(max_length=1000)
 
 
+class PasswordResetIn(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str = Field(max_length=1000)
+    new_password: Password
+
+
 class TokenPair(BaseModel):
     access_token: str
     refresh_token: str

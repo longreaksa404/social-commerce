@@ -69,6 +69,15 @@ export function Login() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Field>
+        <p className="-mt-2 text-right">
+          <Link
+            to="/forgot-password"
+            state={{ email }}
+            className="inline-flex min-h-11 items-center text-sm font-medium text-navy-700 hover:underline"
+          >
+            {t.auth.forgot.link}
+          </Link>
+        </p>
         <ErrorMessage error={error} />
         <Button type="submit" size="lg" loading={pending} className="w-full">
           {t.auth.logIn}

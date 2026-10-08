@@ -246,6 +246,26 @@ async def test_order_rows_lead_with_the_biggest_line_and_its_photo(client, auth_
     ]
 
 
+async def test_order_detail_items_carry_each_products_photo(client, auth_headers):
+    headers, store_id, slug = await _seller(client, auth_headers)
+    cap = await add_product(store_id, "cap", stock=10)
+    bag = await add_product(store_id, "bag", stock=10)
+    async with unscoped_session() as db:
+        (await db.get(Product, bag)).image_urls = ["https://img/bag-1.jpg", "https://img/bag-2.jpg"]
+        await db.commit()
+    order = (
+        await place_order(client, slug, [(bag, None, 1), (cap, None, 1)], total="20.00")
+    ).json()
+
+    detail = (await client.get(f"/api/v1/seller/orders/{order['id']}", headers=headers)).json()
+    photos = {i["product_id"]: i["image_url"] for i in detail["items"]}
+    assert photos == {str(bag): "https://img/bag-1.jpg", str(cap): None}
+
+    # A status change answers with the whole order, photos included.
+    moved = (await _move(client, headers, order["id"], "accepted")).json()
+    assert {i["product_id"]: i["image_url"] for i in moved["items"]} == photos
+
+
 async def test_seller_cannot_see_or_change_another_stores_orders(client, auth_headers):
     a_headers, a_store, a_slug = await _seller(client, auth_headers)
     b_headers, _, _ = await _seller(client, auth_headers)

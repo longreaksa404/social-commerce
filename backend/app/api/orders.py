@@ -40,7 +40,8 @@ async def list_orders(
 
 @router.get("/{order_id}", response_model=OrderOut)
 async def get_order(order_id: uuid.UUID, seller: Seller, db: TenantDb) -> OrderOut:
-    return order_service.order_out(await order_service.get_order(db, seller.store_id, order_id))
+    order = await order_service.get_order(db, seller.store_id, order_id)
+    return await order_service.order_out(db, seller.store_id, order)
 
 
 @router.patch("/{order_id}/status", response_model=OrderOut)
@@ -49,7 +50,7 @@ async def change_status(
 ) -> OrderOut:
     """Moves the order along the state machine (02 section 7.1)."""
     order = await order_service.change_status(db, seller.store_id, order_id, data.status)
-    return order_service.order_out(order)
+    return await order_service.order_out(db, seller.store_id, order)
 
 
 @router.patch("/{order_id}/payment", response_model=OrderOut)
@@ -59,7 +60,7 @@ async def record_payment(
     """Marks the payment paid or failed (02 section 7.2). Recording it can
     let the order complete (section 7.4), so the whole order comes back."""
     order = await order_service.record_payment(db, seller.store_id, order_id, data)
-    return order_service.order_out(order)
+    return await order_service.order_out(db, seller.store_id, order)
 
 
 @router.patch("/{order_id}/delivery", response_model=OrderOut)
@@ -70,4 +71,4 @@ async def record_delivery(
     Delivering it can let the order complete (section 7.4), so the whole
     order comes back."""
     order = await order_service.record_delivery(db, seller.store_id, order_id, data)
-    return order_service.order_out(order)
+    return await order_service.order_out(db, seller.store_id, order)

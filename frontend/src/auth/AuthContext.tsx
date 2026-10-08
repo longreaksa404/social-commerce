@@ -56,6 +56,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('authenticated')
   }, [])
 
+  const startSession = useCallback(
+    (pair: TokenPair) => {
+      queryClient.clear() // nothing left from whoever was logged in before
+      saveTokens(pair)
+      setStatus('authenticated')
+    },
+    [queryClient],
+  )
+
   const logout = useCallback(async () => {
     const refreshToken = readRefreshToken()
     if (refreshToken) {
@@ -70,8 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [queryClient])
 
   const value = useMemo(
-    () => ({ status, restoreError, retryRestore, login, register, logout }),
-    [status, restoreError, retryRestore, login, register, logout],
+    () => ({ status, restoreError, retryRestore, login, register, startSession, logout }),
+    [status, restoreError, retryRestore, login, register, startSession, logout],
   )
   return <AuthContext value={value}>{children}</AuthContext>
 }

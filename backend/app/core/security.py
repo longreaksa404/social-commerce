@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
@@ -10,7 +11,9 @@ from app.core.config import get_settings
 from app.core.errors import AppError
 
 ALGORITHM = "HS256"
-TokenType = Literal["access", "refresh"]
+TokenType = Literal["access", "refresh", "reset"]
+# How long a "choose a new password" link from Telegram works.
+RESET_TOKEN_MINUTES = 30
 
 
 def _hash(password: str) -> str:
@@ -61,6 +64,20 @@ def create_refresh_token(seller_id: uuid.UUID, token_id: uuid.UUID) -> str:
     return _encode(
         {"type": "refresh", "sub": str(seller_id), "jti": str(token_id)},
         timedelta(days=settings.refresh_token_days),
+    )
+
+
+def password_fingerprint(password_hash: str) -> str:
+    """Changes whenever the password does, so a reset link works once."""
+    return hashlib.sha256(password_hash.encode()).hexdigest()[:16]
+
+
+def create_reset_token(seller_id: uuid.UUID, password_hash: str) -> str:
+    """The "choose a new password" link (Forgot password?). Not stored:
+    signed, expiring, and tied to the current password."""
+    return _encode(
+        {"type": "reset", "sub": str(seller_id), "pwh": password_fingerprint(password_hash)},
+        timedelta(minutes=RESET_TOKEN_MINUTES),
     )
 
 
