@@ -10,7 +10,6 @@ import type { CustomerDetail as Customer } from '../../lib/types.ts'
 import { OrderRow } from '../orders/OrderRow.tsx'
 import { useCustomer, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
-import { Initial } from './CustomerList.tsx'
 
 /** /dashboard/customers/:customerId: who they are, and their orders. */
 export function CustomerDetail() {
@@ -55,17 +54,12 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
         {/* Who they are, with calling them one tap away (founder's pick,
             2026-10-08). */}
         <Card className="p-4 sm:p-6">
-          <div className="flex items-center gap-3">
-            <Initial name={customer.name} className="size-14 text-xl" />
-            <div className="min-w-0">
-              <p className="truncate text-lg font-bold text-slate-900">{customer.name}</p>
-              <p className="text-sm text-slate-500 tabular-nums">
-                {formatPhone(customer.phone)}
-                <span className="text-slate-400"> · </span>
-                {c.since(formatDate(customer.created_at))}
-              </p>
-            </div>
-          </div>
+          <p className="truncate text-lg font-bold text-slate-900">{customer.name}</p>
+          <p className="text-sm text-slate-500 tabular-nums">
+            {formatPhone(customer.phone)}
+            <span className="text-slate-400"> · </span>
+            {c.since(formatDate(customer.created_at))}
+          </p>
           <div className="mt-4 flex gap-3">
             <a href={`tel:${customer.phone}`} className={`${buttonClass('primary')} flex-1`}>
               <Phone aria-hidden className="size-4" />

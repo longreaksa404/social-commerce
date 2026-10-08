@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, Search, SearchX, Users } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Search, SearchX, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Button, Card, EmptyState, ErrorState, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
@@ -112,7 +112,6 @@ function CustomerRow({
       state={{ back: search ? `/dashboard/customers?q=${encodeURIComponent(search)}` : '/dashboard/customers' }}
       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
     >
-      <Initial name={customer.name} className="size-10 text-base" />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-semibold text-slate-900">{customer.name}</span>
         <span className="mt-0.5 block text-sm text-slate-700">{formatPhone(customer.phone)}</span>
@@ -122,7 +121,6 @@ function CustomerRow({
         </span>
       </span>
       <span className="shrink-0 text-right font-semibold text-slate-900">{formatSpent(customer.spent, currency)}</span>
-      <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-300" />
     </Link>
   )
 }
@@ -179,16 +177,13 @@ function CustomerTable({ customers, currency, search }: { customers: CustomerSum
           {sorted.map((customer) => (
             <tr key={customer.id} className="relative transition-colors hover:bg-slate-50">
               <td className="px-4 py-3">
-                <span className="flex items-center gap-3">
-                  <Initial name={customer.name} />
-                  <Link
-                    to={`/dashboard/customers/${customer.id}`}
-                    state={{ back }}
-                    className="truncate font-medium text-slate-900 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-navy-600"
-                  >
-                    {customer.name}
-                  </Link>
-                </span>
+                <Link
+                  to={`/dashboard/customers/${customer.id}`}
+                  state={{ back }}
+                  className="block truncate font-semibold text-slate-900 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-navy-600"
+                >
+                  {customer.name}
+                </Link>
               </td>
               <td className="px-4 py-3 whitespace-nowrap text-slate-600 tabular-nums">{formatPhone(customer.phone)}</td>
               <td className="px-4 py-3 text-right text-slate-900 tabular-nums">{customer.order_count}</td>
@@ -199,15 +194,6 @@ function CustomerTable({ customers, currency, search }: { customers: CustomerSum
         </tbody>
       </table>
     </Card>
-  )
-}
-
-/** A customer's first letter in a circle. */
-export function Initial({ name, className = 'size-9 text-sm' }: { name: string; className?: string }) {
-  return (
-    <span aria-hidden className={`flex shrink-0 items-center justify-center rounded-full bg-navy-50 font-bold text-navy-700 ${className}`}>
-      {Array.from(name.trim())[0]?.toUpperCase() ?? '?'}
-    </span>
   )
 }
 
