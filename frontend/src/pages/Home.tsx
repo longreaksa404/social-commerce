@@ -1,62 +1,60 @@
-import { Link2, MessageCircleOff, Smartphone } from 'lucide-react'
 import { Link, Navigate } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { Spinner } from '../components/ui.tsx'
-import { buttonClass } from '../components/styles.ts'
 import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
-import { BrandMark, Glow } from './AuthLayout.tsx'
+import { BrandMark } from './AuthLayout.tsx'
 
+/** The start page, before logging in (founder's pick, 2026-10-08): deep
+ * navy, ស្រួល ("easy") in very large letters as the message itself, one
+ * line on what it's for, and the two ways in. The same navy in light and
+ * dark: it's the brand, not the page. */
 export function Home() {
   const { status } = useAuth()
   const t = useT()
   const home = t.auth.home
-  const points = [
-    { icon: Link2, title: home.pointLinkTitle, text: home.pointLinkText },
-    { icon: MessageCircleOff, title: home.pointChatsTitle, text: home.pointChatsText },
-    { icon: Smartphone, title: home.pointPhoneTitle, text: home.pointPhoneText },
-  ]
 
   if (status === 'loading') return <Spinner />
   if (status === 'authenticated') return <Navigate to="/dashboard" replace />
 
   return (
-    <main className="relative isolate mx-auto flex min-h-dvh max-w-md flex-col px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:justify-center">
-      <Glow />
+    <main className="flex min-h-dvh flex-col bg-[#182841] px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] text-white sm:px-10 lg:px-16">
       <div className="flex items-center justify-between gap-3">
-        <BrandMark />
-        <LanguageSwitch />
+        <BrandMark onDark short />
+        <LanguageSwitch onDark />
       </div>
-      <div className="mt-12 sm:mt-10">
-        <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900">
-          {home.title}
+
+      <div className="my-auto py-12">
+        <h1 lang="km" className="animate-rise text-[clamp(5.5rem,24vw,13rem)] leading-[1.25] font-bold tracking-tight">
+          ស្រួល
         </h1>
-        <p className="mt-3 text-base text-slate-600">
-          {home.subtitle}
-        </p>
+        {home.meaning && <p className="mt-1 text-lg font-medium text-white/60">{home.meaning}</p>}
+        <p className="mt-4 max-w-xl text-xl leading-relaxed text-white/85 sm:text-2xl">{home.tagline}</p>
+        <div className="mt-10 hidden gap-3 sm:flex">
+          <Actions />
+        </div>
       </div>
-      <ul className="mt-8 space-y-4">
-        {points.map(({ icon: Icon, title, text }) => (
-          <li key={title} className="flex gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
-              <Icon aria-hidden className="size-5" />
-            </span>
-            <span>
-              <span className="block font-semibold text-slate-900">{title}</span>
-              <span className="block text-sm text-slate-500">{text}</span>
-            </span>
-          </li>
-        ))}
-      </ul>
-      {/* Pinned to the bottom on phones, where thumbs are. */}
-      <div className="mt-auto flex flex-col gap-3 pt-10 sm:mt-10">
-        <Link to="/register" className={`${buttonClass('primary', 'lg')} w-full`}>
-          {t.auth.createYourStore}
-        </Link>
-        <Link to="/login" className={`${buttonClass('secondary', 'lg')} w-full`}>
-          {t.auth.logIn}
-        </Link>
+
+      {/* Phones: at the bottom, where thumbs are. */}
+      <div className="flex flex-col gap-3 sm:hidden">
+        <Actions />
       </div>
     </main>
+  )
+}
+
+function Actions() {
+  const t = useT()
+  const button =
+    'inline-flex min-h-12 items-center justify-center rounded-xl px-6 text-base font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-[0.98]'
+  return (
+    <>
+      <Link to="/register" className={`${button} bg-white text-[#182841] hover:bg-white/90`}>
+        {t.auth.createYourStore}
+      </Link>
+      <Link to="/login" className={`${button} border border-white/35 text-white hover:bg-white/10`}>
+        {t.auth.logIn}
+      </Link>
+    </>
   )
 }

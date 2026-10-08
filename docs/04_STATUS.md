@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-08 (Phase 9: redesign steps 5 and most of 6)
+> **Last updated:** 2026-10-08 (Phase 9: redesign complete, not deployed)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -826,9 +826,12 @@ redesign, calm look). Steps, each committed on its own:
    on laptops and a profile with Call and Copy phone; links as cards
    with Copy and their numbers; settings menu beside the open setting
    on laptops.
-6. [~] Login and Register done (7B: split in two on laptops, the
-   ស្រួល Sroul Order brand everywhere, the ស favicon); the start page
-   (before login) waits on the founder's pick from six options.
+6. [x] Login and Register (7B: split in two on laptops, the ស្រួល
+   Sroul Order brand everywhere, the ស favicon) and the start page
+   (founder picked F from six, 2026-10-08: deep navy with ស្រួល in very
+   large letters, one line on what it's for, Create your store / Log in).
+
+The redesign is complete (2026-10-08). Not pushed or deployed yet.
 
 Phase 9, waiting on the founder:
 

@@ -7,7 +7,16 @@ import { useT } from '../i18n/useT.ts'
 /** The product's name, ស្រួល Sroul Order (01_PRODUCT.md section 1.1: the
  * Khmer always beside "Sroul"), with its mark: ស on navy. `onDark` for the
  * navy panel. */
-export function BrandMark({ className = '', onDark = false }: { className?: string; onDark?: boolean }) {
+export function BrandMark({
+  className = '',
+  onDark = false,
+  short = false,
+}: {
+  className?: string
+  onDark?: boolean
+  /** "Sroul Order" only, where ស្រួល is already on the page in big. */
+  short?: boolean
+}) {
   return (
     <Link
       to="/"
@@ -22,7 +31,8 @@ export function BrandMark({ className = '', onDark = false }: { className?: stri
         ស
       </span>
       <span>
-        ស្រួល <span className="font-semibold">Sroul Order</span>
+        {!short && 'ស្រួល '}
+        <span className="font-semibold">Sroul Order</span>
       </span>
     </Link>
   )

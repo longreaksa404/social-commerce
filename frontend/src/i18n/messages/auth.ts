@@ -7,25 +7,13 @@ export const auth = {
       en: 'Turn social media chats into real orders',
       km: 'ប្រែការឆាតលើបណ្ដាញសង្គម ទៅជាការកុម្ម៉ង់ពិតៗ',
     },
-    subtitle: {
-      en: 'A simple online shop for sellers who sell through social media.',
-      km: 'ហាងអនឡាញងាយស្រួល សម្រាប់អ្នកលក់តាមបណ្ដាញសង្គម។',
+    // Under the big ស្រួល on the start page.
+    tagline: {
+      en: 'Easy orders for sellers on Facebook, TikTok and Instagram.',
+      km: 'ការកុម្ម៉ង់ងាយស្រួល សម្រាប់អ្នកលក់លើ Facebook, TikTok និង Instagram។',
     },
-    pointLinkTitle: { en: 'One link for your shop', km: 'តំណតែមួយសម្រាប់ហាងរបស់អ្នក' },
-    pointLinkText: {
-      en: 'Share it on Facebook, TikTok, or Instagram.',
-      km: 'ចែករំលែកវានៅលើ Facebook, TikTok ឬ Instagram។',
-    },
-    pointChatsTitle: { en: 'Fewer back-and-forth chats', km: 'ឆាតឆ្លើយឆ្លងគ្នាតិចជាងមុន' },
-    pointChatsText: {
-      en: 'Customers see prices, photos, and stock themselves.',
-      km: 'អតិថិជនមើលតម្លៃ រូបថត និងស្តុកដោយខ្លួនឯង។',
-    },
-    pointPhoneTitle: { en: 'Run it from your phone', km: 'គ្រប់គ្រងពីទូរស័ព្ទរបស់អ្នក' },
-    pointPhoneText: {
-      en: 'Add products and update stock anywhere.',
-      km: 'បន្ថែមទំនិញ និងកែស្តុកបាននៅគ្រប់ទីកន្លែង។',
-    },
+    // For English readers: what the big word says.
+    meaning: { en: '“Sroul” means easy.', km: '' },
   },
   // The navy half beside the login and register forms on laptops.
   pitch: {
