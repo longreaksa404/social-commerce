@@ -68,7 +68,10 @@ async def login(db: AsyncSession, data: LoginIn) -> TokenPair:
     if not await security.verify_password(data.password, seller.password_hash):
         raise _invalid_credentials()
     if not seller.is_active:
-        raise AppError(403, "ACCOUNT_DISABLED", "This account has been disabled.")
+        # Closed by the seller (Settings → Close shop) or by the founder.
+        raise AppError(
+            403, "ACCOUNT_DISABLED", "This shop is closed. Message Oak Order to open it again."
+        )
 
     tokens = await _issue_tokens(db, seller.id, await _store_id(db, seller.id))
     await db.commit()

@@ -32,3 +32,33 @@ python -m app.admin reset-password seller@example.com
 It prints a new password like `k7mx-9qp4-hd2a` and logs out every phone
 on that account. Send it to the seller (call or Telegram, not a public
 comment) and ask them to change it in **Settings → Your account**.
+
+## A seller wants their shop closed, reopened or erased
+
+Sellers close their own shop in **Settings → Close shop** (with their
+password): the shop link and their logins stop at once, and nothing is
+erased. To do it for them:
+
+```bash
+python -m app.admin close-shop seller@example.com
+```
+
+To open a closed shop again (the seller can log in, the link works):
+
+```bash
+python -m app.admin reopen-shop seller@example.com
+```
+
+To erase a closed shop for good (only after the seller asks, in writing):
+
+```bash
+python -m app.admin erase-shop seller@example.com
+```
+
+It shows the shop's name and how many products, orders and customers it
+has, then asks you to type the shop's link name (the part after
+`/shop/`). It deletes the account, the shop and everything in it
+(products, orders, customers, links, alerts) and its photos and logo in
+R2. It refuses a shop that's still open. This can't be undone, except
+that the nightly backups (docs/BACKUPS.md) still hold the shop for up
+to 30 days.

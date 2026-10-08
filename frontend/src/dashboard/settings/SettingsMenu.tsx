@@ -1,6 +1,7 @@
 import {
   Bell,
   ChevronRight,
+  DoorClosed,
   Download,
   ExternalLink,
   Inbox,
@@ -252,6 +253,7 @@ function AccountRows({ selected, store }: { selected?: Selected; store?: Store }
     const shop = store ? s.supportText(store.name, `${location.origin}/shop/${store.slug}`) : s.supportTextNoShop
     rows.push({ id: 'help', href: supportLink(shop), icon: LifeBuoy, title: s.help, summary: s.menu.helpHint })
   }
+  rows.push({ id: 'close', icon: DoorClosed, title: s.closeShop, summary: s.menu.closeHint })
   return (
     <section aria-labelledby="account">
       <h2 id="account" className="mb-2 sm:px-1 text-sm font-semibold text-slate-500">

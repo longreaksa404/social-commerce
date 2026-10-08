@@ -22,6 +22,10 @@ class AccountUpdate(BaseModel):
     phone: Phone | None = None
 
 
+class CloseShopIn(BaseModel):
+    password: str = Field(max_length=200)
+
+
 class PasswordChange(BaseModel):
     current_password: str = Field(max_length=200)
     new_password: Password

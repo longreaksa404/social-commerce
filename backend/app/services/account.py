@@ -7,13 +7,13 @@ access token.
 
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import security
 from app.core.errors import AppError, NotFound
-from app.models import Seller
+from app.models import RefreshToken, Seller
 from app.schemas.account import AccountUpdate, PasswordChange
 from app.schemas.auth import TokenPair
 from app.services import auth as auth_service
@@ -47,6 +47,18 @@ async def update_account(db: AsyncSession, seller_id: uuid.UUID, data: AccountUp
         await db.rollback()
         raise _email_taken() from exc
     return seller
+
+
+async def close_shop(db: AsyncSession, seller_id: uuid.UUID, password: str) -> None:
+    """Settings → Close shop: the shop link stops working and nobody can log
+    in. Nothing is erased: the founder reopens it, or erases it for good,
+    when the seller asks (python -m app.admin, docs/ADMIN.md)."""
+    seller = await get_account(db, seller_id)
+    if not await security.verify_password(password, seller.password_hash):
+        raise AppError(422, "WRONG_PASSWORD", "Your current password is wrong.", "password")
+    seller.is_active = False  # the shop page and logins check this
+    await db.execute(delete(RefreshToken).where(RefreshToken.seller_id == seller.id))
+    await db.commit()
 
 
 async def change_password(

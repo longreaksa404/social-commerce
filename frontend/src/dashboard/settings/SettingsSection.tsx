@@ -22,6 +22,7 @@ import {
   type FieldsProps,
 } from './fields.tsx'
 import { AccountPage } from './AccountPage.tsx'
+import { CloseShopPage } from './CloseShopPage.tsx'
 import { ExportPage } from './ExportPage.tsx'
 import { isPageId, isSectionId, SECTIONS, toForm, type PageId, type SectionId } from './form.ts'
 
@@ -40,6 +41,7 @@ const FIELDS: Record<SectionId, ComponentType<FieldsProps>> = {
 const PAGES: Record<PageId, { title: (s: Messages['settings']) => string; hint?: (s: Messages['settings']) => string; Page: ComponentType }> = {
   account: { title: (s) => s.yourAccount, hint: (s) => s.yourAccountHint, Page: AccountPage },
   export: { title: (s) => s.exportOrders, hint: (s) => s.exportHint, Page: ExportPage },
+  close: { title: (s) => s.closeShop, Page: CloseShopPage },
 }
 
 /** /dashboard/settings/:section: one part of the shop's settings, opened

@@ -264,6 +264,7 @@ export const settings = {
     accountHint: { en: 'Name, phone, email, password', km: 'ឈ្មោះ ទូរស័ព្ទ អ៊ីមែល ពាក្យសម្ងាត់' },
     helpHint: { en: 'Message Oak Order on Telegram', km: 'ផ្ញើសារទៅ Oak Order តាម Telegram' },
     exportHint: { en: 'Your orders as an Excel file', km: 'ការកុម្ម៉ង់របស់អ្នកជាឯកសារ Excel' },
+    closeHint: { en: 'Stop selling here', km: 'ឈប់លក់នៅទីនេះ' },
   },
 
   account: { en: 'Account', km: 'គណនី' },
@@ -305,6 +306,28 @@ export const settings = {
   },
   exportDownload: { en: 'Download Excel file', km: 'ទាញយកឯកសារ Excel' },
   help: { en: 'Get help', km: 'សុំជំនួយ' },
+  closeShop: { en: 'Close shop', km: 'បិទហាង' },
+  closeShopWhat: { en: 'What closing does', km: 'អ្វីដែលកើតឡើងពេលបិទហាង' },
+  closeShopLink: {
+    en: 'Your shop link stops working at once, for every customer.',
+    km: 'តំណហាងរបស់អ្នកឈប់ដំណើរការភ្លាមៗ សម្រាប់អតិថិជនទាំងអស់។',
+  },
+  closeShopLogout: {
+    en: "You're logged out on every phone and can't log in.",
+    km: 'អ្នកនឹងចាកចេញពីទូរស័ព្ទទាំងអស់ ហើយមិនអាចចូលគណនីបានទេ។',
+  },
+  closeShopKept: {
+    en: 'Nothing is deleted. To open it again, or to have everything erased for good, message Oak Order.',
+    km: 'គ្មានអ្វីត្រូវបានលុបទេ។ ដើម្បីបើកវាវិញ ឬលុបអ្វីៗទាំងអស់ជាស្ថាពរ សូមផ្ញើសារទៅ Oak Order។',
+  },
+  closeShopPassword: { en: 'Your password', km: 'ពាក្យសម្ងាត់របស់អ្នក' },
+  closeShopButton: { en: 'Close my shop', km: 'បិទហាងរបស់ខ្ញុំ' },
+  closeShopConfirmTitle: { en: 'Close your shop?', km: 'បិទហាងរបស់អ្នក?' },
+  closeShopConfirm: {
+    en: 'Customers can no longer open it or order, and you are logged out.',
+    km: 'អតិថិជននឹងមិនអាចបើក ឬកុម្ម៉ង់បានទៀតទេ ហើយអ្នកនឹងចាកចេញ។',
+  },
+  shopClosed: { en: 'Your shop is closed', km: 'ហាងរបស់អ្នកត្រូវបានបិទ' },
   supportText: {
     en: (shop: string, link: string) => `Hi Oak Order, I need help with my shop ${shop} (${link}).`,
     km: (shop: string, link: string) => `សួស្ដី Oak Order ខ្ញុំត្រូវការជំនួយសម្រាប់ហាង ${shop} (${link})។`,

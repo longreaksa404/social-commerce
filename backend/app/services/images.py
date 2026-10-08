@@ -36,6 +36,23 @@ def _r2_client() -> Any:
     )
 
 
+def delete_store_files(store_id: uuid.UUID) -> int:
+    """Delete every photo and logo of a store from R2 (erasing a shop,
+    docs/ADMIN.md). Returns how many files went; 0 when R2 isn't set up."""
+    if not get_settings().r2_configured:
+        return 0
+    client, bucket = _r2_client(), get_settings().r2_bucket
+    deleted = 0
+    for page in client.get_paginator("list_objects_v2").paginate(
+        Bucket=bucket, Prefix=f"stores/{store_id}/"
+    ):
+        keys = [{"Key": item["Key"]} for item in page.get("Contents", [])]
+        if keys:  # a page holds up to 1,000, as many as one delete takes
+            client.delete_objects(Bucket=bucket, Delete={"Objects": keys, "Quiet": True})
+            deleted += len(keys)
+    return deleted
+
+
 def _check_configured() -> None:
     if not get_settings().r2_configured:
         raise AppError(503, "UPLOADS_NOT_CONFIGURED", "Image uploads are not set up yet.")

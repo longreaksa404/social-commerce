@@ -11,7 +11,8 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   // Accounts
   'Wrong email or password.': 'អ៊ីមែល ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ។',
   'An account with this email already exists.': 'មានគណនីដែលប្រើអ៊ីមែលនេះរួចហើយ។',
-  'This account has been disabled.': 'គណនីនេះត្រូវបានបិទ។',
+  'This shop is closed. Message Oak Order to open it again.':
+    'ហាងនេះត្រូវបានបិទ។ សូមផ្ញើសារទៅ Oak Order ដើម្បីបើកវាវិញ។',
   'Your session has ended. Please log in again.': 'វគ្គរបស់អ្នកបានបញ្ចប់។ សូមចូលគណនីម្ដងទៀត។',
   'Your session has expired.': 'វគ្គរបស់អ្នកផុតកំណត់ហើយ។',
   'Please log in.': 'សូមចូលគណនី។',

@@ -95,3 +95,37 @@ async def test_password_change_logs_out_other_phones_and_keeps_this_one(client, 
     assert refresh_this.status_code == 200
     assert old_login.status_code == 401
     assert new_login.status_code == 200
+
+
+async def test_closing_the_shop_needs_the_password(client, register):
+    a = await register()
+
+    response = await client.post(
+        "/api/v1/seller/account/close-shop", headers=_bearer(a), json={"password": "nope"}
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["field"] == "password"
+
+
+async def test_a_closed_shop_is_gone_and_nobody_can_log_in(client, register):
+    a = await register()
+    slug = (await client.get("/api/v1/seller/store", headers=_bearer(a))).json()["slug"]
+
+    closed = await client.post(
+        "/api/v1/seller/account/close-shop",
+        headers=_bearer(a),
+        json={"password": "correct-horse"},
+    )
+
+    assert closed.status_code == 204
+    assert (await client.get(f"/api/v1/shop/{slug}")).status_code == 404
+    login = await client.post(
+        "/api/v1/auth/login", json={"email": a["email"], "password": "correct-horse"}
+    )
+    assert login.status_code == 403
+    assert login.json()["error"]["message"] == (
+        "This shop is closed. Message Oak Order to open it again."
+    )
+    refresh = await client.post("/api/v1/auth/refresh", json={"refresh_token": a["refresh_token"]})
+    assert refresh.status_code == 401

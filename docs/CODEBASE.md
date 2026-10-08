@@ -120,7 +120,7 @@ Render's health check.
 | Customer order tracking (order bar, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrderBar.tsx`, `ShopOrders.tsx`, `useMyOrders` |
 | UX pass 2 (effects, cart bars, numbered checkout, Kantumruy Pro) | DONE | `components/effects.ts`, `shop/fly.ts`, `components/useBump.ts` |
 | Layout pass (edge-to-edge on phones, floating bars) | DONE | `cardClass` in `components/styles.ts` |
-| More in Settings (founder's request 2026-10-08): your account, Get help, Forgot password via Telegram, pause orders, Call / Messenger buttons, low-stock alert level, export orders to Excel | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`); `/forgot-password`, `/reset-password#<token>`; `store.orders_paused` / `orders_resume_on` (Settings → Orders), refused at checkout; `store.contact_phone` / `messenger_username` (Settings → Contact) as buttons in the shop (`shop/ContactSeller.tsx`); `store.low_stock_alert` (Settings → Alerts); `GET /seller/orders/export` (`services/export.py`, XlsxWriter) |
+| More in Settings (founder's request 2026-10-08): your account, Get help, Forgot password via Telegram, pause orders, Call / Messenger buttons, low-stock alert level, export orders to Excel, close shop | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`); `/forgot-password`, `/reset-password#<token>`; `store.orders_paused` / `orders_resume_on` (Settings → Orders), refused at checkout; `store.contact_phone` / `messenger_username` (Settings → Contact) as buttons in the shop (`shop/ContactSeller.tsx`); `store.low_stock_alert` (Settings → Alerts); `GET /seller/orders/export` (`services/export.py`, XlsxWriter); `POST /seller/account/close-shop` and the founder's `close-shop` / `reopen-shop` / `erase-shop` (`app/admin.py`) |
 
 None of the "MVP Built" exit criteria in 03 §10 are met yet. They all
 need a real seller and a real customer.
@@ -250,7 +250,7 @@ cd frontend && npm install
 | API dev server | `uvicorn app.main:app --reload`: http://localhost:8000, OpenAPI at `/docs` |
 | Backend tests | `pytest` (backend). Needs Postgres running; uses its own `<db>_test` database, created, migrated and emptied automatically |
 | Backend lint | `ruff check . && ruff format --check .` (`ruff format .` fixes) |
-| Founder's commands | `python -m app.admin reset-password <email>` (backend); on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
+| Founder's commands | `python -m app.admin <command> <email>`, commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
 | Frontend dev server | `npm run dev`: http://localhost:5173 |
 | Frontend lint | `npm run lint` (oxlint) |
 | Frontend build | `npm run build` (`tsc -b && vite build`, type-checks) |
@@ -726,6 +726,7 @@ from the schema.
 | POST | `/auth/password-reset/confirm` | none | `PasswordResetConfirm` | `TokenPair` | Bad, expired or used link → 400 `RESET_LINK_INVALID`; 10/min |
 | GET | `/seller/account` | seller | — | `AccountOut` | The person's own email, name, phone (`UnscopedDb`, filtered by the token's seller id) |
 | PATCH | `/seller/account` | seller | `AccountUpdate` | `AccountOut` | Partial; email lowercased, another account's → 409 `EMAIL_TAKEN` |
+| POST | `/seller/account/close-shop` | seller | `CloseShopIn` (`password`) | 204 | `seller.is_active = false` and every session deleted: the shop page is 404, login 403 `ACCOUNT_DISABLED` ("This shop is closed. Message Oak Order to open it again."). Nothing is erased; wrong password → 422 `WRONG_PASSWORD` |
 | POST | `/seller/account/password` | seller | `PasswordChange` | `TokenPair` | Wrong current password → 422 `WRONG_PASSWORD`; ends every other session (§4 Auth) |
 | GET | `/seller/store` | seller | — | `StoreOut` | Includes the three settings, `telegram_connected`, `telegram_bot_available` |
 | PATCH | `/seller/store` | seller | `StoreUpdate` | `StoreOut` | Partial; settings blobs saved whole; null on name/slug/currency/mode = leave; `logo_url` only from this store's logo folder (null removes); slug clash → 409 `SLUG_TAKEN` |
@@ -820,7 +821,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/dashboard/products`, `/products/new`, `/products/:productId` | `ProductList`, `ProductEdit` | Photos (cards as tall as the photo) or List (rows; a sortable table on laptops), kept in `sc.products.view`; stock tags: the seller's `low_stock_alert` or fewer is "Only N left" |
 | `/dashboard/categories` | `Categories` | Button on Products on phones; sidebar entry on desktop. "New category" opens a labelled form; each row's actions (share link, rename, delete) are in one ⋯ menu (`RowMenu`) |
 | `/dashboard/links`, `/links/new`, `/links/:linkId` | `LinkList`, `NewLink`, `LinkDetail` | Links as cards with Copy, views, orders and % ordered |
-| `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Store sections (`SECTION_IDS` in `form.ts`, saved with `PATCH /seller/store`): `shop`, `orders`, `payments`, `delivery`, `discounts`, `contact` (Telegram username, Messenger page, phone), `telegram` (titled Alerts: the low-stock level, and Telegram, which connects at once; the address stays /telegram because the bot's messages name it), `link`. Pages with their own endpoint (`PAGE_IDS`, `PAGES` in `SettingsSection.tsx`): `account`, `export` (This month / Last month / Choose days; downloads with `apiBlob` in `lib/api.ts`). Laptops open `shop` when none is chosen |
+| `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Store sections (`SECTION_IDS` in `form.ts`, saved with `PATCH /seller/store`): `shop`, `orders`, `payments`, `delivery`, `discounts`, `contact` (Telegram username, Messenger page, phone), `telegram` (titled Alerts: the low-stock level, and Telegram, which connects at once; the address stays /telegram because the bot's messages name it), `link`. Pages with their own endpoint (`PAGE_IDS`, `PAGES` in `SettingsSection.tsx`): `account`, `export` (This month / Last month / Choose days; downloads with `apiBlob` in `lib/api.ts`), `close` (password, confirm, then log out). Laptops open `shop` when none is chosen |
 | `/dashboard/notifications` | `Notifications` | |
 | `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public. While paused, `PausedNotice` (`shop/components.tsx`) tops every shop page and the cart's Place order is disabled; the seller's Orders tab shows a reminder |
 | `/shop/:storeSlug/product/:productSlug` | `ShopProduct` | |
@@ -1255,7 +1256,7 @@ That is the only one (grep for TODO, FIXME, XXX and HACK over `backend/`,
 - The rate limiter is in memory, per process (one instance today).
 - R2 objects are never deleted (removed photos, replaced logos).
 - `notification_log` keeps every row, and links can't be deleted.
-- No admin tooling: `seller.is_active` can only be changed in the DB.
+- No admin screen: the founder's few tasks are commands in `app/admin.py` (docs/ADMIN.md).
 - The customer's phone travels in the tracking URL query string, so it
   appears in access logs.
 - Migrations run at container start; they should move to Render's
