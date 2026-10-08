@@ -51,6 +51,9 @@ export const links = {
     km: (shown: number, total: number) => `ការកុម្ម៉ង់ចុងក្រោយ ${shown} ក្នុងចំណោម ${total}។`,
   },
   copyLink: { en: 'Copy link', km: 'ចម្លងតំណ' },
+  copy: { en: 'Copy', km: 'ចម្លង' },
+  // On a link's card.
+  ordered: { en: (pct: number) => `${pct}% ordered`, km: (pct: number) => `${pct}% បានកុម្ម៉ង់` },
   linkCopied: { en: 'Link copied', km: 'បានចម្លងតំណ' },
   copyFailed: {
     en: "Couldn't copy. Press and hold the link to copy it.",

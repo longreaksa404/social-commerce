@@ -1,9 +1,10 @@
-import { ChevronRight, Link2, Plus } from 'lucide-react'
+import { Copy, Link2, Plus } from 'lucide-react'
 import { Link } from 'react-router'
-import { Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
+import { useFeedback } from '../../components/feedback.ts'
+import { Button, Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
 import { useT } from '../../i18n/useT.ts'
-import { linkPlace, linkTargetName, TARGET_ICONS } from '../../lib/links.ts'
+import { linkPlace, linkTargetName, linkUrl, TARGET_ICONS } from '../../lib/links.ts'
 import type { ShareLink } from '../../lib/types.ts'
 import { useLinks } from '../queries.ts'
 
@@ -53,36 +54,93 @@ export function LinkList() {
   return (
     <>
       <PageHeader title={l.title} action={newButton} />
-      <Card className="divide-y divide-slate-100 overflow-hidden">
+      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {links.data.map((link) => (
-          <LinkRow key={link.id} link={link} />
+          <li key={link.id}>
+            <LinkCard link={link} />
+          </li>
         ))}
-      </Card>
+      </ul>
     </>
   )
 }
 
-function LinkRow({ link }: { link: ShareLink }) {
+// Each place's own colour and letter, so links are told apart at a glance.
+const SOURCE_MARK: Record<string, { letter: string; className: string }> = {
+  facebook: { letter: 'f', className: 'bg-[#1877f2] text-white' },
+  tiktok: { letter: 'T', className: 'bg-[#111] text-white ring-1 ring-white/20' },
+  instagram: { letter: 'I', className: 'bg-[#d62976] text-white' },
+  telegram: { letter: 'T', className: 'bg-[#2a9de0] text-white' },
+  messenger: { letter: 'M', className: 'bg-[#0084ff] text-white' },
+}
+
+/** A link as a card (founder's pick, 2026-10-08): where it's posted and
+ * what it opens, Copy right on it (posting a link is one tap from the
+ * list), and its views and orders, with how many of the views ordered.
+ * The card opens the link's page. */
+function LinkCard({ link }: { link: ShareLink }) {
   const Icon = TARGET_ICONS[link.target_type]
+  const { toast } = useFeedback()
   const t = useT()
+  const l = t.links
+  const mark = link.source ? SOURCE_MARK[link.source] : undefined
+  const pct = link.view_count > 0 ? Math.round((link.order_count / link.view_count) * 100) : null
+
+  async function copy() {
+    if (!link.path) return
+    try {
+      await navigator.clipboard.writeText(linkUrl(link.path))
+      toast(l.linkCopied)
+    } catch {
+      toast(l.copyFailed, 'error')
+    }
+  }
+
   return (
-    <Link
-      to={`/dashboard/links/${link.id}`}
-      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
-    >
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-        <Icon aria-hidden className="size-5" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate font-semibold text-slate-900">{linkTargetName(t, link)}</span>
-        <span className="mt-0.5 block truncate text-sm text-slate-700">{linkPlace(link)}</span>
-        <span className="mt-0.5 block text-xs text-slate-500">
-          {t.links.views(link.view_count)} · {t.links.orders(link.order_count)}
-          {link.path === null && t.links.notWorkingTag}
-        </span>
-      </span>
-      <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-300" />
-    </Link>
+    <Card className="relative flex h-full flex-col gap-3 p-4 transition-colors hover:bg-slate-50">
+      <div className="flex items-center gap-3">
+        {mark ? (
+          <span aria-hidden className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-lg font-extrabold ${mark.className}`}>
+            {mark.letter}
+          </span>
+        ) : (
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+            <Icon aria-hidden className="size-5" />
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <Link
+            to={`/dashboard/links/${link.id}`}
+            className="block truncate font-semibold text-slate-900 after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-2 focus-visible:outline-navy-600"
+          >
+            {linkTargetName(t, link)}
+          </Link>
+          <p className="truncate text-sm text-slate-500">
+            {linkPlace(link) || l.wholeShop}
+            {link.path === null && <span className="text-red-700">{l.notWorkingTag}</span>}
+          </p>
+        </div>
+        {link.path && (
+          // Above the card's link, so it copies rather than opens.
+          <Button variant="secondary" icon={Copy} onClick={copy} className="relative z-10 shrink-0">
+            {l.copy}
+          </Button>
+        )}
+      </div>
+      <dl className="grid grid-cols-2 gap-2">
+        <div className="rounded-xl bg-slate-50 px-3 py-2">
+          <dt className="text-xs text-slate-500">{l.viewsLabel}</dt>
+          <dd className="text-lg font-bold text-slate-900 tabular-nums">{link.view_count}</dd>
+        </div>
+        <div className="rounded-xl bg-slate-50 px-3 py-2">
+          <dt className="text-xs text-slate-500">{l.ordersLabel}</dt>
+          <dd className="text-lg font-bold text-slate-900 tabular-nums">
+            {link.order_count}
+            {pct !== null && <span className="ml-1.5 text-xs font-medium text-slate-500">{l.ordered(pct)}</span>}
+          </dd>
+        </div>
+      </dl>
+    </Card>
   )
 }
 
