@@ -857,6 +857,13 @@ redesign, calm look). Steps, each committed on its own:
    photo into the cart (it had been flying a plain dot: it couldn't
    find the photo). Checked at 390 and 1280 px with mocked data; lint
    and build pass. Founder checked it locally, 2026-10-08. Not pushed.
+9. [x] Shop product cards look like the seller's (founder's request
+   2026-10-08): each card is a white card with the photo across the top
+   and the name, price, and a red "Sold out" tag inside under it (Sold
+   out was a pill on the photo), same gaps as the seller's grid. The +
+   stays on the photo; the loading grid shows the same cards. Checked at
+   390 and 1280 px against the seller's grid; lint and build pass. Not
+   pushed.
 
 The redesign is complete and pushed (2026-10-08, with the bcrypt fix and
 load test). Founder: check CI and the live site once Vercel and Render

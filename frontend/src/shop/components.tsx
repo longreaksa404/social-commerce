@@ -1,7 +1,7 @@
 import { ImageOff, Minus, Plus, SearchX, Store } from 'lucide-react'
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
-import { Card, IconButton, Skeleton } from '../components/ui.tsx'
+import { Badge, Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { thumbnailUrl } from '../lib/images.ts'
 import { formatPriceRange } from '../lib/money.ts'
 import { useT } from '../i18n/useT.ts'
@@ -114,22 +114,23 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
 }
 
 /** Photos, each card as tall as its photo (no cropping to a square),
- * packed in columns like a photo wall, as in the seller's product list. */
+ * packed in columns like a photo wall: the same cards as the seller's
+ * product list, photo on top and name, price, and Sold out under it. */
 export function ProductGrid({ shop, products }: { shop: ShopStore; products: ShopProductCard[] }) {
   const t = useT()
   return (
-    <ul className="columns-2 gap-x-3 sm:columns-3 sm:gap-x-4 lg:columns-4 xl:columns-5">
+    <ul className="columns-2 gap-3 sm:columns-3 lg:columns-4 xl:columns-5">
       {products.map((product, i) => (
         // The first ones come in one after another. The whole card is the
         // link (its ::after covers it), so the + can sit on the photo
         // without being inside the link (a button can't be).
         <li
           key={product.id}
-          className="group relative mb-6 animate-rise break-inside-avoid transition-transform has-[a:active]:scale-[0.97]"
+          className="group relative mb-3 animate-rise break-inside-avoid overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6 transition-transform has-[a:active]:scale-[0.98] has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-navy-600"
           style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
         >
           <div className="relative">
-            <div className="overflow-hidden rounded-2xl">
+            <div className="overflow-hidden">
               <ProductImage
                 small
                 natural
@@ -138,21 +139,21 @@ export function ProductGrid({ shop, products }: { shop: ShopStore; products: Sho
                 className={`w-full transition-transform group-hover:scale-[1.03] ${product.in_stock ? '' : 'opacity-60'}`}
               />
             </div>
-            {!product.in_stock && (
-              <span className="absolute top-2 left-2 rounded-full bg-black/70 px-2.5 py-1 text-xs font-semibold text-white">
-                {t.shop.soldOut}
-              </span>
-            )}
             {!product.has_variants && product.in_stock && <QuickAdd shop={shop} product={product} />}
           </div>
           <Link
             to={`/shop/${shop.slug}/product/${product.slug}`}
-            className="mt-2 block outline-none after:absolute after:inset-0 after:rounded-2xl focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-navy-600"
+            className="block p-3 outline-none after:absolute after:inset-0"
           >
-            <span className="line-clamp-2 text-sm leading-5 text-slate-800">{product.name}</span>
-            <span className="mt-1 block text-sm font-semibold text-slate-900">
+            <span className="line-clamp-2 text-sm leading-5 font-medium text-slate-900">{product.name}</span>
+            <span className="mt-0.5 block text-sm font-semibold text-slate-900 tabular-nums">
               {formatPriceRange(product.price_min, product.price_max, shop.currency)}
             </span>
+            {!product.in_stock && (
+              <span className="mt-1.5 block">
+                <Badge tone="red">{t.shop.soldOut}</Badge>
+              </span>
+            )}
           </Link>
         </li>
       ))}
@@ -210,12 +211,14 @@ const SKELETON_SHAPES = ['aspect-[4/5]', 'aspect-square', 'aspect-[3/4]', 'aspec
 
 export function ProductGridSkeleton() {
   return (
-    <div aria-hidden className="columns-2 gap-x-3 sm:columns-3 sm:gap-x-4 lg:columns-4 xl:columns-5">
+    <div aria-hidden className="columns-2 gap-3 sm:columns-3 lg:columns-4 xl:columns-5">
       {SKELETON_SHAPES.map((shape, i) => (
-        <div key={i} className="mb-6 break-inside-avoid">
-          <Skeleton className={`w-full rounded-2xl ${shape}`} />
-          <Skeleton className="mt-2 h-4 w-4/5" />
-          <Skeleton className="mt-2 h-4 w-1/3" />
+        <div key={i} className="mb-3 break-inside-avoid overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6">
+          <Skeleton className={`w-full rounded-none ${shape}`} />
+          <div className="p-3">
+            <Skeleton className="h-4 w-4/5" />
+            <Skeleton className="mt-2 h-4 w-1/3" />
+          </div>
         </div>
       ))}
     </div>
