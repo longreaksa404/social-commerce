@@ -8,6 +8,7 @@ import {
   type ButtonHTMLAttributes,
   type ComponentType,
   type CSSProperties,
+  type FormEvent,
   type InputHTMLAttributes,
   type ReactNode,
   type Ref,
@@ -41,9 +42,15 @@ function controlClass(invalid: boolean, extra = '') {
   return `${control} ${tone} ${extra}`
 }
 
+type FormControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+
 /** Label + control + hint/error. The control inside picks up its id,
  * aria-invalid, and aria-describedby from here, so the label names it and
- * the hint/error is read as its description. */
+ * the hint/error is read as its description.
+ *
+ * A required control gets a * on the label. Submitting the form with it
+ * empty (or otherwise invalid) shows the reason under it, in the app's
+ * language, instead of the browser's bubble; typing clears it. */
 export function Field({
   label,
   hint,
@@ -56,18 +63,39 @@ export function Field({
   children: ReactNode
 }) {
   const id = useId()
-  const describedBy = error || hint ? `${id}-desc` : undefined
+  const t = useT()
+  const [problem, setProblem] = useState<string | null>(null)
+  const message = problem ?? error
+  const describedBy = message || hint ? `${id}-desc` : undefined
+
+  // React's invalid event bubbles, so this hears the control inside.
+  function onInvalid(event: FormEvent<HTMLDivElement>) {
+    const control = event.target as FormControl
+    event.preventDefault()
+    setProblem(control.validity.valueMissing ? t.common.required : control.validationMessage)
+    // With the bubble off the browser doesn't move to the first bad field,
+    // so do it here, clear of the sticky header and the pinned Save bar.
+    const first = Array.from(control.form?.elements ?? []).find((el) => !(el as FormControl).validity?.valid)
+    if (first === control) {
+      control.focus({ preventScroll: true })
+      control.scrollIntoView({ block: 'center' })
+    }
+  }
+
   return (
-    <FieldContext value={{ id, invalid: Boolean(error), describedBy }}>
-      <div>
+    <FieldContext value={{ id, invalid: Boolean(message), describedBy }}>
+      <div className="group/field" onInvalid={onInvalid} onInput={() => setProblem(null)}>
         <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-700">
           {label}
+          <span aria-hidden className="ml-0.5 hidden text-red-600 group-has-[:required]/field:inline">
+            *
+          </span>
         </label>
         {children}
-        {error ? (
+        {message ? (
           <p id={describedBy} className="mt-1.5 flex items-start gap-1 text-sm text-red-600">
             <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
-            {error}
+            {message}
           </p>
         ) : (
           hint && (

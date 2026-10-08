@@ -892,6 +892,14 @@ is wrapped in try/catch (private mode).
   outlet), `Badge`, `LiveBadge`, `Skeleton`, `EmptyState`, `ErrorMessage`,
   `ErrorState` (with retry), `Spinner`, `SlowNotice` (after 4 s: "the
   first visit can take a minute"), `SuccessTick`, `SavedNote`.
+  `Field` puts a red * on the label of a `required` control (CSS
+  `:has(:required)`, so it follows a changing `required`). Forms keep the
+  browser's own validation, but `Field` catches the `invalid` event: it
+  turns the browser bubble off and shows the reason as the field's error
+  ("Please fill this in." in the app's language when empty, the browser's
+  message otherwise), then scrolls to and focuses the first bad field.
+  Typing clears it. Required inputs outside a `Field` (variant rows) still
+  get the browser bubble.
 - `components/styles.ts`: `buttonClass(variant, size)` (variants primary,
   secondary, danger, destructive, ghost; sizes md, lg) and `cardClass`.
 - `components/feedback.ts` + `FeedbackProvider.tsx`: `useFeedback()` →

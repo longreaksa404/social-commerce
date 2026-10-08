@@ -23,6 +23,8 @@ export const common = {
     en: 'Still loading. The first visit in a while can take up to a minute.',
     km: 'កំពុងផ្ទុក… ការចូលលើកដំបូងក្រោយពេលយូរ អាចចំណាយពេលរហូតដល់មួយនាទី។',
   },
+  // Under a required field left empty when the form is sent.
+  required: { en: 'Please fill this in.', km: 'សូមបំពេញព័ត៌មាននេះ។' },
   showPassword: { en: 'Show password', km: 'បង្ហាញពាក្យសម្ងាត់' },
   hidePassword: { en: 'Hide password', km: 'លាក់ពាក្យសម្ងាត់' },
   couldNotLoad: { en: "Couldn't load this page", km: 'មិនអាចបើកទំព័រនេះបានទេ' },
