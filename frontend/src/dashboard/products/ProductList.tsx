@@ -337,6 +337,9 @@ function ProductTable({
             {head('stock', c.stock)}
             <th scope="col" className="px-4 py-3 text-left font-semibold">{c.category}</th>
             <th scope="col" className="px-4 py-3 text-left font-semibold">{c.inShop}</th>
+            <th scope="col" className="w-10 pr-3">
+              <span className="sr-only">{c.open}</span>
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
@@ -361,6 +364,9 @@ function ProductTable({
               <td className="px-4 py-2.5 text-slate-600">{product.category_id ? categoryName.get(product.category_id) : '–'}</td>
               <td className="px-4 py-2.5">
                 {product.status === 'inactive' ? <Badge>{t.products.hidden}</Badge> : <span className="text-slate-600">{c.shown}</span>}
+              </td>
+              <td className="pr-3 text-slate-300">
+                <ChevronRight aria-hidden className="size-5" />
               </td>
             </tr>
           ))}

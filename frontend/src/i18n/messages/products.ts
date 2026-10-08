@@ -40,6 +40,8 @@ export const products = {
     category: { en: 'Category', km: 'ប្រភេទ' },
     inShop: { en: 'In shop', km: 'ក្នុងហាង' },
     shown: { en: 'Shown', km: 'បង្ហាញ' },
+    // The last, empty column with the › (for screen readers only).
+    open: { en: 'Open', km: 'បើក' },
     sortBy: { en: (column: string) => `Sort by ${column}`, km: (column: string) => `តម្រៀបតាម${column}` },
   },
   variantCount: { en: (n: number) => `${n} variants`, km: (n: number) => `ជម្រើស ${n}` },
