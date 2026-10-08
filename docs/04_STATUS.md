@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-08 (Phase 9: redesign complete, not deployed)
+> **Last updated:** 2026-10-08 (Render kept awake by day: cron-job.org, founder to set up)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -837,6 +837,11 @@ have redeployed.
 
 Phase 9, waiting on the founder:
 
+- **Keep Render awake by day** (decided 2026-10-08): first check in
+  Render (Billing, free usage) that this API is the only free service;
+  then a cron-job.org account and one job (settings in Notes). Tell
+  Claude when it runs, to update `docs/CODEBASE.md` and close this.
+
 - **Live load test**, once, before the first real seller, from home
   (`backend/loadtest/README.md` "On the live site"): time the wait
   after 20 quiet minutes, rate limits off in Render, seed + Locust +
@@ -1018,9 +1023,21 @@ Resolved:
       Elephant Kit, Mango Stall); Tinh Lak dropped (too close to Tinh
       Tinh and TENH24). No Cambodian app or company named Sroul or
       Srual found.
-- [x] **Render stays on the free plan for now** (2026-10-04); revisit if
-      the first seller's customers find the first visit slow ($7/month
-      Starter keeps it awake).
+- [x] **Render stays on the free plan, kept awake by day** (2026-10-08;
+      replaces "revisit if slow" from 2026-10-04): a free cron-job.org
+      job calls `/health` every 10 minutes, 6:00-22:50 Phnom Penh time,
+      so only a visit at night after 15 quiet minutes waits for Render
+      to wake. That uses ~530 of Render's 750 free hours a month; all
+      day would use ~744, and the founder ran out of them that way on
+      an earlier project. `/health` doesn't touch the database, so Neon
+      still sleeps. **Move to Starter ($7/month)** when the seller is
+      earning, when another free service is added to the Render account
+      (they share the hours), or past ~40 people in the shop at once
+      (the free plan's limit in the load test). Not chosen: Cloudflare
+      Workers ($5; our database code would need rewriting, since Python
+      Workers don't support async SQLAlchemy yet) and a Contabo VPS
+      (saves $0-2 a month over Starter, but the founder would run and
+      secure the server).
 - [x] **Small photos for the product grid: built in Phase 9**
       (2026-10-04; closes the Phase 2 proposal).
 - [x] **Nightly database backup to a private R2 bucket via GitHub
@@ -1053,8 +1070,19 @@ Not yet in 03 (founder said yes 2026-10-06): **load test before the
 first real seller.** Proposed 03 Phase 9 row, after "Layout pass":
 "| Load test before the first seller (`backend/loadtest/`: locally at
 Render's CPU, then once on the live site) and the bcrypt fix it found
-| 4 |"; subtotal ~104 hours (~8 weeks); §4: Phase 9 104, total ~332
-hrs.
+| 4 |"; subtotal ~118 hours; §4: Phase 9 118, total ~346 hrs.
+
+Not yet in 02/03 (founder said yes 2026-10-08): **Render kept awake by
+day.** 02 §3 Backend hosting row, the Render cell: "**Render** (Docker
+deploy of FastAPI; free web service, Singapore, for the MVP; stays free
+for the first seller, decided 2026-10-04; a free cron-job.org call to
+`/health` every 10 minutes keeps it awake 6:00-23:00 Phnom Penh time,
+decided 2026-10-08, so only a visit at night after 15 quiet minutes
+waits up to a minute, and the app says so; Starter ($7/month) once the
+seller is earning or another free Render service is added)". 03 Phase 9
+"Decided (2026-10-04)" note: after "(the app says when the server is
+waking up)" add "; a free cron-job.org ping keeps it awake by day
+(2026-10-08)".
 
 Applied to 03 on 2026-10-04 (at the founder's request): the layout pass
 (03 Phase 9 row, subtotal ~100 hrs, §4 totals: Phase 9 100 hrs, total
@@ -1268,8 +1296,17 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   which happens more often when the server is slow; browsers retry
   these. If the live test shows errors (502s) at normal load, raise
   uvicorn's `--timeout-keep-alive` in the Dockerfile.
+- **cron-job.org job (keeps Render awake by day):** URL
+  `https://social-commerce-api.onrender.com/health`, GET; schedule
+  custom: minutes 0,10,20,30,40,50, hours 6-22, every day; time zone
+  Asia/Phnom_Penh; don't save responses. Alerts: on failure after 3
+  failures in a row (the 6:00 call usually times out at cron-job.org's
+  30 s while Render wakes, but it still wakes it), on success after a
+  failure, on being disabled. cron-job.org turns a job off after 25
+  failures in a row.
 - Free-tier limits to revisit before the first real seller (Phase 9): the
-  Render free web service sleeps after 15 min idle (slow first request);
+  Render free web service sleeps after 15 min idle (slow first request;
+  by day the cron-job.org job keeps it awake);
   Neon free keeps only a 6-hour restore window, not daily backups. When the
   service moves to a paid instance, switch migrations to `preDeployCommand`.
 - `*.r2.dev` is blocked by the company network's filter (Cisco Umbrella,
@@ -1347,3 +1384,5 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 9. Founder: push (the bcrypt fix deploys with it), then the live load
    test from home (`backend/loadtest/README.md`); send Claude the
    summary lines. Decide Render free vs Starter with those numbers.
+10. Founder: cron-job.org job to keep Render awake by day (Notes);
+    check first that it's the only free service in Render.
