@@ -850,10 +850,14 @@ have redeployed.
 
 Phase 9, waiting on the founder:
 
-- **Keep Render awake by day** (decided 2026-10-08): first check in
-  Render (Billing, free usage) that this API is the only free service;
-  then a cron-job.org account and one job (settings in Notes). Tell
-  Claude when it runs, to update `docs/CODEBASE.md` and close this.
+- **Keep Render awake by day** (decided 2026-10-08): a cron-job.org
+  account and one job (settings in Notes). Tell Claude when it runs, to
+  update `docs/CODEBASE.md` and close this. Render checked 2026-10-08:
+  31.47 of 750 free hours used (nothing kept awake), 20 MB of 5 GB
+  bandwidth, **4 services** in the workspace: the founder to say what
+  the other 3 are and suspend the ones no longer used, since free
+  services share the hours. Expected with the ping: ~425 hours this
+  month, ~530 a full month.
 
 - **Live load test**, once, before the first real seller, from home
   (`backend/loadtest/README.md` "On the live site"): time the wait
@@ -1309,6 +1313,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   which happens more often when the server is slow; browsers retry
   these. If the live test shows errors (502s) at normal load, raise
   uvicorn's `--timeout-keep-alive` in the Dockerfile.
+- Render's free workspace also includes **5 GB of bandwidth a month**
+  (charged beyond it); 20 MB used by 2026-10-08. The API only sends JSON
+  (photos come from R2), so that's well over 100,000 shop visits a month.
 - **cron-job.org job (keeps Render awake by day):** URL
   `https://social-commerce-api.onrender.com/health`, GET; schedule
   custom: minutes 0,10,20,30,40,50, hours 6-22, every day; time zone
@@ -1397,5 +1404,5 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 9. Founder: push (the bcrypt fix deploys with it), then the live load
    test from home (`backend/loadtest/README.md`); send Claude the
    summary lines. Decide Render free vs Starter with those numbers.
-10. Founder: cron-job.org job to keep Render awake by day (Notes);
-    check first that it's the only free service in Render.
+10. Founder: cron-job.org job to keep Render awake by day (Notes); say
+    what the other 3 Render services are and suspend unused ones.
