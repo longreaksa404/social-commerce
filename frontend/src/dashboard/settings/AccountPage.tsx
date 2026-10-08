@@ -139,13 +139,7 @@ function PasswordForm({ email }: { email: string }) {
           />
         </Field>
         <ErrorMessage error={formError(change.error, ['current_password', 'new_password'])} />
-        <Button
-          type="submit"
-          variant="secondary"
-          loading={change.isPending}
-          disabled={!current || !next}
-          className="w-full sm:w-auto"
-        >
+        <Button type="submit" variant="secondary" loading={change.isPending} className="w-full sm:w-auto">
           {s.changePassword}
         </Button>
       </form>
