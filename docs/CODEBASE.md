@@ -146,7 +146,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 │   ├── ci.yml                 Backend: ruff, ruff format, alembic upgrade, pytest (Postgres service). Frontend: oxlint, build
 │   └── backup.yml             Nightly pg_dump of prod to a private R2 bucket; skips until its secrets exist
 ├── .devcontainer/             Dev container (Python 3.12, Node, Docker-in-Docker; file polling on)
-├── docs/                      01_PRODUCT, 02_TECHNICAL, 03_DEVELOPMENT, 04_STATUS, BACKUPS, REGRESSION_CHECKLIST, this file
+├── docs/                      01_PRODUCT, 02_TECHNICAL, 03_DEVELOPMENT, 04_STATUS, ADMIN (founder's commands), BACKUPS, REGRESSION_CHECKLIST, this file
 │
 ├── backend/
 │   ├── Dockerfile             python:3.12-slim; CMD runs `alembic upgrade head` then uvicorn
@@ -157,6 +157,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 │   ├── alembic/versions/      10 migrations, linear (chain in §5)
 │   ├── app/
 │   │   ├── main.py            Builds `app`: Sentry, lifespan (Telegram webhook), CORS, routers
+│   │   ├── admin.py           The founder's commands (`python -m app.admin ...`, docs/ADMIN.md)
 │   │   ├── core/
 │   │   │   ├── config.py      Settings (pydantic-settings) from env / root .env
 │   │   │   ├── errors.py      AppError, NotFound, the error envelope and handlers
@@ -248,6 +249,7 @@ cd frontend && npm install
 | API dev server | `uvicorn app.main:app --reload`: http://localhost:8000, OpenAPI at `/docs` |
 | Backend tests | `pytest` (backend). Needs Postgres running; uses its own `<db>_test` database, created, migrated and emptied automatically |
 | Backend lint | `ruff check . && ruff format --check .` (`ruff format .` fixes) |
+| Founder's commands | `python -m app.admin reset-password <email>` (backend); on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
 | Frontend dev server | `npm run dev`: http://localhost:5173 |
 | Frontend lint | `npm run lint` (oxlint) |
 | Frontend build | `npm run build` (`tsc -b && vite build`, type-checks) |
@@ -985,7 +987,7 @@ through to the SPA.
 | **R2 backup bucket** | PARTIAL | `.github/workflows/backup.yml` (02:00 Phnom Penh, `pg_dump` 17, custom format, `--no-owner`, grants kept) uploads with the AWS CLI. It skips until its secrets exist (`docs/BACKUPS.md`). |
 | **Sentry** | WIRED, env-gated | Backend `sentry_sdk.init` (errors only); frontend `@sentry/react`. |
 | **Maps** | WIRED (frontend only) | Leaflet + OpenStreetMap tiles in `MapPicker.tsx` (no key). The seller opens the pin in Google Maps by URL. |
-| Courier APIs, SMS, email | NOT BUILT | No email at all, so no password reset or email verification. |
+| Courier APIs, SMS, email | NOT BUILT | No email at all, so no email verification. A forgotten password is reset by the founder (`python -m app.admin reset-password`). |
 
 ---
 
