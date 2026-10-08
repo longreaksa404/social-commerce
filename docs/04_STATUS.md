@@ -874,7 +874,7 @@ have redeployed.
 
 **More in Settings** (founder asked 2026-10-08 and picked from a list:
 1–8 and 11, then 9; 10 waits for pricing). Each committed on its own;
-**none pushed yet**:
+pushed 2026-10-08:
 
 1. [x] **Your account** (`10d6911`): name, phone, login email, change
    password (needs the current one; every other phone is logged out).
@@ -1147,8 +1147,11 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-From "More in Settings" (2026-10-08, founder's picks; text for 01/02/03
-given to the founder, not applied yet):
+Applied to 01/02/03 on 2026-10-08 (at the founder's request): "More in
+Settings" (01 §23.1 Settings, §11, §46 Business; 02 §4.3, §5.1, §5.2
+seller and store, §6.2; 03 Phase 9 row, 39 hrs; subtotal ~157 hrs; §4
+totals: Phase 9 157 hrs, total ~385 hrs). The decisions, from the
+founder's picks:
 
 - **Data model** (02 §5, approved with the picks): `store.orders_paused`,
   `store.orders_resume_on`, `store.contact_phone`,
@@ -1474,8 +1477,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 0. Founder: try the new Settings pieces (list under In Progress, "More
    in Settings") on the dev server or after a push; choose the Oak Order
    support Telegram account and set `VITE_SUPPORT_TELEGRAM` in Vercel;
-   say whether to apply the 01/02/03 text; then push (four migrations
-   run on Render's start).
+   check CI and the live site after the push of 2026-10-08 (four
+   migrations run on Render's start).
 
 1. Founder: check the layout pass (live since 2026-10-04). On your
    phone: the shop, the cart and the dashboard

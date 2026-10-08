@@ -276,9 +276,10 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Layout pass: phones edge to edge, lists aligned, action and Save bars floating on wide screens (founder's request 2026-10-04) | 3 |
 | Load test before the first seller (`backend/loadtest/`: locally at Render's CPU, then once on the live site) and the bcrypt fix it found (founder's request 2026-10-06) | 4 |
 | Frontend redesign: Navy brand colour, Kantumruy Pro for all text, every screen reworked from options the founder picked (shop, checkout, order tracking, seller orders, products, customers, links, settings, login, start page), the brand name and mark, Oak Order since 2026-10-08 (founder's request 2026-10-06, done 2026-10-08) | 14 |
+| More in Settings: your account and password, forgot password via the shop's Telegram, pause orders with a reopening day, Call and Messenger buttons, low-stock alert level, export orders to Excel, close shop, staff logins (everything but Settings), the founder's commands (`docs/ADMIN.md`) (founder's request 2026-10-08, done the same day; plan and billing wait for pricing) | 39 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~118 hours (**~9 weeks**)
+**Subtotal:** ~157 hours (**~12 weeks**)
 
 > **Decided (2026-10-04):** a .com domain bought through Cloudflare; Render
 > stays on the free plan for the first seller (the app says when the
@@ -303,8 +304,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 17 | 1.5 wks |
-| 9 — Polish/First Seller | 118 | 9 wks |
-| **Total** | **~346 hrs** | **~26.5 weeks (~6 months)** |
+| 9 — Polish/First Seller | 157 | 12 wks |
+| **Total** | **~385 hrs** | **~29.5 weeks (~7 months)** |
 
 This is a planning estimate, not a commitment.
 

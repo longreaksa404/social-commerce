@@ -502,6 +502,8 @@ Telegram should initially be treated as an optional integration.
 
 **Decided (2026-10-03):** "Ask seller on Telegram" on the product page opens a chat with the seller's own Telegram account (the username they enter in Settings), with the product's name and link already typed. The seller answers from their own Telegram; the platform's bot isn't involved and the conversation isn't stored. No username, no button.
 
+**Decided (2026-10-08):** the seller can also show Messenger (their Facebook page) and a phone to call, set in Settings → Contact; each button shows only when filled in. Messenger can't have the question typed in, so it is copied for the customer to paste.
+
 It should not become a mandatory dependency for ordering.
 
 # 12. Customer Ordering
@@ -1011,6 +1013,16 @@ The MVP should therefore focus on the smallest complete transaction loop.
 - Basic payment configuration
 - Basic delivery configuration
 - Order confirmation configuration
+
+**Decided (2026-10-08), added to the MVP at the founder's request:**
+
+- Pause orders for a while, with an optional day they open again by themselves
+- Contact buttons for customers: Telegram, Messenger (a Facebook page), a phone to call
+- Low-stock alert level
+- Account: name, phone, login email, password; a forgotten password is reset through the shop's Telegram chat (or by Oak Order)
+- Staff logins: helpers with their own email who can do everything except Settings
+- Export orders to Excel
+- Close shop: the link and logins stop, nothing is erased; Oak Order reopens it or erases it for good on request
 
 # 24. MVP Customer Features
 
@@ -1803,6 +1815,7 @@ The following are intentionally not finalized.
 - Setup fee
 - Hosting fee
 - Pricing tiers
+- Plan and billing page in Settings: waits for the subscription price and free trial (founder, 2026-10-08)
 
 ## Market
 

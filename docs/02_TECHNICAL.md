@@ -131,6 +131,8 @@ Rejected alternatives and why:
 
 A `seller` (the account that logs in) owns one `store` in the MVP (1:1). The schema still models them as separate entities so a future "one seller, multiple stores" case doesn't require a migration — but the MVP UI and business logic assume 1:1.
 
+**Staff logins (decided 2026-10-08):** an owner owns one store; staff logins belong to one store (`seller.role = staff`, `seller.store_id`) and can do everything except Settings. The owner adds them with an email and a first password (no email is sent), sets a new password for them, and removes them. The access token carries the role; Settings endpoints refuse staff (403 `OWNER_ONLY`).
+
 ---
 
 # 5. Data Model
@@ -138,8 +140,9 @@ A `seller` (the account that logs in) owns one `store` in the MVP (1:1). The sch
 ## 5.1 Core Entities (MVP)
 
 ```
-seller
+seller (owner)
  └─ store (1:1 in MVP)
+     ├─ seller (staff logins, role staff)
      ├─ category
      ├─ product
      │   └─ product_variant
@@ -164,7 +167,9 @@ seller
 | full_name | text | |
 | phone | text | |
 | created_at | timestamptz | |
-| is_active | bool | default true |
+| is_active | bool | default true; false once the shop is closed (the shop page and logins stop) |
+| role | enum(`owner`,`staff`) | default `owner` (2026-10-08) |
+| store_id | UUID FK → store, nullable | staff only: the store they work in; deleted with it. CHECK `(role = 'staff') = (store_id IS NOT NULL)` (2026-10-08) |
 
 ### `store` (tenant root)
 | Column | Type | Notes |
@@ -177,11 +182,16 @@ seller
 | logo_url | text, nullable | the shop's logo, uploaded with `POST /seller/store/logo` (Phase 9); shown in the shop and dashboard headers |
 | telegram_chat_id | text, nullable | for seller notifications; private, never shown on the shop |
 | telegram_username | text, nullable | the seller's own Telegram username (without @), public on the shop page for "Ask seller" |
+| contact_phone | text, nullable | a number customers can call, stored like customers' phones (`012345678`); public (2026-10-08) |
+| messenger_username | text, nullable | a Facebook page's username or number, for a Messenger button (`m.me/<it>`); public (2026-10-08) |
 | payment_config | JSONB | which methods are on, with their details: `{"cod": {"enabled": true}, "bank_transfer": {"enabled", "bank_name", "account_name", "account_number"}, "khqr": {"enabled", "bakong_account_id", "merchant_name"}}`. A method can only be on with its details filled in; at least one must be on. Missing parts read as the defaults (cash on delivery on, the others off), so a new store takes cash on delivery. Details are kept while a method is off. |
 | delivery_config | JSONB | `{"fee", "free_from_amount", "free_from_items", "own_delivery": {"enabled"}, "couriers": ["J&T Express", ...], "pickup": {"enabled", "address"}}`. One fee for any delivery (own or courier); free from an amount (items before discount) or a number of units; pickup free. At least one of own delivery, a courier, or pickup. Missing parts read as the defaults (own delivery on, free), so a new store can take orders at once. |
 | discount_config | JSONB | `{"rules": [{"min_subtotal", "amount_off"}]}`, up to 5; the biggest rule the items reach applies, never more than the items |
 | order_confirmation_mode | enum(`automatic`,`manual`) | default `manual` |
 | currency | enum(`USD`,`KHR`) | default `USD`; currency all prices in the store are shown in |
+| orders_paused | bool | default false; not taking orders for a while: the shop can be browsed, checkout is refused (2026-10-08) |
+| orders_resume_on | date, nullable | the first day orders open again (Phnom Penh), by themselves; null: until the seller turns them back on (2026-10-08) |
+| low_stock_alert | int | default 5; an order leaving this many or fewer alerts the seller (bell, Telegram). Customers' "Only N left" stays at 5 (2026-10-08) |
 | created_at | timestamptz | |
 
 ### `category`
@@ -327,12 +337,26 @@ POST   /api/v1/auth/register
 POST   /api/v1/auth/login
 POST   /api/v1/auth/refresh
 POST   /api/v1/auth/logout
+POST   /api/v1/auth/password-reset            # Forgot password? a link to the shop's Telegram chat; same answer for any email
+POST   /api/v1/auth/password-reset/confirm    # the link's token + a new password; logs in
+```
+
+### Seller — Account and staff (2026-10-08)
+```
+GET    /api/v1/seller/account                 # the logged-in person's name, phone, email, role
+PATCH  /api/v1/seller/account
+POST   /api/v1/seller/account/password        # needs the current one; logs out other phones
+POST   /api/v1/seller/account/close-shop      # owner; password; link and logins stop, nothing erased
+GET    /api/v1/seller/staff                   # owner only, like everything under Settings
+POST   /api/v1/seller/staff                   # name, phone, email, first password
+POST   /api/v1/seller/staff/{id}/password
+DELETE /api/v1/seller/staff/{id}
 ```
 
 ### Seller — Store
 ```
 GET    /api/v1/seller/store
-PATCH  /api/v1/seller/store                   # takes logo_url only from a logo upload below; null removes it
+PATCH  /api/v1/seller/store                   # owner only; takes logo_url only from a logo upload below; null removes it
 POST   /api/v1/seller/store/logo              # presigned logo upload, see §11
 POST   /api/v1/seller/store/telegram/link     # signed t.me/<bot>?start=<code> link, 30 min
 DELETE /api/v1/seller/store/telegram          # disconnect the seller's chat
@@ -359,6 +383,7 @@ DELETE /api/v1/seller/categories/{id}
 ### Seller — Orders
 ```
 GET    /api/v1/seller/orders                 # filter by status, date range
+GET    /api/v1/seller/orders/export?first=&last=&lang=   # owner; an Excel file, one row per order (2026-10-08)
 GET    /api/v1/seller/orders/{id}
 PATCH  /api/v1/seller/orders/{id}/status      # transitions order state, see §7.1
 PATCH  /api/v1/seller/orders/{id}/payment     # mark paid/failed
