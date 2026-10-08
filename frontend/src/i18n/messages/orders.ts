@@ -9,6 +9,8 @@ export const orders = {
     en: "Your shop isn't taking orders. Tap to turn them back on.",
     km: 'ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ទេ។ ចុចដើម្បីបើកវិញ។',
   },
+  // Staff can't turn it back on (Settings is the owner's).
+  pausedStaff: { en: "The shop isn't taking orders right now.", km: 'ហាងមិនទទួលការកុម្ម៉ង់នៅពេលនេះទេ។' },
   pausedUntil: {
     en: (day: string) => `Your shop isn't taking orders until ${day}.`,
     km: (day: string) => `ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់រហូតដល់ ${day}។`,

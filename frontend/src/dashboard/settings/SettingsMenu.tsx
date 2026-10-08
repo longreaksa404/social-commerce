@@ -13,6 +13,7 @@ import {
   Tag,
   Truck,
   UserRound,
+  Users,
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
@@ -29,7 +30,7 @@ import { PAYMENT_METHOD_ORDER } from '../../lib/payments.ts'
 import { SUPPORT_TELEGRAM, supportLink } from '../../lib/support.ts'
 import type { Store } from '../../lib/types.ts'
 import { ThemeSwitch } from '../../theme/ThemeSwitch.tsx'
-import { useStore } from '../queries.ts'
+import { useAccount, useStore } from '../queries.ts'
 import { SECTIONS, type PageId, type SectionId } from './form.ts'
 
 const ROWS: { id: Exclude<SectionId, 'shop'>; icon: LucideIcon }[] = [
@@ -50,22 +51,33 @@ type Selected = SectionId | PageId
 /** `selected`: the setting open beside the menu (laptops). */
 export function SettingsMenu({ selected }: { selected?: Selected }) {
   const store = useStore()
+  const account = useAccount()
+  const role = account.data?.role
   const t = useT()
   return (
     <>
       <PageHeader title={t.settings.title} />
       <div className="space-y-6">
-        {store.isPending ? (
+        {store.isPending || account.isPending ? (
           <div className="space-y-6">
             <Skeleton className="h-20 w-full rounded-2xl" />
             <Skeleton className="h-96 w-full rounded-2xl" />
           </div>
-        ) : store.error ? (
-          <ErrorState error={store.error} onRetry={() => store.refetch()} />
-        ) : (
+        ) : store.error || account.error ? (
+          <ErrorState
+            error={store.error ?? account.error}
+            onRetry={() => {
+              store.refetch()
+              account.refetch()
+            }}
+          />
+        ) : role === 'owner' ? (
           <StoreRows store={store.data} selected={selected} />
+        ) : (
+          // Staff: everything but Settings (founder's choice 2026-10-08).
+          <Card className="px-4 py-3.5 text-sm leading-6 text-slate-600">{t.settings.staffNoSettings(store.data.name)}</Card>
         )}
-        <AccountRows selected={selected} store={store.data} />
+        <AccountRows selected={selected} store={store.data} owner={role === 'owner'} />
         <DisplaySection />
         <LogOutButton />
       </div>
@@ -244,16 +256,17 @@ function DisplaySection() {
 }
 
 /** The person's own things, apart from the store's settings. */
-function AccountRows({ selected, store }: { selected?: Selected; store?: Store }) {
+function AccountRows({ selected, store, owner }: { selected?: Selected; store?: Store; owner: boolean }) {
   const s = useT().settings
   const rows: { id: PageId | 'help'; href?: string; icon: LucideIcon; title: string; summary: string }[] = [
     { id: 'account', icon: UserRound, title: s.yourAccount, summary: s.menu.accountHint },
   ]
+  if (owner) rows.push({ id: 'staff', icon: Users, title: s.staff, summary: s.menu.staffHint })
   if (SUPPORT_TELEGRAM) {
     const shop = store ? s.supportText(store.name, `${location.origin}/shop/${store.slug}`) : s.supportTextNoShop
     rows.push({ id: 'help', href: supportLink(shop), icon: LifeBuoy, title: s.help, summary: s.menu.helpHint })
   }
-  rows.push({ id: 'close', icon: DoorClosed, title: s.closeShop, summary: s.menu.closeHint })
+  if (owner) rows.push({ id: 'close', icon: DoorClosed, title: s.closeShop, summary: s.menu.closeHint })
   return (
     <section aria-labelledby="account">
       <h2 id="account" className="mb-2 sm:px-1 text-sm font-semibold text-slate-500">

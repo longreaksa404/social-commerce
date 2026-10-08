@@ -32,7 +32,10 @@ from app.services.payment import payment_settings
 async def get_store(db: AsyncSession, slug: str) -> Store:
     """The shop at /shop/{slug}; a deactivated seller's shop is gone."""
     store = await db.scalar(
-        select(Store).join(Seller).where(Store.slug == slug.lower(), Seller.is_active.is_(True))
+        # The owner's account (staff logins link the other way, seller.store_id).
+        select(Store)
+        .join(Seller, Store.seller_id == Seller.id)
+        .where(Store.slug == slug.lower(), Seller.is_active.is_(True))
     )
     if store is None:
         raise NotFound("STORE_NOT_FOUND", "This shop doesn't exist.")

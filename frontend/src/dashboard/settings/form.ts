@@ -75,7 +75,7 @@ export const isSectionId = (value: string | undefined): value is SectionId =>
 
 /** Settings pages that aren't part of the store's settings: each has its
  * own form and endpoint (SettingsSection's PAGES). */
-export const PAGE_IDS = ['account', 'export', 'close'] as const
+export const PAGE_IDS = ['account', 'staff', 'export', 'close'] as const
 export type PageId = (typeof PAGE_IDS)[number]
 
 export const isPageId = (value: string | undefined): value is PageId =>

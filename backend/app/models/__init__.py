@@ -1,6 +1,13 @@
 """Import every model here so Base.metadata is complete for Alembic."""
 
-from app.models.account import Currency, OrderConfirmationMode, RefreshToken, Seller, Store
+from app.models.account import (
+    Currency,
+    OrderConfirmationMode,
+    RefreshToken,
+    Seller,
+    SellerRole,
+    Store,
+)
 from app.models.catalog import Category, Product, ProductStatus, ProductVariant
 from app.models.delivery import Delivery, DeliveryMethod, DeliveryStatus
 from app.models.link import LinkEvent, LinkEventType, LinkTarget, ShareableLink
@@ -37,6 +44,7 @@ __all__ = [
     "ProductVariant",
     "RefreshToken",
     "Seller",
+    "SellerRole",
     "ShareableLink",
     "Store",
 ]

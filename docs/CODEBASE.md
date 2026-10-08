@@ -120,7 +120,7 @@ Render's health check.
 | Customer order tracking (order bar, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrderBar.tsx`, `ShopOrders.tsx`, `useMyOrders` |
 | UX pass 2 (effects, cart bars, numbered checkout, Kantumruy Pro) | DONE | `components/effects.ts`, `shop/fly.ts`, `components/useBump.ts` |
 | Layout pass (edge-to-edge on phones, floating bars) | DONE | `cardClass` in `components/styles.ts` |
-| More in Settings (founder's request 2026-10-08): your account, Get help, Forgot password via Telegram, pause orders, Call / Messenger buttons, low-stock alert level, export orders to Excel, close shop | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`); `/forgot-password`, `/reset-password#<token>`; `store.orders_paused` / `orders_resume_on` (Settings → Orders), refused at checkout; `store.contact_phone` / `messenger_username` (Settings → Contact) as buttons in the shop (`shop/ContactSeller.tsx`); `store.low_stock_alert` (Settings → Alerts); `GET /seller/orders/export` (`services/export.py`, XlsxWriter); `POST /seller/account/close-shop` and the founder's `close-shop` / `reopen-shop` / `erase-shop` (`app/admin.py`) |
+| More in Settings (founder's request 2026-10-08): your account, Get help, Forgot password via Telegram, pause orders, Call / Messenger buttons, low-stock alert level, export orders to Excel, close shop, staff logins | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`); `/forgot-password`, `/reset-password#<token>`; `store.orders_paused` / `orders_resume_on` (Settings → Orders), refused at checkout; `store.contact_phone` / `messenger_username` (Settings → Contact) as buttons in the shop (`shop/ContactSeller.tsx`); `store.low_stock_alert` (Settings → Alerts); `GET /seller/orders/export` (`services/export.py`, XlsxWriter); `POST /seller/account/close-shop` and the founder's `close-shop` / `reopen-shop` / `erase-shop` (`app/admin.py`); staff logins (`seller.role`, `/seller/staff`, `Owner` guard) |
 
 None of the "MVP Built" exit criteria in 03 §10 are met yet. They all
 need a real seller and a real customer.
@@ -207,7 +207,8 @@ Backend modules, one line each:
 | `models/link.py` | `ShareableLink`, `LinkEvent`, `LinkTarget`, `LinkEventType` |
 | `models/notification.py` | `NotificationLog`, `NotificationChannel`, `NotificationStatus` |
 | `services/auth.py` | Register (seller and store together), login, refresh rotation and reuse detection, logout, `restart_sessions` (after a password change) |
-| `services/account.py` | The logged-in seller's own details and password change (unscoped session, filtered by the token's seller id) |
+| `services/account.py` | The logged-in seller's own details and password change, closing a shop (unscoped session, filtered by the token's seller id) |
+| `services/staff.py` | The owner's staff: list, add, set a password, remove (unscoped session, filtered by the token's store id and role staff) |
 | `services/store.py` | Get/update the store; validates the three settings blobs and logo URLs |
 | `services/category.py`, `product.py` | Catalog CRUD; variant merge; image URL prefix check |
 | `services/images.py` | Presigned R2 PUT URLs (product photo, thumbnail, logo) |
@@ -320,14 +321,17 @@ real environment variables are used.
 ### Dependency injection (`app/api/deps.py`)
 
 ```python
-Seller     = Annotated[CurrentSeller, Depends(current_seller)]  # seller_id + store_id from the access JWT
+Seller     = Annotated[CurrentSeller, Depends(current_seller)]  # seller_id + store_id + role from the access JWT
+Owner      = Annotated[CurrentSeller, Depends(current_owner)]   # the same, 403 OWNER_ONLY for staff
 TenantDb   = Annotated[AsyncSession, Depends(get_tenant_db)]    # RLS-scoped to the seller's store
 UnscopedDb = Annotated[AsyncSession, Depends(get_db)]           # NOT RLS-scoped (auth only)
 Shop       = Annotated[Store, Depends(get_shop)]                # store from /shop/{store_slug}, via a short unscoped session
 ShopDb     = Annotated[AsyncSession, Depends(get_shop_db)]      # RLS-scoped to that shop
 ```
 
-Every seller route takes `seller: Seller, db: TenantDb`. Every storefront
+Every seller route takes `seller: Seller, db: TenantDb`; Settings routes
+take `seller: Owner` instead (store PATCH, logo, Telegram link/disconnect,
+orders export, close shop, staff). Every storefront
 route takes `shop: Shop, db: ShopDb`. `get_shop` closes its unscoped session
 before `ShopDb` opens, so a request holds one connection at a time.
 
@@ -358,7 +362,17 @@ starts a new transaction.
 - `POST /auth/register` creates `Seller` and `Store` together. The slug is
   generated from the store name (`unique_slug`). It returns a `TokenPair`.
 - Access JWT (HS256, 15 min): `{"type": "access", "sub": seller_id,
-  "store_id": store_id, iat, exp}`. **The tenant comes from this claim.**
+  "store_id": store_id, "role": "owner"|"staff", iat, exp}`. **The tenant
+  comes from this claim.** A token without `role` (issued before staff
+  existed) reads as owner.
+- **Staff logins** (founder's choice 2026-10-08): `seller` rows with
+  `role = staff` and their shop in `seller.store_id`; an owner's shop is
+  the one whose `store.seller_id` is theirs (`auth.shop_of`). Staff can do
+  everything but Settings (the `Owner` guard). The owner adds them with an
+  email and a first password (no email is sent), sets a new password when
+  they forget theirs, and removes them. Telegram's "Forgot password?"
+  only serves owners. Closing a shop closes its staff's logins too
+  (`account.set_shop_logins`); erasing it deletes them (FK cascade).
 - Refresh JWT (7 days): `{"type": "refresh", "sub": seller_id, "jti":
   refresh_token.id}`. Each `refresh_token` row works once. Refreshing locks
   the row (`FOR UPDATE`), sets `revoked_at` and issues a new pair. Presenting
@@ -467,7 +481,7 @@ Codes in use: `ACCOUNT_DISABLED`, `ACCOUNT_NOT_FOUND`, `CATEGORY_NOT_FOUND`,
 `ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`, `ORDERS_PAUSED`,
 `ORDER_TOTAL_CHANGED`, `PAYMENT_METHOD_UNAVAILABLE`, `PRODUCT_HIDDEN`,
 `PRODUCT_NOT_FOUND`, `PRODUCT_OUT_OF_STOCK`, `PRODUCT_UNAVAILABLE`,
-`RATE_LIMITED`, `RESET_LINK_INVALID`, `SLUG_TAKEN`, `STORE_MISSING`, `STORE_NOT_FOUND`,
+`OWNER_ONLY`, `RATE_LIMITED`, `RESET_LINK_INVALID`, `SLUG_TAKEN`, `STAFF_LIMIT`, `STAFF_NOT_FOUND`, `STORE_MISSING`, `STORE_NOT_FOUND`,
 `TELEGRAM_NOT_CONFIGURED`, `TOKEN_EXPIRED`, `TOO_MANY_IMAGES`,
 `UPLOADS_NOT_CONFIGURED`, `VALIDATION_ERROR`, `VARIANT_NOT_FOUND`,
 `VARIANTS_DISABLED`, `VARIANTS_REQUIRED`, `WRONG_PASSWORD` (422, not
@@ -537,7 +551,7 @@ Mixins (`app/db/base.py`):
 
 | Table | Tenant | Key columns | FKs | Indexes / constraints |
 |---|---|---|---|---|
-| `seller` | **NO** (owns the tenant; no RLS, no `app_user` grant) | `email` (stored lowercased), `password_hash`, `full_name`, `phone`, `is_active` (default true), `created_at` | none | `uq_seller_email` |
+| `seller` | **NO** (an owner owns the tenant, staff belong to one; no RLS, no `app_user` grant) | `email` (stored lowercased), `password_hash`, `full_name`, `phone`, `is_active` (default true), `role` (`owner`/`staff`, default owner), `store_id` (staff only), `created_at` | `store_id → store` CASCADE (`use_alter`: store also points at seller) | `uq_seller_email`; `ix_seller_store_id`; CHECK `(role = 'staff') = (store_id IS NOT NULL)` |
 | `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `low_stock_alert` (int, default 5, 1–999 by the schema), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
 | `refresh_token` | **NO** (per seller; no RLS, no `app_user` grant) | `id` (= JWT `jti`), `expires_at`, `revoked_at`, `created_at` | `seller_id → seller` CASCADE | `ix_refresh_token_seller_id` |
 | `category` | yes | `name`, `slug` String(64), `created_at` | none besides `store_id` | UNIQUE (`store_id`, `slug`) |
@@ -592,7 +606,8 @@ courier + GPS location → `3867d44e4db7` telegram_username + notification_log
 → `aa40287b7688` notification_log.read_at + index → `883276fadeed`
 shareable_link + link_event → `5ee23aad5482` store.orders_paused +
 orders_resume_on → `007ae4403215` store.contact_phone +
-messenger_username → `49da40196f18` store.low_stock_alert (**head**).
+messenger_username → `49da40196f18` store.low_stock_alert →
+`ae070e4b3006` seller.role + seller.store_id (**head**).
 
 ---
 
@@ -733,6 +748,10 @@ from the schema.
 | POST | `/seller/store/logo` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT into `stores/<id>/logo/` |
 | POST | `/seller/store/telegram/link` | seller | — | `TelegramLinkOut` | `t.me/<bot>?start=<code>`, valid 30 min; 503 if bot not configured |
 | DELETE | `/seller/store/telegram` | seller | — | `StoreOut` | Clears `telegram_chat_id` (logic in the router) |
+| GET | `/seller/staff` | owner | — | `list[StaffOut]` | The shop's staff, oldest first |
+| POST | `/seller/staff` | owner | `StaffCreate` (`full_name`, `phone`, `email`, `password`) | `StaffOut` (201) | Email taken → 409 `EMAIL_TAKEN`; more than 10 → 409 `STAFF_LIMIT` |
+| POST | `/seller/staff/{staff_id}/password` | owner | `StaffPassword` | `StaffOut` | Sets it and logs their phones out; another shop's → 404 `STAFF_NOT_FOUND` |
+| DELETE | `/seller/staff/{staff_id}` | owner | — | 204 | Deletes the login (and its sessions) |
 | GET | `/seller/categories` | seller | — | `list[CategoryOut]` | With `product_count`; by name |
 | POST | `/seller/categories` | seller | `CategoryCreate` | `CategoryOut` (201) | Slug from name if omitted |
 | PATCH | `/seller/categories/{category_id}` | seller | `CategoryUpdate` | `CategoryOut` | |
@@ -821,7 +840,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/dashboard/products`, `/products/new`, `/products/:productId` | `ProductList`, `ProductEdit` | Photos (cards as tall as the photo) or List (rows; a sortable table on laptops), kept in `sc.products.view`; stock tags: the seller's `low_stock_alert` or fewer is "Only N left" |
 | `/dashboard/categories` | `Categories` | Button on Products on phones; sidebar entry on desktop. "New category" opens a labelled form; each row's actions (share link, rename, delete) are in one ⋯ menu (`RowMenu`) |
 | `/dashboard/links`, `/links/new`, `/links/:linkId` | `LinkList`, `NewLink`, `LinkDetail` | Links as cards with Copy, views, orders and % ordered |
-| `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Store sections (`SECTION_IDS` in `form.ts`, saved with `PATCH /seller/store`): `shop`, `orders`, `payments`, `delivery`, `discounts`, `contact` (Telegram username, Messenger page, phone), `telegram` (titled Alerts: the low-stock level, and Telegram, which connects at once; the address stays /telegram because the bot's messages name it), `link`. Pages with their own endpoint (`PAGE_IDS`, `PAGES` in `SettingsSection.tsx`): `account`, `export` (This month / Last month / Choose days; downloads with `apiBlob` in `lib/api.ts`), `close` (password, confirm, then log out). Laptops open `shop` when none is chosen |
+| `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Store sections (`SECTION_IDS` in `form.ts`, saved with `PATCH /seller/store`): `shop`, `orders`, `payments`, `delivery`, `discounts`, `contact` (Telegram username, Messenger page, phone), `telegram` (titled Alerts: the low-stock level, and Telegram, which connects at once; the address stays /telegram because the bot's messages name it), `link`. Pages with their own endpoint (`PAGE_IDS`, `PAGES` in `SettingsSection.tsx`): `account`, `export` (This month / Last month / Choose days; downloads with `apiBlob` in `lib/api.ts`), `close` (password, confirm, then log out), `staff`. Staff see a note instead of the store rows, then Your account, Get help, language and log out; any other settings address sends them to `account` (`useRole()` from `GET /seller/account`). Laptops open `shop` when none is chosen |
 | `/dashboard/notifications` | `Notifications` | |
 | `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public. While paused, `PausedNotice` (`shop/components.tsx`) tops every shop page and the cart's Place order is disabled; the seller's Orders tab shows a reminder |
 | `/shop/:storeSlug/product/:productSlug` | `ShopProduct` | |

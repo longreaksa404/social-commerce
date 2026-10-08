@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from app.models import SellerRole
 from app.schemas.auth import Password, Phone
 from app.schemas.common import Name
 
@@ -12,6 +13,8 @@ class AccountOut(BaseModel):
     email: str
     full_name: str
     phone: str
+    # owner: everything; staff: everything but Settings.
+    role: SellerRole
 
 
 class AccountUpdate(BaseModel):

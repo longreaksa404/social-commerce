@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import security
 from app.db.session import unscoped_session
 from app.models import Customer, Order, Product, RefreshToken, Seller, Store
+from app.services.account import set_shop_logins
 from app.services.images import delete_store_files
 
 # No 0/o, 1/l/i: read out over the phone or typed from a Telegram message.
@@ -66,12 +67,13 @@ async def set_shop_open(email: str, is_open: bool) -> str:
     it again. Returns the shop's link name."""
     async with unscoped_session() as db:
         seller = await _seller(db, email)
-        seller.is_active = is_open
-        if not is_open:
-            await db.execute(delete(RefreshToken).where(RefreshToken.seller_id == seller.id))
-        slug = await db.scalar(select(Store.slug).where(Store.seller_id == seller.id))
+        store = await db.scalar(select(Store).where(Store.seller_id == seller.id))
+        if store is None:
+            raise AdminError("This is a staff login, not a shop's owner. Use the owner's email.")
+        # The owner's and the staff's logins together.
+        await set_shop_logins(db, seller.id, store.id, active=is_open)
         await db.commit()
-    return slug or ""
+    return store.slug
 
 
 @dataclass

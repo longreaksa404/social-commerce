@@ -7,7 +7,7 @@ access token.
 
 import uuid
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -49,16 +49,29 @@ async def update_account(db: AsyncSession, seller_id: uuid.UUID, data: AccountUp
     return seller
 
 
-async def close_shop(db: AsyncSession, seller_id: uuid.UUID, password: str) -> None:
+async def close_shop(
+    db: AsyncSession, seller_id: uuid.UUID, store_id: uuid.UUID, password: str
+) -> None:
     """Settings → Close shop: the shop link stops working and nobody can log
     in. Nothing is erased: the founder reopens it, or erases it for good,
     when the seller asks (python -m app.admin, docs/ADMIN.md)."""
     seller = await get_account(db, seller_id)
     if not await security.verify_password(password, seller.password_hash):
         raise AppError(422, "WRONG_PASSWORD", "Your current password is wrong.", "password")
-    seller.is_active = False  # the shop page and logins check this
-    await db.execute(delete(RefreshToken).where(RefreshToken.seller_id == seller.id))
+    await set_shop_logins(db, seller.id, store_id, active=False)
     await db.commit()
+
+
+async def set_shop_logins(
+    db: AsyncSession, owner_id: uuid.UUID, store_id: uuid.UUID, *, active: bool
+) -> None:
+    """Close or open every login of a shop, the owner's and its staff's
+    (the shop page checks the owner's). Closing logs them all out."""
+    logins = or_(Seller.id == owner_id, Seller.store_id == store_id)
+    await db.execute(update(Seller).where(logins).values(is_active=active))
+    if not active:
+        ids = select(Seller.id).where(logins).scalar_subquery()
+        await db.execute(delete(RefreshToken).where(RefreshToken.seller_id.in_(ids)))
 
 
 async def change_password(

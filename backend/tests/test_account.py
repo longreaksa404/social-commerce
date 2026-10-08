@@ -20,6 +20,7 @@ async def test_seller_sees_and_edits_only_their_own_account(client, register):
         "email": "new@example.com",
         "full_name": "Sokha Chan",
         "phone": "+855 12 345 678",
+        "role": "owner",
     }
     assert other.json()["full_name"] == "Dara"
     # The new email is the login now.

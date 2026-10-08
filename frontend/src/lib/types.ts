@@ -71,8 +71,15 @@ export type Store = {
 
 export type TelegramLink = { url: string; expires_at: string }
 
+/** owner: everything; staff: everything but Settings (founder's choice
+ * 2026-10-08). */
+export type Role = 'owner' | 'staff'
+
 /** The logged-in person's own details (Settings → Your account). */
-export type Account = { email: string; full_name: string; phone: string }
+export type Account = { email: string; full_name: string; phone: string; role: Role }
+
+/** A helper the owner added (Settings → Staff). */
+export type StaffMember = { id: string; full_name: string; email: string; phone: string; created_at: string }
 
 export type Category = {
   id: string

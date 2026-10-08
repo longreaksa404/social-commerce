@@ -7,7 +7,7 @@ import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { formatCalendarDay, formatDay } from '../../lib/orders.ts'
 import type { OrderStatus, OrderSummary } from '../../lib/types.ts'
-import { useOrders, useStore } from '../queries.ts'
+import { useOrders, useRole, useStore } from '../queries.ts'
 import { OrderDetail } from './OrderDetail.tsx'
 import { OrderRow } from './OrderRow.tsx'
 
@@ -72,16 +72,26 @@ export function OrdersPage() {
  * after a holiday, and new orders simply stop coming. */
 function PausedReminder() {
   const store = useStore()
+  const role = useRole()
   const t = useT()
   if (!store.data?.orders_paused) return null
   const day = store.data.orders_resume_on
+  const className =
+    '-mx-4 mb-4 flex min-h-12 items-center gap-3 border-y border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 sm:mx-0 sm:rounded-2xl sm:border'
+  const content = (
+    <>
+      <CalendarClock aria-hidden className="size-5 shrink-0 text-amber-700" />
+      <span className="min-w-0 flex-1">{day ? t.orders.pausedUntil(formatCalendarDay(day)) : t.orders.pausedStaff}</span>
+    </>
+  )
+  // Staff can't open Settings: just the news.
+  if (role !== 'owner') return <p className={className}>{content}</p>
   return (
     <Link
       to="/dashboard/settings/orders"
-      className="-mx-4 mb-4 flex min-h-12 items-center gap-3 border-y border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 transition-colors hover:bg-amber-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 sm:mx-0 sm:rounded-2xl sm:border"
+      className={`${className} transition-colors hover:bg-amber-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600`}
     >
-      <CalendarClock aria-hidden className="size-5 shrink-0 text-amber-700" />
-      <span className="min-w-0 flex-1">{day ? t.orders.pausedUntil(formatCalendarDay(day)) : t.orders.paused}</span>
+      {content}
       <ChevronRight aria-hidden className="size-5 shrink-0 text-amber-700" />
     </Link>
   )

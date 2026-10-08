@@ -58,6 +58,10 @@ export const auth = {
       en: (email: string) => `Hi Oak Order, I forgot the password for ${email}.`,
       km: (email: string) => `សួស្ដី Oak Order ខ្ញុំភ្លេចពាក្យសម្ងាត់សម្រាប់ ${email}។`,
     },
+    staff: {
+      en: "Staff: ask the shop's owner to set a new password for you in Settings → Staff.",
+      km: 'បុគ្គលិក៖ សូមឱ្យម្ចាស់ហាងកំណត់ពាក្យសម្ងាត់ថ្មីឱ្យអ្នក ក្នុង ការកំណត់ → បុគ្គលិក។',
+    },
     backToLogin: { en: 'Back to log in', km: 'ត្រឡប់ទៅចូលគណនី' },
   },
   reset: {

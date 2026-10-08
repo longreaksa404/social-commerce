@@ -36,8 +36,9 @@ comment) and ask them to change it in **Settings → Your account**.
 ## A seller wants their shop closed, reopened or erased
 
 Sellers close their own shop in **Settings → Close shop** (with their
-password): the shop link and their logins stop at once, and nothing is
-erased. To do it for them:
+password): the shop link and their logins (and their staff's) stop at
+once, and nothing is erased. The commands take the owner's email; they
+close, reopen and erase the staff's logins with the shop. To do it for them:
 
 ```bash
 python -m app.admin close-shop seller@example.com

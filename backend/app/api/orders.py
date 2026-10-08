@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Query, Response
 
-from app.api.deps import Seller, TenantDb
+from app.api.deps import Owner, Seller, TenantDb
 from app.core.errors import AppError
 from app.models import OrderStatus
 from app.schemas.delivery import DeliveryUpdate
@@ -46,7 +46,7 @@ XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 # Before /{order_id}, which would take "export" for an order id.
 @router.get("/export", response_class=Response, responses={200: {"content": {XLSX: {}}}})
 async def export_orders(
-    seller: Seller,
+    seller: Owner,  # in Settings, which staff don't have
     db: TenantDb,
     first: date,
     last: date,

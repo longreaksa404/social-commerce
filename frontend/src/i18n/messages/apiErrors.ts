@@ -20,6 +20,9 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   'This account has no store.': 'គណនីនេះមិនមានហាងទេ។',
   'Your current password is wrong.': 'ពាក្យសម្ងាត់បច្ចុប្បន្នមិនត្រឹមត្រូវទេ។',
   'Account not found.': 'រកមិនឃើញគណនី។',
+  "Only the shop's owner can do this.": 'មានតែម្ចាស់ហាងទេដែលអាចធ្វើការនេះបាន។',
+  'Staff member not found.': 'រកមិនឃើញបុគ្គលិក។',
+  'A shop can have up to 10 staff.': 'ហាងមួយអាចមានបុគ្គលិកច្រើនបំផុត 10 នាក់។',
   'This link has expired or was already used. Ask for a new one.':
     'តំណនេះផុតកំណត់ ឬត្រូវបានប្រើរួចហើយ។ សូមស្នើតំណថ្មី។',
 

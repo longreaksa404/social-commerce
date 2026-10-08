@@ -55,7 +55,7 @@ async def register(db: AsyncSession, data: RegisterIn) -> TokenPair:
     db.add(store)
     await db.flush()
 
-    tokens = await _issue_tokens(db, seller.id, store.id)
+    tokens = await _issue_tokens(db, seller, store.id)
     await db.commit()
     return tokens
 
@@ -73,7 +73,7 @@ async def login(db: AsyncSession, data: LoginIn) -> TokenPair:
             403, "ACCOUNT_DISABLED", "This shop is closed. Message Oak Order to open it again."
         )
 
-    tokens = await _issue_tokens(db, seller.id, await _store_id(db, seller.id))
+    tokens = await _issue_tokens(db, seller, await shop_of(db, seller))
     await db.commit()
     return tokens
 
@@ -104,7 +104,7 @@ async def refresh(db: AsyncSession, refresh_token: str) -> TokenPair:
         raise _invalid_refresh()
 
     row.revoked_at = now
-    tokens = await _issue_tokens(db, seller.id, await _store_id(db, seller.id))
+    tokens = await _issue_tokens(db, seller, await shop_of(db, seller))
     await db.commit()
     return tokens
 
@@ -189,7 +189,7 @@ async def reset_password(db: AsyncSession, data: PasswordResetConfirm) -> TokenP
     ):
         raise _invalid_reset_link()
     seller.password_hash = await security.hash_password(data.new_password)
-    return await restart_sessions(db, seller, await _store_id(db, seller.id))
+    return await restart_sessions(db, seller, await shop_of(db, seller))
 
 
 async def restart_sessions(db: AsyncSession, seller: Seller, store_id: uuid.UUID) -> TokenPair:
@@ -200,29 +200,33 @@ async def restart_sessions(db: AsyncSession, seller: Seller, store_id: uuid.UUID
     reads as stolen and would end the new session too (refresh()).
     """
     await db.execute(delete(RefreshToken).where(RefreshToken.seller_id == seller.id))
-    tokens = await _issue_tokens(db, seller.id, store_id)
+    tokens = await _issue_tokens(db, seller, store_id)
     await db.commit()
     return tokens
 
 
-async def _store_id(db: AsyncSession, seller_id: uuid.UUID) -> uuid.UUID:
-    store_id = await db.scalar(select(Store.id).where(Store.seller_id == seller_id))
-    if store_id is None:  # every seller gets a store at registration
+async def shop_of(db: AsyncSession, seller: Seller) -> uuid.UUID:
+    """The shop a login works in: a staff login's own store_id, or the
+    store an owner owns."""
+    if seller.store_id is not None:
+        return seller.store_id
+    store_id = await db.scalar(select(Store.id).where(Store.seller_id == seller.id))
+    if store_id is None:  # every owner gets a store at registration
         raise AppError(409, "STORE_MISSING", "This account has no store.")
     return store_id
 
 
-async def _issue_tokens(db: AsyncSession, seller_id: uuid.UUID, store_id: uuid.UUID) -> TokenPair:
+async def _issue_tokens(db: AsyncSession, seller: Seller, store_id: uuid.UUID) -> TokenPair:
     row = RefreshToken(
         id=uuid.uuid4(),
-        seller_id=seller_id,
+        seller_id=seller.id,
         expires_at=datetime.now(UTC) + security.refresh_token_lifetime(),
     )
     db.add(row)
     await db.flush()
     return TokenPair(
-        access_token=security.create_access_token(seller_id, store_id),
-        refresh_token=security.create_refresh_token(seller_id, row.id),
+        access_token=security.create_access_token(seller.id, store_id, seller.role.value),
+        refresh_token=security.create_refresh_token(seller.id, row.id),
     )
 
 

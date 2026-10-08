@@ -16,6 +16,7 @@ from app.api import (
     orders,
     products,
     shop,
+    staff,
     store,
     telegram,
 )
@@ -56,6 +57,7 @@ api_v1 = APIRouter(prefix="/api/v1")
 api_v1.include_router(auth.router)
 api_v1.include_router(account.router)
 api_v1.include_router(store.router)
+api_v1.include_router(staff.router)
 api_v1.include_router(categories.router)
 api_v1.include_router(products.router)
 api_v1.include_router(orders.router)

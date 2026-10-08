@@ -1,5 +1,6 @@
 import { useParams } from 'react-router'
 import { useSyncExternalStore } from 'react'
+import { useRole } from '../queries.ts'
 import { isPageId, isSectionId } from './form.ts'
 import { SettingsMenu } from './SettingsMenu.tsx'
 import { SettingsSection } from './SettingsSection.tsx'
@@ -18,13 +19,17 @@ const onWideChange = (notify: () => void) => {
 export function SettingsPage() {
   const { section } = useParams()
   const wide = useSyncExternalStore(onWideChange, () => WIDE.matches)
-  const open = isSectionId(section) || isPageId(section) ? section : wide ? 'shop' : undefined
+  const role = useRole()
+  // Staff have only their account here (founder's choice 2026-10-08).
+  const first = role === 'staff' ? 'account' : 'shop'
+  const open = isSectionId(section) || isPageId(section) ? section : wide && role ? first : undefined
   return (
     <div className="lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start lg:gap-8">
       <div className={section ? 'max-lg:hidden' : ''}>
         <SettingsMenu selected={open} />
       </div>
-      {(section || wide) && (
+      {/* On laptops, once the role says which page opens first. */}
+      {(section || (wide && open)) && (
         <div className={section ? '' : 'max-lg:hidden'}>
           <SettingsSection key={open} open={section ?? open} />
         </div>

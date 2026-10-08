@@ -265,6 +265,7 @@ export const settings = {
     helpHint: { en: 'Message Oak Order on Telegram', km: 'ផ្ញើសារទៅ Oak Order តាម Telegram' },
     exportHint: { en: 'Your orders as an Excel file', km: 'ការកុម្ម៉ង់របស់អ្នកជាឯកសារ Excel' },
     closeHint: { en: 'Stop selling here', km: 'ឈប់លក់នៅទីនេះ' },
+    staffHint: { en: 'Let others help with orders', km: 'ឱ្យអ្នកផ្សេងជួយការកុម្ម៉ង់' },
   },
 
   account: { en: 'Account', km: 'គណនី' },
@@ -306,6 +307,49 @@ export const settings = {
   },
   exportDownload: { en: 'Download Excel file', km: 'ទាញយកឯកសារ Excel' },
   help: { en: 'Get help', km: 'សុំជំនួយ' },
+  staff: { en: 'Staff', km: 'បុគ្គលិក' },
+  staffHint: {
+    en: 'People who help you: each logs in with their own email and can do everything except Settings.',
+    km: 'អ្នកដែលជួយអ្នក៖ ម្នាក់ៗចូលគណនីដោយអ៊ីមែលផ្ទាល់ខ្លួន ហើយអាចធ្វើអ្វីៗបានទាំងអស់ លើកលែងតែការកំណត់។',
+  },
+  staffNoSettings: {
+    en: (shop: string) => `Only the owner of ${shop} can change the shop's settings. Your own account is below.`,
+    km: (shop: string) => `មានតែម្ចាស់ ${shop} ទេដែលអាចប្ដូរការកំណត់ហាងបាន។ គណនីរបស់អ្នកនៅខាងក្រោម។`,
+  },
+  noStaff: { en: 'No staff yet.', km: 'មិនទាន់មានបុគ្គលិកទេ។' },
+  addStaff: { en: 'Add staff', km: 'បន្ថែមបុគ្គលិក' },
+  addStaffHint: {
+    en: 'Give them the email and first password yourself; they can change the password in Settings → Your account.',
+    km: 'សូមផ្ដល់អ៊ីមែល និងពាក្យសម្ងាត់ដំបូងដល់គេដោយខ្លួនអ្នក។ គេអាចប្ដូរពាក្យសម្ងាត់ក្នុង ការកំណត់ → គណនីរបស់អ្នក។',
+  },
+  staffName: { en: 'Their name', km: 'ឈ្មោះរបស់គេ' },
+  staffEmail: { en: 'Email they log in with', km: 'អ៊ីមែលដែលគេប្រើចូលគណនី' },
+  firstPassword: { en: 'First password', km: 'ពាក្យសម្ងាត់ដំបូង' },
+  firstPasswordHint: { en: 'At least 8 characters.', km: 'យ៉ាងតិច 8 តួអក្សរ។' },
+  staffAdded: {
+    en: (name: string) => `${name} can log in now`,
+    km: (name: string) => `${name} អាចចូលគណនីបានហើយ`,
+  },
+  newPasswordFor: {
+    en: (name: string) => `New password for ${name}`,
+    km: (name: string) => `ពាក្យសម្ងាត់ថ្មីសម្រាប់ ${name}`,
+  },
+  newPasswordForHint: {
+    en: "For when they forget theirs. They're logged out on their phones and log in with this.",
+    km: 'សម្រាប់ពេលគេភ្លេចពាក្យសម្ងាត់។ គេនឹងចាកចេញពីទូរស័ព្ទ ហើយចូលវិញដោយពាក្យសម្ងាត់នេះ។',
+  },
+  saveNewPassword: { en: 'Save new password', km: 'រក្សាទុកពាក្យសម្ងាត់ថ្មី' },
+  staffPasswordSet: {
+    en: (name: string) => `New password saved for ${name}`,
+    km: (name: string) => `បានរក្សាទុកពាក្យសម្ងាត់ថ្មីសម្រាប់ ${name}`,
+  },
+  removeStaff: { en: 'Remove', km: 'ដកចេញ' },
+  removeStaffTitle: { en: (name: string) => `Remove ${name}?`, km: (name: string) => `ដក ${name} ចេញ?` },
+  removeStaffMessage: {
+    en: "They can't log in any more. What they did to orders stays.",
+    km: 'គេនឹងមិនអាចចូលគណនីបានទៀតទេ។ អ្វីដែលគេបានធ្វើលើការកុម្ម៉ង់នៅដដែល។',
+  },
+  staffRemoved: { en: (name: string) => `${name} removed`, km: (name: string) => `បានដក ${name} ចេញ` },
   closeShop: { en: 'Close shop', km: 'បិទហាង' },
   closeShopWhat: { en: 'What closing does', km: 'អ្វីដែលកើតឡើងពេលបិទហាង' },
   closeShopLink: {

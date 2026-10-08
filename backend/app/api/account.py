@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from app.api.deps import Seller, UnscopedDb
+from app.api.deps import Owner, Seller, UnscopedDb
 from app.schemas.account import AccountOut, AccountUpdate, CloseShopIn, PasswordChange
 from app.schemas.auth import TokenPair
 from app.services import account as account_service
@@ -27,6 +27,6 @@ async def change_password(data: PasswordChange, seller: Seller, db: UnscopedDb) 
 
 
 @router.post("/close-shop", status_code=status.HTTP_204_NO_CONTENT)
-async def close_shop(data: CloseShopIn, seller: Seller, db: UnscopedDb) -> None:
+async def close_shop(data: CloseShopIn, seller: Owner, db: UnscopedDb) -> None:
     """Closes the shop and logs out everywhere; nothing is erased."""
-    await account_service.close_shop(db, seller.seller_id, data.password)
+    await account_service.close_shop(db, seller.seller_id, seller.store_id, data.password)

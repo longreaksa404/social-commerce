@@ -15,12 +15,14 @@ import type {
   PaymentStatus,
   Product,
   ShareLink,
+  StaffMember,
   Store,
 } from '../lib/types.ts'
 
 export const keys = {
   store: ['store'] as const,
   account: ['account'] as const,
+  staff: ['staff'] as const,
   telegramLink: ['telegram-link'] as const,
   categories: ['categories'] as const,
   products: ['products'] as const,
@@ -51,6 +53,15 @@ export function useStore() {
 
 export function useAccount() {
   return useQuery({ queryKey: keys.account, queryFn: () => api<Account>('/seller/account') })
+}
+
+/** The logged-in person's role, once known: staff see no store settings. */
+export function useRole() {
+  return useAccount().data?.role
+}
+
+export function useStaff() {
+  return useQuery({ queryKey: keys.staff, queryFn: () => api<StaffMember[]>('/seller/staff') })
 }
 
 export function useCategories() {

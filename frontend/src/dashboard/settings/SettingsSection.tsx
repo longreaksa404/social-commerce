@@ -8,7 +8,7 @@ import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
 import { formError } from '../../lib/errors.ts'
 import type { Store } from '../../lib/types.ts'
-import { keys, useStore } from '../queries.ts'
+import { keys, useRole, useStore } from '../queries.ts'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
 import {
   DeliveryFields,
@@ -23,6 +23,7 @@ import {
 } from './fields.tsx'
 import { AccountPage } from './AccountPage.tsx'
 import { CloseShopPage } from './CloseShopPage.tsx'
+import { StaffPage } from './StaffPage.tsx'
 import { ExportPage } from './ExportPage.tsx'
 import { isPageId, isSectionId, SECTIONS, toForm, type PageId, type SectionId } from './form.ts'
 
@@ -42,6 +43,7 @@ const PAGES: Record<PageId, { title: (s: Messages['settings']) => string; hint?:
   account: { title: (s) => s.yourAccount, hint: (s) => s.yourAccountHint, Page: AccountPage },
   export: { title: (s) => s.exportOrders, hint: (s) => s.exportHint, Page: ExportPage },
   close: { title: (s) => s.closeShop, Page: CloseShopPage },
+  staff: { title: (s) => s.staff, hint: (s) => s.staffHint, Page: StaffPage },
 }
 
 /** /dashboard/settings/:section: one part of the shop's settings, opened
@@ -51,7 +53,11 @@ export function SettingsSection({ open }: { open?: string }) {
   const params = useParams()
   const section = open ?? params.section
   const store = useStore()
+  const role = useRole()
   const t = useT()
+  // Staff have their own account here and nothing else (the API refuses
+  // them the rest anyway).
+  if (role === 'staff' && section !== 'account') return <Navigate to="/dashboard/settings/account" replace />
   if (isPageId(section)) return <OwnPage id={section} />
   if (!isSectionId(section)) return <Navigate to="/dashboard/settings" replace />
   const { title, hint } = SECTIONS[section]

@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.errors import AppError
 from app.core.security import decode_token
 from app.db.session import get_db, tenant_session, unscoped_session
-from app.models import Store
+from app.models import SellerRole, Store
 from app.services import storefront as storefront_service
 
 _bearer = HTTPBearer(auto_error=False)
@@ -20,6 +20,8 @@ _bearer = HTTPBearer(auto_error=False)
 class CurrentSeller:
     seller_id: uuid.UUID
     store_id: uuid.UUID
+    # Tokens from before staff logins existed have no role: only owners did.
+    role: SellerRole = SellerRole.OWNER
 
 
 async def current_seller(
@@ -29,9 +31,23 @@ async def current_seller(
         raise AppError(401, "NOT_AUTHENTICATED", "Please log in.")
     payload = decode_token(credentials.credentials, "access")
     try:
-        return CurrentSeller(uuid.UUID(payload["sub"]), uuid.UUID(payload["store_id"]))
+        return CurrentSeller(
+            uuid.UUID(payload["sub"]),
+            uuid.UUID(payload["store_id"]),
+            SellerRole(payload.get("role", SellerRole.OWNER)),
+        )
     except (KeyError, ValueError) as exc:
         raise AppError(401, "INVALID_TOKEN", "Invalid authentication token.") from exc
+
+
+async def current_owner(
+    seller: Annotated[CurrentSeller, Depends(current_seller)],
+) -> CurrentSeller:
+    """Settings and staff: the shop's owner only, not staff (founder's
+    choice 2026-10-08)."""
+    if seller.role is not SellerRole.OWNER:
+        raise AppError(403, "OWNER_ONLY", "Only the shop's owner can do this.")
+    return seller
 
 
 async def get_tenant_db(
@@ -59,6 +75,7 @@ async def get_shop_db(shop: Annotated[Store, Depends(get_shop)]) -> AsyncIterato
 
 
 Seller = Annotated[CurrentSeller, Depends(current_seller)]
+Owner = Annotated[CurrentSeller, Depends(current_owner)]
 TenantDb = Annotated[AsyncSession, Depends(get_tenant_db)]
 UnscopedDb = Annotated[AsyncSession, Depends(get_db)]
 Shop = Annotated[Store, Depends(get_shop)]

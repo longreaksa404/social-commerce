@@ -52,6 +52,7 @@ export function ForgotPassword() {
             {f.sent(sentTo)}
           </p>
           <Support email={sentTo} />
+          <p className="text-sm leading-6 text-slate-500">{f.staff}</p>
         </div>
       ) : (
         <form onSubmit={submit} className="space-y-4">
@@ -75,6 +76,7 @@ export function ForgotPassword() {
           </Button>
           {pending && <SlowNotice />}
           <Support email={email} />
+          <p className="text-sm leading-6 text-slate-500">{f.staff}</p>
         </form>
       )}
     </AuthLayout>

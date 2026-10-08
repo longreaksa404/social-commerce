@@ -3,7 +3,7 @@ import uuid
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy import CheckConstraint, Date, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -14,6 +14,14 @@ from app.db.base import Base, CreatedAtMixin, UUIDPrimaryKeyMixin
 class Currency(enum.StrEnum):
     USD = "USD"
     KHR = "KHR"
+
+
+class SellerRole(enum.StrEnum):
+    """owner: the shop's own account, everything. staff: a helper the owner
+    added, everything but Settings (founder's choice 2026-10-08)."""
+
+    OWNER = "owner"
+    STAFF = "staff"
 
 
 class OrderConfirmationMode(enum.StrEnum):
@@ -35,17 +43,29 @@ def str_enum(enum_cls: type[enum.StrEnum], name: str) -> Enum:
 
 
 class Seller(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
-    """The login account. Not tenant-scoped: it owns the tenant (store)."""
+    """A login account. Not tenant-scoped: an owner owns the tenant (store),
+    a staff login belongs to one."""
 
     __tablename__ = "seller"
+    __table_args__ = (
+        CheckConstraint("(role = 'staff') = (store_id IS NOT NULL)", name="staff_has_store"),
+    )
 
     email: Mapped[str] = mapped_column(Text, unique=True)  # stored lowercased
     password_hash: Mapped[str] = mapped_column(Text)
     full_name: Mapped[str] = mapped_column(Text)
     phone: Mapped[str] = mapped_column(Text)
     is_active: Mapped[bool] = mapped_column(default=True, server_default="true")
+    role: Mapped[SellerRole] = mapped_column(
+        str_enum(SellerRole, "seller_role"), default=SellerRole.OWNER, server_default="owner"
+    )
+    # A staff login's shop (staff only); deleted with it. An owner's shop is
+    # the one whose store.seller_id is theirs.
+    store_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("store.id", ondelete="CASCADE", use_alter=True), index=True
+    )
 
-    store: Mapped["Store"] = relationship(back_populates="seller")
+    store: Mapped["Store"] = relationship(back_populates="seller", foreign_keys="Store.seller_id")
 
 
 class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
@@ -97,7 +117,7 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     low_stock_alert: Mapped[int] = mapped_column(default=5, server_default="5")
     orders_resume_on: Mapped[date | None] = mapped_column(Date)
 
-    seller: Mapped[Seller] = relationship(back_populates="store")
+    seller: Mapped[Seller] = relationship(back_populates="store", foreign_keys=[seller_id])
 
     @property
     def orders_paused_now(self) -> bool:

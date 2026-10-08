@@ -49,12 +49,13 @@ def _encode(claims: dict[str, Any], lifetime: timedelta) -> str:
     return jwt.encode(payload, get_settings().jwt_secret, algorithm=ALGORITHM)
 
 
-def create_access_token(seller_id: uuid.UUID, store_id: uuid.UUID) -> str:
+def create_access_token(seller_id: uuid.UUID, store_id: uuid.UUID, role: str = "owner") -> str:
     """The store id travels in the token; seller requests take their tenant
-    from here, never from the URL or body."""
+    from here, never from the URL or body. The role says whether Settings
+    are allowed (owner) or not (staff)."""
     settings = get_settings()
     return _encode(
-        {"type": "access", "sub": str(seller_id), "store_id": str(store_id)},
+        {"type": "access", "sub": str(seller_id), "store_id": str(store_id), "role": role},
         timedelta(minutes=settings.access_token_minutes),
     )
 
