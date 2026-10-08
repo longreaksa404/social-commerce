@@ -2,7 +2,7 @@ import { Bell, Inbox, Link2, Package, Settings, Store, Tags, Users } from 'lucid
 import { useState } from 'react'
 import { NavLink, Navigate, useLocation, useMatch } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
-import { PageOutlet, Skeleton, Spinner } from '../components/ui.tsx'
+import { ErrorState, PageOutlet, Skeleton, Spinner } from '../components/ui.tsx'
 import { useBump } from '../components/useBump.ts'
 import type { Messages } from '../i18n/core.ts'
 import { useT } from '../i18n/useT.ts'
@@ -23,10 +23,17 @@ const tabLabel = (t: Messages, key: (typeof sidebarLinks)[number]['key']) => t.d
 
 /** Dashboard shell; also the login guard for everything under /dashboard. */
 export function DashboardLayout() {
-  const { status } = useAuth()
+  const { status, restoreError, retryRestore } = useAuth()
   const location = useLocation()
 
   if (status === 'loading') return <Spinner />
+  if (status === 'unreachable') {
+    return (
+      <div className="mx-auto max-w-md px-4 py-10">
+        <ErrorState error={restoreError} onRetry={retryRestore} />
+      </div>
+    )
+  }
   if (status === 'anonymous') return <Navigate to="/login" replace state={{ from: location.pathname }} />
   return <Shell />
 }

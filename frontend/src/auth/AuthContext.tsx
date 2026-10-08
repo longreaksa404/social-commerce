@@ -18,18 +18,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>(() =>
     hasStoredSession() ? 'loading' : 'anonymous',
   )
+  const [restoreError, setRestoreError] = useState<unknown>(null)
+
+  // Restore the session after a reload: trade the stored refresh token
+  // for a fresh access token. If the server can't be reached, say so (with
+  // a retry) instead of spinning forever; the tokens stay stored.
+  const restore = useCallback(() => {
+    refreshTokens().then(
+      (ok) => setStatus(ok ? 'authenticated' : 'anonymous'),
+      (error: unknown) => {
+        setRestoreError(error)
+        setStatus('unreachable')
+      },
+    )
+  }, [])
+
+  const retryRestore = useCallback(() => {
+    setStatus('loading')
+    restore()
+  }, [restore])
 
   useEffect(() => {
     setSessionEndedHandler(() => {
       queryClient.clear()
       setStatus('anonymous')
     })
-    // Restore the session after a reload: trade the stored refresh token
-    // for a fresh access token.
-    if (hasStoredSession()) {
-      refreshTokens().then((ok) => setStatus(ok ? 'authenticated' : 'anonymous'))
-    }
-  }, [queryClient])
+    if (hasStoredSession()) restore()
+  }, [queryClient, restore])
 
   const login = useCallback(async (email: string, password: string) => {
     saveTokens(await api<TokenPair>('/auth/login', { method: 'POST', body: { email, password }, auth: false }))
@@ -54,6 +69,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('anonymous')
   }, [queryClient])
 
-  const value = useMemo(() => ({ status, login, register, logout }), [status, login, register, logout])
+  const value = useMemo(
+    () => ({ status, restoreError, retryRestore, login, register, logout }),
+    [status, restoreError, retryRestore, login, register, logout],
+  )
   return <AuthContext value={value}>{children}</AuthContext>
 }

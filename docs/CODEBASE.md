@@ -766,7 +766,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 |---|---|---|
 | `/` | `pages/Home` | Landing: Register / Log in |
 | `/login`, `/register` | `pages/Login`, `pages/Register` | |
-| `/dashboard` | `dashboard/Layout` (`DashboardLayout`) | **Auth guard**: spinner while loading, `Navigate` to `/login` if anonymous; index redirects to `orders` |
+| `/dashboard` | `dashboard/Layout` (`DashboardLayout`) | **Auth guard**: spinner while loading, retry card if unreachable, `Navigate` to `/login` if anonymous; index redirects to `orders` |
 | `/dashboard/orders`, `/orders/:orderId` | `OrdersPage` (`OrderList.tsx`: the list, with `OrderDetail` beside it on laptops) | Orders tab is the start page; phones show the list or the order; rows (`OrderRow.tsx`) lead with the customer and have no buttons; accepting or rejecting in the open order's To do card (`useMoveOrder.ts`) opens the next new order of the tab (`nextNewOrder`), unless it was opened from a customer's or a link's page |
 | `/dashboard/customers`, `/customers/:customerId` | `CustomerList`, `CustomerDetail` | Laptops: a sortable table (sorts the customers loaded); a customer has Call / Copy phone |
 | `/dashboard/products`, `/products/new`, `/products/:productId` | `ProductList`, `ProductEdit` | Photos (cards as tall as the photo) or List (rows; a sortable table on laptops), kept in `sc.products.view`; stock tags: 5 or fewer is "Only N left" |
@@ -848,9 +848,13 @@ export const keys = {
 ### Auth handling
 
 `AuthProvider` (`src/auth/AuthContext.tsx`) exposes `status: 'loading' |
-'authenticated' | 'anonymous'`, plus `login`, `register` and `logout`
-through `useAuth()`. On load, if a refresh token is stored, it refreshes to
-restore the session. `logout` revokes the refresh token on the server (best
+'authenticated' | 'anonymous' | 'unreachable'`, plus `login`, `register`,
+`logout`, `restoreError` and `retryRestore` through `useAuth()`. On load, if
+a refresh token is stored, it refreshes to restore the session. If the API
+can't be reached at all (the refresh rejects with `NETWORK_ERROR`), status
+becomes `'unreachable'`: the tokens stay stored, `DashboardLayout` shows
+`ErrorState` with a retry (`retryRestore`), and `Home` sends a stored session
+there instead of the landing page. `logout` revokes the refresh token on the server (best
 effort), clears tokens and the query cache. Only `DashboardLayout` guards
 routes.
 
@@ -1153,10 +1157,6 @@ and policy, endpoint list, JSONB shapes, link and tracking flows) matches
   `api()` treats any failed refresh (`refreshTokens()` → `false`) as
   session over: it clears the stored refresh token. A 429 or 5xx from
   `/auth/refresh` (not only a 401) therefore logs the seller out.
-- **Session restore can spin forever offline.** In `AuthContext.tsx`,
-  `refreshTokens().then(...)` has no `catch`. If the API can't be reached
-  at all while restoring a session, the promise rejects, `status` stays
-  `'loading'`, and the dashboard shows the spinner until a reload.
 - **Slug length mismatch.** `store.slug`, `product.slug` and
   `category.slug` are `String(64)`, but validation caps slugs at 50
   (`MAX_SLUG_LENGTH`). Harmless.

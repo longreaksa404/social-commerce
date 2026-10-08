@@ -1,6 +1,8 @@
 import { createContext, use } from 'react'
 
-export type Status = 'loading' | 'authenticated' | 'anonymous'
+// 'unreachable': a stored session couldn't be restored because the server
+// didn't answer (offline, or the API isn't running); not a logout.
+export type Status = 'loading' | 'authenticated' | 'anonymous' | 'unreachable'
 
 export type RegisterInput = {
   email: string
@@ -12,7 +14,9 @@ export type RegisterInput = {
 
 type AuthValue = {
   status: Status
-  login: (email: string, password: string) => Promise<void>
+  restoreError: unknown
+  retryRestore: () => void
+  login:(email: string, password: string) => Promise<void>
   register: (input: RegisterInput) => Promise<void>
   logout: () => Promise<void>
 }

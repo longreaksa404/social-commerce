@@ -15,7 +15,8 @@ export function Home() {
   const home = t.auth.home
 
   if (status === 'loading') return <Spinner />
-  if (status === 'authenticated') return <Navigate to="/dashboard" replace />
+  // 'unreachable' has a stored session: the dashboard shows the retry.
+  if (status === 'authenticated' || status === 'unreachable') return <Navigate to="/dashboard" replace />
 
   return (
     <main className="flex min-h-dvh flex-col bg-[#182841] px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] text-white sm:px-10 lg:px-16">
