@@ -1,4 +1,18 @@
-import { ChevronRight, Inbox, Link2, LogOut, Send, Store as StoreIcon, Tag, Truck, UserRound, Wallet, type LucideIcon } from 'lucide-react'
+import {
+  ChevronRight,
+  ExternalLink,
+  Inbox,
+  LifeBuoy,
+  Link2,
+  LogOut,
+  Send,
+  Store as StoreIcon,
+  Tag,
+  Truck,
+  UserRound,
+  Wallet,
+  type LucideIcon,
+} from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../../auth/useAuth.ts'
@@ -8,6 +22,7 @@ import { LanguageSwitch } from '../../i18n/LanguageSwitch.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { formatMoney } from '../../lib/money.ts'
 import { PAYMENT_METHOD_ORDER } from '../../lib/payments.ts'
+import { SUPPORT_TELEGRAM, supportLink } from '../../lib/support.ts'
 import type { Store } from '../../lib/types.ts'
 import { ThemeSwitch } from '../../theme/ThemeSwitch.tsx'
 import { useStore } from '../queries.ts'
@@ -45,7 +60,7 @@ export function SettingsMenu({ selected }: { selected?: Selected }) {
         ) : (
           <StoreRows store={store.data} selected={selected} />
         )}
-        <AccountRows selected={selected} />
+        <AccountRows selected={selected} store={store.data} />
         <DisplaySection />
         <LogOutButton />
       </div>
@@ -108,34 +123,51 @@ function RowIcon({ icon: Icon }: { icon: LucideIcon }) {
   )
 }
 
+/** A row opening one setting; with `href`, a page outside the app in a
+ * new tab instead. */
 function MenuRow({
   to,
+  href,
   icon,
   title,
   summary,
   selected = false,
 }: {
-  to: string
+  to?: string
+  href?: string
   icon: ReactNode
   title: string
   summary: string
   selected?: boolean
 }) {
-  return (
-    <Link
-      // From the menu's own address, so it works beside an open setting too.
-      to={`/dashboard/settings/${to}`}
-      aria-current={selected ? 'page' : undefined}
-      className={`flex min-h-16 items-center gap-3 px-4 py-3 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100 sm:[li:first-child>&]:rounded-t-2xl sm:[li:last-child>&]:rounded-b-2xl ${
-        selected ? 'lg:bg-navy-50' : 'hover:bg-slate-50'
-      }`}
-    >
+  const className = `flex min-h-16 items-center gap-3 px-4 py-3 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100 sm:[li:first-child>&]:rounded-t-2xl sm:[li:last-child>&]:rounded-b-2xl ${
+    selected ? 'lg:bg-navy-50' : 'hover:bg-slate-50'
+  }`
+  const content = (
+    <>
       {icon}
       <span className="min-w-0 flex-1">
         <span className="block truncate font-medium text-slate-900">{title}</span>
         <span className="mt-0.5 line-clamp-2 text-sm text-slate-500">{summary}</span>
       </span>
-      <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
+      {href ? (
+        <ExternalLink aria-hidden className="size-4.5 shrink-0 text-slate-400" />
+      ) : (
+        <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
+      )}
+    </>
+  )
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" className={className}>
+        {content}
+      </a>
+    )
+  }
+  return (
+    // From the menu's own address, so it works beside an open setting too.
+    <Link to={`/dashboard/settings/${to}`} aria-current={selected ? 'page' : undefined} className={className}>
+      {content}
     </Link>
   )
 }
@@ -186,11 +218,15 @@ function DisplaySection() {
 }
 
 /** The person's own things, apart from the store's settings. */
-function AccountRows({ selected }: { selected?: Selected }) {
+function AccountRows({ selected, store }: { selected?: Selected; store?: Store }) {
   const s = useT().settings
-  const rows: { id: PageId; icon: LucideIcon; title: string; summary: string }[] = [
+  const rows: { id: PageId | 'help'; href?: string; icon: LucideIcon; title: string; summary: string }[] = [
     { id: 'account', icon: UserRound, title: s.yourAccount, summary: s.menu.accountHint },
   ]
+  if (SUPPORT_TELEGRAM) {
+    const shop = store ? s.supportText(store.name, `${location.origin}/shop/${store.slug}`) : s.supportTextNoShop
+    rows.push({ id: 'help', href: supportLink(shop), icon: LifeBuoy, title: s.help, summary: s.menu.helpHint })
+  }
   return (
     <section aria-labelledby="account">
       <h2 id="account" className="mb-2 sm:px-1 text-sm font-semibold text-slate-500">
@@ -198,9 +234,16 @@ function AccountRows({ selected }: { selected?: Selected }) {
       </h2>
       <Card>
         <ul className="divide-y divide-slate-100">
-          {rows.map(({ id, icon, title, summary }) => (
+          {rows.map(({ id, href, icon, title, summary }) => (
             <li key={id}>
-              <MenuRow to={id} selected={selected === id} icon={<RowIcon icon={icon} />} title={title} summary={summary} />
+              <MenuRow
+                to={href ? undefined : id}
+                href={href}
+                selected={selected === id}
+                icon={<RowIcon icon={icon} />}
+                title={title}
+                summary={summary}
+              />
             </li>
           ))}
         </ul>

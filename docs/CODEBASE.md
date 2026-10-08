@@ -120,7 +120,7 @@ Render's health check.
 | Customer order tracking (order bar, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrderBar.tsx`, `ShopOrders.tsx`, `useMyOrders` |
 | UX pass 2 (effects, cart bars, numbered checkout, Kantumruy Pro) | DONE | `components/effects.ts`, `shop/fly.ts`, `components/useBump.ts` |
 | Layout pass (edge-to-edge on phones, floating bars) | DONE | `cardClass` in `components/styles.ts` |
-| More in Settings (founder's request 2026-10-08): your account | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx` |
+| More in Settings (founder's request 2026-10-08): your account, Get help | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`) |
 
 None of the "MVP Built" exit criteria in 03 §10 are met yet. They all
 need a real seller and a real customer.
@@ -277,6 +277,7 @@ blocks the deploy (04).
 | `PUBLIC_APP_URL` | backend | Base for the "Open order" button in alerts (only if https) |
 | `VITE_API_URL` | frontend, middleware.ts | API base; defaults to `http://localhost:8000` |
 | `VITE_SENTRY_DSN` | frontend | Optional |
+| `VITE_SUPPORT_TELEGRAM` | frontend | Oak Order's own Telegram username (no @) for sellers' "Get help" links (`src/lib/support.ts`); empty hides them |
 | `VITE_USE_POLLING`, `WATCHFILES_FORCE_POLLING` | dev container | File polling (the repo is on a Windows drive mount) |
 | `BACKUP_DATABASE_URL`, `BACKUP_R2_ACCOUNT_ID`, `BACKUP_R2_ACCESS_KEY_ID`, `BACKUP_R2_SECRET_ACCESS_KEY`, `BACKUP_R2_BUCKET` | GitHub Actions secrets | Nightly backup workflow |
 

@@ -220,6 +220,7 @@ export const settings = {
     alertsOn: { en: 'Order alerts on', km: 'ការជូនដំណឹងបានបើក' },
     alertsOff: { en: 'Order alerts off', km: 'ការជូនដំណឹងបានបិទ' },
     accountHint: { en: 'Name, phone, email, password', km: 'ឈ្មោះ ទូរស័ព្ទ អ៊ីមែល ពាក្យសម្ងាត់' },
+    helpHint: { en: 'Message Oak Order on Telegram', km: 'ផ្ញើសារទៅ Oak Order តាម Telegram' },
   },
 
   account: { en: 'Account', km: 'គណនី' },
@@ -242,6 +243,12 @@ export const settings = {
   },
   currentPassword: { en: 'Current password', km: 'ពាក្យសម្ងាត់បច្ចុប្បន្ន' },
   newPassword: { en: 'New password', km: 'ពាក្យសម្ងាត់ថ្មី' },
+  help: { en: 'Get help', km: 'សុំជំនួយ' },
+  supportText: {
+    en: (shop: string, link: string) => `Hi Oak Order, I need help with my shop ${shop} (${link}).`,
+    km: (shop: string, link: string) => `សួស្ដី Oak Order ខ្ញុំត្រូវការជំនួយសម្រាប់ហាង ${shop} (${link})។`,
+  },
+  supportTextNoShop: { en: 'Hi Oak Order, I need help with my shop.', km: 'សួស្ដី Oak Order ខ្ញុំត្រូវការជំនួយសម្រាប់ហាងរបស់ខ្ញុំ។' },
   passwordChanged: {
     en: 'Password changed. Other phones are logged out.',
     km: 'បានប្ដូរពាក្យសម្ងាត់។ ទូរស័ព្ទផ្សេងទៀតត្រូវបានចាកចេញ។',
