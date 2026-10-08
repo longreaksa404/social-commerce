@@ -50,6 +50,10 @@ export type Store = {
   discount_settings: { rules: DiscountRule[] }
   /** The seller's own Telegram account, no @: "Ask seller" opens it. */
   telegram_username: string | null
+  /** A number customers can call ("012345678") and a Facebook page's
+   * username for Messenger (Settings → Contact); null hides each. */
+  contact_phone: string | null
+  messenger_username: string | null
   /** Not taking orders right now (Settings → Orders); false again once
    * orders_resume_on has come. */
   orders_paused: boolean
@@ -130,6 +134,9 @@ export type ShopStore = {
   discounts: DiscountRule[]
   /** null = no "Ask seller" button. */
   telegram_username: string | null
+  /** Call and Messenger buttons; null hides each. */
+  contact_phone: string | null
+  messenger_username: string | null
   /** Not taking orders now: browsing works, checkout is refused. */
   orders_paused: boolean
   /** The day it opens again, if the seller set one. */

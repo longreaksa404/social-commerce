@@ -70,6 +70,11 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     # The seller's own Telegram account, without the @: "Ask seller" on the
     # shop opens a chat with it. Public.
     telegram_username: Mapped[str | None] = mapped_column(Text)
+    # More ways for customers to reach the seller (Settings → Contact), both
+    # public: a number to call (stored like customers' phones, "012345678")
+    # and a Facebook page's username for Messenger (m.me/<username>).
+    contact_phone: Mapped[str | None] = mapped_column(Text)
+    messenger_username: Mapped[str | None] = mapped_column(Text)
     payment_config: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, server_default="{}")
     delivery_config: Mapped[dict[str, Any]] = mapped_column(
         JSONB, default=dict, server_default="{}"

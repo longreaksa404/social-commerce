@@ -22,6 +22,21 @@ export const shop = {
       km: 'អ្នកនៅតែអាចមើលទំនិញ ហើយសួរហាងថាពេលណាបើកវិញ។',
     },
   },
+  // Asking the seller: Telegram, Messenger, a call (Settings → Contact).
+  contact: {
+    askTheSeller: { en: 'Ask the seller', km: 'សួរអ្នកលក់' },
+    askOnMessenger: { en: 'Ask seller on Messenger', km: 'សួរអ្នកលក់តាម Messenger' },
+    call: { en: (phone: string) => `Call ${phone}`, km: (phone: string) => `ហៅ ${phone}` },
+    short: {
+      telegram: { en: 'Telegram', km: 'Telegram' },
+      messenger: { en: 'Messenger', km: 'Messenger' },
+      phone: { en: 'Call', km: 'ហៅទូរស័ព្ទ' },
+    },
+    copied: {
+      en: 'Your question is copied. Paste it in the chat.',
+      km: 'បានចម្លងសំណួររបស់អ្នក។ សូមបិទភ្ជាប់វាក្នុងការជជែក។',
+    },
+  },
   cart: { en: 'Cart', km: 'កន្ត្រក' },
   cartWithCount: {
     en: (n: number) => `Cart, ${n} ${n === 1 ? 'item' : 'items'}`,

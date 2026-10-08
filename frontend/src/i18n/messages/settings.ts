@@ -151,8 +151,8 @@ export const settings = {
 
   telegram: { en: 'Telegram', km: 'Telegram' },
   telegramHint: {
-    en: 'Hear about new orders on your phone, and let customers message you.',
-    km: 'ទទួលដំណឹងអំពីការកុម្ម៉ង់ថ្មីនៅលើទូរស័ព្ទ ហើយឱ្យអតិថិជនផ្ញើសារមកអ្នក។',
+    en: 'Hear about new orders, and products running low, on your phone.',
+    km: 'ទទួលដំណឹងអំពីការកុម្ម៉ង់ថ្មី និងទំនិញជិតអស់ នៅលើទូរស័ព្ទរបស់អ្នក។',
   },
   orderAlerts: { en: 'Order alerts', km: 'ការជូនដំណឹងការកុម្ម៉ង់' },
   connected: { en: 'Connected', km: 'បានភ្ជាប់' },
@@ -186,8 +186,24 @@ export const settings = {
   },
   username: { en: 'Your Telegram username', km: 'ឈ្មោះអ្នកប្រើ Telegram របស់អ្នក' },
   usernameHint: {
-    en: 'Optional. Customers tap “Ask seller” on a product to message you here. Leave empty to hide the button.',
-    km: 'មិនចាំបាច់។ អតិថិជនចុច “សួរអ្នកលក់” លើទំនិញ ដើម្បីផ្ញើសារមកអ្នកនៅទីនេះ។ ទុកទទេ ដើម្បីលាក់ប៊ូតុងនេះ។',
+    en: 'Customers tap Telegram to message you, with the product or order already typed in.',
+    km: 'អតិថិជនចុច Telegram ដើម្បីផ្ញើសារមកអ្នក ដោយមានឈ្មោះទំនិញ ឬការកុម្ម៉ង់សរសេររួចជាស្រេច។',
+  },
+
+  contact: { en: 'Contact', km: 'ទំនាក់ទំនង' },
+  contactHint: {
+    en: 'Buttons on your products and orders, for customers with a question. Fill in the ones you answer on; empty ones are hidden.',
+    km: 'ប៊ូតុងលើទំនិញ និងការកុម្ម៉ង់របស់អ្នក សម្រាប់អតិថិជនដែលមានសំណួរ។ បំពេញតែមួយណាដែលអ្នកឆ្លើយ។ មួយណាទទេនឹងត្រូវលាក់។',
+  },
+  messenger: { en: 'Facebook page for Messenger', km: 'ទំព័រ Facebook សម្រាប់ Messenger' },
+  messengerHint: {
+    en: "Your page's name from its link, e.g. facebook.com/sokhafashion. Customers tap Messenger to message your page.",
+    km: 'ឈ្មោះទំព័ររបស់អ្នកពីតំណរបស់វា ឧ. facebook.com/sokhafashion។ អតិថិជនចុច Messenger ដើម្បីផ្ញើសារទៅទំព័ររបស់អ្នក។',
+  },
+  contactPhone: { en: 'Phone customers can call', km: 'លេខទូរស័ព្ទដែលអតិថិជនអាចហៅ' },
+  contactPhoneHint: {
+    en: 'Customers tap Call. Shown in your shop, so use a number you are happy to share.',
+    km: 'អតិថិជនចុច ហៅទូរស័ព្ទ។ បង្ហាញក្នុងហាងរបស់អ្នក ដូច្នេះសូមប្រើលេខដែលអ្នកព្រមចែករំលែក។',
   },
 
   shopLink: { en: 'Shop link', km: 'តំណហាង' },

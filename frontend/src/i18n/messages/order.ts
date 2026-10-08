@@ -62,7 +62,10 @@ export const order = {
   // Under the progress list while the page checks for changes by itself.
   updated: { en: (time: string) => `Updated ${time}`, km: (time: string) => `ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ ${time}` },
   notPaidYet: { en: 'Not paid yet', km: 'មិនទាន់បង់' },
-  askAbout: { en: 'Ask about this order on Telegram', km: 'សួរអំពីការកុម្ម៉ង់នេះតាម Telegram' },
+  askAboutOn: {
+    en: (app: string) => `Ask about this order: ${app}`,
+    km: (app: string) => `សួរអំពីការកុម្ម៉ង់នេះ៖ ${app}`,
+  },
   // Typed into the customer's Telegram chat with the seller.
   askAboutText: {
     en: (n: number, url: string) => `Hi! I'd like to ask about my order #${n}: ${url}`,

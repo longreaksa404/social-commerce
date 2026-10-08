@@ -1,4 +1,5 @@
 import type { Messages } from '../../i18n/core.ts'
+import { formatPhone } from '../../lib/orders.ts'
 import type { Currency, DeliverySettings, OrderConfirmationMode, PaymentSettings, Store } from '../../lib/types.ts'
 
 // Rows the seller can add and remove carry a key for React; inputs hold
@@ -27,6 +28,8 @@ export type Form = {
   delivery: DeliveryForm
   discounts: RuleRow[]
   telegram_username: string
+  messenger_username: string
+  contact_phone: string
 }
 
 /** "1.50" -> "1.5", "6000.00" -> "6000": what a person would type. */
@@ -57,10 +60,12 @@ export const toForm = (store: Store): Form => {
       amount_off: amount(r.amount_off),
     })),
     telegram_username: store.telegram_username ?? '',
+    messenger_username: store.messenger_username ?? '',
+    contact_phone: store.contact_phone ? formatPhone(store.contact_phone) : '',
   }
 }
 
-export const SECTION_IDS = ['shop', 'orders', 'payments', 'delivery', 'discounts', 'telegram', 'link'] as const
+export const SECTION_IDS = ['shop', 'orders', 'payments', 'delivery', 'discounts', 'contact', 'telegram', 'link'] as const
 export type SectionId = (typeof SECTION_IDS)[number]
 
 export const isSectionId = (value: string | undefined): value is SectionId =>
@@ -151,11 +156,22 @@ export const SECTIONS: Record<SectionId, Section> = {
         `discount_settings.rules.${i}.amount_off`,
       ]),
   },
+  contact: {
+    title: (s) => s.contact,
+    hint: (s) => s.contactHint,
+    body: (form) => ({
+      telegram_username: form.telegram_username.trim() || null,
+      messenger_username: form.messenger_username.trim() || null,
+      contact_phone: form.contact_phone.trim() || null,
+    }),
+    fields: () => ['telegram_username', 'messenger_username', 'contact_phone'],
+  },
   telegram: {
     title: (s) => s.telegram,
     hint: (s) => s.telegramHint,
-    body: (form) => ({ telegram_username: form.telegram_username.trim() || null }),
-    fields: () => ['telegram_username'],
+    // Connecting and disconnecting save at once; nothing for Save.
+    body: () => ({}),
+    fields: () => [],
   },
   link: {
     title: (s) => s.shopLink,

@@ -40,6 +40,9 @@ class ShopStoreOut(BaseModel):
     discounts: list[DiscountRule]
     # The seller's own Telegram account (no @); null hides "Ask seller".
     telegram_username: str | None
+    # A number to call and a Facebook page for Messenger; null hides each.
+    contact_phone: str | None
+    messenger_username: str | None
     # Not taking orders now: browsing works, checkout is refused. The day
     # it opens again, if the seller set one.
     orders_paused: bool

@@ -120,7 +120,7 @@ Render's health check.
 | Customer order tracking (order bar, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrderBar.tsx`, `ShopOrders.tsx`, `useMyOrders` |
 | UX pass 2 (effects, cart bars, numbered checkout, Kantumruy Pro) | DONE | `components/effects.ts`, `shop/fly.ts`, `components/useBump.ts` |
 | Layout pass (edge-to-edge on phones, floating bars) | DONE | `cardClass` in `components/styles.ts` |
-| More in Settings (founder's request 2026-10-08): your account, Get help, Forgot password via Telegram, pause orders | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`); `/forgot-password`, `/reset-password#<token>`; `store.orders_paused` / `orders_resume_on` (Settings → Orders), refused at checkout |
+| More in Settings (founder's request 2026-10-08): your account, Get help, Forgot password via Telegram, pause orders, Call / Messenger buttons | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`); `/forgot-password`, `/reset-password#<token>`; `store.orders_paused` / `orders_resume_on` (Settings → Orders), refused at checkout; `store.contact_phone` / `messenger_username` (Settings → Contact) as buttons in the shop (`shop/ContactSeller.tsx`) |
 
 None of the "MVP Built" exit criteria in 03 §10 are met yet. They all
 need a real seller and a real customer.
@@ -537,7 +537,7 @@ Mixins (`app/db/base.py`):
 | Table | Tenant | Key columns | FKs | Indexes / constraints |
 |---|---|---|---|---|
 | `seller` | **NO** (owns the tenant; no RLS, no `app_user` grant) | `email` (stored lowercased), `password_hash`, `full_name`, `phone`, `is_active` (default true), `created_at` | none | `uq_seller_email` |
-| `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username` (public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
+| `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
 | `refresh_token` | **NO** (per seller; no RLS, no `app_user` grant) | `id` (= JWT `jti`), `expires_at`, `revoked_at`, `created_at` | `seller_id → seller` CASCADE | `ix_refresh_token_seller_id` |
 | `category` | yes | `name`, `slug` String(64), `created_at` | none besides `store_id` | UNIQUE (`store_id`, `slug`) |
 | `product` | yes | `name`, `slug`, `description`, `price` Numeric(12,2), `image_urls` JSONB list, `status` (`active`/`inactive`), `has_variants`, `stock_quantity` int NULL (only when no variants), `created_at`, `updated_at` | `category_id → category` ON DELETE SET NULL | UNIQUE (`store_id`, `slug`); (`store_id`, `status`); (`store_id`, `category_id`); CHECK `price >= 0`; CHECK stock NULL or ≥0 |
@@ -590,7 +590,8 @@ delivery + discount (backfilled not_assigned deliveries) → `b2f4c81e9d03`
 courier + GPS location → `3867d44e4db7` telegram_username + notification_log
 → `aa40287b7688` notification_log.read_at + index → `883276fadeed`
 shareable_link + link_event → `5ee23aad5482` store.orders_paused +
-orders_resume_on (**head**).
+orders_resume_on → `007ae4403215` store.contact_phone +
+messenger_username (**head**).
 
 ---
 
@@ -753,7 +754,7 @@ from the schema.
 | GET | `/seller/links` | seller | — | `list[LinkOut]` | Newest 200, with view/order counts |
 | POST | `/seller/links` | seller | `LinkCreate` | `LinkOut` (201) | Same target + source + campaign returns the existing link; hidden product → 409 `PRODUCT_HIDDEN` |
 | GET | `/seller/links/{link_id}/stats` | seller | — | `LinkStatsOut` | + its orders (≤100) |
-| GET | `/shop/{store_slug}` | public | — | `ShopStoreOut` | Categories with active products, payment method names, delivery options, discounts, telegram_username, `orders_paused` / `orders_resume_on` |
+| GET | `/shop/{store_slug}` | public | — | `ShopStoreOut` | Categories with active products, payment method names, delivery options, discounts, `telegram_username` / `messenger_username` / `contact_phone`, `orders_paused` / `orders_resume_on` |
 | GET | `/shop/{store_slug}/products` | public | — | `list[ShopProductCard]` | Active only; **no paging**; `has_variants` and `stock_quantity` (null with variants) let the grid's + add to the cart |
 | GET | `/shop/{store_slug}/products/{product_slug}` | public | — | `ShopProductOut` | Variants with effective price and stock |
 | GET | `/shop/{store_slug}/categories/{category_slug}` | public | — | `ShopCategoryPageOut` | |
@@ -817,7 +818,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/dashboard/products`, `/products/new`, `/products/:productId` | `ProductList`, `ProductEdit` | Photos (cards as tall as the photo) or List (rows; a sortable table on laptops), kept in `sc.products.view`; stock tags: 5 or fewer is "Only N left" |
 | `/dashboard/categories` | `Categories` | Button on Products on phones; sidebar entry on desktop. "New category" opens a labelled form; each row's actions (share link, rename, delete) are in one ⋯ menu (`RowMenu`) |
 | `/dashboard/links`, `/links/new`, `/links/:linkId` | `LinkList`, `NewLink`, `LinkDetail` | Links as cards with Copy, views, orders and % ordered |
-| `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Store sections (`SECTION_IDS` in `form.ts`, saved with `PATCH /seller/store`): `shop`, `orders`, `payments`, `delivery`, `discounts`, `telegram`, `link`. Pages with their own endpoint (`PAGE_IDS`, `PAGES` in `SettingsSection.tsx`): `account`. Laptops open `shop` when none is chosen |
+| `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Store sections (`SECTION_IDS` in `form.ts`, saved with `PATCH /seller/store`): `shop`, `orders`, `payments`, `delivery`, `discounts`, `contact` (Telegram username, Messenger page, phone), `telegram` (alerts only; no Save bar, connecting saves at once), `link`. Pages with their own endpoint (`PAGE_IDS`, `PAGES` in `SettingsSection.tsx`): `account`. Laptops open `shop` when none is chosen |
 | `/dashboard/notifications` | `Notifications` | |
 | `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public. While paused, `PausedNotice` (`shop/components.tsx`) tops every shop page and the cart's Place order is disabled; the seller's Orders tab shows a reminder |
 | `/shop/:storeSlug/product/:productSlug` | `ShopProduct` | |
@@ -1017,7 +1018,7 @@ through to the SPA.
 | Integration | State | Details |
 |---|---|---|
 | **Telegram bot** (seller alerts) | WIRED, env-gated | `services/telegram.py`: plain `httpx` calls to the Bot API (`sendMessage`, `setWebhook`). Webhook registered at startup only when `PUBLIC_API_URL` is set. Webhook checks the secret header with `hmac.compare_digest`. `/start <code>` in a private chat stores `store.telegram_chat_id` (the code is store id + expiry + 12-byte HMAC-SHA256, base64url, 43 chars, key derived from `JWT_SECRET`). Groups are ignored. Replies go back in the webhook response. Alerts (`services/notifications.py`) for new orders and low stock (crossing ≤5, or to 0) go out after the response. Each writes a `notification_log` row (`telegram`, sent or failed). A 403, or a 400 "chat not found", disconnects the store. Alert text is English, HTML-escaped. The same chat gets "Forgot password?" links (`auth.send_password_reset`, no log row). Live and tested by the founder (04). |
-| **Telegram "Ask seller"** | WIRED (no bot) | Frontend link `https://t.me/<telegram_username>?text=...`; hidden when there's no username. |
+| **"Ask seller": Telegram, Messenger, call** | WIRED (no bot) | `shop/ContactSeller.tsx` (+ `contact.ts`) on the product page and the order page: `https://t.me/<telegram_username>?text=<question>`; `https://m.me/<messenger_username>` (m.me can't type a message, so the question is copied to the clipboard first); `tel:<contact_phone>`. Each hidden when empty; one way shows as one button, more as a row that wraps. Set in Settings → Contact; `StoreUpdate` accepts a page's m.me / facebook.com link (`profile.php?id=` too) and any phone spelling. |
 | **Web notifications** | WIRED | `notification_log` rows with `channel=web`, written in the checkout transaction; the dashboard polls. No push. |
 | **Payments: COD, bank transfer** | WIRED, manual | No provider. Bank details from `payment_config` (current values, not a copy at order time) are shown on the order page while the payment is pending and the order isn't rejected or cancelled. |
 | **Payments: KHQR** | WIRED, manual confirmation | `services/khqr.py` builds an individual KHQR (EMVCo TLV + CRC16) for the exact total, bill number `#<order number>`, 24 h expiry, made fresh on every order-page load; none for riel totals with cents. Tests pin it to strings from NBC's `bakong-khqr` 1.0.20 SDK. Drawn in the browser with `uqr`. |

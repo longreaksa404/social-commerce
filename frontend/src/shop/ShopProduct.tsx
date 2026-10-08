@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Send, ShoppingBag } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
 import { useRef, useState, type Ref, type RefObject } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { buzz } from '../components/effects.ts'
@@ -13,6 +13,7 @@ import { LOW_STOCK, NotFound, ProductImage, QuantityStepper } from './components
 import { flyToCart } from './fly.ts'
 import { isNotFound, useShop, useShopProduct } from './queries.ts'
 import { ShopInfo } from './ShopInfo.tsx'
+import { ContactButtons } from './ContactSeller.tsx'
 
 /** /shop/:storeSlug/product/:productSlug: the product link a seller shares. */
 export function ShopProduct() {
@@ -82,9 +83,7 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
           <VariantPicker variants={product.variants} value={variantId} onChange={setVariantId} />
         )}
         <AddToCart shop={shop} product={product} variant={variant} photos={photos} />
-        {shop.telegram_username && (
-          <AskSeller username={shop.telegram_username} product={product} variant={variant} />
-        )}
+        <AskSeller shop={shop} product={product} variant={variant} />
         <ShopInfo shop={shop} className="mt-6" />
 
         {product.description && (
@@ -225,23 +224,13 @@ function flightStart(photos: HTMLDivElement | null, button: HTMLElement): [Eleme
   return [button, first || null]
 }
 
-/** Opens a Telegram chat with the seller's own account, the question
- * started for them. Ordering stays on the shop (01_PRODUCT.md section 11). */
-function AskSeller({ username, product, variant }: { username: string; product: Product; variant: ShopVariant | null }) {
+/** The seller's Telegram, Messenger or phone (Settings → Contact), the
+ * question about this product started for them. Ordering stays on the
+ * shop (01_PRODUCT.md section 11). */
+function AskSeller({ shop, product, variant }: { shop: ShopStore; product: Product; variant: ShopVariant | null }) {
   const t = useT()
   const name = variant ? `${product.name} (${variant.name})` : product.name
-  const text = t.shop.product.askSellerText(name, window.location.href)
-  return (
-    <a
-      href={`https://t.me/${username}?text=${encodeURIComponent(text)}`}
-      target="_blank"
-      rel="noreferrer"
-      className={`${buttonClass('secondary')} mt-5 w-full lg:mt-3`}
-    >
-      <Send aria-hidden className="size-4" />
-      {t.shop.product.askSeller}
-    </a>
-  )
+  return <ContactButtons shop={shop} text={t.shop.product.askSellerText(name, window.location.href)} className="mt-5 lg:mt-3" />
 }
 
 /** Few left shows the number; plenty just says in stock. */

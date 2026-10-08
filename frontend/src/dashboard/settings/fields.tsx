@@ -435,7 +435,7 @@ const LINK_REFRESH_MS = 20 * 60_000
 // While the seller is off in Telegram tapping Start, check for the chat.
 const CONNECT_POLL_MS = 3_000
 
-export function TelegramFields({ store, form, update, error }: FieldsProps) {
+export function TelegramFields({ store }: FieldsProps) {
   const queryClient = useQueryClient()
   const { toast, confirm } = useFeedback()
   const [opened, setOpened] = useState(false)
@@ -522,7 +522,17 @@ export function TelegramFields({ store, form, update, error }: FieldsProps) {
         )
       )}
       {disconnect.error && <ErrorMessage error={disconnect.error} />}
+    </>
+  )
+}
 
+/** How customers with a question reach the seller: buttons on products and
+ * orders in the shop. Telegram types the question in; Messenger (a
+ * Facebook page) and a phone call are there for those who don't use it. */
+export function ContactFields({ form, update, error }: FieldsProps) {
+  const s = useT().settings
+  return (
+    <>
       <Field label={s.username} error={fieldError(error, 'telegram_username')} hint={s.usernameHint}>
         <Input
           maxLength={60}
@@ -533,6 +543,28 @@ export function TelegramFields({ store, form, update, error }: FieldsProps) {
           leading={<span className="text-sm font-medium">@</span>}
           value={form.telegram_username}
           onChange={(e) => update({ telegram_username: e.target.value.replace(/^@/, '') })}
+        />
+      </Field>
+      <Field label={s.messenger} error={fieldError(error, 'messenger_username')} hint={s.messengerHint}>
+        <Input
+          maxLength={200}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder="sokhafashion"
+          value={form.messenger_username}
+          onChange={(e) => update({ messenger_username: e.target.value })}
+        />
+      </Field>
+      <Field label={s.contactPhone} error={fieldError(error, 'contact_phone')} hint={s.contactPhoneHint}>
+        <Input
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          maxLength={32}
+          placeholder="012 345 678"
+          value={form.contact_phone}
+          onChange={(e) => update({ contact_phone: e.target.value })}
         />
       </Field>
     </>

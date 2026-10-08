@@ -11,6 +11,8 @@ import { formatMoney } from '../lib/money.ts'
 import { formatDate, formatOrderTime } from '../lib/orders.ts'
 import type { DeliveryMethod, DeliveryStatus, OrderStatus, ShopOrder, ShopStore } from '../lib/types.ts'
 import { ProductImage, ShopLogo } from './components.tsx'
+import { contactChannels, useContactLink, type Channel } from './contact.ts'
+import { ChannelIcon } from './ContactSeller.tsx'
 import { loadCustomerDetails, orderPhone, rememberOrder } from './device.ts'
 import { orderHeadline, stepLabel } from './orderWords.ts'
 import { PaymentCard } from './PaymentCard.tsx'
@@ -158,7 +160,7 @@ function OrderView({
   // left to do.
   const left = 'lg:col-start-1'
   // The payment column runs beside all of the left one's cards.
-  const leftCards = shop.telegram_username ? 4 : 3
+  const leftCards = contactChannels(shop).length > 0 ? 4 : 3
   const payWrap = (card: ReactNode) => (
     <div
       style={{ '--left-cards': leftCards } as CSSProperties}
@@ -188,7 +190,7 @@ function OrderView({
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-6">
         {payNow && payWrap(payment)}
         <StatusCard order={order} shop={shop} closed={closed} updatedAt={updatedAt} titleIsPage={!justPlaced} className={left} />
-        {shop.telegram_username && <SellerCard shop={shop} order={order} className={left} />}
+        {contactChannels(shop).length > 0 && <SellerCard shop={shop} order={order} className={left} />}
         {!payNow && payment && payWrap(payment)}
         <ItemsCard order={order} className={left} />
         <Card className={`p-4 sm:p-6 ${left}`}>
@@ -294,37 +296,39 @@ function StatusCard({
   )
 }
 
-/** The shop, with its Telegram right beside it: asking the seller sits
- * where the seller is. */
+/** The shop, with the ways to ask it right beside it (Settings → Contact):
+ * asking the seller sits where the seller is. One way fits beside the
+ * name; more go in a row under it. */
 function SellerCard({ shop, order, className }: { shop: ShopStore; order: ShopOrder; className: string }) {
   const t = useT()
-  return (
-    <Card className={`flex items-center gap-3 p-4 sm:px-6 ${className}`}>
-      <ShopLogo shop={shop} className="size-11" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold text-slate-900">{shop.name}</p>
-        <p className="text-sm text-slate-500">{t.order.questions}</p>
-      </div>
-      <a
-        href={`https://t.me/${shop.telegram_username}?text=${encodeURIComponent(t.order.askAboutText(order.number, window.location.href))}`}
-        target="_blank"
-        rel="noreferrer"
-        aria-label={t.order.askAbout}
-        className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-slate-300 bg-surface px-4 text-sm font-semibold text-slate-800 shadow-xs transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600"
-      >
-        <TelegramIcon />
-        Telegram
-      </a>
-    </Card>
+  const link = useContactLink(shop, t.order.askAboutText(order.number, window.location.href))
+  const channels = contactChannels(shop)
+  const pill = (channel: Channel) => (
+    <a
+      key={channel}
+      {...link(channel)}
+      rel="noreferrer"
+      aria-label={t.order.askAboutOn(t.shop.contact.short[channel])}
+      className="inline-flex min-h-11 min-w-0 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-300 bg-surface px-4 text-sm font-semibold text-slate-800 shadow-xs transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600"
+    >
+      <ChannelIcon channel={channel} />
+      <span className="truncate">{t.shop.contact.short[channel]}</span>
+    </a>
   )
-}
-
-/** Telegram's paper plane, in its own blue. */
-function TelegramIcon() {
   return (
-    <svg aria-hidden viewBox="0 0 24 24" className="size-4.5 fill-[#2a9de0]">
-      <path d="M21.9 4.3 18.6 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 13.4l-4.9-1.5c-1.1-.3-1.1-1.1.2-1.6l19.2-7.4c.9-.3 1.7.2 1.4 1.4z" />
-    </svg>
+    <Card className={`p-4 sm:px-6 ${className}`}>
+      <div className="flex items-center gap-3">
+        <ShopLogo shop={shop} className="size-11" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-slate-900">{shop.name}</p>
+          <p className="text-sm text-slate-500">{t.order.questions}</p>
+        </div>
+        {channels.length === 1 && pill(channels[0])}
+      </div>
+      {channels.length > 1 && (
+        <div className="mt-3 flex flex-wrap gap-2 [&>a]:grow [&>a]:basis-28">{channels.map(pill)}</div>
+      )}
+    </Card>
   )
 }
 

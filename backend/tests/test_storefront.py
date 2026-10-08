@@ -37,6 +37,8 @@ async def test_store_page_shows_only_categories_with_active_products(client, mak
         "delivery",
         "discounts",
         "telegram_username",  # for "Ask seller"; the alerts chat id stays private
+        "contact_phone",  # Call and Messenger buttons, if the seller set them
+        "messenger_username",
         "orders_paused",  # not taking orders for a while
         "orders_resume_on",
     }

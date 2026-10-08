@@ -3,6 +3,7 @@ import {
   ExternalLink,
   Inbox,
   LifeBuoy,
+  MessageCircle,
   Link2,
   LogOut,
   Send,
@@ -21,7 +22,7 @@ import type { Messages } from '../../i18n/core.ts'
 import { LanguageSwitch } from '../../i18n/LanguageSwitch.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { formatMoney } from '../../lib/money.ts'
-import { formatCalendarDay } from '../../lib/orders.ts'
+import { formatCalendarDay, formatPhone } from '../../lib/orders.ts'
 import { PAYMENT_METHOD_ORDER } from '../../lib/payments.ts'
 import { SUPPORT_TELEGRAM, supportLink } from '../../lib/support.ts'
 import type { Store } from '../../lib/types.ts'
@@ -34,6 +35,7 @@ const ROWS: { id: Exclude<SectionId, 'shop'>; icon: LucideIcon }[] = [
   { id: 'payments', icon: Wallet },
   { id: 'delivery', icon: Truck },
   { id: 'discounts', icon: Tag },
+  { id: 'contact', icon: MessageCircle },
   { id: 'telegram', icon: Send },
   { id: 'link', icon: Link2 },
 ]
@@ -202,6 +204,12 @@ function summaries(store: Store, t: Messages): Record<Exclude<SectionId, 'shop'>
     payments: methods.map((method) => t.status.paymentMethod[method]).join(', ') || m.noneOn,
     delivery: deliveryParts.join(' · ') || m.noneOn,
     discounts: rules.map((r) => m.discount(money(r.amount_off), money(r.min_subtotal))).join(' · ') || m.none,
+    contact:
+      [
+        ...(store.telegram_username ? ['Telegram'] : []),
+        ...(store.messenger_username ? ['Messenger'] : []),
+        ...(store.contact_phone ? [formatPhone(store.contact_phone)] : []),
+      ].join(', ') || m.none,
     telegram: store.telegram_connected ? m.alertsOn : m.alertsOff,
     link: `/shop/${store.slug}`,
   }

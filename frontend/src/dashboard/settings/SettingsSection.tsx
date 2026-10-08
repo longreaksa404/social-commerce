@@ -12,6 +12,7 @@ import { keys, useStore } from '../queries.ts'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
 import {
   DeliveryFields,
+  ContactFields,
   DiscountsFields,
   LinkFields,
   OrdersFields,
@@ -29,6 +30,7 @@ const FIELDS: Record<SectionId, ComponentType<FieldsProps>> = {
   payments: PaymentsFields,
   delivery: DeliveryFields,
   discounts: DiscountsFields,
+  contact: ContactFields,
   telegram: TelegramFields,
   link: LinkFields,
 }
@@ -126,8 +128,9 @@ function SectionForm({ id, store }: { id: SectionId; store: Store }) {
       <ErrorMessage error={formError(save.error, section.fields(form))} />
 
       {/* Pinned to the bottom so Save is always in reach (floating at the
-          bottom of the column on wide screens). */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
+          bottom of the column on wide screens). None where nothing waits
+          for Save (Telegram connects at once). */}
+      <div hidden={Object.keys(body).length === 0} className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
           <span className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
             {dirty ? t.common.unsaved : <SavedNote key={save.submittedAt} justSaved={save.isSuccess} />}
