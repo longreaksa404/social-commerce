@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-08 (Render kept awake 7:00-midnight by a cron-job.org job)
+> **Last updated:** 2026-10-08 (renamed to Oak Order; Render kept awake 7:00-midnight)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -843,6 +843,13 @@ redesign, calm look). Steps, each committed on its own:
    Sroul Order brand everywhere, the ស favicon) and the start page
    (founder picked F from six, 2026-10-08: deep navy with ស្រួល in very
    large letters, one line on what it's for, Create your store / Log in).
+7. [x] Renamed to **Oak Order** (founder's decision 2026-10-08): the
+   start page has "Oak Order" in very large letters instead of ស្រួល
+   (and no "Sroul means easy" line); the mark and favicon are a tree on
+   navy (lucide `TreeDeciduous`); tab title and home-screen name Oak
+   Order; `order.sroul.com` removed from the login page until there's a
+   domain. Checked at 390 and 1280 px; lint and build pass. Committed,
+   not pushed.
 
 The redesign is complete and pushed (2026-10-08, with the bcrypt fix and
 load test). Founder: check CI and the live site once Vercel and Render
@@ -856,13 +863,15 @@ Phase 9, waiting on the founder:
   race, rate limits back on, hide the test shop. Send Claude the
   summary lines.
 
-- **Domain:** buy **sroul.com** on Cloudflare (brand chosen
-  2026-10-06, not bought yet; Domains → Register domain, in the same
-  account as R2). First check that "Sroul" is free as a Facebook page
-  name and @sroul on TikTok, Instagram and Telegram. Then: this
-  product on `order.sroul.com` (Vercel + Render custom domains,
-  Cloudflare DNS), `sroul.com` forwards to it for now, R2 photos on
-  `images.sroul.com` (existing photo and logo URLs need rewriting in
+- **Domain:** not chosen for Oak Order (sroul.com was never bought
+  and is dropped with the Sroul brand). oakorder.com is registered by
+  someone else (since 2026-06-25); oakorders.com showed no
+  registration on 2026-10-08. Buy on Cloudflare (Domains → Register
+  domain, in the same account as R2), after checking that "Oak Order"
+  is free as a Facebook page name and on TikTok, Instagram and
+  Telegram. Then: this product on its address (Vercel + Render custom
+  domains, Cloudflare DNS), R2 photos on `images.<domain>` (existing
+  photo and logo URLs need rewriting in
   the database, or saving a product with old photos is refused as
   "Invalid product image"), the refresh token moved to an httpOnly
   cookie, `PUBLIC_API_URL` / `PUBLIC_APP_URL` / `CORS_ORIGINS` updated.
@@ -1010,8 +1019,14 @@ Resolved:
       like `delivery` and `order_item`).
 
 - [x] **Domain: a .com bought on Cloudflare** (2026-10-04).
-- [x] **Brand: Sroul (ស្រួល, "easy"); this product is Sroul Order**
-      (2026-10-06, replaces khmerorder.com from 2026-10-05, which was
+- [x] **Brand: Oak; this product is Oak Order** (2026-10-08, replaces
+      Sroul / Sroul Order below): one brand for all of the founder's
+      projects, each product "Oak + a plain word". The app shows "Oak
+      Order" in English letters in both languages, in very large letters
+      on the start page; the mark is a tree on navy. Web address not
+      decided yet.
+- [x] ~~**Brand: Sroul (ស្រួល, "easy"); this product is Sroul Order**~~
+      (replaced by Oak on 2026-10-08) (2026-10-06, replaces khmerorder.com from 2026-10-05, which was
       never bought). One brand for all of the founder's projects, so
       marketing builds one name: each product is "Sroul + a plain
       word" on its own subdomain (`order.sroul.com`; later e.g.
@@ -1073,6 +1088,10 @@ Resolved:
 ---
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
+
+Applied to 01/03 on 2026-10-08 (at the founder's request): the rename
+to Oak Order (01 §1.1 and the §46 decisions list; 03 Phase 9 redesign
+row).
 
 Applied to 02/03 on 2026-10-08 (at the founder's request): Kantumruy
 Pro for all text (02 §2 Fonts row) and the frontend redesign (03 Phase 9
@@ -1383,9 +1402,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
    Khmer with the rest.
 5. Founder: read the Khmer on the live site; try dark mode; run the
    rate-limit check (Notes).
-6. Founder: check "Sroul" is free on Facebook, TikTok, Instagram and
-   Telegram, then buy sroul.com (chosen 2026-10-06); then Claude does
-   DNS, `order.sroul.com`, R2 photo domain, cookie sessions.
+6. Founder: choose and buy a domain for Oak Order (check "Oak Order" on
+   Facebook, TikTok, Instagram and Telegram first); then Claude does
+   DNS, the custom domains, R2 photo domain, cookie sessions.
 7. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
 8. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
    Part A on the live site, revoke the Telegram token.

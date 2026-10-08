@@ -18,8 +18,10 @@ Product in one line: a multi-tenant ordering platform for small Cambodian
 sellers who sell through Facebook, TikTok and Instagram. A seller gets a
 dashboard and a public shop at `/shop/<slug>`. Customers check out as guests
 (no account) and pay by cash on delivery, bank transfer or KHQR. Every
-payment is confirmed by the seller by hand. The brand is Sroul / "Sroul
-Order" (01 §1.1), but the code still says "Social Commerce" everywhere.
+payment is confirmed by the seller by hand. The brand is Oak / "Oak
+Order" (01 §1.1): the start page, logo, tab title and favicon say so; the
+FastAPI title, the dev container and the Render service still say
+"Social Commerce".
 
 ---
 
@@ -108,7 +110,7 @@ Render's health check.
 | Rate limiting + security review | DONE | `client_ip()` uses `CF-Connecting-IP` (`app/core/ratelimit.py`); the live check is still pending (04) |
 | Seed real store data | NOT STARTED | no seed script in the repo |
 | Onboard first real seller | NOT STARTED | |
-| Domain + Cloudflare DNS | NOT STARTED | `render.yaml` still points at `*.onrender.com` / `*.vercel.app`; sroul.com not bought yet (04) |
+| Domain + Cloudflare DNS | NOT STARTED | `render.yaml` still points at `*.onrender.com` / `*.vercel.app`; no domain chosen yet for Oak Order (04) |
 | Refresh token in an httpOnly cookie (part of the domain work in 04) | NOT STARTED | the only TODO in the code, `frontend/src/lib/api.ts:22` |
 | Khmer / English switch | DONE | `frontend/src/i18n/`. The founder hasn't reviewed the Khmer yet; Telegram alerts are English only |
 | Light / dark mode | DONE | `src/theme/`, `index.css`, the inline script in `index.html` |
@@ -1118,10 +1120,13 @@ async def test_store_only_sees_its_own_rows(two_stores):
   writes it.
 - **§13 rate limiting** names login and storefront; the code also limits
   register (5/min) and refresh (30/min). Logout is unlimited.
-- **Brand:** 01 §1.1 now names the product Sroul Order. The code still says
-  "Social Commerce" (FastAPI title, `index.html` title and
-  `apple-mobile-web-app-title`, the generic preview card, Render and dev
-  container names).
+- **Brand:** 01 §1.1 names the product Oak Order (renamed from Sroul Order
+  2026-10-08). The start page (`pages/Home.tsx`, "Oak Order" in big
+  letters), `BrandMark` in `pages/AuthLayout.tsx` (a lucide
+  `TreeDeciduous` on navy), `public/favicon.svg` (the same tree), and
+  `index.html` (title, `apple-mobile-web-app-title`, so also the generic
+  preview card) say Oak Order. Still "Social Commerce": the FastAPI title,
+  Render and dev container names.
 
 Everything else checked (state machine tables, completion rule, RLS role
 and policy, endpoint list, JSONB shapes, link and tracking flows) matches
@@ -1135,7 +1140,7 @@ and policy, endpoint list, JSONB shapes, link and tracking flows) matches
   volume.
 - A COD order can complete with its payment marked failed (02 §7.4 read
   literally). Payments can't be undone once paid or failed.
-- When the R2 public domain changes (planned `images.sroul.com`), existing
+- When the R2 public domain changes (planned `images.<domain>` once one is bought), existing
   absolute URLs in `product.image_urls` / `store.logo_url` must be
   rewritten in the DB. Otherwise saving a product with old photos fails
   the prefix check (`INVALID_IMAGE`).

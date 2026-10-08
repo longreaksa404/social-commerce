@@ -2,7 +2,7 @@
  * Link previews for shared shop links (Vercel Routing Middleware, runs
  * before the SPA). Facebook, Messenger, Telegram, TikTok and the like build
  * a link's preview card from the page's HTML without running JavaScript,
- * so without this every link shows the generic "Social Commerce" card.
+ * so without this every link shows the generic "Oak Order" card.
  *
  * Only for those preview bots: they get index.html with the shop's,
  * product's or category's title, description and photo filled in. People

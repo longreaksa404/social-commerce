@@ -275,7 +275,7 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | UX pass 2: effects in the shop and the dashboard, cart bars toward a discount and free delivery with a pinned Checkout, numbered checkout, shop logo beside the name, softer cards, Kantumruy Pro for Khmer (founder's request 2026-10-04) | 10 |
 | Layout pass: phones edge to edge, lists aligned, action and Save bars floating on wide screens (founder's request 2026-10-04) | 3 |
 | Load test before the first seller (`backend/loadtest/`: locally at Render's CPU, then once on the live site) and the bcrypt fix it found (founder's request 2026-10-06) | 4 |
-| Frontend redesign: Navy brand colour, Kantumruy Pro for all text, every screen reworked from options the founder picked (shop, checkout, order tracking, seller orders, products, customers, links, settings, login, start page), ស្រួល Sroul Order brand (founder's request 2026-10-06, done 2026-10-08) | 14 |
+| Frontend redesign: Navy brand colour, Kantumruy Pro for all text, every screen reworked from options the founder picked (shop, checkout, order tracking, seller orders, products, customers, links, settings, login, start page), the brand name and mark, Oak Order since 2026-10-08 (founder's request 2026-10-06, done 2026-10-08) | 14 |
 | Bug-fix buffer | 10 |
 
 **Subtotal:** ~118 hours (**~9 weeks**)

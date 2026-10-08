@@ -18,13 +18,13 @@
 
 ## 1.1 Project Name
 
-Brand: **Sroul** (ស្រួល, "easy"). One brand for all of the founder's
-projects; each product is "Sroul + a plain word" on its own subdomain
-of sroul.com.
+Brand: **Oak**. One brand for all of the founder's projects; each
+product is "Oak + a plain word" (later, for example, Oak Pay).
 
-This product: **Sroul Order**, at order.sroul.com.
+This product: **Oak Order**. Its web address isn't decided yet.
 
-Always show the Khmer ស្រួល next to "Sroul".
+The app shows the name in English letters, in Khmer and in English.
+Its mark is a tree (an oak) on navy.
 
 ---
 
@@ -1821,7 +1821,7 @@ Decided so far (details in §24, §25 and `02_TECHNICAL.md`):
 - KHQR: generated from the seller's Bakong ID, no payment provider (2026-10-02)
 - Payment timing: the customer sees how to pay right after ordering (2026-10-02)
 - Payment confirmation: by hand by the seller, for every method (2026-10-02)
-- Product name: Sroul Order, under the brand Sroul (2026-10-06)
+- Product name: Oak Order, under the brand Oak (2026-10-08; replaces Sroul Order from 2026-10-06)
 
 # 47. Relationship With Other Project Documents
 
