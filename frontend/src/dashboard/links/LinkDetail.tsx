@@ -2,6 +2,8 @@ import { Check, Copy, ExternalLink, Share2, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
+import { SourceLogo } from '../../components/SourceLogo.tsx'
+import { hasLogo } from '../../lib/sourceLogos.ts'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
@@ -44,9 +46,13 @@ function LinkView({ link, back }: { link: LinkStats; back: string }) {
       <div className="space-y-4">
         <Card className="p-4 sm:p-6">
           <div className="flex items-center gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-              <Icon aria-hidden className="size-5" />
-            </span>
+            {hasLogo(link.source) ? (
+              <SourceLogo source={link.source} />
+            ) : (
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+                <Icon aria-hidden className="size-5" />
+              </span>
+            )}
             <div className="min-w-0">
               <p className="font-semibold break-words text-slate-900">{linkPlace(link)}</p>
               <p className="text-sm text-slate-500">{l.made(formatDate(link.created_at))}</p>

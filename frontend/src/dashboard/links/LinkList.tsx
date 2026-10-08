@@ -1,6 +1,8 @@
 import { Copy, Link2, Plus } from 'lucide-react'
 import { Link } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
+import { SourceLogo } from '../../components/SourceLogo.tsx'
+import { hasLogo } from '../../lib/sourceLogos.ts'
 import { Button, Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
 import { useT } from '../../i18n/useT.ts'
@@ -65,15 +67,6 @@ export function LinkList() {
   )
 }
 
-// Each place's own colour and letter, so links are told apart at a glance.
-const SOURCE_MARK: Record<string, { letter: string; className: string }> = {
-  facebook: { letter: 'f', className: 'bg-[#1877f2] text-white' },
-  tiktok: { letter: 'T', className: 'bg-[#111] text-white ring-1 ring-white/20' },
-  instagram: { letter: 'I', className: 'bg-[#d62976] text-white' },
-  telegram: { letter: 'T', className: 'bg-[#2a9de0] text-white' },
-  messenger: { letter: 'M', className: 'bg-[#0084ff] text-white' },
-}
-
 /** A link as a card (founder's pick, 2026-10-08): where it's posted and
  * what it opens, Copy right on it (posting a link is one tap from the
  * list), and its views and orders, with how many of the views ordered.
@@ -83,7 +76,6 @@ function LinkCard({ link }: { link: ShareLink }) {
   const { toast } = useFeedback()
   const t = useT()
   const l = t.links
-  const mark = link.source ? SOURCE_MARK[link.source] : undefined
   const pct = link.view_count > 0 ? Math.round((link.order_count / link.view_count) * 100) : null
 
   async function copy() {
@@ -99,10 +91,9 @@ function LinkCard({ link }: { link: ShareLink }) {
   return (
     <Card className="relative flex h-full flex-col gap-3 p-4 transition-colors hover:bg-slate-50">
       <div className="flex items-center gap-3">
-        {mark ? (
-          <span aria-hidden className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-lg font-extrabold ${mark.className}`}>
-            {mark.letter}
-          </span>
+        {/* The place's own logo, so links are told apart at a glance. */}
+        {hasLogo(link.source) ? (
+          <SourceLogo source={link.source} />
         ) : (
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
             <Icon aria-hidden className="size-5" />

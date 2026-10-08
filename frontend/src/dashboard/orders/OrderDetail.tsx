@@ -3,6 +3,8 @@ import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { buzz } from '../../components/effects.ts'
 import { useFeedback } from '../../components/feedback.ts'
+import { SourceLogo } from '../../components/SourceLogo.tsx'
+import { hasLogo } from '../../lib/sourceLogos.ts'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card, ErrorState, Field, Input, LiveBadge, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
@@ -292,7 +294,11 @@ function SummaryCard({ order }: { order: Order }) {
       </div>
       {order.source && (
         <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
-          <Link2 aria-hidden className="size-4 shrink-0" />
+          {hasLogo(order.source) ? (
+            <SourceLogo source={order.source} className="size-5" />
+          ) : (
+            <Link2 aria-hidden className="size-4 shrink-0" />
+          )}
           {o.cameThrough(sourceLabel(order.source))}
         </p>
       )}

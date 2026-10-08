@@ -827,6 +827,11 @@ redesign, calm look). Steps, each committed on its own:
    below; statuses as quiet words ("● New · Unpaid") instead of tags; a
    soft bag tile when the item has no photo; the open order marked by a
    navy line down its left edge; no arrow.
+   Same day (founder picked 2A 3A 4A): customers without the round
+   letter pictures; Categories with a "New category" button that opens
+   a labelled form (the old top box read as search) and one ⋯ menu per
+   row (Share link, Rename, Delete); the real platform logos in their own
+   colours wherever a link's place shows.
 5. [x] Rest of the dashboard (founder picked 1B+1C 2A 3C 4A 5B 6A,
    2026-10-08): products as a photo wall (cards as tall as the photo)
    or a list / sortable table, the seller's choice, with stock tags;

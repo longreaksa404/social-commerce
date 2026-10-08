@@ -880,6 +880,11 @@ is wrapped in try/catch (private mode).
 - `components/feedback.ts` + `FeedbackProvider.tsx`: `useFeedback()` →
   `toast(message, tone)` and `await confirm({title, message,
   confirmLabel, danger})` (a bottom sheet).
+- `components/SourceLogo.tsx`: the real Facebook, TikTok, Instagram,
+  Telegram and Messenger logos in their own colours, wherever a link's
+  place shows (link cards, New link picker, link page, an order's "Came
+  through" line). Shapes in `lib/sourceLogos.ts` (Simple Icons, CC0);
+  `hasLogo(source)` is false for a place the seller typed in.
 - `components/effects.ts` (confetti, vibration, `reducedMotion()`),
   `components/useBump.ts` (re-run an animation when a value changes),
   `shop/fly.ts` (photo flies into the cart).

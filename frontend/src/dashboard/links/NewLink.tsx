@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
+import { SourceLogo } from '../../components/SourceLogo.tsx'
+import { hasLogo } from '../../lib/sourceLogos.ts'
 import { Button, Card, ErrorMessage, Field, Input, PageHeader, Select, Skeleton } from '../../components/ui.tsx'
 import { fieldError, formError } from '../../lib/errors.ts'
 import { useT } from '../../i18n/useT.ts'
@@ -101,12 +103,15 @@ export function NewLink() {
                   type="button"
                   aria-pressed={source === s.key}
                   onClick={() => setSource(s.key)}
-                  className={`min-h-11 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-navy-600 ${
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full border text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-navy-600 ${
+                    hasLogo(s.key) ? 'pr-4 pl-2' : 'px-4'
+                  } ${
                     source === s.key
                       ? 'border-navy-600 bg-navy-50 text-navy-800'
                       : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50'
                   }`}
                 >
+                  <SourceLogo source={s.key} className="size-6" />
                   {s.label}
                 </button>
               ))}
