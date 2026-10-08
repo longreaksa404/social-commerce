@@ -17,6 +17,8 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   'Please log in.': 'សូមចូលគណនី។',
   'Password is too long (max 72 bytes).': 'ពាក្យសម្ងាត់វែងពេក។',
   'This account has no store.': 'គណនីនេះមិនមានហាងទេ។',
+  'Your current password is wrong.': 'ពាក្យសម្ងាត់បច្ចុប្បន្នមិនត្រឹមត្រូវទេ។',
+  'Account not found.': 'រកមិនឃើញគណនី។',
 
   // Shop and checkout (customers)
   "This shop doesn't exist.": 'មិនមានហាងនេះទេ។',

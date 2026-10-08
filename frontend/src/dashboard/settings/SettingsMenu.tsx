@@ -1,4 +1,4 @@
-import { ChevronRight, Inbox, Link2, LogOut, Send, Store as StoreIcon, Tag, Truck, Wallet, type LucideIcon } from 'lucide-react'
+import { ChevronRight, Inbox, Link2, LogOut, Send, Store as StoreIcon, Tag, Truck, UserRound, Wallet, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../../auth/useAuth.ts'
@@ -11,7 +11,7 @@ import { PAYMENT_METHOD_ORDER } from '../../lib/payments.ts'
 import type { Store } from '../../lib/types.ts'
 import { ThemeSwitch } from '../../theme/ThemeSwitch.tsx'
 import { useStore } from '../queries.ts'
-import { SECTIONS, type SectionId } from './form.ts'
+import { SECTIONS, type PageId, type SectionId } from './form.ts'
 
 const ROWS: { id: Exclude<SectionId, 'shop'>; icon: LucideIcon }[] = [
   { id: 'orders', icon: Inbox },
@@ -25,8 +25,10 @@ const ROWS: { id: Exclude<SectionId, 'shop'>; icon: LucideIcon }[] = [
 /** /dashboard/settings: one row per part of the shop's settings, each
  * saying what's set now and opening its own page. Language, theme and
  * log out work right here. */
+type Selected = SectionId | PageId
+
 /** `selected`: the setting open beside the menu (laptops). */
-export function SettingsMenu({ selected }: { selected?: SectionId }) {
+export function SettingsMenu({ selected }: { selected?: Selected }) {
   const store = useStore()
   const t = useT()
   return (
@@ -43,14 +45,15 @@ export function SettingsMenu({ selected }: { selected?: SectionId }) {
         ) : (
           <StoreRows store={store.data} selected={selected} />
         )}
+        <AccountRows selected={selected} />
         <DisplaySection />
-        <AccountSection />
+        <LogOutButton />
       </div>
     </>
   )
 }
 
-function StoreRows({ store, selected }: { store: Store; selected?: SectionId }) {
+function StoreRows({ store, selected }: { store: Store; selected?: Selected }) {
   const t = useT()
   const s = t.settings
   const summary = summaries(store, t)
@@ -84,11 +87,7 @@ function StoreRows({ store, selected }: { store: Store; selected?: SectionId }) 
                 <MenuRow
                   to={id}
                   selected={selected === id}
-                  icon={
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
-                      <Icon aria-hidden className="size-4.5" />
-                    </span>
-                  }
+                  icon={<RowIcon icon={Icon} />}
                   title={SECTIONS[id].title(s)}
                   summary={summary[id]}
                 />
@@ -98,6 +97,14 @@ function StoreRows({ store, selected }: { store: Store; selected?: SectionId }) 
         </Card>
       </section>
     </>
+  )
+}
+
+function RowIcon({ icon: Icon }: { icon: LucideIcon }) {
+  return (
+    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
+      <Icon aria-hidden className="size-4.5" />
+    </span>
   )
 }
 
@@ -178,14 +185,36 @@ function DisplaySection() {
   )
 }
 
-function AccountSection() {
+/** The person's own things, apart from the store's settings. */
+function AccountRows({ selected }: { selected?: Selected }) {
+  const s = useT().settings
+  const rows: { id: PageId; icon: LucideIcon; title: string; summary: string }[] = [
+    { id: 'account', icon: UserRound, title: s.yourAccount, summary: s.menu.accountHint },
+  ]
+  return (
+    <section aria-labelledby="account">
+      <h2 id="account" className="mb-2 sm:px-1 text-sm font-semibold text-slate-500">
+        {s.account}
+      </h2>
+      <Card>
+        <ul className="divide-y divide-slate-100">
+          {rows.map(({ id, icon, title, summary }) => (
+            <li key={id}>
+              <MenuRow to={id} selected={selected === id} icon={<RowIcon icon={icon} />} title={title} summary={summary} />
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </section>
+  )
+}
+
+function LogOutButton() {
   const { logout } = useAuth()
   const s = useT().settings
   return (
-    <Section title={s.account}>
-      <Button variant="secondary" icon={LogOut} onClick={logout} className="w-full sm:w-auto">
-        {s.logOut}
-      </Button>
-    </Section>
+    <Button variant="secondary" icon={LogOut} onClick={logout} className="w-full sm:w-auto">
+      {s.logOut}
+    </Button>
   )
 }

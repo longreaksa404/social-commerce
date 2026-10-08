@@ -1,6 +1,7 @@
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api.ts'
 import type {
+  Account,
   Category,
   CustomerDetail,
   CustomerList,
@@ -19,6 +20,7 @@ import type {
 
 export const keys = {
   store: ['store'] as const,
+  account: ['account'] as const,
   telegramLink: ['telegram-link'] as const,
   categories: ['categories'] as const,
   products: ['products'] as const,
@@ -45,6 +47,10 @@ const POLL_MS = 30_000
 
 export function useStore() {
   return useQuery({ queryKey: keys.store, queryFn: () => api<Store>('/seller/store') })
+}
+
+export function useAccount() {
+  return useQuery({ queryKey: keys.account, queryFn: () => api<Account>('/seller/account') })
 }
 
 export function useCategories() {

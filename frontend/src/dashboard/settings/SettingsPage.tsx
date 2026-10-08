@@ -1,6 +1,6 @@
 import { useParams } from 'react-router'
 import { useSyncExternalStore } from 'react'
-import { isSectionId } from './form.ts'
+import { isPageId, isSectionId } from './form.ts'
 import { SettingsMenu } from './SettingsMenu.tsx'
 import { SettingsSection } from './SettingsSection.tsx'
 
@@ -18,7 +18,7 @@ const onWideChange = (notify: () => void) => {
 export function SettingsPage() {
   const { section } = useParams()
   const wide = useSyncExternalStore(onWideChange, () => WIDE.matches)
-  const open = isSectionId(section) ? section : wide ? 'shop' : undefined
+  const open = isSectionId(section) || isPageId(section) ? section : wide ? 'shop' : undefined
   return (
     <div className="lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start lg:gap-8">
       <div className={section ? 'max-lg:hidden' : ''}>

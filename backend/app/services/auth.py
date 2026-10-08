@@ -4,7 +4,7 @@ known yet, so every query filters by seller explicitly."""
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import security
@@ -112,6 +112,19 @@ async def logout(db: AsyncSession, refresh_token: str) -> None:
         .values(revoked_at=datetime.now(UTC))
     )
     await db.commit()
+
+
+async def restart_sessions(db: AsyncSession, seller: Seller, store_id: uuid.UUID) -> TokenPair:
+    """After a password change: every session of the seller ends (other
+    phones are logged out) and the caller gets a fresh pair. Commits.
+
+    The old rows are deleted, not revoked: a revoked token shown later
+    reads as stolen and would end the new session too (refresh()).
+    """
+    await db.execute(delete(RefreshToken).where(RefreshToken.seller_id == seller.id))
+    tokens = await _issue_tokens(db, seller.id, store_id)
+    await db.commit()
+    return tokens
 
 
 async def _store_id(db: AsyncSession, seller_id: uuid.UUID) -> uuid.UUID:

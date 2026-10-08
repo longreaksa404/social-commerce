@@ -120,6 +120,7 @@ Render's health check.
 | Customer order tracking (order bar, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrderBar.tsx`, `ShopOrders.tsx`, `useMyOrders` |
 | UX pass 2 (effects, cart bars, numbered checkout, Kantumruy Pro) | DONE | `components/effects.ts`, `shop/fly.ts`, `components/useBump.ts` |
 | Layout pass (edge-to-edge on phones, floating bars) | DONE | `cardClass` in `components/styles.ts` |
+| More in Settings (founder's request 2026-10-08): your account | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx` |
 
 None of the "MVP Built" exit criteria in 03 §10 are met yet. They all
 need a real seller and a real customer.
@@ -204,7 +205,8 @@ Backend modules, one line each:
 | `models/delivery.py` | `Delivery`, `DeliveryMethod`, `DeliveryStatus` |
 | `models/link.py` | `ShareableLink`, `LinkEvent`, `LinkTarget`, `LinkEventType` |
 | `models/notification.py` | `NotificationLog`, `NotificationChannel`, `NotificationStatus` |
-| `services/auth.py` | Register (seller and store together), login, refresh rotation and reuse detection, logout |
+| `services/auth.py` | Register (seller and store together), login, refresh rotation and reuse detection, logout, `restart_sessions` (after a password change) |
+| `services/account.py` | The logged-in seller's own details and password change (unscoped session, filtered by the token's seller id) |
 | `services/store.py` | Get/update the store; validates the three settings blobs and logo URLs |
 | `services/category.py`, `product.py` | Catalog CRUD; variant merge; image URL prefix check |
 | `services/images.py` | Presigned R2 PUT URLs (product photo, thumbnail, logo) |
@@ -361,6 +363,11 @@ starts a new transaction.
 - `decode_token` requires `exp`, `sub` and `type`, and checks the type. An
   expired token raises 401 `TOKEN_EXPIRED`; any other bad token raises 401
   `INVALID_TOKEN`.
+- Changing the password (`POST /seller/account/password`, current password
+  required) **deletes** every `refresh_token` row of the seller and issues
+  a new pair to the caller: other phones are logged out. Deleted, not
+  revoked, because a revoked token presented later counts as theft and
+  would end the new session too.
 - bcrypt runs in `asyncio.to_thread` so it doesn't block the event loop.
   Logins for unknown emails check against `DUMMY_PASSWORD_HASH` for equal
   timing. A disabled seller (`is_active=false`) gets 403 `ACCOUNT_DISABLED`,
@@ -435,7 +442,7 @@ Every error uses the same envelope:
 - `field` names the input the frontend should mark; nested settings use
   paths like `payment_settings.khqr.bakong_account_id`.
 
-Codes in use: `ACCOUNT_DISABLED`, `CATEGORY_NOT_FOUND`,
+Codes in use: `ACCOUNT_DISABLED`, `ACCOUNT_NOT_FOUND`, `CATEGORY_NOT_FOUND`,
 `CUSTOMER_NOT_FOUND`, `DELIVERY_METHOD_UNAVAILABLE`,
 `DELIVERY_OPTION_UNAVAILABLE`, `EMAIL_TAKEN`, `INVALID_CREDENTIALS`,
 `INVALID_DELIVERY_TRANSITION`, `INVALID_IMAGE`,
@@ -447,7 +454,8 @@ Codes in use: `ACCOUNT_DISABLED`, `CATEGORY_NOT_FOUND`,
 `RATE_LIMITED`, `SLUG_TAKEN`, `STORE_MISSING`, `STORE_NOT_FOUND`,
 `TELEGRAM_NOT_CONFIGURED`, `TOKEN_EXPIRED`, `TOO_MANY_IMAGES`,
 `UPLOADS_NOT_CONFIGURED`, `VALIDATION_ERROR`, `VARIANT_NOT_FOUND`,
-`VARIANTS_DISABLED`, `VARIANTS_REQUIRED`. The frontend also makes
+`VARIANTS_DISABLED`, `VARIANTS_REQUIRED`, `WRONG_PASSWORD` (422, not
+401: the app reads any 401 as "logged out"). The frontend also makes
 `NETWORK_ERROR` (status 0) and `UPLOAD_FAILED` itself.
 
 ### Rate limiting (`app/core/ratelimit.py`)
@@ -684,6 +692,9 @@ from the schema.
 | POST | `/auth/login` | none | `LoginIn` | `TokenPair` | 10/min |
 | POST | `/auth/refresh` | none | `RefreshIn` | `TokenPair` | Rotates; reuse revokes all; 30/min |
 | POST | `/auth/logout` | none | `RefreshIn` | 204 | Revokes that token; bad tokens ignored |
+| GET | `/seller/account` | seller | — | `AccountOut` | The person's own email, name, phone (`UnscopedDb`, filtered by the token's seller id) |
+| PATCH | `/seller/account` | seller | `AccountUpdate` | `AccountOut` | Partial; email lowercased, another account's → 409 `EMAIL_TAKEN` |
+| POST | `/seller/account/password` | seller | `PasswordChange` | `TokenPair` | Wrong current password → 422 `WRONG_PASSWORD`; ends every other session (§4 Auth) |
 | GET | `/seller/store` | seller | — | `StoreOut` | Includes the three settings, `telegram_connected`, `telegram_bot_available` |
 | PATCH | `/seller/store` | seller | `StoreUpdate` | `StoreOut` | Partial; settings blobs saved whole; null on name/slug/currency/mode = leave; `logo_url` only from this store's logo folder (null removes); slug clash → 409 `SLUG_TAKEN` |
 | POST | `/seller/store/logo` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT into `stores/<id>/logo/` |
@@ -722,7 +733,8 @@ from the schema.
 | POST | `/telegram/webhook` | header `X-Telegram-Bot-Api-Secret-Token` | Telegram update (raw dict) | Bot API method call as JSON, or `{}` | 404 if the secret is wrong or the bot is off |
 
 Schemas live in `app/schemas/<domain>.py`: auth (`RegisterIn`, `LoginIn`,
-`RefreshIn`, `TokenPair`), store (`StoreOut`, `StoreUpdate`,
+`RefreshIn`, `TokenPair`), account (`AccountOut`, `AccountUpdate`,
+`PasswordChange`), store (`StoreOut`, `StoreUpdate`,
 `TelegramLinkOut`), category, product (`ProductCreate/Update/Out`,
 `VariantIn/Out`, `Money`), upload (`ImageUploadIn/Out`), order
 (`OrderCreate`, `OrderLineIn`, `ShopOrderOut`, `OrderOut`,
@@ -774,7 +786,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/dashboard/products`, `/products/new`, `/products/:productId` | `ProductList`, `ProductEdit` | Photos (cards as tall as the photo) or List (rows; a sortable table on laptops), kept in `sc.products.view`; stock tags: 5 or fewer is "Only N left" |
 | `/dashboard/categories` | `Categories` | Button on Products on phones; sidebar entry on desktop. "New category" opens a labelled form; each row's actions (share link, rename, delete) are in one ⋯ menu (`RowMenu`) |
 | `/dashboard/links`, `/links/new`, `/links/:linkId` | `LinkList`, `NewLink`, `LinkDetail` | Links as cards with Copy, views, orders and % ordered |
-| `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Sections: `shop`, `orders`, `payments`, `delivery`, `discounts`, `telegram`, `link`; laptops open `shop` when none is chosen |
+| `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Store sections (`SECTION_IDS` in `form.ts`, saved with `PATCH /seller/store`): `shop`, `orders`, `payments`, `delivery`, `discounts`, `telegram`, `link`. Pages with their own endpoint (`PAGE_IDS`, `PAGES` in `SettingsSection.tsx`): `account`. Laptops open `shop` when none is chosen |
 | `/dashboard/notifications` | `Notifications` | |
 | `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public |
 | `/shop/:storeSlug/product/:productSlug` | `ShopProduct` | |

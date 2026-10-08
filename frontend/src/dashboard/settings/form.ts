@@ -61,6 +61,14 @@ export type SectionId = (typeof SECTION_IDS)[number]
 export const isSectionId = (value: string | undefined): value is SectionId =>
   (SECTION_IDS as readonly (string | undefined)[]).includes(value)
 
+/** Settings pages that aren't part of the store's settings: each has its
+ * own form and endpoint (SettingsSection's PAGES). */
+export const PAGE_IDS = ['account'] as const
+export type PageId = (typeof PAGE_IDS)[number]
+
+export const isPageId = (value: string | undefined): value is PageId =>
+  (PAGE_IDS as readonly (string | undefined)[]).includes(value)
+
 type Section = {
   title: (s: Messages['settings']) => string
   hint?: (s: Messages['settings']) => string

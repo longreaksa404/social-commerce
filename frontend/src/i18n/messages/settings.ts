@@ -219,8 +219,31 @@ export const settings = {
     none: { en: 'None', km: 'គ្មាន' },
     alertsOn: { en: 'Order alerts on', km: 'ការជូនដំណឹងបានបើក' },
     alertsOff: { en: 'Order alerts off', km: 'ការជូនដំណឹងបានបិទ' },
+    accountHint: { en: 'Name, phone, email, password', km: 'ឈ្មោះ ទូរស័ព្ទ អ៊ីមែល ពាក្យសម្ងាត់' },
   },
 
   account: { en: 'Account', km: 'គណនី' },
   logOut: { en: 'Log out', km: 'ចាកចេញ' },
+
+  yourAccount: { en: 'Your account', km: 'គណនីរបស់អ្នក' },
+  yourAccountHint: {
+    en: 'You log in with this email and password. Customers never see these.',
+    km: 'អ្នកចូលគណនីដោយអ៊ីមែល និងពាក្យសម្ងាត់នេះ។ អតិថិជនមិនឃើញព័ត៌មានទាំងនេះទេ។',
+  },
+  yourDetails: { en: 'Your details', km: 'ព័ត៌មានរបស់អ្នក' },
+  yourName: { en: 'Your name', km: 'ឈ្មោះរបស់អ្នក' },
+  yourPhone: { en: 'Your phone number', km: 'លេខទូរស័ព្ទរបស់អ្នក' },
+  loginEmailHint: { en: 'You log in with this.', km: 'អ្នកចូលគណនីដោយអ៊ីមែលនេះ។' },
+  detailsSaved: { en: 'Details saved', km: 'បានរក្សាទុកព័ត៌មាន' },
+  changePassword: { en: 'Change password', km: 'ប្ដូរពាក្យសម្ងាត់' },
+  changePasswordHint: {
+    en: 'Other phones and computers logged in to your shop will be logged out.',
+    km: 'ទូរស័ព្ទ និងកុំព្យូទ័រផ្សេងទៀត ដែលបានចូលហាងរបស់អ្នក នឹងត្រូវចាកចេញ។',
+  },
+  currentPassword: { en: 'Current password', km: 'ពាក្យសម្ងាត់បច្ចុប្បន្ន' },
+  newPassword: { en: 'New password', km: 'ពាក្យសម្ងាត់ថ្មី' },
+  passwordChanged: {
+    en: 'Password changed. Other phones are logged out.',
+    km: 'បានប្ដូរពាក្យសម្ងាត់។ ទូរស័ព្ទផ្សេងទៀតត្រូវបានចាកចេញ។',
+  },
 } satisfies Tree

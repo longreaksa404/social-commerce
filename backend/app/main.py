@@ -6,6 +6,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
+    account,
     auth,
     categories,
     customers,
@@ -53,6 +54,7 @@ app.add_middleware(
 
 api_v1 = APIRouter(prefix="/api/v1")
 api_v1.include_router(auth.router)
+api_v1.include_router(account.router)
 api_v1.include_router(store.router)
 api_v1.include_router(categories.router)
 api_v1.include_router(products.router)

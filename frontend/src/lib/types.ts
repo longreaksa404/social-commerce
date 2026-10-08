@@ -59,6 +59,9 @@ export type Store = {
 
 export type TelegramLink = { url: string; expires_at: string }
 
+/** The logged-in person's own details (Settings → Your account). */
+export type Account = { email: string; full_name: string; phone: string }
+
 export type Category = {
   id: string
   name: string

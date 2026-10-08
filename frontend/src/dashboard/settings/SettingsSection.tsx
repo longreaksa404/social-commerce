@@ -3,6 +3,7 @@ import { useState, type ComponentType, type FormEvent } from 'react'
 import { Navigate, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
 import { Button, Card, ErrorMessage, ErrorState, PageHeader, SavedNote, Skeleton } from '../../components/ui.tsx'
+import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
 import { formError } from '../../lib/errors.ts'
@@ -19,7 +20,8 @@ import {
   TelegramFields,
   type FieldsProps,
 } from './fields.tsx'
-import { isSectionId, SECTIONS, toForm, type SectionId } from './form.ts'
+import { AccountPage } from './AccountPage.tsx'
+import { isPageId, isSectionId, SECTIONS, toForm, type PageId, type SectionId } from './form.ts'
 
 const FIELDS: Record<SectionId, ComponentType<FieldsProps>> = {
   shop: ShopFields,
@@ -31,6 +33,11 @@ const FIELDS: Record<SectionId, ComponentType<FieldsProps>> = {
   link: LinkFields,
 }
 
+/** Pages with their own form and endpoint, not the store's PATCH. */
+const PAGES: Record<PageId, { title: (s: Messages['settings']) => string; hint?: (s: Messages['settings']) => string; Page: ComponentType }> = {
+  account: { title: (s) => s.yourAccount, hint: (s) => s.yourAccountHint, Page: AccountPage },
+}
+
 /** /dashboard/settings/:section: one part of the shop's settings, opened
  * from the Settings menu, with its own Save. On laptops it shows beside
  * the menu (SettingsPage), which passes `open`. */
@@ -39,6 +46,7 @@ export function SettingsSection({ open }: { open?: string }) {
   const section = open ?? params.section
   const store = useStore()
   const t = useT()
+  if (isPageId(section)) return <OwnPage id={section} />
   if (!isSectionId(section)) return <Navigate to="/dashboard/settings" replace />
   const { title, hint } = SECTIONS[section]
 
@@ -54,6 +62,19 @@ export function SettingsSection({ open }: { open?: string }) {
       ) : (
         <SectionForm key={section} id={section} store={store.data} />
       )}
+    </>
+  )
+}
+
+function OwnPage({ id }: { id: PageId }) {
+  const t = useT()
+  const { title, hint, Page } = PAGES[id]
+  return (
+    <>
+      <title>{title(t.settings)}</title>
+      <PageHeader title={title(t.settings)} back="/dashboard/settings" backOnPhonesOnly />
+      {hint && <p className="-mt-2 mb-4 text-sm leading-6 text-slate-500 sm:-mt-4">{hint(t.settings)}</p>}
+      <Page />
     </>
   )
 }
