@@ -32,9 +32,11 @@ const FIELDS: Record<SectionId, ComponentType<FieldsProps>> = {
 }
 
 /** /dashboard/settings/:section: one part of the shop's settings, opened
- * from the Settings menu, with its own Save. */
-export function SettingsSection() {
-  const { section } = useParams()
+ * from the Settings menu, with its own Save. On laptops it shows beside
+ * the menu (SettingsPage), which passes `open`. */
+export function SettingsSection({ open }: { open?: string }) {
+  const params = useParams()
+  const section = open ?? params.section
   const store = useStore()
   const t = useT()
   if (!isSectionId(section)) return <Navigate to="/dashboard/settings" replace />
@@ -43,7 +45,7 @@ export function SettingsSection() {
   return (
     <>
       <title>{title(t.settings)}</title>
-      <PageHeader title={title(t.settings)} back="/dashboard/settings" />
+      <PageHeader title={title(t.settings)} back="/dashboard/settings" backOnPhonesOnly />
       {hint && <p className="-mt-2 mb-4 text-sm leading-6 text-slate-500 sm:-mt-4">{hint(t.settings)}</p>}
       {store.isPending ? (
         <Skeleton className="h-80 w-full rounded-2xl" />

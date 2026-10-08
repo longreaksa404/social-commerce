@@ -11,8 +11,7 @@ import { Notifications } from './dashboard/Notifications.tsx'
 import { OrdersPage } from './dashboard/orders/OrderList.tsx'
 import { ProductEdit } from './dashboard/products/ProductEdit.tsx'
 import { ProductList } from './dashboard/products/ProductList.tsx'
-import { SettingsMenu } from './dashboard/settings/SettingsMenu.tsx'
-import { SettingsSection } from './dashboard/settings/SettingsSection.tsx'
+import { SettingsPage } from './dashboard/settings/SettingsPage.tsx'
 import { Home } from './pages/Home.tsx'
 import { Login } from './pages/Login.tsx'
 import { Register } from './pages/Register.tsx'
@@ -50,8 +49,9 @@ export const router = createBrowserRouter([
           { path: 'links', element: <LinkList /> },
           { path: 'links/new', element: <NewLink /> },
           { path: 'links/:linkId', element: <LinkDetail /> },
-          { path: 'settings', element: <SettingsMenu /> },
-          { path: 'settings/:section', element: <SettingsSection /> },
+          // One page: on laptops the menu stays beside the open setting.
+          { path: 'settings', element: <SettingsPage /> },
+          { path: 'settings/:section', element: <SettingsPage /> },
           { path: 'notifications', element: <Notifications /> },
         ],
       },

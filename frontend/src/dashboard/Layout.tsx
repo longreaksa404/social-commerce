@@ -37,22 +37,30 @@ function Shell() {
   // button and a pinned bar with its buttons.
   const productScreen = useMatch('/dashboard/products/:productId') !== null
   const orderScreen = useMatch('/dashboard/orders/:orderId') !== null
-  // Laptops: the order list with the open order beside it needs the width.
+  const settingsScreen = useMatch('/dashboard/settings/:section') !== null
+  const focused = productScreen || orderScreen || settingsScreen
+  // How wide the page may get on laptops: lists that sit beside what's
+  // open, grids and tables use the width; forms stay a readable column.
   const ordersList = useMatch('/dashboard/orders') !== null
-  const ordersArea = orderScreen || ordersList
-  // Laptops: the products grid and table use the width too.
   const productsList = useMatch('/dashboard/products') !== null
   const customersList = useMatch('/dashboard/customers') !== null
   const linksList = useMatch('/dashboard/links') !== null
-  const settingsScreen = useMatch('/dashboard/settings/:section') !== null
-  const focused = productScreen || orderScreen || settingsScreen
+  const settingsMenu = useMatch('/dashboard/settings') !== null
+  const width =
+    orderScreen || ordersList || productsList
+      ? 'max-w-3xl lg:max-w-7xl'
+      : settingsMenu || settingsScreen
+        ? 'max-w-3xl lg:max-w-6xl'
+        : customersList || linksList
+          ? 'max-w-3xl lg:max-w-5xl'
+          : 'max-w-3xl'
 
   return (
     <div className="min-h-dvh lg:flex">
       <Sidebar />
       {!focused && <MobileTopBar />}
       <main
-        className={`mx-auto w-full px-4 lg:px-8 lg:py-8 ${ordersArea || productsList ? 'max-w-3xl lg:max-w-7xl' : customersList || linksList ? 'max-w-3xl lg:max-w-5xl' : 'max-w-3xl'} ${
+        className={`mx-auto w-full px-4 lg:px-8 lg:py-8 ${width} ${
           focused ? 'pt-2 pb-28 lg:pb-8' : 'pt-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] lg:pb-8'
         }`}
       >

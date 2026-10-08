@@ -25,7 +25,8 @@ const ROWS: { id: Exclude<SectionId, 'shop'>; icon: LucideIcon }[] = [
 /** /dashboard/settings: one row per part of the shop's settings, each
  * saying what's set now and opening its own page. Language, theme and
  * log out work right here. */
-export function SettingsMenu() {
+/** `selected`: the setting open beside the menu (laptops). */
+export function SettingsMenu({ selected }: { selected?: SectionId }) {
   const store = useStore()
   const t = useT()
   return (
@@ -40,7 +41,7 @@ export function SettingsMenu() {
         ) : store.error ? (
           <ErrorState error={store.error} onRetry={() => store.refetch()} />
         ) : (
-          <StoreRows store={store.data} />
+          <StoreRows store={store.data} selected={selected} />
         )}
         <DisplaySection />
         <AccountSection />
@@ -49,7 +50,7 @@ export function SettingsMenu() {
   )
 }
 
-function StoreRows({ store }: { store: Store }) {
+function StoreRows({ store, selected }: { store: Store; selected?: SectionId }) {
   const t = useT()
   const s = t.settings
   const summary = summaries(store, t)
@@ -58,6 +59,7 @@ function StoreRows({ store }: { store: Store }) {
       <Card>
         <MenuRow
           to="shop"
+          selected={selected === 'shop'}
           icon={
             store.logo_url ? (
               <img src={store.logo_url} alt="" className="size-12 shrink-0 rounded-full object-cover ring-1 ring-slate-200" />
@@ -81,6 +83,7 @@ function StoreRows({ store }: { store: Store }) {
               <li key={id}>
                 <MenuRow
                   to={id}
+                  selected={selected === id}
                   icon={
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
                       <Icon aria-hidden className="size-4.5" />
@@ -98,11 +101,27 @@ function StoreRows({ store }: { store: Store }) {
   )
 }
 
-function MenuRow({ to, icon, title, summary }: { to: string; icon: ReactNode; title: string; summary: string }) {
+function MenuRow({
+  to,
+  icon,
+  title,
+  summary,
+  selected = false,
+}: {
+  to: string
+  icon: ReactNode
+  title: string
+  summary: string
+  selected?: boolean
+}) {
   return (
     <Link
-      to={to}
-      className="flex min-h-16 items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100 sm:[li:first-child>&]:rounded-t-2xl sm:[li:last-child>&]:rounded-b-2xl"
+      // From the menu's own address, so it works beside an open setting too.
+      to={`/dashboard/settings/${to}`}
+      aria-current={selected ? 'page' : undefined}
+      className={`flex min-h-16 items-center gap-3 px-4 py-3 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100 sm:[li:first-child>&]:rounded-t-2xl sm:[li:last-child>&]:rounded-b-2xl ${
+        selected ? 'lg:bg-navy-50' : 'hover:bg-slate-50'
+      }`}
     >
       {icon}
       <span className="min-w-0 flex-1">
