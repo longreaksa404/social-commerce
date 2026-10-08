@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-07 (Phase 9: redesign step 4, seller's orders)
+> **Last updated:** 2026-10-08 (Phase 9: redesign steps 5 and most of 6)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -812,11 +812,23 @@ redesign, calm look). Steps, each committed on its own:
    day under the status tabs; Accept / Reject on new orders right in the
    list; an order opens with a "To do" card (its next step and buttons,
    plus a payment to check or a driver to assign); the three statuses
-   as tiles, the one waiting on the seller edged in amber; laptops show
+   as one strip (order, delivery, payment; a dot on what waits on the
+   seller; founder's later pick B); laptops show
    the list with the open order beside it. API: order rows carry the
    biggest line, line count and its photo.
-5. [ ] Rest of the dashboard: products, customers, links, settings (mockup first)
-6. [ ] Login and Register (mockup first)
+   Also from the founder's review: the Orders title and underline
+   tabs on one line on laptops; closed orders say so in red; jumping to
+   a card flashes it; back returns to the tab it came from.
+5. [x] Rest of the dashboard (founder picked 1B+1C 2A 3C 4A 5B 6A,
+   2026-10-08): products as a photo wall (cards as tall as the photo)
+   or a list / sortable table, the seller's choice, with stock tags;
+   the product form on one cleaner page; customers as a sortable table
+   on laptops and a profile with Call and Copy phone; links as cards
+   with Copy and their numbers; settings menu beside the open setting
+   on laptops.
+6. [~] Login and Register done (7B: split in two on laptops, the
+   ស្រួល Sroul Order brand everywhere, the ស favicon); the start page
+   (before login) waits on the founder's pick from six options.
 
 Phase 9, waiting on the founder:
 

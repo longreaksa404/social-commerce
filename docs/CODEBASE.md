@@ -768,11 +768,11 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/login`, `/register` | `pages/Login`, `pages/Register` | |
 | `/dashboard` | `dashboard/Layout` (`DashboardLayout`) | **Auth guard**: spinner while loading, `Navigate` to `/login` if anonymous; index redirects to `orders` |
 | `/dashboard/orders`, `/orders/:orderId` | `OrdersPage` (`OrderList.tsx`: the list, with `OrderDetail` beside it on laptops) | Orders tab is the start page; phones show the list or the order; new orders have Accept / Reject in the list (`useMoveOrder.ts`, shared with the order page) |
-| `/dashboard/customers`, `/customers/:customerId` | `CustomerList`, `CustomerDetail` | |
-| `/dashboard/products`, `/products/new`, `/products/:productId` | `ProductList`, `ProductEdit` | |
+| `/dashboard/customers`, `/customers/:customerId` | `CustomerList`, `CustomerDetail` | Laptops: a sortable table (sorts the customers loaded); a customer has Call / Copy phone |
+| `/dashboard/products`, `/products/new`, `/products/:productId` | `ProductList`, `ProductEdit` | Photos (cards as tall as the photo) or List (rows; a sortable table on laptops), kept in `sc.products.view`; stock tags: 5 or fewer is "Only N left" |
 | `/dashboard/categories` | `Categories` | Button on Products on phones; sidebar entry on desktop |
-| `/dashboard/links`, `/links/new`, `/links/:linkId` | `LinkList`, `NewLink`, `LinkDetail` | |
-| `/dashboard/settings`, `/settings/:section` | `SettingsMenu`, `SettingsSection` | Sections: `shop`, `orders`, `payments`, `delivery`, `discounts`, `telegram`, `link` |
+| `/dashboard/links`, `/links/new`, `/links/:linkId` | `LinkList`, `NewLink`, `LinkDetail` | Links as cards with Copy, views, orders and % ordered |
+| `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Sections: `shop`, `orders`, `payments`, `delivery`, `discounts`, `telegram`, `link`; laptops open `shop` when none is chosen |
 | `/dashboard/notifications` | `Notifications` | |
 | `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public |
 | `/shop/:storeSlug/product/:productSlug` | `ShopProduct` | |
