@@ -143,12 +143,12 @@ def connect_link(store_id: uuid.UUID) -> tuple[str, datetime]:
 
 HELP_TEXT = (
     "This bot sends shop owners an alert for each new order.\n\n"
-    "To connect your shop, open your dashboard, go to Settings → Telegram, "
+    "To connect your shop, open your dashboard, go to Settings → Alerts, "
     "and tap “Connect Telegram”."
 )
 EXPIRED_TEXT = (
     "This link has expired or isn't valid. In your dashboard, open "
-    "Settings → Telegram and tap “Connect Telegram” again."
+    "Settings → Alerts and tap “Connect Telegram” again."
 )
 
 
@@ -183,7 +183,7 @@ async def _connect(store_id: uuid.UUID, chat_id: int) -> str:
     return (
         f"✅ Connected to <b>{name}</b>.\n\n"
         "You'll get a message here for every new order, and when a product runs low. "
-        "To stop, tap Disconnect in Settings → Telegram."
+        "To stop, tap Disconnect in Settings → Alerts."
     )
 
 

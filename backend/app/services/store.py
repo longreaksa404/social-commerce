@@ -11,7 +11,14 @@ from app.schemas.store import StoreUpdate
 from app.services.delivery import check_delivery_settings, check_discount_settings
 from app.services.payment import check_payment_settings
 
-REQUIRED_FIELDS = {"name", "slug", "currency", "order_confirmation_mode", "orders_paused"}
+REQUIRED_FIELDS = {
+    "name",
+    "slug",
+    "currency",
+    "order_confirmation_mode",
+    "orders_paused",
+    "low_stock_alert",
+}
 # Each saved whole (below), not field by field.
 SETTINGS = {"payment_settings", "delivery_settings", "discount_settings"}
 

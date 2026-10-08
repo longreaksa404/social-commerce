@@ -150,11 +150,20 @@ export const settings = {
   addDiscount: { en: 'Add discount', km: 'បន្ថែមការបញ្ចុះតម្លៃ' },
 
   telegram: { en: 'Telegram', km: 'Telegram' },
+  alerts: { en: 'Alerts', km: 'ការជូនដំណឹង' },
+  alertsHint: {
+    en: 'New orders and products running low, on the bell and on Telegram.',
+    km: 'ការកុម្ម៉ង់ថ្មី និងទំនិញជិតអស់ នៅលើកណ្ដឹង និងតាម Telegram។',
+  },
+  lowStockAlert: { en: 'Warn me when this many are left', km: 'ជូនដំណឹងខ្ញុំ នៅពេលនៅសល់ប៉ុណ្ណេះ' },
+  lowStockAlertHint: {
+    en: 'When an order leaves this many of a product or fewer, and again when it sells out. Your product list marks them too.',
+    km: 'នៅពេលការកុម្ម៉ង់ធ្វើឱ្យទំនិញនៅសល់ប៉ុណ្ណេះ ឬតិចជាងនេះ ហើយម្ដងទៀតនៅពេលអស់ស្តុក។ បញ្ជីទំនិញរបស់អ្នកក៏សម្គាល់វាដែរ។',
+  },
   telegramHint: {
     en: 'Hear about new orders, and products running low, on your phone.',
     km: 'ទទួលដំណឹងអំពីការកុម្ម៉ង់ថ្មី និងទំនិញជិតអស់ នៅលើទូរស័ព្ទរបស់អ្នក។',
   },
-  orderAlerts: { en: 'Order alerts', km: 'ការជូនដំណឹងការកុម្ម៉ង់' },
   connected: { en: 'Connected', km: 'បានភ្ជាប់' },
   alertsUnavailable: {
     en: "Order alerts on Telegram aren't available yet.",
@@ -249,8 +258,9 @@ export const settings = {
       km: (off: string, from: string) => `បញ្ចុះ ${off} ចាប់ពី ${from}`,
     },
     none: { en: 'None', km: 'គ្មាន' },
-    alertsOn: { en: 'Order alerts on', km: 'ការជូនដំណឹងបានបើក' },
-    alertsOff: { en: 'Order alerts off', km: 'ការជូនដំណឹងបានបិទ' },
+    lowStockAt: { en: (n: number) => `Low stock at ${n}`, km: (n: number) => `ស្តុកតិចនៅ ${n}` },
+    telegramOn: { en: 'Telegram on', km: 'Telegram បានបើក' },
+    telegramOff: { en: 'Telegram off', km: 'Telegram បានបិទ' },
     accountHint: { en: 'Name, phone, email, password', km: 'ឈ្មោះ ទូរស័ព្ទ អ៊ីមែល ពាក្យសម្ងាត់' },
     helpHint: { en: 'Message Oak Order on Telegram', km: 'ផ្ញើសារទៅ Oak Order តាម Telegram' },
   },

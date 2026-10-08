@@ -435,7 +435,9 @@ const LINK_REFRESH_MS = 20 * 60_000
 // While the seller is off in Telegram tapping Start, check for the chat.
 const CONNECT_POLL_MS = 3_000
 
-export function TelegramFields({ store }: FieldsProps) {
+/** Settings → Alerts: when to warn about low stock (bell and Telegram),
+ * and the Telegram chat the alerts go to. */
+export function AlertsFields({ store, form, update, error }: FieldsProps) {
   const queryClient = useQueryClient()
   const { toast, confirm } = useFeedback()
   const [opened, setOpened] = useState(false)
@@ -481,9 +483,22 @@ export function TelegramFields({ store }: FieldsProps) {
 
   return (
     <>
+      <Field label={s.lowStockAlert} error={fieldError(error, 'low_stock_alert')} hint={s.lowStockAlertHint}>
+        <Input
+          required
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={999}
+          value={form.low_stock_alert}
+          onChange={(e) => update({ low_stock_alert: e.target.value })}
+          className="max-w-32"
+        />
+      </Field>
+      <hr className="border-slate-100" />
       <div>
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-sm font-medium text-slate-900">{s.orderAlerts}</h3>
+          <h3 className="text-sm font-medium text-slate-900">{s.telegram}</h3>
           {connected && (
             <Badge tone="green">
               <CircleCheck aria-hidden className="mr-1 size-3.5" />

@@ -214,17 +214,19 @@ function ViewSwitch({ view, onChange }: { view: View; onChange: (view: View) => 
 }
 
 /** Few left: amber with the number; none: red; hidden: grey (with its
- * stock, which still matters once it's shown again). */
+ * stock, which still matters once it's shown again). "Few" is the
+ * seller's own low-stock alert level (Settings → Alerts). */
 function StockTag({ product }: { product: Product }) {
   const p = useT().products
+  const level = useStore().data?.low_stock_alert ?? DEFAULT_LOW_STOCK
   const stock = totalStock(product)
   if (stock === 0) return <Badge tone="red">{p.outOfStock}</Badge>
-  if (stock <= LOW_STOCK) return <Badge tone="amber">{p.onlyLeft(stock)}</Badge>
+  if (stock <= level) return <Badge tone="amber">{p.onlyLeft(stock)}</Badge>
   return <Badge>{p.inStock(stock)}</Badge>
 }
 
-// Few left: shown as "Only 3 left", as in the shop.
-const LOW_STOCK = 5
+// A new shop's level, as the backend's notifications.DEFAULT_LOW_STOCK.
+const DEFAULT_LOW_STOCK = 5
 
 /** Photos, each card as tall as its photo (no cropping to a square),
  * packed in columns like a photo wall. */

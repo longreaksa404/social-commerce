@@ -114,8 +114,9 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
   )
 }
 
-/** Few left: "Only 3 left", on the grid and the product page (the
- * seller's list warns at the same number). */
+/** Few left: "Only 3 left", on the grid and the product page. Fixed for
+ * customers; the seller's own list and alerts use their level (Settings →
+ * Alerts), 5 to start. */
 export const LOW_STOCK = 5
 
 /** Photos, each card as tall as its photo (no cropping to a square),

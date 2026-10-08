@@ -36,6 +36,8 @@ class StoreOut(BaseModel):
     # the day it reopens has come (Store.orders_paused_now).
     orders_paused: bool = Field(validation_alias="orders_paused_now")
     orders_resume_on: date | None = Field(validation_alias="orders_resume_on_now")
+    # Alert (bell + Telegram) when an order leaves this many or fewer.
+    low_stock_alert: int
     # Order alerts: is a chat connected (the chat id itself stays private).
     telegram_connected: bool = Field(validation_alias="telegram_chat_id")
     created_at: datetime
@@ -83,6 +85,7 @@ class StoreUpdate(BaseModel):
     # The first day orders open again (Phnom Penh); null: until the seller
     # turns them back on. Cleared when orders_paused is false.
     orders_resume_on: date | None = None
+    low_stock_alert: int | None = Field(default=None, ge=1, le=999)
     # All of it at once: the settings screen sends the whole thing.
     payment_settings: PaymentSettings | None = None
     delivery_settings: DeliverySettings | None = None

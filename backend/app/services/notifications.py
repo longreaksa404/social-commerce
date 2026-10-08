@@ -43,8 +43,9 @@ from app.services.telegram import escape
 
 logger = logging.getLogger(__name__)
 
-# The shop says "Only N left" from this many down (ShopProduct.tsx).
-LOW_STOCK = 5
+# A new shop's low-stock alert level (store.low_stock_alert, Settings →
+# Alerts); also where the shop starts saying "Only N left" to customers.
+DEFAULT_LOW_STOCK = 5
 
 PAYMENT_LABELS = {
     PaymentMethod.COD: "Cash on delivery",
@@ -60,10 +61,12 @@ class StockAlert:
     left: int
 
 
-def stock_alert(product_id: uuid.UUID, name: str, before: int, after: int) -> StockAlert | None:
-    """An alert when an order takes stock to LOW_STOCK or below, and again
-    when it sells out; not for every sale below the line."""
-    if after <= 0 < before or after <= LOW_STOCK < before:
+def stock_alert(
+    product_id: uuid.UUID, name: str, before: int, after: int, level: int = DEFAULT_LOW_STOCK
+) -> StockAlert | None:
+    """An alert when an order takes stock to the shop's `level` or below,
+    and again when it sells out; not for every sale below the line."""
+    if after <= 0 < before or after <= level < before:
         return StockAlert(product_id, name, max(after, 0))
     return None
 

@@ -59,6 +59,9 @@ export type Store = {
   orders_paused: boolean
   /** The first day orders open again ("2027-04-17"); null: until turned back on. */
   orders_resume_on: string | null
+  /** Warn the seller (bell, Telegram) when an order leaves this many or
+   * fewer of a product; the seller's product list uses it too. */
+  low_stock_alert: number
   /** Order alerts go to a Telegram chat. */
   telegram_connected: boolean
   /** False until the platform's bot is set up. */

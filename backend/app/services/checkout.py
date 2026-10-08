@@ -116,7 +116,9 @@ async def place_order(
     stock_alerts = []
     for line in lines:
         left = await _take_stock(db, store_id, line)
-        alert = notifications.stock_alert(line.product.id, line.name, left + line.quantity, left)
+        alert = notifications.stock_alert(
+            line.product.id, line.name, left + line.quantity, left, store.low_stock_alert
+        )
         if alert is not None:
             stock_alerts.append(alert)
 

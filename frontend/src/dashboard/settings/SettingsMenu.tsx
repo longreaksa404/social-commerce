@@ -1,4 +1,5 @@
 import {
+  Bell,
   ChevronRight,
   ExternalLink,
   Inbox,
@@ -6,7 +7,6 @@ import {
   MessageCircle,
   Link2,
   LogOut,
-  Send,
   Store as StoreIcon,
   Tag,
   Truck,
@@ -36,7 +36,7 @@ const ROWS: { id: Exclude<SectionId, 'shop'>; icon: LucideIcon }[] = [
   { id: 'delivery', icon: Truck },
   { id: 'discounts', icon: Tag },
   { id: 'contact', icon: MessageCircle },
-  { id: 'telegram', icon: Send },
+  { id: 'telegram', icon: Bell },
   { id: 'link', icon: Link2 },
 ]
 
@@ -210,7 +210,7 @@ function summaries(store: Store, t: Messages): Record<Exclude<SectionId, 'shop'>
         ...(store.messenger_username ? ['Messenger'] : []),
         ...(store.contact_phone ? [formatPhone(store.contact_phone)] : []),
       ].join(', ') || m.none,
-    telegram: store.telegram_connected ? m.alertsOn : m.alertsOff,
+    telegram: `${m.lowStockAt(store.low_stock_alert)} · ${store.telegram_connected ? m.telegramOn : m.telegramOff}`,
     link: `/shop/${store.slug}`,
   }
 }

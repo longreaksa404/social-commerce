@@ -91,6 +91,10 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     # around, but checkout is refused. orders_resume_on is the first day it
     # takes orders again (null: until the seller turns it back on).
     orders_paused: Mapped[bool] = mapped_column(default=False, server_default="false")
+    # Warn the seller (bell + Telegram) when an order takes a product to
+    # this many left or fewer (Settings → Alerts). The shop's own "Only N
+    # left" for customers stays at 5.
+    low_stock_alert: Mapped[int] = mapped_column(default=5, server_default="5")
     orders_resume_on: Mapped[date | None] = mapped_column(Date)
 
     seller: Mapped[Seller] = relationship(back_populates="store")

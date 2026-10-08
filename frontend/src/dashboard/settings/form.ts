@@ -30,6 +30,7 @@ export type Form = {
   telegram_username: string
   messenger_username: string
   contact_phone: string
+  low_stock_alert: string
 }
 
 /** "1.50" -> "1.5", "6000.00" -> "6000": what a person would type. */
@@ -62,6 +63,7 @@ export const toForm = (store: Store): Form => {
     telegram_username: store.telegram_username ?? '',
     messenger_username: store.messenger_username ?? '',
     contact_phone: store.contact_phone ? formatPhone(store.contact_phone) : '',
+    low_stock_alert: String(store.low_stock_alert),
   }
 }
 
@@ -166,12 +168,13 @@ export const SECTIONS: Record<SectionId, Section> = {
     }),
     fields: () => ['telegram_username', 'messenger_username', 'contact_phone'],
   },
+  // Its address stays /settings/telegram: the bot's messages point here.
   telegram: {
-    title: (s) => s.telegram,
-    hint: (s) => s.telegramHint,
-    // Connecting and disconnecting save at once; nothing for Save.
-    body: () => ({}),
-    fields: () => [],
+    title: (s) => s.alerts,
+    hint: (s) => s.alertsHint,
+    // Connecting and disconnecting Telegram save at once; Save is for the level.
+    body: (form) => ({ low_stock_alert: Number(form.low_stock_alert) }),
+    fields: () => ['low_stock_alert'],
   },
   link: {
     title: (s) => s.shopLink,
