@@ -13,19 +13,23 @@ import { flyToCart } from './fly.ts'
 /** A product photo, or a grey placeholder when the seller has none (or it
  * won't load). It fades in once loaded, over the grey. `className` sizes
  * and shapes it. `small` uses the photo's small copy (grids, lists), or
- * the photo itself if it has none or the copy won't load. */
+ * the photo itself if it has none or the copy won't load. `natural` keeps
+ * the photo's own shape, as tall as its width makes it (no cropping),
+ * square until it loads. */
 export function ProductImage({
   src,
   alt,
   className = '',
   eager = false,
   small = false,
+  natural = false,
 }: {
   src: string | null | undefined
   alt: string
   className?: string
   eager?: boolean
   small?: boolean
+  natural?: boolean
 }) {
   const [state, setState] = useState<'loading' | 'loaded' | 'failed'>('loading')
   // Another photo in the same place starts over.
@@ -34,15 +38,16 @@ export function ProductImage({
     setShown(src)
     setState('loading')
   }
+  const square = natural && state !== 'loaded' ? 'aspect-square' : ''
   if (!src || state === 'failed') {
     return (
-      <div className={`flex items-center justify-center bg-slate-100 text-slate-300 ${className}`}>
+      <div className={`flex items-center justify-center bg-slate-100 text-slate-300 ${square} ${className}`}>
         <ImageOff aria-hidden className="size-8" />
       </div>
     )
   }
   return (
-    <div className={`overflow-hidden bg-slate-100 ${className}`}>
+    <div className={`overflow-hidden bg-slate-100 ${square} ${className}`}>
       <img
         key={src}
         src={small ? thumbnailUrl(src) : src}
@@ -58,7 +63,7 @@ export function ProductImage({
         loading={eager ? 'eager' : 'lazy'}
         fetchPriority={eager ? 'high' : undefined}
         decoding="async"
-        className={`size-full object-cover transition-opacity duration-300 ${state === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
+        className={`${natural ? 'block h-auto w-full' : 'size-full object-cover'} transition-opacity duration-300 ${state === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
       />
     </div>
   )
@@ -108,40 +113,47 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
   )
 }
 
+/** Photos, each card as tall as its photo (no cropping to a square),
+ * packed in columns like a photo wall, as in the seller's product list. */
 export function ProductGrid({ shop, products }: { shop: ShopStore; products: ShopProductCard[] }) {
   const t = useT()
   return (
-    <ul className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4 xl:grid-cols-5">
+    <ul className="columns-2 gap-x-3 sm:columns-3 sm:gap-x-4 lg:columns-4 xl:columns-5">
       {products.map((product, i) => (
-        // The first rows come in one after another.
-        <li key={product.id} className="relative animate-rise" style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}>
-          <Link
-            to={`/shop/${shop.slug}/product/${product.slug}`}
-            className="group block rounded-2xl transition-transform focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy-600 active:scale-[0.97]"
-          >
-            <div className="relative overflow-hidden rounded-2xl">
+        // The first ones come in one after another. The whole card is the
+        // link (its ::after covers it), so the + can sit on the photo
+        // without being inside the link (a button can't be).
+        <li
+          key={product.id}
+          className="group relative mb-6 animate-rise break-inside-avoid transition-transform has-[a:active]:scale-[0.97]"
+          style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
+        >
+          <div className="relative">
+            <div className="overflow-hidden rounded-2xl">
               <ProductImage
                 small
+                natural
                 src={product.image_url}
                 alt=""
-                className={`aspect-square w-full transition-transform group-hover:scale-[1.03] ${
-                  product.in_stock ? '' : 'opacity-60'
-                }`}
+                className={`w-full transition-transform group-hover:scale-[1.03] ${product.in_stock ? '' : 'opacity-60'}`}
               />
-              {!product.in_stock && (
-                <span className="absolute top-2 left-2 rounded-full bg-black/70 px-2.5 py-1 text-xs font-semibold text-white">
-                  {t.shop.soldOut}
-                </span>
-              )}
             </div>
-            <p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-800">{product.name}</p>
-            <p className="mt-1 text-sm font-semibold text-slate-900">
+            {!product.in_stock && (
+              <span className="absolute top-2 left-2 rounded-full bg-black/70 px-2.5 py-1 text-xs font-semibold text-white">
+                {t.shop.soldOut}
+              </span>
+            )}
+            {!product.has_variants && product.in_stock && <QuickAdd shop={shop} product={product} />}
+          </div>
+          <Link
+            to={`/shop/${shop.slug}/product/${product.slug}`}
+            className="mt-2 block outline-none after:absolute after:inset-0 after:rounded-2xl focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-navy-600"
+          >
+            <span className="line-clamp-2 text-sm leading-5 text-slate-800">{product.name}</span>
+            <span className="mt-1 block text-sm font-semibold text-slate-900">
               {formatPriceRange(product.price_min, product.price_max, shop.currency)}
-            </p>
+            </span>
           </Link>
-          {/* Beside the link, not in it (a button can't sit inside a link),
-              placed over the photo's corner. */}
-          {!product.has_variants && product.in_stock && <QuickAdd shop={shop} product={product} />}
         </li>
       ))}
     </ul>
@@ -173,35 +185,35 @@ function QuickAdd({ shop, product }: { shop: ShopStore; product: ShopProductCard
   }
 
   return (
-    // The photo is square and as wide as the cell: its bottom corner sits
-    // a cell-width down from the top.
-    <div className="pointer-events-none absolute inset-x-0 top-0 aspect-square">
-      <button
-        type="button"
-        onClick={add}
-        disabled={full}
-        aria-label={t.shop.quickAdd(product.name, inCart)}
-        className={`pointer-events-auto absolute right-1 bottom-1 flex size-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 disabled:opacity-60`}
+    // Over the photo's bottom corner, and above the card's link.
+    <button
+      type="button"
+      onClick={add}
+      disabled={full}
+      aria-label={t.shop.quickAdd(product.name, inCart)}
+      className="absolute right-1 bottom-1 z-10 flex size-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 disabled:opacity-60"
+    >
+      <span
+        key={inCart}
+        className={`flex size-9 items-center justify-center rounded-full text-sm font-bold shadow-md ring-1 ring-slate-900/10 tabular-nums transition-colors ${
+          inCart ? 'animate-pop bg-accent text-white' : 'bg-raised text-navy-700 active:bg-slate-100'
+        }`}
       >
-        <span
-          key={inCart}
-          className={`flex size-9 items-center justify-center rounded-full text-sm font-bold shadow-md ring-1 ring-slate-900/10 tabular-nums transition-colors ${
-            inCart ? 'animate-pop bg-accent text-white' : 'bg-raised text-navy-700 active:bg-slate-100'
-          }`}
-        >
-          {inCart ? inCart : <Plus aria-hidden className="size-5" />}
-        </span>
-      </button>
-    </div>
+        {inCart ? inCart : <Plus aria-hidden className="size-5" />}
+      </span>
+    </button>
   )
 }
 
+// Mixed heights, as the photos will be.
+const SKELETON_SHAPES = ['aspect-[4/5]', 'aspect-square', 'aspect-[3/4]', 'aspect-square', 'aspect-[4/5]', 'aspect-[3/4]']
+
 export function ProductGridSkeleton() {
   return (
-    <div aria-hidden className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4 xl:grid-cols-5">
-      {Array.from({ length: 6 }, (_, i) => (
-        <div key={i}>
-          <Skeleton className="aspect-square w-full rounded-2xl" />
+    <div aria-hidden className="columns-2 gap-x-3 sm:columns-3 sm:gap-x-4 lg:columns-4 xl:columns-5">
+      {SKELETON_SHAPES.map((shape, i) => (
+        <div key={i} className="mb-6 break-inside-avoid">
+          <Skeleton className={`w-full rounded-2xl ${shape}`} />
           <Skeleton className="mt-2 h-4 w-4/5" />
           <Skeleton className="mt-2 h-4 w-1/3" />
         </div>

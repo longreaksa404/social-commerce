@@ -850,6 +850,13 @@ redesign, calm look). Steps, each committed on its own:
    Order; `order.sroul.com` removed from the login page until there's a
    domain. Checked at 390 and 1280 px; lint and build pass. Pushed
    2026-10-08 (`d513015`).
+8. [x] Shop grid as a photo wall too (founder's request 2026-10-08):
+   each product card as tall as its photo (no square crop), in columns
+   like the seller's product list; the + follows each photo's corner;
+   the loading grid shows mixed heights. The + now flies the product's
+   photo into the cart (it had been flying a plain dot: it couldn't
+   find the photo). Checked at 390 and 1280 px with mocked data; lint
+   and build pass. Not pushed.
 
 The redesign is complete and pushed (2026-10-08, with the bcrypt fix and
 load test). Founder: check CI and the live site once Vercel and Render

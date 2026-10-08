@@ -890,9 +890,11 @@ is wrapped in try/catch (private mode).
 - `components/effects.ts` (confetti, vibration, `reducedMotion()`),
   `components/useBump.ts` (re-run an animation when a value changes),
   `shop/fly.ts` (photo flies into the cart).
-- `shop/components.tsx`: `ProductImage` (thumbnail with fallback),
-  `ProductGrid`, `CategoryChips`, `ShopLogo`, `NotFound`,
-  `QuantityStepper`.
+- `shop/components.tsx`: `ProductImage` (thumbnail with fallback;
+  `natural` keeps the photo's shape), `ProductGrid` (a photo wall in CSS
+  columns, as the seller's list; the card's link covers it with `::after`
+  so the + can sit on the photo), `CategoryChips`, `ShopLogo`,
+  `NotFound`, `QuantityStepper`.
 - `dashboard/useUnsavedChanges.ts` (blocks navigation with a confirm sheet
   while a form is dirty) and `dashboard/useBackTo.ts` (back arrow returns
   to `location.state.back`).
