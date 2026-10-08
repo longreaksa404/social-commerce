@@ -1042,13 +1042,10 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-Not yet in 02 (founder chose 2026-10-06): **fonts.** 02 §2 "Fonts" row
-should read: "| Fonts | **Kantumruy Pro** for all text, Khmer and Latin
-(`@fontsource-variable`, self-hosted, two variable files picked by
-`unicode-range`) | One look for Khmer, English and prices on every phone;
-Khmer 57 KB + Latin 33 KB, each loaded once (Khmer 2026-10-04, Latin
-2026-10-06) |". Not yet in 03: **the frontend redesign** (founder asked
-2026-10-06), a Phase 9 row to be sized once the shop mockup is agreed.
+Applied to 02/03 on 2026-10-08 (at the founder's request): Kantumruy
+Pro for all text (02 §2 Fonts row) and the frontend redesign (03 Phase 9
+row, 14 hrs; subtotal ~114 hrs; §4 totals: Phase 9 114 hrs, total ~342
+hrs). The load test row below is still not in 03.
 
 Not yet in 03 (founder said yes 2026-10-06): **load test before the
 first real seller.** Proposed 03 Phase 9 row, after "Layout pass":

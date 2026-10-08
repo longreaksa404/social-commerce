@@ -274,9 +274,10 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Order tracking for customers: current-order bar, Your orders page, auto-refresh, ask about an order on Telegram (founder's request 2026-10-04) | 7 |
 | UX pass 2: effects in the shop and the dashboard, cart bars toward a discount and free delivery with a pinned Checkout, numbered checkout, shop logo beside the name, softer cards, Kantumruy Pro for Khmer (founder's request 2026-10-04) | 10 |
 | Layout pass: phones edge to edge, lists aligned, action and Save bars floating on wide screens (founder's request 2026-10-04) | 3 |
+| Frontend redesign: Navy brand colour, Kantumruy Pro for all text, every screen reworked from options the founder picked (shop, checkout, order tracking, seller orders, products, customers, links, settings, login, start page), ស្រួល Sroul Order brand (founder's request 2026-10-06, done 2026-10-08) | 14 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~100 hours (**~7.5 weeks**)
+**Subtotal:** ~114 hours (**~8.5–9 weeks**)
 
 > **Decided (2026-10-04):** a .com domain bought through Cloudflare; Render
 > stays on the free plan for the first seller (the app says when the
@@ -300,8 +301,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 17 | 1.5 wks |
-| 9 — Polish/First Seller | 100 | 7.5 wks |
-| **Total** | **~328 hrs** | **~25 weeks (~5.75 months)** |
+| 9 — Polish/First Seller | 114 | 8.5–9 wks |
+| **Total** | **~342 hrs** | **~26 weeks (~6 months)** |
 
 This is a planning estimate, not a commitment.
 
