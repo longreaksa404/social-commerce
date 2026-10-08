@@ -41,9 +41,10 @@ function PhotoGrid({
   }
 
   return (
+    // The main photo (what customers see first) big, the rest beside it.
     <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
       {photos.map((photo, index) => (
-        <div key={photo.key} className="relative aspect-square">
+        <div key={photo.key} className={`relative aspect-square ${index === 0 ? 'col-span-2 row-span-2' : ''}`}>
           <img
             src={photo.src}
             alt=""
@@ -90,9 +91,12 @@ function PhotoGrid({
           type="button"
           disabled={disabled}
           onClick={() => input.current?.click()}
-          className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 transition hover:border-navy-500 hover:text-navy-700 active:bg-slate-50 disabled:opacity-50"
+          className={`flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 transition hover:border-navy-500 hover:text-navy-700 active:bg-slate-50 disabled:opacity-50 ${
+            // No photos yet: one big place to add them.
+            photos.length + uploading === 0 ? 'col-span-full aspect-[5/2] sm:aspect-[4/1]' : 'aspect-square'
+          }`}
         >
-          <ImagePlus aria-hidden className="size-6" />
+          <ImagePlus aria-hidden className={photos.length + uploading === 0 ? 'size-8' : 'size-6'} />
           <span className="text-xs font-medium">{words.add}</span>
         </button>
       )}

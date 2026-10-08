@@ -210,6 +210,9 @@ function ProductForm({ product }: { product?: Product }) {
           {isNew ? <NewProductPhotos photos={newPhotos} onChange={setNewPhotos} /> : <ProductPhotos product={product} />}
         </Section>
 
+        {/* One card for the product (founder's pick, 2026-10-08): name,
+            then price and stock side by side, options, category, and the
+            description last as it's optional. */}
         <Section title={p.details}>
           <Field label={p.name} error={fieldError(save.error, 'name')}>
             <Input
@@ -221,15 +224,33 @@ function ProductForm({ product }: { product?: Product }) {
               onChange={(e) => set('name', e.target.value)}
             />
           </Field>
-          <Field label={p.description} hint={p.descriptionHint} error={fieldError(save.error, 'description')}>
-            <TextArea
-              rows={4}
-              maxLength={2000}
-              autoCapitalize="sentences"
-              value={draft.description}
-              onChange={(e) => set('description', e.target.value)}
+          <div className={`grid gap-4 ${draft.has_variants ? '' : 'sm:grid-cols-2'}`}>
+            <Field label={p.price} error={fieldError(save.error, 'price')}>
+              <MoneyInput required currency={currency} value={draft.price} onChange={(v) => set('price', v)} />
+            </Field>
+            {!draft.has_variants && (
+              <Field label={p.stock} error={fieldError(save.error, 'stock_quantity')} hint={p.stockHint}>
+                <StockStepper value={draft.stock_quantity} onChange={(v) => set('stock_quantity', v)} />
+              </Field>
+            )}
+          </div>
+
+          <Switch
+            checked={draft.has_variants}
+            onChange={(on) => set('has_variants', on)}
+            label={p.hasVariants}
+            description={p.hasVariantsHint}
+          />
+          {draft.has_variants && (
+            <VariantList
+              variants={draft.variants}
+              currency={currency}
+              productPrice={draft.price}
+              onChange={(variants) => set('variants', variants)}
+              onAdd={() => set('variants', [...draft.variants, blankVariant()])}
             />
-          </Field>
+          )}
+
           <Field
             label={p.category}
             error={fieldError(save.error, 'category_id')}
@@ -253,33 +274,15 @@ function ProductForm({ product }: { product?: Product }) {
               ))}
             </Select>
           </Field>
-        </Section>
-
-        <Section title={p.priceAndStock}>
-          <Field label={p.price} error={fieldError(save.error, 'price')}>
-            <MoneyInput required currency={currency} value={draft.price} onChange={(v) => set('price', v)} />
-          </Field>
-
-          <Switch
-            checked={draft.has_variants}
-            onChange={(on) => set('has_variants', on)}
-            label={p.hasVariants}
-            description={p.hasVariantsHint}
-          />
-
-          {draft.has_variants ? (
-            <VariantList
-              variants={draft.variants}
-              currency={currency}
-              productPrice={draft.price}
-              onChange={(variants) => set('variants', variants)}
-              onAdd={() => set('variants', [...draft.variants, blankVariant()])}
+          <Field label={p.description} hint={p.descriptionHint} error={fieldError(save.error, 'description')}>
+            <TextArea
+              rows={4}
+              maxLength={2000}
+              autoCapitalize="sentences"
+              value={draft.description}
+              onChange={(e) => set('description', e.target.value)}
             />
-          ) : (
-            <Field label={p.stock} error={fieldError(save.error, 'stock_quantity')} hint={p.stockHint}>
-              <StockStepper value={draft.stock_quantity} onChange={(v) => set('stock_quantity', v)} />
-            </Field>
-          )}
+          </Field>
         </Section>
 
         <Section title={p.visibility}>

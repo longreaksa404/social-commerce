@@ -71,7 +71,6 @@ export const products = {
   noCategoriesYet: { en: 'No categories yet.', km: 'មិនទាន់មានប្រភេទនៅឡើយ។' },
   createOne: { en: 'Create one', km: 'បង្កើតមួយ' },
   noCategory: { en: 'No category', km: 'គ្មានប្រភេទ' },
-  priceAndStock: { en: 'Price and stock', km: 'តម្លៃ និងស្តុក' },
   price: { en: 'Price', km: 'តម្លៃ' },
   hasVariants: { en: 'This product has variants', km: 'ទំនិញនេះមានជម្រើស' },
   hasVariantsHint: {
