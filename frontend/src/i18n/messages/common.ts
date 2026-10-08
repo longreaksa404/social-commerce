@@ -23,8 +23,24 @@ export const common = {
     en: 'Still loading. The first visit in a while can take up to a minute.',
     km: 'កំពុងផ្ទុក… ការចូលលើកដំបូងក្រោយពេលយូរ អាចចំណាយពេលរហូតដល់មួយនាទី។',
   },
-  // Under a required field left empty when the form is sent.
+  // Under a field the browser won't send, when the form is sent.
   required: { en: 'Please fill this in.', km: 'សូមបំពេញព័ត៌មាននេះ។' },
+  badEmail: {
+    en: 'Enter an email like name@example.com.',
+    km: 'សូមបញ្ចូលអ៊ីមែលឱ្យបានត្រឹមត្រូវ ដូចជា name@example.com។',
+  },
+  tooShort: {
+    en: (n: number) => `Use at least ${n} characters.`,
+    km: (n: number) => `សូមប្រើយ៉ាងតិច ${n} តួអក្សរ។`,
+  },
+  notANumber: { en: 'Enter a number.', km: 'សូមបញ្ចូលជាលេខ។' },
+  atLeast: { en: (min: string) => `Use ${min} or more.`, km: (min: string) => `សូមបញ្ចូលចាប់ពី ${min} ឡើងទៅ។` },
+  atMost: { en: (max: string) => `Use ${max} or less.`, km: (max: string) => `សូមបញ្ចូលមិនលើសពី ${max}។` },
+  wholeNumber: { en: 'Use a whole number.', km: 'សូមបញ្ចូលចំនួនគត់។' },
+  decimals: {
+    en: (n: number) => `Use at most ${n} digits after the point.`,
+    km: (n: number) => `សូមប្រើខ្ទង់ទសភាគមិនលើសពី ${n}។`,
+  },
   showPassword: { en: 'Show password', km: 'បង្ហាញពាក្យសម្ងាត់' },
   hidePassword: { en: 'Hide password', km: 'លាក់ពាក្យសម្ងាត់' },
   couldNotLoad: { en: "Couldn't load this page", km: 'មិនអាចបើកទំព័រនេះបានទេ' },

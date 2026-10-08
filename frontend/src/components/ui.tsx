@@ -16,6 +16,7 @@ import {
   type TextareaHTMLAttributes,
 } from 'react'
 import { Link, Outlet, useMatches } from 'react-router'
+import type { Messages } from '../i18n/core.ts'
 import { useT } from '../i18n/useT.ts'
 import { errorText } from '../lib/errors.ts'
 import { priceStep } from '../lib/money.ts'
@@ -44,6 +45,24 @@ function controlClass(invalid: boolean, extra = '') {
 
 type FormControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
 
+/** Why the browser won't send this control, in the app's language. The
+ * browser's own message (in the phone's language) only for the rare rest. */
+function problemText(control: FormControl, m: Messages['common']): string {
+  const v = control.validity
+  const input = control as HTMLInputElement
+  if (v.valueMissing) return m.required
+  if (v.typeMismatch && input.type === 'email') return m.badEmail
+  if (v.tooShort) return m.tooShort(input.minLength)
+  // Fields with a pattern explain it in their title.
+  if (v.patternMismatch && control.title) return control.title
+  if (v.badInput && input.type === 'number') return m.notANumber
+  if (v.rangeUnderflow) return m.atLeast(input.min)
+  if (v.rangeOverflow) return m.atMost(input.max)
+  if (v.stepMismatch && input.step === '1') return m.wholeNumber
+  if (v.stepMismatch) return m.decimals(input.step.split('.')[1]?.length ?? 0)
+  return control.validationMessage
+}
+
 /** Label + control + hint/error. The control inside picks up its id,
  * aria-invalid, and aria-describedby from here, so the label names it and
  * the hint/error is read as its description.
@@ -55,11 +74,15 @@ export function Field({
   label,
   hint,
   error,
+  className,
+  labelClassName = 'mb-1.5 block text-sm font-medium text-slate-700',
   children,
 }: {
   label: ReactNode
   hint?: ReactNode
   error?: string | null
+  className?: string
+  labelClassName?: string
   children: ReactNode
 }) {
   const id = useId()
@@ -72,7 +95,7 @@ export function Field({
   function onInvalid(event: FormEvent<HTMLDivElement>) {
     const control = event.target as FormControl
     event.preventDefault()
-    setProblem(control.validity.valueMissing ? t.common.required : control.validationMessage)
+    setProblem(problemText(control, t.common))
     // With the bubble off the browser doesn't move to the first bad field,
     // so do it here, clear of the sticky header and the pinned Save bar.
     const first = Array.from(control.form?.elements ?? []).find((el) => !(el as FormControl).validity?.valid)
@@ -84,8 +107,8 @@ export function Field({
 
   return (
     <FieldContext value={{ id, invalid: Boolean(message), describedBy }}>
-      <div className="group/field" onInvalid={onInvalid} onInput={() => setProblem(null)}>
-        <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-700">
+      <div className={`group/field ${className ?? ''}`} onInvalid={onInvalid} onInput={() => setProblem(null)}>
+        <label htmlFor={id} className={labelClassName}>
           {label}
           <span aria-hidden className="ml-0.5 hidden text-red-600 group-has-[:required]/field:inline">
             *

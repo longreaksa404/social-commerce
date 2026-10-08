@@ -1,7 +1,7 @@
 import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { buttonClass } from '../../components/styles.ts'
-import { IconButton, Input, MoneyInput } from '../../components/ui.tsx'
+import { Field, IconButton, Input, MoneyInput } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import type { Currency } from '../../lib/types.ts'
 
@@ -42,7 +42,10 @@ export function VariantList({
         aria-hidden
         className={`hidden gap-1.5 text-xs font-medium text-slate-500 @min-[18rem]:grid ${ROW}`}
       >
-        <span>{p.variantName}</span>
+        <span>
+          {p.variantName}
+          <span className="ml-0.5 text-red-600">*</span>
+        </span>
         <span>{p.stock}</span>
         <span>{p.price}</span>
       </div>
@@ -52,10 +55,10 @@ export function VariantList({
             <div
               role="group"
               aria-label={p.variant(index + 1)}
-              className={`grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-end gap-x-1.5 gap-y-2 ${ROW} @min-[18rem]:items-center`}
+              className={`grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-start gap-x-1.5 gap-y-2 ${ROW}`}
             >
-              <label className="col-span-2 @min-[18rem]:col-span-1">
-                <span className={label}>{p.variantName}</span>
+              {/* Fields, so a missing name shows under it like on every form. */}
+              <Field label={p.variantName} labelClassName={label} className="col-span-2 @min-[18rem]:col-span-1">
                 <Input
                   required
                   placeholder={p.variantNamePlaceholder}
@@ -64,18 +67,18 @@ export function VariantList({
                   onChange={(e) => set(variant.key, { name: e.target.value })}
                   className="px-2.5!"
                 />
-              </label>
-              {/* Beside the name on narrow lists; last in the row on wide ones. */}
+              </Field>
+              {/* Beside the name on narrow lists (down past its label); last in
+                  the row on wide ones. */}
               <IconButton
                 icon={Trash2}
                 tone="danger"
                 label={p.removeVariant(index + 1)}
                 disabled={variants.length === 1}
                 onClick={() => onChange(variants.filter((v) => v.key !== variant.key))}
-                className="@min-[18rem]:order-last"
+                className="@max-[18rem]:mt-5 @min-[18rem]:order-last"
               />
-              <label>
-                <span className={label}>{p.stock}</span>
+              <Field label={p.stock} labelClassName={label}>
                 <Input
                   type="number"
                   inputMode="numeric"
@@ -86,16 +89,15 @@ export function VariantList({
                   onChange={(e) => set(variant.key, { stock_quantity: e.target.value })}
                   className="px-2.5!"
                 />
-              </label>
-              <label>
-                <span className={label}>{p.price}</span>
+              </Field>
+              <Field label={p.price} labelClassName={label}>
                 <MoneyInput
                   currency={currency}
                   placeholder={productPrice || p.samePrice}
                   value={variant.price_override}
                   onChange={(v) => set(variant.key, { price_override: v })}
                 />
-              </label>
+              </Field>
               {skus && (
                 <label className="col-span-3 @min-[18rem]:order-last @min-[18rem]:col-span-4">
                   <span className="mb-1 block text-xs font-medium text-slate-500">{p.sku}</span>
