@@ -30,6 +30,18 @@ export const customers = {
   since: { en: (date: string) => `Customer since ${date}`, km: (date: string) => `ជាអតិថិជនតាំងពី ${date}` },
   orders: { en: 'Orders', km: 'ការកុម្ម៉ង់' },
   spent: { en: 'Spent', km: 'ចំណាយសរុប' },
+  // The table's headings (laptops).
+  column: {
+    name: { en: 'Name', km: 'ឈ្មោះ' },
+    phone: { en: 'Phone', km: 'លេខទូរស័ព្ទ' },
+    lastOrder: { en: 'Last order', km: 'កុម្ម៉ង់ចុងក្រោយ' },
+  },
+  // Sorting the table sorts the customers already loaded.
+  sortBy: { en: (column: string) => `Sort by ${column}`, km: (column: string) => `តម្រៀបតាម${column}` },
+  call: { en: 'Call', km: 'ហៅទូរស័ព្ទ' },
+  copyPhone: { en: 'Copy phone', km: 'ចម្លងលេខ' },
+  phoneCopied: { en: 'Phone number copied', km: 'បានចម្លងលេខទូរស័ព្ទ' },
+  copyFailed: { en: "Couldn't copy. Select the number and copy it.", km: 'ចម្លងមិនបាន។ សូមជ្រើសលេខ ហើយចម្លងវា។' },
   leftOut: {
     en: "Rejected and cancelled orders don't count toward what they spent.",
     km: 'ការកុម្ម៉ង់ដែលបានបដិសេធ ឬលុបចោល មិនត្រូវបានរាប់ក្នុងចំណាយសរុបទេ។',

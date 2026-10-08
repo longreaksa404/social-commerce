@@ -1,6 +1,8 @@
-import { MapPin, Phone } from 'lucide-react'
+import { Copy, MapPin, Phone } from 'lucide-react'
 import { useParams } from 'react-router'
-import { Card, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
+import { useFeedback } from '../../components/feedback.ts'
+import { buttonClass } from '../../components/styles.ts'
+import { Button, Card, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { formatSpent } from '../../lib/customers.ts'
 import { formatDate, formatPhone } from '../../lib/orders.ts'
@@ -8,6 +10,7 @@ import type { CustomerDetail as Customer } from '../../lib/types.ts'
 import { OrderRow } from '../orders/OrderRow.tsx'
 import { useCustomer, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
+import { Initial } from './CustomerList.tsx'
 
 /** /dashboard/customers/:customerId: who they are, and their orders. */
 export function CustomerDetail() {
@@ -30,8 +33,18 @@ export function CustomerDetail() {
 
 function CustomerView({ customer, back }: { customer: Customer; back: string }) {
   const currency = useStore().data?.currency ?? 'USD'
+  const { toast } = useFeedback()
   const t = useT()
   const c = t.customers
+
+  async function copyPhone() {
+    try {
+      await navigator.clipboard.writeText(formatPhone(customer.phone))
+      toast(c.phoneCopied)
+    } catch {
+      toast(c.copyFailed, 'error')
+    }
+  }
   const leftOut = customer.orders.some((o) => o.status === 'rejected' || o.status === 'cancelled')
   return (
     <>
@@ -39,37 +52,50 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
       <title>{customer.name}</title>
 
       <div className="space-y-4">
+        {/* Who they are, with calling them one tap away (founder's pick,
+            2026-10-08). */}
         <Card className="p-4 sm:p-6">
-          <a
-            href={`tel:${customer.phone}`}
-            className="-mx-2 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
-          >
-            <Phone aria-hidden className="size-4" />
-            {formatPhone(customer.phone)}
-          </a>
+          <div className="flex items-center gap-3">
+            <Initial name={customer.name} className="size-14 text-xl" />
+            <div className="min-w-0">
+              <p className="truncate text-lg font-bold text-slate-900">{customer.name}</p>
+              <p className="text-sm text-slate-500 tabular-nums">
+                {formatPhone(customer.phone)}
+                <span className="text-slate-400"> · </span>
+                {c.since(formatDate(customer.created_at))}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 flex gap-3">
+            <a href={`tel:${customer.phone}`} className={`${buttonClass('primary')} flex-1`}>
+              <Phone aria-hidden className="size-4" />
+              {c.call}
+            </a>
+            <Button variant="secondary" icon={Copy} onClick={copyPhone} className="flex-1">
+              {c.copyPhone}
+            </Button>
+          </div>
+
+          <dl className="mt-4 grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-slate-50 px-3.5 py-2.5">
+              <dt className="text-sm text-slate-500">{c.orders}</dt>
+              <dd className="text-xl font-bold text-slate-900 tabular-nums">{customer.order_count}</dd>
+            </div>
+            <div className="rounded-xl bg-slate-50 px-3.5 py-2.5">
+              <dt className="text-sm text-slate-500">{c.spent}</dt>
+              <dd className="text-xl font-bold break-words text-slate-900 tabular-nums">{formatSpent(customer.spent, currency)}</dd>
+            </div>
+          </dl>
+          {leftOut && <p className="mt-2 text-xs text-slate-500">{c.leftOut}</p>}
+
           {customer.address && (
-            <div className="mt-1 flex gap-2">
+            <div className="mt-4 flex gap-2 border-t border-slate-100 pt-4">
               <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-slate-400" />
               <div className="min-w-0">
                 <p className="text-sm text-slate-500">{c.latestAddress}</p>
                 <p className="whitespace-pre-line break-words text-slate-900">{customer.address}</p>
               </div>
             </div>
-          )}
-          <p className="mt-3 text-sm text-slate-500">{c.since(formatDate(customer.created_at))}</p>
-
-          <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
-            <div>
-              <dt className="text-sm text-slate-500">{c.orders}</dt>
-              <dd className="text-lg font-bold text-slate-900">{customer.order_count}</dd>
-            </div>
-            <div>
-              <dt className="text-sm text-slate-500">{c.spent}</dt>
-              <dd className="text-lg font-bold break-words text-slate-900">{formatSpent(customer.spent, currency)}</dd>
-            </div>
-          </dl>
-          {leftOut && (
-            <p className="mt-2 text-xs text-slate-500">{c.leftOut}</p>
           )}
         </Card>
 

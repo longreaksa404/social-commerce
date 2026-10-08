@@ -1,4 +1,4 @@
-import { ChevronRight, Search, SearchX, Users } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, Search, SearchX, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Button, Card, EmptyState, ErrorState, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
@@ -72,11 +72,14 @@ export function CustomerList() {
           {c.notFoundText(search)}
         </EmptyState>
       ) : (
-        <Card className={`divide-y divide-slate-100 overflow-hidden transition-opacity ${list.isPlaceholderData ? 'opacity-60' : ''}`}>
-          {shown.map((customer) => (
-            <CustomerRow key={customer.id} customer={customer} currency={currency} search={search} />
-          ))}
-        </Card>
+        <div className={`transition-opacity ${list.isPlaceholderData ? 'opacity-60' : ''}`}>
+          <Card className="divide-y divide-slate-100 overflow-hidden lg:hidden">
+            {shown.map((customer) => (
+              <CustomerRow key={customer.id} customer={customer} currency={currency} search={search} />
+            ))}
+          </Card>
+          <CustomerTable customers={shown} currency={currency} search={search} />
+        </div>
       )}
       {list.hasNextPage && (
         <Button
@@ -109,6 +112,7 @@ function CustomerRow({
       state={{ back: search ? `/dashboard/customers?q=${encodeURIComponent(search)}` : '/dashboard/customers' }}
       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
     >
+      <Initial name={customer.name} className="size-10 text-base" />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-semibold text-slate-900">{customer.name}</span>
         <span className="mt-0.5 block text-sm text-slate-700">{formatPhone(customer.phone)}</span>
@@ -120,6 +124,90 @@ function CustomerRow({
       <span className="shrink-0 text-right font-semibold text-slate-900">{formatSpent(customer.spent, currency)}</span>
       <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-300" />
     </Link>
+  )
+}
+
+type SortKey = 'name' | 'orders' | 'last' | 'spent'
+
+/** Laptops: a table (founder's pick, 2026-10-08), sorted by any column
+ * among the customers loaded so far (newest first until then). */
+function CustomerTable({ customers, currency, search }: { customers: CustomerSummary[]; currency: Currency; search: string }) {
+  const t = useT()
+  const c = t.customers
+  const [sort, setSort] = useState<{ key: SortKey; up: boolean } | null>(null)
+  // What they spent in the shop's currency (another only if it changed).
+  const spentIn = (customer: CustomerSummary) =>
+    Number(customer.spent.find((a) => a.currency === currency)?.amount ?? customer.spent[0]?.amount ?? 0)
+  const value = (customer: CustomerSummary, key: SortKey) =>
+    key === 'orders' ? customer.order_count : key === 'spent' ? spentIn(customer) : new Date(customer.last_order_at ?? 0).getTime()
+  const sorted = sort
+    ? [...customers].sort((a, b) => {
+        const by = sort.key === 'name' ? a.name.localeCompare(b.name) : value(a, sort.key) - value(b, sort.key)
+        return sort.up ? by : -by
+      })
+    : customers
+  const back = search ? `/dashboard/customers?q=${encodeURIComponent(search)}` : '/dashboard/customers'
+  const head = (key: SortKey, label: string, end = false) => {
+    const on = sort?.key === key
+    return (
+      <th scope="col" aria-sort={on ? (sort.up ? 'ascending' : 'descending') : undefined} className={`px-4 py-3 ${end ? 'text-right' : 'text-left'}`}>
+        <button
+          type="button"
+          onClick={() => setSort(on ? { key, up: !sort.up } : { key, up: key === 'name' })}
+          aria-label={c.sortBy(label)}
+          className={`inline-flex items-center gap-1 rounded font-semibold hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-navy-600 ${on ? 'text-slate-900' : ''}`}
+        >
+          {label}
+          {on ? (sort.up ? <ArrowUp aria-hidden className="size-3.5" /> : <ArrowDown aria-hidden className="size-3.5" />) : <ArrowUpDown aria-hidden className="size-3.5 opacity-40" />}
+        </button>
+      </th>
+    )
+  }
+  return (
+    <Card className="hidden overflow-hidden lg:block">
+      <table className="w-full text-sm">
+        <thead className="border-b border-slate-200 text-xs text-slate-500">
+          <tr>
+            {head('name', c.column.name)}
+            <th scope="col" className="px-4 py-3 text-left font-semibold">{c.column.phone}</th>
+            {head('orders', c.orders, true)}
+            {head('last', c.column.lastOrder)}
+            {head('spent', c.spent, true)}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {sorted.map((customer) => (
+            <tr key={customer.id} className="relative transition-colors hover:bg-slate-50">
+              <td className="px-4 py-3">
+                <span className="flex items-center gap-3">
+                  <Initial name={customer.name} />
+                  <Link
+                    to={`/dashboard/customers/${customer.id}`}
+                    state={{ back }}
+                    className="truncate font-medium text-slate-900 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-navy-600"
+                  >
+                    {customer.name}
+                  </Link>
+                </span>
+              </td>
+              <td className="px-4 py-3 whitespace-nowrap text-slate-600 tabular-nums">{formatPhone(customer.phone)}</td>
+              <td className="px-4 py-3 text-right text-slate-900 tabular-nums">{customer.order_count}</td>
+              <td className="px-4 py-3 whitespace-nowrap text-slate-600">{customer.last_order_at ? formatOrderTime(customer.last_order_at) : '–'}</td>
+              <td className="px-4 py-3 text-right font-semibold whitespace-nowrap text-slate-900 tabular-nums">{formatSpent(customer.spent, currency)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Card>
+  )
+}
+
+/** A customer's first letter in a circle. */
+export function Initial({ name, className = 'size-9 text-sm' }: { name: string; className?: string }) {
+  return (
+    <span aria-hidden className={`flex shrink-0 items-center justify-center rounded-full bg-navy-50 font-bold text-navy-700 ${className}`}>
+      {Array.from(name.trim())[0]?.toUpperCase() ?? '?'}
+    </span>
   )
 }
 

@@ -42,6 +42,7 @@ function Shell() {
   const ordersArea = orderScreen || ordersList
   // Laptops: the products grid and table use the width too.
   const productsList = useMatch('/dashboard/products') !== null
+  const customersList = useMatch('/dashboard/customers') !== null
   const settingsScreen = useMatch('/dashboard/settings/:section') !== null
   const focused = productScreen || orderScreen || settingsScreen
 
@@ -50,7 +51,7 @@ function Shell() {
       <Sidebar />
       {!focused && <MobileTopBar />}
       <main
-        className={`mx-auto w-full px-4 lg:px-8 lg:py-8 ${ordersArea || productsList ? 'max-w-3xl lg:max-w-7xl' : 'max-w-3xl'} ${
+        className={`mx-auto w-full px-4 lg:px-8 lg:py-8 ${ordersArea || productsList ? 'max-w-3xl lg:max-w-7xl' : customersList ? 'max-w-3xl lg:max-w-5xl' : 'max-w-3xl'} ${
           focused ? 'pt-2 pb-28 lg:pb-8' : 'pt-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] lg:pb-8'
         }`}
       >
