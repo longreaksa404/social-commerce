@@ -27,6 +27,17 @@ export const auth = {
       km: 'បន្ថែមទំនិញ និងកែស្តុកបាននៅគ្រប់ទីកន្លែង។',
     },
   },
+  // The navy half beside the login and register forms on laptops.
+  pitch: {
+    text: {
+      en: 'One link for your shop on Facebook, TikTok and Instagram. Every order in one place.',
+      km: 'តំណតែមួយសម្រាប់ហាងរបស់អ្នក លើ Facebook, TikTok និង Instagram។ ការកុម្ម៉ង់ទាំងអស់នៅកន្លែងតែមួយ។',
+    },
+    example: { en: 'Example', km: 'ឧទាហរណ៍' },
+    sampleTitle: { en: 'New order #1042', km: 'ការកុម្ម៉ង់ថ្មី #1042' },
+    sampleText: { en: 'Sokunthea, 2 items, $17.00', km: 'Sokunthea, ទំនិញ 2, $17.00' },
+    sampleTag: { en: 'New', km: 'ថ្មី' },
+  },
   createYourStore: { en: 'Create your store', km: 'បង្កើតហាងរបស់អ្នក' },
   logIn: { en: 'Log in', km: 'ចូលគណនី' },
   email: { en: 'Email', km: 'អ៊ីមែល' },
