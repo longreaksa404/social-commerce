@@ -35,6 +35,8 @@ export const customers = {
     name: { en: 'Name', km: 'ឈ្មោះ' },
     phone: { en: 'Phone', km: 'លេខទូរស័ព្ទ' },
     lastOrder: { en: 'Last order', km: 'កុម្ម៉ង់ចុងក្រោយ' },
+    // The last, empty column with the › (for screen readers only).
+    open: { en: 'Open', km: 'បើក' },
   },
   // Sorting the table sorts the customers already loaded.
   sortBy: { en: (column: string) => `Sort by ${column}`, km: (column: string) => `តម្រៀបតាម${column}` },

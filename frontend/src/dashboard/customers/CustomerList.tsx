@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ArrowUpDown, Search, SearchX, Users } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, Search, SearchX, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Button, Card, EmptyState, ErrorState, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
@@ -121,6 +121,8 @@ function CustomerRow({
         </span>
       </span>
       <span className="shrink-0 text-right font-semibold text-slate-900">{formatSpent(customer.spent, currency)}</span>
+      {/* Opens the customer, like a product row. */}
+      <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-300" />
     </Link>
   )
 }
@@ -171,6 +173,9 @@ function CustomerTable({ customers, currency, search }: { customers: CustomerSum
             {head('orders', c.orders, true)}
             {head('last', c.column.lastOrder)}
             {head('spent', c.spent, true)}
+            <th scope="col" className="w-10 pr-3">
+              <span className="sr-only">{c.column.open}</span>
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
@@ -189,6 +194,9 @@ function CustomerTable({ customers, currency, search }: { customers: CustomerSum
               <td className="px-4 py-3 text-right text-slate-900 tabular-nums">{customer.order_count}</td>
               <td className="px-4 py-3 whitespace-nowrap text-slate-600">{customer.last_order_at ? formatOrderTime(customer.last_order_at) : '–'}</td>
               <td className="px-4 py-3 text-right font-semibold whitespace-nowrap text-slate-900 tabular-nums">{formatSpent(customer.spent, currency)}</td>
+              <td className="pr-3 text-slate-300">
+                <ChevronRight aria-hidden className="size-5" />
+              </td>
             </tr>
           ))}
         </tbody>
