@@ -24,6 +24,24 @@ export const products = {
   hidden: { en: 'Hidden', km: 'លាក់' },
   outOfStock: { en: 'Out of stock', km: 'អស់ស្តុក' },
   inStock: { en: (n: number) => `${n} in stock`, km: (n: number) => `ស្តុក ${n}` },
+  onlyLeft: { en: (n: number) => `Only ${n} left`, km: (n: number) => `នៅសល់តែ ${n}` },
+  hiddenFromShop: { en: 'Hidden from shop', km: 'លាក់ពីហាង' },
+  // The list's two ways to show products, remembered on this device.
+  view: {
+    label: { en: 'Show products as', km: 'បង្ហាញទំនិញជា' },
+    grid: { en: 'Photos', km: 'រូបថត' },
+    list: { en: 'List', km: 'បញ្ជី' },
+  },
+  // The table's headings (laptops, List).
+  column: {
+    name: { en: 'Name', km: 'ឈ្មោះ' },
+    price: { en: 'Price', km: 'តម្លៃ' },
+    stock: { en: 'Stock', km: 'ស្តុក' },
+    category: { en: 'Category', km: 'ប្រភេទ' },
+    inShop: { en: 'In shop', km: 'ក្នុងហាង' },
+    shown: { en: 'Shown', km: 'បង្ហាញ' },
+    sortBy: { en: (column: string) => `Sort by ${column}`, km: (column: string) => `តម្រៀបតាម${column}` },
+  },
   variantCount: { en: (n: number) => `${n} variants`, km: (n: number) => `ជម្រើស ${n}` },
 
   newProduct: { en: 'New product', km: 'ទំនិញថ្មី' },
