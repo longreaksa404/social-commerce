@@ -1146,7 +1146,10 @@ and policy, endpoint list, JSONB shapes, link and tracking flows) matches
 - Telegram alerts are English only. The Khmer UI text hasn't been reviewed
   by the founder.
 - Render free sleeps after 15 min, so the first request can take up to a
-  minute (the UI says so after 4 s).
+  minute (the UI says so after 4 s). A cron-job.org job (founder's
+  account) calls `/health` every 10 minutes from 7:00 to midnight
+  Phnom Penh time, so this only happens after midnight. `/health`
+  doesn't touch the database, so Neon still sleeps.
 
 ### Found while writing this document (from reading the code; not reproduced)
 
