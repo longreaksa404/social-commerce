@@ -7,13 +7,11 @@ export const auth = {
       en: 'Turn social media chats into real orders',
       km: 'ប្រែការឆាតលើបណ្ដាញសង្គម ទៅជាការកុម្ម៉ង់ពិតៗ',
     },
-    // Under the big ស្រួល on the start page.
+    // Under the big Oak Order on the start page.
     tagline: {
       en: 'Easy orders for sellers on Facebook, TikTok and Instagram.',
       km: 'ការកុម្ម៉ង់ងាយស្រួល សម្រាប់អ្នកលក់លើ Facebook, TikTok និង Instagram។',
     },
-    // For English readers: what the big word says.
-    meaning: { en: '“Sroul” means easy.', km: '' },
   },
   // The navy half beside the login and register forms on laptops.
   pitch: {

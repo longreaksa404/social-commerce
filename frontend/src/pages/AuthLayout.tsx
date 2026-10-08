@@ -1,22 +1,13 @@
-import { ShoppingBag } from 'lucide-react'
+import { ShoppingBag, TreeDeciduous } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
 
-/** The product's name, ស្រួល Sroul Order (01_PRODUCT.md section 1.1: the
- * Khmer always beside "Sroul"), with its mark: ស on navy. `onDark` for the
+/** The product's name, Oak Order (01_PRODUCT.md section 1.1), with its
+ * mark: a tree (an oak) on navy, like public/favicon.svg. `onDark` for the
  * navy panel. */
-export function BrandMark({
-  className = '',
-  onDark = false,
-  short = false,
-}: {
-  className?: string
-  onDark?: boolean
-  /** "Sroul Order" only, where ស្រួល is already on the page in big. */
-  short?: boolean
-}) {
+export function BrandMark({ className = '', onDark = false }: { className?: string; onDark?: boolean }) {
   return (
     <Link
       to="/"
@@ -24,16 +15,13 @@ export function BrandMark({
     >
       <span
         aria-hidden
-        className={`flex size-9 items-center justify-center rounded-xl text-lg leading-none text-white shadow-sm ${
+        className={`flex size-9 items-center justify-center rounded-xl text-white shadow-sm ${
           onDark ? 'bg-white/15' : 'bg-accent'
         }`}
       >
-        ស
+        <TreeDeciduous className="size-5" />
       </span>
-      <span>
-        {!short && 'ស្រួល '}
-        <span className="font-semibold">Sroul Order</span>
-      </span>
+      <span>Oak Order</span>
     </Link>
   )
 }
@@ -93,9 +81,9 @@ function Pitch() {
   const t = useT()
   const p = t.auth.pitch
   return (
-    <aside className="hidden flex-col justify-between bg-[#182841] p-12 text-white lg:flex">
+    <aside className="hidden flex-col bg-[#182841] p-12 text-white lg:flex">
       <BrandMark onDark />
-      <div className="max-w-md">
+      <div className="my-auto max-w-md">
         <p className="text-3xl leading-tight font-bold tracking-tight text-balance">{t.auth.home.title}</p>
         <p className="mt-4 text-lg leading-relaxed text-white/75">{p.text}</p>
         {/* An example, said so: what a new order looks like arriving. */}
@@ -113,7 +101,6 @@ function Pitch() {
           </div>
         </div>
       </div>
-      <p className="text-sm text-white/50">order.sroul.com</p>
     </aside>
   )
 }

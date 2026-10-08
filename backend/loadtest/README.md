@@ -33,12 +33,12 @@ docker compose up -d --wait
 set -a && . ./.env && set +a
 docker compose exec -T db psql -U "$POSTGRES_USER" -d postgres \
   -c "CREATE DATABASE social_commerce_loadtest"   # once
-docker build -t sroul-api backend
+docker build -t oak-api backend
 docker run -d --name loadtest-api --network host --cpus 0.1 --memory 512m \
   -e PORT=8001 -e RATE_LIMIT_ENABLED=false \
   -e DATABASE_URL="postgresql+asyncpg://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/social_commerce_loadtest" \
   -e JWT_SECRET=load-test-secret-at-least-32-characters-long \
-  sroul-api
+  oak-api
 ```
 
 Wait until `curl localhost:8001/health` answers (about 35 s at 0.1 CPU).

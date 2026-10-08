@@ -6,8 +6,8 @@ import { useT } from '../i18n/useT.ts'
 import { BrandMark } from './AuthLayout.tsx'
 
 /** The start page, before logging in (founder's pick, 2026-10-08): deep
- * navy, ស្រួល ("easy") in very large letters as the message itself, one
- * line on what it's for, and the two ways in. The same navy in light and
+ * navy, the name Oak Order in very large letters, one line on what it's
+ * for, and the two ways in. The same navy in light and
  * dark: it's the brand, not the page. */
 export function Home() {
   const { status } = useAuth()
@@ -21,16 +21,17 @@ export function Home() {
   return (
     <main className="flex min-h-dvh flex-col bg-[#182841] px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] text-white sm:px-10 lg:px-16">
       <div className="flex items-center justify-between gap-3">
-        <BrandMark onDark short />
+        <BrandMark onDark />
         <LanguageSwitch onDark />
       </div>
 
       <div className="my-auto py-12">
-        <h1 lang="km" className="animate-rise text-[clamp(5.5rem,24vw,13rem)] leading-[1.25] font-bold tracking-tight">
-          ស្រួល
+        <h1 lang="en" className="animate-rise text-[clamp(5.5rem,24vw,13rem)] leading-[0.95] font-bold tracking-tight">
+          Oak
+          <br />
+          Order
         </h1>
-        {home.meaning && <p className="mt-1 text-lg font-medium text-white/60">{home.meaning}</p>}
-        <p className="mt-4 max-w-xl text-xl leading-relaxed text-white/85 sm:text-2xl">{home.tagline}</p>
+        <p className="mt-6 max-w-xl text-xl leading-relaxed text-white/85 sm:text-2xl">{home.tagline}</p>
         <div className="mt-10 hidden gap-3 sm:flex">
           <Actions />
         </div>
