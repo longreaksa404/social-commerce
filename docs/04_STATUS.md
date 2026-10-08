@@ -854,10 +854,10 @@ Phase 9, waiting on the founder:
   account and one job (settings in Notes). Tell Claude when it runs, to
   update `docs/CODEBASE.md` and close this. Render checked 2026-10-08:
   31.47 of 750 free hours used (nothing kept awake), 20 MB of 5 GB
-  bandwidth, **4 services** in the workspace: the founder to say what
-  the other 3 are and suspend the ones no longer used, since free
-  services share the hours. Expected with the ping: ~425 hours this
-  month, ~530 a full month.
+  bandwidth, 4 services in the workspace; the founder suspended the
+  other 3 (old, unused) the same day, since free services share the
+  hours. Expected with the ping: ~425 hours this month, ~530 a full
+  month.
 
 - **Live load test**, once, before the first real seller, from home
   (`backend/loadtest/README.md` "On the live site"): time the wait
@@ -1404,5 +1404,4 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 9. Founder: push (the bcrypt fix deploys with it), then the live load
    test from home (`backend/loadtest/README.md`); send Claude the
    summary lines. Decide Render free vs Starter with those numbers.
-10. Founder: cron-job.org job to keep Render awake by day (Notes); say
-    what the other 3 Render services are and suspend unused ones.
+10. Founder: cron-job.org job to keep Render awake by day (Notes).
