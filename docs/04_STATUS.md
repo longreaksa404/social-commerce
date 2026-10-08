@@ -856,7 +856,7 @@ redesign, calm look). Steps, each committed on its own:
    the loading grid shows mixed heights. The + now flies the product's
    photo into the cart (it had been flying a plain dot: it couldn't
    find the photo). Checked at 390 and 1280 px with mocked data; lint
-   and build pass. Not pushed.
+   and build pass. Founder checked it locally, 2026-10-08. Not pushed.
 
 The redesign is complete and pushed (2026-10-08, with the bcrypt fix and
 load test). Founder: check CI and the live site once Vercel and Render
