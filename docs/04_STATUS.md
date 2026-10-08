@@ -831,7 +831,9 @@ redesign, calm look). Steps, each committed on its own:
    (founder picked F from six, 2026-10-08: deep navy with ស្រួល in very
    large letters, one line on what it's for, Create your store / Log in).
 
-The redesign is complete (2026-10-08). Not pushed or deployed yet.
+The redesign is complete and pushed (2026-10-08, with the bcrypt fix and
+load test). Founder: check CI and the live site once Vercel and Render
+have redeployed.
 
 Phase 9, waiting on the founder:
 
