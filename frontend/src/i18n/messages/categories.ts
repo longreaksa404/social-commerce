@@ -3,7 +3,7 @@ import type { Tree } from '../core.ts'
 /** The seller's categories page. */
 export const categories = {
   title: { en: 'Categories', km: 'ប្រភេទ' },
-  newName: { en: 'New category name', km: 'ឈ្មោះប្រភេទថ្មី' },
+  newCategory: { en: 'New category', km: 'ប្រភេទថ្មី' },
   namePlaceholder: { en: 'e.g. Shoes', km: 'ឧ. ស្បែកជើង' },
   added: { en: (name: string) => `Added “${name}”`, km: (name: string) => `បានបន្ថែម “${name}”` },
   emptyTitle: { en: 'No categories yet', km: 'មិនទាន់មានប្រភេទនៅឡើយ' },
@@ -25,7 +25,8 @@ export const categories = {
     km: (n: number) => `ទំនិញ ${n}`,
   },
   noProducts: { en: 'No products yet', km: 'មិនទាន់មានទំនិញ' },
-  share: { en: (name: string) => `Share ${name}`, km: (name: string) => `ចែករំលែក ${name}` },
-  rename: { en: (name: string) => `Rename ${name}`, km: (name: string) => `ប្ដូរឈ្មោះ ${name}` },
-  delete: { en: (name: string) => `Delete ${name}`, km: (name: string) => `លុប ${name}` },
+  // A row's ⋯ menu.
+  more: { en: (name: string) => `More for ${name}`, km: (name: string) => `ផ្សេងទៀតសម្រាប់ ${name}` },
+  shareLink: { en: 'Share link', km: 'ចែករំលែកតំណ' },
+  rename: { en: 'Rename', km: 'ប្ដូរឈ្មោះ' },
 } satisfies Tree

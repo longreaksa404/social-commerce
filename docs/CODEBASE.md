@@ -770,7 +770,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/dashboard/orders`, `/orders/:orderId` | `OrdersPage` (`OrderList.tsx`: the list, with `OrderDetail` beside it on laptops) | Orders tab is the start page; phones show the list or the order; rows (`OrderRow.tsx`) lead with the customer and have no buttons; accepting or rejecting in the open order's To do card (`useMoveOrder.ts`) opens the next new order of the tab (`nextNewOrder`), unless it was opened from a customer's or a link's page |
 | `/dashboard/customers`, `/customers/:customerId` | `CustomerList`, `CustomerDetail` | Laptops: a sortable table (sorts the customers loaded); a customer has Call / Copy phone |
 | `/dashboard/products`, `/products/new`, `/products/:productId` | `ProductList`, `ProductEdit` | Photos (cards as tall as the photo) or List (rows; a sortable table on laptops), kept in `sc.products.view`; stock tags: 5 or fewer is "Only N left" |
-| `/dashboard/categories` | `Categories` | Button on Products on phones; sidebar entry on desktop |
+| `/dashboard/categories` | `Categories` | Button on Products on phones; sidebar entry on desktop. "New category" opens a labelled form; each row's actions (share link, rename, delete) are in one ⋯ menu (`RowMenu`) |
 | `/dashboard/links`, `/links/new`, `/links/:linkId` | `LinkList`, `NewLink`, `LinkDetail` | Links as cards with Copy, views, orders and % ordered |
 | `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Sections: `shop`, `orders`, `payments`, `delivery`, `discounts`, `telegram`, `link`; laptops open `shop` when none is chosen |
 | `/dashboard/notifications` | `Notifications` | |
