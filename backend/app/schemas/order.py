@@ -7,7 +7,6 @@ from decimal import Decimal
 from typing import Annotated
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstraints
-from pydantic_core import PydanticCustomError
 
 from app.models import (
     Currency,
@@ -17,27 +16,15 @@ from app.models import (
     PaymentMethod,
     PaymentStatus,
 )
-from app.schemas.common import Name
+from app.schemas.common import Name, Phone
 from app.schemas.delivery import CourierName, DeliveryOut, ShopDeliveryOut
 from app.schemas.payment import PaymentOut, ShopPaymentOut
 from app.schemas.product import Money
-from app.services.phone import normalize_phone
 
 MAX_ORDER_LINES = 50
 MAX_LINE_QUANTITY = 99
 
 
-def _phone(value: str) -> str:
-    try:
-        return normalize_phone(value)
-    except ValueError as exc:
-        # A custom error type, so the message isn't prefixed "Value error, ".
-        raise PydanticCustomError("phone", str(exc)) from exc
-
-
-Phone = Annotated[
-    str, StringConstraints(strip_whitespace=True, max_length=32), AfterValidator(_phone)
-]
 Address = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=500)]
 Note = Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)]
 # The phone's GPS position, to 6 decimals (about 10 cm).

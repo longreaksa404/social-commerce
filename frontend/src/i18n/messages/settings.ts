@@ -287,7 +287,7 @@ export const settings = {
     lowStockAt: { en: (n: number) => `Low stock at ${n}`, km: (n: number) => `ស្តុកតិចនៅ ${n}` },
     telegramOn: { en: 'Telegram on', km: 'Telegram បានបើក' },
     telegramOff: { en: 'Telegram off', km: 'Telegram បានបិទ' },
-    accountHint: { en: 'Name, phone, email, password', km: 'ឈ្មោះ ទូរស័ព្ទ អ៊ីមែល ពាក្យសម្ងាត់' },
+    accountHint: { en: 'Name, phone number, password', km: 'ឈ្មោះ លេខទូរស័ព្ទ ពាក្យសម្ងាត់' },
     helpHint: { en: 'Message Oak Order on Telegram', km: 'ផ្ញើសារទៅ Oak Order តាម Telegram' },
     exportHint: { en: 'Your orders as an Excel file', km: 'ការកុម្ម៉ង់របស់អ្នកជាឯកសារ Excel' },
     closeHint: { en: 'Stop selling here', km: 'ឈប់លក់នៅទីនេះ' },
@@ -299,13 +299,26 @@ export const settings = {
 
   yourAccount: { en: 'Your account', km: 'គណនីរបស់អ្នក' },
   yourAccountHint: {
-    en: 'You log in with this email and password. Customers never see these.',
-    km: 'អ្នកចូលគណនីដោយអ៊ីមែល និងពាក្យសម្ងាត់នេះ។ អតិថិជនមិនឃើញព័ត៌មានទាំងនេះទេ។',
+    en: 'You log in with your phone number and password. Customers never see these.',
+    km: 'អ្នកចូលគណនីដោយលេខទូរស័ព្ទ និងពាក្យសម្ងាត់របស់អ្នក។ អតិថិជនមិនឃើញព័ត៌មានទាំងនេះទេ។',
   },
   yourDetails: { en: 'Your details', km: 'ព័ត៌មានរបស់អ្នក' },
   yourName: { en: 'Your name', km: 'ឈ្មោះរបស់អ្នក' },
   yourPhone: { en: 'Your phone number', km: 'លេខទូរស័ព្ទរបស់អ្នក' },
-  loginEmailHint: { en: 'You log in with this.', km: 'អ្នកចូលគណនីដោយអ៊ីមែលនេះ។' },
+  loginPhone: { en: 'Phone number you log in with', km: 'លេខទូរស័ព្ទដែលអ្នកប្រើចូលគណនី' },
+  noLoginPhone: {
+    en: 'None yet: you log in with your email. Add your number to log in with it.',
+    km: 'មិនទាន់មាន៖ អ្នកចូលគណនីដោយអ៊ីមែល។ បន្ថែមលេខរបស់អ្នក ដើម្បីចូលគណនីដោយលេខនោះ។',
+  },
+  changePhone: { en: 'Change number', km: 'ប្ដូរលេខ' },
+  addPhone: { en: 'Add phone number', km: 'បន្ថែមលេខទូរស័ព្ទ' },
+  newPhone: { en: 'New phone number', km: 'លេខទូរស័ព្ទថ្មី' },
+  phoneChanged: { en: 'Phone number changed', km: 'បានប្ដូរលេខទូរស័ព្ទ' },
+  phoneTakenByOther: {
+    en: 'Another account already has this number.',
+    km: 'គណនីផ្សេងមានលេខនេះរួចហើយ។',
+  },
+  loginEmail: { en: 'Email you log in with', km: 'អ៊ីមែលដែលអ្នកប្រើចូលគណនី' },
   detailsSaved: { en: 'Details saved', km: 'បានរក្សាទុកព័ត៌មាន' },
   changePassword: { en: 'Change password', km: 'ប្ដូរពាក្យសម្ងាត់' },
   changePasswordHint: {
@@ -335,8 +348,8 @@ export const settings = {
   help: { en: 'Get help', km: 'សុំជំនួយ' },
   staff: { en: 'Staff', km: 'បុគ្គលិក' },
   staffHint: {
-    en: 'People who help you: each logs in with their own email and can do everything except Settings.',
-    km: 'អ្នកដែលជួយអ្នក៖ ម្នាក់ៗចូលគណនីដោយអ៊ីមែលផ្ទាល់ខ្លួន ហើយអាចធ្វើអ្វីៗបានទាំងអស់ លើកលែងតែការកំណត់។',
+    en: 'People who help you: each logs in with their own phone number and can do everything except Settings.',
+    km: 'អ្នកដែលជួយអ្នក៖ ម្នាក់ៗចូលគណនីដោយលេខទូរស័ព្ទផ្ទាល់ខ្លួន ហើយអាចធ្វើអ្វីៗបានទាំងអស់ លើកលែងតែការកំណត់។',
   },
   staffNoSettings: {
     en: (shop: string) => `Only the owner of ${shop} can change the shop's settings. Your own account is below.`,
@@ -345,11 +358,11 @@ export const settings = {
   noStaff: { en: 'No staff yet.', km: 'មិនទាន់មានបុគ្គលិកទេ។' },
   addStaff: { en: 'Add staff', km: 'បន្ថែមបុគ្គលិក' },
   addStaffHint: {
-    en: 'Give them the email and first password yourself; they can change the password in Settings → Your account.',
-    km: 'សូមផ្ដល់អ៊ីមែល និងពាក្យសម្ងាត់ដំបូងដល់គេដោយខ្លួនអ្នក។ គេអាចប្ដូរពាក្យសម្ងាត់ក្នុង ការកំណត់ → គណនីរបស់អ្នក។',
+    en: 'They log in with their phone number and the first password you give them; they can change the password in Settings → Your account.',
+    km: 'គេចូលគណនីដោយលេខទូរស័ព្ទរបស់គេ និងពាក្យសម្ងាត់ដំបូងដែលអ្នកផ្ដល់ឱ្យ។ គេអាចប្ដូរពាក្យសម្ងាត់ក្នុង ការកំណត់ → គណនីរបស់អ្នក។',
   },
   staffName: { en: 'Their name', km: 'ឈ្មោះរបស់គេ' },
-  staffEmail: { en: 'Email they log in with', km: 'អ៊ីមែលដែលគេប្រើចូលគណនី' },
+  staffPhone: { en: 'Phone number they log in with', km: 'លេខទូរស័ព្ទដែលគេប្រើចូលគណនី' },
   firstPassword: { en: 'First password', km: 'ពាក្យសម្ងាត់ដំបូង' },
   firstPasswordHint: { en: 'At least 8 characters.', km: 'យ៉ាងតិច 8 តួអក្សរ។' },
   staffAdded: {

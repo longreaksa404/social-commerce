@@ -1,16 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, type FormEvent } from 'react'
+import { useCallback, useState, type FormEvent } from 'react'
+import { PhoneCheck } from '../../auth/PhoneCheck.tsx'
 import { useFeedback } from '../../components/feedback.ts'
 import { Button, ErrorMessage, ErrorState, Field, Input, PasswordInput, Section, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { api, saveTokens, type AccessToken } from '../../lib/api.ts'
 import { fieldError, formError } from '../../lib/errors.ts'
-import type { Account } from '../../lib/types.ts'
+import { formatPhone } from '../../lib/orders.ts'
+import type { Account, PhoneCheck as PhoneCheckState } from '../../lib/types.ts'
 import { keys, useAccount } from '../queries.ts'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
 
-/** Settings → Your account: the person's own name, phone and login email,
- * and their password. Not the store's settings. */
+/** Settings → Your account: the person's own name, the phone number they
+ * log in with (changed through Telegram, like at sign-up), and their
+ * password. Not the store's settings. */
 export function AccountPage() {
   const account = useAccount()
   if (account.isPending) return <Skeleton className="h-96 w-full rounded-2xl" />
@@ -18,33 +21,29 @@ export function AccountPage() {
   return (
     <div className="space-y-4">
       <DetailsForm account={account.data} />
-      <PasswordForm email={account.data.email} />
+      <LoginPhone account={account.data} />
+      <PasswordForm login={account.data.phone ?? account.data.email ?? ''} />
     </div>
   )
 }
 
-const DETAIL_FIELDS = ['full_name', 'phone', 'email'] as const
-
 function DetailsForm({ account }: { account: Account }) {
   const queryClient = useQueryClient()
   const { toast } = useFeedback()
-  const [form, setForm] = useState(account)
+  const [name, setName] = useState(account.full_name)
   const t = useT()
   const s = t.settings
-  const body = { full_name: form.full_name.trim(), phone: form.phone.trim(), email: form.email.trim() }
-  const dirty = DETAIL_FIELDS.some((field) => body[field] !== account[field])
+  const dirty = name.trim() !== account.full_name
   useUnsavedChanges(dirty)
 
   const save = useMutation({
-    mutationFn: () => api<Account>('/seller/account', { method: 'PATCH', body }),
+    mutationFn: () => api<Account>('/seller/account', { method: 'PATCH', body: { full_name: name.trim() } }),
     onSuccess: (updated) => {
       queryClient.setQueryData(keys.account, updated)
-      setForm(updated)
+      setName(updated.full_name)
       toast(s.detailsSaved)
     },
   })
-  const set = (field: keyof Account) => (e: { target: { value: string } }) =>
-    setForm((f) => ({ ...f, [field]: e.target.value }))
 
   function submit(event: FormEvent) {
     event.preventDefault()
@@ -55,33 +54,15 @@ function DetailsForm({ account }: { account: Account }) {
     <Section title={s.yourDetails}>
       <form onSubmit={submit} className="space-y-4">
         <Field label={s.yourName} error={fieldError(save.error, 'full_name')}>
-          <Input required maxLength={100} autoComplete="name" autoCapitalize="words" value={form.full_name} onChange={set('full_name')} />
+          <Input required maxLength={100} autoComplete="name" autoCapitalize="words" value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
-        <Field label={s.yourPhone} error={fieldError(save.error, 'phone')}>
-          <Input
-            required
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="012 345 678"
-            value={form.phone}
-            onChange={set('phone')}
-          />
-        </Field>
-        <Field label={t.auth.email} error={fieldError(save.error, 'email')} hint={s.loginEmailHint}>
-          <Input
-            required
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            value={form.email}
-            onChange={set('email')}
-          />
-        </Field>
-        <ErrorMessage error={formError(save.error, [...DETAIL_FIELDS])} />
+        {account.email && (
+          <div>
+            <p className="mb-1.5 text-sm font-medium text-slate-700">{s.loginEmail}</p>
+            <p className="text-slate-900">{account.email}</p>
+          </div>
+        )}
+        <ErrorMessage error={formError(save.error, ['full_name'])} />
         <Button type="submit" loading={save.isPending} disabled={!dirty} className="w-full sm:w-auto">
           {t.common.save}
         </Button>
@@ -90,7 +71,65 @@ function DetailsForm({ account }: { account: Account }) {
   )
 }
 
-function PasswordForm({ email }: { email: string }) {
+/** The login number. A new one is shared with the bot like at sign-up,
+ * then saved at once. */
+function LoginPhone({ account }: { account: Account }) {
+  const queryClient = useQueryClient()
+  const { toast } = useFeedback()
+  const [changing, setChanging] = useState(false)
+  const [check, setCheck] = useState<PhoneCheckState | null>(null)
+  const t = useT()
+  const s = t.settings
+
+  const save = useMutation({
+    mutationFn: (checkId: string) =>
+      api<Account>('/seller/account/phone', { method: 'POST', body: { phone_check: checkId } }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(keys.account, updated)
+      setChanging(false)
+      setCheck(null)
+      toast(s.phoneChanged)
+    },
+  })
+  const { mutate } = save
+  const takenByOther = check !== null && check.taken && check.phone !== account.phone
+
+  const onCheck = useCallback(
+    (done: PhoneCheckState | null) => {
+      setCheck(done)
+      if (!done) return
+      if (done.phone === account.phone) setChanging(false) // the same number: nothing to do
+      else if (!done.taken) mutate(done.id)
+    },
+    [account.phone, mutate],
+  )
+
+  return (
+    <Section title={s.loginPhone}>
+      <div className="space-y-4">
+        {account.phone ? (
+          <p className="font-semibold text-slate-900 tabular-nums">{formatPhone(account.phone)}</p>
+        ) : (
+          <p className="text-sm leading-6 text-slate-500">{s.noLoginPhone}</p>
+        )}
+        {changing ? (
+          <PhoneCheck
+            label={s.newPhone}
+            onChange={onCheck}
+            taken={takenByOther && <p className="text-sm text-red-600">{s.phoneTakenByOther}</p>}
+          />
+        ) : (
+          <Button variant="secondary" onClick={() => setChanging(true)} className="w-full sm:w-auto">
+            {account.phone ? s.changePhone : s.addPhone}
+          </Button>
+        )}
+        <ErrorMessage error={save.error} />
+      </div>
+    </Section>
+  )
+}
+
+function PasswordForm({ login }: { login: string }) {
   const { toast } = useFeedback()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
@@ -121,7 +160,7 @@ function PasswordForm({ email }: { email: string }) {
     <Section title={s.changePassword} description={s.changePasswordHint}>
       <form onSubmit={submit} className="space-y-4">
         {/* For password managers: whose password this is. */}
-        <input type="email" autoComplete="username" value={email} hidden readOnly />
+        <input type="text" autoComplete="username" value={login} hidden readOnly />
         <Field label={s.currentPassword} error={fieldError(change.error, 'current_password')}>
           <PasswordInput required autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
         </Field>

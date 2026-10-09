@@ -45,8 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (hasStoredSession()) restore()
   }, [queryClient, restore])
 
-  const login = useCallback(async (email: string, password: string) => {
-    saveTokens(await api<AccessToken>('/auth/login', { method: 'POST', body: { email, password }, auth: false }))
+  const login = useCallback(async (login: string, password: string) => {
+    saveTokens(await api<AccessToken>('/auth/login', { method: 'POST', body: { login, password }, auth: false }))
     setStatus('authenticated')
   }, [])
 

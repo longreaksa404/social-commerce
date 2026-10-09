@@ -10,7 +10,14 @@ from app.core import clock
 from app.db.session import unscoped_session
 from app.models import Order
 from app.services.stats import period_days
-from tests.helpers import BANK, add_product, place_order, registered_seller, set_payments
+from tests.helpers import (
+    BANK,
+    add_product,
+    place_order,
+    random_phone,
+    registered_seller,
+    set_payments,
+)
 
 STATS = "/api/v1/seller/stats"
 
@@ -111,20 +118,15 @@ async def test_an_order_counts_for_its_day_in_phnom_penh(client, auth_headers):
 
 async def test_numbers_are_for_the_owner_only(client, auth_headers):
     owner, _, _ = await registered_seller(client, auth_headers)
-    email = f"helper-{uuid.uuid4().hex[:8]}@example.com"
+    phone = random_phone()
     added = await client.post(
         "/api/v1/seller/staff",
         headers=owner,
-        json={
-            "full_name": "Vibol",
-            "phone": "097 765 4321",
-            "email": email,
-            "password": "first-password",
-        },
+        json={"full_name": "Vibol", "phone": phone, "password": "first-password"},
     )
     assert added.status_code == 201, added.text
     login = await client.post(
-        "/api/v1/auth/login", json={"email": email, "password": "first-password"}
+        "/api/v1/auth/login", json={"login": phone, "password": "first-password"}
     )
     staff = {"Authorization": f"Bearer {login.json()['access_token']}"}
 

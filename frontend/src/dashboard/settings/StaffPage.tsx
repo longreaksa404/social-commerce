@@ -10,9 +10,10 @@ import { formatPhone } from '../../lib/orders.ts'
 import type { StaffMember } from '../../lib/types.ts'
 import { keys, useStaff } from '../queries.ts'
 
-/** Settings → Staff (owner only): helpers who log in with their own email
- * and can do everything but Settings (founder's choice 2026-10-08). No
- * email is sent: the owner gives them their email and first password. */
+/** Settings → Staff (owner only): helpers who log in with their own phone
+ * number and can do everything but Settings (founder's choice 2026-10-08;
+ * phone numbers since 2026-10-09). Nothing is sent: the owner gives them
+ * their first password. */
 export function StaffPage() {
   const staff = useStaff()
   return (
@@ -97,12 +98,11 @@ function StaffRow({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        {/* The buttons go under the name when the email wouldn't fit beside them. */}
+        {/* The buttons go under the name when it wouldn't fit beside them. */}
         <div className="min-w-0 flex-1 basis-56">
           <p className="truncate font-medium text-slate-900">{member.full_name}</p>
-          <p className="truncate text-sm text-slate-500">
-            {member.email}
-            {member.phone && ` · ${formatPhone(member.phone)}`}
+          <p className="truncate text-sm text-slate-500 tabular-nums">
+            {member.phone ? formatPhone(member.phone) : member.email}
           </p>
         </div>
         <div className="flex gap-2">
@@ -128,7 +128,7 @@ function StaffRow({
   )
 }
 
-const EMPTY = { full_name: '', phone: '', email: '', password: '' }
+const EMPTY = { full_name: '', phone: '', password: '' }
 
 function AddStaff() {
   const queryClient = useQueryClient()
@@ -159,21 +159,8 @@ function AddStaff() {
         <Field label={s.staffName} error={fieldError(add.error, 'full_name')}>
           <Input required maxLength={100} autoComplete="off" autoCapitalize="words" value={form.full_name} onChange={set('full_name')} />
         </Field>
-        <Field label={t.auth.register.phone} error={fieldError(add.error, 'phone')}>
+        <Field label={s.staffPhone} error={fieldError(add.error, 'phone')}>
           <Input required type="tel" inputMode="tel" autoComplete="off" placeholder="012 345 678" value={form.phone} onChange={set('phone')} />
-        </Field>
-        <Field label={s.staffEmail} error={fieldError(add.error, 'email')}>
-          <Input
-            required
-            type="email"
-            inputMode="email"
-            autoComplete="off"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            value={form.email}
-            onChange={set('email')}
-          />
         </Field>
         <Field label={s.firstPassword} error={fieldError(add.error, 'password')} hint={s.firstPasswordHint}>
           <PasswordInput required minLength={8} autoComplete="new-password" value={form.password} onChange={set('password')} />

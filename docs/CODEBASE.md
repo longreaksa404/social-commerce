@@ -112,7 +112,8 @@ Render's health check.
 | Onboard first real seller | NOT STARTED | |
 | Domain + Cloudflare DNS | DONE (live 2026-10-09) | `order.oaksolve.com` (Vercel), `api.oaksolve.com` (Render; `render.yaml` `PUBLIC_API_URL` / `PUBLIC_APP_URL`), `images.oaksolve.com` (R2, `R2_PUBLIC_URL`); the login page shows `order.oaksolve.com`. `oaksolve.com` (302) and the vercel.app address (308) forward to it (04) |
 | Refresh token in an httpOnly cookie (part of the domain work in 04) | DONE (live 2026-10-09) | `backend/app/api/session_cookie.py`, `frontend/src/lib/api.ts`; only works once app and API share oaksolve.com |
-| Phone check through the Telegram bot (founder's choice 2026-10-09: sellers sign up with a real phone; Google, then Facebook and TikTok, to follow) | DONE (backend) | `phone_check` table, `POST/GET /auth/phone-checks`, `services/phone_check.py`, the bot's share button (`services/telegram.py`), `app/telegram_poll.py` for laptops |
+| Phone check through the Telegram bot (founder's choice 2026-10-09: sellers sign up with a real phone; Google, then Facebook and TikTok, to follow) | DONE | `phone_check` table, `POST/GET /auth/phone-checks`, `services/phone_check.py`, the bot's share button (`services/telegram.py`), `app/telegram_poll.py` for laptops; `auth/PhoneCheck.tsx` |
+| Phone number login (same decision) | DONE | Register with a finished phone check (no email), login by phone or an older account's email (`auth.login_filter`, `pages/LoginField.tsx`), staff added by phone, Your account → change number through Telegram (`POST /seller/account/phone`), `python -m app.admin test-shop`; migration `005c6870a409` |
 | Khmer / English switch | DONE | `frontend/src/i18n/`. The founder hasn't reviewed the Khmer yet; the Telegram bot's messages are Khmer only (2026-10-09) |
 | Light / dark mode | DONE | `src/theme/`, `index.css`, the inline script in `index.html` |
 | Small photo copies | DONE | `-m` / `-s.jpg` naming, `thumbnail_size` on the images endpoint |
@@ -186,10 +187,10 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
         ├── main.tsx           Providers: Language → QueryClient → Auth → Feedback → Router
         ├── router.tsx         All routes (data router)
         ├── index.css          Tailwind v4 @theme tokens, dark-mode scale flips, keyframes
-        ├── auth/              AuthContext.tsx (provider), useAuth.ts (context + hook)
+        ├── auth/              AuthContext.tsx (provider), useAuth.ts (context + hook), PhoneCheck.tsx (verify a phone with the bot)
         ├── lib/               api.ts (fetch client), types.ts (API types), pricing, money, images, errors, ...
         ├── components/        ui.tsx (UI kit), styles.ts, FeedbackProvider (toasts/confirm), effects, RootLayout
-        ├── pages/             Home (landing), Login, Register, AuthLayout
+        ├── pages/             Home (landing), Login, Register, ForgotPassword, ResetPassword, LoginField, AuthLayout
         ├── dashboard/         Seller app: Layout, queries.ts, orders/, customers/, products/, links/, settings/, Categories, Notifications
         ├── shop/              Customer shop: ShopLayout, pages, queries.ts, cart.ts, device.ts, MapPicker, PaymentCard, ...
         ├── i18n/              core.ts, useT.ts, LanguageProvider, LanguageSwitch, messages/*.ts ({en, km} pairs)
@@ -253,7 +254,7 @@ cd frontend && npm install
 | API dev server | `uvicorn app.main:app --reload`: http://localhost:8000, OpenAPI at `/docs` |
 | Backend tests | `pytest` (backend). Needs Postgres running; uses its own `<db>_test` database, created, migrated and emptied automatically |
 | Backend lint | `ruff check . && ruff format --check .` (`ruff format .` fixes) |
-| Founder's commands | `python -m app.admin <command> <email>`, commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend), and `move-photos <old> <new>` (rewrites the R2 address saved in `product.image_urls` and `store.logo_url`, for `images.oaksolve.com`); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
+| Founder's commands | `python -m app.admin <command> <login>` (a phone number typed any way, or an older account's email; `auth.login_filter`), commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend), `test-shop [--name]` (a shop with an email login and no phone, for the load test: sign-up needs a phone checked in Telegram, one shop per number), and `move-photos <old> <new>` (rewrites the R2 address saved in `product.image_urls` and `store.logo_url`, for `images.oaksolve.com`); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
 | Bot on a laptop | `python -m app.telegram_poll` (backend, beside uvicorn): answers your **test** bot by polling, since Telegram's webhook can't reach localhost. Needs the three `TELEGRAM_*` values in `.env` and `PUBLIC_API_URL` empty; refuses a bot that has a webhook (the live one) |
 | Frontend dev server | `npm run dev`: http://localhost:5173 |
 | Frontend lint | `npm run lint` (oxlint) |
@@ -362,9 +363,24 @@ starts a new transaction.
 
 ### Auth
 
-- `POST /auth/register` creates `Seller` and `Store` together. The slug is
-  generated from the store name (`unique_slug`). It returns a `TokenPair`; the
-  route sets the refresh token as a cookie and answers `AccessOut` (below).
+- **Phone number logins** (founder's choice 2026-10-09). `POST
+  /auth/register` takes `full_name`, `store_name`, `password` and
+  `phone_check`: the id of a phone check finished in Telegram
+  (`services/phone_check.py`, §9). The number isn't typed. `phone_check.use`
+  locks the check, refuses an expired one (422 `PHONE_CHECK_EXPIRED`) or an
+  unfinished one (422 `PHONE_NOT_VERIFIED`), and deletes it in the same
+  commit, so a check signs up once. A number that already has an account →
+  409 `PHONE_TAKEN` (field `phone_check`; also on the unique index). It
+  creates `Seller` (phone, no email) and `Store` together, with
+  `store.telegram_chat_id` = the Telegram account that shared the number,
+  so a new shop starts with order alerts on. The slug is generated from the
+  store name (`unique_slug`). It returns a `TokenPair`; the route sets the
+  refresh token as a cookie and answers `AccessOut` (below).
+- `POST /auth/login` takes `login` (or `email`, the field's old name, via
+  `AliasChoices`) and `password`. `auth.login_filter`: with an `@` it's an
+  email (lowercased; accounts from before 2026-10-09 and their staff),
+  otherwise `normalize_phone` (any spelling, `+855 12…` too); neither →
+  the same 401 `INVALID_CREDENTIALS` "Wrong phone number or password.".
 - Access JWT (HS256, 15 min): `{"type": "access", "sub": seller_id,
   "store_id": store_id, "role": "owner"|"staff", iat, exp}`. **The tenant
   comes from this claim.** A token without `role` (issued before staff
@@ -372,8 +388,10 @@ starts a new transaction.
 - **Staff logins** (founder's choice 2026-10-08): `seller` rows with
   `role = staff` and their shop in `seller.store_id`; an owner's shop is
   the one whose `store.seller_id` is theirs (`auth.shop_of`). Staff can do
-  everything but Settings (the `Owner` guard). The owner adds them with an
-  email and a first password (no email is sent), sets a new password when
+  everything but Settings (the `Owner` guard). The owner adds them with a
+  phone number (normalized, unique: 409 `PHONE_TAKEN`, field `phone`; not
+  checked in Telegram, the owner vouches) and a first password (nothing is
+  sent), sets a new password when
   they forget theirs, and removes them. Telegram's "Forgot password?"
   only serves owners. Closing a shop closes its staff's logins too
   (`account.set_shop_logins`); erasing it deletes them (FK cascade).
@@ -389,6 +407,10 @@ starts a new transaction.
 - `decode_token` requires `exp`, `sub` and `type`, and checks the type. An
   expired token raises 401 `TOKEN_EXPIRED`; any other bad token raises 401
   `INVALID_TOKEN`.
+- Changing the login number (`POST /seller/account/phone {phone_check}`):
+  a check finished in Telegram, as at sign-up; another account's number →
+  409 `PHONE_TAKEN`; your own again is fine. The email can't be changed
+  (`AccountUpdate` has only `full_name`).
 - Changing the password (`POST /seller/account/password`, current password
   required) **deletes** every `refresh_token` row of the seller and issues
   a new pair to the caller: other phones are logged out. Deleted, not
@@ -396,7 +418,8 @@ starts a new transaction.
   would end the new session too.
 - **Forgot password** (no email in the MVP): `POST /auth/password-reset`
   answers 202 at once and, after the response (BackgroundTasks, so the
-  answer and its timing don't reveal whether the email exists), sends a
+  answer and its timing don't reveal whether the login exists; `login` is
+  a phone number or an older account's email, `login_filter`), sends a
   link to the shop's Telegram chat (`store.telegram_chat_id`, the alerts
   chat) if it has one: `PUBLIC_APP_URL/reset-password#<reset JWT>`, as a
   button when https, else in the text. The reset JWT (`{"type": "reset",
@@ -407,7 +430,7 @@ starts a new transaction.
   logged in. Without Telegram, the founder resets it (`python -m app.admin
   reset-password`, docs/ADMIN.md).
 - bcrypt runs in `asyncio.to_thread` so it doesn't block the event loop.
-  Logins for unknown emails check against `DUMMY_PASSWORD_HASH` for equal
+  Logins for unknown phone numbers or emails check against `DUMMY_PASSWORD_HASH` for equal
   timing. A disabled seller (`is_active=false`) gets 403 `ACCOUNT_DISABLED`,
   and their shop answers 404.
 - **The refresh token is a cookie** (`app/api/session_cookie.py`): every
@@ -434,7 +457,7 @@ starts a new transaction.
 | Storefront (`/shop/{slug}/*`) | `Store` found by slug (joined to `Seller.is_active`) on an unscoped session | `ShopDb` |
 | Background task | the `store_id` the request already resolved | `tenant_session(store_id)` |
 | Telegram `/start <code>` | store id inside the HMAC-signed, 30-minute code | `tenant_session(store_id)` |
-| Auth | none (seller looked up by email / token id) | `UnscopedDb`, filters explicitly |
+| Auth | none (seller looked up by phone or email / token id; phone checks by id) | `UnscopedDb`, filters explicitly |
 
 **Layer 1 (application).** Every service query filters
 `Model.store_id == store_id` explicitly, even on a tenant session. Foreign
@@ -495,11 +518,12 @@ Every error uses the same envelope:
 
 Codes in use: `ACCOUNT_DISABLED`, `ACCOUNT_NOT_FOUND`, `CATEGORY_NOT_FOUND`,
 `CUSTOMER_NOT_FOUND`, `DELIVERY_METHOD_UNAVAILABLE`,
-`DELIVERY_OPTION_UNAVAILABLE`, `EMAIL_TAKEN`, `INVALID_CREDENTIALS`,
+`DELIVERY_OPTION_UNAVAILABLE`, `INVALID_CREDENTIALS`,
 `INVALID_DATE_RANGE`, `INVALID_DELIVERY_TRANSITION`, `INVALID_IMAGE`,
 `INVALID_PAYMENT_TRANSITION`, `INVALID_RESUME_DATE`, `INVALID_STATUS_TRANSITION`,
 `INVALID_TOKEN`, `LINK_NOT_FOUND`, `NOT_AUTHENTICATED`, `NOT_FOUND`,
 `ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`, `ORDERS_PAUSED`,
+`PHONE_CHECK_EXPIRED`, `PHONE_NOT_VERIFIED`, `PHONE_TAKEN`, `TELEGRAM_NOT_CONFIGURED`,
 `ORDER_TOTAL_CHANGED`, `PAYMENT_METHOD_UNAVAILABLE`, `PRODUCT_HIDDEN`,
 `PRODUCT_NOT_FOUND`, `PRODUCT_OUT_OF_STOCK`, `PRODUCT_UNAVAILABLE`,
 `OWNER_ONLY`, `RATE_LIMITED`, `RESET_LINK_INVALID`, `SLUG_TAKEN`, `STAFF_LIMIT`, `STAFF_NOT_FOUND`, `STORE_MISSING`, `STORE_NOT_FOUND`,
@@ -573,7 +597,7 @@ Mixins (`app/db/base.py`):
 | Table | Tenant | Key columns | FKs | Indexes / constraints |
 |---|---|---|---|---|
 | `phone_check` | **NO** (no `app_user` grant) | `code` (`phone_` + 22 random characters, in the `t.me` link), `telegram_user_id` (bigint, who opened the link), `phone` (normalized, once shared), `verified_at`, `expires_at` (30 min), `created_at` | none | `uq_phone_check_code`; `ix_phone_check_telegram_user_id`. Expired rows are deleted when a new check starts |
-| `seller` | **NO** (an owner owns the tenant, staff belong to one; no RLS, no `app_user` grant) | `email` (stored lowercased), `password_hash`, `full_name`, `phone`, `is_active` (default true), `role` (`owner`/`staff`, default owner), `store_id` (staff only), `created_at` | `store_id → store` CASCADE (`use_alter`: store also points at seller) | `uq_seller_email`; `ix_seller_store_id`; CHECK `(role = 'staff') = (store_id IS NOT NULL)` |
+| `seller` | **NO** (an owner owns the tenant, staff belong to one; no RLS, no `app_user` grant) | `phone` (the login, normalized, NULL only for older accounts whose number another account had), `email` (NULL for accounts since 2026-10-09; older ones log in with it; stored lowercased), `password_hash`, `full_name`, `is_active` (default true), `role` (`owner`/`staff`, default owner), `store_id` (staff only), `created_at` | `store_id → store` CASCADE (`use_alter`: store also points at seller) | `uq_seller_phone`; `uq_seller_email`; `ix_seller_store_id`; CHECK `(role = 'staff') = (store_id IS NOT NULL)` |
 | `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `low_stock_alert` (int, default 5, 1–999 by the schema), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
 | `refresh_token` | **NO** (per seller; no RLS, no `app_user` grant) | `id` (= JWT `jti`), `expires_at`, `revoked_at`, `created_at` | `seller_id → seller` CASCADE | `ix_refresh_token_seller_id` |
 | `category` | yes | `name`, `slug` String(64), `created_at` | none besides `store_id` | UNIQUE (`store_id`, `slug`) |
@@ -630,7 +654,9 @@ shareable_link + link_event → `5ee23aad5482` store.orders_paused +
 orders_resume_on → `007ae4403215` store.contact_phone +
 messenger_username → `49da40196f18` store.low_stock_alert →
 `ae070e4b3006` seller.role + seller.store_id → `5b3201ea7f7d` phone_check
-(**head**).
+→ `005c6870a409` seller.phone unique, email nullable (existing phones
+normalized; a number that can't be read, or an older account's again, was
+cleared) (**head**).
 
 ---
 
@@ -783,16 +809,17 @@ from the schema.
 | Method | Path | Auth | Request | Response | Notes |
 |---|---|---|---|---|---|
 | GET | `/health` | none | — | `{"status": "ok"}` | Render health check |
-| POST | `/auth/register` | none | `RegisterIn` | `AccessOut` + cookie (201) | Creates seller + store; 5/min |
-| POST | `/auth/login` | none | `LoginIn` | `AccessOut` + cookie | 10/min |
+| POST | `/auth/register` | none | `RegisterIn` (`full_name`, `store_name`, `password`, `phone_check`) | `AccessOut` + cookie (201) | Creates seller + store with the checked phone; 422 `PHONE_NOT_VERIFIED` / `PHONE_CHECK_EXPIRED`, 409 `PHONE_TAKEN`; 5/min |
+| POST | `/auth/login` | none | `LoginIn` (`login`: phone or older account's email; `email` accepted) | `AccessOut` + cookie | 10/min |
 | POST | `/auth/refresh` | refresh cookie | none | `AccessOut` + cookie | Rotates; a retry within 60 s gets a new pair, later reuse ends all sessions; 30/min |
 | POST | `/auth/logout` | refresh cookie | none | 204 | Deletes that token's session and the cookie; bad tokens ignored |
-| POST | `/auth/password-reset` | none | `PasswordResetIn` | 202 | Telegram link in the background (§4 Auth); same answer for any email; 5/min |
+| POST | `/auth/password-reset` | none | `PasswordResetIn` (`login`) | 202 | Telegram link in the background (§4 Auth); same answer for any login; 5/min |
 | POST | `/auth/password-reset/confirm` | none | `PasswordResetConfirm` | `AccessOut` + cookie | Bad, expired or used link → 400 `RESET_LINK_INVALID`; 10/min |
 | POST | `/auth/phone-checks` | none | none | `PhoneCheckOut` (201) | `{id, telegram_url, expires_at, phone: null, taken: false}`; 503 `TELEGRAM_NOT_CONFIGURED` without the bot; 10/min |
 | GET | `/auth/phone-checks/{id}` | the check's id | — | `PhoneCheckOut` | `phone` once shared in Telegram; `taken` when an account already has it; expired or unknown → 404 `PHONE_CHECK_EXPIRED`; 60/min (the page reads it every few seconds) |
-| GET | `/seller/account` | seller | — | `AccountOut` | The person's own email, name, phone (`UnscopedDb`, filtered by the token's seller id) |
-| PATCH | `/seller/account` | seller | `AccountUpdate` | `AccountOut` | Partial; email lowercased, another account's → 409 `EMAIL_TAKEN` |
+| GET | `/seller/account` | seller | — | `AccountOut` | The person's own phone (login), email (older accounts, else null), name, role (`UnscopedDb`, filtered by the token's seller id) |
+| PATCH | `/seller/account` | seller | `AccountUpdate` | `AccountOut` | `full_name` only |
+| POST | `/seller/account/phone` | seller | `PhoneChange` (`phone_check`) | `AccountOut` | New login number from a finished phone check; another account's → 409 `PHONE_TAKEN` |
 | POST | `/seller/account/close-shop` | seller | `CloseShopIn` (`password`) | 204 | `seller.is_active = false` and every session deleted: the shop page is 404, login 403 `ACCOUNT_DISABLED` ("This shop is closed. Message Oak Order to open it again."). Nothing is erased; wrong password → 422 `WRONG_PASSWORD` |
 | POST | `/seller/account/password` | seller | `PasswordChange` | `AccessOut` + cookie | Wrong current password → 422 `WRONG_PASSWORD`; ends every other session (§4 Auth) |
 | GET | `/seller/store` | seller | — | `StoreOut` | Includes the three settings, `payment_set_up` (false until `payment_config` was saved once; the setup checklist), `delivery_set_up` (false until `delivery_config` was saved once: the shop runs on free own delivery), `telegram_connected`, `telegram_bot_available` |
@@ -801,7 +828,7 @@ from the schema.
 | POST | `/seller/store/telegram/link` | seller | — | `TelegramLinkOut` | `t.me/<bot>?start=<code>`, valid 30 min; 503 if bot not configured |
 | DELETE | `/seller/store/telegram` | seller | — | `StoreOut` | Clears `telegram_chat_id` (logic in the router) |
 | GET | `/seller/staff` | owner | — | `list[StaffOut]` | The shop's staff, oldest first |
-| POST | `/seller/staff` | owner | `StaffCreate` (`full_name`, `phone`, `email`, `password`) | `StaffOut` (201) | Email taken → 409 `EMAIL_TAKEN`; more than 10 → 409 `STAFF_LIMIT` |
+| POST | `/seller/staff` | owner | `StaffCreate` (`full_name`, `phone`, `password`) | `StaffOut` (201) | Phone (their login) taken → 409 `PHONE_TAKEN`; more than 10 → 409 `STAFF_LIMIT` |
 | POST | `/seller/staff/{staff_id}/password` | owner | `StaffPassword` | `StaffOut` | Sets it and logs their phones out; another shop's → 404 `STAFF_NOT_FOUND` |
 | DELETE | `/seller/staff/{staff_id}` | owner | — | 204 | Deletes the login (and its sessions) |
 | GET | `/seller/categories` | seller | — | `list[CategoryOut]` | With `product_count`; by name |
@@ -980,7 +1007,15 @@ export const keys = {
 
 `AuthProvider` (`src/auth/AuthContext.tsx`) exposes `status: 'loading' |
 'authenticated' | 'anonymous' | 'unreachable'`, plus `login`, `register`,
-`logout`, `restoreError` and `retryRestore` through `useAuth()`. On load, if
+`logout`, `restoreError` and `retryRestore` through `useAuth()`. `login`
+takes a phone number or, behind "Log in with email instead"
+(`pages/LoginField.tsx`, also on Forgot password), an older account's email.
+`Register` and Settings → Your account prove a phone number with
+`auth/PhoneCheck.tsx`: the check is created ahead (so "Verify with
+Telegram" is a plain link a phone browser won't block), read every 2.5 s
+once opened (and on focus) until it has the number, and handed to the form;
+a used-up check at submit remounts it (`key`). The phone check shows a
+"Start again" button once it has expired (30 min). On load, if
 `sc.session` is set, it refreshes (with the cookie) to restore the session.
 If the API can't be reached at all (the refresh rejects with `NETWORK_ERROR`),
 status becomes `'unreachable'`: the cookie stays, `DashboardLayout` shows
@@ -1112,7 +1147,7 @@ through to the SPA.
 | **R2 backup bucket** | PARTIAL | `.github/workflows/backup.yml` (02:00 Phnom Penh, `pg_dump` 17, custom format, `--no-owner`, grants kept) uploads with the AWS CLI. It skips until its secrets exist (`docs/BACKUPS.md`). |
 | **Sentry** | WIRED, env-gated | Backend `sentry_sdk.init` (errors only); frontend `@sentry/react`. |
 | **Maps** | WIRED (frontend only) | Leaflet + OpenStreetMap tiles in `MapPicker.tsx` (no key). The seller opens the pin in Google Maps by URL. |
-| Courier APIs, SMS, email | NOT BUILT | No email at all, so no email verification. A forgotten password is reset by the founder (`python -m app.admin reset-password`). |
+| Courier APIs, SMS, email | NOT BUILT | No email or SMS at all: phone numbers are proved through the Telegram bot instead (phone check). A forgotten password is reset by the founder (`python -m app.admin reset-password`). |
 
 ---
 
@@ -1195,9 +1230,11 @@ anything that writes.
 ### Test patterns
 
 Tests run against a real Postgres (`<db>_test`). There is no mocking of the
-DB. Fixtures in `conftest.py`: `client` (httpx2 ASGI client), `register`,
-`auth_headers` (fresh seller, Bearer headers), `make_store` / `two_stores`
-(direct DB). `helpers.py` has direct-DB factories and API shortcuts. CLAUDE.md
+DB. Fixtures in `conftest.py`: `client` (httpx2 ASGI client), `register`
+(through the API with a phone check already finished, `helpers.verified_phone_check`;
+returns the tokens and `phone`, the login), `auth_headers` (fresh seller,
+Bearer headers), `make_store` / `two_stores` (direct DB; email login, no
+phone). `helpers.random_phone()` gives each account its own number. `helpers.py` has direct-DB factories and API shortcuts. CLAUDE.md
 asks for tests on state machines, money math and tenant isolation, not
 exhaustive endpoint tests.
 

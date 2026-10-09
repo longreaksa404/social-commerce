@@ -25,7 +25,7 @@ def test_client_ip_without_a_valid_cloudflare_header_is_the_connection_s():
 
 async def test_a_fake_x_forwarded_for_does_not_reset_the_login_limit(client):
     """Before the fix, each made-up X-Forwarded-For got its own 10/minute."""
-    body = {"email": "nobody@example.com", "password": "wrong-password"}
+    body = {"login": "012 000 000", "password": "wrong-password"}
     limiter.enabled = True
     try:
         for i in range(10):

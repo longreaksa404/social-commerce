@@ -1,10 +1,10 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict
 
-from app.schemas.auth import Password, Phone
-from app.schemas.common import Name
+from app.schemas.auth import Password
+from app.schemas.common import Name, Phone
 
 
 class StaffOut(BaseModel):
@@ -12,18 +12,19 @@ class StaffOut(BaseModel):
 
     id: uuid.UUID
     full_name: str
-    email: str
-    phone: str
+    # Their login. Staff added before 2026-10-09 log in with an email and
+    # may have no phone.
+    phone: str | None
+    email: str | None
     created_at: datetime
 
 
 class StaffCreate(BaseModel):
-    """The owner gives the helper this email and first password (there's
-    no email sending); they change it in Settings → Your account."""
+    """The owner gives the helper their phone number and first password
+    as their login; they change the password in Settings → Your account."""
 
     full_name: Name
     phone: Phone
-    email: EmailStr
     password: Password
 
 

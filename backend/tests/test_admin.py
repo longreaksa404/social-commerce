@@ -12,13 +12,13 @@ from tests.helpers import add_product, place_order, refresh, registered_seller
 async def test_reset_password_gives_a_working_password_and_logs_out_every_phone(client, register):
     seller = await register()
 
-    password = await admin.reset_password(seller["email"].upper())
+    password = await admin.reset_password(f"+855 {seller['phone'][1:]}")
 
     old = await client.post(
-        "/api/v1/auth/login", json={"email": seller["email"], "password": "correct-horse"}
+        "/api/v1/auth/login", json={"login": seller["phone"], "password": "correct-horse"}
     )
     new = await client.post(
-        "/api/v1/auth/login", json={"email": seller["email"], "password": password}
+        "/api/v1/auth/login", json={"login": seller["phone"], "password": password}
     )
     phone = await refresh(client, seller["refresh_token"])
     assert old.status_code == 401
@@ -26,9 +26,10 @@ async def test_reset_password_gives_a_working_password_and_logs_out_every_phone(
     assert phone.status_code == 401
 
 
-async def test_reset_password_for_an_unknown_email_says_so():
-    with pytest.raises(admin.AdminError, match="No account"):
-        await admin.reset_password("nobody@example.com")
+async def test_reset_password_for_an_unknown_login_says_so():
+    for login in ("nobody@example.com", "012 000 002", "nobody"):
+        with pytest.raises(admin.AdminError, match="No account"):
+            await admin.reset_password(login)
 
 
 def test_temporary_passwords_are_long_enough_and_easy_to_read():
@@ -39,12 +40,12 @@ def test_temporary_passwords_are_long_enough_and_easy_to_read():
 
 async def test_close_and_reopen_a_shop(client, register):
     seller = await register()
-    login = {"email": seller["email"], "password": "correct-horse"}
+    login = {"login": seller["phone"], "password": "correct-horse"}
 
-    slug = await admin.set_shop_open(seller["email"], False)
+    slug = await admin.set_shop_open(seller["phone"], False)
     closed_login = await client.post("/api/v1/auth/login", json=login)
     closed_page = await client.get(f"/api/v1/shop/{slug}")
-    await admin.set_shop_open(seller["email"], True)
+    await admin.set_shop_open(seller["phone"], True)
 
     assert closed_login.status_code == 403
     assert closed_page.status_code == 404
@@ -54,28 +55,28 @@ async def test_close_and_reopen_a_shop(client, register):
 
 async def test_erase_only_a_closed_shop_and_only_with_its_link_name(client, register):
     seller = await register()
-    slug = (await admin.shop_size(seller["email"])).slug
+    slug = (await admin.shop_size(seller["phone"])).slug
 
     with pytest.raises(admin.AdminError, match="Close it first"):
-        await admin.erase_shop(seller["email"], slug)
-    await admin.set_shop_open(seller["email"], False)
+        await admin.erase_shop(seller["phone"], slug)
+    await admin.set_shop_open(seller["phone"], False)
     with pytest.raises(admin.AdminError, match="Nothing was erased"):
-        await admin.erase_shop(seller["email"], "not-the-slug")
+        await admin.erase_shop(seller["phone"], "not-the-slug")
 
-    assert (await admin.shop_size(seller["email"])).slug == slug
+    assert (await admin.shop_size(seller["phone"])).slug == slug
 
 
 async def test_erasing_removes_the_shop_and_everything_in_it_only(client, auth_headers):
     headers, store_id, slug = await registered_seller(client, auth_headers)
     _, other_id, other_slug = await registered_seller(client, auth_headers)
-    email = (await client.get("/api/v1/seller/account", headers=headers)).json()["email"]
+    phone = (await client.get("/api/v1/seller/account", headers=headers)).json()["phone"]
     for shop_id, shop_slug in ((store_id, slug), (other_id, other_slug)):
         cap = await add_product(shop_id, "cap", stock=5)
         assert (await place_order(client, shop_slug, [(cap, None, 1)], total="10.00")).is_success
 
-    size = await admin.shop_size(email)
-    await admin.set_shop_open(email, False)
-    files = await admin.erase_shop(email, slug)
+    size = await admin.shop_size(phone)
+    await admin.set_shop_open(phone, False)
+    files = await admin.erase_shop(phone, slug)
 
     assert (size.products, size.orders, size.customers) == (1, 1, 1)
     assert files == 0  # R2 isn't set up in tests
@@ -85,7 +86,7 @@ async def test_erasing_removes_the_shop_and_everything_in_it_only(client, auth_h
             assert rows.all() == [], model.__name__
             others = await db.scalars(select(model.id).where(_store_column(model) == other_id))
             assert others.all(), model.__name__
-        assert await db.scalar(select(Seller.id).where(Seller.email == email)) is None
+        assert await db.scalar(select(Seller.id).where(Seller.phone == phone)) is None
 
 
 def _store_column(model):
@@ -131,3 +132,19 @@ async def test_move_photos_needs_two_different_https_addresses():
         await admin.move_photos("https://images.oaksolve.com", "https://images.oaksolve.com/")
     with pytest.raises(admin.AdminError, match="two different https"):
         await admin.move_photos("pub-old.r2.dev", "https://images.oaksolve.com")
+
+
+async def test_test_shop_logs_in_with_its_email(client):
+    """Sign-up needs a phone checked in Telegram; the founder's test shops
+    (the load test) log in with an email instead."""
+    shop = await admin.make_test_shop("Load Test Shop")
+
+    login = await client.post(
+        "/api/v1/auth/login", json={"login": shop.email, "password": shop.password}
+    )
+    page = await client.get(f"/api/v1/shop/{shop.slug}")
+
+    assert login.status_code == 200
+    assert page.json()["name"] == "Load Test Shop"
+    await admin.set_shop_open(shop.email.upper(), False)
+    assert (await client.get(f"/api/v1/shop/{shop.slug}")).status_code == 404

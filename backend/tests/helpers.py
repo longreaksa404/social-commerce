@@ -1,13 +1,42 @@
 """Test data straight into the database (bypassing the API)."""
 
+import random
+import secrets
 import uuid
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from sqlalchemy import select
 
 from app.api.session_cookie import REFRESH_COOKIE
 from app.db.session import unscoped_session
-from app.models import Category, Product, ProductStatus, ProductVariant, Store
+from app.models import Category, PhoneCheck, Product, ProductStatus, ProductVariant, Store
+
+
+def random_phone() -> str:
+    """A Cambodian number as stored ("0XXXXXXXX"), new each time: a seller's
+    phone is their login, so no two accounts share one."""
+    return f"0{random.randint(10, 99)}{random.randint(0, 999_999):06d}"
+
+
+async def verified_phone_check(
+    phone: str | None = None, telegram_user_id: int | None = None
+) -> tuple[str, str]:
+    """A phone check the seller already finished in Telegram, as the bot
+    leaves it: (its id, the phone)."""
+    phone = phone or random_phone()
+    now = datetime.now(UTC)
+    async with unscoped_session() as db:
+        check = PhoneCheck(
+            code=f"phone_{secrets.token_urlsafe(16)}",
+            telegram_user_id=telegram_user_id or random.randrange(10**9, 10**10),
+            phone=phone,
+            verified_at=now,
+            expires_at=now + timedelta(minutes=30),
+        )
+        db.add(check)
+        await db.commit()
+        return str(check.id), phone
 
 
 def session_of(response) -> dict:

@@ -1,6 +1,8 @@
-"""Settings → Your account: the seller's own details and password."""
+"""Settings → Your account: the seller's own details, phone number and
+password."""
 
-from tests.helpers import refresh
+from app.core.config import get_settings
+from tests.helpers import refresh, verified_phone_check
 
 
 def _bearer(tokens: dict) -> dict[str, str]:
@@ -13,44 +15,70 @@ async def test_seller_sees_and_edits_only_their_own_account(client, register):
     edit = await client.patch(
         "/api/v1/seller/account",
         headers=_bearer(a),
-        json={"full_name": "Sokha Chan", "phone": "+855 12 345 678", "email": "NEW@Example.com"},
+        # The phone changes only through a phone check, the email not at all.
+        json={"full_name": "Sokha Chan", "phone": "012 999 999", "email": "new@example.com"},
     )
     other = await client.get("/api/v1/seller/account", headers=_bearer(b))
 
     assert edit.status_code == 200, edit.text
     assert edit.json() == {
-        "email": "new@example.com",
+        "phone": a["phone"],
+        "email": None,
         "full_name": "Sokha Chan",
-        "phone": "+855 12 345 678",
         "role": "owner",
     }
     assert other.json()["full_name"] == "Dara"
-    # The new email is the login now.
-    login = await client.post(
-        "/api/v1/auth/login", json={"email": "new@example.com", "password": "correct-horse"}
+
+
+async def test_new_phone_number_through_a_check_is_the_login_now(client, register):
+    a = await register()
+    check_id, new_phone = await verified_phone_check()
+
+    changed = await client.post(
+        "/api/v1/seller/account/phone", headers=_bearer(a), json={"phone_check": check_id}
     )
-    assert login.status_code == 200
+    again = await client.post(
+        "/api/v1/seller/account/phone", headers=_bearer(a), json={"phone_check": check_id}
+    )
+
+    assert changed.status_code == 200, changed.text
+    assert changed.json()["phone"] == new_phone
+    assert again.status_code == 422  # a check works once
+    old = await client.post(
+        "/api/v1/auth/login", json={"login": a["phone"], "password": "correct-horse"}
+    )
+    new = await client.post(
+        "/api/v1/auth/login", json={"login": new_phone, "password": "correct-horse"}
+    )
+    assert (old.status_code, new.status_code) == (401, 200)
 
 
-async def test_email_of_another_account_is_refused(client, register):
+async def test_phone_number_of_another_account_is_refused(client, register):
     a, b = await register(), await register()
+    check_id, _ = await verified_phone_check(b["phone"])
 
-    response = await client.patch(
-        "/api/v1/seller/account", headers=_bearer(a), json={"email": b["email"].upper()}
+    response = await client.post(
+        "/api/v1/seller/account/phone", headers=_bearer(a), json={"phone_check": check_id}
     )
 
     assert response.status_code == 409
-    assert response.json()["error"]["field"] == "email"
+    assert response.json()["error"]["code"] == "PHONE_TAKEN"
 
 
-async def test_keeping_your_own_email_is_fine(client, register):
+async def test_unfinished_phone_check_is_refused(client, register, monkeypatch):
+    settings = get_settings()
+    monkeypatch.setattr(settings, "telegram_bot_token", "123:abc")
+    monkeypatch.setattr(settings, "telegram_bot_username", "TestShopBot")
+    monkeypatch.setattr(settings, "telegram_webhook_secret", "secret")
     a = await register()
+    check = (await client.post("/api/v1/auth/phone-checks")).json()
 
-    response = await client.patch(
-        "/api/v1/seller/account", headers=_bearer(a), json={"email": a["email"]}
+    response = await client.post(
+        "/api/v1/seller/account/phone", headers=_bearer(a), json={"phone_check": check["id"]}
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "PHONE_NOT_VERIFIED"
 
 
 async def test_password_change_needs_the_current_password(client, register):
@@ -71,7 +99,7 @@ async def test_password_change_needs_the_current_password(client, register):
 async def test_password_change_logs_out_other_phones_and_keeps_this_one(client, register):
     a = await register()
     other_phone = await client.post(
-        "/api/v1/auth/login", json={"email": a["email"], "password": "correct-horse"}
+        "/api/v1/auth/login", json={"login": a["phone"], "password": "correct-horse"}
     )
 
     change = await client.post(
@@ -84,10 +112,10 @@ async def test_password_change_logs_out_other_phones_and_keeps_this_one(client, 
     refresh_other = await refresh(client, other_phone.cookies["refresh_token"])
     refresh_this = await refresh(client, change.cookies["refresh_token"])
     old_login = await client.post(
-        "/api/v1/auth/login", json={"email": a["email"], "password": "correct-horse"}
+        "/api/v1/auth/login", json={"login": a["phone"], "password": "correct-horse"}
     )
     new_login = await client.post(
-        "/api/v1/auth/login", json={"email": a["email"], "password": "a-new-password"}
+        "/api/v1/auth/login", json={"login": a["phone"], "password": "a-new-password"}
     )
     assert refresh_other.status_code == 401
     assert refresh_this.status_code == 200
@@ -119,7 +147,7 @@ async def test_a_closed_shop_is_gone_and_nobody_can_log_in(client, register):
     assert closed.status_code == 204
     assert (await client.get(f"/api/v1/shop/{slug}")).status_code == 404
     login = await client.post(
-        "/api/v1/auth/login", json={"email": a["email"], "password": "correct-horse"}
+        "/api/v1/auth/login", json={"login": a["phone"], "password": "correct-horse"}
     )
     assert login.status_code == 403
     assert login.json()["error"]["message"] == (

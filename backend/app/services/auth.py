@@ -6,7 +6,8 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import httpx
-from sqlalchemy import delete, select
+from sqlalchemy import ColumnElement, delete, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import security
@@ -15,7 +16,8 @@ from app.core.errors import AppError
 from app.db.session import unscoped_session
 from app.models import RefreshToken, Seller, Store
 from app.schemas.auth import LoginIn, PasswordResetConfirm, RegisterIn, TokenPair
-from app.services import telegram
+from app.services import phone_check, telegram
+from app.services.phone import normalize_phone
 from app.services.slugs import slugify, unique_slug
 
 logger = logging.getLogger(__name__)
@@ -27,7 +29,29 @@ REUSE_GRACE = timedelta(seconds=60)
 
 
 def _invalid_credentials() -> AppError:
-    return AppError(401, "INVALID_CREDENTIALS", "Wrong email or password.")
+    return AppError(401, "INVALID_CREDENTIALS", "Wrong phone number or password.")
+
+
+def _phone_taken() -> AppError:
+    return AppError(
+        409,
+        "PHONE_TAKEN",
+        "This phone number already has an account. Log in instead.",
+        "phone_check",
+    )
+
+
+def login_filter(login: str) -> ColumnElement[bool] | None:
+    """The account a login form names: a phone number, typed any way, or
+    the email of an account from before phone sign-up (2026-10-09). None
+    if it's neither."""
+    login = login.strip()
+    if "@" in login:
+        return Seller.email == login.lower()
+    try:
+        return Seller.phone == normalize_phone(login)
+    except ValueError:
+        return None
 
 
 def _invalid_refresh() -> AppError:
@@ -42,21 +66,31 @@ def _token_id(payload: dict) -> uuid.UUID:
 
 
 async def register(db: AsyncSession, data: RegisterIn) -> TokenPair:
-    """Create the seller and their store together (1:1 in the MVP)."""
-    email = data.email.lower()
-    if await db.scalar(select(Seller.id).where(Seller.email == email)):
-        raise AppError(409, "EMAIL_TAKEN", "An account with this email already exists.", "email")
+    """Create the seller and their store together (1:1 in the MVP), with
+    the phone number the seller shared with the bot. That chat with the
+    bot also gets the shop's order alerts from now on (Settings → Alerts
+    can change it), so a new shop starts with them on."""
+    check = await phone_check.use(db, data.phone_check)
+    if await phone_check.phone_taken(db, check.phone):
+        raise _phone_taken()
 
     seller = Seller(
-        email=email,
+        phone=check.phone,
         password_hash=await security.hash_password(data.password),
         full_name=data.full_name,
-        phone=data.phone,
     )
     db.add(seller)
-    await db.flush()
+    try:
+        await db.flush()
+    except IntegrityError as exc:  # the same number signed up meanwhile
+        raise _phone_taken() from exc
     slug = await unique_slug(db, Store.slug, slugify(data.store_name))
-    store = Store(seller_id=seller.id, name=data.store_name, slug=slug)
+    store = Store(
+        seller_id=seller.id,
+        name=data.store_name,
+        slug=slug,
+        telegram_chat_id=str(check.telegram_user_id),
+    )
     db.add(store)
     await db.flush()
 
@@ -66,7 +100,8 @@ async def register(db: AsyncSession, data: RegisterIn) -> TokenPair:
 
 
 async def login(db: AsyncSession, data: LoginIn) -> TokenPair:
-    seller = await db.scalar(select(Seller).where(Seller.email == data.email.lower()))
+    where = login_filter(data.login)
+    seller = await db.scalar(select(Seller).where(where)) if where is not None else None
     if seller is None:
         await security.verify_password(data.password, security.DUMMY_PASSWORD_HASH)
         raise _invalid_credentials()
@@ -131,21 +166,22 @@ async def logout(db: AsyncSession, refresh_token: str) -> None:
     await db.commit()
 
 
-async def send_password_reset(email: str) -> None:
+async def send_password_reset(login: str) -> None:
     """Forgot password? A "choose a new password" link goes to the shop's
     Telegram chat, the one its order alerts go to (no email in the MVP).
 
     Runs after the response (BackgroundTasks), so the answer and its timing
-    are the same whether or not the email exists or has Telegram.
+    are the same whether or not the account exists or has Telegram.
     """
-    if not get_settings().telegram_configured:
+    where = login_filter(login)
+    if not get_settings().telegram_configured or where is None:
         return
     async with unscoped_session() as db:
         row = (
             await db.execute(
                 select(Seller, Store.telegram_chat_id)
                 .join(Store, Store.seller_id == Seller.id)
-                .where(Seller.email == email.lower(), Seller.is_active.is_(True))
+                .where(where, Seller.is_active.is_(True))
             )
         ).first()
     if row is None or row.telegram_chat_id is None:
@@ -157,7 +193,7 @@ async def send_password_reset(email: str) -> None:
     # In Khmer, like the bot's other messages (notifications.py).
     text = (
         "🔑 មាននរណាម្នាក់បានស្នើសុំប្ដូរពាក្យសម្ងាត់ Oak Order សម្រាប់ "
-        f"<b>{telegram.escape(seller.email)}</b>។\n\n"
+        f"<b>{telegram.escape(seller.phone or seller.email or '')}</b>។\n\n"
         f"ដើម្បីជ្រើសពាក្យសម្ងាត់ថ្មី សូមបើកតំណក្នុងរយៈពេល {security.RESET_TOKEN_MINUTES} នាទី។ "
         "បើមិនមែនជាអ្នកទេ សូមកុំអើពើសារនេះ៖ ពាក្យសម្ងាត់របស់អ្នកនៅដដែល។"
     )

@@ -51,10 +51,15 @@ class Seller(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
         CheckConstraint("(role = 'staff') = (store_id IS NOT NULL)", name="staff_has_store"),
     )
 
-    email: Mapped[str] = mapped_column(Text, unique=True)  # stored lowercased
+    # The login (founder's choice 2026-10-09): a phone number checked in
+    # Telegram (app/services/phone_check.py), normalized like customers'
+    # phones; staff's is typed by their owner. Null only for accounts from
+    # before, whose number was another account's: they log in by email.
+    phone: Mapped[str | None] = mapped_column(Text, unique=True)
+    # Accounts from before phone sign-up log in with it. Stored lowercased.
+    email: Mapped[str | None] = mapped_column(Text, unique=True)
     password_hash: Mapped[str] = mapped_column(Text)
     full_name: Mapped[str] = mapped_column(Text)
-    phone: Mapped[str] = mapped_column(Text)
     is_active: Mapped[bool] = mapped_column(default=True, server_default="true")
     role: Mapped[SellerRole] = mapped_column(
         str_enum(SellerRole, "seller_role"), default=SellerRole.OWNER, server_default="owner"

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, EmailStr, Field, StringConstraints
+from pydantic import AfterValidator, AliasChoices, BaseModel, Field
 
 from app.schemas.common import Name
 
@@ -15,26 +15,34 @@ def _bcrypt_limit(password: str) -> str:
 
 
 Password = Annotated[str, Field(min_length=8), AfterValidator(_bcrypt_limit)]
-Phone = Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^\+?[0-9 ]{6,20}$")]
+# What a login form names the account by: a phone number, or the email of
+# an account made before sign-up moved to phone numbers (2026-10-09).
+# "email" is the field's old name, still accepted.
+Login = Annotated[
+    str, Field(min_length=1, max_length=200, validation_alias=AliasChoices("login", "email"))
+]
 
 
 class RegisterIn(BaseModel):
-    email: EmailStr
-    password: Password
+    """Sign-up with a phone number and password (founder's choice
+    2026-10-09). The number isn't typed: it's the one the seller shared
+    with the Telegram bot, handed in as the phone check's id."""
+
     full_name: Name
-    phone: Phone
     store_name: Name
+    password: Password
+    phone_check: uuid.UUID
 
 
 class LoginIn(BaseModel):
-    email: EmailStr
+    login: Login
     # Room for any password that could be registered (72 bytes), but no
     # megabyte bodies.
     password: str = Field(max_length=200)
 
 
 class PasswordResetIn(BaseModel):
-    email: EmailStr
+    login: Login
 
 
 class PasswordResetConfirm(BaseModel):

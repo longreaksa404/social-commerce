@@ -1,4 +1,4 @@
-"""The logged-in seller's own account: details and password.
+"""The logged-in seller's own account: details, phone number and password.
 
 `seller` isn't a tenant table (app_user has no grant on it), so this runs
 on an unscoped session and every query filters by the seller id from the
@@ -17,10 +17,13 @@ from app.models import RefreshToken, Seller
 from app.schemas.account import AccountUpdate, PasswordChange
 from app.schemas.auth import TokenPair
 from app.services import auth as auth_service
+from app.services import phone_check
 
 
-def _email_taken() -> AppError:
-    return AppError(409, "EMAIL_TAKEN", "An account with this email already exists.", "email")
+def _phone_taken() -> AppError:
+    return AppError(
+        409, "PHONE_TAKEN", "Another account already has this phone number.", "phone_check"
+    )
 
 
 async def get_account(db: AsyncSession, seller_id: uuid.UUID) -> Seller:
@@ -32,20 +35,24 @@ async def get_account(db: AsyncSession, seller_id: uuid.UUID) -> Seller:
 
 async def update_account(db: AsyncSession, seller_id: uuid.UUID, data: AccountUpdate) -> Seller:
     seller = await get_account(db, seller_id)
-    changes = data.model_dump(exclude_unset=True, exclude_none=True)
-    if "email" in changes:
-        changes["email"] = changes["email"].lower()
-        if changes["email"] != seller.email and await db.scalar(
-            select(Seller.id).where(Seller.email == changes["email"])
-        ):
-            raise _email_taken()
-    for field, value in changes.items():
+    for field, value in data.model_dump(exclude_unset=True, exclude_none=True).items():
         setattr(seller, field, value)
+    await db.commit()
+    return seller
+
+
+async def change_phone(db: AsyncSession, seller_id: uuid.UUID, check_id: uuid.UUID) -> Seller:
+    """A new login number, shared with the bot like at sign-up."""
+    seller = await get_account(db, seller_id)
+    check = await phone_check.use(db, check_id)
+    if check.phone != seller.phone and await phone_check.phone_taken(db, check.phone):
+        raise _phone_taken()
+    seller.phone = check.phone
     try:
         await db.commit()
-    except IntegrityError as exc:  # the same email saved by someone else meanwhile
+    except IntegrityError as exc:  # the same number taken meanwhile
         await db.rollback()
-        raise _email_taken() from exc
+        raise _phone_taken() from exc
     return seller
 
 

@@ -1,16 +1,16 @@
-"""Make a test shop for the load test, through the normal API.
+"""Fill a test shop for the load test, through the normal API.
 
-    python seed.py --host http://localhost:8001
+    python seed.py --host http://localhost:8001 --email test-xxxx@example.com --password ...
 
-Registers a seller, adds categories, products (every third with sizes)
-and a shop link to share, the way a seller would in the dashboard. Saves
-the login and the shop's slug in .shop.json (git-ignored) for
-locustfile.py and race.py. Re-running makes another shop.
+The shop comes from `python -m app.admin test-shop` (signing up in the
+app needs a phone number checked in Telegram). Logs in to it and adds
+categories, products (every third with sizes) and a shop link to share,
+the way a seller would in the dashboard. Saves the login and the shop's
+slug in .shop.json (git-ignored) for locustfile.py and race.py.
 """
 
 import argparse
 import json
-import secrets
 import sys
 from pathlib import Path
 
@@ -51,7 +51,7 @@ class Api:
         return response.json() if response.content else None
 
     def login(self, email: str, password: str) -> None:
-        tokens = self("POST", "/auth/login", json={"email": email, "password": password})
+        tokens = self("POST", "/auth/login", json={"login": email, "password": password})
         self.session.headers["Authorization"] = f"Bearer {tokens['access_token']}"
 
 
@@ -73,22 +73,12 @@ def product_body(number: int, category_id: str) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--host", required=True, help="the API, e.g. http://localhost:8001")
-    host = parser.parse_args().host
+    parser.add_argument("--email", required=True, help="the shop's login from app.admin test-shop")
+    parser.add_argument("--password", required=True, help="its password")
+    args = parser.parse_args()
+    email, password = args.email, args.password
 
-    api = Api(host)
-    email = f"loadtest-{secrets.token_hex(4)}@example.com"
-    password = secrets.token_urlsafe(16)
-    api(
-        "POST",
-        "/auth/register",
-        json={
-            "email": email,
-            "password": password,
-            "full_name": "Load Test",
-            "phone": "012345678",
-            "store_name": "Load Test Shop",
-        },
-    )
+    api = Api(args.host)
     api.login(email, password)
 
     categories = [api("POST", "/seller/categories", json={"name": n}) for n in CATEGORIES]

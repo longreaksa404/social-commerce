@@ -9,8 +9,16 @@
 
 export const KM_BY_MESSAGE: Record<string, string> = {
   // Accounts
-  'Wrong email or password.': 'អ៊ីមែល ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ។',
-  'An account with this email already exists.': 'មានគណនីដែលប្រើអ៊ីមែលនេះរួចហើយ។',
+  'Wrong phone number or password.': 'លេខទូរស័ព្ទ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ។',
+  'This phone number already has an account. Log in instead.':
+    'លេខទូរស័ព្ទនេះមានគណនីរួចហើយ។ សូមចូលគណនីវិញ។',
+  'Another account already has this phone number.': 'គណនីផ្សេងមានលេខទូរស័ព្ទនេះរួចហើយ។',
+  'Verify your phone number with Telegram first.':
+    'សូមផ្ទៀងផ្ទាត់លេខទូរស័ព្ទរបស់អ្នកជាមួយ Telegram ជាមុនសិន។',
+  'This check has expired. Verify your phone number again.':
+    'ការផ្ទៀងផ្ទាត់នេះផុតកំណត់ហើយ។ សូមផ្ទៀងផ្ទាត់លេខទូរស័ព្ទម្ដងទៀត។',
+  'Phone checks need the Telegram bot, which is off.':
+    'ការផ្ទៀងផ្ទាត់លេខទូរស័ព្ទត្រូវការ bot Telegram ដែលកំពុងបិទ។',
   'This shop is closed. Message Oak Order to open it again.':
     'ហាងនេះត្រូវបានបិទ។ សូមផ្ញើសារទៅ Oak Order ដើម្បីបើកវាវិញ។',
   'Your session has ended. Please log in again.': 'វគ្គរបស់អ្នកបានបញ្ចប់។ សូមចូលគណនីម្ដងទៀត។',

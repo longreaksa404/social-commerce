@@ -2,18 +2,21 @@ import { MessageCircle, Send } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router'
 import { buttonClass } from '../components/styles.ts'
-import { Button, ErrorMessage, Field, Input, SlowNotice } from '../components/ui.tsx'
+import { Button, ErrorMessage, SlowNotice } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
 import { api } from '../lib/api.ts'
 import { SUPPORT_TELEGRAM, supportLink } from '../lib/support.ts'
 import { AuthLayout } from './AuthLayout.tsx'
+import { LoginField } from './LoginField.tsx'
 
 /** /forgot-password: a link to choose a new password goes to the shop's
  * Telegram chat (no email in the MVP). The API answers the same whether
- * or not the email has an account, so this page can't say which. */
+ * or not the phone number has an account, so this page can't say which. */
 export function ForgotPassword() {
   const location = useLocation()
-  const [email, setEmail] = useState((location.state as { email?: string } | null)?.email ?? '')
+  const from = location.state as { login?: string; byEmail?: boolean } | null
+  const [login, setLogin] = useState(from?.login ?? '')
+  const [byEmail, setByEmail] = useState(from?.byEmail ?? false)
   const [sentTo, setSentTo] = useState<string | null>(null)
   const [error, setError] = useState<unknown>(null)
   const [pending, setPending] = useState(false)
@@ -25,8 +28,8 @@ export function ForgotPassword() {
     setPending(true)
     setError(null)
     try {
-      await api('/auth/password-reset', { method: 'POST', body: { email: email.trim() }, auth: false })
-      setSentTo(email.trim())
+      await api('/auth/password-reset', { method: 'POST', body: { login: login.trim() }, auth: false })
+      setSentTo(login.trim())
     } catch (err) {
       setError(err)
     } finally {
@@ -51,31 +54,18 @@ export function ForgotPassword() {
             <Send aria-hidden className="mt-1 size-4 shrink-0 text-navy-700" />
             {f.sent(sentTo)}
           </p>
-          <Support email={sentTo} />
+          <Support login={sentTo} />
           <p className="text-sm leading-6 text-slate-500">{f.staff}</p>
         </div>
       ) : (
         <form onSubmit={submit} className="space-y-4">
-          <Field label={t.auth.email}>
-            <Input
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              enterKeyHint="send"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </Field>
+          <LoginField value={login} onChange={setLogin} byEmail={byEmail} onByEmailChange={setByEmail} enterKeyHint="send" />
           <ErrorMessage error={error} />
           <Button type="submit" size="lg" loading={pending} className="w-full">
             {f.send}
           </Button>
           {pending && <SlowNotice />}
-          <Support email={email} />
+          <Support login={login} />
           <p className="text-sm leading-6 text-slate-500">{f.staff}</p>
         </form>
       )}
@@ -84,14 +74,14 @@ export function ForgotPassword() {
 }
 
 /** For shops without Telegram: the founder resets it (docs/ADMIN.md). */
-function Support({ email }: { email: string }) {
+function Support({ login }: { login: string }) {
   const f = useT().auth.forgot
   if (!SUPPORT_TELEGRAM) return null
   return (
     <div className="border-t border-slate-200 pt-4">
       <p className="text-sm leading-6 text-slate-600">{f.noTelegram}</p>
       <a
-        href={supportLink(f.supportText(email.trim() || '…'))}
+        href={supportLink(f.supportText(login.trim() || '…'))}
         target="_blank"
         rel="noreferrer"
         className={`${buttonClass('secondary')} mt-3 w-full`}

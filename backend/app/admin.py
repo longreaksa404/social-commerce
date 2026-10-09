@@ -1,9 +1,12 @@
-"""The founder's tools, run by hand from backend/ (docs/ADMIN.md):
+"""The founder's tools, run by hand from backend/ (docs/ADMIN.md). A
+seller is named by their login, a phone number or (accounts from before
+2026-10-09) an email:
 
-    python -m app.admin reset-password seller@example.com
-    python -m app.admin close-shop seller@example.com
-    python -m app.admin reopen-shop seller@example.com
-    python -m app.admin erase-shop seller@example.com
+    python -m app.admin reset-password 012345678
+    python -m app.admin close-shop 012345678
+    python -m app.admin reopen-shop 012345678
+    python -m app.admin erase-shop 012345678
+    python -m app.admin test-shop
     python -m app.admin move-photos https://pub-xxxx.r2.dev https://images.oaksolve.com
 
 On the live database: put Neon's direct connection string in
@@ -25,7 +28,9 @@ from app.core import security
 from app.db.session import unscoped_session
 from app.models import Customer, Order, Product, RefreshToken, Seller, Store
 from app.services.account import set_shop_logins
+from app.services.auth import login_filter
 from app.services.images import delete_store_files
+from app.services.slugs import slugify, unique_slug
 
 # No 0/o, 1/l/i: read out over the phone or typed from a Telegram message.
 _ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789"
@@ -41,36 +46,35 @@ def temporary_password() -> str:
     return "-".join(chars[i : i + 4] for i in range(0, 12, 4))
 
 
-async def reset_password(email: str) -> str:
+async def reset_password(login: str) -> str:
     """Give the seller a new password and log out every phone. Returns the
     password, for the founder to send them; they change it in Settings →
     Your account."""
     password = temporary_password()
     async with unscoped_session() as db:
-        seller = await db.scalar(select(Seller).where(Seller.email == email.strip().lower()))
-        if seller is None:
-            raise AdminError(f"No account with the email {email}.")
+        seller = await _seller(db, login)
         seller.password_hash = await security.hash_password(password)
         await db.execute(delete(RefreshToken).where(RefreshToken.seller_id == seller.id))
         await db.commit()
     return password
 
 
-async def _seller(db: AsyncSession, email: str) -> Seller:
-    seller = await db.scalar(select(Seller).where(Seller.email == email.strip().lower()))
+async def _seller(db: AsyncSession, login: str) -> Seller:
+    where = login_filter(login)
+    seller = await db.scalar(select(Seller).where(where)) if where is not None else None
     if seller is None:
-        raise AdminError(f"No account with the email {email}.")
+        raise AdminError(f"No account with the login {login}.")
     return seller
 
 
-async def set_shop_open(email: str, is_open: bool) -> str:
+async def set_shop_open(login: str, is_open: bool) -> str:
     """Close a shop (its link and logins stop; nothing is erased) or open
     it again. Returns the shop's link name."""
     async with unscoped_session() as db:
-        seller = await _seller(db, email)
+        seller = await _seller(db, login)
         store = await db.scalar(select(Store).where(Store.seller_id == seller.id))
         if store is None:
-            raise AdminError("This is a staff login, not a shop's owner. Use the owner's email.")
+            raise AdminError("This is a staff login, not a shop's owner. Use the owner's login.")
         # The owner's and the staff's logins together.
         await set_shop_logins(db, seller.id, store.id, active=is_open)
         await db.commit()
@@ -86,10 +90,10 @@ class ShopSize:
     customers: int
 
 
-async def shop_size(email: str) -> ShopSize:
+async def shop_size(login: str) -> ShopSize:
     """What erasing would remove, to show before asking."""
     async with unscoped_session() as db:
-        seller = await _seller(db, email)
+        seller = await _seller(db, login)
         store = await db.scalar(select(Store).where(Store.seller_id == seller.id))
         if store is None:
             raise AdminError("This account has no shop.")
@@ -102,13 +106,13 @@ async def shop_size(email: str) -> ShopSize:
         )
 
 
-async def erase_shop(email: str, typed_slug: str) -> int:
+async def erase_shop(login: str, typed_slug: str) -> int:
     """Erase a closed shop for good: the account, the shop and everything
     in it (products, orders, customers, links, alerts), and its photos in
     R2. `typed_slug` must be the shop's link name, as a last check.
     Returns how many photo files were deleted."""
     async with unscoped_session() as db:
-        seller = await _seller(db, email)
+        seller = await _seller(db, login)
         if seller.is_active:
             raise AdminError("The shop is open. Close it first (close-shop), then erase it.")
         store = await db.scalar(select(Store).where(Store.seller_id == seller.id))
@@ -121,6 +125,33 @@ async def erase_shop(email: str, typed_slug: str) -> int:
         await db.execute(delete(Seller).where(Seller.id == seller.id))
         await db.commit()
     return delete_store_files(store_id)
+
+
+@dataclass(frozen=True)
+class MadeShop:
+    email: str
+    password: str
+    slug: str
+
+
+async def make_test_shop(name: str) -> MadeShop:
+    """A shop to try things on, like the load test (backend/loadtest). It
+    logs in with an email and has no phone: signing up through the app
+    needs a phone number checked in Telegram, one shop per number."""
+    email = f"test-{secrets.token_hex(4)}@example.com"
+    password = temporary_password()
+    async with unscoped_session() as db:
+        seller = Seller(
+            email=email,
+            password_hash=await security.hash_password(password),
+            full_name="Test",
+        )
+        db.add(seller)
+        await db.flush()
+        slug = await unique_slug(db, Store.slug, slugify(name))
+        db.add(Store(seller_id=seller.id, name=name, slug=slug))
+        await db.commit()
+    return MadeShop(email, password, slug)
 
 
 @dataclass(frozen=True)
@@ -160,26 +191,32 @@ async def move_photos(old: str, new: str) -> MovedPhotos:
 
 async def _run(args: argparse.Namespace) -> str:
     if args.command == "reset-password":
-        password = await reset_password(args.email)
+        password = await reset_password(args.login)
         return (
-            f"New password for {args.email}: {password}\n"
+            f"New password for {args.login}: {password}\n"
             "Every phone is logged out. Send it to the seller and ask them to change it "
             "in Settings → Your account."
         )
     if args.command in ("close-shop", "reopen-shop"):
-        slug = await set_shop_open(args.email, args.command == "reopen-shop")
+        slug = await set_shop_open(args.login, args.command == "reopen-shop")
         if args.command == "close-shop":
             return f"Closed /shop/{slug}: the link and logins stopped. Nothing was erased."
         return f"Opened /shop/{slug} again. The seller can log in."
     if args.command == "erase-shop":
-        size = await shop_size(args.email)
+        size = await shop_size(args.login)
         print(
             f"{size.name} (/shop/{size.slug}): {size.products} products, {size.orders} orders, "
             f"{size.customers} customers.\nThis can't be undone (nightly backups keep it 30 days)."
         )
         typed = input("Type the shop's link name to erase it for good: ")
-        files = await erase_shop(args.email, typed)
+        files = await erase_shop(args.login, typed)
         return f"Erased {size.name} and {files} photo files."
+    if args.command == "test-shop":
+        shop = await make_test_shop(args.name)
+        return (
+            f"Made /shop/{shop.slug}. Log in with {shop.email} and {shop.password}\n"
+            f"Close it when you're done: python -m app.admin close-shop {shop.email}"
+        )
     if args.command == "move-photos":
         moved = await move_photos(args.old, args.new)
         return f"Moved the photo addresses of {moved.products} products and {moved.logos} logos."
@@ -199,7 +236,11 @@ def main(argv: list[str] | None = None) -> None:
         ("reopen-shop", "open a closed shop again"),
         ("erase-shop", "erase a closed shop and everything in it, for good"),
     ):
-        commands.add_parser(name, help=help_text).add_argument("email")
+        commands.add_parser(name, help=help_text).add_argument(
+            "login", help="the seller's phone number, or email for accounts from before 2026-10-09"
+        )
+    test = commands.add_parser("test-shop", help="make a shop to try things on (load test)")
+    test.add_argument("--name", default="Load Test Shop", help="the shop's name")
     move = commands.add_parser("move-photos", help="point saved photos at a new R2 address")
     move.add_argument("old", help="the address photos have now, e.g. https://pub-xxxx.r2.dev")
     move.add_argument("new", help="the new address, e.g. https://images.oaksolve.com")

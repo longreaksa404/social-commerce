@@ -80,11 +80,30 @@ export type TelegramLink = { url: string; expires_at: string }
  * 2026-10-08). */
 export type Role = 'owner' | 'staff'
 
-/** The logged-in person's own details (Settings → Your account). */
-export type Account = { email: string; full_name: string; phone: string; role: Role }
+/** The logged-in person's own details (Settings → Your account). The
+ * phone number is the login; accounts from before 2026-10-09 log in with
+ * their email and may have no phone. */
+export type Account = { phone: string | null; email: string | null; full_name: string; role: Role }
 
-/** A helper the owner added (Settings → Staff). */
-export type StaffMember = { id: string; full_name: string; email: string; phone: string; created_at: string }
+/** A helper the owner added (Settings → Staff); logs in with the phone. */
+export type StaffMember = {
+  id: string
+  full_name: string
+  phone: string | null
+  email: string | null
+  created_at: string
+}
+
+/** A phone number being proved through the Telegram bot
+ * (POST /auth/phone-checks, then GET until `phone` is set). */
+export type PhoneCheck = {
+  id: string
+  telegram_url: string
+  expires_at: string
+  phone: string | null
+  /** That number already has an account. */
+  taken: boolean
+}
 
 export type Category = {
   id: string

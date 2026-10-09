@@ -176,7 +176,8 @@ async def test_connect_link_needs_the_bot(client, auth_headers):
     assert response.json()["error"]["code"] == "TELEGRAM_NOT_CONFIGURED"
     store = (await client.get("/api/v1/seller/store", headers=headers)).json()
     assert store["telegram_bot_available"] is False
-    assert store["telegram_connected"] is False
+    # Signing up connected the chat the phone number was shared in.
+    assert store["telegram_connected"] is True
 
 
 async def test_connect_link_is_for_the_sellers_own_store(client, bot, auth_headers):
@@ -290,6 +291,8 @@ async def test_new_order_alert(client, bot, auth_headers):
 
 async def test_no_alert_without_a_connected_chat(client, bot, auth_headers):
     headers, store_id, slug = await registered_seller(client, auth_headers)
+    disconnected = await client.delete("/api/v1/seller/store/telegram", headers=headers)
+    assert disconnected.json()["telegram_connected"] is False
     cap = await add_product(store_id, "cap", stock=20)
     assert (await place_order(client, slug, [(cap, None, 1)], total="10.00")).status_code == 201
     assert bot == []

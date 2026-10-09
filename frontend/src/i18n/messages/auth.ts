@@ -27,7 +27,28 @@ export const auth = {
   createYourStore: { en: 'Create your store', km: 'បង្កើតហាងរបស់អ្នក' },
   logIn: { en: 'Log in', km: 'ចូលគណនី' },
   email: { en: 'Email', km: 'អ៊ីមែល' },
+  phone: { en: 'Phone number', km: 'លេខទូរស័ព្ទ' },
   password: { en: 'Password', km: 'ពាក្យសម្ងាត់' },
+  // Accounts from before 2026-10-09 (and their staff) log in with an email.
+  useEmail: { en: 'Log in with email instead', km: 'ចូលដោយអ៊ីមែលជំនួសវិញ' },
+  usePhone: { en: 'Log in with phone number', km: 'ចូលដោយលេខទូរស័ព្ទ' },
+  // Proving the phone number through the Telegram bot. The bot's button is
+  // “ចែករំលែកលេខទូរស័ព្ទ” (backend/app/services/telegram.py).
+  phoneCheck: {
+    verify: { en: 'Verify with Telegram', km: 'ផ្ទៀងផ្ទាត់ជាមួយ Telegram' },
+    hint: {
+      en: 'Tap the button, then “Share my phone number” in our Telegram bot. It shows us the number is yours.',
+      km: 'ចុចប៊ូតុងនេះ រួចចុច “ចែករំលែកលេខទូរស័ព្ទ” ក្នុង bot Telegram របស់យើង។ វាបញ្ជាក់ថាលេខនេះជារបស់អ្នក។',
+    },
+    waiting: {
+      en: 'Waiting for Telegram… Tap “Share my phone number” in the bot, then come back here.',
+      km: 'កំពុងរង់ចាំ Telegram… ចុច “ចែករំលែកលេខទូរស័ព្ទ” ក្នុង bot រួចត្រឡប់មកទីនេះវិញ។',
+    },
+    verified: { en: 'Verified with Telegram', km: 'បានផ្ទៀងផ្ទាត់ជាមួយ Telegram' },
+    another: { en: 'Use another number', km: 'ប្រើលេខផ្សេង' },
+    again: { en: 'Start again', km: 'ចាប់ផ្ដើមម្ដងទៀត' },
+    taken: { en: 'This number already has a shop.', km: 'លេខនេះមានហាងរួចហើយ។' },
+  },
   login: {
     title: { en: 'Welcome back', km: 'សូមស្វាគមន៍ការត្រឡប់មកវិញ' },
     subtitle: { en: 'Log in to manage your shop.', km: 'ចូលគណនី ដើម្បីគ្រប់គ្រងហាងរបស់អ្នក។' },
@@ -44,10 +65,10 @@ export const auth = {
     send: { en: 'Send link', km: 'ផ្ញើតំណ' },
     sentTitle: { en: 'Check Telegram', km: 'សូមពិនិត្យ Telegram' },
     sent: {
-      en: (email: string) =>
-        `If ${email} has a shop with Telegram connected, a message from our bot is on its way. Open the link in it within 30 minutes.`,
-      km: (email: string) =>
-        `បើ ${email} មានហាងដែលបានភ្ជាប់ Telegram សារពី bot របស់យើងកំពុងផ្ញើទៅ។ សូមបើកតំណក្នុងសារនោះក្នុងរយៈពេល 30 នាទី។`,
+      en: (login: string) =>
+        `If ${login} has a shop with Telegram connected, a message from our bot is on its way. Open the link in it within 30 minutes.`,
+      km: (login: string) =>
+        `បើ ${login} មានហាងដែលបានភ្ជាប់ Telegram សារពី bot របស់យើងកំពុងផ្ញើទៅ។ សូមបើកតំណក្នុងសារនោះក្នុងរយៈពេល 30 នាទី។`,
     },
     noTelegram: {
       en: 'No message, or Telegram not connected? Oak Order can reset your password for you.',
@@ -55,8 +76,8 @@ export const auth = {
     },
     askSupport: { en: 'Message Oak Order', km: 'ផ្ញើសារទៅ Oak Order' },
     supportText: {
-      en: (email: string) => `Hi Oak Order, I forgot the password for ${email}.`,
-      km: (email: string) => `សួស្ដី Oak Order ខ្ញុំភ្លេចពាក្យសម្ងាត់សម្រាប់ ${email}។`,
+      en: (login: string) => `Hi Oak Order, I forgot the password for ${login}.`,
+      km: (login: string) => `សួស្ដី Oak Order ខ្ញុំភ្លេចពាក្យសម្ងាត់សម្រាប់ ${login}។`,
     },
     staff: {
       en: "Staff: ask the shop's owner to set a new password for you in Settings → Staff.",
@@ -86,8 +107,7 @@ export const auth = {
       km: 'ឈ្មោះដែលអតិថិជននឹងឃើញ។ អ្នកអាចប្ដូរវានៅពេលក្រោយបាន។',
     },
     yourName: { en: 'Your name', km: 'ឈ្មោះរបស់អ្នក' },
-    phone: { en: 'Phone number', km: 'លេខទូរស័ព្ទ' },
-    emailHint: { en: "You'll use this to log in.", km: 'អ្នកនឹងប្រើវាដើម្បីចូលគណនី។' },
+    phoneLabel: { en: 'Phone number (you log in with it)', km: 'លេខទូរស័ព្ទ (អ្នកប្រើវាដើម្បីចូលគណនី)' },
     passwordHint: { en: 'At least 8 characters.', km: 'យ៉ាងតិច 8 តួអក្សរ។' },
     submit: { en: 'Create store', km: 'បង្កើតហាង' },
   },

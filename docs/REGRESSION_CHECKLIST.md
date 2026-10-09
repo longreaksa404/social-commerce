@@ -95,6 +95,7 @@ phone or laptop) before going on.
 
 **New shop**
 
+- [ ] Register a new shop with a phone number: "Verify with Telegram" opens the bot, "Share my phone number" there, and the page shows the number as verified within a few seconds; a number that already has a shop says so with a Log in link. After creating the store, Telegram alerts are already on (Settings → Alerts), and you can log in with the number written as `+855 …`.
 - [ ] Register a new shop: the Orders tab says "Add your first product" and that delivery is free until a fee is set; Settings has "Set up your shop" and the Settings tab a dot, gone once a product, the delivery fee and the ways to pay are saved.
 
 **Settings**

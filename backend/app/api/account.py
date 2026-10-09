@@ -2,7 +2,13 @@ from fastapi import APIRouter, Response, status
 
 from app.api.deps import Owner, Seller, UnscopedDb
 from app.api.session_cookie import start_session
-from app.schemas.account import AccountOut, AccountUpdate, CloseShopIn, PasswordChange
+from app.schemas.account import (
+    AccountOut,
+    AccountUpdate,
+    CloseShopIn,
+    PasswordChange,
+    PhoneChange,
+)
 from app.schemas.auth import AccessOut
 from app.services import account as account_service
 
@@ -19,6 +25,12 @@ async def get_account(seller: Seller, db: UnscopedDb) -> AccountOut:
 @router.patch("", response_model=AccountOut)
 async def update_account(data: AccountUpdate, seller: Seller, db: UnscopedDb) -> AccountOut:
     return await account_service.update_account(db, seller.seller_id, data)
+
+
+@router.post("/phone", response_model=AccountOut)
+async def change_phone(data: PhoneChange, seller: Seller, db: UnscopedDb) -> AccountOut:
+    """The login number, from a phone check (POST /auth/phone-checks)."""
+    return await account_service.change_phone(db, seller.seller_id, data.phone_check)
 
 
 @router.post("/password", response_model=AccessOut)

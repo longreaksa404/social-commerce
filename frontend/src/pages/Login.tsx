@@ -1,15 +1,17 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
-import { Button, ErrorMessage, Field, Input, PasswordInput, SlowNotice } from '../components/ui.tsx'
+import { Button, ErrorMessage, Field, PasswordInput, SlowNotice } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
 import { AuthLayout } from './AuthLayout.tsx'
+import { LoginField } from './LoginField.tsx'
 
 export function Login() {
-  const { status, login } = useAuth()
+  const { status, login: logIn } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [email, setEmail] = useState('')
+  const [login, setLogin] = useState('')
+  const [byEmail, setByEmail] = useState(false)
   const [password, setPassword] = useState('')
   const [error, setError] = useState<unknown>(null)
   const [pending, setPending] = useState(false)
@@ -23,7 +25,7 @@ export function Login() {
     setPending(true)
     setError(null)
     try {
-      await login(email, password)
+      await logIn(login.trim(), password)
       navigate(from, { replace: true })
     } catch (err) {
       setError(err)
@@ -46,20 +48,7 @@ export function Login() {
       }
     >
       <form onSubmit={submit} className="space-y-4">
-        <Field label={t.auth.email}>
-          <Input
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            enterKeyHint="next"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Field>
+        <LoginField value={login} onChange={setLogin} byEmail={byEmail} onByEmailChange={setByEmail} enterKeyHint="next" />
         <Field label={t.auth.password}>
           <PasswordInput
             autoComplete="current-password"
@@ -72,7 +61,7 @@ export function Login() {
         <p className="-mt-2 text-right">
           <Link
             to="/forgot-password"
-            state={{ email }}
+            state={{ login, byEmail }}
             className="inline-flex min-h-11 items-center text-sm font-medium text-navy-700 hover:underline"
           >
             {t.auth.forgot.link}

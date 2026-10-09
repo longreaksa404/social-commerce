@@ -105,7 +105,7 @@ class Seller(HttpUser):
     def log_in(self) -> None:
         tokens = self.client.post(
             "/api/v1/auth/login",
-            json={"email": SHOP["email"], "password": SHOP["password"]},
+            json={"login": SHOP["email"], "password": SHOP["password"]},
             name="seller login",
         ).json()
         self.client.headers["Authorization"] = f"Bearer {tokens['access_token']}"

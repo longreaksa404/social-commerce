@@ -5,11 +5,15 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import update
 
 from app.core import security
+from app.core.config import get_settings
 from app.db.session import unscoped_session
-from app.models import RefreshToken
+from app.models import PhoneCheck, RefreshToken, Seller, Store
 from app.services.auth import REUSE_GRACE
+from tests.helpers import random_phone, verified_phone_check, with_refresh
 from tests.helpers import refresh as _refresh
-from tests.helpers import with_refresh
+
+LOGIN = "/api/v1/auth/login"
+REGISTER = "/api/v1/auth/register"
 
 
 async def _swapped_ago(refresh_token: str, ago: timedelta) -> None:
@@ -28,38 +32,120 @@ async def test_login_with_wrong_password_uses_error_envelope(client, register):
     seller = await register()
 
     response = await client.post(
-        "/api/v1/auth/login", json={"email": seller["email"], "password": "wrong-password"}
+        "/api/v1/auth/login", json={"login": seller["phone"], "password": "wrong-password"}
     )
 
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "INVALID_CREDENTIALS"
 
 
-async def test_email_is_case_insensitive_and_unique(client, register):
-    seller = await register()
-
-    login = await client.post(
-        "/api/v1/auth/login",
-        json={"email": seller["email"].upper(), "password": "correct-horse"},
-    )
-    duplicate = await client.post(
-        "/api/v1/auth/register",
-        json={
-            "email": seller["email"].upper(),
-            "password": "correct-horse",
-            "full_name": "Someone",
-            "phone": "012345678",
-            "store_name": "Other",
-        },
-    )
-
-    assert login.status_code == 200
-    assert duplicate.status_code == 409
-    assert duplicate.json()["error"] == {
-        "code": "EMAIL_TAKEN",
-        "message": "An account with this email already exists.",
-        "field": "email",
+def _signup(check_id, **overrides) -> dict:
+    return {
+        "password": "correct-horse",
+        "full_name": "Sokha",
+        "store_name": "Sokha Fashion",
+        "phone_check": check_id,
+        **overrides,
     }
+
+
+async def test_sign_up_with_the_phone_shared_in_telegram(client):
+    """The number is the one the bot was given, and that chat with the bot
+    gets the new shop's order alerts."""
+    check_id, phone = await verified_phone_check(telegram_user_id=4242)
+
+    response = await client.post(REGISTER, json=_signup(check_id))
+
+    assert response.status_code == 201, response.text
+    headers = {"Authorization": f"Bearer {response.json()['access_token']}"}
+    me = (await client.get("/api/v1/seller/account", headers=headers)).json()
+    store = (await client.get("/api/v1/seller/store", headers=headers)).json()
+    assert (me["phone"], me["email"]) == (phone, None)
+    assert store["telegram_connected"] is True
+    async with unscoped_session() as db:
+        assert (await db.get(Store, uuid.UUID(store["id"]))).telegram_chat_id == "4242"
+        # The check is used up.
+        assert await db.get(PhoneCheck, uuid.UUID(check_id)) is None
+
+
+async def test_log_in_with_the_phone_typed_any_way(client, register):
+    seller = await register(phone="012345679")
+
+    for typed in ("012345679", "012 345 679", "+855 12 345 679", "855-12-345-679"):
+        response = await client.post(LOGIN, json={"login": typed, "password": "correct-horse"})
+        assert response.status_code == 200, typed
+    # The field's old name still works (an app page loaded before the change).
+    old = await client.post(LOGIN, json={"email": seller["phone"], "password": "correct-horse"})
+    assert old.status_code == 200
+
+
+async def test_sign_up_needs_a_finished_check(client, monkeypatch):
+    settings = get_settings()
+    monkeypatch.setattr(settings, "telegram_bot_token", "123:abc")
+    monkeypatch.setattr(settings, "telegram_bot_username", "TestShopBot")
+    monkeypatch.setattr(settings, "telegram_webhook_secret", "secret")
+    unfinished = (await client.post("/api/v1/auth/phone-checks")).json()["id"]
+
+    not_shared = await client.post(REGISTER, json=_signup(unfinished))
+    unknown = await client.post(REGISTER, json=_signup(str(uuid.uuid4())))
+    # A typed number isn't taken: the field is ignored.
+    typed = await client.post(REGISTER, json={**_signup(None), "phone": "012345678"})
+
+    assert not_shared.status_code == 422
+    assert not_shared.json()["error"] == {
+        "code": "PHONE_NOT_VERIFIED",
+        "message": "Verify your phone number with Telegram first.",
+        "field": "phone_check",
+    }
+    assert unknown.json()["error"]["code"] == "PHONE_CHECK_EXPIRED"
+    assert typed.status_code == 422
+
+
+async def test_one_account_per_phone_and_a_check_signs_up_once(client):
+    check_id, phone = await verified_phone_check()
+    first = await client.post(REGISTER, json=_signup(check_id))
+    reused = await client.post(REGISTER, json=_signup(check_id, store_name="Second"))
+    same_phone_id, _ = await verified_phone_check(phone)
+    same_phone = await client.post(REGISTER, json=_signup(same_phone_id, store_name="Third"))
+
+    assert first.status_code == 201
+    assert reused.json()["error"]["code"] == "PHONE_CHECK_EXPIRED"
+    assert same_phone.status_code == 409
+    assert same_phone.json()["error"] == {
+        "code": "PHONE_TAKEN",
+        "message": "This phone number already has an account. Log in instead.",
+        "field": "phone_check",
+    }
+
+
+async def test_accounts_from_before_log_in_with_their_email(client):
+    """Accounts made before sign-up moved to phone numbers have an email
+    and maybe no phone."""
+    email = f"old-{uuid.uuid4().hex[:8]}@example.com"
+    async with unscoped_session() as db:
+        seller = Seller(
+            email=email,
+            password_hash=await security.hash_password("correct-horse"),
+            full_name="Old",
+        )
+        db.add(seller)
+        await db.flush()
+        db.add(Store(seller_id=seller.id, name="Old", slug=f"old-{uuid.uuid4().hex[:8]}"))
+        await db.commit()
+
+    upper = await client.post(LOGIN, json={"login": email.upper(), "password": "correct-horse"})
+    old_field = await client.post(LOGIN, json={"email": email, "password": "correct-horse"})
+
+    assert (upper.status_code, old_field.status_code) == (200, 200)
+
+
+async def test_wrong_or_unreadable_logins_are_refused_alike(client, register):
+    await register()
+
+    for login in (random_phone(), "nobody@example.com", "not a phone", "1"):
+        response = await client.post(LOGIN, json={"login": login, "password": "correct-horse"})
+        assert response.status_code == 401, login
+        assert response.json()["error"]["message"] == "Wrong phone number or password."
 
 
 async def test_refresh_token_reused_after_the_grace_ends_all_sessions(client, register):
@@ -147,7 +233,7 @@ async def test_refresh_token_is_an_httponly_cookie_not_in_the_body(client, regis
     seller = await register()
 
     login = await client.post(
-        "/api/v1/auth/login", json={"email": seller["email"], "password": "correct-horse"}
+        "/api/v1/auth/login", json={"login": seller["phone"], "password": "correct-horse"}
     )
 
     assert login.status_code == 200

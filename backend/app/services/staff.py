@@ -1,5 +1,6 @@
-"""Settings → Staff: the owner's helpers, who log in with their own email
-and can do everything but Settings (founder's choice 2026-10-08).
+"""Settings → Staff: the owner's helpers, who log in with their own phone
+number and can do everything but Settings (founder's choice 2026-10-08;
+phone numbers instead of emails since 2026-10-09).
 
 Staff are `seller` rows with role staff and their shop in store_id. The
 seller table isn't tenant-scoped, so this runs on an unscoped session and
@@ -20,8 +21,8 @@ from app.schemas.staff import StaffCreate
 MAX_STAFF = 10
 
 
-def _email_taken() -> AppError:
-    return AppError(409, "EMAIL_TAKEN", "An account with this email already exists.", "email")
+def _phone_taken() -> AppError:
+    return AppError(409, "PHONE_TAKEN", "Another account already has this phone number.", "phone")
 
 
 def _of_shop(store_id: uuid.UUID):
@@ -38,23 +39,21 @@ async def add_staff(db: AsyncSession, store_id: uuid.UUID, data: StaffCreate) ->
     count = await db.scalar(select(func.count()).where(*_of_shop(store_id)))
     if (count or 0) >= MAX_STAFF:
         raise AppError(409, "STAFF_LIMIT", f"A shop can have up to {MAX_STAFF} staff.")
-    email = data.email.lower()
-    if await db.scalar(select(Seller.id).where(Seller.email == email)):
-        raise _email_taken()
+    if await db.scalar(select(Seller.id).where(Seller.phone == data.phone)):
+        raise _phone_taken()
     staff = Seller(
-        email=email,
+        phone=data.phone,
         password_hash=await security.hash_password(data.password),
         full_name=data.full_name,
-        phone=data.phone,
         role=SellerRole.STAFF,
         store_id=store_id,
     )
     db.add(staff)
     try:
         await db.commit()
-    except IntegrityError as exc:  # the same email saved by someone else meanwhile
+    except IntegrityError as exc:  # the same number saved by someone else meanwhile
         await db.rollback()
-        raise _email_taken() from exc
+        raise _phone_taken() from exc
     return staff
 
 

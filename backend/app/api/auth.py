@@ -53,8 +53,8 @@ async def request_password_reset(
     request: Request, data: PasswordResetIn, background: BackgroundTasks
 ) -> None:
     """Forgot password? Sends a link to the shop's Telegram, if it has one.
-    Answers the same either way, so it can't be used to test emails."""
-    background.add_task(auth_service.send_password_reset, data.email)
+    Answers the same either way, so it can't be used to test numbers."""
+    background.add_task(auth_service.send_password_reset, data.login)
 
 
 @router.post("/password-reset/confirm", response_model=AccessOut)

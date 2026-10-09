@@ -5,19 +5,21 @@ import type { AccessToken } from '../lib/api.ts'
 // didn't answer (offline, or the API isn't running); not a logout.
 export type Status = 'loading' | 'authenticated' | 'anonymous' | 'unreachable'
 
+/** The phone number isn't typed: it's the one shared with the Telegram
+ * bot, handed in as the phone check's id. */
 export type RegisterInput = {
-  email: string
-  password: string
-  full_name: string
-  phone: string
   store_name: string
+  full_name: string
+  password: string
+  phone_check: string
 }
 
 type AuthValue = {
   status: Status
   restoreError: unknown
   retryRestore: () => void
-  login:(email: string, password: string) => Promise<void>
+  /** `login`: a phone number, or an older account's email. */
+  login: (login: string, password: string) => Promise<void>
   register: (input: RegisterInput) => Promise<void>
   /** Logged in by another way than the login form (a password reset link). */
   startSession: (token: AccessToken) => void

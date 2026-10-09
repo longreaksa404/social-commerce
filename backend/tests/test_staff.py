@@ -1,12 +1,18 @@
 """Staff logins (founder's choice 2026-10-08): the owner adds helpers who
-can do everything but Settings."""
-
-import uuid
+can do everything but Settings. They log in with their phone number
+(2026-10-09)."""
 
 import pytest
 
 from app import admin
-from tests.helpers import add_product, place_order, refresh, registered_seller, session_of
+from tests.helpers import (
+    add_product,
+    place_order,
+    random_phone,
+    refresh,
+    registered_seller,
+    session_of,
+)
 
 STAFF = "/api/v1/seller/staff"
 
@@ -15,34 +21,25 @@ def _bearer(tokens: dict) -> dict[str, str]:
     return {"Authorization": f"Bearer {tokens['access_token']}"}
 
 
-async def _add_staff(client, owner_headers, email="helper@example.com", **overrides) -> dict:
-    body = {
-        "full_name": "Dara",
-        "phone": "097 765 4321",
-        "email": email,
-        "password": "first-password",
-        **overrides,
-    }
+async def _add_staff(client, owner_headers, phone: str, **overrides) -> dict:
+    body = {"full_name": "Dara", "phone": phone, "password": "first-password", **overrides}
     response = await client.post(STAFF, headers=owner_headers, json=body)
     assert response.status_code == 201, response.text
     return response.json()
 
 
-async def _staff_login(client, email, password="first-password") -> dict:
-    response = await client.post("/api/v1/auth/login", json={"email": email, "password": password})
+async def _staff_login(client, phone, password="first-password") -> dict:
+    response = await client.post("/api/v1/auth/login", json={"login": phone, "password": password})
     assert response.status_code == 200, response.text
     return session_of(response)
 
 
-def _unique_email(tag: str) -> str:
-    return f"{tag}-{uuid.uuid4().hex[:8]}@example.com"
-
-
 async def test_staff_work_in_the_owners_shop(client, auth_headers):
     owner, store_id, slug = await registered_seller(client, auth_headers)
-    email = _unique_email("helper")
-    await _add_staff(client, owner, email=email)
-    staff = _bearer(await _staff_login(client, email))
+    phone = random_phone()
+    # Typed the way the owner has it in their contacts.
+    await _add_staff(client, owner, f"{phone[:3]} {phone[3:6]} {phone[6:]}")
+    staff = _bearer(await _staff_login(client, phone))
     cap = await add_product(store_id, "cap", stock=5)
     order = (await place_order(client, slug, [(cap, None, 1)], total="10.00")).json()
 
@@ -58,7 +55,7 @@ async def test_staff_work_in_the_owners_shop(client, auth_headers):
     assert [o["id"] for o in orders.json()["orders"]] == [order["id"]]
     assert accepted.status_code == 200
     assert len(products.json()) == 1
-    assert (me.json()["email"], me.json()["role"]) == (email, "staff")
+    assert (me.json()["phone"], me.json()["email"], me.json()["role"]) == (phone, None, "staff")
 
 
 @pytest.mark.parametrize(
@@ -71,23 +68,14 @@ async def test_staff_work_in_the_owners_shop(client, auth_headers):
         ("GET", "/api/v1/seller/orders/export?first=2026-10-01&last=2026-10-08", None),
         ("POST", "/api/v1/seller/account/close-shop", {"password": "first-password"}),
         ("GET", STAFF, None),
-        (
-            "POST",
-            STAFF,
-            {
-                "full_name": "X",
-                "phone": "012345678",
-                "email": "x@example.com",
-                "password": "12345678",
-            },
-        ),
+        ("POST", STAFF, {"full_name": "X", "phone": "012345678", "password": "12345678"}),
     ],
 )
 async def test_staff_cant_use_settings(client, auth_headers, method, path, body):
     owner, _, _ = await registered_seller(client, auth_headers)
-    email = _unique_email("helper")
-    await _add_staff(client, owner, email=email)
-    staff = _bearer(await _staff_login(client, email))
+    phone = random_phone()
+    await _add_staff(client, owner, phone)
+    staff = _bearer(await _staff_login(client, phone))
 
     response = await client.request(method, path, headers=staff, json=body)
 
@@ -98,9 +86,9 @@ async def test_staff_cant_use_settings(client, auth_headers, method, path, body)
 async def test_owner_sees_sets_a_password_for_and_removes_only_their_staff(client, auth_headers):
     a, _, _ = await registered_seller(client, auth_headers)
     b, _, _ = await registered_seller(client, auth_headers)
-    email = _unique_email("helper")
-    helper = await _add_staff(client, a, email=email)
-    phone = await _staff_login(client, email)
+    phone = random_phone()
+    helper = await _add_staff(client, a, phone)
+    session = await _staff_login(client, phone)
 
     others_list = await client.get(STAFF, headers=b)
     others_reset = await client.post(
@@ -116,75 +104,72 @@ async def test_owner_sees_sets_a_password_for_and_removes_only_their_staff(clien
     )
     assert reset.status_code == 200
     # Their phones are logged out; the new password works.
-    stale = await refresh(client, phone["refresh_token"])
+    stale = await refresh(client, session["refresh_token"])
     assert stale.status_code == 401
-    await _staff_login(client, email, "second-password")
+    await _staff_login(client, phone, "second-password")
 
     removed = await client.delete(f"{STAFF}/{helper['id']}", headers=a)
     assert removed.status_code == 204
     gone = await client.post(
-        "/api/v1/auth/login", json={"email": email, "password": "second-password"}
+        "/api/v1/auth/login", json={"login": phone, "password": "second-password"}
     )
     assert gone.status_code == 401
     assert (await client.get(STAFF, headers=a)).json() == []
 
 
-async def test_staff_email_must_be_free(client, auth_headers, register):
+async def test_staff_phone_must_be_free(client, auth_headers, register):
     owner, _, _ = await registered_seller(client, auth_headers)
     someone = await register()
 
     response = await client.post(
         STAFF,
         headers=owner,
-        json={
-            "full_name": "Dara",
-            "phone": "012345678",
-            "email": someone["email"],
-            "password": "first-password",
-        },
+        # The same number, written another way.
+        json={"full_name": "Dara", "phone": f"+855 {someone['phone'][1:]}", "password": "pw-12345"},
     )
 
     assert response.status_code == 409
-    assert response.json()["error"]["field"] == "email"
+    assert response.json()["error"]["code"] == "PHONE_TAKEN"
+    assert response.json()["error"]["field"] == "phone"
 
 
 async def test_closing_the_shop_closes_its_staff_logins_too(client, register):
     owner_tokens = await register()
     owner = _bearer(owner_tokens)
-    email = _unique_email("helper")
-    await _add_staff(client, owner, email=email)
+    phone = random_phone()
+    await _add_staff(client, owner, phone)
 
     closed = await client.post(
         "/api/v1/seller/account/close-shop", headers=owner, json={"password": "correct-horse"}
     )
     login = await client.post(
-        "/api/v1/auth/login", json={"email": email, "password": "first-password"}
+        "/api/v1/auth/login", json={"login": phone, "password": "first-password"}
     )
 
     assert closed.status_code == 204
     assert login.status_code == 403
-    await admin.set_shop_open(owner_tokens["email"], True)
-    await _staff_login(client, email)
+    await admin.set_shop_open(owner_tokens["phone"], True)
+    await _staff_login(client, phone)
 
 
 async def test_erasing_a_shop_erases_its_staff_logins(client, register):
     owner_tokens = await register()
-    email = _unique_email("helper")
-    await _add_staff(client, _bearer(owner_tokens), email=email)
-    slug = (await admin.shop_size(owner_tokens["email"])).slug
+    phone = random_phone()
+    await _add_staff(client, _bearer(owner_tokens), phone)
+    slug = (await admin.shop_size(owner_tokens["phone"])).slug
 
-    await admin.set_shop_open(owner_tokens["email"], False)
-    await admin.erase_shop(owner_tokens["email"], slug)
+    await admin.set_shop_open(owner_tokens["phone"], False)
+    await admin.erase_shop(owner_tokens["phone"], slug)
 
     with pytest.raises(admin.AdminError, match="No account"):
-        await admin.reset_password(email)
+        await admin.reset_password(phone)
 
 
 async def test_staff_refresh_keeps_the_staff_role(client, auth_headers):
     owner, _, _ = await registered_seller(client, auth_headers)
-    email = _unique_email("helper")
-    await _add_staff(client, owner, email=email)
-    tokens = await _staff_login(client, email)
+    phone = random_phone()
+    await _add_staff(client, owner, phone)
+    tokens = await _staff_login(client, phone)
 
     refreshed = await refresh(client, tokens["refresh_token"])
     still_staff = await client.patch(
