@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-09 (sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-09 (performance audit, Phase 1: `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -1113,6 +1113,26 @@ docs don't ask for it; if TikTok answers "code_verifier required", it's a
 small change), and Facebook may stay limited to the app's own testers
 until Business Verification.
 
+**Pre-launch performance pass** (founder asked 2026-10-09: audit first,
+then fix only the approved findings, one commit each):
+
+1. [x] **Phase 1, audit** (2026-10-09): `docs/PERF_AUDIT.md` has the surface
+   map, the baseline (every endpoint locally, with 2 ms per database round
+   trip, and at Render's 0.1 CPU; Lighthouse mobile on 12 pages; request
+   traces; burst tests), 17 findings ranked by measured impact, which
+   targets are realistic, the iOS / Android review (the build needs iOS 16.4+
+   / Chrome 111+) and the device checklist. Tools: `backend/loadtest/
+   seed_perf.py` (local `social_commerce_perf` with a 500-product shop) and
+   `measure.py` (`77fbca2`). No app code changed. Headlines: the dashboard
+   downloads the whole product list (511 KB) on most screens; customers get
+   one 255 KB (gzipped) JS file with all the seller code; at 0.1 CPU a burst
+   of 50 customers runs the database pool out (500 errors), at 0.5 CPU it
+   holds; API answers aren't compressed by the app; the first grid photo,
+   the page's main image, is lazy-loaded; an export freezes the API (~36 s
+   for a year at 0.1 CPU). Status changes show their spinner in ~10 ms.
+2. [ ] **Phase 2, fixes:** waiting for the founder's picks (section 4) and
+   device results (section 9).
+
 Phase 9, waiting on the founder:
 
 - **Live load test**, once, before the first real seller, from home
@@ -1705,6 +1725,10 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
+0000. Founder: the performance pass (`docs/PERF_AUDIT.md`): pick which
+      findings to fix (section 4; F3 is Render Starter, $7/month), run the
+      device checklist on an iPhone and an Android phone (section 9), and the
+      infrastructure commands from home (section 8). Send Claude the results.
 000. Founder: set up and test sign-up and the three logins in one go
      (founder's plan, 2026-10-09). Each part stays hidden until its keys
      are set, so the order doesn't matter.

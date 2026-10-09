@@ -151,7 +151,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 │   ├── ci.yml                 Backend: ruff, ruff format, alembic upgrade, pytest (Postgres service). Frontend: oxlint, build
 │   └── backup.yml             Nightly pg_dump of prod to a private R2 bucket; skips until its secrets exist
 ├── .devcontainer/             Dev container (Python 3.12, Node, Docker-in-Docker; file polling on)
-├── docs/                      01_PRODUCT, 02_TECHNICAL, 03_DEVELOPMENT, 04_STATUS, ADMIN (founder's commands), BACKUPS, REGRESSION_CHECKLIST, this file
+├── docs/                      01_PRODUCT, 02_TECHNICAL, 03_DEVELOPMENT, 04_STATUS, ADMIN (founder's commands), BACKUPS, REGRESSION_CHECKLIST, PERF_AUDIT (performance baseline and findings), this file
 │
 ├── backend/
 │   ├── Dockerfile             python:3.12-slim; CMD runs `alembic upgrade head` then uvicorn
@@ -262,6 +262,7 @@ cd frontend && npm install
 | Backend lint | `ruff check . && ruff format --check .` (`ruff format .` fixes) |
 | Founder's commands | `python -m app.admin <command> <login>` (a phone number typed any way, or an older account's email; `auth.login_filter`), commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend), `test-shop [--name]` (a shop with an email login and no phone, for the load test: sign-up needs a phone checked in Telegram, one shop per number), `forget-customer <shop link name> <phone>` (a customer's name becomes "(removed)"; phone, addresses, map pins and notes go from that shop's customer, orders and alert payloads; the orders' items and money stay; the Data deletion page promises it), and `move-photos <old> <new>` (rewrites the R2 address saved in `product.image_urls` and `store.logo_url`, for `images.oaksolve.com`); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
 | Bot on a laptop | `python -m app.telegram_poll` (backend, beside uvicorn): answers your **test** bot by polling, since Telegram's webhook can't reach localhost. Needs the three `TELEGRAM_*` values in `.env` and `PUBLIC_API_URL` empty; refuses a bot that has a webhook (the live one) |
+| Performance audit tools | `backend/loadtest/seed_perf.py` (a local `social_commerce_perf` database with a 500-product shop; refuses anything but a local `*_perf` database) and `measure.py` (every endpoint's time, SQL statements and Postgres round trips), run from `backend/` with its venv; `backend/loadtest/README.md`, results in `docs/PERF_AUDIT.md` |
 | Frontend dev server | `npm run dev`: http://localhost:5173 |
 | Frontend lint | `npm run lint` (oxlint) |
 | Frontend build | `npm run build` (`tsc -b && vite build`, type-checks) |
@@ -1445,7 +1446,7 @@ None (grep for TODO, FIXME, XXX and HACK over `backend/`,
   customers, skipped).
 - `DELETE /seller/store/telegram` has its logic in the router instead of
   a service, unlike the rest of the code.
-- There is no seed script for demo or first-seller data.
+- There is no seed script for demo or first-seller data (`backend/loadtest/seed_perf.py` is a local, made-up data set for performance measurements only).
 
 ---
 
