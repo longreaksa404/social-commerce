@@ -8,6 +8,7 @@ import {
   LifeBuoy,
   MessageCircle,
   Link2,
+  ListChecks,
   LogOut,
   Store as StoreIcon,
   Tag,
@@ -32,6 +33,7 @@ import type { Store } from '../../lib/types.ts'
 import { ThemeSwitch } from '../../theme/ThemeSwitch.tsx'
 import { useAccount, useStore } from '../queries.ts'
 import { SECTIONS, type PageId, type SectionId } from './form.ts'
+import { useSetup } from './setup.ts'
 
 const ROWS: { id: Exclude<SectionId, 'shop'>; icon: LucideIcon }[] = [
   { id: 'orders', icon: Inbox },
@@ -89,8 +91,28 @@ function StoreRows({ store, selected }: { store: Store; selected?: Selected }) {
   const t = useT()
   const s = t.settings
   const summary = summaries(store, t)
+  const setup = useSetup()
   return (
     <>
+      {/* A new shop's checklist (founder's pick 7C), until it's done. */}
+      {setup?.show && (
+        <Card>
+          <MenuRow
+            to="setup"
+            selected={selected === 'setup'}
+            icon={
+              <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-700">
+                <ListChecks aria-hidden className="size-6" />
+                {setup.needsAttention && (
+                  <span aria-hidden className="absolute top-0.5 right-0.5 size-3 rounded-full border-2 border-surface bg-amber-500" />
+                )}
+              </span>
+            }
+            title={s.setup.title}
+            summary={s.setup.progress(setup.done, setup.steps.length)}
+          />
+        </Card>
+      )}
       <Card>
         <MenuRow
           to="shop"

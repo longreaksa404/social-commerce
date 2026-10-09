@@ -239,6 +239,30 @@ export const settings = {
   },
 
   // The Settings menu: each row says what's set now.
+  // A new shop's checklist (founder's pick 7C, 2026-10-09).
+  setup: {
+    title: { en: 'Set up your shop', km: 'រៀបចំហាងរបស់អ្នក' },
+    progress: {
+      en: (done: number, total: number) => `${done} of ${total} done`,
+      km: (done: number, total: number) => `រួចរាល់ ${done} ក្នុងចំណោម ${total}`,
+    },
+    hint: {
+      en: 'The first three get your shop ready to take orders. The others help customers trust and reach you.',
+      km: 'បីជំហានដំបូងធ្វើឱ្យហាងរបស់អ្នករួចរាល់សម្រាប់ទទួលការកុម្ម៉ង់។ ជំហានផ្សេងទៀតជួយឱ្យអតិថិជនទុកចិត្ត និងទាក់ទងអ្នកបាន។',
+    },
+    steps: {
+      product: { en: 'Add a product', km: 'បន្ថែមទំនិញ' },
+      delivery: { en: 'Set your delivery fee', km: 'កំណត់ថ្លៃដឹក' },
+      payments: { en: 'Ways to pay: KHQR or bank', km: 'វិធីបង់ប្រាក់៖ KHQR ឬធនាគារ' },
+      telegram: { en: 'Telegram alerts for new orders', km: 'ការជូនដំណឹងតាម Telegram ពេលមានការកុម្ម៉ង់ថ្មី' },
+      contact: { en: 'Contact buttons for customers', km: 'ប៊ូតុងទំនាក់ទំនងសម្រាប់អតិថិជន' },
+      logo: { en: 'Shop logo', km: 'ឡូហ្គោហាង' },
+    },
+    optional: { en: 'Optional', km: 'មិនចាំបាច់' },
+    doneLabel: { en: ' (done)', km: ' (រួចរាល់)' },
+    todoLabel: { en: ' (not yet)', km: ' (មិនទាន់)' },
+    hide: { en: 'Hide this list', km: 'លាក់បញ្ជីនេះ' },
+  },
   menu: {
     shopHint: { en: 'Logo, name, description, currency', km: 'ឡូហ្គោ ឈ្មោះ ការពិពណ៌នា រូបិយប័ណ្ណ' },
     selling: { en: 'Selling', km: 'ការលក់' },

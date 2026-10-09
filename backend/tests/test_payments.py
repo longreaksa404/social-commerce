@@ -65,6 +65,18 @@ async def test_a_new_shop_takes_cash_on_delivery_only(client, auth_headers):
     assert (await client.get(f"/api/v1/shop/{slug}")).json()["payment_methods"] == ["cod"]
 
 
+async def test_payments_are_set_up_once_saved(client, auth_headers):
+    """For the setup checklist: a new shop hasn't looked at its ways to
+    pay; saving them, even cash on delivery only, counts."""
+    headers, _, _ = await registered_seller(client, auth_headers)
+    before = (await client.get("/api/v1/seller/store", headers=headers)).json()
+
+    saved = await set_payments(client, headers, cod={"enabled": True})
+
+    assert before["payment_set_up"] is False
+    assert saved.json()["payment_set_up"] is True
+
+
 async def test_seller_turns_on_bank_transfer_and_khqr(client, auth_headers):
     headers, _, slug = await registered_seller(client, auth_headers)
 

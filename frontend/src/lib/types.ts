@@ -46,6 +46,8 @@ export type Store = {
   /** automatic: new orders are accepted at once; manual: they wait as pending. */
   order_confirmation_mode: OrderConfirmationMode
   payment_settings: PaymentSettings
+  /** False until Settings → Payments is saved once (the setup checklist). */
+  payment_set_up: boolean
   delivery_settings: DeliverySettings
   /** False until Settings → Delivery is saved once: until then delivery
    * is free for customers (the defaults), so the dashboard says so. */

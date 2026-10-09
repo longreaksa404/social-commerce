@@ -25,6 +25,8 @@ class StoreOut(BaseModel):
     # automatic: new orders are accepted at once; manual: they wait as pending.
     order_confirmation_mode: OrderConfirmationMode
     payment_settings: PaymentSettings = Field(validation_alias="payment_config")
+    # False until Settings → Payments is saved once (the setup checklist).
+    payment_set_up: bool
     delivery_settings: DeliverySettings = Field(validation_alias="delivery_config")
     # False until Settings → Delivery is saved once (the dashboard reminds
     # the seller that delivery is free for customers until then).

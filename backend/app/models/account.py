@@ -132,6 +132,12 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
         return self.orders_resume_on if self.orders_paused_now else None
 
     @property
+    def payment_set_up(self) -> bool:
+        """The seller has saved Settings → Payments at least once (the
+        setup checklist's "ways to pay"; until then cash on delivery only)."""
+        return bool(self.payment_config)
+
+    @property
     def delivery_set_up(self) -> bool:
         """The seller has saved Settings → Delivery at least once. Until
         then the shop runs on the defaults, free own delivery, which a

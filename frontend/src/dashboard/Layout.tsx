@@ -7,6 +7,7 @@ import { useBump } from '../components/useBump.ts'
 import type { Messages } from '../i18n/core.ts'
 import { useT } from '../i18n/useT.ts'
 import { useStore, useUnreadNotifications } from './queries.ts'
+import { useSetup } from './settings/setup.ts'
 
 // Five tabs fit a 320px phone. Categories is a button on Products there,
 // and its own entry in the wider sidebar.
@@ -137,6 +138,15 @@ function NotificationBell() {
   )
 }
 
+/** On the Settings tab while the shop still lacks something taking
+ * orders needs (the setup checklist, founder's pick 7C). Only a nudge
+ * for the eye: the Settings menu's first row says it in words. */
+function SetupDot({ className }: { className: string }) {
+  const setup = useSetup()
+  if (!setup?.needsAttention) return null
+  return <span aria-hidden className={`absolute size-2.5 rounded-full bg-amber-500 ring-2 ring-surface ${className}`} />
+}
+
 function MobileTopBar() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
@@ -182,6 +192,7 @@ function BottomTabBar() {
                     }`}
                   />
                   <Icon aria-hidden className="relative size-5" strokeWidth={isActive ? 2.25 : 1.75} />
+                  {key === 'settings' && <SetupDot className="top-0.5 right-3" />}
                 </span>
                 {tabLabel(t, key)}
               </>
@@ -214,7 +225,10 @@ function Sidebar() {
               }`
             }
           >
-            <Icon aria-hidden className="size-5" />
+            <span className="relative">
+              <Icon aria-hidden className="size-5" />
+              {key === 'settings' && <SetupDot className="-top-0.5 -right-0.5" />}
+            </span>
             {tabLabel(t, key)}
           </NavLink>
         ))}
