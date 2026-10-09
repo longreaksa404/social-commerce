@@ -37,12 +37,16 @@ from app.services import payment as payment_service
 
 S = OrderStatus
 
+# The short path (founder's pick 1C, 2026-10-09): after Accept, preparing,
+# ready, shipped and delivered are optional steps for customers who follow
+# along, and an order can complete from any of them once the completion
+# rule holds (can_complete, checked in transition()).
 ALLOWED_ORDER_TRANSITIONS: dict[OrderStatus, frozenset[OrderStatus]] = {
     S.PENDING: frozenset({S.ACCEPTED, S.REJECTED}),
-    S.ACCEPTED: frozenset({S.PROCESSING, S.CANCELLED}),
-    S.PROCESSING: frozenset({S.READY, S.CANCELLED}),
-    S.READY: frozenset({S.SHIPPED, S.CANCELLED}),
-    S.SHIPPED: frozenset({S.DELIVERED}),
+    S.ACCEPTED: frozenset({S.PROCESSING, S.READY, S.SHIPPED, S.COMPLETED, S.CANCELLED}),
+    S.PROCESSING: frozenset({S.READY, S.SHIPPED, S.COMPLETED, S.CANCELLED}),
+    S.READY: frozenset({S.SHIPPED, S.COMPLETED, S.CANCELLED}),
+    S.SHIPPED: frozenset({S.DELIVERED, S.COMPLETED}),
     S.DELIVERED: frozenset({S.COMPLETED}),
     S.COMPLETED: frozenset(),
     S.REJECTED: frozenset(),
@@ -200,6 +204,27 @@ async def record_delivery(
     Locked like a status change, so a double tap can't move it twice."""
     order = await get_order(db, store_id, order_id, for_update=True)
     delivery_service.record(order.delivery, data.status, data.assignee_note)
+    await db.commit()
+    return order
+
+
+async def record_cash_handover(db: AsyncSession, store_id: uuid.UUID, order_id: uuid.UUID) -> Order:
+    """ "Delivered, cash received" on a cash-on-delivery order (founder's
+    pick 1C, 2026-10-09): the seller's one tap records two things they
+    saw, the delivery delivered (or collected) and the cash in hand, each
+    through its own state machine. The order's status is left alone."""
+    order = await get_order(db, store_id, order_id, for_update=True)
+    if order.payment.method is not PaymentMethod.COD:
+        raise AppError(
+            409, "NOT_CASH_ON_DELIVERY", "This order isn't paid in cash on delivery.", "payment"
+        )
+    # Both checked before either changes, so it's both or neither.
+    delivery_service.check_transition(
+        order.delivery.method, order.delivery.status, DeliveryStatus.DELIVERED
+    )
+    payment_service.check_transition(order.payment.status, PaymentStatus.PAID)
+    delivery_service.record(order.delivery, DeliveryStatus.DELIVERED, None)
+    payment_service.record(order.payment, PaymentStatus.PAID, None)
     await db.commit()
     return order
 

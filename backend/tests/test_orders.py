@@ -27,12 +27,15 @@ S = OrderStatus
 
 # Copied from 02_TECHNICAL.md section 7.1 on purpose, not imported: a
 # change to the service's table has to be made here too, deliberately.
+# The short path (founder's pick 1C, 2026-10-09): the steps after Accept
+# are optional, and completing is allowed from any of them (the
+# completion rule is checked separately).
 EXPECTED = {
     S.PENDING: {S.ACCEPTED, S.REJECTED},
-    S.ACCEPTED: {S.PROCESSING, S.CANCELLED},
-    S.PROCESSING: {S.READY, S.CANCELLED},
-    S.READY: {S.SHIPPED, S.CANCELLED},
-    S.SHIPPED: {S.DELIVERED},
+    S.ACCEPTED: {S.PROCESSING, S.READY, S.SHIPPED, S.COMPLETED, S.CANCELLED},
+    S.PROCESSING: {S.READY, S.SHIPPED, S.COMPLETED, S.CANCELLED},
+    S.READY: {S.SHIPPED, S.COMPLETED, S.CANCELLED},
+    S.SHIPPED: {S.DELIVERED, S.COMPLETED},
     S.DELIVERED: {S.COMPLETED},
     S.COMPLETED: set(),
     S.REJECTED: set(),
@@ -66,8 +69,27 @@ def _order(
 
 def test_next_statuses_offer_the_allowed_moves_in_order():
     assert next_statuses(_order(S.PENDING)) == [S.ACCEPTED, S.REJECTED]
+    # Not paid yet: completing isn't offered.
     assert next_statuses(_order(S.READY)) == [S.SHIPPED, S.CANCELLED]
+    assert next_statuses(_order(S.ACCEPTED)) == [S.PROCESSING, S.READY, S.SHIPPED, S.CANCELLED]
     assert next_statuses(_order(S.CANCELLED)) == []
+
+
+def test_complete_is_offered_from_any_step_once_delivered_and_paid():
+    for status in (S.ACCEPTED, S.PROCESSING, S.READY, S.SHIPPED, S.DELIVERED):
+        order = _order(status, paid=PaymentStatus.PAID)
+        assert S.COMPLETED in next_statuses(order), status
+
+
+async def test_an_accepted_order_completes_straight_away_once_delivered_and_paid():
+    order = _order(S.ACCEPTED, PaymentMethod.COD, delivered=DeliveryStatus.NOT_ASSIGNED)
+    with pytest.raises(AppError) as error:
+        await transition(None, order, S.COMPLETED)
+    assert error.value.code == "ORDER_NOT_DELIVERED"
+
+    order.delivery.status = DeliveryStatus.DELIVERED
+    await transition(None, order, S.COMPLETED)
+    assert order.status is S.COMPLETED
 
 
 # 02 section 7.4, copied on purpose: complete only once the delivery is

@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Link2, MapPin, MapPinned, MessageSquareText, Phone, ShoppingBag, Truck, Wallet, XCircle } from 'lucide-react'
+import { ChevronDown, ChevronRight, Link2, LoaderCircle, MapPin, MapPinned, MessageSquareText, Phone, Plus, ShoppingBag, Truck, Wallet, XCircle } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { buzz } from '../../components/effects.ts'
@@ -17,7 +17,7 @@ import { formatOrderTime, formatPhone, ORDER_STATUS_TONES } from '../../lib/orde
 import { paymentBadge } from '../../lib/payments.ts'
 import type { DeliveryStatus, Order, OrderStatus } from '../../lib/types.ts'
 import { ProductImage } from '../../shop/components.tsx'
-import { useOrder, useRecordDelivery, useRecordPayment } from '../queries.ts'
+import { useCashHandover, useOrder, useRecordDelivery, useRecordPayment } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
 import { ENDS_ORDER, useMoveOrder } from './useMoveOrder.ts'
 
@@ -118,34 +118,63 @@ function scrollToSection(id: string) {
   )
 }
 
-/** What the order needs from the seller now, first thing on the page: the
- * order's own next step with its buttons (accept or reject a new order;
- * move it on, or cancel), and, as links to their cards, a payment to check
- * or a driver to assign. The three never set each other (02 section 7). */
+// The order's own steps between Accept and Complete: optional since the
+// short path (founder's pick 1C, 2026-10-09), for customers who follow
+// along. Its "delivered" is left out: the delivery's own Delivered says it.
+const OPTIONAL_STEPS = new Set<OrderStatus>(['processing', 'ready', 'shipped'])
+
+/** What the order needs from the seller now, first thing on the page. A
+ * new order: accept or reject. Then the short path (founder's pick 1C,
+ * 2026-10-09): deliver it (for cash on delivery, "Delivered, cash
+ * received" records both at once), then Complete as soon as the
+ * completion rule holds, from whatever step the order is at. The order's
+ * own steps in between are optional chips; a payment to check or a driver
+ * to assign are links to their cards. The three statuses never set each
+ * other (02 section 7): every button records only what it says. */
 function TodoCard({ order, onStale, onDecided }: { order: Order; onStale: () => void; onDecided?: () => void }) {
   const t = useT()
   const o = t.orders
+  const { toast } = useFeedback()
   const { move: moveOrder, change } = useMoveOrder(order.id, order.number, onStale)
+  const deliver = useRecordDelivery(order.id)
+  const handover = useCashHandover(order.id)
+  const busy = change.isPending || deliver.isPending || handover.isPending
   // A new order accepted or rejected (`order` as it was when tapped): on to
   // the next one.
   async function move(status: OrderStatus, button: HTMLElement) {
     if ((await moveOrder(status, button)) && order.status === 'pending') onDecided?.()
   }
-  const ends = order.next_statuses.filter((s) => ENDS_ORDER.has(s))
-  const forward = order.next_statuses.filter((s) => !ENDS_ORDER.has(s))
-  const closed = CLOSED.has(order.status)
+  async function record(action: () => Promise<unknown>, what: string) {
+    try {
+      await action()
+      buzz()
+      toast(o.changed(order.number, what))
+    } catch (error) {
+      toast(errorText(error), 'error')
+      if (error instanceof ApiError && error.status === 409) onStale()
+    }
+  }
   const { payment, delivery } = order
+  const pending = order.status === 'pending'
+  const pickup = delivery.method === 'pickup'
+  const ends = order.next_statuses.filter((s) => ENDS_ORDER.has(s))
+  const optional = order.next_statuses.filter((s) => OPTIONAL_STEPS.has(s))
+  const canComplete = order.next_statuses.includes('completed')
+  const canDeliver = delivery.next_statuses.includes('delivered')
+  const cashDue = payment.method === 'cod' && payment.next_statuses.includes('paid')
+  const delivered = deliveryBadge(t, delivery.method, 'delivered').label
 
   const links: { id: string; text: string }[] = []
-  if (!closed && order.status !== 'pending' && payment.next_statuses.includes('paid')) {
+  if (!pending && payment.next_statuses.includes('paid')) {
     if (payment.method !== 'cod') links.push({ id: 'payment', text: o.todo.payment })
     // Cash is in hand once it's been handed over.
-    else if (delivery.status === 'delivered' || order.status === 'delivered') links.push({ id: 'payment', text: o.todo.cash })
+    else if (delivery.status === 'delivered') links.push({ id: 'payment', text: o.todo.cash })
   }
-  if (!closed && order.status !== 'pending' && delivery.method !== 'pickup' && delivery.status === 'not_assigned') {
+  if (!pending && !canComplete && !pickup && delivery.status === 'not_assigned') {
     links.push({ id: 'delivery', text: o.todo.driver })
   }
-  if (ends.length + forward.length + links.length === 0) return null
+  // A completed order: nothing left to do.
+  if (!pending && !canComplete && !canDeliver && links.length + optional.length + ends.length === 0) return null
 
   return (
     <section
@@ -153,33 +182,61 @@ function TodoCard({ order, onStale, onDecided }: { order: Order; onStale: () => 
       className="-mx-4 border-y-2 border-brand/40 bg-surface p-4 sm:mx-0 sm:rounded-2xl sm:border-2 sm:p-5"
     >
       <p className="text-xs font-bold tracking-wide text-brand">{o.todo.label}</p>
-      {(ends.length > 0 || forward.length > 0) && (
-        <>
-          <h2 className="mt-1 text-lg font-bold text-slate-900">
-            {order.status === 'pending' ? o.todo.accept : o.todo.next}
-          </h2>
-          <div className="mt-3 flex gap-3">
-            {ends.map((status) => (
-              <Button key={status} variant="danger" disabled={change.isPending} onClick={(e) => move(status, e.currentTarget)}>
-                {o.action[status as keyof typeof o.action]}
-              </Button>
-            ))}
-            {forward.map((status) => (
+      <h2 className="mt-1 text-lg font-bold text-slate-900">
+        {pending ? o.todo.accept : canComplete ? o.todo.ready : canDeliver ? (pickup ? o.todo.collect : o.todo.deliver) : o.todo.next}
+      </h2>
+      {pending ? (
+        <div className="mt-3 flex gap-3">
+          {ends.map((status) => (
+            <Button key={status} variant="danger" disabled={busy} onClick={(e) => move(status, e.currentTarget)}>
+              {o.action[status as keyof typeof o.action]}
+            </Button>
+          ))}
+          <Button
+            loading={change.isPending && change.variables === 'accepted'}
+            disabled={busy}
+            onClick={(e) => move('accepted', e.currentTarget)}
+            className="flex-1"
+          >
+            {o.action.accepted}
+          </Button>
+        </div>
+      ) : canComplete ? (
+        <Button
+          loading={change.isPending && change.variables === 'completed'}
+          disabled={busy}
+          onClick={(e) => move('completed', e.currentTarget)}
+          className="mt-3 w-full"
+        >
+          {o.action.completed}
+        </Button>
+      ) : (
+        canDeliver && (
+          <div className="mt-3 flex flex-wrap gap-3">
+            {cashDue && (
               <Button
-                key={status}
-                loading={change.isPending && change.variables === status}
-                disabled={change.isPending}
-                onClick={(e) => move(status, e.currentTarget)}
+                loading={handover.isPending}
+                disabled={busy}
+                onClick={() => record(() => handover.mutateAsync(), pickup ? o.collectedCash : o.cashHandover)}
                 className="flex-1"
               >
-                {o.action[status as keyof typeof o.action]}
+                {pickup ? o.collectedCash : o.cashHandover}
               </Button>
-            ))}
+            )}
+            <Button
+              variant={cashDue ? 'secondary' : 'primary'}
+              loading={deliver.isPending}
+              disabled={busy}
+              onClick={() => record(() => deliver.mutateAsync({ status: 'delivered', assignee_note: null }), delivered)}
+              className={cashDue ? '' : 'flex-1'}
+            >
+              {deliveryAction(t, delivery, 'delivered')}
+            </Button>
           </div>
-        </>
+        )
       )}
       {links.length > 0 && (
-        <ul className={`divide-y divide-slate-100 ${ends.length + forward.length > 0 ? 'mt-3 border-t border-slate-100' : 'mt-1'}`}>
+        <ul className={`divide-y divide-slate-100 ${pending || canComplete || canDeliver ? 'mt-3 border-t border-slate-100' : 'mt-1'}`}>
           {links.map((link) => (
             <li key={link.text}>
               <button
@@ -194,7 +251,69 @@ function TodoCard({ order, onStale, onDecided }: { order: Order; onStale: () => 
           ))}
         </ul>
       )}
+      {!pending && (optional.length > 0 || ends.length > 0) && (
+        <div className="mt-3 border-t border-slate-100 pt-3">
+          {optional.length > 0 && (
+            <>
+              <p className="text-xs text-slate-500">{o.todo.optional}</p>
+              <StepChips
+                steps={optional}
+                label={(s) => t.status.order[s]}
+                busy={busy}
+                pending={change.isPending ? change.variables : undefined}
+                onPick={(s, button) => move(s, button)}
+              />
+            </>
+          )}
+          {ends.length > 0 && (
+            <div className="mt-3 flex justify-end">
+              {ends.map((status) => (
+                <button key={status} type="button" disabled={busy} onClick={(e) => move(status, e.currentTarget)} className={RED_TEXT_BUTTON}>
+                  {o.action[status as keyof typeof o.action]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </section>
+  )
+}
+
+// Cancel order, Delivery failed: there when needed, quiet until then.
+const RED_TEXT_BUTTON =
+  'inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 disabled:opacity-50 sm:min-h-10'
+
+/** Small buttons for optional steps, in state-machine order. */
+function StepChips<S extends string>({
+  steps,
+  label,
+  busy,
+  pending,
+  onPick,
+}: {
+  steps: S[]
+  label: (step: S) => string
+  busy: boolean
+  pending?: S
+  onPick: (step: S, button: HTMLElement) => void
+}) {
+  return (
+    <div className="mt-1.5 flex flex-wrap gap-2">
+      {steps.map((step) => (
+        <button
+          key={step}
+          type="button"
+          disabled={busy}
+          aria-busy={pending === step || undefined}
+          onClick={(e) => onPick(step, e.currentTarget)}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-dashed border-slate-300 px-3.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 disabled:opacity-50 sm:min-h-9"
+        >
+          {pending === step ? <LoaderCircle aria-hidden className="size-3.5 animate-spin" /> : <Plus aria-hidden className="size-3.5" />}
+          {label(step)}
+        </button>
+      ))}
+    </div>
   )
 }
 
@@ -558,6 +677,8 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
   // Nothing to deliver once the order is off, so no buttons (the server
   // would still allow it: the two never set each other).
   const actions = CLOSED.has(order.status) ? [] : delivery.next_statuses
+  const main = actions.filter((s) => s === 'assigned' || s === 'delivered')
+  const steps = actions.filter((s) => s === 'picked_up' || s === 'in_transit')
   const waitsForDelivery = order.status === 'delivered' && delivery.status !== 'delivered'
 
   async function save(status: DeliveryStatus) {
@@ -630,26 +751,48 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
         </form>
       ) : (
         actions.length > 0 && (
-          <div className="mt-4 flex gap-3">
-            {actions.map((status) =>
-              status === 'failed' ? (
-                <Button key={status} variant="danger" onClick={() => save(status)} disabled={record.isPending}>
-                  {deliveryAction(t, delivery, status)}
-                </Button>
-              ) : (
-                <Button
-                  key={status}
-                  variant="secondary"
-                  loading={record.isPending && record.variables?.status === status}
-                  disabled={record.isPending}
-                  onClick={() => (status === 'assigned' ? startAssigning() : save(status))}
-                  className="flex-1"
-                >
-                  {deliveryAction(t, delivery, status)}
-                </Button>
-              ),
+          <>
+            {/* Assign (or book the courier, or try again) and Delivered;
+                the steps in between are optional chips (founder's pick
+                1C, 2026-10-09); failing is apart, in red. */}
+            {main.length > 0 && (
+              <div className="mt-4 flex gap-3">
+                {main.map((status) => (
+                  <Button
+                    key={status}
+                    variant="secondary"
+                    loading={record.isPending && record.variables?.status === status}
+                    disabled={record.isPending}
+                    onClick={() => (status === 'assigned' ? startAssigning() : save(status))}
+                    className="flex-1"
+                  >
+                    {deliveryAction(t, delivery, status)}
+                  </Button>
+                ))}
+              </div>
             )}
-          </div>
+            {(steps.length > 0 || actions.includes('failed')) && (
+              <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
+                {steps.length > 0 && (
+                  <div>
+                    <p className="text-xs text-slate-500">{o.moreSteps}</p>
+                    <StepChips
+                      steps={steps}
+                      label={(s) => deliveryAction(t, delivery, s)}
+                      busy={record.isPending}
+                      pending={record.isPending ? record.variables?.status : undefined}
+                      onPick={(s) => save(s)}
+                    />
+                  </div>
+                )}
+                {actions.includes('failed') && (
+                  <button type="button" onClick={() => save('failed')} disabled={record.isPending} className={RED_TEXT_BUTTON}>
+                    {deliveryAction(t, delivery, 'failed')}
+                  </button>
+                )}
+              </div>
+            )}
+          </>
         )
       )}
     </Card>

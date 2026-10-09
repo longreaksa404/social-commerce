@@ -161,6 +161,19 @@ export function useRecordDelivery(id: string) {
   })
 }
 
+/** Cash on delivery: delivered (or collected) and the cash received, in
+ * one tap. The server records each in its own state machine. */
+export function useCashHandover(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => api<Order>(`/seller/orders/${id}/cash-handover`, { method: 'POST' }),
+    onSuccess: (order) => {
+      queryClient.setQueryData(keys.order(id), order)
+      queryClient.invalidateQueries({ queryKey: [...keys.orders, 'list'] })
+    },
+  })
+}
+
 /** The count on the bell. */
 export function useUnreadNotifications() {
   return useQuery({

@@ -51,7 +51,21 @@ export const orders = {
     cash: { en: 'Mark the cash as received when you get it', km: 'កត់ថាបានទទួលសាច់ប្រាក់ ពេលអ្នកទទួលបាន' },
     driver: { en: 'Assign a driver', km: 'ចាត់អ្នកដឹក' },
     delivery: { en: 'Update the delivery', km: 'ធ្វើបច្ចុប្បន្នភាពការដឹកជញ្ជូន' },
+    // The short path (founder's pick 1C, 2026-10-09).
+    ready: { en: 'Ready to complete', km: 'រួចរាល់សម្រាប់បញ្ចប់' },
+    deliver: { en: 'Next: deliver it', km: 'បន្ទាប់៖ ដឹកជូនអតិថិជន' },
+    collect: { en: 'Next: the customer collects it', km: 'បន្ទាប់៖ អតិថិជនមកយក' },
+    optional: {
+      en: 'Steps customers can follow (optional)',
+      km: 'ជំហានដែលអតិថិជនអាចតាមដាន (មិនចាំបាច់)',
+    },
   },
+  // One tap on a cash-on-delivery order: delivered (or collected) and the
+  // cash in hand, recorded together.
+  cashHandover: { en: 'Delivered, cash received', km: 'បានដល់ដៃ និងបានទទួលសាច់ប្រាក់' },
+  collectedCash: { en: 'Collected, cash received', km: 'បានមកយក និងបានទទួលសាច់ប្រាក់' },
+  // Delivery card: the steps in between, for those who use them.
+  moreSteps: { en: 'More steps (optional)', km: 'ជំហានបន្ថែម (មិនចាំបាច់)' },
   filterLabel: { en: 'Filter orders', km: 'ច្រោះការកុម្ម៉ង់' },
   filter: {
     all: { en: 'All', km: 'ទាំងអស់' },

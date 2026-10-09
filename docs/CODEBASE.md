@@ -629,16 +629,19 @@ function that writes the status. Seller endpoints lock the order row
 pending ──▶ accepted ──▶ processing ──▶ ready ──▶ shipped ──▶ delivered ──▶ completed*
    │            │             │           │
    └▶ rejected  └▶ cancelled  └▶ cancelled └▶ cancelled
+
+short path (founder's pick 1C, 2026-10-09): the steps after accepted are
+optional, forward only, and completed* is a target from every one of them
 ```
 
 ```python
 ALLOWED_ORDER_TRANSITIONS = {
     PENDING:    {ACCEPTED, REJECTED},
-    ACCEPTED:   {PROCESSING, CANCELLED},
-    PROCESSING: {READY, CANCELLED},
-    READY:      {SHIPPED, CANCELLED},
-    SHIPPED:    {DELIVERED},
-    DELIVERED:  {COMPLETED},          # * only if can_complete()
+    ACCEPTED:   {PROCESSING, READY, SHIPPED, COMPLETED, CANCELLED},
+    PROCESSING: {READY, SHIPPED, COMPLETED, CANCELLED},
+    READY:      {SHIPPED, COMPLETED, CANCELLED},
+    SHIPPED:    {DELIVERED, COMPLETED},
+    DELIVERED:  {COMPLETED},          # COMPLETED everywhere: only if can_complete()
     COMPLETED:  set(), REJECTED: set(), CANCELLED: set(),
 }
 ```
@@ -686,14 +689,19 @@ Per delivery method:
 seller_delivery:  not_assigned ──▶ assigned ──▶ picked_up ──▶ in_transit ──▶ delivered
                                       ▲                            │
                                       └────────── failed ◀─────────┘   (failed → assigned = retry)
+                  steps in between optional, forward only (1C, 2026-10-09);
+                  failed from assigned / picked_up / in_transit; failed → delivered too
 
 pickup:           not_assigned ──▶ delivered
 ```
 
 ```python
 ALLOWED_DELIVERY_TRANSITIONS = {
-    SELLER_DELIVERY: {NOT_ASSIGNED: {ASSIGNED}, ASSIGNED: {PICKED_UP}, PICKED_UP: {IN_TRANSIT},
-                      IN_TRANSIT: {DELIVERED, FAILED}, DELIVERED: set(), FAILED: {ASSIGNED}},
+    SELLER_DELIVERY: {NOT_ASSIGNED: {ASSIGNED, PICKED_UP, IN_TRANSIT, DELIVERED},
+                      ASSIGNED: {PICKED_UP, IN_TRANSIT, DELIVERED, FAILED},
+                      PICKED_UP: {IN_TRANSIT, DELIVERED, FAILED},
+                      IN_TRANSIT: {DELIVERED, FAILED}, DELIVERED: set(),
+                      FAILED: {ASSIGNED, DELIVERED}},
     PICKUP:          {NOT_ASSIGNED: {DELIVERED}, <every other status>: set()},
 }
 ```
@@ -703,6 +711,12 @@ ALLOWED_DELIVERY_TRANSITIONS = {
   `assignee_note` if one is given.
 - Called by `order.record_delivery` (`PATCH /seller/orders/{id}/delivery`).
   It never reads or writes the order's or the payment's status.
+- **"Delivered, cash received"** (`order.record_cash_handover`, `POST
+  /seller/orders/{id}/cash-handover`, founder's pick 1C): cash on delivery
+  only (409 `NOT_CASH_ON_DELIVERY`). One seller tap records two things,
+  each through its own writer: the delivery `delivered`, the payment
+  `paid`. Both transitions are checked before either is written, so it's
+  both or neither. The order's status is left alone.
 
 ### Completion rule (02 §7.4): `app/services/order.py`
 
@@ -714,10 +728,11 @@ def can_complete(order):
     return order.delivery.status is DeliveryStatus.DELIVERED and is_settled(order)
 ```
 
-Enforced in `transition()` and reflected in `next_statuses()`. The order's
-own status must also be `delivered`, because that is the only state with
-`completed` as a target. So the seller marks both the **order** and the
-**delivery** delivered; they are separate. A COD order can complete even if
+Enforced in `transition()` and reflected in `next_statuses()`. Since the
+short path (1C) every active order status has `completed` as a target, so
+the seller no longer marks the **order** delivered as well as the
+**delivery**; the order's own delivered stays as an optional step after
+shipped. A COD order can complete even if
 its payment was marked `failed` (02 §7.4 read literally; 04 notes this).
 
 Tests (`test_orders.py`, `test_payments.py`, `test_delivery.py`) parametrize
@@ -772,6 +787,7 @@ from the schema.
 | PATCH | `/seller/orders/{order_id}/status` | seller | `OrderStatusUpdate` | `OrderOut` | §6 |
 | PATCH | `/seller/orders/{order_id}/payment` | seller | `PaymentUpdate` | `OrderOut` | §6 |
 | PATCH | `/seller/orders/{order_id}/delivery` | seller | `DeliveryUpdate` | `OrderOut` | §6 |
+| POST | `/seller/orders/{order_id}/cash-handover` | seller | — | `OrderOut` | Cash on delivery: delivery delivered + payment paid, both or neither (§6) |
 | GET | `/seller/customers` | seller | `?q=(≤100)&limit=1..100(50)&offset=` | `CustomerListOut` | Last ordered first; `q` matches name (case-insensitive) or phone typed any way |
 | GET | `/seller/customers/{customer_id}` | seller | — | `CustomerDetailOut` | Latest 100 orders |
 | GET | `/seller/notifications` | seller | `?limit=1..50(20)&offset=` | `NotificationListOut` | Web rows, newest first; listing doesn't mark read |
@@ -839,7 +855,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/login`, `/register` | `pages/Login`, `pages/Register` | Login has "Forgot password?" |
 | `/forgot-password`, `/reset-password#<token>` | `pages/ForgotPassword`, `pages/ResetPassword` | The link goes to the shop's Telegram; without Telegram, "Message Oak Order" (if `VITE_SUPPORT_TELEGRAM`). Saving logs in (`startSession` in `AuthContext`) |
 | `/dashboard` | `dashboard/Layout` (`DashboardLayout`) | **Auth guard**: spinner while loading, retry card if unreachable, `Navigate` to `/login` if anonymous; index redirects to `orders` |
-| `/dashboard/orders`, `/orders/:orderId` | `OrdersPage` (`OrderList.tsx`: the list, with `OrderDetail` beside it on laptops) | Orders tab is the start page; phones show the list or the order; rows (`OrderRow.tsx`) lead with the customer and have no buttons; accepting or rejecting in the open order's To do card (`useMoveOrder.ts`) opens the next new order of the tab (`nextNewOrder`), unless it was opened from a customer's or a link's page. Amber reminders above the list (`Reminder`, opening the setting for owners): orders paused, and delivery not set up (`delivery_set_up`, "free for customers"; the Settings menu's Delivery row says the same). No orders yet: "Add your first product" while the shop has none, else "Open your shop" |
+| `/dashboard/orders`, `/orders/:orderId` | `OrdersPage` (`OrderList.tsx`: the list, with `OrderDetail` beside it on laptops) | Orders tab is the start page; phones show the list or the order; rows (`OrderRow.tsx`) lead with the customer and have no buttons; accepting or rejecting in the open order's To do card (`useMoveOrder.ts`) opens the next new order of the tab (`nextNewOrder`), unless it was opened from a customer's or a link's page. The To do card follows the short path (1C): Accept / Reject; then "Next: deliver it" with Delivered (cash on delivery: "Delivered, cash received" first, `useCashHandover`); then Complete once `next_statuses` has it; the order's processing / ready / shipped as optional chips (`StepChips`), Cancel as red text. The Delivery card: Assign and Delivered, picked up / on the way as chips, Delivery failed as red text. Amber reminders above the list (`Reminder`, opening the setting for owners): orders paused, and delivery not set up (`delivery_set_up`, "free for customers"; the Settings menu's Delivery row says the same). No orders yet: "Add your first product" while the shop has none, else "Open your shop" |
 | `/dashboard/customers`, `/customers/:customerId` | `CustomerList`, `CustomerDetail` | Laptops: a sortable table (sorts the customers loaded); a customer has Call / Copy phone |
 | `/dashboard/products`, `/products/new`, `/products/:productId` | `ProductList`, `ProductEdit` | Photos (cards as tall as the photo) or List (rows; a sortable table on laptops), kept in `sc.products.view`; stock tags: the seller's `low_stock_alert` or fewer is "Only N left" |
 | `/dashboard/categories` | `Categories` | Button on Products on phones; sidebar entry on desktop. "New category" opens a labelled form; each row's actions (share link, rename, delete) are in one ⋯ menu (`RowMenu`) |

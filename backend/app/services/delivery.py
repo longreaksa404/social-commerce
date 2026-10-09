@@ -25,14 +25,18 @@ D = DeliveryStatus
 ALLOWED_DELIVERY_TRANSITIONS: dict[
     DeliveryMethod, dict[DeliveryStatus, frozenset[DeliveryStatus]]
 ] = {
+    # The steps in between are optional (founder's pick 1C, 2026-10-09): a
+    # seller who hands it over themselves taps Delivered straight away.
+    # Failing needs it to have been sent out.
     DeliveryMethod.SELLER_DELIVERY: {
-        D.NOT_ASSIGNED: frozenset({D.ASSIGNED}),
-        D.ASSIGNED: frozenset({D.PICKED_UP}),
-        D.PICKED_UP: frozenset({D.IN_TRANSIT}),
+        D.NOT_ASSIGNED: frozenset({D.ASSIGNED, D.PICKED_UP, D.IN_TRANSIT, D.DELIVERED}),
+        D.ASSIGNED: frozenset({D.PICKED_UP, D.IN_TRANSIT, D.DELIVERED, D.FAILED}),
+        D.PICKED_UP: frozenset({D.IN_TRANSIT, D.DELIVERED, D.FAILED}),
         D.IN_TRANSIT: frozenset({D.DELIVERED, D.FAILED}),
         D.DELIVERED: frozenset(),
-        # Nobody home: try again, maybe with someone else (decided 2026-10-03).
-        D.FAILED: frozenset({D.ASSIGNED}),
+        # Nobody home: try again, maybe with someone else (decided
+        # 2026-10-03), or it went through on a second try.
+        D.FAILED: frozenset({D.ASSIGNED, D.DELIVERED}),
     },
     # Pickup skips the steps in between: the seller marks it when the
     # customer collects.

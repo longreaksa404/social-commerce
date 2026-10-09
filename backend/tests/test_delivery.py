@@ -9,6 +9,7 @@ from app.core.errors import AppError
 from app.models import Delivery, DeliveryMethod, DeliveryStatus, Product
 from app.services.delivery import check_transition, next_statuses
 from tests.helpers import (
+    BANK,
     DELIVERY,
     PICKUP,
     add_product,
@@ -16,6 +17,7 @@ from tests.helpers import (
     registered_seller,
     set_delivery,
     set_discounts,
+    set_payments,
     stock,
     track,
 )
@@ -310,15 +312,17 @@ D = DeliveryStatus
 
 # Copied from 02_TECHNICAL.md section 7.3 on purpose, not imported: a
 # change to the service's table has to be made here too, deliberately.
-# failed -> assigned is the retry (decided 2026-10-03).
+# failed -> assigned is the retry (decided 2026-10-03); the steps in
+# between are optional (founder's pick 1C, 2026-10-09), and failing needs
+# the delivery to have been sent out.
 EXPECTED = {
     DeliveryMethod.SELLER_DELIVERY: {
-        D.NOT_ASSIGNED: {D.ASSIGNED},
-        D.ASSIGNED: {D.PICKED_UP},
-        D.PICKED_UP: {D.IN_TRANSIT},
+        D.NOT_ASSIGNED: {D.ASSIGNED, D.PICKED_UP, D.IN_TRANSIT, D.DELIVERED},
+        D.ASSIGNED: {D.PICKED_UP, D.IN_TRANSIT, D.DELIVERED, D.FAILED},
+        D.PICKED_UP: {D.IN_TRANSIT, D.DELIVERED, D.FAILED},
         D.IN_TRANSIT: {D.DELIVERED, D.FAILED},
         D.DELIVERED: set(),
-        D.FAILED: {D.ASSIGNED},
+        D.FAILED: {D.ASSIGNED, D.DELIVERED},
     },
     DeliveryMethod.PICKUP: {
         D.NOT_ASSIGNED: {D.DELIVERED},
@@ -343,8 +347,14 @@ def test_every_delivery_transition_follows_the_state_machine(method, current, ta
 
 def test_next_delivery_statuses_are_what_the_seller_can_do():
     seller = DeliveryMethod.SELLER_DELIVERY
+    assert next_statuses(Delivery(method=seller, status=D.NOT_ASSIGNED)) == [
+        D.ASSIGNED,
+        D.PICKED_UP,
+        D.IN_TRANSIT,
+        D.DELIVERED,
+    ]
     assert next_statuses(Delivery(method=seller, status=D.IN_TRANSIT)) == [D.DELIVERED, D.FAILED]
-    assert next_statuses(Delivery(method=seller, status=D.FAILED)) == [D.ASSIGNED]
+    assert next_statuses(Delivery(method=seller, status=D.FAILED)) == [D.ASSIGNED, D.DELIVERED]
     assert next_statuses(Delivery(method=DeliveryMethod.PICKUP, status=D.NOT_ASSIGNED)) == [
         D.DELIVERED
     ]
@@ -365,11 +375,16 @@ async def test_seller_delivers_fails_and_tries_again(client, auth_headers):
     assigned = await _deliver(client, headers, order["id"], "assigned", "Sokha, 012 999 888")
     assert assigned.status_code == 200, assigned.text
     assert assigned.json()["delivery"]["assignee_note"] == "Sokha, 012 999 888"
-    assert assigned.json()["delivery"]["next_statuses"] == ["picked_up"]
+    assert assigned.json()["delivery"]["next_statuses"] == [
+        "picked_up",
+        "in_transit",
+        "delivered",
+        "failed",
+    ]
     await _deliver(client, headers, order["id"], "picked_up")
     await _deliver(client, headers, order["id"], "in_transit")
     failed = (await _deliver(client, headers, order["id"], "failed")).json()
-    assert failed["delivery"]["next_statuses"] == ["assigned"]
+    assert failed["delivery"]["next_statuses"] == ["assigned", "delivered"]
     assert failed["delivery"]["assignee_note"] == "Sokha, 012 999 888"  # kept
 
     retry = (await _deliver(client, headers, order["id"], "assigned", "Vibol tomorrow")).json()
@@ -399,6 +414,108 @@ async def test_pickup_goes_straight_to_delivered(client, auth_headers):
     assert collected.status_code == 200
     assert collected.json()["delivery"]["status"] == "delivered"
     assert collected.json()["delivery"]["next_statuses"] == []
+
+
+async def test_seller_hands_it_over_without_the_steps_in_between(client, auth_headers):
+    headers, slug, shirt = await _shop(client, auth_headers)
+    order = (await place_order(client, slug, [(shirt, None, 1)], total="11.50")).json()
+    await client.patch(
+        f"/api/v1/seller/orders/{order['id']}/status", headers=headers, json={"status": "accepted"}
+    )
+
+    delivered = (await _deliver(client, headers, order["id"], "delivered")).json()
+
+    assert delivered["delivery"]["status"] == "delivered"
+    # Cash on delivery and delivered: Complete is offered from Accepted.
+    assert delivered["status"] == "accepted"
+    assert delivered["next_statuses"] == [
+        "processing",
+        "ready",
+        "shipped",
+        "completed",
+        "cancelled",
+    ]
+
+
+async def _handover(client, headers, order_id):
+    return await client.post(f"/api/v1/seller/orders/{order_id}/cash-handover", headers=headers)
+
+
+async def test_delivered_cash_received_records_both_and_leaves_the_order(client, auth_headers):
+    headers, slug, shirt = await _shop(client, auth_headers)
+    order = (await place_order(client, slug, [(shirt, None, 1)], total="11.50")).json()
+    await client.patch(
+        f"/api/v1/seller/orders/{order['id']}/status", headers=headers, json={"status": "accepted"}
+    )
+
+    response = await _handover(client, headers, order["id"])
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert (body["delivery"]["status"], body["payment"]["status"]) == ("delivered", "paid")
+    assert body["payment"]["paid_at"] is not None
+    assert body["status"] == "accepted"  # the order moves only by its own taps
+    assert "completed" in body["next_statuses"]
+    # Done once: a second tap is refused and changes nothing.
+    again = await _handover(client, headers, order["id"])
+    assert again.status_code == 409
+
+
+async def test_collected_cash_received_on_a_pickup(client, auth_headers):
+    headers, slug, shirt = await _shop(client, auth_headers)
+    order = (
+        await place_order(
+            client, slug, [(shirt, None, 1)], total="10.00", delivery_method="pickup", address=None
+        )
+    ).json()
+
+    body = (await _handover(client, headers, order["id"])).json()
+
+    assert (body["delivery"]["status"], body["payment"]["status"]) == ("delivered", "paid")
+
+
+async def test_cash_handover_is_both_or_neither(client, auth_headers):
+    headers, slug, shirt = await _shop(client, auth_headers)
+    order = (await place_order(client, slug, [(shirt, None, 1)], total="11.50")).json()
+    # Delivered already: the payment must not be marked paid on its own.
+    await _deliver(client, headers, order["id"], "delivered")
+
+    response = await _handover(client, headers, order["id"])
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "INVALID_DELIVERY_TRANSITION"
+    detail = (await client.get(f"/api/v1/seller/orders/{order['id']}", headers=headers)).json()
+    assert detail["payment"]["status"] == "pending"
+
+
+async def test_cash_handover_is_for_cash_on_delivery_only(client, auth_headers):
+    headers, slug, shirt = await _shop(client, auth_headers)
+    await set_payments(client, headers, bank_transfer=BANK)
+    order = (
+        await place_order(
+            client, slug, [(shirt, None, 1)], total="11.50", payment_method="bank_transfer"
+        )
+    ).json()
+
+    response = await _handover(client, headers, order["id"])
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "NOT_CASH_ON_DELIVERY"
+
+
+async def test_seller_cannot_hand_over_another_stores_order(client, auth_headers):
+    _, slug, shirt = await _shop(client, auth_headers)
+    other_headers, _, _ = await registered_seller(client, auth_headers)
+    order = (await place_order(client, slug, [(shirt, None, 1)], total="11.50")).json()
+
+    response = await _handover(client, other_headers, order["id"])
+
+    assert response.status_code == 404
+    tracked = (await track(client, slug, order["id"])).json()
+    assert (tracked["delivery"]["status"], tracked["payment"]["status"]) == (
+        "not_assigned",
+        "pending",
+    )
 
 
 async def test_seller_cannot_move_another_stores_delivery(client, auth_headers):

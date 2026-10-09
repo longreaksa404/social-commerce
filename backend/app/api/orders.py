@@ -91,6 +91,15 @@ async def record_payment(
     return await order_service.order_out(db, seller.store_id, order)
 
 
+@router.post("/{order_id}/cash-handover", response_model=OrderOut)
+async def cash_handover(order_id: uuid.UUID, seller: Seller, db: TenantDb) -> OrderOut:
+    """Cash on delivery: the delivery delivered (or collected) and the cash
+    received, recorded together. Each still follows its own state machine
+    (02 sections 7.2 and 7.3); the order's status is left alone."""
+    order = await order_service.record_cash_handover(db, seller.store_id, order_id)
+    return await order_service.order_out(db, seller.store_id, order)
+
+
 @router.patch("/{order_id}/delivery", response_model=OrderOut)
 async def record_delivery(
     order_id: uuid.UUID, data: DeliveryUpdate, seller: Seller, db: TenantDb
