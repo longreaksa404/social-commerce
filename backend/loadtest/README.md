@@ -99,3 +99,32 @@ Run it from home, not the office network.
 
 Send the summary lines (and `results/report-live.html` if you like) to
 Claude to compare with the local numbers.
+
+## Performance audit tools (docs/PERF_AUDIT.md)
+
+Development only; both refuse any database except a local one named `*_perf`.
+Run from `backend/` with its own venv (not this folder's).
+
+- `seed_perf.py` creates, migrates and fills `social_commerce_perf`: 20 shops,
+  one big one (`perf-big`: 500 products, 2,000 customers, 5,000 orders over a
+  year with payments, deliveries, notifications, links and views) and 19 small
+  ones (`perf-shop-01` ...). It empties that database first. The shops log in
+  as `<slug>@example.com` / `perf-password-123`. Photos point at
+  `http://localhost:8090`, where the audit served stand-in photos.
+- `measure.py` times every endpoint against it (30 runs after 5 warm-ups) and
+  counts, per request, the SQL statements and the round trips to Postgres
+  (through a small proxy that can also add a delay per trip, like the trip
+  from Render to Neon). Write endpoints use up the seeded shop's open orders,
+  so seed again before each run.
+
+```sh
+.venv/bin/python loadtest/seed_perf.py
+.venv/bin/python loadtest/measure.py --label before             # in-process, counts + times
+.venv/bin/python loadtest/measure.py --rtt-ms 2 --label before-rtt2
+.venv/bin/python loadtest/measure.py --host http://localhost:8001 --label before-cpu01
+```
+
+The last one times a running API instead (no counts), e.g. the Docker image
+at Render's CPU from "Locally, at Render's CPU" above, started with
+`DATABASE_URL` pointing at `social_commerce_perf`. Results are saved in
+`results/measure-<label>.json`.
