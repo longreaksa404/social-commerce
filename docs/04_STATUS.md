@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-08 (more in Settings: account, pause orders, contact buttons, alert level, export, close shop, staff)
+> **Last updated:** 2026-10-09 (pre-pilot review: four fixes; login renewal retry, delivery-fee reminder, first-product empty state, Khmer bot)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -913,6 +913,49 @@ also at 1280), the shop notice and the export also in Khmer. Four
 migrations to run on deploy (they run on Render's start):
 `5ee23aad5482`, `007ae4403215`, `49da40196f18`, `ae070e4b3006`.
 
+**Pre-pilot review fixes** (founder asked 2026-10-09 for a review of the
+whole project before 3-5 real sellers; approved "all fix in section 2"
+of the review). Each committed on its own; not pushed:
+
+1. [x] **No logout on a lost answer** (`09f762b`): a refresh token shown
+   again within 60 s of its swap gets a new pair (the phone retrying
+   after the answer was lost on a weak connection, e.g. 3G in the
+   market); later reuse still ends every session. Logout and ending
+   sessions now delete rows instead of setting `revoked_at`. Differs
+   from 02 §5.2 / §13 (text to update under Decisions below).
+2. [x] **Delivery fee reminder** (`d0eec41`): a new shop runs on free own
+   delivery until Settings → Delivery is saved once. `GET /seller/store`
+   has `delivery_set_up`; until true, an amber strip tops the Orders tab
+   ("Delivery is free for customers until you set your delivery fee",
+   opening Settings → Delivery for owners) and the Settings menu's
+   Delivery row reads "Not set yet: free for customers". Saving free
+   delivery on purpose counts as set up. No data model change.
+3. [x] **Products first in a new shop** (`d0eec41`): with no orders and no
+   products, the Orders tab says "Add your first product" with an Add
+   product button, instead of "share your shop link". Also fixed: an
+   owner whose orders are paused with no reopening day saw the staff
+   wording; they now see "Tap to turn them back on".
+4. [x] **The Telegram bot speaks Khmer** (`364b8ed`): new-order and
+   low-stock alerts, the Open order button, the connect / expired-link /
+   help replies and the password reset message, in the app's own Khmer
+   words. Khmer only: no per-seller language is stored, so a seller who
+   uses the app in English also gets Khmer.
+
+Checked: 526 backend tests pass (5 new: retry within the grace, the
+grace not stretched by retries, logout inside the grace, delivery set
+up / not set up; the old reuse test now reuses after the grace); ruff, oxlint and the build pass. Clicked
+through in headless Chromium at 390 px (English) and 320 px (Khmer): new
+shop shows the reminder and "Add your first product"; with a product,
+"No orders yet"; the reminder opens Settings → Delivery and is gone once
+delivery is saved; no sideways scroll; no console errors. No migration.
+
+The rest of the review (founder to pick, 2026-10-09): A fewer taps per
+order (13 measured for one cash-on-delivery order; skip steps, 02 §7.1 /
+§7.3), B orders from chat entered by the seller, C undo a wrong tap (02
+§7.2), D copy order for the driver, E "I've paid" for customers, F setup
+checklist, G today's numbers, H Khmer alerts (done as fix 4). Not in
+the docs: each needs the founder's yes.
+
 Phase 9, waiting on the founder:
 
 - **Live load test**, once, before the first real seller, from home
@@ -1147,6 +1190,20 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
+From the pre-pilot review (founder approved 2026-10-09), not yet in 02:
+
+- **Login renewal retry window:** a refresh token reused within 60 s of
+  its swap gets a new pair; only later reuse ends every session.
+  Proposed text, 02 §5.2 under `refresh_token`: "> Each refresh token is
+  swapped once. Shown again within 60 seconds it gets a new pair (a
+  retry after the answer was lost); later, reusing it ends all of that
+  seller's sessions (§13). Logging out deletes the row." 02 §13 Tokens:
+  "... refresh rotated on use; a retry within 60 s of a rotation gets a
+  new pair, later reuse ends every session of that seller."
+- **The Telegram bot speaks Khmer only** (alerts and replies), the app's
+  default language. Following each seller's own language would need a
+  store column (a data model change).
+
 Applied to 01/02/03 on 2026-10-08 (at the founder's request): "More in
 Settings" (01 §23.1 Settings, §11, §46 Business; 02 §4.3, §5.1, §5.2
 seller and store, §6.2; 03 Phase 9 row, 39 hrs; subtotal ~157 hrs; §4
@@ -1370,7 +1427,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 - Translations: new or changed text goes into both languages in
   `frontend/src/i18n/messages/`; a new backend error message also needs
   its Khmer in `apiErrors.ts` (otherwise Khmer shows a general line).
-  Telegram alerts (backend) are still English only.
+  The Telegram bot's messages (backend) are Khmer only since 2026-10-09:
+  a new bot message is written in Khmer, with the app's words.
 - Staff logins (2026-10-08): Telegram alerts go only to the owner's
   connected chat; the bell's read state is shared by everyone in the
   shop; a removed helper's open session works up to 15 minutes (until
@@ -1474,6 +1532,10 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
+00. Founder: pick from the review's items A-G (In Progress, "Pre-pilot
+    review fixes"); try the four fixes on the dev server or after a
+    push (a new shop's Orders tab; a Telegram alert in Khmer); copy the
+    02 §5.2 / §13 text under Decisions into 02.
 0. Founder: try the new Settings pieces (list under In Progress, "More
    in Settings") on the dev server or after a push; choose the Oak Order
    support Telegram account and set `VITE_SUPPORT_TELEGRAM` in Vercel;
