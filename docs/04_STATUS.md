@@ -753,7 +753,7 @@ site):**
       (Khmer light 320 px, English dark 390 px); no console errors.
 
 **Phase 9 load test (founder's request 2026-10-06: "how strong of
-performance this project can handle?"; committed, not pushed):**
+performance this project can handle?"; pushed):**
 
 - [x] Fix: password checks (bcrypt) run in a worker thread
       (`core/security.py`). On the event loop, one seller logging in
@@ -859,7 +859,7 @@ redesign, calm look). Steps, each committed on its own:
    the loading grid shows mixed heights. The + now flies the product's
    photo into the cart (it had been flying a plain dot: it couldn't
    find the photo). Checked at 390 and 1280 px with mocked data; lint
-   and build pass. Founder checked it locally, 2026-10-08. Not pushed.
+   and build pass. Founder checked it locally, 2026-10-08. Pushed.
 9. [x] Shop product cards look like the seller's (founder's request
    2026-10-08): each card is a white card with the photo across the top
    and the name, price, and a red "Sold out" tag inside under it (Sold
@@ -869,7 +869,7 @@ redesign, calm look). Steps, each committed on its own:
    Pushed 2026-10-08 (`6db7125`). Then an amber "Only 3 left" tag on
    cards with 5 or fewer left (products without options; the product
    page warns at the same number; the seller's own list uses their alert
-   level, Settings → Alerts, since later the same day). Not pushed.
+   level, Settings → Alerts, since later the same day). Pushed.
 
 The redesign is complete and pushed (2026-10-08, with the bcrypt fix and
 load test). Founder: check CI and the live site once Vercel and Render
@@ -918,7 +918,7 @@ migrations to run on deploy (they run on Render's start):
 
 **Pre-pilot review fixes** (founder asked 2026-10-09 for a review of the
 whole project before 3-5 real sellers; approved "all fix in section 2"
-of the review). Each committed on its own; not pushed:
+of the review). Each committed on its own; pushed:
 
 1. [x] **No logout on a lost answer** (`09f762b`): a refresh token shown
    again within 60 s of its swap gets a new pair (the phone retrying
@@ -954,7 +954,7 @@ delivery is saved; no sideways scroll; no console errors. No migration.
 
 **Pre-pilot features** (the rest of the review; the founder picked from
 an options page 2026-10-09: 1C 2C 3A 4A 5B 6B 7C 8B 9B; H, Khmer alerts,
-was fix 4). Each committed on its own; not pushed:
+was fix 4). Each committed on its own; pushed:
 
 1. [x] **Short path, 13 taps → 3 for a cash order** (`73b362a`, 1C):
    after Accept the order's preparing / ready / shipped are optional
@@ -1015,7 +1015,7 @@ customer's progress bar follows the order's own status, so with the
 short path it can read "Confirmed" while its delivery line reads
 "Delivered", until the seller taps Complete. No migration.
 
-**Photo fixes** (founder's screenshots, 2026-10-09; not pushed):
+**Photo fixes** (founder's screenshots, 2026-10-09; pushed):
 `221ca29` the desktop Products table showed each photo as a narrow
 strip (the base `img { max-width: 100% }` squeezed it to the column);
 then, on iPhone Safari, the second column of the photo wall (seller
@@ -1029,7 +1029,8 @@ and Chromium at 414 px with mocked data, before and after.
 order Google, then Facebook, then TikTok; phone number and password kept;
 phone numbers proved through the Telegram bot's "Share my phone number",
 free, instead of SMS; only test shops on the live site). Each committed on
-its own; not pushed:
+its own; pushed 2026-10-09 (`39caba4`, at the founder's request, to set
+up the apps and test on the live site):
 
 1. [x] **Phone check through the Telegram bot** (`978fc50`): the page
    opens `t.me/<bot>?start=phone_<code>`, the bot shows a "Share my phone
@@ -1746,15 +1747,16 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
         `VITE_TIKTOK_CLIENT_KEY`; client secret → Render
         `TIKTOK_CLIENT_SECRET` only. TikTok takes only https redirects,
         so it can be tried only on the live site.
-     f. **Push** (four migrations run on Render's start), then on your
-        phone: Create your store with a phone; Continue with Google,
+     f. Pushed 2026-10-09 (`39caba4`). Check CI (GitHub → Actions) and
+        that Render deployed (four migrations run on its start). Then on
+        your phone: Create your store with a phone; Continue with Google,
         Facebook and TikTok; Settings → Your account → Other ways to log
         in; `docs/REGRESSION_CHECKLIST.md` has the steps. Tell Claude
         what each one did.
 00. Founder: try the four fixes and the seven picks (In Progress,
     "Pre-pilot review fixes" and "Pre-pilot features") on the dev server
-    or after a push; `docs/REGRESSION_CHECKLIST.md` has the new steps.
-    Then push.
+    or on the live site (pushed); `docs/REGRESSION_CHECKLIST.md` has the
+    new steps.
 0. Founder: try the new Settings pieces (list under In Progress, "More
    in Settings") on the dev server or after a push; choose the Oak Order
    support Telegram account and set `VITE_SUPPORT_TELEGRAM` in Vercel;
