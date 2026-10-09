@@ -57,7 +57,7 @@ export function ShopCategory() {
           {t.shop.category.emptyText}
         </EmptyState>
       ) : (
-        <ProductGrid shop={shop.data} products={products} />
+        <ProductGrid shop={shop.data} products={products} category={category.slug} />
       )}
     </>
   )

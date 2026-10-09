@@ -1,5 +1,5 @@
 import { CalendarClock, ImageOff, Minus, Plus, SearchX, Store } from 'lucide-react'
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { Badge, Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { thumbnailUrl } from '../lib/images.ts'
@@ -11,12 +11,17 @@ import { buzz } from '../components/effects.ts'
 import { MAX_QUANTITY, useCart } from './cart.ts'
 import { flyToCart } from './fly.ts'
 
+// The grid's photos already shown since the page loaded, with their shape
+// (width ÷ height). Shown again (another category and back), a photo is
+// just there at its own size, not a grey square fading into it again.
+const shownPhotos = new Map<string, number>()
+
 /** A product photo, or a grey placeholder when the seller has none (or it
  * won't load). It fades in once loaded, over the grey. `className` sizes
  * and shapes it. `small` uses the photo's small copy (grids, lists), or
  * the photo itself if it has none or the copy won't load. `natural` keeps
  * the photo's own shape, as tall as its width makes it (no cropping),
- * square until it loads. */
+ * square until it first loads. */
 export function ProductImage({
   src,
   alt,
@@ -32,12 +37,13 @@ export function ProductImage({
   small?: boolean
   natural?: boolean
 }) {
-  const [state, setState] = useState<'loading' | 'loaded' | 'failed'>('loading')
+  const ratio = natural && src ? shownPhotos.get(src) : undefined
+  const [state, setState] = useState<'loading' | 'loaded' | 'failed'>(ratio ? 'loaded' : 'loading')
   // Another photo in the same place starts over.
   const [shown, setShown] = useState(src)
   if (shown !== src) {
     setShown(src)
-    setState('loading')
+    setState(ratio ? 'loaded' : 'loading')
   }
   const square = natural && state !== 'loaded' ? 'aspect-square' : ''
   if (!src || state === 'failed') {
@@ -48,11 +54,20 @@ export function ProductImage({
     )
   }
   return (
-    <div className={`overflow-hidden bg-slate-100 ${square} ${className}`}>
+    // A photo shown before keeps its place at its size even if the phone
+    // has to fetch it again, and is drawn with the rest of its card.
+    <div
+      className={`overflow-hidden bg-slate-100 ${square} ${className}`}
+      style={ratio ? { aspectRatio: ratio } : undefined}
+    >
       <img
         key={src}
         src={small ? thumbnailUrl(src) : src}
-        onLoad={() => setState('loaded')}
+        onLoad={(e) => {
+          const img = e.currentTarget
+          if (natural && img.naturalHeight) shownPhotos.set(src, img.naturalWidth / img.naturalHeight)
+          setState('loaded')
+        }}
         onError={(e) => {
           const img = e.currentTarget
           if (small && !img.dataset.full) {
@@ -63,7 +78,7 @@ export function ProductImage({
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}
         fetchPriority={eager ? 'high' : undefined}
-        decoding="async"
+        decoding={ratio ? 'sync' : 'async'}
         className={`${natural ? 'block h-auto w-full' : 'size-full object-cover'} transition-opacity duration-300 ${state === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
       />
     </div>
@@ -119,49 +134,106 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
  * Alerts), 5 to start. */
 export const LOW_STOCK = 5
 
+// The grid's columns at each width: 2 on phones, then 3, 4 and 5 from
+// Tailwind's sm, lg and xl.
+const WIDER = [
+  [5, window.matchMedia('(min-width: 80rem)')],
+  [4, window.matchMedia('(min-width: 64rem)')],
+  [3, window.matchMedia('(min-width: 40rem)')],
+] as const
+const columnCount = () => WIDER.find(([, query]) => query.matches)?.[0] ?? 2
+const onWidthChange = (notify: () => void) => {
+  for (const [, query] of WIDER) query.addEventListener('change', notify)
+  return () => WIDER.forEach(([, query]) => query.removeEventListener('change', notify))
+}
+
+/** `items` dealt into `count` columns like cards: the 1st to the left,
+ * the 2nd beside it, and so on, so they read left to right, then down. */
+function deal<T>(items: T[], count: number): T[][] {
+  const columns = Array.from({ length: count }, (): T[] => [])
+  items.forEach((item, i) => columns[i % count].push(item))
+  return columns
+}
+
+// Product lists already shown since the page loaded (by shop and
+// category). Opened again, a list comes from the cache, so its cards are
+// just there instead of rising in again.
+const shownLists = new Set<string>()
+// The last card starts rising at 320 ms and takes 300 ms.
+const RISE_MS = 1000
+
+/** Whether the cards rise in: only the first time `list` shows (after its
+ * loading grid), and only while they come in, so turning the phone (other
+ * columns) doesn't play it again. */
+function useRising(list: string) {
+  const [rising, setRising] = useState(() => (shownLists.has(list) ? null : list))
+  useEffect(() => {
+    shownLists.add(list)
+    const done = setTimeout(() => setRising(null), RISE_MS)
+    return () => clearTimeout(done)
+  }, [list])
+  return rising === list
+}
+
 /** Photos, each card as tall as its photo (no cropping to a square),
  * packed in columns like a photo wall: the same cards as the seller's
- * product list, photo on top and name, price, and stock under it. */
-export function ProductGrid({ shop, products }: { shop: ShopStore; products: ShopProductCard[] }) {
+ * product list, photo on top and name, price, and stock under it. The
+ * cards are dealt into side-by-side columns, not CSS columns: iPhone
+ * Safari drew a CSS column's cards late, or half, while they rose in.
+ * `category` is the category's slug, none for All. */
+export function ProductGrid({
+  shop,
+  products,
+  category = '',
+}: {
+  shop: ShopStore
+  products: ShopProductCard[]
+  category?: string
+}) {
+  const count = useSyncExternalStore(onWidthChange, columnCount)
+  const rising = useRising(`${shop.slug}/${category}`)
   return (
-    <ul className="columns-2 gap-3 sm:columns-3 lg:columns-4 xl:columns-5">
-      {products.map((product, i) => (
-        // The first ones come in one after another. The whole card is the
-        // link (its ::after covers it), so the + can sit on the photo
-        // without being inside the link (a button can't be). The gap is
-        // the li's padding, not a margin on the card: Safari carries a
-        // margin (and the card's shadow) over to the top of the next column.
-        <li key={product.id} className="break-inside-avoid pb-3">
-          <div
-            className="group relative animate-rise overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6 transition-transform has-[a:active]:scale-[0.98] has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-navy-600"
-            style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
-          >
-            <div className="relative">
-              <div className="overflow-hidden">
-                <ProductImage
-                  small
-                  natural
-                  src={product.image_url}
-                  alt=""
-                  className={`w-full transition-transform group-hover:scale-[1.03] ${product.in_stock ? '' : 'opacity-60'}`}
-                />
+    <div className="flex gap-3">
+      {deal(products, count).map((column, c) => (
+        <ul key={c} className="min-w-0 flex-1">
+          {column.map((product, row) => (
+            // The first ones come in one after another, a row at a time.
+            // The whole card is the link (its ::after covers it), so the +
+            // can sit on the photo without being inside the link (a button
+            // can't be).
+            <li key={product.id} className="pb-3">
+              <div
+                className={`group relative overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6 transition-transform has-[a:active]:scale-[0.98] has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-navy-600 ${rising ? 'animate-rise' : ''}`}
+                style={rising ? { animationDelay: `${Math.min(row * count + c, 8) * 40}ms` } : undefined}
+              >
+                <div className="relative">
+                  <div className="overflow-hidden">
+                    <ProductImage
+                      small
+                      natural
+                      src={product.image_url}
+                      alt=""
+                      className={`w-full transition-transform group-hover:scale-[1.03] ${product.in_stock ? '' : 'opacity-60'}`}
+                    />
+                  </div>
+                  {!product.has_variants && product.in_stock && <QuickAdd shop={shop} product={product} />}
+                </div>
+                <Link
+                  to={`/shop/${shop.slug}/product/${product.slug}`}
+                  className="block p-3 outline-none after:absolute after:inset-0"
+                >
+                  <span className="line-clamp-2 text-sm leading-5 font-medium text-slate-900">{product.name}</span>
+                  <span className="mt-0.5 block text-sm font-semibold text-slate-900 tabular-nums">
+                    {formatPriceRange(product.price_min, product.price_max, shop.currency)}
+                  </span>
+                  <StockTag product={product} />
+                </Link>
               </div>
-              {!product.has_variants && product.in_stock && <QuickAdd shop={shop} product={product} />}
-            </div>
-            <Link
-              to={`/shop/${shop.slug}/product/${product.slug}`}
-              className="block p-3 outline-none after:absolute after:inset-0"
-            >
-              <span className="line-clamp-2 text-sm leading-5 font-medium text-slate-900">{product.name}</span>
-              <span className="mt-0.5 block text-sm font-semibold text-slate-900 tabular-nums">
-                {formatPriceRange(product.price_min, product.price_max, shop.currency)}
-              </span>
-              <StockTag product={product} />
-            </Link>
-          </div>
-        </li>
+            </li>
+          ))}
+        </ul>
       ))}
-    </ul>
+    </div>
   )
 }
 
@@ -225,17 +297,22 @@ function QuickAdd({ shop, product }: { shop: ShopStore; product: ShopProductCard
 const SKELETON_SHAPES = ['aspect-[4/5]', 'aspect-square', 'aspect-[3/4]', 'aspect-square', 'aspect-[4/5]', 'aspect-[3/4]']
 
 export function ProductGridSkeleton() {
+  const count = useSyncExternalStore(onWidthChange, columnCount)
   return (
-    <div aria-hidden className="columns-2 gap-3 sm:columns-3 lg:columns-4 xl:columns-5">
-      {SKELETON_SHAPES.map((shape, i) => (
-        <div key={i} className="break-inside-avoid pb-3">
-          <div className="overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6">
-            <Skeleton className={`w-full rounded-none ${shape}`} />
-            <div className="p-3">
-              <Skeleton className="h-4 w-4/5" />
-              <Skeleton className="mt-2 h-4 w-1/3" />
+    <div aria-hidden className="flex gap-3">
+      {deal(SKELETON_SHAPES, count).map((column, c) => (
+        <div key={c} className="min-w-0 flex-1">
+          {column.map((shape, row) => (
+            <div key={row} className="pb-3">
+              <div className="overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6">
+                <Skeleton className={`w-full rounded-none ${shape}`} />
+                <div className="p-3">
+                  <Skeleton className="h-4 w-4/5" />
+                  <Skeleton className="mt-2 h-4 w-1/3" />
+                </div>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       ))}
     </div>
