@@ -84,7 +84,8 @@ let refreshing: Promise<boolean> | null = null
 
 /**
  * Exchange the stored refresh token for a new pair. Each refresh token
- * works once (the server treats reuse as theft and ends every session), so
+ * is swapped once (the server treats reuse after 60 s as theft and ends
+ * every session; sooner is taken as a retry after a lost answer), so
  * refreshes are serialized within the tab and, via the Web Locks API,
  * across tabs; each one reads the latest token from storage.
  */

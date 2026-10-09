@@ -374,10 +374,14 @@ starts a new transaction.
   only serves owners. Closing a shop closes its staff's logins too
   (`account.set_shop_logins`); erasing it deletes them (FK cascade).
 - Refresh JWT (7 days): `{"type": "refresh", "sub": seller_id, "jti":
-  refresh_token.id}`. Each `refresh_token` row works once. Refreshing locks
-  the row (`FOR UPDATE`), sets `revoked_at` and issues a new pair. Presenting
-  a revoked token revokes **all** of that seller's tokens (reuse means
-  theft).
+  refresh_token.id}`. Each `refresh_token` row is swapped once. Refreshing
+  locks the row (`FOR UPDATE`), sets `revoked_at` and issues a new pair.
+  The same token shown again within `REUSE_GRACE` (60 s) of its swap gets
+  a new pair too (the phone retrying after the answer was lost on a weak
+  connection; `revoked_at` keeps the first swap's time). Later, it
+  **deletes** all of that seller's tokens (reuse means theft).
+  `revoked_at` is set only by a swap: logout and every "end sessions"
+  path delete rows, so a token they ended is unknown, never in the grace.
 - `decode_token` requires `exp`, `sub` and `type`, and checks the type. An
   expired token raises 401 `TOKEN_EXPIRED`; any other bad token raises 401
   `INVALID_TOKEN`.
@@ -735,8 +739,8 @@ from the schema.
 | GET | `/health` | none | — | `{"status": "ok"}` | Render health check |
 | POST | `/auth/register` | none | `RegisterIn` | `TokenPair` (201) | Creates seller + store; 5/min |
 | POST | `/auth/login` | none | `LoginIn` | `TokenPair` | 10/min |
-| POST | `/auth/refresh` | none | `RefreshIn` | `TokenPair` | Rotates; reuse revokes all; 30/min |
-| POST | `/auth/logout` | none | `RefreshIn` | 204 | Revokes that token; bad tokens ignored |
+| POST | `/auth/refresh` | none | `RefreshIn` | `TokenPair` | Rotates; a retry within 60 s gets a new pair, later reuse ends all sessions; 30/min |
+| POST | `/auth/logout` | none | `RefreshIn` | 204 | Deletes that token's session; bad tokens ignored |
 | POST | `/auth/password-reset` | none | `PasswordResetIn` | 202 | Telegram link in the background (§4 Auth); same answer for any email; 5/min |
 | POST | `/auth/password-reset/confirm` | none | `PasswordResetConfirm` | `TokenPair` | Bad, expired or used link → 400 `RESET_LINK_INVALID`; 10/min |
 | GET | `/seller/account` | seller | — | `AccountOut` | The person's own email, name, phone (`UnscopedDb`, filtered by the token's seller id) |
@@ -869,7 +873,9 @@ api<T>(path, { method = 'GET', body?, auth = true }): Promise<T>
   refresh fails, it calls `clearTokens()` and the session-ended handler
   (which clears the query cache and sets the user anonymous).
 - `refreshTokens()` is serialized within the tab and across tabs (Web Locks
-  `sc-token-refresh`), because each refresh token works once.
+  `sc-token-refresh`), because each refresh token is swapped once (the
+  server's 60 s retry grace covers an answer lost on the network, not
+  tabs racing each other).
 - Storefront calls pass `auth: false`.
 - Errors in the UI: `errorText(error)` (translated, see i18n),
   `fieldError(error, 'payment_settings.khqr.bakong_account_id')` puts the
@@ -922,7 +928,7 @@ a refresh token is stored, it refreshes to restore the session. If the API
 can't be reached at all (the refresh rejects with `NETWORK_ERROR`), status
 becomes `'unreachable'`: the tokens stay stored, `DashboardLayout` shows
 `ErrorState` with a retry (`retryRestore`), and `Home` sends a stored session
-there instead of the landing page. `logout` revokes the refresh token on the server (best
+there instead of the landing page. `logout` ends the refresh token's session on the server (best
 effort), clears tokens and the query cache. Only `DashboardLayout` guards
 routes.
 
@@ -1198,6 +1204,11 @@ async def test_store_only_sees_its_own_rows(two_stores):
   writes it.
 - **§13 rate limiting** names login and storefront; the code also limits
   register (5/min) and refresh (30/min). Logout is unlimited.
+- **§5.2 `refresh_token` / §13 reuse** (founder approved 2026-10-09, 02 not
+  updated yet): a refresh token reused within 60 s of its swap gets a new
+  pair (a retry after a lost answer); only later reuse ends every
+  session. Logout and ending sessions delete rows instead of setting
+  `revoked_at`.
 - **Brand:** 01 §1.1 names the product Oak Order (renamed from Sroul Order
   2026-10-08). The start page (`pages/Home.tsx`, "Oak Order" in big
   letters), `BrandMark` in `pages/AuthLayout.tsx` (a lucide

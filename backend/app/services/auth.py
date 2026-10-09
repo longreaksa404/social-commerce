@@ -3,10 +3,10 @@ known yet, so every query filters by seller explicitly."""
 
 import logging
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import httpx
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import security
@@ -19,6 +19,11 @@ from app.services import telegram
 from app.services.slugs import slugify, unique_slug
 
 logger = logging.getLogger(__name__)
+
+# A refresh token shown again this soon after it was swapped is the same
+# phone retrying: on a weak connection the answer with the new pair can be
+# lost after the server saved it. Later than this, it's a copy (theft).
+REUSE_GRACE = timedelta(seconds=60)
 
 
 def _invalid_credentials() -> AppError:
@@ -81,8 +86,13 @@ async def login(db: AsyncSession, data: LoginIn) -> TokenPair:
 async def refresh(db: AsyncSession, refresh_token: str) -> TokenPair:
     """Rotate: the presented token is used up and a new pair is issued.
 
-    A token that was already used means someone kept a copy, so every
+    A token shown again within REUSE_GRACE of being used is a retry and
+    gets a new pair too. Later, it means someone kept a copy, so every
     session of that seller is ended.
+
+    revoked_at is set only here, when a token is swapped: logging out and
+    ending sessions delete the rows instead, so a token they ended is
+    simply unknown and never falls in the grace window.
     """
     payload = security.decode_token(refresh_token, "refresh")
     row = await db.scalar(
@@ -92,8 +102,8 @@ async def refresh(db: AsyncSession, refresh_token: str) -> TokenPair:
         raise _invalid_refresh()
 
     now = datetime.now(UTC)
-    if row.revoked_at is not None:
-        await _revoke_all(db, row.seller_id, now)
+    if row.revoked_at is not None and now - row.revoked_at > REUSE_GRACE:
+        await _end_all_sessions(db, row.seller_id)
         await db.commit()
         raise _invalid_refresh()
     if row.expires_at <= now:
@@ -103,7 +113,8 @@ async def refresh(db: AsyncSession, refresh_token: str) -> TokenPair:
     if seller is None or not seller.is_active:
         raise _invalid_refresh()
 
-    row.revoked_at = now
+    # A retry keeps the first swap's time, so the window doesn't stretch.
+    row.revoked_at = row.revoked_at or now
     tokens = await _issue_tokens(db, seller, await shop_of(db, seller))
     await db.commit()
     return tokens
@@ -116,11 +127,7 @@ async def logout(db: AsyncSession, refresh_token: str) -> None:
         token_id = _token_id(security.decode_token(refresh_token, "refresh"))
     except AppError:
         return
-    await db.execute(
-        update(RefreshToken)
-        .where(RefreshToken.id == token_id, RefreshToken.revoked_at.is_(None))
-        .values(revoked_at=datetime.now(UTC))
-    )
+    await db.execute(delete(RefreshToken).where(RefreshToken.id == token_id))
     await db.commit()
 
 
@@ -199,7 +206,7 @@ async def restart_sessions(db: AsyncSession, seller: Seller, store_id: uuid.UUID
     The old rows are deleted, not revoked: a revoked token shown later
     reads as stolen and would end the new session too (refresh()).
     """
-    await db.execute(delete(RefreshToken).where(RefreshToken.seller_id == seller.id))
+    await _end_all_sessions(db, seller.id)
     tokens = await _issue_tokens(db, seller, store_id)
     await db.commit()
     return tokens
@@ -230,9 +237,5 @@ async def _issue_tokens(db: AsyncSession, seller: Seller, store_id: uuid.UUID) -
     )
 
 
-async def _revoke_all(db: AsyncSession, seller_id: uuid.UUID, now: datetime) -> None:
-    await db.execute(
-        update(RefreshToken)
-        .where(RefreshToken.seller_id == seller_id, RefreshToken.revoked_at.is_(None))
-        .values(revoked_at=now)
-    )
+async def _end_all_sessions(db: AsyncSession, seller_id: uuid.UUID) -> None:
+    await db.execute(delete(RefreshToken).where(RefreshToken.seller_id == seller_id))
