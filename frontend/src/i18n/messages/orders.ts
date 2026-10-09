@@ -145,10 +145,20 @@ export const orders = {
   },
   failTitle: { en: 'Mark the payment as failed?', km: 'កត់ថាការបង់ប្រាក់មិនបានសម្រេច?' },
   failMessage: {
-    en: "Use this when the customer didn't pay, or the transfer never arrived. This can't be undone.",
-    km: 'ប្រើវានៅពេលអតិថិជនមិនបានបង់ ឬប្រាក់ផ្ទេរមិនដែលមកដល់។ មិនអាចត្រឡប់វិញបានទេ។',
+    en: "Use this when the customer didn't pay, or the transfer never arrived. You can put it back to not paid later.",
+    km: 'ប្រើវានៅពេលអតិថិជនមិនបានបង់ ឬប្រាក់ផ្ទេរមិនដែលមកដល់។ អ្នកអាចប្ដូរវាទៅជាមិនទាន់បង់វិញនៅពេលក្រោយ។',
   },
   paymentFailed: { en: 'Payment failed', km: 'បង់ប្រាក់មិនបាន' },
+  // A recorded payment back to not paid, at any time (founder's pick 2C).
+  notPaidAfterAll: { en: 'Not paid after all', km: 'តាមពិតមិនទាន់បង់ទេ' },
+  backToNotPaid: { en: 'Back to not paid', km: 'ប្ដូរទៅមិនទាន់បង់វិញ' },
+  unpayTitle: { en: (n: number) => `Mark order #${n} as not paid?`, km: (n: number) => `កត់ការកុម្ម៉ង់ #${n} ថាមិនទាន់បង់?` },
+  unpayMessage: {
+    en: 'Use this if you marked it by mistake, or the money never arrived. The customer is shown how to pay again; the order and its delivery stay as they are.',
+    km: 'ប្រើវាប្រសិនបើអ្នកកត់ខុស ឬប្រាក់មិនដែលមកដល់។ អតិថិជននឹងឃើញរបៀបបង់ម្ដងទៀត ហើយការកុម្ម៉ង់ និងការដឹកជញ្ជូននៅដដែល។',
+  },
+  unpayConfirm: { en: 'Mark not paid', km: 'កត់ថាមិនទាន់បង់' },
+  unpaidToast: { en: 'not paid', km: 'មិនទាន់បង់' },
   paidToast: { en: 'paid', km: 'បានបង់' },
   failedToast: { en: 'payment failed', km: 'បង់ប្រាក់មិនបាន' },
   noteOptional: { en: 'Note (optional)', km: 'ចំណាំ (មិនចាំបាច់)' },

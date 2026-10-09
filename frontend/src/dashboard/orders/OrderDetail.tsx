@@ -559,12 +559,13 @@ function PaymentSection({ order, onStale }: { order: Order; onStale: () => void 
   const waitsForPayment =
     order.status === 'delivered' && order.delivery.status === 'delivered' && !order.next_statuses.includes('completed')
 
-  async function save(status: 'paid' | 'failed') {
+  async function save(status: 'paid' | 'failed' | 'pending') {
     try {
-      await record.mutateAsync({ status, reference: reference.trim() || null })
+      await record.mutateAsync({ status, reference: status === 'pending' ? null : reference.trim() || null })
       buzz()
-      toast(o.changed(order.number, status === 'paid' ? o.paidToast : o.failedToast))
+      toast(o.changed(order.number, status === 'paid' ? o.paidToast : status === 'failed' ? o.failedToast : o.unpaidToast))
       setConfirming(false)
+      setReference('')
     } catch (error) {
       toast(errorText(error), 'error')
       if (error instanceof ApiError && error.status === 409) onStale()
@@ -584,6 +585,17 @@ function PaymentSection({ order, onStale }: { order: Order; onStale: () => void 
   function submit(event: FormEvent) {
     event.preventDefault()
     save('paid')
+  }
+
+  // Paid or failed back to not paid, any time (founder's pick 2C).
+  async function markNotPaid() {
+    const ok = await confirm({
+      title: o.unpayTitle(order.number),
+      message: o.unpayMessage,
+      confirmLabel: o.unpayConfirm,
+      danger: true,
+    })
+    if (ok) save('pending')
   }
 
   return (
@@ -645,6 +657,13 @@ function PaymentSection({ order, onStale }: { order: Order; onStale: () => void 
             </Button>
           </div>
         ))}
+      {payment.next_statuses.includes('pending') && (
+        <div className="mt-3 flex justify-end">
+          <Button variant="secondary" loading={record.isPending} onClick={markNotPaid}>
+            {payment.status === 'paid' ? o.notPaidAfterAll : o.backToNotPaid}
+          </Button>
+        </div>
+      )}
     </Card>
   )
 }

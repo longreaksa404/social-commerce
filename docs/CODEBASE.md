@@ -665,21 +665,25 @@ ALLOWED_ORDER_TRANSITIONS = {
 ### Payment: `app/services/payment.py`
 
 ```
-pending ──▶ paid
-   └──────▶ failed          (refunded: in the enum, unreachable in the MVP)
+pending ◀──▶ paid
+   └◀──────▶ failed          (refunded: in the enum, unreachable in the MVP)
+paid / failed → pending = "Not paid after all", any time (founder's pick 2C, 2026-10-09)
 ```
 
 ```python
-ALLOWED_PAYMENT_TRANSITIONS = {PENDING: {PAID, FAILED}, PAID: set(), FAILED: set(), REFUNDED: set()}
+ALLOWED_PAYMENT_TRANSITIONS = {PENDING: {PAID, FAILED}, PAID: {PENDING}, FAILED: {PENDING}, REFUNDED: set()}
 ```
 
 - Writer: `record(payment, target, reference)`. It checks the table (409
-  `INVALID_PAYMENT_TRANSITION`), sets `paid_at` when it becomes paid, and
+  `INVALID_PAYMENT_TRANSITION`), sets `paid_at` when it becomes paid,
+  clears `paid_at` and `reference` when it goes back to pending, and
   replaces `reference` if one is given.
 - Called by `order.record_payment` (`PATCH /seller/orders/{id}/payment`).
   It never reads or writes the order's status.
-- Every payment starts `pending`, whatever the method. There is no way back
-  from paid or failed (the UI asks for confirmation first).
+- Every payment starts `pending`, whatever the method. Paid or failed go
+  back to pending from the Payment card's "Not paid after all" / "Back to
+  not paid" (asks first). Order and delivery steps have no way back;
+  reject and cancel stay final.
 
 ### Delivery: `app/services/delivery.py`
 

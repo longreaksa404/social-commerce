@@ -23,11 +23,13 @@ P = PaymentStatus
 
 # Copied from 02_TECHNICAL.md section 7.2 on purpose, not imported: a
 # change to the service's table has to be made here too, deliberately.
-# paid -> refunded is in the schema but not allowed in the MVP.
+# paid -> refunded is in the schema but not allowed in the MVP. Paid or
+# failed go back to pending ("Not paid after all", founder's pick 2C,
+# 2026-10-09).
 EXPECTED = {
     P.PENDING: {P.PAID, P.FAILED},
-    P.PAID: set(),
-    P.FAILED: set(),
+    P.PAID: {P.PENDING},
+    P.FAILED: {P.PENDING},
     P.REFUNDED: set(),
 }
 
@@ -44,7 +46,8 @@ def test_every_payment_transition_follows_the_state_machine(current, target):
 
 def test_next_payment_statuses_are_what_the_seller_can_record():
     assert next_statuses(Payment(status=P.PENDING)) == [P.PAID, P.FAILED]
-    assert next_statuses(Payment(status=P.PAID)) == []
+    assert next_statuses(Payment(status=P.PAID)) == [P.PENDING]
+    assert next_statuses(Payment(status=P.FAILED)) == [P.PENDING]
 
 
 # --- Settings ----------------------------------------------------------------
@@ -233,7 +236,7 @@ async def test_seller_marks_a_transfer_paid_and_can_then_complete(client, auth_h
     assert body["payment"]["status"] == "paid"
     assert body["payment"]["reference"] == "ABA 14:05, ...123"
     assert body["payment"]["paid_at"] is not None
-    assert body["payment"]["next_statuses"] == []
+    assert body["payment"]["next_statuses"] == ["pending"]  # "Not paid after all"
     assert (body["status"], body["next_statuses"]) == ("delivered", ["completed"])
     # The customer sees it's paid, and no longer gets the account to pay to.
     tracked = (await track(client, slug, order["id"])).json()["payment"]
@@ -242,6 +245,45 @@ async def test_seller_marks_a_transfer_paid_and_can_then_complete(client, auth_h
     again = await _record(client, headers, order["id"], "failed")
     assert again.status_code == 409
     assert again.json()["error"]["code"] == "INVALID_PAYMENT_TRANSITION"
+
+
+async def test_not_paid_after_all_puts_it_back_and_the_customer_can_pay(client, auth_headers):
+    """The seller tapped Paid on the wrong order, or the transfer never
+    arrived: the payment goes back to pending, at any time."""
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    await set_payments(client, headers, bank_transfer=BANK)
+    cap = await add_product(store_id, "cap", stock=5)
+    order = (
+        await place_order(
+            client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
+        )
+    ).json()
+    await _record(client, headers, order["id"], "paid", "ABA 14:05")
+
+    undone = await _record(client, headers, order["id"], "pending")
+
+    assert undone.status_code == 200, undone.text
+    payment = undone.json()["payment"]
+    assert (payment["status"], payment["paid_at"], payment["reference"]) == ("pending", None, None)
+    assert payment["next_statuses"] == ["paid", "failed"]
+    assert undone.json()["status"] == "pending"  # the order is left alone
+    # The customer is shown how to pay again.
+    tracked = (await track(client, slug, order["id"])).json()["payment"]
+    assert tracked["bank_account"] is not None
+    # A failed one goes back too.
+    await _record(client, headers, order["id"], "failed")
+    assert (await _record(client, headers, order["id"], "pending")).status_code == 200
+
+
+async def test_not_paid_after_all_needs_a_recorded_payment(client, auth_headers):
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    cap = await add_product(store_id, "cap", stock=5)
+    order = (await place_order(client, slug, [(cap, None, 1)], total="10.00")).json()
+
+    response = await _record(client, headers, order["id"], "pending")
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "INVALID_PAYMENT_TRANSITION"
 
 
 async def test_recording_a_payment_leaves_the_order_status_alone(client, auth_headers):

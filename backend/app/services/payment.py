@@ -20,9 +20,11 @@ P = PaymentStatus
 
 ALLOWED_PAYMENT_TRANSITIONS: dict[PaymentStatus, frozenset[PaymentStatus]] = {
     P.PENDING: frozenset({P.PAID, P.FAILED}),
+    # "Not paid after all" (founder's pick 2C, 2026-10-09): a wrong tap, or
+    # a transfer that never arrived, goes back to pending at any time.
     # paid -> refunded is in the schema but not in the MVP (02 section 7.2).
-    P.PAID: frozenset(),
-    P.FAILED: frozenset(),
+    P.PAID: frozenset({P.PENDING}),
+    P.FAILED: frozenset({P.PENDING}),
     P.REFUNDED: frozenset(),
 }
 
@@ -52,6 +54,10 @@ def record(payment: Payment, target: PaymentStatus, reference: str | None) -> No
     payment.status = target
     if target is P.PAID:
         payment.paid_at = datetime.now(UTC)
+    if target is P.PENDING:
+        # Back to not paid: the time and the note were about what's undone.
+        payment.paid_at = None
+        payment.reference = None
     if reference:
         payment.reference = reference
 
