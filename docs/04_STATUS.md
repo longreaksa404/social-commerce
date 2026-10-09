@@ -994,16 +994,20 @@ was fix 4). Each committed on its own; not pushed:
    delivery fee, ways to pay, Telegram alerts, contact, logo); an amber
    dot on the Settings tab until the first three are done; "Hide this
    list" per device. `GET /seller/store` adds `payment_set_up`.
-7. [x] **The owner's numbers** (`633f331`, 8B + 9B): a card on the Orders
-   tab once there's an order, owner only (`GET /seller/stats`, 403 for
-   staff): Today / 7 days / This month, sales, orders, "$X not paid yet",
-   a bar per day; tap a bar for its day. Rejected and cancelled orders
-   don't count; Phnom Penh days.
+7. [x] **The owner's numbers** (`633f331`, 8B + 9B), **then taken off the
+   Orders tab** (`fd62425`; founder, 2026-10-09, after trying it locally:
+   the chart should come with a seller dashboard, and no numbers on the
+   Orders tab until then). The server part stays for that dashboard:
+   `GET /seller/stats` (owner only, 403 for staff): Today / 7 days / This
+   month, sales, orders, not paid yet, sales per day; rejected and
+   cancelled orders don't count; Phnom Penh days. In the Requirements
+   Log.
 
 Checked: 555 backend tests pass (29 new across the seven); ruff, oxlint
 and the build pass (JS 219.5 KB gzipped). Each screen clicked through in headless Chromium at
 390 px (English), most also at 320 px Khmer and 1280 px, the numbers
-card also in dark mode: no sideways scroll, no console errors. The
+card (since removed) also in dark mode: no sideways scroll, no console
+errors. The
 customer's progress bar follows the order's own status, so with the
 short path it can read "Confirmed" while its delivery line reads
 "Delivered", until the seller taps Complete. No migration.
@@ -1273,7 +1277,8 @@ yet in 01/02/03. Proposed text:
   machine, both or neither; the order's status is not touched."
 - **02 §6.2 endpoints:** add `POST /seller/orders` (an order from a
   chat, seller), `POST /seller/orders/{id}/cash-handover`, `GET
-  /seller/stats?period=today|week|month` (owner), `POST
+  /seller/stats?period=today|week|month` (owner; for the seller
+  dashboard, not shown in the app yet), `POST
   /shop/{slug}/orders/{id}/paid` (public, link + phone).
 - **02 §5.2:** `order.source` may be `chat` (an order the seller added);
   `notification_log.event_type` may be `payment_claimed`. **§12.1:**
@@ -1283,13 +1288,13 @@ yet in 01/02/03. Proposed text:
   that came by chat, added by the seller at the shop's prices; a short
   path (Accept, Delivered, Complete; the steps between optional;
   'Delivered, cash received' for cash on delivery); 'Not paid after
-  all'; Send to driver; a setup checklist for new shops; the owner's
-  numbers (today, 7 days, this month, a bar per day)." **01 §24:** add
+  all'; Send to driver; a setup checklist for new shops. The shop's
+  numbers wait for a seller dashboard." **01 §24:** add
   "Tell the shop they've paid ('I've paid'), with the receipt in chat."
 - **03 Phase 9 row:** "Pre-pilot review: login renewal retry,
   delivery-fee reminder, first-product empty state, Khmer bot; then the
   short path, Not paid after all, orders from chat, Send to driver, I've
-  paid, setup checklist, the owner's numbers (founder's picks 2026-10-09)
+  paid, setup checklist (founder's picks 2026-10-09)
   | 32". Subtotal ~189 hrs (~14.5 weeks); §4 totals: Phase 9 189, total
   ~417 hrs.
 
@@ -1627,6 +1632,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 | Date | Source | Request | Status |
 |---|---|---|---|
+| 2026-10-09 | Founder (trying the numbers card locally) | A seller dashboard: a page for the shop's numbers, with the chart (sales per day; today, 7 days, this month) | Later: the page first, then the chart on it. The server part is ready (`GET /seller/stats`, owner only). Details in 03 §6. |
 | 2026-10-08 | Founder (Settings) | Plan and billing page: the seller's plan, price, paid-until date, how to pay Oak Order | Waiting: build once pricing is decided (01 §46). |
 | 2026-10-06 | Founder (shop redesign) | Search in the shop | Logged for later; build when a seller has 30+ products. Details in 03 §6. |
 | 2026-10-02 | Founder (testing Phase 4) | One-tap pay for several banks (ABA, ACLEDA, Wing): open the customer's bank app with the amount filled in, and mark it paid automatically | Validate First: ask first sellers which banks their customers use, whether they're a registered business, and whether they'd pay per-payment fees. Details in 03 §6. |
