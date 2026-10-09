@@ -65,35 +65,48 @@ def _token_id(payload: dict) -> uuid.UUID:
         raise _invalid_refresh() from exc
 
 
-async def register(db: AsyncSession, data: RegisterIn) -> TokenPair:
-    """Create the seller and their store together (1:1 in the MVP), with
-    the phone number the seller shared with the bot. That chat with the
-    bot also gets the shop's order alerts from now on (Settings → Alerts
-    can change it), so a new shop starts with them on."""
-    check = await phone_check.use(db, data.phone_check)
+async def create_shop(
+    db: AsyncSession,
+    *,
+    phone_check_id: uuid.UUID,
+    full_name: str,
+    store_name: str,
+    password_hash: str | None,
+) -> tuple[Seller, Store]:
+    """A new seller and their store together (1:1 in the MVP), with the
+    phone number the seller shared with the bot. That chat with the bot
+    also gets the shop's order alerts from now on (Settings → Alerts can
+    change it), so a new shop starts with them on. Flushed, not committed."""
+    check = await phone_check.use(db, phone_check_id)
     if await phone_check.phone_taken(db, check.phone):
         raise _phone_taken()
 
-    seller = Seller(
-        phone=check.phone,
-        password_hash=await security.hash_password(data.password),
-        full_name=data.full_name,
-    )
+    seller = Seller(phone=check.phone, password_hash=password_hash, full_name=full_name)
     db.add(seller)
     try:
         await db.flush()
     except IntegrityError as exc:  # the same number signed up meanwhile
         raise _phone_taken() from exc
-    slug = await unique_slug(db, Store.slug, slugify(data.store_name))
+    slug = await unique_slug(db, Store.slug, slugify(store_name))
     store = Store(
         seller_id=seller.id,
-        name=data.store_name,
+        name=store_name,
         slug=slug,
         telegram_chat_id=str(check.telegram_user_id),
     )
     db.add(store)
     await db.flush()
+    return seller, store
 
+
+async def register(db: AsyncSession, data: RegisterIn) -> TokenPair:
+    seller, store = await create_shop(
+        db,
+        phone_check_id=data.phone_check,
+        full_name=data.full_name,
+        store_name=data.store_name,
+        password_hash=await security.hash_password(data.password),
+    )
     tokens = await _issue_tokens(db, seller, store.id)
     await db.commit()
     return tokens
@@ -102,17 +115,23 @@ async def register(db: AsyncSession, data: RegisterIn) -> TokenPair:
 async def login(db: AsyncSession, data: LoginIn) -> TokenPair:
     where = login_filter(data.login)
     seller = await db.scalar(select(Seller).where(where)) if where is not None else None
-    if seller is None:
+    # An account made with Google may have no password: it can't log in
+    # with one (until it adds one in Settings).
+    if seller is None or seller.password_hash is None:
         await security.verify_password(data.password, security.DUMMY_PASSWORD_HASH)
         raise _invalid_credentials()
     if not await security.verify_password(data.password, seller.password_hash):
         raise _invalid_credentials()
+    return await log_in(db, seller)
+
+
+async def log_in(db: AsyncSession, seller: Seller) -> TokenPair:
+    """A new session for someone who proved who they are. Commits."""
     if not seller.is_active:
         # Closed by the seller (Settings → Close shop) or by the founder.
         raise AppError(
             403, "ACCOUNT_DISABLED", "This shop is closed. Message Oak Order to open it again."
         )
-
     tokens = await _issue_tokens(db, seller, await shop_of(db, seller))
     await db.commit()
     return tokens

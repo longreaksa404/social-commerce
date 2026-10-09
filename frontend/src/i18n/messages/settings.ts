@@ -319,6 +319,27 @@ export const settings = {
     km: 'គណនីផ្សេងមានលេខនេះរួចហើយ។',
   },
   loginEmail: { en: 'Email you log in with', km: 'អ៊ីមែលដែលអ្នកប្រើចូលគណនី' },
+  google: { en: 'Google', km: 'Google' },
+  googleOn: {
+    en: 'You can log in with this Google account too.',
+    km: 'អ្នកក៏អាចចូលគណនីដោយគណនី Google នេះបានដែរ។',
+  },
+  googleOff: {
+    en: 'Log in with one tap using your Google account, as well as your phone number.',
+    km: 'ចូលគណនីដោយចុចតែម្ដង ជាមួយគណនី Google របស់អ្នក ក្រៅពីលេខទូរស័ព្ទ។',
+  },
+  googleAccount: { en: 'Google account connected', km: 'បានភ្ជាប់គណនី Google' },
+  googleSwitch: {
+    en: 'To use another Google account instead, choose it below.',
+    km: 'ដើម្បីប្រើគណនី Google ផ្សេងជំនួសវិញ សូមជ្រើសវាខាងក្រោម។',
+  },
+  googleConnected: { en: 'Google connected', km: 'បានភ្ជាប់ Google' },
+  addPassword: { en: 'Add a password', km: 'បន្ថែមពាក្យសម្ងាត់' },
+  addPasswordHint: {
+    en: 'To log in with your phone number too, not only with Google.',
+    km: 'ដើម្បីចូលគណនីដោយលេខទូរស័ព្ទបានផងដែរ មិនមែនតែតាម Google ប៉ុណ្ណោះ។',
+  },
+  passwordAdded: { en: 'Password added', km: 'បានបន្ថែមពាក្យសម្ងាត់' },
   detailsSaved: { en: 'Details saved', km: 'បានរក្សាទុកព័ត៌មាន' },
   changePassword: { en: 'Change password', km: 'ប្ដូរពាក្យសម្ងាត់' },
   changePasswordHint: {

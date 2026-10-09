@@ -7,6 +7,7 @@ import { Button, ErrorMessage, Field, PasswordInput, Section } from '../../compo
 import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
 import { fieldError, formError } from '../../lib/errors.ts'
+import { useAccount } from '../queries.ts'
 
 /** Settings → Close shop (founder's choice 2026-10-08): the shop link and
  * logins stop at once; nothing is erased. Oak Order opens it again, or
@@ -15,10 +16,13 @@ export function CloseShopPage() {
   const { logout } = useAuth()
   const { toast, confirm } = useFeedback()
   const [password, setPassword] = useState('')
+  // An account made with Google may have no password: the confirm is enough.
+  const needsPassword = useAccount().data?.has_password ?? true
   const s = useT().settings
 
   const close = useMutation({
-    mutationFn: () => api('/seller/account/close-shop', { method: 'POST', body: { password } }),
+    mutationFn: () =>
+      api('/seller/account/close-shop', { method: 'POST', body: needsPassword ? { password } : {} }),
     onSuccess: async () => {
       toast(s.shopClosed)
       await logout()
@@ -44,11 +48,15 @@ export function CloseShopPage() {
           <li>{s.closeShopLogout}</li>
           <li>{s.closeShopKept}</li>
         </ul>
-        {/* For password managers: whose password this is. */}
-        <input type="text" autoComplete="username" hidden readOnly />
-        <Field label={s.closeShopPassword} error={fieldError(close.error, 'password')}>
-          <PasswordInput required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        </Field>
+        {needsPassword && (
+          <>
+            {/* For password managers: whose password this is. */}
+            <input type="text" autoComplete="username" hidden readOnly />
+            <Field label={s.closeShopPassword} error={fieldError(close.error, 'password')}>
+              <PasswordInput required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </Field>
+          </>
+        )}
         <ErrorMessage error={formError(close.error, ['password'])} />
         <Button type="submit" variant="danger" icon={DoorClosed} loading={close.isPending} className="w-full sm:w-auto">
           {s.closeShopButton}

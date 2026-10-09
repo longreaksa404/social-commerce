@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     # The web app's public address, for "Open order" links in alerts.
     public_app_url: str = ""
 
+    # "Continue with Google": the OAuth client ID from Google Cloud (not a
+    # secret; the frontend has the same one as VITE_GOOGLE_CLIENT_ID).
+    # Empty turns Google sign-in off.
+    google_client_id: str = ""
+
     @property
     def telegram_configured(self) -> bool:
         return all(

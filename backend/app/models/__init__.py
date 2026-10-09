@@ -2,10 +2,12 @@
 
 from app.models.account import (
     Currency,
+    LoginProvider,
     OrderConfirmationMode,
     PhoneCheck,
     RefreshToken,
     Seller,
+    SellerLogin,
     SellerRole,
     Store,
 )
@@ -30,6 +32,7 @@ __all__ = [
     "LinkEvent",
     "LinkEventType",
     "LinkTarget",
+    "LoginProvider",
     "NotificationChannel",
     "NotificationLog",
     "NotificationStatus",
@@ -46,6 +49,7 @@ __all__ = [
     "ProductVariant",
     "RefreshToken",
     "Seller",
+    "SellerLogin",
     "SellerRole",
     "ShareableLink",
     "Store",

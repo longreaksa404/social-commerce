@@ -6,7 +6,7 @@ sqlalchemy[asyncio]==2.1.1
 asyncpg==0.31.0
 alembic==1.20.0
 sentry-sdk[fastapi]==2.71.0
-pyjwt==2.15.1
+pyjwt[crypto]==2.15.1
 bcrypt==5.0.0
 slowapi==0.1.10
 limits==5.8.0

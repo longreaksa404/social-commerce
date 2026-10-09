@@ -3,7 +3,17 @@ import uuid
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import BigInteger, CheckConstraint, Date, DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -22,6 +32,13 @@ class SellerRole(enum.StrEnum):
 
     OWNER = "owner"
     STAFF = "staff"
+
+
+class LoginProvider(enum.StrEnum):
+    """Other ways to log in than a phone number and password (founder's
+    choice 2026-10-09): Google first, Facebook and TikTok to follow."""
+
+    GOOGLE = "google"
 
 
 class OrderConfirmationMode(enum.StrEnum):
@@ -58,7 +75,8 @@ class Seller(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     phone: Mapped[str | None] = mapped_column(Text, unique=True)
     # Accounts from before phone sign-up log in with it. Stored lowercased.
     email: Mapped[str | None] = mapped_column(Text, unique=True)
-    password_hash: Mapped[str] = mapped_column(Text)
+    # Null for an account made with Google that hasn't added a password.
+    password_hash: Mapped[str | None] = mapped_column(Text)
     full_name: Mapped[str] = mapped_column(Text)
     is_active: Mapped[bool] = mapped_column(default=True, server_default="true")
     role: Mapped[SellerRole] = mapped_column(
@@ -71,6 +89,30 @@ class Seller(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     )
 
     store: Mapped["Store"] = relationship(back_populates="seller", foreign_keys="Store.seller_id")
+
+    @property
+    def has_password(self) -> bool:
+        return self.password_hash is not None
+
+
+class SellerLogin(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
+    """A Google (later Facebook, TikTok) account that logs in as a seller.
+    Not tenant-scoped; app_user has no grant on it."""
+
+    __tablename__ = "seller_login"
+    __table_args__ = (
+        UniqueConstraint("provider", "provider_user_id"),
+        # One account of each kind per seller.
+        UniqueConstraint("seller_id", "provider"),
+    )
+
+    seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("seller.id", ondelete="CASCADE"))
+    provider: Mapped[LoginProvider] = mapped_column(str_enum(LoginProvider, "login_provider"))
+    # The provider's own id for the account (Google's `sub`): it stays when
+    # the person changes their email.
+    provider_user_id: Mapped[str] = mapped_column(Text)
+    # What the provider said when it was connected, to show in Settings.
+    email: Mapped[str | None] = mapped_column(Text)
 
 
 class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):

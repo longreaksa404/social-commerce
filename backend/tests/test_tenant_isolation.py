@@ -138,7 +138,7 @@ async def test_no_tenant_means_no_rows(two_stores):
     assert count == 0
 
 
-@pytest.mark.parametrize("table", ["seller", "refresh_token", "phone_check"])
+@pytest.mark.parametrize("table", ["seller", "refresh_token", "phone_check", "seller_login"])
 async def test_tenant_session_cant_read_account_tables(two_stores, table):
     """Logins, sessions and phone checks aren't any shop's rows: app_user
     has no grant on them at all."""

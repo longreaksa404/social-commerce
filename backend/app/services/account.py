@@ -14,10 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import security
 from app.core.errors import AppError, NotFound
 from app.models import RefreshToken, Seller
-from app.schemas.account import AccountUpdate, PasswordChange
+from app.schemas.account import AccountOut, AccountUpdate, PasswordChange
 from app.schemas.auth import TokenPair
 from app.services import auth as auth_service
-from app.services import phone_check
+from app.services import phone_check, social
 
 
 def _phone_taken() -> AppError:
@@ -31,6 +31,33 @@ async def get_account(db: AsyncSession, seller_id: uuid.UUID) -> Seller:
     if seller is None:
         raise NotFound("ACCOUNT_NOT_FOUND", "Account not found.")
     return seller
+
+
+async def describe(db: AsyncSession, seller: Seller) -> AccountOut:
+    google_connected, google_email = await social.google_email(db, seller.id)
+    return AccountOut(
+        phone=seller.phone,
+        email=seller.email,
+        full_name=seller.full_name,
+        role=seller.role,
+        has_password=seller.has_password,
+        google_connected=google_connected,
+        google_email=google_email,
+    )
+
+
+def _wrong_password(field: str) -> AppError:
+    # Not 401: the app treats a 401 as "session over" and logs out.
+    return AppError(422, "WRONG_PASSWORD", "Your current password is wrong.", field)
+
+
+async def _check_password(seller: Seller, password: str | None, field: str) -> None:
+    """The current password, when the account has one (an account made
+    with Google may not)."""
+    if seller.password_hash is None:
+        return
+    if not password or not await security.verify_password(password, seller.password_hash):
+        raise _wrong_password(field)
 
 
 async def update_account(db: AsyncSession, seller_id: uuid.UUID, data: AccountUpdate) -> Seller:
@@ -57,14 +84,13 @@ async def change_phone(db: AsyncSession, seller_id: uuid.UUID, check_id: uuid.UU
 
 
 async def close_shop(
-    db: AsyncSession, seller_id: uuid.UUID, store_id: uuid.UUID, password: str
+    db: AsyncSession, seller_id: uuid.UUID, store_id: uuid.UUID, password: str | None
 ) -> None:
     """Settings → Close shop: the shop link stops working and nobody can log
     in. Nothing is erased: the founder reopens it, or erases it for good,
     when the seller asks (python -m app.admin, docs/ADMIN.md)."""
     seller = await get_account(db, seller_id)
-    if not await security.verify_password(password, seller.password_hash):
-        raise AppError(422, "WRONG_PASSWORD", "Your current password is wrong.", "password")
+    await _check_password(seller, password, "password")
     await set_shop_logins(db, seller.id, store_id, active=False)
     await db.commit()
 
@@ -85,10 +111,9 @@ async def change_password(
     db: AsyncSession, seller_id: uuid.UUID, store_id: uuid.UUID, data: PasswordChange
 ) -> TokenPair:
     """New password, and every other phone logged out: all sessions end and
-    this one gets a fresh pair."""
+    this one gets a fresh pair. An account made with Google adds its first
+    one here, without a current one."""
     seller = await get_account(db, seller_id)
-    if not await security.verify_password(data.current_password, seller.password_hash):
-        # Not 401: the app treats a 401 as "session over" and logs out.
-        raise AppError(422, "WRONG_PASSWORD", "Your current password is wrong.", "current_password")
+    await _check_password(seller, data.current_password, "current_password")
     seller.password_hash = await security.hash_password(data.new_password)
     return await auth_service.restart_sessions(db, seller, store_id)

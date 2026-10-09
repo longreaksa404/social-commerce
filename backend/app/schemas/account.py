@@ -1,6 +1,6 @@
 import uuid
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 from app.models import SellerRole
 from app.schemas.auth import Password
@@ -10,8 +10,6 @@ from app.schemas.common import Name
 class AccountOut(BaseModel):
     """The logged-in person's own details (Settings → Your account)."""
 
-    model_config = ConfigDict(from_attributes=True)
-
     # The login: a phone number checked in Telegram. Accounts from before
     # phone sign-up (2026-10-09) log in with their email and may have no
     # phone (theirs was the same as another account's).
@@ -20,6 +18,11 @@ class AccountOut(BaseModel):
     full_name: str
     # owner: everything; staff: everything but Settings.
     role: SellerRole
+    # False for an account made with Google until it adds a password.
+    has_password: bool
+    # The Google account that logs in to this one, if any.
+    google_email: str | None = None
+    google_connected: bool = False
 
 
 class AccountUpdate(BaseModel):
@@ -36,9 +39,12 @@ class PhoneChange(BaseModel):
 
 
 class CloseShopIn(BaseModel):
-    password: str = Field(max_length=200)
+    # Not needed by an account without one (made with Google).
+    password: str | None = Field(None, max_length=200)
 
 
 class PasswordChange(BaseModel):
-    current_password: str = Field(max_length=200)
+    # Not needed when the account has none yet (made with Google): this
+    # adds one.
+    current_password: str | None = Field(None, max_length=200)
     new_password: Password

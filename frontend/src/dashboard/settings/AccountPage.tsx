@@ -1,11 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useState, type FormEvent } from 'react'
+import { CircleCheck } from 'lucide-react'
+import { GoogleButton } from '../../auth/GoogleButton.tsx'
 import { PhoneCheck } from '../../auth/PhoneCheck.tsx'
 import { useFeedback } from '../../components/feedback.ts'
 import { Button, ErrorMessage, ErrorState, Field, Input, PasswordInput, Section, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { api, saveTokens, type AccessToken } from '../../lib/api.ts'
 import { fieldError, formError } from '../../lib/errors.ts'
+import { GOOGLE_CLIENT_ID } from '../../lib/google.ts'
 import { formatPhone } from '../../lib/orders.ts'
 import type { Account, PhoneCheck as PhoneCheckState } from '../../lib/types.ts'
 import { keys, useAccount } from '../queries.ts'
@@ -22,7 +25,8 @@ export function AccountPage() {
     <div className="space-y-4">
       <DetailsForm account={account.data} />
       <LoginPhone account={account.data} />
-      <PasswordForm login={account.data.phone ?? account.data.email ?? ''} />
+      <GoogleLogin account={account.data} />
+      <PasswordForm login={account.data.phone ?? account.data.email ?? ''} hasPassword={account.data.has_password} />
     </div>
   )
 }
@@ -129,7 +133,45 @@ function LoginPhone({ account }: { account: Account }) {
   )
 }
 
-function PasswordForm({ login }: { login: string }) {
+/** "Continue with Google" for this account: shows which Google account
+ * logs in to it, and connects one (or another one). Hidden when Google
+ * sign-in isn't set up. */
+function GoogleLogin({ account }: { account: Account }) {
+  const queryClient = useQueryClient()
+  const { toast } = useFeedback()
+  const s = useT().settings
+  const connect = useMutation({
+    mutationFn: (credential: string) =>
+      api<Account>('/seller/account/google', { method: 'POST', body: { credential } }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(keys.account, updated)
+      toast(s.googleConnected)
+    },
+  })
+  const { mutate } = connect
+
+  if (!GOOGLE_CLIENT_ID) return null
+  return (
+    <Section title={s.google} description={account.google_connected ? s.googleOn : s.googleOff}>
+      <div className="space-y-3">
+        {account.google_connected && (
+          <p className="flex items-center gap-2 font-medium text-slate-900">
+            <CircleCheck aria-hidden className="size-5 text-emerald-600" />
+            {account.google_email ?? s.googleAccount}
+          </p>
+        )}
+        {account.google_connected && <p className="text-xs text-slate-500">{s.googleSwitch}</p>}
+        <GoogleButton onCredential={mutate} />
+        <ErrorMessage error={connect.error} />
+      </div>
+    </Section>
+  )
+}
+
+/** Change the password, or (an account made with Google) add a first one,
+ * to log in with the phone number too. */
+function PasswordForm({ login, hasPassword }: { login: string; hasPassword: boolean }) {
+  const queryClient = useQueryClient()
   const { toast } = useFeedback()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
@@ -140,14 +182,15 @@ function PasswordForm({ login }: { login: string }) {
     mutationFn: () =>
       api<AccessToken>('/seller/account/password', {
         method: 'POST',
-        body: { current_password: current, new_password: next },
+        body: hasPassword ? { current_password: current, new_password: next } : { new_password: next },
       }),
     onSuccess: (token) => {
       // Every other session ended; this one carries on with a new token.
       saveTokens(token)
       setCurrent('')
       setNext('')
-      toast(s.passwordChanged)
+      toast(hasPassword ? s.passwordChanged : s.passwordAdded)
+      if (!hasPassword) queryClient.invalidateQueries({ queryKey: keys.account })
     },
   })
 
@@ -157,13 +200,18 @@ function PasswordForm({ login }: { login: string }) {
   }
 
   return (
-    <Section title={s.changePassword} description={s.changePasswordHint}>
+    <Section
+      title={hasPassword ? s.changePassword : s.addPassword}
+      description={hasPassword ? s.changePasswordHint : s.addPasswordHint}
+    >
       <form onSubmit={submit} className="space-y-4">
         {/* For password managers: whose password this is. */}
         <input type="text" autoComplete="username" value={login} hidden readOnly />
-        <Field label={s.currentPassword} error={fieldError(change.error, 'current_password')}>
-          <PasswordInput required autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
-        </Field>
+        {hasPassword && (
+          <Field label={s.currentPassword} error={fieldError(change.error, 'current_password')}>
+            <PasswordInput required autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
+          </Field>
+        )}
         <Field
           label={s.newPassword}
           error={fieldError(change.error, 'new_password')}
@@ -179,7 +227,7 @@ function PasswordForm({ login }: { login: string }) {
         </Field>
         <ErrorMessage error={formError(change.error, ['current_password', 'new_password'])} />
         <Button type="submit" variant="secondary" loading={change.isPending} className="w-full sm:w-auto">
-          {s.changePassword}
+          {hasPassword ? s.changePassword : s.addPassword}
         </Button>
       </form>
     </Section>

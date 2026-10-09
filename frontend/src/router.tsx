@@ -13,6 +13,7 @@ import { OrdersPage } from './dashboard/orders/OrderList.tsx'
 import { ProductEdit } from './dashboard/products/ProductEdit.tsx'
 import { ProductList } from './dashboard/products/ProductList.tsx'
 import { SettingsPage } from './dashboard/settings/SettingsPage.tsx'
+import { FinishSignup } from './pages/FinishSignup.tsx'
 import { ForgotPassword } from './pages/ForgotPassword.tsx'
 import { Home } from './pages/Home.tsx'
 import { Login } from './pages/Login.tsx'
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
       { path: '/', element: <Home /> },
       { path: '/login', element: <Login /> },
       { path: '/register', element: <Register /> },
+      { path: '/register/google', element: <FinishSignup /> },
       { path: '/forgot-password', element: <ForgotPassword /> },
       // The link the bot sends to the shop's Telegram: /reset-password#<token>.
       { path: '/reset-password', element: <ResetPassword /> },

@@ -11,9 +11,11 @@ from app.core.config import get_settings
 from app.core.errors import AppError
 
 ALGORITHM = "HS256"
-TokenType = Literal["access", "refresh", "reset"]
+TokenType = Literal["access", "refresh", "reset", "signup"]
 # How long a "choose a new password" link from Telegram works.
 RESET_TOKEN_MINUTES = 30
+# How long someone new from "Continue with Google" has to finish signing up.
+SIGNUP_TOKEN_MINUTES = 30
 
 
 def _hash(password: str) -> str:
@@ -68,17 +70,27 @@ def create_refresh_token(seller_id: uuid.UUID, token_id: uuid.UUID) -> str:
     )
 
 
-def password_fingerprint(password_hash: str) -> str:
-    """Changes whenever the password does, so a reset link works once."""
-    return hashlib.sha256(password_hash.encode()).hexdigest()[:16]
+def password_fingerprint(password_hash: str | None) -> str:
+    """Changes whenever the password does, so a reset link works once.
+    An account without a password (made with Google) has one too."""
+    return hashlib.sha256((password_hash or "").encode()).hexdigest()[:16]
 
 
-def create_reset_token(seller_id: uuid.UUID, password_hash: str) -> str:
+def create_reset_token(seller_id: uuid.UUID, password_hash: str | None) -> str:
     """The "choose a new password" link (Forgot password?). Not stored:
     signed, expiring, and tied to the current password."""
     return _encode(
         {"type": "reset", "sub": str(seller_id), "pwh": password_fingerprint(password_hash)},
         timedelta(minutes=RESET_TOKEN_MINUTES),
+    )
+
+
+def create_signup_token(provider: str, provider_user_id: str, email: str | None) -> str:
+    """Someone new from "Continue with Google" (Facebook, TikTok later):
+    what they proved, carried to POST /auth/social/register. Not stored."""
+    return _encode(
+        {"type": "signup", "sub": provider_user_id, "provider": provider, "email": email},
+        timedelta(minutes=SIGNUP_TOKEN_MINUTES),
     )
 
 

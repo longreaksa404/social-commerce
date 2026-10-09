@@ -7,14 +7,19 @@ from app.api.session_cookie import RefreshCookie, end_session, start_session
 from app.core.ratelimit import limiter
 from app.schemas.auth import (
     AccessOut,
+    GoogleIn,
     LoginIn,
     PasswordResetConfirm,
     PasswordResetIn,
     PhoneCheckOut,
     RegisterIn,
+    SocialOut,
+    SocialRegisterIn,
+    TokenPair,
 )
 from app.services import auth as auth_service
 from app.services import phone_check as phone_check_service
+from app.services import social as social_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -78,3 +83,24 @@ async def start_phone_check(request: Request, db: UnscopedDb) -> PhoneCheckOut:
 async def read_phone_check(request: Request, check_id: uuid.UUID, db: UnscopedDb) -> PhoneCheckOut:
     """Read every few seconds while the seller is in Telegram."""
     return await phone_check_service.describe(db, await phone_check_service.get(db, check_id))
+
+
+@router.post("/google", response_model=SocialOut)
+@limiter.limit("10/minute")
+async def google(request: Request, response: Response, data: GoogleIn, db: UnscopedDb) -> SocialOut:
+    """ "Continue with Google": logs in the seller this Google account
+    belongs to, or answers `signup` for someone new."""
+    result = await social_service.google_sign_in(db, data.credential)
+    if isinstance(result, TokenPair):
+        return SocialOut(access_token=start_session(response, result).access_token)
+    return SocialOut(signup=result)
+
+
+@router.post("/social/register", response_model=AccessOut, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
+async def social_register(
+    request: Request, response: Response, data: SocialRegisterIn, db: UnscopedDb
+) -> AccessOut:
+    """Someone new from "Continue with Google": their shop, with a phone
+    number checked in Telegram."""
+    return start_session(response, await social_service.register(db, data))

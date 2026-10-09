@@ -1,6 +1,7 @@
 import { useCallback, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { PhoneCheck } from '../auth/PhoneCheck.tsx'
+import { ContinueWithGoogle } from '../auth/ContinueWithGoogle.tsx'
 import { useAuth } from '../auth/useAuth.ts'
 import { Button, ErrorMessage, Field, Input, PasswordInput, SlowNotice } from '../components/ui.tsx'
 import { ApiError } from '../lib/api.ts'
@@ -73,6 +74,7 @@ export function Register() {
         </>
       }
     >
+      <ContinueWithGoogle />
       <form onSubmit={submit} className="space-y-4">
         <Field label={t.auth.register.storeName} error={fieldError(error, 'store_name')} hint={t.auth.register.storeNameHint}>
           <Input

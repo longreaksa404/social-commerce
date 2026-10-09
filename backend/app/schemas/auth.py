@@ -75,3 +75,34 @@ class PhoneCheckOut(BaseModel):
     phone: str | None = None
     # That number already has an account: log in instead.
     taken: bool = False
+
+
+class GoogleIn(BaseModel):
+    """The ID token from Google's "Continue with Google" button."""
+
+    credential: str = Field(min_length=1, max_length=4000)
+
+
+class SignupStart(BaseModel):
+    """A Google account with no shop yet: the seller finishes signing up
+    (shop name, phone checked in Telegram) with POST /auth/social/register."""
+
+    signup_token: str
+    full_name: str
+    email: str | None
+
+
+class SocialOut(BaseModel):
+    """After "Continue with Google": logged in (access_token, and the
+    refresh cookie is set), or someone new (signup)."""
+
+    access_token: str | None = None
+    token_type: Literal["bearer"] = "bearer"
+    signup: SignupStart | None = None
+
+
+class SocialRegisterIn(BaseModel):
+    signup_token: str = Field(max_length=2000)
+    full_name: Name
+    store_name: Name
+    phone_check: uuid.UUID

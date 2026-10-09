@@ -83,7 +83,17 @@ export type Role = 'owner' | 'staff'
 /** The logged-in person's own details (Settings → Your account). The
  * phone number is the login; accounts from before 2026-10-09 log in with
  * their email and may have no phone. */
-export type Account = { phone: string | null; email: string | null; full_name: string; role: Role }
+export type Account = {
+  phone: string | null
+  email: string | null
+  full_name: string
+  role: Role
+  /** False for an account made with Google until it adds a password. */
+  has_password: boolean
+  /** A Google account logs in to this one too (its email, if Google gave one). */
+  google_connected: boolean
+  google_email: string | null
+}
 
 /** A helper the owner added (Settings → Staff); logs in with the phone. */
 export type StaffMember = {
@@ -453,3 +463,10 @@ export type LinkStats = ShareLink & {
   /** The orders it brought, newest first (at most 100). */
   orders: OrderSummary[]
 }
+
+/** Someone new from "Continue with Google": they finish with a shop name
+ * and a phone checked in Telegram (POST /auth/social/register). */
+export type SignupStart = { signup_token: string; full_name: string; email: string | null }
+
+/** POST /auth/google: logged in (access_token), or someone new (signup). */
+export type SocialResult = { access_token: string | null; signup: SignupStart | null }
