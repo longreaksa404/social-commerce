@@ -1024,6 +1024,25 @@ line: Safari carries the last card's margin and shadow over to the next
 column. The gap is now padding on each item. Checked in headless WebKit
 and Chromium at 414 px with mocked data, before and after.
 
+**Shop grid: right column painted late on iPhone** (founder's screen
+recording, 2026-10-09; not pushed). Tapping a category chip left the
+right column blank for 0.3-0.6 s, sometimes half drawn. Causes: CSS
+columns fill the left column first, so the right column's cards had the
+longest rise delays (up to 320 ms + 300 ms); Safari paints a fading card
+outside the first CSS column late; and every tap remounted the cards,
+replayed the rise and restarted each photo from a grey square.
+1. [x] The shop grid deals its cards into side-by-side columns (2, 3, 4,
+   5 as before), reading left to right then down: product 2 now sits
+   beside product 1 instead of under it (founder's choice). No photo
+   size is stored, so it alternates. Cards rise in only the first time a
+   list shows; photos already shown appear at once at their size. The
+   seller's grid is unchanged (still CSS columns).
+
+Checked with mocked data in headless WebKit (iPhone 13), Chromium (Pixel
+7) and at 800, 1100 and 1440 px, sampling every frame: going back to a
+category already opened, both columns are fully drawn in the first
+frame and stay so. Real iPhone Safari still to check (founder).
+
 **Sign-up with a real phone number; Google, Facebook and TikTok logins**
 (founder's decisions 2026-10-09: social logins for ease of use, in the
 order Google, then Facebook, then TikTok; phone number and password kept;

@@ -1126,10 +1126,26 @@ is wrapped in try/catch (private mode).
   `components/useBump.ts` (re-run an animation when a value changes),
   `shop/fly.ts` (photo flies into the cart).
 - `shop/components.tsx`: `ProductImage` (thumbnail with fallback;
-  `natural` keeps the photo's shape), `ProductGrid` (a photo wall in CSS
-  columns, with the same cards as the seller's grid view; the card's link
-  covers it with `::after` so the + can sit on the photo), `CategoryChips`, `ShopLogo`,
-  `NotFound`, `QuantityStepper`.
+  `natural` keeps the photo's shape, square until it first loads; a
+  `natural` photo already shown since the page loaded is remembered with
+  its shape in `shownPhotos` and drawn at once, decoded with its card,
+  instead of fading in again), `ProductGrid` (a photo wall with the same
+  cards as the seller's grid view; the card's link covers it with
+  `::after` so the + can sit on the photo), `ProductGridSkeleton`,
+  `CategoryChips`, `ShopLogo`, `NotFound`, `QuantityStepper`.
+  **The shop's photo wall is not CSS columns** (the seller's grid in
+  `ProductList.tsx` still is): iPhone Safari painted the second CSS
+  column late or half while its cards faded in. `deal()` hands the
+  products out in turn into side-by-side flex columns (`<ul>` each), 2 on
+  phones and 3/4/5 from Tailwind's sm/lg/xl (`matchMedia`, re-dealt on
+  rotate or resize), so they read left to right, then down (product
+  `row * count + column`). There's no photo size in the API, so it
+  alternates rather than filling the shortest column. The DOM, and so Tab
+  and screen readers, goes down one column, then the next. Cards rise in
+  (40 ms apart, by that order) only the first time a list (shop + category)
+  shows since the page loaded (`shownLists`, `useRising`); opened again,
+  it comes from the cache and is just there. The skeleton is dealt the
+  same way.
 - `dashboard/useUnsavedChanges.ts` (blocks navigation with a confirm sheet
   while a form is dirty) and `dashboard/useBackTo.ts` (back arrow returns
   to `location.state.back`).
