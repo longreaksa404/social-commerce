@@ -107,7 +107,10 @@ shows "API: ok" from the deployed backend.
   - Database: Neon free, Singapore, database `social_commerce`, direct
     (non-pooled) connection; migrations run against it on backend start
   - Sentry: projects `api` (FastAPI) and `web` (React), errors only
-  - Domain + Cloudflare DNS: deferred to Phase 9
+  - Domain + Cloudflare DNS: deferred to Phase 9; **live on oaksolve.com
+    since 2026-10-09**: app https://order.oaksolve.com, API
+    https://api.oaksolve.com, photos https://images.oaksolve.com (the
+    vercel.app and onrender.com addresses above still answer)
 
 **Phase 1 (deployed 2026-10-01; founder-tested on the live site;
 photos live 2026-10-03):**
@@ -1020,20 +1023,17 @@ Phase 9, waiting on the founder:
   race, rate limits back on, hide the test shop. Send Claude the
   summary lines.
 
-- **Domain:** oaksolve.com bought 2026-10-09 (Cloudflare, two-factor
-  login set up). Founder, in the dashboards (nothing changes for
-  visitors yet): `order.oaksolve.com` in Vercel (Add Existing, not
-  Edit on the vercel.app domain), `api.oaksolve.com` in Render, both
-  as CNAMEs with the grey cloud in Cloudflare DNS; `images.oaksolve.com`
-  on the R2 bucket (Custom Domains) and `https://order.oaksolve.com`
-  added to the bucket's CORS `AllowedOrigins`. Claude, on a branch
-  until the switch-over: the refresh token in an httpOnly cookie,
-  `render.yaml` addresses, the photo-address rewrite, the address on
-  the login page. Then the switch-over together: `CORS_ORIGINS`,
-  `R2_PUBLIC_URL`, `VITE_API_URL`, merge and push, rewrite photo
-  addresses, then the vercel.app address and `oaksolve.com` forward
-  to `order.oaksolve.com`. Check "Oak Order" as a Facebook page name
-  and on TikTok, Instagram and Telegram.
+- **Domain:** oaksolve.com live since 2026-10-09 (switch-over pushed as
+  `9ff0b9c`; `move-photos` moved 20 products and 1 logo; the founder
+  checked login, photos, upload, a test order and the Telegram "Open
+  order" link on the phone). Left: forward the vercel.app address
+  (Vercel, Edit → Redirect to `order.oaksolve.com`, 308) and
+  `oaksolve.com` / `www` (Cloudflare: proxied A records to 192.0.2.1 and
+  a 302 Redirect Rule to `https://order.oaksolve.com`, 302 because it
+  becomes Oak Solutions' home page later); then drop the vercel.app
+  origin from Render's `CORS_ORIGINS` and from the R2 bucket's CORS.
+  Check "Oak Order" as a Facebook page name and on TikTok, Instagram
+  and Telegram.
 - **Backups:** the bucket, token and five GitHub secrets
   (`docs/BACKUPS.md`).
 - **Read the Khmer** and send corrections.
@@ -1440,8 +1440,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   `ENABLE ROW LEVEL SECURITY`, and a `tenant_isolation` policy on
   `store_id` (copy from the `ccd7d9bce820` migration). Seller endpoints use
   the `TenantDb` dependency; anything on `UnscopedDb` must filter by hand.
-- The refresh token is an httpOnly cookie (2026-10-09, goes live with
-  the switch-over to oaksolve.com); the access token is in memory only.
+- The refresh token is an httpOnly cookie (live 2026-10-09, with
+  oaksolve.com); the access token is in memory only.
   Refreshes are serialized across tabs.
 - Removing a product photo only unlinks it; the file stays in R2. Fine at
   MVP volume.
@@ -1672,10 +1672,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
    Khmer with the rest.
 5. Founder: read the Khmer on the live site; try dark mode; run the
    rate-limit check (Notes).
-6. Domain (oaksolve.com, bought 2026-10-09): founder adds the three
-   subdomains in Vercel, Render and R2 (Notes, "Domain"); Claude
-   builds the cookie sessions and photo rewrite on a branch; then the
-   switch-over together.
+6. Domain: live on order.oaksolve.com (2026-10-09). Founder: the two
+   forwards and the vercel.app clean-up (Notes, "Domain").
 7. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
 8. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
    Part A on the live site, revoke the Telegram token.
