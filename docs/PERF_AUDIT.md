@@ -1,10 +1,12 @@
 # Performance Audit (pre-launch)
 
-> **Phase 1 (audit) done 2026-10-09.** Phase 2 (fixes) waits for the
-> founder's approval of the findings in section 4 and the device results
-> (section 9). Nothing in the app has changed; the only code added is the
-> audit's tooling in `backend/loadtest/` (`seed_perf.py`, `measure.py`,
-> commit `77fbca2`).
+> **Phase 1 (audit) done 2026-10-09.** **Phase 2, batch A done
+> 2026-10-10:** F1, F5, F6 and F9 fixed, one commit each, before / after in
+> section 10 (founder's picks in 04, "Pre-launch performance pass"). F4
+> waits for the live curl output (section 8). Next: the device checklist
+> (section 9) on the live site, then F2, F16, F17 are decided. The audit's
+> tooling is in `backend/loadtest/` (`seed_perf.py`, `measure.py`, commit
+> `77fbca2`).
 
 ---
 
@@ -323,7 +325,7 @@ Only F3 needs money, and it is not implemented without your decision.
 | F5 | First grid photos are lazy-loaded though one is the page's main image (LCP) | Customer (also seller lists); both | Shop LCP 5.9-7.2 s, of which 4.6-5.5 s waiting for the photo to start; 25-product shop: 5.1 of 6.5 s; category page 5.5 of 6.7 s | Pass the existing `eager` to the first ~4 cards of `ProductGrid` (and first rows of the seller's lists) | 0.5 | low | no | no |
 | F6 | Product page downloads every full-size photo at once | Customer; both | 4-photo product: 1.1 MB on open; photo 1 (LCP) shares the bandwidth; product LCP 5.3 s | `fetchpriority="low"` on photos 2+ (photo 1 already high), so photo 1 goes first | 0.5 | low | no | no |
 | F7 | Exporting orders freezes the whole API while it runs | Everyone (one server for all shops); seller waits too | This month (1,075 orders): 0.28 s local, **3.1-5.2 s at 0.1 CPU**; a year (4,975): 3.2 s local, **~36 s at 0.1 CPU**, all on the event loop (2.3 s building ORM objects + 1.1 s writing the file, local) | Build the file in a worker thread and load only the columns it needs (one query, no ORM objects); same file contents | 2-3 | low-med | no | no |
-| F8 | Shop and seller grids render every product at once | Customers of big shops, sellers with many products; Android low-end most | 500 products: shop TBT 2.9-3.8 s (25 products: 0.29 s); seller Products 7.1 s of script, TBT 1.5 s | Render cards as you scroll. **Needs a layout decision:** the photo wall uses CSS columns, which fill column by column (with 500 products the right column starts around #250), so adding cards while scrolling would reshuffle what's on screen. Rows, or columns filled left-right-left, would allow it | 3-5 | med | no | no |
+| F8 | Shop and seller grids render every product at once | Customers of big shops, sellers with many products; Android low-end most | 500 products: shop TBT 2.9-3.8 s (25 products: 0.29 s); seller Products 7.1 s of script, TBT 1.5 s | Render cards as you scroll. **Needs a layout decision:** the photo wall uses CSS columns, which fill column by column (with 500 products the right column starts around #250), so adding cards while scrolling would reshuffle what's on screen. Rows, or columns filled left-right-left, would allow it. *Since 2026-10-09 (`986a074`, an iPhone Safari fix) the shop's grid deals cards left-right into columns, so there it no longer needs a layout change; the seller's photo wall still uses CSS columns. Deferred by the founder (section 11).* | 3-5 | med | no | no |
 | F9 | Seller screens refetch the shop and account on every screen | Seller; both | `GET /seller/store` 11× and `/seller/account` 6× in 9 screens; ~100-200 ms server each at 0.1 CPU (UI doesn't wait: cached data shows) | `staleTime` (e.g. 5 min) on store, account and categories: only the seller changes them, and saves already update the cache | 0.5 | low | no | no |
 | F10 | Slow cold start | First visitor after the API sleeps (0:05-7:00), after deploys; Telegram webhook | 105 s locally at 0.1 CPU: no-op migration 21 s, imports 47 s (boto3 ~15%) | Import boto3 only when signing an upload (−~15% of import time). Skipping the no-op migration is a deploy-script change: defer to the paid plan's pre-deploy step (already planned in 04) | 0.5 | low | no | no |
 | F11 | Checkouts in one shop run one at a time and hold DB connections while waiting | Customers in a flash sale | 50 at the same instant: last order after 2.8 s (full CPU) / 31.7 s (0.1 CPU); reads wait for connections up to 27.7 s. Normal burst: 1 lock wait in ~360 samples | Order numbers from a per-shop counter and a customer upsert instead of locking the store row. Changes checkout's concurrency design: **defer** until a flash sale happens (04 says "fine at MVP volume") | 4-6 | high | yes | no |
@@ -332,6 +334,8 @@ Only F3 needs money, and it is not implemented without your decision.
 | F14 | Keep-alive "connection reset" under load | Both | 4 of 3,958 requests locally (5 of 3,401 at 0.5 CPU): uvicorn closes an idle connection after 5 s as the client reuses it | `--timeout-keep-alive` longer than Render's proxy's. **Defer** to the live load test (04 already says: raise it if the live test shows 502s) | 0.25 | low | no | no |
 | F15 | Seller list/detail endpoints over 300 ms at 0.1 CPU | Seller | Orders 400-500 ms, order 300-390, customer 400-490, link stats 500-590 at 0.1 CPU; 30-60 ms at full CPU | Starter (F3) solves it; trimming ORM work is possible later. **Defer** | — | — | no | — |
 | F16 | Inputs drop to 14 px from 640 px wide, so an iPhone in landscape zooms on focus | Customer, seller; iOS | Code: `components/ui.tsx` input class `sm:text-sm`; every iPhone is ≥640 px wide in landscape. Unmeasured on a device | Keep 16 px up to `lg`; checklist step 5 confirms first | 0.25 | low | no | no |
+| F6b | The product gallery's photos 2-4 still share the bandwidth with photo 1 | Customer; both | Found while measuring F6 (section 10): with Chromium throttled to Slow 4G, photo 1 of a 4-photo product loads at 9.7 s with or without the low-priority hint; a scratch build that starts photos 2-4 only once photo 1 has loaded: **6.8 s** (LCP 10.0 to 7.1 s) | Start photos 2+ after photo 1 has loaded or failed (a swipe before then shows grey until it comes). Not built: a different mechanism from the approved F6 | 0.5 | low | no | no |
+| F18 | Order rows show a 48 px photo using the ~40 KB copy made for grids | Seller; both | Found in the Phase 2 traces: opening Orders downloads 36 row photos, **1.36 MB**, on a shop whose recent orders are for different products (the Phase 1 trace saw 3: its newest orders were the measuring script's, all one product). A 48 px tile (144 px on a sharp phone) needs ~5 KB | A smaller copy for rows would be a third upload size (photo, grid copy, row copy) and only for new photos; or fewer rows' photos loaded ahead. Not built | 2-3 | low | no | no |
 | F17 | Blurred, see-through fixed bars over long scrolling lists | Both; older iPhones, low-end Android | Code: `backdrop-blur` on the shop header, dashboard header and tab bar, pinned bars. Unmeasured: headless Chromium draws in software | Only if the device checklist shows scroll jank: opaque bars (a visual change, your call) | 0.5 | low | no | no |
 
 Things I'd **not** do:
@@ -476,17 +480,21 @@ Phones used: iPhone ___ (iOS ___), Android ___ (Android ___, Chrome ___).
 
 ## 10. Phase 2: before and after
 
-Waiting for approval. Each approved finding gets one commit, its numbers
-re-measured with the same tools (`measure.py`, Lighthouse, the traces), the
-full test suite run, and the checklist flows to re-run if it touches layout
-or input.
+Batch A, 2026-10-10 (founder's picks: F1, F5, F6, F9; F4 only with the
+live curl output, **skipped: none pasted yet**). Each fix was built in a
+clean worktree (committed code plus only that fix), measured against the
+commit before it with the same tools, and committed with the full backend
+suite (614 tests), oxlint, `tsc -b` and the build passing. Lighthouse and
+the photo timings ran before and after in turn, 3-4 runs each, because this
+laptop's speed varies between runs. Commits: F1 `ca64fb5`, F9 `49d96aa`,
+F5 `7b22bff`, F6 `28050ce`.
 
 | Finding | Commit | Before | After | Tests | Re-run on phones |
 |---|---|---|---|---|---|
-| F1 setup check stops refetching the product list | "Dashboard: the setup check stops asking for the whole product list on every screen" | The audit's 9-screen seller trace: `GET /seller/products` **5× (2,500 KB)**, on opening the dashboard, back to Orders, the Products tab, back to Products, Settings | **3× (1,500 KB)**: opening the dashboard (the setup check's one fetch) and the 2 visits to the Products screen, which still fetches on every visit to show current stock. "Once" would also need a freshness window on the Products screen (not approved). Settings tab dot for a new shop, saved in either order (product first, or delivery and payments first): shows until all three are saved, clears at once after the last, same as before | 614 backend pass; oxlint, `tsc -b` and build pass | 8, 10 |
-| F9 shop, account and categories fresh for 5 minutes | "Dashboard: shop settings, account and categories count as fresh for 5 minutes" | Same 9-screen trace, after F1: `GET /seller/store` **11×**, `/seller/account` **6×**, `/seller/categories` **3×**; 34 API requests in all | `/seller/store` **1×**, `/seller/account` **1×**, `/seller/categories` **1×**; 19 API requests in all. Saved on this device and shown at once (checked in the browser, same as before): shop name on the Settings menu and the top bar, a new category in the list and the product form, the account name, the setup dot (both orders as for F1) | 614 backend pass; oxlint, `tsc -b` and build pass | 8, 9 |
-| F5 first photos load at once | "Grids and lists: the first 4 photos load at once" | Lighthouse mobile, 3 runs each, before and after taken in turn (the first photo's wait = Lighthouse's "load delay"). Seller Products (500): LCP **13.3 s** (photo waits 12.4 s), score 34. Shop, 25 products: LCP 6.4 s (waits 5.4 s), score 55. Shop, 500: LCP 7.4 s (waits 5.8 s). Category: LCP 6.5 s (waits 5.4 s). Seller Orders: LCP 10.8 s (a row's text) | Seller Products: LCP **7.0 s** (waits 6.2 s), score 36. Shop, 25: LCP 6.2 s (waits 5.1 s), score 54. Shop, 500: LCP 7.6 s (waits 5.1 s; the rest is the grid's rendering, F8). Category: LCP 6.5 s (waits 5.3 s). Orders: LCP 10.5 s, unchanged (its LCP is text, after the data). So: a clear win on the seller's product wall; on the shop the photo starts ~0.3-0.7 s sooner but LCP moves within run-to-run noise, because the photo's address only arrives with the API answer after the JS has run (F2) | 614 backend pass; oxlint, `tsc -b` and build pass | 1, 2, 8, 10 |
-| F6 product photos 2+ at low priority | "Product page: photos 2 onwards are fetched at low priority" | 4-photo product, Chromium throttled to Slow 4G (150 ms, 1.6 Mbps), empty cache, 4 runs each in turn: photo 1 loaded at **9.71 s**, LCP 10.06 s; photos 2-3 finish with photo 1 (they share the bandwidth) | Photo 1 at **9.64 s**, LCP 9.98 s: **no measurable change here.** The local photo server speaks HTTP/1.1 (a connection per photo), and both the browser's throttling and Lighthouse split bandwidth evenly whatever the priority. Live photos come over Cloudflare's HTTP/2/3, where priorities can take effect: unmeasured. A scratch variant (not committed) that starts photos 2-4 only after photo 1 has loaded: photo 1 at **6.82 s**, LCP 7.13 s (section 4, F6b) | 614 backend pass; oxlint, `tsc -b` and build pass | 3 |
+| F1 setup check stops refetching the product list | `ca64fb5` | The audit's 9-screen seller trace: `GET /seller/products` **5× (2,500 KB)**, on opening the dashboard, back to Orders, the Products tab, back to Products, Settings | **3× (1,500 KB)**: opening the dashboard (the setup check's one fetch) and the 2 visits to the Products screen, which still fetches on every visit to show current stock. "Once" would also need a freshness window on the Products screen (not approved). Settings tab dot for a new shop, saved in either order (product first, or delivery and payments first): shows until all three are saved, clears at once after the last, same as before | 614 backend pass; oxlint, `tsc -b` and build pass | 8, 10 |
+| F9 shop, account and categories fresh for 5 minutes | `49d96aa` | Same 9-screen trace, after F1: `GET /seller/store` **11×**, `/seller/account` **6×**, `/seller/categories` **3×**; 34 API requests in all | `/seller/store` **1×**, `/seller/account` **1×**, `/seller/categories` **1×**; 19 API requests in all. Saved on this device and shown at once (checked in the browser, same as before): shop name on the Settings menu and the top bar, a new category in the list and the product form, the account name, the setup dot (both orders as for F1) | 614 backend pass; oxlint, `tsc -b` and build pass | 8, 9 |
+| F5 first photos load at once | `7b22bff` | Lighthouse mobile, 3 runs each, before and after taken in turn (the first photo's wait = Lighthouse's "load delay"). Seller Products (500): LCP **13.3 s** (photo waits 12.4 s), score 34. Shop, 25 products: LCP 6.4 s (waits 5.4 s), score 55. Shop, 500: LCP 7.4 s (waits 5.8 s). Category: LCP 6.5 s (waits 5.4 s). Seller Orders: LCP 10.8 s (a row's text) | Seller Products: LCP **7.0 s** (waits 6.2 s), score 36. Shop, 25: LCP 6.2 s (waits 5.1 s), score 54. Shop, 500: LCP 7.6 s (waits 5.1 s; the rest is the grid's rendering, F8). Category: LCP 6.5 s (waits 5.3 s). Orders: LCP 10.5 s, unchanged (its LCP is text, after the data). So: a clear win on the seller's product wall; on the shop the photo starts ~0.3-0.7 s sooner but LCP moves within run-to-run noise, because the photo's address only arrives with the API answer after the JS has run (F2) | 614 backend pass; oxlint, `tsc -b` and build pass | 1, 2, 8, 10 |
+| F6 product photos 2+ at low priority | `28050ce` | 4-photo product, Chromium throttled to Slow 4G (150 ms, 1.6 Mbps), empty cache, 4 runs each in turn: photo 1 loaded at **9.71 s**, LCP 10.06 s; photos 2-3 finish with photo 1 (they share the bandwidth) | Photo 1 at **9.64 s**, LCP 9.98 s: **no measurable change here.** The local photo server speaks HTTP/1.1 (a connection per photo), and both the browser's throttling and Lighthouse split bandwidth evenly whatever the priority. Live photos come over Cloudflare's HTTP/2/3, where priorities can take effect: unmeasured. A scratch variant (not committed) that starts photos 2-4 only after photo 1 has loaded: photo 1 at **6.82 s**, LCP 7.13 s (section 4, F6b) | 614 backend pass; oxlint, `tsc -b` and build pass | 3 |
 
 ---
 
@@ -501,3 +509,12 @@ or input.
 - **F15 seller endpoints at 0.1 CPU:** solved by Starter (F3) if chosen.
 - **Shop pages prerendered on the server** (the only way to an LCP under
   2.5 s on Slow 4G): an architecture change, not proposed.
+- **F2 code split:** decided after the device checklist (do it if
+  products take 3 s or more to show on 4G in an in-app browser).
+- **F3 Render Starter:** not taken (founder, 2026-10-10); 04's
+  decision of 2026-10-08 stands.
+- **F7 export:** until any shop passes ~300 orders.
+- **F8 grids:** the column photo wall stays; revisit when a real
+  shop passes ~100 products.
+- **F10 lazy boto3:** not taken; it would move the import onto the
+  first photo upload after each start.

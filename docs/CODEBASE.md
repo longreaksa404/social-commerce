@@ -1052,6 +1052,16 @@ export const keys = {
   `useInfiniteQuery` with `offset = pages.length * PAGE` and
   `placeholderData: keepPreviousData`. The orders list, the bell and the
   notifications poll every 30 s (`POLL_MS`) and refetch on focus.
+  **Freshness** (perf audit F9, founder 2026-10-10): `useStore`,
+  `useAccount` and `useCategories` have `staleTime: SETTLED_MS` (5 min),
+  so screens reuse them instead of refetching on each mount; anything that
+  saves them must `setQueryData` or invalidate (all current saves do), and
+  a change from another device can take 5 minutes to show. Everything else
+  keeps the default `staleTime: 0` (e.g. the Products screen fetches the
+  list on every visit, for current stock). `useHasProduct()` (F1) is the
+  setup checklist's "the shop has a product": the products query with a
+  `select`, never refetched on mount once true (products are hidden, never
+  deleted); saving a product still invalidates it.
 - **Shop hooks** are in `src/shop/queries.ts`. Keys start with `['shop',
   slug, ...]`: `['shop', slug]`, `['shop', slug, 'products']`, `['shop',
   slug, 'product', productSlug]`, `['shop', slug, 'category',
@@ -1128,6 +1138,11 @@ is wrapped in try/catch (private mode).
   `components/useBump.ts` (re-run an animation when a value changes),
   `shop/fly.ts` (photo flies into the cart).
 - `shop/components.tsx`: `ProductImage` (thumbnail with fallback;
+  `eager` loads it at once at high priority, `later` asks for it at low
+  priority (a gallery's 2nd photo on); otherwise lazy. Lists pass `eager`
+  to their first `EAGER_PHOTOS` (4) photos: the shop grid by product
+  order, the seller's photo wall, list and table, and order rows via
+  `OrderRow`'s `eager`; perf audit F5, F6;
   `natural` keeps the photo's shape, square until it first loads; a
   `natural` photo already shown since the page loaded is remembered with
   its shape in `shownPhotos` and drawn at once, decoded with its card,

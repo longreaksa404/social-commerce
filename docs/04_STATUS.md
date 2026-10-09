@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-09 (performance audit, Phase 1: `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-10 (performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -1153,8 +1153,24 @@ then fix only the approved findings, one commit each):
    holds; API answers aren't compressed by the app; the first grid photo,
    the page's main image, is lazy-loaded; an export freezes the API (~36 s
    for a year at 0.1 CPU). Status changes show their spinner in ~10 ms.
-2. [ ] **Phase 2, fixes:** waiting for the founder's picks (section 4) and
-   device results (section 9).
+2. [x] **Phase 2, fixes.** Founder's picks 2026-10-10: fix F1, F5,
+   F6, F9 now; F4 only if the live curl shows no `content-encoding`.
+   F2, F16, F17 are decided after the device checklist, run on the live
+   site once these are pushed (F2 only if products take 3 s or more to
+   show on 4G in an in-app browser). Not taken: F3 (Render stays free,
+   decision of 2026-10-08), F10. Deferred: F7 (until a shop passes ~300
+   orders), F8 (until a real shop passes ~100 products; the column
+   photo wall stays), F11-F15 as in the audit.
+   Done 2026-10-10, one commit each, before / after in PERF_AUDIT
+   section 10: F1 `ca64fb5` (the product list 5 times to 3 in the
+   9-screen trace; the other 2 are the Products screen's own visits),
+   F9 `49d96aa` (`/seller/store` 11 to 1, `/seller/account` 6 to 1,
+   `/seller/categories` 3 to 1), F5 `7b22bff` (seller Products LCP 13.3 s
+   to 7.0 s; on the shop the photo starts ~0.3-0.7 s sooner, LCP within
+   noise), F6 `28050ce` (no change measurable locally; a variant that
+   waits for photo 1 measured 9.7 s to 6.8 s, F6b, for the founder).
+   F4 skipped: no live curl output yet. 614 backend tests, oxlint and
+   the build pass after each.
 
 Phase 9, waiting on the founder:
 
@@ -1217,6 +1233,13 @@ Phase 9, waiting on the founder:
 
 Resolved:
 
+- [x] **Performance pass picks** (2026-10-10): Render stays on the
+      free plan (F3 not taken; the 2026-10-08 triggers stand and the live
+      load test still decides). The shop and product grids keep the column
+      photo wall (F8 deferred until a real shop passes ~100 products).
+      Targets are the audit's revised ones (PERF_AUDIT section 5);
+      customer first load is judged on real phones, not Lighthouse's
+      Slow 4G.
 - [x] **Repo structure: Monorepo**
 - [x] **Hosting provider: Render** (fixed monthly pricing)
 - [x] **Object storage: Cloudflare R2** (zero egress fees)
@@ -1748,10 +1771,12 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-0000. Founder: the performance pass (`docs/PERF_AUDIT.md`): pick which
-      findings to fix (section 4; F3 is Render Starter, $7/month), run the
-      device checklist on an iPhone and an Android phone (section 9), and the
-      infrastructure commands from home (section 8). Send Claude the results.
+0000. Founder: performance pass. (a) From home, run the three curl
+      commands in `docs/PERF_AUDIT.md` section 8 and paste the output to
+      Claude. (b) Once the Phase 2 fixes are live, run the device
+      checklist (section 9) on an iPhone and an Android phone and send the
+      grid. (c) Take the results to the planning project to decide F2,
+      F16, F17.
 000. Founder: set up and test sign-up and the three logins in one go
      (founder's plan, 2026-10-09). Each part stays hidden until its keys
      are set, so the order doesn't matter.
