@@ -47,9 +47,12 @@ logger = logging.getLogger(__name__)
 # Alerts); also where the shop starts saying "Only N left" to customers.
 DEFAULT_LOW_STOCK = 5
 
+# Telegram alerts are in Khmer, the app's default language (decided
+# 2026-10-09), in the app's own Khmer words. The web notifications are
+# saved as data and worded by the app in the seller's chosen language.
 PAYMENT_LABELS = {
-    PaymentMethod.COD: "Cash on delivery",
-    PaymentMethod.BANK_TRANSFER: "Bank transfer",
+    PaymentMethod.COD: "បង់ប្រាក់ពេលទទួលទំនិញ",  # Cash on delivery
+    PaymentMethod.BANK_TRANSFER: "ផ្ទេរតាមធនាគារ",  # Bank transfer
     PaymentMethod.KHQR: "KHQR",
 }
 
@@ -189,9 +192,9 @@ def format_money(amount: Decimal, currency: Currency) -> str:
 
 def new_order_text(order: Order) -> str:
     money = lambda amount: format_money(amount, order.currency)  # noqa: E731
-    heading = f"🛒 <b>New order #{order.number}</b>"
+    heading = f"🛒 <b>ការកុម្ម៉ង់ថ្មី #{order.number}</b>"  # New order
     if order.status is OrderStatus.ACCEPTED:
-        heading += " (accepted automatically)"
+        heading += " (បានទទួលដោយស្វ័យប្រវត្តិ)"  # accepted automatically
     lines = [heading, ""]
     for item in order.items:
         name = item.product_name_snapshot
@@ -199,30 +202,33 @@ def new_order_text(order: Order) -> str:
             name += f" ({item.variant_name_snapshot})"
         lines.append(f"{item.quantity} × {escape(name)}: {money(item.line_total)}")
     if order.discount:
-        lines.append(f"Discount: −{money(order.discount)}")
+        lines.append(f"បញ្ចុះតម្លៃ: −{money(order.discount)}")  # Discount
     if order.delivery_method is not DeliveryMethod.PICKUP:
-        lines.append(f"Delivery: {money(order.delivery_fee) if order.delivery_fee else 'free'}")
-    lines.append(f"<b>Total: {money(order.total)}</b>")
+        fee = money(order.delivery_fee) if order.delivery_fee else "ឥតគិតថ្លៃ"  # free
+        lines.append(f"ថ្លៃដឹក: {fee}")  # Delivery
+    lines.append(f"<b>សរុប: {money(order.total)}</b>")  # Total
     lines.append("")
     lines.append(f"💳 {PAYMENT_LABELS[order.payment.method]}")
     if order.delivery_method is DeliveryMethod.PICKUP:
-        lines.append("🏪 Pickup")
+        lines.append("🏪 មកយកផ្ទាល់")  # Pickup
     else:
-        lines.append(f"🚚 {escape(order.delivery.courier or 'Your own delivery')}")
+        lines.append(f"🚚 {escape(order.delivery.courier or 'ដឹកដោយខ្លួនឯង')}")  # Your own delivery
     lines.append(f"👤 {escape(order.customer.name)}, {order.customer.phone}")
     if order.delivery_address:
         lines.append(f"📍 {escape(order.delivery_address)}")
     elif order.delivery_lat is not None:
-        lines.append("📍 Location shared (open the order for the map)")
+        # Location pinned (open the order for the map)
+        lines.append("📍 បានដៅទីតាំង (បើកការកុម្ម៉ង់ ដើម្បីមើលផែនទី)")
     if order.notes:
         lines.append(f"📝 {escape(order.notes)}")
     return "\n".join(lines)
 
 
 def low_stock_text(alerts: list[StockAlert]) -> str:
-    lines = ["⚠️ <b>Stock running low</b>", ""]
+    lines = ["⚠️ <b>ជិតអស់ស្តុក</b>", ""]  # Running low
     for alert in alerts:
-        left = "sold out" if alert.left == 0 else f"only {alert.left} left"
+        # Sold out / Only N left
+        left = "អស់ស្តុក" if alert.left == 0 else f"នៅសល់តែ {alert.left} ទៀត"
         lines.append(f"{escape(alert.name)}: {left}")
     return "\n".join(lines)
 
@@ -233,7 +239,7 @@ def order_button(order: Order) -> tuple[str, str] | None:
     app_url = get_settings().public_app_url.rstrip("/")
     if not app_url.startswith("https://"):
         return None
-    return "Open order", f"{app_url}/dashboard/orders/{order.id}"
+    return "បើកការកុម្ម៉ង់", f"{app_url}/dashboard/orders/{order.id}"
 
 
 async def notify_new_order(

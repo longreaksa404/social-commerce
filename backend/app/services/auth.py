@@ -154,15 +154,16 @@ async def send_password_reset(email: str) -> None:
     url = f"{get_settings().public_app_url.rstrip('/')}/reset-password#" + (
         security.create_reset_token(seller.id, seller.password_hash)
     )
+    # In Khmer, like the bot's other messages (notifications.py).
     text = (
-        "🔑 Someone asked to reset the Oak Order password for "
-        f"<b>{telegram.escape(seller.email)}</b>.\n\n"
-        f"To choose a new one, open the link within {security.RESET_TOKEN_MINUTES} minutes. "
-        "If it wasn't you, ignore this message: the password stays the same."
+        "🔑 មាននរណាម្នាក់បានស្នើសុំប្ដូរពាក្យសម្ងាត់ Oak Order សម្រាប់ "
+        f"<b>{telegram.escape(seller.email)}</b>។\n\n"
+        f"ដើម្បីជ្រើសពាក្យសម្ងាត់ថ្មី សូមបើកតំណក្នុងរយៈពេល {security.RESET_TOKEN_MINUTES} នាទី។ "
+        "បើមិនមែនជាអ្នកទេ សូមកុំអើពើសារនេះ៖ ពាក្យសម្ងាត់របស់អ្នកនៅដដែល។"
     )
     # Telegram refuses buttons to non-https addresses (localhost): the
     # link goes in the text instead.
-    button = ("Choose a new password", url) if url.startswith("https://") else None
+    button = ("ជ្រើសពាក្យសម្ងាត់ថ្មី", url) if url.startswith("https://") else None
     if button is None:
         text += f"\n\n{telegram.escape(url)}"
     try:

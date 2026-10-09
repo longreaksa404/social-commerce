@@ -141,14 +141,16 @@ def connect_link(store_id: uuid.UUID) -> tuple[str, datetime]:
     return f"https://t.me/{get_settings().telegram_bot_username}?start={code}", expires_at
 
 
+# The bot speaks Khmer, the app's default language (decided 2026-10-09),
+# with the same words as the app's Khmer (Settings → Alerts is
+# ការកំណត់ → ការជូនដំណឹង, its button ភ្ជាប់ Telegram).
 HELP_TEXT = (
-    "This bot sends shop owners an alert for each new order.\n\n"
-    "To connect your shop, open your dashboard, go to Settings → Alerts, "
-    "and tap “Connect Telegram”."
+    "បូតនេះផ្ញើដំណឹងទៅម្ចាស់ហាង រាល់ពេលមានការកុម្ម៉ង់ថ្មី។\n\n"
+    "ដើម្បីភ្ជាប់ហាងរបស់អ្នក សូមបើក Oak Order ចូលទៅ ការកំណត់ → ការជូនដំណឹង "
+    "ហើយចុច “ភ្ជាប់ Telegram”។"
 )
 EXPIRED_TEXT = (
-    "This link has expired or isn't valid. In your dashboard, open "
-    "Settings → Alerts and tap “Connect Telegram” again."
+    "តំណនេះផុតកំណត់ ឬមិនត្រឹមត្រូវ។ នៅក្នុង Oak Order សូមបើក ការកំណត់ → ការជូនដំណឹង ហើយចុច “ភ្ជាប់ Telegram” ម្ដងទៀត។"
 )
 
 
@@ -181,9 +183,9 @@ async def _connect(store_id: uuid.UUID, chat_id: int) -> str:
         await db.commit()
         name = escape(store.name)
     return (
-        f"✅ Connected to <b>{name}</b>.\n\n"
-        "You'll get a message here for every new order, and when a product runs low. "
-        "To stop, tap Disconnect in Settings → Alerts."
+        f"✅ បានភ្ជាប់ជាមួយ <b>{name}</b>។\n\n"
+        "អ្នកនឹងទទួលបានសារនៅទីនេះ រាល់ពេលមានការកុម្ម៉ង់ថ្មី និងពេលទំនិញជិតអស់ស្តុក។ "
+        "ដើម្បីបញ្ឈប់ សូមចុច “ផ្ដាច់” នៅក្នុង ការកំណត់ → ការជូនដំណឹង។"
     )
 
 

@@ -129,7 +129,7 @@ async def test_start_with_code_connects_only_that_store(client, bot, two_stores)
     reply = response.json()
     assert reply["method"] == "sendMessage"
     assert reply["chat_id"] == 777
-    assert "Connected" in reply["text"]
+    assert "✅ បានភ្ជាប់ជាមួយ" in reply["text"]  # Connected to (the bot speaks Khmer)
     assert await chat_id_of(mine.store_id) == "777"
     assert await chat_id_of(other.store_id) is None
 
@@ -138,9 +138,11 @@ async def test_start_with_bad_code_or_none_explains(client, bot, make_store):
     store = await make_store()
     headers = {"X-Telegram-Bot-Api-Secret-Token": SECRET}
     bad = (await client.post(WEBHOOK, json=start(1, "/start xyz"), headers=headers)).json()
-    assert "expired" in bad["text"]
+    assert bad["text"] == telegram.EXPIRED_TEXT
     plain = (await client.post(WEBHOOK, json=start(1, "hello"), headers=headers)).json()
-    assert "Settings" in plain["text"]
+    assert plain["text"] == telegram.HELP_TEXT
+    # Both say where to connect: Settings → Alerts, in the app's Khmer.
+    assert all("ការកំណត់ → ការជូនដំណឹង" in t for t in (bad["text"], plain["text"]))
     assert await chat_id_of(store.store_id) is None
 
 
@@ -261,13 +263,16 @@ async def test_new_order_alert(client, bot, auth_headers):
     assert len(bot) == 1
     message = bot[0]
     assert message["chat_id"] == "42"
-    assert "New order #1001" in message["text"]
+    # In Khmer, the app's default language.
+    assert "ការកុម្ម៉ង់ថ្មី #1001" in message["text"]  # New order
     assert "2 × Cap: $20.00" in message["text"]
-    assert "Total: $20.00" in message["text"]
-    assert "Cash on delivery" in message["text"]
+    assert "សរុប: $20.00" in message["text"]  # Total
+    assert "ថ្លៃដឹក: ឥតគិតថ្លៃ" in message["text"]  # Delivery: free
+    assert "បង់ប្រាក់ពេលទទួលទំនិញ" in message["text"]  # Cash on delivery
+    assert "ដឹកដោយខ្លួនឯង" in message["text"]  # Your own delivery
     assert "Dara &lt;VIP&gt;, 012345678" in message["text"]  # escaped
     assert message["button"] == (
-        "Open order",
+        "បើកការកុម្ម៉ង់",  # Open order
         f"https://app.example.com/dashboard/orders/{order_id}",
     )
     [log] = await logs(store_id)
@@ -293,8 +298,9 @@ async def test_low_stock_alert_names_the_variant(client, bot, auth_headers):
     )
     assert placed.status_code == 201, placed.text
     assert len(bot) == 2
-    assert "Shirt (S): sold out" in bot[1]["text"]
-    assert "Shirt (XL): only 5 left" in bot[1]["text"]
+    assert "ជិតអស់ស្តុក" in bot[1]["text"]  # Running low
+    assert "Shirt (S): អស់ស្តុក" in bot[1]["text"]  # sold out
+    assert "Shirt (XL): នៅសល់តែ 5 ទៀត" in bot[1]["text"]  # only 5 left
     assert [log.event_type for log in await logs(store_id)] == ["new_order", "low_stock"]
 
 
@@ -340,5 +346,5 @@ async def test_khr_and_auto_accepted_order_text(client, bot, auth_headers):
     cap = await add_product(store_id, "cap", stock=20)
     placed = await place_order(client, slug, [(cap, None, 1)], total="10.00")
     assert placed.status_code == 201, placed.text
-    assert "(accepted automatically)" in bot[0]["text"]
+    assert "(បានទទួលដោយស្វ័យប្រវត្តិ)" in bot[0]["text"]  # accepted automatically
     assert "10៛" in bot[0]["text"]

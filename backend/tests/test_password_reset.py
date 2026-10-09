@@ -43,7 +43,7 @@ async def _seller_with_telegram(client, register, chat_id=555) -> dict:
 
 def _token(message: dict) -> str:
     label, url = message["button"]
-    assert label == "Choose a new password"
+    assert label == "ជ្រើសពាក្យសម្ងាត់ថ្មី"  # Choose a new password (in Khmer)
     match = re.fullmatch(r"https://app\.example\.com/reset-password#(.+)", url)
     assert match, url
     return match.group(1)

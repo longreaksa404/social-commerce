@@ -112,7 +112,7 @@ Render's health check.
 | Onboard first real seller | NOT STARTED | |
 | Domain + Cloudflare DNS | NOT STARTED | `render.yaml` still points at `*.onrender.com` / `*.vercel.app`; no domain chosen yet for Oak Order (04) |
 | Refresh token in an httpOnly cookie (part of the domain work in 04) | NOT STARTED | the only TODO in the code, `frontend/src/lib/api.ts:22` |
-| Khmer / English switch | DONE | `frontend/src/i18n/`. The founder hasn't reviewed the Khmer yet; Telegram alerts are English only |
+| Khmer / English switch | DONE | `frontend/src/i18n/`. The founder hasn't reviewed the Khmer yet; the Telegram bot's messages are Khmer only (2026-10-09) |
 | Light / dark mode | DONE | `src/theme/`, `index.css`, the inline script in `index.html` |
 | Small photo copies | DONE | `-m` / `-s.jpg` naming, `thumbnail_size` on the images endpoint |
 | Nightly DB backup to R2 | PARTIAL | `.github/workflows/backup.yml` exists but skips until its five secrets are set (04: not set yet) |
@@ -1045,7 +1045,7 @@ through to the SPA.
 
 | Integration | State | Details |
 |---|---|---|
-| **Telegram bot** (seller alerts) | WIRED, env-gated | `services/telegram.py`: plain `httpx` calls to the Bot API (`sendMessage`, `setWebhook`). Webhook registered at startup only when `PUBLIC_API_URL` is set. Webhook checks the secret header with `hmac.compare_digest`. `/start <code>` in a private chat stores `store.telegram_chat_id` (the code is store id + expiry + 12-byte HMAC-SHA256, base64url, 43 chars, key derived from `JWT_SECRET`). Groups are ignored. Replies go back in the webhook response. Alerts (`services/notifications.py`) for new orders and low stock (crossing the shop's `low_stock_alert`, 5 to start, or to 0) go out after the response. Bot texts point to Settings → Alerts. Each writes a `notification_log` row (`telegram`, sent or failed). A 403, or a 400 "chat not found", disconnects the store. Alert text is English, HTML-escaped. The same chat gets "Forgot password?" links (`auth.send_password_reset`, no log row). Live and tested by the founder (04). |
+| **Telegram bot** (seller alerts) | WIRED, env-gated | `services/telegram.py`: plain `httpx` calls to the Bot API (`sendMessage`, `setWebhook`). Webhook registered at startup only when `PUBLIC_API_URL` is set. Webhook checks the secret header with `hmac.compare_digest`. `/start <code>` in a private chat stores `store.telegram_chat_id` (the code is store id + expiry + 12-byte HMAC-SHA256, base64url, 43 chars, key derived from `JWT_SECRET`). Groups are ignored. Replies go back in the webhook response. Alerts (`services/notifications.py`) for new orders and low stock (crossing the shop's `low_stock_alert`, 5 to start, or to 0) go out after the response. Bot texts point to Settings → Alerts. Each writes a `notification_log` row (`telegram`, sent or failed). A 403, or a 400 "chat not found", disconnects the store. Every bot message (alerts, connect and help replies, the password reset) is in Khmer only, the app's default language, in the app's own Khmer words (decided 2026-10-09; no per-seller language is stored); HTML-escaped. The same chat gets "Forgot password?" links (`auth.send_password_reset`, no log row). Live and tested by the founder (04). |
 | **"Ask seller": Telegram, Messenger, call** | WIRED (no bot) | `shop/ContactSeller.tsx` (+ `contact.ts`) on the product page and the order page: `https://t.me/<telegram_username>?text=<question>`; `https://m.me/<messenger_username>` (m.me can't type a message, so the question is copied to the clipboard first); `tel:<contact_phone>`. Each hidden when empty; one way shows as one button, more as a row that wraps. Set in Settings → Contact; `StoreUpdate` accepts a page's m.me / facebook.com link (`profile.php?id=` too) and any phone spelling. |
 | **Web notifications** | WIRED | `notification_log` rows with `channel=web`, written in the checkout transaction; the dashboard polls. No push. |
 | **Payments: COD, bank transfer** | WIRED, manual | No provider. Bank details from `payment_config` (current values, not a copy at order time) are shown on the order page while the payment is pending and the order isn't rejected or cancelled. |
@@ -1237,8 +1237,9 @@ and policy, endpoint list, JSONB shapes, link and tracking flows) matches
   (images fall back to placeholders).
 - A Telegram bot token is in git history and must be revoked before launch.
 - Anyone can register a store (03 says onboarding is manual for now).
-- Telegram alerts are English only. The Khmer UI text hasn't been reviewed
-  by the founder.
+- The Telegram bot speaks Khmer only (a seller who uses the app in English
+  still gets Khmer alerts). The Khmer, in the app and the bot, hasn't been
+  reviewed by the founder.
 - Render free sleeps after 15 min, so the first request can take up to a
   minute (the UI says so after 4 s). A cron-job.org job (founder's
   account) calls `/health` every 10 minutes from 7:00 to midnight
