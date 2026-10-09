@@ -333,6 +333,7 @@ function Gallery({ images, name, ref }: { images: string[]; name: string; ref: R
             src={src}
             alt={t.shop.product.photoOf(name, i + 1, images.length)}
             eager={i === 0}
+            later={i > 0}
             className="aspect-square w-full shrink-0 snap-center"
           />
         ))}

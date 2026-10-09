@@ -40,6 +40,7 @@ export function ProductImage({
   alt,
   className = '',
   eager = false,
+  later = false,
   small = false,
   natural = false,
 }: {
@@ -47,6 +48,9 @@ export function ProductImage({
   alt: string
   className?: string
   eager?: boolean
+  /** Fetched after the page's other photos: a gallery's 2nd photo on, which
+   * would otherwise share the connection with the 1st (perf audit F6). */
+  later?: boolean
   small?: boolean
   natural?: boolean
 }) {
@@ -90,7 +94,7 @@ export function ProductImage({
         }}
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}
-        fetchPriority={eager ? 'high' : undefined}
+        fetchPriority={eager ? 'high' : later ? 'low' : undefined}
         decoding={ratio ? 'sync' : 'async'}
         className={`${natural ? 'block h-auto w-full' : 'size-full object-cover'} transition-opacity duration-300 ${state === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
       />
