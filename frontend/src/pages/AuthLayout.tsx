@@ -101,6 +101,7 @@ function Pitch() {
           </div>
         </div>
       </div>
+      <p className="text-sm text-white/50">order.oaksolve.com</p>
     </aside>
   )
 }

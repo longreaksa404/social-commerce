@@ -32,9 +32,9 @@ services:
       - key: TELEGRAM_WEBHOOK_SECRET
         generateValue: true
       - key: PUBLIC_API_URL
-        value: https://social-commerce-api.onrender.com
+        value: https://api.oaksolve.com
       - key: PUBLIC_APP_URL
-        value: https://social-commerce-eight.vercel.app
+        value: https://order.oaksolve.com
       - key: R2_ACCOUNT_ID
         sync: false
       - key: R2_ACCESS_KEY_ID
