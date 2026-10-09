@@ -252,6 +252,8 @@ export const settings = {
     noneOn: { en: 'None turned on', km: 'មិនទាន់បើកទេ' },
     deliveryFee: { en: (fee: string) => `Delivery ${fee}`, km: (fee: string) => `ថ្លៃដឹក ${fee}` },
     freeDelivery: { en: 'Free delivery', km: 'ដឹកឥតគិតថ្លៃ' },
+    // Settings → Delivery never saved (the shop runs on free delivery).
+    deliveryNotSet: { en: 'Not set yet: free for customers', km: 'មិនទាន់កំណត់៖ ឥតគិតថ្លៃសម្រាប់អតិថិជន' },
     freeFrom: { en: (amount: string) => `free from ${amount}`, km: (amount: string) => `ឥតគិតថ្លៃចាប់ពី ${amount}` },
     discount: {
       en: (off: string, from: string) => `${off} off from ${from}`,

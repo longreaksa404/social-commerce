@@ -47,6 +47,9 @@ export type Store = {
   order_confirmation_mode: OrderConfirmationMode
   payment_settings: PaymentSettings
   delivery_settings: DeliverySettings
+  /** False until Settings → Delivery is saved once: until then delivery
+   * is free for customers (the defaults), so the dashboard says so. */
+  delivery_set_up: boolean
   discount_settings: { rules: DiscountRule[] }
   /** The seller's own Telegram account, no @: "Ask seller" opens it. */
   telegram_username: string | null

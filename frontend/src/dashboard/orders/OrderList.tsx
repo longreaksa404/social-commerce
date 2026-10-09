@@ -1,4 +1,4 @@
-import { CalendarClock, ChevronRight, ExternalLink, Inbox, MousePointerClick, SearchX } from 'lucide-react'
+import { CalendarClock, ChevronRight, ExternalLink, Inbox, MousePointerClick, Package, Plus, SearchX, Truck, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { buttonClass } from '../../components/styles.ts'
@@ -7,7 +7,7 @@ import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { formatCalendarDay, formatDay } from '../../lib/orders.ts'
 import type { OrderStatus, OrderSummary } from '../../lib/types.ts'
-import { useOrders, useRole, useStore } from '../queries.ts'
+import { useOrders, useProducts, useRole, useStore } from '../queries.ts'
 import { OrderDetail } from './OrderDetail.tsx'
 import { OrderRow } from './OrderRow.tsx'
 
@@ -43,6 +43,7 @@ export function OrdersPage() {
       <div className={orderId ? 'max-lg:hidden' : ''}>
         <OrdersHeader />
         <PausedReminder />
+        <DeliveryReminder />
       </div>
       <div className="lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,30rem)_minmax(0,1fr)]">
         <div className={orderId ? 'max-lg:hidden' : ''}>
@@ -76,19 +77,43 @@ function PausedReminder() {
   const t = useT()
   if (!store.data?.orders_paused) return null
   const day = store.data.orders_resume_on
+  return (
+    <Reminder icon={CalendarClock} setting="orders">
+      {day ? t.orders.pausedUntil(formatCalendarDay(day)) : role === 'owner' ? t.orders.paused : t.orders.pausedStaff}
+    </Reminder>
+  )
+}
+
+/** Until Settings → Delivery is saved once, the shop delivers for free
+ * (the defaults): a seller who never looked would give it away. */
+function DeliveryReminder() {
+  const store = useStore()
+  const role = useRole()
+  const t = useT()
+  if (!store.data || store.data.delivery_set_up) return null
+  return (
+    <Reminder icon={Truck} setting="delivery">
+      {role === 'owner' ? t.orders.deliveryNotSet : t.orders.deliveryNotSetStaff}
+    </Reminder>
+  )
+}
+
+/** An amber strip above the list that opens the setting it's about (for
+ * the owner; staff can't open Settings, so they just get the news). */
+function Reminder({ icon: Icon, setting, children }: { icon: LucideIcon; setting: string; children: string }) {
+  const role = useRole()
   const className =
     '-mx-4 mb-4 flex min-h-12 items-center gap-3 border-y border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 sm:mx-0 sm:rounded-2xl sm:border'
   const content = (
     <>
-      <CalendarClock aria-hidden className="size-5 shrink-0 text-amber-700" />
-      <span className="min-w-0 flex-1">{day ? t.orders.pausedUntil(formatCalendarDay(day)) : t.orders.pausedStaff}</span>
+      <Icon aria-hidden className="size-5 shrink-0 text-amber-700" />
+      <span className="min-w-0 flex-1">{children}</span>
     </>
   )
-  // Staff can't open Settings: just the news.
   if (role !== 'owner') return <p className={className}>{content}</p>
   return (
     <Link
-      to="/dashboard/settings/orders"
+      to={`/dashboard/settings/${setting}`}
       className={`${className} transition-colors hover:bg-amber-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600`}
     >
       {content}
@@ -169,7 +194,6 @@ function OrdersHeader() {
 
 function OrderList({ selectedId }: { selectedId: string | undefined }) {
   const { filter, orders, countOf } = useFiltered()
-  const store = useStore()
   const t = useT()
   const shown = orders.data?.pages.flatMap((page) => page.orders) ?? []
   const arrived = useArrivals(orders.data && !orders.isPlaceholderData ? shown : undefined, filter.key)
@@ -177,26 +201,7 @@ function OrderList({ selectedId }: { selectedId: string | undefined }) {
   if (orders.isPending) return <ListSkeleton />
   if (orders.error) return <ErrorState error={orders.error} onRetry={() => orders.refetch()} />
 
-  if (countOf([]) === 0) {
-    return (
-      <>
-        <EmptyState
-          icon={Inbox}
-          title={t.orders.emptyTitle}
-          action={
-            store.data && (
-              <Link to={`/shop/${store.data.slug}`} target="_blank" className={buttonClass('secondary')}>
-                <ExternalLink aria-hidden className="size-4" />
-                {t.orders.openShop}
-              </Link>
-            )
-          }
-        >
-          {t.orders.emptyText}
-        </EmptyState>
-      </>
-    )
-  }
+  if (countOf([]) === 0) return <NoOrdersYet />
 
   return (
     <>
@@ -237,6 +242,47 @@ function OrderList({ selectedId }: { selectedId: string | undefined }) {
         </Button>
       )}
     </>
+  )
+}
+
+/** A shop's first days. With no products yet, sharing the link would
+ * bring customers to an empty shop: adding one comes first. */
+function NoOrdersYet() {
+  const store = useStore()
+  const products = useProducts()
+  const t = useT()
+  if (products.isPending) return <ListSkeleton />
+  if (products.data?.length === 0) {
+    return (
+      <EmptyState
+        icon={Package}
+        title={t.orders.noProductsTitle}
+        action={
+          <Link to="/dashboard/products/new" className={buttonClass('primary')}>
+            <Plus aria-hidden className="size-4" />
+            {t.products.addProduct}
+          </Link>
+        }
+      >
+        {t.orders.noProductsText}
+      </EmptyState>
+    )
+  }
+  return (
+    <EmptyState
+      icon={Inbox}
+      title={t.orders.emptyTitle}
+      action={
+        store.data && (
+          <Link to={`/shop/${store.data.slug}`} target="_blank" className={buttonClass('secondary')}>
+            <ExternalLink aria-hidden className="size-4" />
+            {t.orders.openShop}
+          </Link>
+        )
+      }
+    >
+      {t.orders.emptyText}
+    </EmptyState>
   )
 }
 

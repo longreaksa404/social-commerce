@@ -42,6 +42,33 @@ async def test_a_new_shop_delivers_itself_for_free_and_has_no_discounts(client, 
         "pickup": {"enabled": False, "address": ""},
     }
     assert store["discount_settings"] == {"rules": []}
+    # So the dashboard reminds the seller that delivery is free until set.
+    assert store["delivery_set_up"] is False
+
+
+async def test_delivery_is_set_up_once_saved_even_if_kept_free(client, auth_headers):
+    """A seller who saves free delivery on purpose isn't reminded again."""
+    headers, _, _ = await registered_seller(client, auth_headers)
+
+    saved = await set_delivery(client, headers, fee="0")
+    # Saving another part of the settings doesn't count.
+    other = await client.patch("/api/v1/seller/store", headers=headers, json={"name": "Renamed"})
+
+    assert saved.json()["delivery_set_up"] is True
+    assert other.json()["delivery_set_up"] is True
+
+
+async def test_saving_other_settings_leaves_delivery_not_set_up(client, auth_headers):
+    headers, _, _ = await registered_seller(client, auth_headers)
+
+    response = await client.patch(
+        "/api/v1/seller/store",
+        headers=headers,
+        json={"payment_settings": {"cod": {"enabled": True}}, "name": "Renamed"},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["delivery_set_up"] is False
 
 
 async def test_seller_sets_fee_couriers_pickup_and_discounts_and_the_shop_shows_them(

@@ -26,6 +26,9 @@ class StoreOut(BaseModel):
     order_confirmation_mode: OrderConfirmationMode
     payment_settings: PaymentSettings = Field(validation_alias="payment_config")
     delivery_settings: DeliverySettings = Field(validation_alias="delivery_config")
+    # False until Settings → Delivery is saved once (the dashboard reminds
+    # the seller that delivery is free for customers until then).
+    delivery_set_up: bool
     discount_settings: DiscountSettings = Field(validation_alias="discount_config")
     # "Ask seller" on the shop opens a chat with this account; null hides it.
     telegram_username: str | None

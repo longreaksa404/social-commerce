@@ -15,6 +15,15 @@ export const orders = {
     en: (day: string) => `Your shop isn't taking orders until ${day}.`,
     km: (day: string) => `ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់រហូតដល់ ${day}។`,
   },
+  // Settings → Delivery never saved: the shop delivers for free.
+  deliveryNotSet: {
+    en: 'Delivery is free for customers until you set your delivery fee. Tap to set it.',
+    km: 'ការដឹកគឺឥតគិតថ្លៃសម្រាប់អតិថិជន រហូតដល់អ្នកកំណត់ថ្លៃដឹក។ ចុចដើម្បីកំណត់។',
+  },
+  deliveryNotSetStaff: {
+    en: "Delivery is free for customers: the shop's owner hasn't set a delivery fee yet.",
+    km: 'ការដឹកគឺឥតគិតថ្លៃសម្រាប់អតិថិជន៖ ម្ចាស់ហាងមិនទាន់កំណត់ថ្លៃដឹកនៅឡើយ។',
+  },
   // The list's days.
   today: { en: 'Today', km: 'ថ្ងៃនេះ' },
   yesterday: { en: 'Yesterday', km: 'ម្សិលមិញ' },
@@ -57,6 +66,12 @@ export const orders = {
     km: 'ចែករំលែកតំណហាងរបស់អ្នកនៅលើ Facebook, TikTok ឬ Telegram។ ការកុម្ម៉ង់ពីអតិថិជននឹងបង្ហាញនៅទីនេះ។',
   },
   openShop: { en: 'Open your shop', km: 'បើកហាងរបស់អ្នក' },
+  // No orders and no products yet: products come first.
+  noProductsTitle: { en: 'Add your first product', km: 'បន្ថែមទំនិញដំបូងរបស់អ្នក' },
+  noProductsText: {
+    en: 'Customers can order once your shop has products. Then share your shop link on Facebook, TikTok, or Telegram, and orders show up here.',
+    km: 'អតិថិជនអាចកុម្ម៉ង់បាន នៅពេលហាងរបស់អ្នកមានទំនិញ។ បន្ទាប់មក ចែករំលែកតំណហាងរបស់អ្នកនៅលើ Facebook, TikTok ឬ Telegram ហើយការកុម្ម៉ង់នឹងបង្ហាញនៅទីនេះ។',
+  },
   noneHereTitle: { en: 'No orders here', km: 'គ្មានការកុម្ម៉ង់នៅទីនេះទេ' },
   noneHereText: {
     en: 'Orders move between these lists as you update them.',

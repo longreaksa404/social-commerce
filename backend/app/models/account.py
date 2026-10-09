@@ -131,6 +131,13 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     def orders_resume_on_now(self) -> date | None:
         return self.orders_resume_on if self.orders_paused_now else None
 
+    @property
+    def delivery_set_up(self) -> bool:
+        """The seller has saved Settings → Delivery at least once. Until
+        then the shop runs on the defaults, free own delivery, which a
+        seller who never looked would be giving away by accident."""
+        return bool(self.delivery_config)
+
 
 class RefreshToken(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     """One row per issued refresh token; the id is the JWT's `jti`.
