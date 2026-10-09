@@ -389,7 +389,9 @@ function Thumb({ product, className }: { product: Product; className: string }) 
       }}
       alt=""
       loading="lazy"
-      className={`shrink-0 rounded-xl object-cover ${hidden ? 'opacity-50' : ''} ${className}`}
+      // max-w-none: the base img rule (max-width: 100%) squeezes it to a
+      // narrow strip inside the desktop table's photo column.
+      className={`max-w-none shrink-0 rounded-xl object-cover ${hidden ? 'opacity-50' : ''} ${className}`}
     />
   ) : (
     <span className={`flex shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400 ${className}`}>
