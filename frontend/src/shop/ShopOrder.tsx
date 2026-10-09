@@ -153,7 +153,7 @@ function OrderView({
   }
 
   const total = formatMoney(order.total, order.currency)
-  const payment = showPayment && <PaymentCard shop={shop} order={order} />
+  const payment = showPayment && <PaymentCard shop={shop} order={order} phone={phone} />
 
   // One column on phones; on laptops the order on the left and payment on
   // the right, staying in view. Paying first on a phone when it's what's

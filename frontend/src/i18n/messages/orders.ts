@@ -48,6 +48,10 @@ export const orders = {
     accept: { en: 'New order: accept or reject', km: 'ការកុម្ម៉ង់ថ្មី៖ ទទួល ឬបដិសេធ' },
     next: { en: 'Next step', km: 'ជំហានបន្ទាប់' },
     payment: { en: 'Check the payment, then mark it paid', km: 'ពិនិត្យការបង់ប្រាក់ រួចកត់ថាបានបង់' },
+    paymentClaimed: {
+      en: 'The customer says they paid: check, then mark it paid',
+      km: 'អតិថិជនថាបានបង់៖ សូមពិនិត្យ រួចកត់ថាបានបង់',
+    },
     cash: { en: 'Mark the cash as received when you get it', km: 'កត់ថាបានទទួលសាច់ប្រាក់ ពេលអ្នកទទួលបាន' },
     driver: { en: 'Assign a driver', km: 'ចាត់អ្នកដឹក' },
     delivery: { en: 'Update the delivery', km: 'ធ្វើបច្ចុប្បន្នភាពការដឹកជញ្ជូន' },
@@ -214,6 +218,10 @@ export const orders = {
   paymentFailed: { en: 'Payment failed', km: 'បង់ប្រាក់មិនបាន' },
   // A recorded payment back to not paid, at any time (founder's pick 2C).
   notPaidAfterAll: { en: 'Not paid after all', km: 'តាមពិតមិនទាន់បង់ទេ' },
+  customerSaysPaid: {
+    en: (time: string) => `Customer says paid · ${time}`,
+    km: (time: string) => `អតិថិជនថាបានបង់ · ${time}`,
+  },
   backToNotPaid: { en: 'Back to not paid', km: 'ប្ដូរទៅមិនទាន់បង់វិញ' },
   unpayTitle: { en: (n: number) => `Mark order #${n} as not paid?`, km: (n: number) => `កត់ការកុម្ម៉ង់ #${n} ថាមិនទាន់បង់?` },
   unpayMessage: {

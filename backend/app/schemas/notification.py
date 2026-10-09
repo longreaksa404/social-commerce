@@ -30,10 +30,11 @@ class StockItemOut(BaseModel):
 
 class NotificationOut(BaseModel):
     id: uuid.UUID
-    event_type: Literal["new_order", "low_stock"]
+    # payment_claimed: the customer says they've paid (founder's pick 6B).
+    event_type: Literal["new_order", "low_stock", "payment_claimed"]
     created_at: datetime
     read: bool
-    order: NotificationOrderOut | None = None  # new_order
+    order: NotificationOrderOut | None = None  # new_order, payment_claimed
     items: list[StockItemOut] = []  # low_stock
 
 

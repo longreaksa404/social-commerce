@@ -33,6 +33,7 @@ from app.schemas.delivery import DeliveryUpdate
 from app.schemas.order import OrderListOut, OrderOut, OrderSummaryOut
 from app.schemas.payment import PaymentUpdate
 from app.services import delivery as delivery_service
+from app.services import notifications
 from app.services import payment as payment_service
 
 S = OrderStatus
@@ -170,6 +171,7 @@ async def order_out(db: AsyncSession, store_id: uuid.UUID, order: Order) -> Orde
         item.image_url = photos.get(item.product_id)
     out.next_statuses = next_statuses(order)
     out.payment.next_statuses = payment_service.next_statuses(order.payment)
+    out.payment.claimed_at = await notifications.last_payment_claim(db, store_id, order.id)
     out.delivery.next_statuses = delivery_service.next_statuses(order.delivery)
     return out
 

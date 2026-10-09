@@ -61,6 +61,12 @@ export const customers = {
       km: 'ការកុម្ម៉ង់ថ្មី និងទំនិញដែលជិតអស់ ឬអស់ស្តុក នឹងបង្ហាញនៅទីនេះ។',
     },
     newOrder: { en: (n: number) => `New order #${n}`, km: (n: number) => `ការកុម្ម៉ង់ថ្មី #${n}` },
+    // The customer tapped "I've paid" (founder's pick 6B).
+    paymentClaimed: {
+      en: (name: string, n: number) => `${name} says they paid #${n}`,
+      km: (name: string, n: number) => `${name} ថាបានបង់ការកុម្ម៉ង់ #${n}`,
+    },
+    checkBank: { en: 'Check your bank app', km: 'សូមពិនិត្យកម្មវិធីធនាគាររបស់អ្នក' },
     acceptedAutomatically: { en: 'Accepted automatically', km: 'បានទទួលដោយស្វ័យប្រវត្តិ' },
     soldOut: { en: 'Sold out', km: 'អស់ស្តុក' },
     runningLow: { en: 'Running low', km: 'ជិតអស់ស្តុក' },

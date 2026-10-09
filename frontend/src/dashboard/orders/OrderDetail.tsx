@@ -167,7 +167,7 @@ function TodoCard({ order, onStale, onDecided }: { order: Order; onStale: () => 
 
   const links: { id: string; text: string }[] = []
   if (!pending && payment.next_statuses.includes('paid')) {
-    if (payment.method !== 'cod') links.push({ id: 'payment', text: o.todo.payment })
+    if (payment.method !== 'cod') links.push({ id: 'payment', text: payment.claimed_at ? o.todo.paymentClaimed : o.todo.payment })
     // Cash is in hand once it's been handed over.
     else if (delivery.status === 'delivered') links.push({ id: 'payment', text: o.todo.cash })
   }
@@ -647,6 +647,12 @@ function PaymentSection({ order, onStale }: { order: Order; onStale: () => void 
       </p>
       {payment.paid_at && (
         <p className="mt-0.5 text-sm text-slate-500">{o.markedPaid(formatOrderTime(payment.paid_at))}</p>
+      )}
+      {/* "I've paid" from the customer (founder's pick 6B): still to check. */}
+      {payment.status === 'pending' && payment.claimed_at && (
+        <p className="mt-2 inline-flex rounded-full bg-amber-50 px-2.5 py-0.5 text-sm font-medium text-amber-800">
+          {o.customerSaysPaid(formatOrderTime(payment.claimed_at))}
+        </p>
       )}
       {payment.reference && (
         <p className="mt-1 text-sm break-words text-slate-600">

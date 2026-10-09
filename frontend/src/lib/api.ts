@@ -117,11 +117,13 @@ function withRefreshLock<T>(task: () => Promise<T>): Promise<T> {
   return task()
 }
 
-type Options = { method?: string; body?: unknown; auth?: boolean }
+/** `keepalive`: the request finishes even if the page goes to the
+ * background meanwhile (e.g. Telegram opening on top of it). */
+type Options = { method?: string; body?: unknown; auth?: boolean; keepalive?: boolean }
 
 /** A request with the access token, refreshed once on a 401; throws
  * ApiError for any failure. */
-async function authorizedFetch(path: string, { method = 'GET', body, auth = true }: Options): Promise<Response> {
+async function authorizedFetch(path: string, { method = 'GET', body, auth = true, keepalive }: Options): Promise<Response> {
   const request = (): Promise<Response> => {
     const headers: Record<string, string> = {}
     if (body !== undefined) headers['Content-Type'] = 'application/json'
@@ -130,6 +132,7 @@ async function authorizedFetch(path: string, { method = 'GET', body, auth = true
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
+      keepalive,
     })
   }
 

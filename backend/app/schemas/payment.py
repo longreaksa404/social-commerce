@@ -95,6 +95,9 @@ class PaymentOut(BaseModel):
     # What the seller can record now (02 section 7.2), so the app doesn't
     # keep its own copy of the rules.
     next_statuses: list[PaymentStatus] = []
+    # When the customer last tapped "I've paid" (founder's pick 6B), if
+    # ever; the seller still checks and records it.
+    claimed_at: datetime | None = None
 
 
 class PaymentUpdate(BaseModel):
@@ -127,3 +130,5 @@ class ShopPaymentOut(BaseModel):
     # cancelled. Null too if the seller has since turned this way to pay off.
     bank_account: ShopBankAccount | None = None
     khqr: ShopKhqr | None = None  # also null for riel amounts with cents
+    # When they last tapped "I've paid", if ever.
+    claimed_at: datetime | None = None

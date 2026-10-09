@@ -222,6 +222,8 @@ export type ShopPayment = {
    * only for the chosen method. Both null for cash on delivery. */
   bank_account: BankAccount | null
   khqr: { code: string; merchant_name: string } | null
+  /** When they last tapped "I've paid", if ever. */
+  claimed_at: string | null
 }
 
 /** An order's payment as the seller sees it. */
@@ -233,6 +235,8 @@ export type Payment = {
   paid_at: string | null
   /** What the seller can record now; the server applies the rules. */
   next_statuses: PaymentStatus[]
+  /** When the customer last tapped "I've paid", if ever; still to check. */
+  claimed_at: string | null
 }
 
 /** An order's delivery as its customer sees it. */
@@ -341,7 +345,8 @@ export type StockItem = { product_id: string; name: string; left: number }
 
 export type SellerNotification = {
   id: string
-  event_type: 'new_order' | 'low_stock'
+  /** payment_claimed: the customer tapped "I've paid" (founder's pick 6B). */
+  event_type: 'new_order' | 'low_stock' | 'payment_claimed'
   /** Sent back as is to mark it read (the server's microseconds matter). */
   created_at: string
   read: boolean

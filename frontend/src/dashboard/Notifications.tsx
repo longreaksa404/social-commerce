@@ -1,4 +1,4 @@
-import { Bell, ShoppingBag, TriangleAlert, type LucideIcon } from 'lucide-react'
+import { Bell, ShoppingBag, TriangleAlert, Wallet, type LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { Button, Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../components/ui.tsx'
@@ -98,6 +98,16 @@ function describe(t: Messages, n: SellerNotification): Shown | null {
       iconClass: 'bg-navy-50 text-navy-700',
       title: words.newOrder(order.number),
       body: parts.join(' · '),
+      to: `/dashboard/orders/${order.id}`,
+    }
+  }
+  if (n.event_type === 'payment_claimed' && n.order) {
+    const { order } = n
+    return {
+      icon: Wallet,
+      iconClass: 'bg-amber-50 text-amber-700',
+      title: words.paymentClaimed(order.customer_name, order.number),
+      body: `${formatMoney(order.total, order.currency)} · ${words.checkBank}`,
       to: `/dashboard/orders/${order.id}`,
     }
   }

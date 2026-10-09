@@ -84,6 +84,13 @@ class OrderCreate(OrderIn):
     link: Annotated[str, StringConstraints(max_length=16)] | None = None
 
 
+class PaymentClaimIn(BaseModel):
+    """ "I've paid", from the order page: the phone it was placed with,
+    as for tracking."""
+
+    phone: Annotated[str, StringConstraints(max_length=32)]
+
+
 class SellerOrderCreate(OrderIn):
     """An order that came by chat (Messenger, Telegram, a call), added by
     the seller (founder's pick 3A, 2026-10-09): the shop's own prices,

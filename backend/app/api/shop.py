@@ -8,7 +8,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, status
 from app.api.deps import Shop, ShopDb
 from app.core.ratelimit import check_limit, limiter
 from app.schemas.link import TrackViewIn
-from app.schemas.order import OrderCreate, ShopOrderOut
+from app.schemas.order import OrderCreate, PaymentClaimIn, ShopOrderOut
 from app.schemas.storefront import (
     ShopCategoryPageOut,
     ShopProductCard,
@@ -27,6 +27,8 @@ SHOP_RATE_LIMIT = "300/minute"
 # Per IP, on top of that, for placing orders: each one writes to the
 # database and lands in a seller's order list.
 ORDER_RATE_LIMIT = "10/minute"
+# Per IP, for "I've paid": each one can alert a seller.
+CLAIM_RATE_LIMIT = "10/minute"
 # Per IP, for counting link views. The app counts a link once per device
 # per half hour, so this only stops someone inflating a seller's numbers.
 VIEW_RATE_LIMIT = "60/minute"
@@ -47,6 +49,10 @@ async def _order_rate_limit(request: Request) -> None:
 
 async def _view_rate_limit(request: Request) -> None:
     check_limit(VIEW_RATE_LIMIT, "track-view", request)
+
+
+async def _claim_rate_limit(request: Request) -> None:
+    check_limit(CLAIM_RATE_LIMIT, "payment-claim", request)
 
 
 router = APIRouter(
@@ -103,6 +109,21 @@ async def track_order(
     (02_TECHNICAL.md section 8)."""
     order = await checkout_service.track_order(db, shop.id, order_id, phone)
     return await checkout_service.shop_order_out(db, shop, order)
+
+
+@router.post(
+    "/orders/{order_id}/paid",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(_claim_rate_limit)],
+)
+async def say_paid(
+    order_id: uuid.UUID, data: PaymentClaimIn, shop: Shop, db: ShopDb, background: BackgroundTasks
+) -> None:
+    """ "I've paid" (founder's pick 6B): with the order's link and phone,
+    like tracking. The seller gets the bell and a Telegram alert (not
+    again within 30 minutes); the payment stays pending until they check."""
+    if await checkout_service.claim_payment(db, shop, order_id, data.phone):
+        background.add_task(notifications.notify_payment_claimed, shop.id, order_id)
 
 
 @router.post(

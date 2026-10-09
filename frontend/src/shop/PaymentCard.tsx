@@ -1,14 +1,20 @@
-import { ChevronDown, CircleCheck, Copy, Download, XCircle } from 'lucide-react'
-import { useMemo } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { ChevronDown, CircleCheck, Copy, Download, Send, XCircle } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { encode } from 'uqr'
 import { useFeedback } from '../components/feedback.ts'
+import { buttonClass } from '../components/styles.ts'
 import { Button, Card, IconButton } from '../components/ui.tsx'
+import { api } from '../lib/api.ts'
 import { formatMoney } from '../lib/money.ts'
+import { formatOrderTime } from '../lib/orders.ts'
 import { useT } from '../i18n/useT.ts'
 import type { BankAccount, ShopOrder, ShopStore } from '../lib/types.ts'
+import { useContactLink } from './contact.ts'
 
-/** How to pay for the order, and whether the seller has received it. */
-export function PaymentCard({ shop, order }: { shop: ShopStore; order: ShopOrder }) {
+/** How to pay for the order, and whether the seller has received it.
+ * `phone`: the one it was placed with, for "I've paid". */
+export function PaymentCard({ shop, order, phone }: { shop: ShopStore; order: ShopOrder; phone: string }) {
   const { payment } = order
   const total = formatMoney(payment.amount, order.currency)
   const t = useT()
@@ -39,9 +45,15 @@ export function PaymentCard({ shop, order }: { shop: ShopStore; order: ShopOrder
           {p.codBefore} <span className="font-semibold text-slate-900">{total}</span> {p.codAfter}
         </p>
       ) : payment.khqr ? (
-        <KhqrPayment shop={shop} order={order} code={payment.khqr.code} name={payment.khqr.merchant_name} />
+        <>
+          <KhqrPayment shop={shop} order={order} code={payment.khqr.code} name={payment.khqr.merchant_name} />
+          <IvePaid shop={shop} order={order} phone={phone} />
+        </>
       ) : payment.bank_account ? (
-        <BankPayment account={payment.bank_account} total={total} orderNumber={order.number} />
+        <>
+          <BankPayment account={payment.bank_account} total={total} orderNumber={order.number} />
+          <IvePaid shop={shop} order={order} phone={phone} />
+        </>
       ) : (
         // The seller turned this way to pay off after the order was placed.
         <p className="mt-2 text-sm text-slate-600">
@@ -49,6 +61,77 @@ export function PaymentCard({ shop, order }: { shop: ShopStore; order: ShopOrder
         </p>
       )}
     </Card>
+  )
+}
+
+/** "I've paid" (founder's pick 6B): tells the shop (the bell and
+ * Telegram; the seller still checks their bank), and opens the shop's
+ * chat with a line typed in, for the receipt screenshot. The payment stays
+ * "not paid" until the seller confirms it. */
+function IvePaid({ shop, order, phone }: { shop: ShopStore; order: ShopOrder; phone: string }) {
+  const p = useT().order.pay
+  const queryClient = useQueryClient()
+  const [toldAt, setToldAt] = useState(order.payment.claimed_at)
+  const total = formatMoney(order.payment.amount, order.currency)
+  const contact = useContactLink(shop, p.iPaidText(order.number, total))
+  const channel = shop.telegram_username ? 'telegram' : shop.messenger_username ? 'messenger' : null
+
+  function tell() {
+    // Not awaited: the chat opens at once (a new tab after a wait is
+    // blocked on iPhones), and keepalive finishes the call meanwhile.
+    api(`/shop/${encodeURIComponent(shop.slug)}/orders/${order.id}/paid`, {
+      method: 'POST',
+      body: { phone },
+      auth: false,
+      keepalive: true,
+    }).then(
+      () => {
+        setToldAt(new Date().toISOString())
+        queryClient.invalidateQueries({ queryKey: ['shop', shop.slug, 'order', order.id] })
+      },
+      () => {},
+    )
+  }
+
+  const link = channel && contact(channel)
+  const open = (label: string, className: string) =>
+    link && (
+      <a
+        href={link.href}
+        target={link.target}
+        rel="noreferrer"
+        onClick={() => {
+          link.onClick?.()
+          tell()
+        }}
+        className={className}
+      >
+        <Send aria-hidden className="size-4" />
+        {label}
+      </a>
+    )
+
+  if (toldAt) {
+    return (
+      <div className="mt-4 space-y-2 border-t border-slate-100 pt-3">
+        <p className="flex items-start gap-1.5 text-sm text-slate-700">
+          <CircleCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-emerald-600" />
+          {p.told(shop.name, formatOrderTime(toldAt))}
+        </p>
+        {open(p.sendAgain, 'inline-flex min-h-11 items-center gap-2 text-sm font-medium text-navy-700 hover:underline')}
+      </div>
+    )
+  }
+  return (
+    <div className="mt-4 border-t border-slate-100 pt-4">
+      {link ? (
+        open(p.iPaid, `${buttonClass('secondary')} w-full`)
+      ) : (
+        <Button variant="secondary" icon={CircleCheck} onClick={tell} className="w-full">
+          {p.iPaidNoChat}
+        </Button>
+      )}
+    </div>
   )
 }
 

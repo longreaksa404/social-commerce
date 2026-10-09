@@ -8,6 +8,7 @@ stock come from the database, never from the request.
 
 import uuid
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from sqlalchemy import func, select, update
@@ -24,6 +25,8 @@ from app.models import (
     OrderItem,
     OrderStatus,
     Payment,
+    PaymentMethod,
+    PaymentStatus,
     Product,
     ProductStatus,
     ProductVariant,
@@ -35,6 +38,7 @@ from app.services import link as link_service
 from app.services import notifications
 from app.services import order as order_service
 from app.services import payment as payment_service
+from app.services.payment import ORDER_IS_OFF
 from app.services.phone import normalize_phone
 from app.services.pricing import line_total, order_totals
 
@@ -198,6 +202,7 @@ async def track_order(
                 Customer.phone == phone,
             )
             .options(
+                selectinload(Order.customer),
                 selectinload(Order.items),
                 selectinload(Order.payment),
                 selectinload(Order.delivery),
@@ -209,6 +214,33 @@ async def track_order(
     return order
 
 
+# A customer tapping "I've paid" again soon after doesn't alert the seller
+# twice.
+CLAIM_REPEAT = timedelta(minutes=30)
+
+
+async def claim_payment(db: AsyncSession, store: Store, order_id: uuid.UUID, phone: str) -> bool:
+    """The customer says they've paid (founder's pick 6B, 2026-10-09):
+    tracked by the order link and phone like tracking, only while there is
+    something to pay by transfer. Saves the bell row and returns True for
+    the Telegram alert, unless they said so in the last 30 minutes. The
+    payment's status doesn't change: the seller checks and records it."""
+    order = await track_order(db, store.id, order_id, phone)
+    payment = order.payment
+    if (
+        payment.method is PaymentMethod.COD
+        or payment.status is not PaymentStatus.PENDING
+        or order.status in ORDER_IS_OFF
+    ):
+        raise AppError(409, "NOTHING_TO_PAY", "There's nothing to pay on this order now.")
+    last = await notifications.last_payment_claim(db, store.id, order.id)
+    if last is not None and datetime.now(UTC) - last < CLAIM_REPEAT:
+        return False
+    db.add(notifications.payment_claimed_notification(order))
+    await db.commit()
+    return True
+
+
 async def shop_order_out(db: AsyncSession, store: Store, order: Order) -> ShopOrderOut:
     """The order as its customer sees it, with how to pay for it, where to
     collect it, and each item's photo."""
@@ -216,13 +248,15 @@ async def shop_order_out(db: AsyncSession, store: Store, order: Order) -> ShopOr
     photos = await order_service.product_photos(
         db, store.id, {item.product_id for item in out.items}
     )
+    payment = payment_service.shop_payment_out(store, order)
+    payment.claimed_at = await notifications.last_payment_claim(db, store.id, order.id)
     return out.model_copy(
         update={
             "items": [
                 item.model_copy(update={"image_url": photos.get(item.product_id)})
                 for item in out.items
             ],
-            "payment": payment_service.shop_payment_out(store, order),
+            "payment": payment,
             "delivery": delivery_service.shop_delivery_out(store, order),
         }
     )

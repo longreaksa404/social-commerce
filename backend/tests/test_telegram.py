@@ -18,7 +18,15 @@ from app.models import (
     Store,
 )
 from app.services import notifications, telegram
-from tests.helpers import add_product, place_order, registered_seller, variant_ids
+from tests.helpers import (
+    BANK,
+    add_product,
+    place_order,
+    registered_seller,
+    set_payments,
+    track,
+    variant_ids,
+)
 
 SECRET = "test-webhook-secret"
 WEBHOOK = "/api/v1/telegram/webhook"
@@ -375,3 +383,80 @@ async def test_a_chat_order_sends_only_low_stock(client, bot, auth_headers):
     assert len(bot) == 1
     assert "ជិតអស់ស្តុក" in bot[0]["text"]  # Running low
     assert [log.event_type for log in await logs(store_id)] == ["low_stock"]
+
+
+async def _say_paid(client, slug, order_id, phone="012345678"):
+    return await client.post(f"/api/v1/shop/{slug}/orders/{order_id}/paid", json={"phone": phone})
+
+
+async def test_ive_paid_alerts_the_seller_once_and_shows_on_the_order(client, bot, auth_headers):
+    """The customer taps "I've paid" (founder's pick 6B): a bell row and a
+    Telegram alert, "Customer says paid" on the order; the payment stays
+    pending until the seller checks."""
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    await set_payments(client, headers, bank_transfer=BANK)
+    await connect(store_id)
+    cap = await add_product(store_id, "cap", stock=5)
+    order = (
+        await place_order(
+            client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
+        )
+    ).json()
+    bot.clear()
+
+    first = await _say_paid(client, slug, order["id"], phone="+855 12 345 678")
+    again = await _say_paid(client, slug, order["id"])
+
+    assert (first.status_code, again.status_code) == (204, 204)
+    assert len(bot) == 1  # not again within 30 minutes
+    assert "#1001" in bot[0]["text"] and "$10.00" in bot[0]["text"]
+    assert bot[0]["button"][1].endswith(f"/dashboard/orders/{order['id']}")
+    seller = (await client.get(f"/api/v1/seller/orders/{order['id']}", headers=headers)).json()
+    assert seller["payment"]["status"] == "pending"
+    assert seller["payment"]["claimed_at"] is not None
+    tracked = (await track(client, slug, order["id"])).json()["payment"]
+    assert tracked["claimed_at"] is not None
+    bell = (await client.get("/api/v1/seller/notifications", headers=headers)).json()
+    claimed = [n for n in bell["notifications"] if n["event_type"] == "payment_claimed"]
+    assert len(claimed) == 1
+    assert claimed[0]["order"]["number"] == 1001
+
+
+async def test_ive_paid_needs_something_to_pay_and_the_right_phone(client, bot, auth_headers):
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    await set_payments(client, headers, bank_transfer=BANK)
+    cap = await add_product(store_id, "cap", stock=5)
+    cod = (await place_order(client, slug, [(cap, None, 1)], total="10.00")).json()
+    bank = (
+        await place_order(
+            client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
+        )
+    ).json()
+
+    cash = await _say_paid(client, slug, cod["id"])
+    wrong_phone = await _say_paid(client, slug, bank["id"], phone="099 999 999")
+    await client.patch(
+        f"/api/v1/seller/orders/{bank['id']}/payment", headers=headers, json={"status": "paid"}
+    )
+    already_paid = await _say_paid(client, slug, bank["id"])
+
+    assert cash.status_code == 409
+    assert cash.json()["error"]["code"] == "NOTHING_TO_PAY"
+    assert wrong_phone.status_code == 404
+    assert already_paid.status_code == 409
+
+
+async def test_ive_paid_on_another_shops_order_is_not_found(client, bot, auth_headers):
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    _, _, other_slug = await registered_seller(client, auth_headers)
+    await set_payments(client, headers, bank_transfer=BANK)
+    cap = await add_product(store_id, "cap", stock=5)
+    order = (
+        await place_order(
+            client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
+        )
+    ).json()
+
+    response = await _say_paid(client, other_slug, order["id"])
+
+    assert response.status_code == 404

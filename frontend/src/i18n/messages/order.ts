@@ -190,6 +190,19 @@ export const order = {
       en: "Couldn't copy. Select the text instead.",
       km: 'ចម្លងមិនបាន។ សូមជ្រើសអត្ថបទជំនួសវិញ។',
     },
+    // "I've paid" (founder's pick 6B): tells the shop, and opens its chat
+    // with this typed in for the receipt screenshot.
+    iPaid: { en: "I've paid: send receipt", km: 'ខ្ញុំបានបង់ហើយ៖ ផ្ញើបង្កាន់ដៃ' },
+    iPaidNoChat: { en: "I've paid", km: 'ខ្ញុំបានបង់ហើយ' },
+    iPaidText: {
+      en: (n: number, total: string) => `Hi! I've paid order #${n}, ${total}. Here's my receipt:`,
+      km: (n: number, total: string) => `សួស្តី! ខ្ញុំបានបង់ការកុម្ម៉ង់ #${n} ចំនួន ${total} ហើយ។ នេះជាបង្កាន់ដៃរបស់ខ្ញុំ៖`,
+    },
+    told: {
+      en: (shop: string, time: string) => `You told ${shop} you paid (${time}). They'll check and confirm it here.`,
+      km: (shop: string, time: string) => `អ្នកបានប្រាប់ ${shop} ថាបានបង់ (${time})។ ហាងនឹងពិនិត្យ ហើយបញ្ជាក់នៅទីនេះ។`,
+    },
+    sendAgain: { en: 'Send the receipt again', km: 'ផ្ញើបង្កាន់ដៃម្ដងទៀត' },
     bankNote: {
       en: (n: number) =>
         `Write “#${n}” in the transfer's note so the seller can find your payment. They check it and confirm it here.`,

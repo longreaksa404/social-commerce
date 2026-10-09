@@ -680,6 +680,14 @@ ALLOWED_PAYMENT_TRANSITIONS = {PENDING: {PAID, FAILED}, PAID: {PENDING}, FAILED:
   replaces `reference` if one is given.
 - Called by `order.record_payment` (`PATCH /seller/orders/{id}/payment`).
   It never reads or writes the order's status.
+- `PaymentOut.claimed_at` / `ShopPaymentOut.claimed_at`: when the customer
+  last tapped "I've paid" (`notifications.last_payment_claim`, the newest
+  `payment_claimed` web row for the order; no column). The seller's
+  Payment card shows "Customer says paid · 14:02" while pending; the
+  customer's KHQR / bank card has "I've paid: send receipt" (opens the
+  shop's Telegram, or Messenger with the line copied, with "I've paid
+  order #1001, $12.00" typed in; a plain "I've paid" without either), then
+  "You told <shop> you paid (14:02)".
 - Every payment starts `pending`, whatever the method. Paid or failed go
   back to pending from the Payment card's "Not paid after all" / "Back to
   not paid" (asks first). Order and delivery steps have no way back;
@@ -795,7 +803,7 @@ from the schema.
 | POST | `/seller/orders/{order_id}/cash-handover` | seller | — | `OrderOut` | Cash on delivery: delivery delivered + payment paid, both or neither (§6) |
 | GET | `/seller/customers` | seller | `?q=(≤100)&limit=1..100(50)&offset=` | `CustomerListOut` | Last ordered first; `q` matches name (case-insensitive) or phone typed any way |
 | GET | `/seller/customers/{customer_id}` | seller | — | `CustomerDetailOut` | Latest 100 orders |
-| GET | `/seller/notifications` | seller | `?limit=1..50(20)&offset=` | `NotificationListOut` | Web rows, newest first; listing doesn't mark read |
+| GET | `/seller/notifications` | seller | `?limit=1..50(20)&offset=` | `NotificationListOut` | Web rows, newest first (`new_order`, `low_stock`, `payment_claimed`); listing doesn't mark read |
 | GET | `/seller/notifications/unread` | seller | — | `UnreadOut` | The bell |
 | POST | `/seller/notifications/read` | seller | `MarkReadIn` (`up_to`) | `UnreadOut` | Marks read where `sent_at <= up_to` |
 | GET | `/seller/links` | seller | — | `list[LinkOut]` | Newest 200, with view/order counts |
@@ -808,6 +816,7 @@ from the schema.
 | POST | `/shop/{store_slug}/orders` | public | `OrderCreate` | `ShopOrderOut` (201) | Guest checkout; 409 `ORDERS_PAUSED` while paused; +10/min; Telegram alert in background |
 | GET | `/shop/{store_slug}/orders/{order_id}` | public | `?phone=` (≤32) | `ShopOrderOut` | 404 unless phone matches (any spelling); includes how to pay while pending; each item carries its product's current first photo (`image_url`, not a snapshot) |
 | POST | `/shop/{store_slug}/track-view` | public | `TrackViewIn` (`token`) | 204 | View written in background; unknown token ignored; +60/min |
+| POST | `/shop/{store_slug}/orders/{order_id}/paid` | public | `PaymentClaimIn` (`phone`) | 204 | "I've paid" (founder's pick 6B): the order link + phone like tracking (404 otherwise); 409 `NOTHING_TO_PAY` unless a pending KHQR / bank payment on an order that's on. Saves a web `payment_claimed` row and sends a Telegram alert in the background, not again within 30 min; the payment stays pending. +10/min |
 | POST | `/telegram/webhook` | header `X-Telegram-Bot-Api-Secret-Token` | Telegram update (raw dict) | Bot API method call as JSON, or `{}` | 404 if the secret is wrong or the bot is off |
 
 Schemas live in `app/schemas/<domain>.py`: auth (`RegisterIn`, `LoginIn`,
@@ -1067,7 +1076,7 @@ through to the SPA.
 
 | Integration | State | Details |
 |---|---|---|
-| **Telegram bot** (seller alerts) | WIRED, env-gated | `services/telegram.py`: plain `httpx` calls to the Bot API (`sendMessage`, `setWebhook`). Webhook registered at startup only when `PUBLIC_API_URL` is set. Webhook checks the secret header with `hmac.compare_digest`. `/start <code>` in a private chat stores `store.telegram_chat_id` (the code is store id + expiry + 12-byte HMAC-SHA256, base64url, 43 chars, key derived from `JWT_SECRET`). Groups are ignored. Replies go back in the webhook response. Alerts (`services/notifications.py`) for new orders and low stock (crossing the shop's `low_stock_alert`, 5 to start, or to 0) go out after the response. Bot texts point to Settings → Alerts. Each writes a `notification_log` row (`telegram`, sent or failed). A 403, or a 400 "chat not found", disconnects the store. Every bot message (alerts, connect and help replies, the password reset) is in Khmer only, the app's default language, in the app's own Khmer words (decided 2026-10-09; no per-seller language is stored); HTML-escaped. The same chat gets "Forgot password?" links (`auth.send_password_reset`, no log row). Live and tested by the founder (04). |
+| **Telegram bot** (seller alerts) | WIRED, env-gated | `services/telegram.py`: plain `httpx` calls to the Bot API (`sendMessage`, `setWebhook`). Webhook registered at startup only when `PUBLIC_API_URL` is set. Webhook checks the secret header with `hmac.compare_digest`. `/start <code>` in a private chat stores `store.telegram_chat_id` (the code is store id + expiry + 12-byte HMAC-SHA256, base64url, 43 chars, key derived from `JWT_SECRET`). Groups are ignored. Replies go back in the webhook response. Alerts (`services/notifications.py`) for new orders and low stock (crossing the shop's `low_stock_alert`, 5 to start, or to 0), and "<name> says they paid #1001" when a customer taps "I've paid" (`notify_payment_claimed`), go out after the response (`_send_all`). An order the seller added from a chat sends only low stock. Bot texts point to Settings → Alerts. Each writes a `notification_log` row (`telegram`, sent or failed). A 403, or a 400 "chat not found", disconnects the store. Every bot message (alerts, connect and help replies, the password reset) is in Khmer only, the app's default language, in the app's own Khmer words (decided 2026-10-09; no per-seller language is stored); HTML-escaped. The same chat gets "Forgot password?" links (`auth.send_password_reset`, no log row). Live and tested by the founder (04). |
 | **"Ask seller": Telegram, Messenger, call** | WIRED (no bot) | `shop/ContactSeller.tsx` (+ `contact.ts`) on the product page and the order page: `https://t.me/<telegram_username>?text=<question>`; `https://m.me/<messenger_username>` (m.me can't type a message, so the question is copied to the clipboard first); `tel:<contact_phone>`. Each hidden when empty; one way shows as one button, more as a row that wraps. Set in Settings → Contact; `StoreUpdate` accepts a page's m.me / facebook.com link (`profile.php?id=` too) and any phone spelling. |
 | **Web notifications** | WIRED | `notification_log` rows with `channel=web`, written in the checkout transaction; the dashboard polls. No push. |
 | **Payments: COD, bank transfer** | WIRED, manual | No provider. Bank details from `payment_config` (current values, not a copy at order time) are shown on the order page while the payment is pending and the order isn't rejected or cancelled. |
