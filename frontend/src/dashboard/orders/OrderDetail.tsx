@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Link2, LoaderCircle, MapPin, MapPinned, MessageSquareText, Phone, Plus, ShoppingBag, Truck, Wallet, XCircle } from 'lucide-react'
+import { ChevronDown, ChevronRight, Copy, Link2, LoaderCircle, MapPin, MapPinned, MessageSquareText, MessagesSquare, Phone, Plus, ShoppingBag, Truck, Wallet, XCircle } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { buzz } from '../../components/effects.ts'
@@ -17,7 +17,7 @@ import { formatOrderTime, formatPhone, ORDER_STATUS_TONES } from '../../lib/orde
 import { paymentBadge } from '../../lib/payments.ts'
 import type { DeliveryStatus, Order, OrderStatus } from '../../lib/types.ts'
 import { ProductImage } from '../../shop/components.tsx'
-import { useCashHandover, useOrder, useRecordDelivery, useRecordPayment } from '../queries.ts'
+import { useCashHandover, useOrder, useRecordDelivery, useRecordPayment, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
 import { ENDS_ORDER, useMoveOrder } from './useMoveOrder.ts'
 
@@ -412,21 +412,29 @@ function SummaryCard({ order }: { order: Order }) {
         })}
       </ul>
       </div>
-      {order.source && (
+      {order.source === 'chat' ? (
         <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
-          {hasLogo(order.source) ? (
-            <SourceLogo source={order.source} className="size-5" />
-          ) : (
-            <Link2 aria-hidden className="size-4 shrink-0" />
-          )}
-          {o.cameThrough(sourceLabel(order.source))}
+          <MessagesSquare aria-hidden className="size-4 shrink-0" />
+          {o.fromChat}
         </p>
+      ) : (
+        order.source && (
+          <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
+            {hasLogo(order.source) ? (
+              <SourceLogo source={order.source} className="size-5" />
+            ) : (
+              <Link2 aria-hidden className="size-4 shrink-0" />
+            )}
+            {o.cameThrough(sourceLabel(order.source))}
+          </p>
+        )
       )}
       {order.notes && (
         <div className="mt-3 flex gap-2.5 rounded-xl bg-amber-50 px-3.5 py-3 text-sm text-amber-900">
           <MessageSquareText aria-hidden className="mt-0.5 size-4 shrink-0" />
           <p>
-            <span className="font-semibold">{o.noteFromCustomer}</span>
+            {/* Typed by the seller on an order from a chat. */}
+            <span className="font-semibold">{order.source === 'chat' ? o.chatNote : o.noteFromCustomer}</span>
             <span className="whitespace-pre-line break-words">{order.notes}</span>
           </p>
         </div>
@@ -513,6 +521,9 @@ function CustomerCard({ order }: { order: Order }) {
         <Phone aria-hidden className="size-4" />
         {formatPhone(order.customer.phone)}
       </a>
+      {/* An order from a chat: the customer hasn't seen the order page,
+          where they follow it and see how to pay (KHQR, bank). */}
+      {order.source === 'chat' && <CopyOrderLink order={order} />}
       {order.delivery_method === 'seller_delivery' && (
         <>
           <h3 className="mt-3 text-sm font-medium text-slate-500">{o.deliverTo}</h3>
@@ -539,6 +550,30 @@ function CustomerCard({ order }: { order: Order }) {
         </>
       )}
     </Card>
+  )
+}
+
+/** The customer's own page for this order, to send in the chat. They
+ * open it with their phone number. */
+function CopyOrderLink({ order }: { order: Order }) {
+  const o = useT().orders
+  const { toast } = useFeedback()
+  const store = useStore()
+  if (!store.data) return null
+  const url = `${window.location.origin}/shop/${store.data.slug}/order/${order.id}`
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(url)
+      toast(o.orderLinkCopied)
+    } catch {
+      toast(url)
+    }
+  }
+  return (
+    <Button variant="secondary" onClick={copy} className="mt-2 w-full sm:w-auto">
+      <Copy aria-hidden className="size-4" />
+      {o.copyOrderLink}
+    </Button>
   )
 }
 

@@ -64,6 +64,52 @@ export const orders = {
   // cash in hand, recorded together.
   cashHandover: { en: 'Delivered, cash received', km: 'បានដល់ដៃ និងបានទទួលសាច់ប្រាក់' },
   collectedCash: { en: 'Collected, cash received', km: 'បានមកយក និងបានទទួលសាច់ប្រាក់' },
+  // An order that came by chat, added by the seller (founder's pick 3A).
+  newOrder: {
+    button: { en: 'New order', km: 'ការកុម្ម៉ង់ថ្មី' },
+    title: { en: 'New order from a chat', km: 'ការកុម្ម៉ង់ថ្មីពីឆាត' },
+    intro: {
+      en: 'For an order a customer sent by Messenger, Telegram or a call. The shop’s prices and delivery fee apply, and it starts accepted.',
+      km: 'សម្រាប់ការកុម្ម៉ង់ដែលអតិថិជនផ្ញើតាម Messenger, Telegram ឬការហៅទូរស័ព្ទ។ ប្រើតម្លៃ និងថ្លៃដឹករបស់ហាង ហើយវាចាប់ផ្ដើមជាបានទទួល។',
+    },
+    customer: { en: 'Customer', km: 'អតិថិជន' },
+    phone: { en: 'Phone number', km: 'លេខទូរស័ព្ទ' },
+    name: { en: 'Name', km: 'ឈ្មោះ' },
+    known: {
+      en: (n: number) => (n === 1 ? 'Ordered once before' : `Ordered ${n} times before`),
+      km: (n: number) => `ធ្លាប់កុម្ម៉ង់ ${n} ដង`,
+    },
+    items: { en: 'Items', km: 'ទំនិញ' },
+    findProduct: { en: 'Find a product', km: 'ស្វែងរកទំនិញ' },
+    noProducts: { en: 'No products match.', km: 'គ្មានទំនិញដែលត្រូវគ្នាទេ។' },
+    pickOption: { en: 'Choose an option:', km: 'ជ្រើសរើសជម្រើស៖' },
+    left: { en: (n: number) => `${n} left`, km: (n: number) => `នៅសល់ ${n}` },
+    soldOut: { en: 'Sold out', km: 'អស់ស្តុក' },
+    noItems: { en: 'Add at least one product.', km: 'សូមបន្ថែមទំនិញយ៉ាងហោចណាស់មួយ។' },
+    remove: { en: (name: string) => `Remove ${name}`, km: (name: string) => `ដក ${name} ចេញ` },
+    fewer: { en: 'One fewer', km: 'តិចមួយ' },
+    more: { en: 'One more', km: 'ច្រើនមួយ' },
+    delivery: { en: 'Delivery', km: 'ការដឹកជញ្ជូន' },
+    address: { en: 'Address', km: 'អាសយដ្ឋាន' },
+    addressHint: { en: 'As the customer wrote it.', km: 'ដូចដែលអតិថិជនបានសរសេរ។' },
+    addressNote: { en: 'Note for the driver (optional)', km: 'ចំណាំសម្រាប់អ្នកដឹក (មិនចាំបាច់)' },
+    payment: { en: 'Payment', km: 'ការបង់ប្រាក់' },
+    note: { en: 'Note (optional)', km: 'ចំណាំ (មិនចាំបាច់)' },
+    noteHint: {
+      en: 'Shown on the order, for example what the customer asked in the chat.',
+      km: 'បង្ហាញនៅលើការកុម្ម៉ង់ ឧទាហរណ៍ អ្វីដែលអតិថិជនបានសួរក្នុងឆាត។',
+    },
+    save: { en: 'Save order', km: 'រក្សាទុកការកុម្ម៉ង់' },
+    saved: { en: (n: number) => `Order #${n} saved`, km: (n: number) => `បានរក្សាទុកការកុម្ម៉ង់ #${n}` },
+  },
+  // On an order the seller added from a chat.
+  fromChat: { en: 'Added by you from a chat', km: 'អ្នកបានបន្ថែមពីឆាត' },
+  chatNote: { en: 'Note: ', km: 'ចំណាំ៖ ' },
+  copyOrderLink: { en: 'Copy link for the customer', km: 'ចម្លងតំណសម្រាប់អតិថិជន' },
+  orderLinkCopied: {
+    en: 'Link copied. Send it in the chat: the customer opens it with their phone number to follow the order and pay.',
+    km: 'បានចម្លងតំណ។ ផ្ញើវាក្នុងឆាត៖ អតិថិជនបើកវាជាមួយលេខទូរស័ព្ទរបស់គេ ដើម្បីតាមដានការកុម្ម៉ង់ និងបង់ប្រាក់។',
+  },
   // Delivery card: the steps in between, for those who use them.
   moreSteps: { en: 'More steps (optional)', km: 'ជំហានបន្ថែម (មិនចាំបាច់)' },
   filterLabel: { en: 'Filter orders', km: 'ច្រោះការកុម្ម៉ង់' },

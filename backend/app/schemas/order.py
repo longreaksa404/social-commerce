@@ -51,8 +51,9 @@ class OrderLineIn(BaseModel):
     quantity: int = Field(ge=1, le=MAX_LINE_QUANTITY)
 
 
-class OrderCreate(BaseModel):
-    """Guest checkout: no login, the customer is matched by phone."""
+class OrderIn(BaseModel):
+    """A new order, from guest checkout or added by the seller; the
+    customer is matched by phone."""
 
     name: Name
     phone: Phone
@@ -69,13 +70,24 @@ class OrderCreate(BaseModel):
     delivery_lat: Latitude | None = None
     delivery_lng: Longitude | None = None
     delivery_address_note: Note | None = None
-    # The total the customer was shown. If prices, fees or discounts changed
-    # since, the order is refused rather than charged at a total they
-    # didn't see.
+    # The total the customer (or the seller) was shown. If prices, fees or
+    # discounts changed since, the order is refused rather than charged at
+    # a total they didn't see.
     expected_total: Money
+
+
+class OrderCreate(OrderIn):
+    """Guest checkout: no login."""
+
     # The shop link this device opened in the last 7 days (?l=<token>), if
     # any; the order counts for it. Unknown tokens are ignored.
     link: Annotated[str, StringConstraints(max_length=16)] | None = None
+
+
+class SellerOrderCreate(OrderIn):
+    """An order that came by chat (Messenger, Telegram, a call), added by
+    the seller (founder's pick 3A, 2026-10-09): the shop's own prices,
+    discounts and delivery fee, the same as at checkout."""
 
 
 class OrderItemOut(BaseModel):

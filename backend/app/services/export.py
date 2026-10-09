@@ -92,6 +92,14 @@ def _word(group: str, key: str, lang: Lang) -> str:
     return km if lang == "km" else en
 
 
+def _source(source: str | None, lang: Lang) -> str:
+    """Where the order came from: a link's place as saved ("tiktok"), or a
+    chat for the orders the seller added (checkout.CHAT_SOURCE)."""
+    if source == "chat":
+        return "ឆាត" if lang == "km" else "Chat"
+    return source or ""
+
+
 def _start_of(day: date) -> datetime:
     return datetime.combine(day, time(), PHNOM_PENH)
 
@@ -149,7 +157,7 @@ def _row(order: Order, lang: Lang) -> dict[str, object]:
         ),
         "status": _word("order", order.status.value, lang),
         "address": "" if pickup else (order.delivery_address or ""),
-        "source": order.source or "",
+        "source": _source(order.source, lang),
         "notes": order.notes or "",
     }
 

@@ -348,3 +348,30 @@ async def test_khr_and_auto_accepted_order_text(client, bot, auth_headers):
     assert placed.status_code == 201, placed.text
     assert "(បានទទួលដោយស្វ័យប្រវត្តិ)" in bot[0]["text"]  # accepted automatically
     assert "10៛" in bot[0]["text"]
+
+
+async def test_a_chat_order_sends_only_low_stock(client, bot, auth_headers):
+    """The seller added it (founder's pick 3A): no new-order alert, but a
+    product it took down still warns them."""
+    headers, store_id, _ = await registered_seller(client, auth_headers)
+    await connect(store_id)
+    cap = await add_product(store_id, "cap", stock=1)
+
+    response = await client.post(
+        "/api/v1/seller/orders",
+        headers=headers,
+        json={
+            "name": "Sokha",
+            "phone": "098765432",
+            "items": [{"product_id": str(cap), "quantity": 1}],
+            "payment_method": "cod",
+            "delivery_method": "seller_delivery",
+            "delivery_address": "Toul Kork",
+            "expected_total": "10.00",
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert len(bot) == 1
+    assert "ជិតអស់ស្តុក" in bot[0]["text"]  # Running low
+    assert [log.event_type for log in await logs(store_id)] == ["low_stock"]

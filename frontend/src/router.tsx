@@ -8,6 +8,7 @@ import { LinkDetail } from './dashboard/links/LinkDetail.tsx'
 import { LinkList } from './dashboard/links/LinkList.tsx'
 import { NewLink } from './dashboard/links/NewLink.tsx'
 import { Notifications } from './dashboard/Notifications.tsx'
+import { NewOrder } from './dashboard/orders/NewOrder.tsx'
 import { OrdersPage } from './dashboard/orders/OrderList.tsx'
 import { ProductEdit } from './dashboard/products/ProductEdit.tsx'
 import { ProductList } from './dashboard/products/ProductList.tsx'
@@ -44,6 +45,8 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="orders" replace /> },
           // One page: on laptops the list stays beside the open order.
           { path: 'orders', element: <OrdersPage /> },
+          // An order that came by chat (founder's pick 3A).
+          { path: 'orders/new', element: <NewOrder /> },
           { path: 'orders/:orderId', element: <OrdersPage /> },
           { path: 'customers', element: <CustomerList /> },
           { path: 'customers/:customerId', element: <CustomerDetail /> },

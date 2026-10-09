@@ -83,10 +83,13 @@ def _stock_payload(alerts: list[StockAlert]) -> dict[str, Any]:
 # Web: the dashboard's notification list
 
 
-def web_notifications(order: Order, alerts: list[StockAlert]) -> list[NotificationLog]:
+def web_notifications(
+    order: Order, alerts: list[StockAlert], *, new_order: bool = True
+) -> list[NotificationLog]:
     """The dashboard's notifications for a new order, to save with it
     (whether or not Telegram is connected). The order as placed, as
-    NotificationOut has it; opening it shows where it is now."""
+    NotificationOut has it; opening it shows where it is now. Without
+    `new_order` (an order the seller added), only the low-stock one."""
     rows = [
         _log(
             order.store_id,
@@ -104,7 +107,7 @@ def web_notifications(order: Order, alerts: list[StockAlert]) -> list[Notificati
                 }
             },
         )
-    ]
+    ][: 1 if new_order else 0]
     if alerts:
         rows.append(
             _log(order.store_id, NotificationChannel.WEB, "low_stock", _stock_payload(alerts))
@@ -243,8 +246,12 @@ def order_button(order: Order) -> tuple[str, str] | None:
 
 
 async def notify_new_order(
-    store_id: uuid.UUID, order_id: uuid.UUID, alerts: list[StockAlert]
+    store_id: uuid.UUID, order_id: uuid.UUID, alerts: list[StockAlert], *, new_order: bool = True
 ) -> None:
+    """Telegram: the new order, then low stock if it took any down.
+    Without `new_order` (an order the seller added), only low stock."""
+    if not new_order and not alerts:
+        return
     if not get_settings().telegram_configured:
         return
     async with tenant_session(store_id) as db:
@@ -270,7 +277,7 @@ async def notify_new_order(
                 new_order_text(order),
                 order_button(order),
             )
-        ]
+        ][: 1 if new_order else 0]
         if alerts:
             messages.append(("low_stock", _stock_payload(alerts), low_stock_text(alerts), None))
 

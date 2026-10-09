@@ -161,6 +161,21 @@ export function useRecordDelivery(id: string) {
   })
 }
 
+/** An order that came by chat, added by the seller (founder's pick 3A). */
+export function useAddOrder() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: unknown) => api<Order>('/seller/orders', { method: 'POST', body }),
+    onSuccess: (order) => {
+      queryClient.setQueryData(keys.order(order.id), order)
+      queryClient.invalidateQueries({ queryKey: [...keys.orders, 'list'] })
+      // It took stock, and made or updated a customer.
+      queryClient.invalidateQueries({ queryKey: keys.products })
+      queryClient.invalidateQueries({ queryKey: keys.customers })
+    },
+  })
+}
+
 /** Cash on delivery: delivered (or collected) and the cash received, in
  * one tap. The server records each in its own state machine. */
 export function useCashHandover(id: string) {
@@ -227,10 +242,11 @@ export function useCustomers(search: string) {
   })
 }
 
-export function useCustomer(id: string) {
+export function useCustomer(id: string, { enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: keys.customer(id),
     queryFn: () => api<CustomerDetail>(`/seller/customers/${id}`),
+    enabled,
   })
 }
 

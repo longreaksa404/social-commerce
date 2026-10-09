@@ -84,7 +84,9 @@ async def place_order(
     data: OrderCreate, shop: Shop, db: ShopDb, background: BackgroundTasks
 ) -> ShopOrderOut:
     """Guest checkout (02_TECHNICAL.md section 5.4)."""
-    order, stock_alerts = await checkout_service.place_order(db, shop.id, data)
+    order, stock_alerts = await checkout_service.place_order(
+        db, shop.id, data, link_token=data.link
+    )
     # After the response, so a slow Telegram never holds up the customer.
     background.add_task(notifications.notify_new_order, shop.id, order.id, stock_alerts)
     return await checkout_service.shop_order_out(db, shop, order)

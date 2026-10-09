@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Annotated, Self
 
-from pydantic import BaseModel, StringConstraints, model_validator
+from pydantic import BaseModel, StringConstraints, field_validator, model_validator
 
 from app.models import LinkTarget
 from app.schemas.order import OrderSummaryOut
@@ -24,6 +24,15 @@ class LinkCreate(BaseModel):
     target_id: uuid.UUID | None = None  # the product or category; none for the shop
     source: Source
     campaign: Campaign | None = None
+
+    @field_validator("source")
+    @classmethod
+    def _not_chat(cls, source: str) -> str:
+        # Kept for orders the seller adds from a chat (services/checkout.py
+        # CHAT_SOURCE), so the two never mix.
+        if source.casefold() == "chat":
+            raise ValueError("This name is kept for orders you add from a chat. Choose another.")
+        return source
 
     @model_validator(mode="after")
     def _target(self) -> Self:

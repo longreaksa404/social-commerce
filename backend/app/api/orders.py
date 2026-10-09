@@ -4,15 +4,17 @@ import uuid
 from datetime import date, datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Query, Response
+from fastapi import APIRouter, BackgroundTasks, Query, Response
 
 from app.api.deps import Owner, Seller, TenantDb
 from app.core.errors import AppError
 from app.models import OrderStatus
 from app.schemas.delivery import DeliveryUpdate
-from app.schemas.order import OrderListOut, OrderOut, OrderStatusUpdate
+from app.schemas.order import OrderListOut, OrderOut, OrderStatusUpdate, SellerOrderCreate
 from app.schemas.payment import PaymentUpdate
+from app.services import checkout as checkout_service
 from app.services import export as export_service
+from app.services import notifications
 from app.services import order as order_service
 
 router = APIRouter(prefix="/seller/orders", tags=["orders"])
@@ -38,6 +40,23 @@ async def list_orders(
         limit=limit,
         offset=offset,
     )
+
+
+@router.post("", response_model=OrderOut, status_code=201)
+async def add_order(
+    data: SellerOrderCreate, seller: Seller, db: TenantDb, background: BackgroundTasks
+) -> OrderOut:
+    """An order that came by chat, added by the seller (founder's pick 3A):
+    checkout's prices, stock and totals; starts accepted; marked as from a
+    chat. Only low stock alerts, after the response."""
+    order, stock_alerts = await checkout_service.place_order(
+        db, seller.store_id, data, by_seller=True
+    )
+    background.add_task(
+        notifications.notify_new_order, seller.store_id, order.id, stock_alerts, new_order=False
+    )
+    order = await order_service.get_order(db, seller.store_id, order.id)
+    return await order_service.order_out(db, seller.store_id, order)
 
 
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"

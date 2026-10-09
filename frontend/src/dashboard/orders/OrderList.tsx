@@ -146,7 +146,15 @@ function OrdersHeader() {
   const t = useT()
   return (
     <div className="mb-2 lg:mb-5 lg:flex lg:items-center lg:gap-8">
-      <h1 className="mb-3 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl lg:mb-0">{t.orders.title}</h1>
+      {/* "New order" beside the title (founder's pick 4A): an order that
+          came by chat. On laptops it ends the line, after the tabs. */}
+      <div className="mb-3 flex items-center justify-between gap-3 lg:mb-0 lg:contents">
+        <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{t.orders.title}</h1>
+        <Link to="/dashboard/orders/new" className={`${buttonClass('secondary')} lg:order-last lg:shrink-0`}>
+          <Plus aria-hidden className="size-4" />
+          {t.orders.newOrder.button}
+        </Link>
+      </div>
       {orders.isPending ? (
         <Skeleton className="h-10 w-full rounded-lg lg:w-[32rem]" />
       ) : (

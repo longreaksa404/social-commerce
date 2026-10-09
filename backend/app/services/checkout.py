@@ -29,7 +29,7 @@ from app.models import (
     ProductVariant,
     Store,
 )
-from app.schemas.order import OrderCreate, OrderLineIn, ShopOrderOut
+from app.schemas.order import OrderIn, OrderLineIn, ShopOrderOut
 from app.services import delivery as delivery_service
 from app.services import link as link_service
 from app.services import notifications
@@ -39,6 +39,9 @@ from app.services.phone import normalize_phone
 from app.services.pricing import line_total, order_totals
 
 FIRST_ORDER_NUMBER = 1001
+# order.source of an order the seller added from a chat (founder's pick
+# 3A); link places can't be named this (services/link.py).
+CHAT_SOURCE = "chat"
 
 
 @dataclass(frozen=True)
@@ -66,16 +69,27 @@ class _Line:
 
 
 async def place_order(
-    db: AsyncSession, store_id: uuid.UUID, data: OrderCreate
+    db: AsyncSession,
+    store_id: uuid.UUID,
+    data: OrderIn,
+    *,
+    link_token: str | None = None,
+    by_seller: bool = False,
 ) -> tuple[Order, list[notifications.StockAlert]]:
     """The placed order, and the products it took down to low or out of
-    stock (for the seller's alert)."""
+    stock (for the seller's alert).
+
+    `by_seller`: the seller adding an order that came by chat (founder's
+    pick 3A). The same prices, stock and totals as checkout; it's taken
+    while the shop is paused, starts accepted (the seller agreed to it in
+    the chat), is marked as from a chat, and puts no "new order" on the
+    bell (the seller did it; low stock still does)."""
     # Locks the store row until commit, so checkouts in one store run one
     # at a time: order numbers stay unique, and one phone can't become two
     # customers. Fine at MVP volume.
     store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
     assert store is not None  # the shop was found by slug moments ago
-    if store.orders_paused_now:
+    if store.orders_paused_now and not by_seller:
         raise AppError(409, "ORDERS_PAUSED", "This shop isn't taking orders right now.")
     payment_service.check_method_available(store, data.payment_method)
     delivery_settings = delivery_service.delivery_settings(store)
@@ -123,7 +137,7 @@ async def place_order(
             stock_alerts.append(alert)
 
     # The link the customer came through counts the order (02 section 9.2).
-    link = await link_service.find(db, store_id, data.link) if data.link else None
+    link = await link_service.find(db, store_id, link_token) if link_token else None
     order = Order(
         store_id=store_id,
         number=await _next_number(db, store_id),
@@ -140,7 +154,7 @@ async def place_order(
         delivery_lng=location.lng,
         delivery_address_note=location.note,
         notes=data.notes or None,
-        source=link.source if link else None,
+        source=CHAT_SOURCE if by_seller else link.source if link else None,
         items=sorted(items, key=lambda i: (i.product_name_snapshot, i.variant_name_snapshot or "")),
         # Paid or not is its own state machine, starting at pending for
         # every method (02 section 7.2).
@@ -153,11 +167,11 @@ async def place_order(
         ),
     )
     db.add(order)
-    if store.order_confirmation_mode is OrderConfirmationMode.AUTOMATIC:
+    if by_seller or store.order_confirmation_mode is OrderConfirmationMode.AUTOMATIC:
         # Same path as the seller tapping "Accept" (02 section 7.1).
         await order_service.transition(db, order, OrderStatus.ACCEPTED)
     await db.flush()  # gives the order its id, for the notification's link
-    db.add_all(notifications.web_notifications(order, stock_alerts))
+    db.add_all(notifications.web_notifications(order, stock_alerts, new_order=not by_seller))
     if link is not None:
         db.add(link_service.order_event(link, order))
     await db.commit()
@@ -222,7 +236,7 @@ class _Location:
     note: str | None = None
 
 
-def _delivery_location(data: OrderCreate) -> _Location:
+def _delivery_location(data: OrderIn) -> _Location:
     """Where to deliver: the typed address, the GPS location, or both, plus
     a note for the driver. Nothing for pickup."""
     if data.delivery_method is DeliveryMethod.PICKUP:
@@ -328,7 +342,7 @@ def _out_of_stock(line: _Line) -> AppError:
 
 
 async def _customer(
-    db: AsyncSession, store_id: uuid.UUID, data: OrderCreate, address: str | None
+    db: AsyncSession, store_id: uuid.UUID, data: OrderIn, address: str | None
 ) -> Customer:
     """This store's customer with this phone, updated to the name and
     address from this order (a pickup keeps the last address), or a new
