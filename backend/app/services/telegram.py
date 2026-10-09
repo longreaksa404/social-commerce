@@ -1,12 +1,13 @@
 """The platform's Telegram bot (02_TECHNICAL.md section 12): Bot API calls,
 the link that connects a store to a chat, and the webhook.
 
-The bot only sends sellers their order alerts (app/services/notifications.py).
-"Ask seller" doesn't use it: the shop links straight to the seller's own
+The bot sends sellers their order alerts (app/services/notifications.py)
+and proves sellers' phone numbers (app/services/phone_check.py). "Ask
+seller" doesn't use it: the shop links straight to the seller's own
 Telegram account (decided 2026-10-03).
 
 Plain HTTPS calls to the Bot API with httpx; no bot framework needed for
-sendMessage and one /start command.
+sendMessage, /start and a shared contact.
 """
 
 import base64
@@ -24,6 +25,7 @@ import httpx
 from app.core.config import get_settings
 from app.db.session import tenant_session
 from app.models import Store
+from app.services import phone_check
 
 logger = logging.getLogger(__name__)
 
@@ -154,6 +156,31 @@ EXPIRED_TEXT = (
 )
 
 
+# Proving a phone number (app/services/phone_check.py). The page's button
+# is ផ្ទៀងផ្ទាត់ជាមួយ Telegram.
+PHONE_ASK_TEXT = (
+    "📱 ដើម្បីផ្ទៀងផ្ទាត់លេខទូរស័ព្ទរបស់អ្នកសម្រាប់ Oak Order "
+    "សូមចុចប៊ូតុង “ចែករំលែកលេខទូរស័ព្ទ” ខាងក្រោម។\n\n"
+    "សូមចុចតែពេលដែលអ្នកទើបតែចុច “ផ្ទៀងផ្ទាត់ជាមួយ Telegram” នៅក្នុង Oak Order ដោយខ្លួនឯងប៉ុណ្ណោះ។"
+)
+PHONE_BUTTON = "📱 ចែករំលែកលេខទូរស័ព្ទ"
+PHONE_EXPIRED_TEXT = "តំណនេះផុតកំណត់ហើយ។ សូមត្រឡប់ទៅ Oak Order ហើយចុច “ផ្ទៀងផ្ទាត់ជាមួយ Telegram” ម្ដងទៀត។"
+PHONE_NOT_OWN_TEXT = "សូមចុចប៊ូតុង “ចែករំលែកលេខទូរស័ព្ទ” ខាងក្រោម ដើម្បីផ្ញើលេខរបស់អ្នកផ្ទាល់។"
+
+
+def phone_done_text(phone: str) -> str:
+    return f"✅ បានផ្ទៀងផ្ទាត់លេខ <b>{escape(phone)}</b>។ សូមត្រឡប់ទៅ Oak Order វិញ ដើម្បីបន្ត។"
+
+
+def _share_keyboard() -> dict[str, Any]:
+    """A button under the chat that sends the account's own number."""
+    return {
+        "keyboard": [[{"text": PHONE_BUTTON, "request_contact": True}]],
+        "resize_keyboard": True,
+        "one_time_keyboard": True,
+    }
+
+
 async def handle_update(update: dict[str, Any]) -> dict[str, Any] | None:
     """Answer one webhook update. Returns the reply as a Bot API method call
     (Telegram runs it from the webhook's response, so no extra request), or
@@ -164,12 +191,40 @@ async def handle_update(update: dict[str, Any]) -> dict[str, Any] | None:
     # Only private chats: in a group the bot stays silent.
     if chat.get("type") != "private" or "id" not in chat:
         return None
+    if "contact" in msg:
+        return await _phone_shared(chat["id"], msg)
     reply = HELP_TEXT
     command, _, argument = text.strip().partition(" ")
-    if command.split("@")[0] == "/start" and argument:
-        store_id = read_link_code(argument.strip())
+    argument = argument.strip()
+    if command.split("@")[0] == "/start" and argument.startswith(phone_check.CODE_PREFIX):
+        # In a private chat the chat's id is the user's.
+        if await phone_check.opened(argument, chat["id"]):
+            return _reply(chat["id"], PHONE_ASK_TEXT, _share_keyboard())
+        reply = PHONE_EXPIRED_TEXT
+    elif command.split("@")[0] == "/start" and argument:
+        store_id = read_link_code(argument)
         reply = await _connect(store_id, chat["id"]) if store_id else EXPIRED_TEXT
-    return {"method": "sendMessage", **message(chat["id"], reply)}
+    return _reply(chat["id"], reply)
+
+
+def _reply(chat_id: int, text: str, keyboard: dict[str, Any] | None = None) -> dict[str, Any]:
+    payload = {"method": "sendMessage", **message(chat_id, text)}
+    if keyboard is not None:
+        payload["reply_markup"] = keyboard
+    return payload
+
+
+async def _phone_shared(chat_id: int, msg: dict[str, Any]) -> dict[str, Any]:
+    """A contact sent in the chat. Only the account's own number counts:
+    the share button sends that, but anyone can also attach someone
+    else's contact card, which carries another user_id (or none)."""
+    contact = msg.get("contact") or {}
+    sender = (msg.get("from") or {}).get("id", chat_id)
+    if contact.get("user_id") != sender or not contact.get("phone_number"):
+        return _reply(chat_id, PHONE_NOT_OWN_TEXT, _share_keyboard())
+    phone = await phone_check.shared(sender, str(contact["phone_number"]))
+    text = phone_done_text(phone) if phone else PHONE_EXPIRED_TEXT
+    return _reply(chat_id, text, {"remove_keyboard": True})
 
 
 async def _connect(store_id: uuid.UUID, chat_id: int) -> str:

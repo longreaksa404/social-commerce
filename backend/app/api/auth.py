@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, BackgroundTasks, Request, Response, status
 
 from app.api.deps import UnscopedDb
@@ -8,9 +10,11 @@ from app.schemas.auth import (
     LoginIn,
     PasswordResetConfirm,
     PasswordResetIn,
+    PhoneCheckOut,
     RegisterIn,
 )
 from app.services import auth as auth_service
+from app.services import phone_check as phone_check_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -59,3 +63,18 @@ async def reset_password(
     request: Request, response: Response, data: PasswordResetConfirm, db: UnscopedDb
 ) -> AccessOut:
     return start_session(response, await auth_service.reset_password(db, data))
+
+
+@router.post("/phone-checks", response_model=PhoneCheckOut, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
+async def start_phone_check(request: Request, db: UnscopedDb) -> PhoneCheckOut:
+    """Verify a phone number with Telegram: open telegram_url, tap "Share
+    my phone number" in the bot, then read the check until it has `phone`."""
+    return await phone_check_service.describe(db, await phone_check_service.create(db))
+
+
+@router.get("/phone-checks/{check_id}", response_model=PhoneCheckOut)
+@limiter.limit("60/minute")
+async def read_phone_check(request: Request, check_id: uuid.UUID, db: UnscopedDb) -> PhoneCheckOut:
+    """Read every few seconds while the seller is in Telegram."""
+    return await phone_check_service.describe(db, await phone_check_service.get(db, check_id))

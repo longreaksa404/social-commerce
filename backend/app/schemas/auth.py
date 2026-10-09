@@ -1,3 +1,5 @@
+import uuid
+from datetime import datetime
 from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, EmailStr, Field, StringConstraints
@@ -51,3 +53,17 @@ class TokenPair(BaseModel):
 class AccessOut(BaseModel):
     access_token: str
     token_type: Literal["bearer"] = "bearer"
+
+
+class PhoneCheckOut(BaseModel):
+    """A phone number being proved through the Telegram bot
+    (app/services/phone_check.py). The page opens telegram_url, then reads
+    the check again until `phone` is set."""
+
+    id: uuid.UUID
+    telegram_url: str
+    expires_at: datetime
+    # The number the seller shared with the bot; null until then.
+    phone: str | None = None
+    # That number already has an account: log in instead.
+    taken: bool = False

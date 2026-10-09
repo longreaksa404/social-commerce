@@ -3,7 +3,7 @@ import uuid
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import CheckConstraint, Date, DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy import BigInteger, CheckConstraint, Date, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -160,3 +160,25 @@ class RefreshToken(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class PhoneCheck(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
+    """A phone number proved through the Telegram bot (founder's choice
+    2026-10-09): the page opens t.me/<bot>?start=<code>, the seller taps
+    "Share my phone number", and Telegram gives the bot the number of the
+    account that tapped it (app/services/phone_check.py).
+
+    The id is the page's secret: it reads the result with it and hands it
+    in to register. The code is only in the Telegram link. Not
+    tenant-scoped; app_user has no grant on it.
+    """
+
+    __tablename__ = "phone_check"
+
+    code: Mapped[str] = mapped_column(Text, unique=True)
+    # Who opened the link; their shared contact completes the check.
+    telegram_user_id: Mapped[int | None] = mapped_column(BigInteger, index=True)
+    # Set once the number is shared, normalized (app/services/phone.py).
+    phone: Mapped[str | None] = mapped_column(Text)
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

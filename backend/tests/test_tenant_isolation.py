@@ -136,3 +136,13 @@ async def test_no_tenant_means_no_rows(two_stores):
         count = len((await db.scalars(select(Product.id))).all())
 
     assert count == 0
+
+
+@pytest.mark.parametrize("table", ["seller", "refresh_token", "phone_check"])
+async def test_tenant_session_cant_read_account_tables(two_stores, table):
+    """Logins, sessions and phone checks aren't any shop's rows: app_user
+    has no grant on them at all."""
+    a, _ = two_stores
+    async with tenant_session(a.store_id) as db:
+        with pytest.raises(DBAPIError, match="permission denied"):
+            await db.execute(text(f"SELECT 1 FROM {table}"))

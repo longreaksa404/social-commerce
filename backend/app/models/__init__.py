@@ -3,6 +3,7 @@
 from app.models.account import (
     Currency,
     OrderConfirmationMode,
+    PhoneCheck,
     RefreshToken,
     Seller,
     SellerRole,
@@ -39,6 +40,7 @@ __all__ = [
     "Payment",
     "PaymentMethod",
     "PaymentStatus",
+    "PhoneCheck",
     "Product",
     "ProductStatus",
     "ProductVariant",
