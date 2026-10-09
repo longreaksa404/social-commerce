@@ -1262,7 +1262,7 @@ and policy, endpoint list, JSONB shapes, link and tracking flows) matches
   volume.
 - A COD order can complete with its payment marked failed (02 §7.4 read
   literally). Payments can't be undone once paid or failed.
-- When the R2 public domain changes (planned `images.<domain>` once one is bought), existing
+- When the R2 public domain changes (planned `images.oaksolve.com`, domain bought 2026-10-09), existing
   absolute URLs in `product.image_urls` / `store.logo_url` must be
   rewritten in the DB. Otherwise saving a product with old photos fails
   the prefix check (`INVALID_IMAGE`).

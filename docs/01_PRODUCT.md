@@ -18,10 +18,18 @@
 
 ## 1.1 Project Name
 
-Brand: **Oak**. One brand for all of the founder's projects; each
-product is "Oak + a plain word" (later, for example, Oak Pay).
+Company: **Oak Solutions**, the founder's startup. Its domain is
+**oaksolve.com** (bought 2026-10-09).
 
-This product: **Oak Order**. Its web address isn't decided yet.
+Brand: **Oak**, the name people say. One brand for all of the founder's
+projects; each product is "Oak + a plain word" (later, for example, Oak
+Pay) on its own subdomain of oaksolve.com.
+
+This product: **Oak Order**, at `order.oaksolve.com`. A shop link reads
+`order.oaksolve.com/shop/<shop>`. Oak Shop was considered and not
+picked: "shop" twice in every link, and the seller's shop should be
+the only shop a customer sees. `oaksolve.com` itself forwards to Oak
+Order until Oak Solutions has a home page.
 
 The app shows the name in English letters, in Khmer and in English.
 Its mark is a tree (an oak) on navy.
@@ -1835,6 +1843,7 @@ Decided so far (details in §24, §25 and `02_TECHNICAL.md`):
 - Payment timing: the customer sees how to pay right after ordering (2026-10-02)
 - Payment confirmation: by hand by the seller, for every method (2026-10-02)
 - Product name: Oak Order, under the brand Oak (2026-10-08; replaces Sroul Order from 2026-10-06)
+- Company Oak Solutions, domain oaksolve.com, this product at `order.oaksolve.com` (2026-10-09; Oak Shop considered and not picked)
 
 # 47. Relationship With Other Project Documents
 

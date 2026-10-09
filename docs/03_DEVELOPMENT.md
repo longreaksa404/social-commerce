@@ -281,7 +281,7 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 
 **Subtotal:** ~157 hours (**~12 weeks**)
 
-> **Decided (2026-10-04):** a .com domain bought through Cloudflare; Render
+> **Decided (2026-10-04):** a .com domain bought through Cloudflare (oaksolve.com, bought 2026-10-09); Render
 > stays on the free plan for the first seller (the app says when the
 > server is waking up; a free cron-job.org ping keeps it awake from 7:00
 > to midnight, 2026-10-08); small photo copies and nightly backups built here.

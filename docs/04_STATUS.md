@@ -1016,18 +1016,20 @@ Phase 9, waiting on the founder:
   race, rate limits back on, hide the test shop. Send Claude the
   summary lines.
 
-- **Domain:** not chosen for Oak Order (sroul.com was never bought
-  and is dropped with the Sroul brand). oakorder.com is registered by
-  someone else (since 2026-06-25); oakorders.com showed no
-  registration on 2026-10-08. Buy on Cloudflare (Domains → Register
-  domain, in the same account as R2), after checking that "Oak Order"
-  is free as a Facebook page name and on TikTok, Instagram and
-  Telegram. Then: this product on its address (Vercel + Render custom
-  domains, Cloudflare DNS), R2 photos on `images.<domain>` (existing
-  photo and logo URLs need rewriting in
-  the database, or saving a product with old photos is refused as
-  "Invalid product image"), the refresh token moved to an httpOnly
-  cookie, `PUBLIC_API_URL` / `PUBLIC_APP_URL` / `CORS_ORIGINS` updated.
+- **Domain:** oaksolve.com bought 2026-10-09 (Cloudflare, two-factor
+  login set up). Founder, in the dashboards (nothing changes for
+  visitors yet): `order.oaksolve.com` in Vercel (Add Existing, not
+  Edit on the vercel.app domain), `api.oaksolve.com` in Render, both
+  as CNAMEs with the grey cloud in Cloudflare DNS; `images.oaksolve.com`
+  on the R2 bucket (Custom Domains) and `https://order.oaksolve.com`
+  added to the bucket's CORS `AllowedOrigins`. Claude, on a branch
+  until the switch-over: the refresh token in an httpOnly cookie,
+  `render.yaml` addresses, the photo-address rewrite, the address on
+  the login page. Then the switch-over together: `CORS_ORIGINS`,
+  `R2_PUBLIC_URL`, `VITE_API_URL`, merge and push, rewrite photo
+  addresses, then the vercel.app address and `oaksolve.com` forward
+  to `order.oaksolve.com`. Check "Oak Order" as a Facebook page name
+  and on TikTok, Instagram and Telegram.
 - **Backups:** the bucket, token and five GitHub secrets
   (`docs/BACKUPS.md`).
 - **Read the Khmer** and send corrections.
@@ -1171,13 +1173,21 @@ Resolved:
 - [x] **`link_event` gets `store_id`** (2026-10-03, CLAUDE.md hard rule 1,
       like `delivery` and `order_item`).
 
-- [x] **Domain: a .com bought on Cloudflare** (2026-10-04).
+- [x] **Domain: oaksolve.com, bought on Cloudflare 2026-10-09** (a .com
+      on Cloudflare decided 2026-10-04; 1 year, auto-renew on, in the
+      same account as R2). Company **Oak Solutions**. Addresses:
+      `order.oaksolve.com` (this app and every shop link, so it must
+      never move), `api.oaksolve.com` (Render), `images.oaksolve.com`
+      (R2 photos); `oaksolve.com` forwards to `order.` until Oak
+      Solutions has a home page. Vercel and Render records DNS only.
 - [x] **Brand: Oak; this product is Oak Order** (2026-10-08, replaces
       Sroul / Sroul Order below): one brand for all of the founder's
       projects, each product "Oak + a plain word". The app shows "Oak
       Order" in English letters in both languages, in very large letters
-      on the start page; the mark is a tree on navy. Web address not
-      decided yet.
+      on the start page; the mark is a tree on navy. At
+      `order.oaksolve.com` (2026-10-09; Oak Shop considered: "shop"
+      twice in a shop link, and the seller's shop should be the only
+      shop a customer sees).
 - [x] ~~**Brand: Sroul (ស្រួល, "easy"); this product is Sroul Order**~~
       (replaced by Oak on 2026-10-08) (2026-10-06, replaces khmerorder.com from 2026-10-05, which was
       never bought). One brand for all of the founder's projects, so
@@ -1583,7 +1593,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   work laptop, locally and live. Check photos on the phone or at home.
   Other office/school filters may block `r2.dev` for customers too, and
   Cloudflare rate-limits it as a development URL. **Phase 9, with the
-  domain:** connect a custom domain to the bucket (e.g. `images.<domain>`)
+  domain:** connect a custom domain to the bucket (`images.oaksolve.com`)
   and change `R2_PUBLIC_URL`; no code change. Photos uploaded before
   then keep their `r2.dev` address, so switch before real sellers add
   many photos.
@@ -1656,9 +1666,10 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
    Khmer with the rest.
 5. Founder: read the Khmer on the live site; try dark mode; run the
    rate-limit check (Notes).
-6. Founder: choose and buy a domain for Oak Order (check "Oak Order" on
-   Facebook, TikTok, Instagram and Telegram first); then Claude does
-   DNS, the custom domains, R2 photo domain, cookie sessions.
+6. Domain (oaksolve.com, bought 2026-10-09): founder adds the three
+   subdomains in Vercel, Render and R2 (Notes, "Domain"); Claude
+   builds the cookie sessions and photo rewrite on a branch; then the
+   switch-over together.
 7. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
 8. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
    Part A on the live site, revoke the Telegram token.
