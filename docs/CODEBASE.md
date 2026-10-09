@@ -1335,11 +1335,6 @@ async def test_store_only_sees_its_own_rows(two_stores):
   writes it.
 - **§13 rate limiting** names login and storefront; the code also limits
   register (5/min) and refresh (30/min). Logout is unlimited.
-- **§5.2 `refresh_token` / §13 reuse** (founder approved 2026-10-09, 02 not
-  updated yet): a refresh token reused within 60 s of its swap gets a new
-  pair (a retry after a lost answer); only later reuse ends every
-  session. Logout and ending sessions delete rows instead of setting
-  `revoked_at`.
 - **Brand:** 01 §1.1 names the product Oak Order (renamed from Sroul Order
   2026-10-08). The start page (`pages/Home.tsx`, "Oak Order" in big
   letters), `BrandMark` in `pages/AuthLayout.tsx` (a lucide

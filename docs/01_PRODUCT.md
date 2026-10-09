@@ -1032,6 +1032,8 @@ The MVP should therefore focus on the smallest complete transaction loop.
 - Export orders to Excel
 - Close shop: the link and logins stop, nothing is erased; Oak Order reopens it or erases it for good on request
 
+**Decided (2026-10-09):** orders that came by chat, added by the seller at the shop's prices; a short path (Accept, Delivered, Complete; the steps between optional; "Delivered, cash received" for cash on delivery); "Not paid after all"; Send to driver; a setup checklist for new shops. The shop's numbers wait for a seller dashboard.
+
 **Decided (2026-10-09):** sellers sign up with a phone number proved through the Telegram bot (free; one shop per number) and a password, or with Google (Facebook and TikTok next). The purpose is ease of use; after signing up, sellers still pay a subscription to use the platform (pricing still open, §46).
 
 # 24. MVP Customer Features
@@ -1051,6 +1053,7 @@ The customer should be able to:
 - Place order
 - View order confirmation
 - Track basic order status
+- Tell the shop they've paid ("I've paid"), with the receipt in chat (2026-10-09)
 
 A customer account should not automatically be required for the first MVP.
 

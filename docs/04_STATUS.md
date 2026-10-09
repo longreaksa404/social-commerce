@@ -924,8 +924,8 @@ of the review). Each committed on its own; not pushed:
    again within 60 s of its swap gets a new pair (the phone retrying
    after the answer was lost on a weak connection, e.g. 3G in the
    market); later reuse still ends every session. Logout and ending
-   sessions now delete rows instead of setting `revoked_at`. Differs
-   from 02 §5.2 / §13 (text to update under Decisions below).
+   sessions now delete rows instead of setting `revoked_at`. In 02 §5.2
+   / §13 since 2026-10-09.
 2. [x] **Delivery fee reminder** (`d0eec41`): a new shop runs on free own
    delivery until Settings → Delivery is saved once. `GET /seller/store`
    has `delivery_set_up`; until true, an amber strip tops the Orders tab
@@ -1322,69 +1322,23 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-Applied to 01/02/03 on 2026-10-09 (founder said yes): sign-up with a
-phone number checked in Telegram, phone logins and Continue with Google
-(02 §2 Auth row, §4.3, §5.1, §5.2 `seller` + new `seller_login` and
-`phone_check`, §5.3, §6.2 Auth and Account/staff, new §12.4 Phone Check,
-§13; 01 §23.1; 03 Phase 9 row, 14 hrs; subtotal ~171 hrs; §4 totals:
-Phase 9 171, total ~399 hrs). The 32 hrs of the picks below aren't in 03
-yet.
+Nothing waiting: everything decided is in 01/02/03.
 
-From the founder's picks 1C 2C 3A 4A 5B 6B 7C 8B 9B (2026-10-09), not
-yet in 01/02/03. Proposed text:
+Applied to 01/02/03 on 2026-10-09 (founder said yes), in two parts:
 
-- **02 §7.1 order transitions:** "pending → accepted | rejected;
-  accepted → processing | ready | shipped | completed* | cancelled;
-  processing → ready | shipped | completed* | cancelled; ready → shipped
-  | completed* | cancelled; shipped → delivered | completed*; delivered
-  → completed*. (* only if §7.4 holds.) The steps after accepted are
-  optional, forward only (the short path, 2026-10-09)."
-- **02 §7.2 payment transitions:** add "paid → pending and failed →
-  pending ('Not paid after all', any time; clears paid_at and the
-  note)."
-- **02 §7.3 seller_delivery:** "not_assigned → assigned | picked_up |
-  in_transit | delivered; assigned → picked_up | in_transit | delivered
-  | failed; picked_up → in_transit | delivered | failed; in_transit →
-  delivered | failed; failed → assigned | delivered." Add: "'Delivered,
-  cash received' (cash on delivery) records the delivery delivered and
-  the payment paid in one seller action, each through its own state
-  machine, both or neither; the order's status is not touched."
-- **02 §6.2 endpoints:** add `POST /seller/orders` (an order from a
-  chat, seller), `POST /seller/orders/{id}/cash-handover`, `GET
-  /seller/stats?period=today|week|month` (owner; for the seller
-  dashboard, not shown in the app yet), `POST
-  /shop/{slug}/orders/{id}/paid` (public, link + phone).
-- **02 §5.2:** `order.source` may be `chat` (an order the seller added);
-  `notification_log.event_type` may be `payment_claimed`. **§12.1:**
-  alerts also for "the customer says they paid"; an order the seller
-  added sends only low stock.
-- **01 §23.1** (after the 2026-10-08 list): "Decided (2026-10-09): orders
-  that came by chat, added by the seller at the shop's prices; a short
-  path (Accept, Delivered, Complete; the steps between optional;
-  'Delivered, cash received' for cash on delivery); 'Not paid after
-  all'; Send to driver; a setup checklist for new shops. The shop's
-  numbers wait for a seller dashboard." **01 §24:** add
-  "Tell the shop they've paid ('I've paid'), with the receipt in chat."
-- **03 Phase 9 row:** "Pre-pilot review: login renewal retry,
-  delivery-fee reminder, first-product empty state, Khmer bot; then the
-  short path, Not paid after all, orders from chat, Send to driver, I've
-  paid, setup checklist (founder's picks 2026-10-09)
-  | 32". Subtotal ~189 hrs (~14.5 weeks); §4 totals: Phase 9 189, total
-  ~417 hrs.
-
-From the pre-pilot review (founder approved 2026-10-09), not yet in 02:
-
-- **Login renewal retry window:** a refresh token reused within 60 s of
-  its swap gets a new pair; only later reuse ends every session.
-  Proposed text, 02 §5.2 under `refresh_token`: "> Each refresh token is
-  swapped once. Shown again within 60 seconds it gets a new pair (a
-  retry after the answer was lost); later, reusing it ends all of that
-  seller's sessions (§13). Logging out deletes the row." 02 §13 Tokens:
-  "... refresh rotated on use; a retry within 60 s of a rotation gets a
-  new pair, later reuse ends every session of that seller."
-- **The Telegram bot speaks Khmer only** (alerts and replies), the app's
-  default language. Following each seller's own language would need a
-  store column (a data model change).
+- Sign-up with a phone number checked in Telegram, phone logins and
+  Continue with Google: 02 §2 Auth row, §4.3, §5.1, §5.2 `seller` + new
+  `seller_login` and `phone_check`, §5.3, §6.2 Auth and Account/staff,
+  new §12.4 Phone Check, §13; 01 §23.1; 03 Phase 9 row, 14 hrs.
+- The pre-pilot review (founder's picks 1C 2C 3A 4A 5B 6B 7C 8B 9B and
+  the four fixes): 02 §7.1 (the short path), §7.2 (Not paid after all),
+  §7.3 (seller_delivery steps optional, Delivered cash received), §6.2
+  (orders from chat, cash handover, stats, I've paid), §5.2
+  (`order.source` chat, `notification_log` payment_claimed,
+  `refresh_token` 60 s retry), §12.1 (I've paid alert, Khmer-only bot),
+  §13 (the retry); 01 §23.1 and §24 (I've paid); 03 Phase 9 row, 32 hrs.
+- 03 totals: Phase 9 subtotal ~203 hrs (~15.5 weeks); total ~431 hrs
+  (~33 weeks).
 
 Applied to 01/02/03 on 2026-10-08 (at the founder's request): "More in
 Settings" (01 §23.1 Settings, §11, §46 Business; 02 §4.3, §5.1, §5.2
@@ -1740,8 +1694,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 00. Founder: try the four fixes and the seven picks (In Progress,
     "Pre-pilot review fixes" and "Pre-pilot features") on the dev server
     or after a push; `docs/REGRESSION_CHECKLIST.md` has the new steps.
-    Copy the 01 / 02 / 03 text under Decisions into those files (or ask
-    Claude to). Then push.
+    Then push.
 0. Founder: try the new Settings pieces (list under In Progress, "More
    in Settings") on the dev server or after a push; choose the Oak Order
    support Telegram account and set `VITE_SUPPORT_TELEGRAM` in Vercel;

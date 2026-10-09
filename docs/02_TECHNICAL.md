@@ -245,7 +245,7 @@ seller (owner)
 | delivery_lat / delivery_lng | numeric(9,6), nullable | the pin the customer placed on the checkout map, both or neither; the seller opens it in Google Maps |
 | delivery_address_note | text, nullable | for the driver, e.g. "blue gate, next to the pagoda" |
 | delivery_method | enum(`seller_delivery`,`pickup`) | |
-| source | text, nullable | e.g. `tiktok`, from link tracking (§9) |
+| source | text, nullable | e.g. `tiktok`, from link tracking (§9); `chat` for an order the seller added (2026-10-09) |
 | notes | text, nullable | |
 | created_at / updated_at | timestamptz | |
 
@@ -288,12 +288,12 @@ seller (owner)
 > Kept deliberately minimal per `01_PRODUCT.md` §20.1 — "advanced marketing analytics are not required for the first MVP." This just supports counting views/orders per link/source.
 
 ### `notification_log`
-| id, store_id (FK), channel (`web`,`telegram`), event_type, payload (JSONB), sent_at, status (`sent`,`failed`), read_at (nullable; web only: when the seller opened the list with it in; null = unread) |
+| id, store_id (FK), channel (`web`,`telegram`), event_type (`new_order`, `low_stock`, `payment_claimed`), payload (JSONB), sent_at, status (`sent`,`failed`), read_at (nullable; web only: when the seller opened the list with it in; null = unread) |
 
 ### `refresh_token`
 | id (= the JWT's jti), seller_id (FK), expires_at, revoked_at (nullable), created_at |
 
-> Each refresh token works once; reusing one revokes all of that seller's tokens (§13).
+> Each refresh token is swapped once. Shown again within 60 seconds it gets a new pair (a retry after the answer was lost); later, reusing it ends all of that seller's sessions (§13). Logging out deletes the row.
 
 ### `seller_login` (2026-10-09)
 | id, seller_id (FK, cascade), provider (`google`; later `facebook`, `tiktok`), provider_user_id (Google's `sub`), email (Google's, when verified; shown in Settings), created_at |
@@ -406,6 +406,9 @@ GET    /api/v1/seller/orders/{id}
 PATCH  /api/v1/seller/orders/{id}/status      # transitions order state, see §7.1
 PATCH  /api/v1/seller/orders/{id}/payment     # mark paid/failed
 PATCH  /api/v1/seller/orders/{id}/delivery    # update delivery status
+POST   /api/v1/seller/orders                  # an order that came by chat, added by the seller at the shop's prices (2026-10-09)
+POST   /api/v1/seller/orders/{id}/cash-handover   # "Delivered, cash received": delivery delivered + payment paid, both or neither (§7.3)
+GET    /api/v1/seller/stats?period=today|week|month   # owner; sales and orders, for a seller dashboard (not shown in the app yet)
 ```
 
 ### Seller — Customers
@@ -437,6 +440,7 @@ GET    /api/v1/shop/{store_slug}/categories/{category_slug}
 POST   /api/v1/shop/{store_slug}/orders        # create order (guest checkout)
 GET    /api/v1/shop/{store_slug}/orders/{order_id}?phone={phone}   # order tracking lookup
 POST   /api/v1/shop/{store_slug}/track-view    # a page opened through a link (§9.2)
+POST   /api/v1/shop/{store_slug}/orders/{order_id}/paid   # "I've paid" (link + phone): tells the seller; the payment stays pending (2026-10-09)
 ```
 
 ### Telegram
@@ -472,15 +476,15 @@ PENDING ──accept──▶ ACCEPTED ──▶ PROCESSING ──▶ READY ─�
    └──reject──▶ REJECTED └──cancel──▶ CANCELLED
 ```
 
-- Allowed transitions enforced via a transition table in code, e.g.:
+- Allowed transitions enforced via a transition table in code. The steps after accepted are optional, forward only (the short path, decided 2026-10-09): Accept, Delivered, Complete is enough for a cash order. `*` = only if §7.4 holds:
 ```python
 ALLOWED_ORDER_TRANSITIONS = {
     "pending": {"accepted", "rejected"},
-    "accepted": {"processing", "cancelled"},
-    "processing": {"ready", "cancelled"},
-    "ready": {"shipped", "cancelled"},
-    "shipped": {"delivered"},
-    "delivered": {"completed"},
+    "accepted": {"processing", "ready", "shipped", "completed*", "cancelled"},
+    "processing": {"ready", "shipped", "completed*", "cancelled"},
+    "ready": {"shipped", "completed*", "cancelled"},
+    "shipped": {"delivered", "completed*"},
+    "delivered": {"completed*"},
     "completed": set(),
     "rejected": set(),
     "cancelled": set(),
@@ -494,9 +498,10 @@ PENDING ──▶ PAID
    │
    └──▶ FAILED
 
+PAID ──▶ PENDING, FAILED ──▶ PENDING   ("Not paid after all", 2026-10-09)
 PAID ──▶ REFUNDED   (future; not required for MVP transitions, but schema supports it)
 ```
-- In the MVP there are no transitions out of PAID or FAILED, so the seller is asked to confirm before recording either. Every payment starts PENDING, for every method.
+- PAID → PENDING and FAILED → PENDING: "Not paid after all" (a wrong tap, or a transfer that never arrived), any time, after a confirm; it clears `paid_at` and the note, and the customer is shown how to pay again (decided 2026-10-09). Every payment starts PENDING, for every method.
 - The seller records the payment with `PATCH /seller/orders/{id}/payment` (optionally with a `reference` note); `paid_at` is set when it becomes PAID. Recording a payment never changes the order's status, and changing the order's status never changes the payment's.
 
 ## 7.3 Delivery State Machine
@@ -505,7 +510,9 @@ NOT_ASSIGNED ──▶ ASSIGNED ──▶ PICKED_UP ──▶ IN_TRANSIT ──�
                                                   │
                                                   └──▶ FAILED
 ```
-- `FAILED ──▶ ASSIGNED`: the seller tries again, e.g. nobody was home (decided 2026-10-03).
+- `seller_delivery` transitions (the steps in between are optional, decided 2026-10-09): not_assigned → assigned | picked_up | in_transit | delivered; assigned → picked_up | in_transit | delivered | failed; picked_up → in_transit | delivered | failed; in_transit → delivered | failed; failed → assigned | delivered.
+- `FAILED ──▶ ASSIGNED`: the seller tries again, e.g. nobody was home (decided 2026-10-03); `FAILED ──▶ DELIVERED`: it went through on a second try.
+- "Delivered, cash received" (cash on delivery, 2026-10-09) records the delivery delivered and the payment paid in one seller action, each through its own state machine, both or neither; the order's status is not touched.
 - For `pickup` delivery method, the flow simplifies: `NOT_ASSIGNED → DELIVERED` (marked by seller when customer collects), skipping the intermediate states.
 - The seller moves it with `PATCH /seller/orders/{id}/delivery` (optionally with an `assignee_note`). Moving the delivery never changes the order's status, or the other way round.
 
@@ -611,7 +618,7 @@ New Order Created (backend event)
  Sent to store.telegram_chat_id
 ```
 - Seller links their Telegram from Settings → "Connect Telegram", which opens `t.me/{bot_username}?start={code}`. The code is signed, not stored (store id + 30-minute expiry + HMAC). Tapping Start sends `/start {code}`; the webhook checks it and saves the chat as `store.telegram_chat_id`. Disconnect clears it; if the seller blocks the bot, the next alert clears it.
-- Notification triggers (`01_PRODUCT.md` §19, decided 2026-10-03): only events the seller didn't cause: new order, and low stock (an order takes a product or option to 5 or fewer, or to 0). Cancellation, payment, and delivery changes are the seller's own actions in the MVP. Each alert writes a `notification_log` row (sent / failed) and calls the Bot API; a failed send never affects the order.
+- Notification triggers (`01_PRODUCT.md` §19, decided 2026-10-03): only events the seller didn't cause: new order, and low stock (an order takes a product or option to 5 or fewer, or to 0). Cancellation, payment, and delivery changes are the seller's own actions in the MVP. Also (2026-10-09): "the customer says they paid" (I've paid; not again within 30 minutes); an order the seller added from a chat sends only low stock. Every bot message is in Khmer only, the app's default language (2026-10-09; following each seller's language would need a store column). Each alert writes a `notification_log` row (sent / failed) and calls the Bot API; a failed send never affects the order.
 - Web notifications (Phase 7): the same events also write a `web` row in `notification_log`, in the order's own transaction, whether or not Telegram is connected. The bell counts rows with `read_at` null; opening the list marks them read up to the newest one shown.
 
 ## 12.2 Customer "Ask Seller"
@@ -650,7 +657,7 @@ Customer taps "Ask seller on Telegram" on the product page
 - **Passwords:** `bcrypt` (used directly; passlib is unmaintained), never stored/logged in plaintext.
 - **Sign-up (2026-10-09):** a phone number proved in Telegram (§12.4), one account per number; login by that number (any spelling) or, for accounts from before, their email.
 - **Google (2026-10-09):** the ID token is checked (signature against Google's keys, audience = our client ID, issuer, expiry); nothing is stored but Google's account id and its verified email. A Google account is joined to a shop only from that shop's own Settings, never by a matching phone number or email.
-- **Tokens:** short-lived access JWT (~15 min) + longer-lived refresh JWT (~7 days), refresh rotated on use. The access token is in the response body and kept in memory only; the refresh token is an httpOnly, Secure, SameSite=Lax cookie on the API's host, path `/api/v1/auth`, so no script can read it (app and API share the site oaksolve.com, 2026-10-09).
+- **Tokens:** short-lived access JWT (~15 min) + longer-lived refresh JWT (~7 days), refresh rotated on use; a retry within 60 s of a rotation gets a new pair, later reuse ends every session of that seller. The access token is in the response body and kept in memory only; the refresh token is an httpOnly, Secure, SameSite=Lax cookie on the API's host, path `/api/v1/auth`, so no script can read it (app and API share the site oaksolve.com, 2026-10-09).
 - **Tenant isolation:** enforced at both application layer (service functions always scope by `store_id` from the authenticated token) and database layer (Postgres RLS, §4.2) — defense in depth, matching Rule 2 (`01_PRODUCT.md` §32).
 - **Rate limiting:** basic IP-based rate limiting on `/auth/login` and public storefront endpoints (e.g., via `slowapi`) to blunt brute-force and scraping — lightweight, no separate infra required. The client IP is taken from `CF-Connecting-IP` (set by Render's Cloudflare edge), not `X-Forwarded-For`, which clients can write and Render keeps (Phase 9 security review).
 - **CORS:** locked to the known frontend origin(s).
