@@ -4,11 +4,10 @@ import {
   api,
   clearTokens,
   hasStoredSession,
-  readRefreshToken,
   refreshTokens,
   saveTokens,
   setSessionEndedHandler,
-  type TokenPair,
+  type AccessToken,
 } from '../lib/api.ts'
 
 import { AuthContext, type RegisterInput, type Status } from './useAuth.ts'
@@ -20,9 +19,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
   const [restoreError, setRestoreError] = useState<unknown>(null)
 
-  // Restore the session after a reload: trade the stored refresh token
+  // Restore the session after a reload: trade the refresh cookie
   // for a fresh access token. If the server can't be reached, say so (with
-  // a retry) instead of spinning forever; the tokens stay stored.
+  // a retry) instead of spinning forever; the cookie stays.
   const restore = useCallback(() => {
     refreshTokens().then(
       (ok) => setStatus(ok ? 'authenticated' : 'anonymous'),
@@ -47,31 +46,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [queryClient, restore])
 
   const login = useCallback(async (email: string, password: string) => {
-    saveTokens(await api<TokenPair>('/auth/login', { method: 'POST', body: { email, password }, auth: false }))
+    saveTokens(await api<AccessToken>('/auth/login', { method: 'POST', body: { email, password }, auth: false }))
     setStatus('authenticated')
   }, [])
 
   const register = useCallback(async (input: RegisterInput) => {
-    saveTokens(await api<TokenPair>('/auth/register', { method: 'POST', body: input, auth: false }))
+    saveTokens(await api<AccessToken>('/auth/register', { method: 'POST', body: input, auth: false }))
     setStatus('authenticated')
   }, [])
 
   const startSession = useCallback(
-    (pair: TokenPair) => {
+    (token: AccessToken) => {
       queryClient.clear() // nothing left from whoever was logged in before
-      saveTokens(pair)
+      saveTokens(token)
       setStatus('authenticated')
     },
     [queryClient],
   )
 
   const logout = useCallback(async () => {
-    const refreshToken = readRefreshToken()
-    if (refreshToken) {
-      // Best effort: the server revokes it; we log out locally either way.
-      await api('/auth/logout', { method: 'POST', body: { refresh_token: refreshToken }, auth: false }).catch(
-        () => {},
-      )
+    if (hasStoredSession()) {
+      // Best effort: the server revokes the cookie's token and drops the
+      // cookie; we log out locally either way.
+      await api('/auth/logout', { method: 'POST', auth: false }).catch(() => {})
     }
     clearTokens()
     queryClient.clear()

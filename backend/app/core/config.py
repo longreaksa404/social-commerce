@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     # Any random string (A-Z, a-z, 0-9, _ and -); Telegram sends it back on
     # every webhook call so we know the call is really from Telegram.
     telegram_webhook_secret: str = ""
-    # This API's public https address, e.g. https://social-commerce-api.onrender.com.
+    # This API's public https address, e.g. https://api.oaksolve.com.
     # When set (with the bot), the webhook is registered with Telegram at
     # startup. Leave empty locally so a dev server never takes over the bot.
     public_api_url: str = ""

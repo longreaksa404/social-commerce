@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { useFeedback } from '../../components/feedback.ts'
 import { Button, ErrorMessage, ErrorState, Field, Input, PasswordInput, Section, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
-import { api, saveTokens, type TokenPair } from '../../lib/api.ts'
+import { api, saveTokens, type AccessToken } from '../../lib/api.ts'
 import { fieldError, formError } from '../../lib/errors.ts'
 import type { Account } from '../../lib/types.ts'
 import { keys, useAccount } from '../queries.ts'
@@ -99,13 +99,13 @@ function PasswordForm({ email }: { email: string }) {
 
   const change = useMutation({
     mutationFn: () =>
-      api<TokenPair>('/seller/account/password', {
+      api<AccessToken>('/seller/account/password', {
         method: 'POST',
         body: { current_password: current, new_password: next },
       }),
-    onSuccess: (pair) => {
-      // Every other session ended; this one carries on with the new pair.
-      saveTokens(pair)
+    onSuccess: (token) => {
+      // Every other session ended; this one carries on with a new token.
+      saveTokens(token)
       setCurrent('')
       setNext('')
       toast(s.passwordChanged)

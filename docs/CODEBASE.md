@@ -110,8 +110,8 @@ Render's health check.
 | Rate limiting + security review | DONE | `client_ip()` uses `CF-Connecting-IP` (`app/core/ratelimit.py`); the live check is still pending (04) |
 | Seed real store data | NOT STARTED | no seed script in the repo |
 | Onboard first real seller | NOT STARTED | |
-| Domain + Cloudflare DNS | NOT STARTED | `render.yaml` still points at `*.onrender.com` / `*.vercel.app`; no domain chosen yet for Oak Order (04) |
-| Refresh token in an httpOnly cookie (part of the domain work in 04) | NOT STARTED | the only TODO in the code, `frontend/src/lib/api.ts:22` |
+| Domain + Cloudflare DNS | IN PROGRESS | oaksolve.com bought 2026-10-09. On branch `custom-domain`: `render.yaml` points `PUBLIC_API_URL` / `PUBLIC_APP_URL` at `api.` / `order.oaksolve.com`, the login page shows `order.oaksolve.com`. The dashboard steps and switch-over are in 04 |
+| Refresh token in an httpOnly cookie (part of the domain work in 04) | DONE (branch `custom-domain`, not live) | `backend/app/api/session_cookie.py`, `frontend/src/lib/api.ts`; only works once app and API share oaksolve.com |
 | Khmer / English switch | DONE | `frontend/src/i18n/`. The founder hasn't reviewed the Khmer yet; the Telegram bot's messages are Khmer only (2026-10-09) |
 | Light / dark mode | DONE | `src/theme/`, `index.css`, the inline script in `index.html` |
 | Small photo copies | DONE | `-m` / `-s.jpg` naming, `thumbnail_size` on the images endpoint |
@@ -251,7 +251,7 @@ cd frontend && npm install
 | API dev server | `uvicorn app.main:app --reload`: http://localhost:8000, OpenAPI at `/docs` |
 | Backend tests | `pytest` (backend). Needs Postgres running; uses its own `<db>_test` database, created, migrated and emptied automatically |
 | Backend lint | `ruff check . && ruff format --check .` (`ruff format .` fixes) |
-| Founder's commands | `python -m app.admin <command> <email>`, commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
+| Founder's commands | `python -m app.admin <command> <email>`, commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend), and `move-photos <old> <new>` (rewrites the R2 address saved in `product.image_urls` and `store.logo_url`, for `images.oaksolve.com`); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
 | Frontend dev server | `npm run dev`: http://localhost:5173 |
 | Frontend lint | `npm run lint` (oxlint) |
 | Frontend build | `npm run build` (`tsc -b && vite build`, type-checks) |
@@ -360,7 +360,8 @@ starts a new transaction.
 ### Auth
 
 - `POST /auth/register` creates `Seller` and `Store` together. The slug is
-  generated from the store name (`unique_slug`). It returns a `TokenPair`.
+  generated from the store name (`unique_slug`). It returns a `TokenPair`; the
+  route sets the refresh token as a cookie and answers `AccessOut` (below).
 - Access JWT (HS256, 15 min): `{"type": "access", "sub": seller_id,
   "store_id": store_id, "role": "owner"|"staff", iat, exp}`. **The tenant
   comes from this claim.** A token without `role` (issued before staff
@@ -406,8 +407,21 @@ starts a new transaction.
   Logins for unknown emails check against `DUMMY_PASSWORD_HASH` for equal
   timing. A disabled seller (`is_active=false`) gets 403 `ACCOUNT_DISABLED`,
   and their shop answers 404.
-- Frontend: the access token is kept in memory only, the refresh token in
-  `localStorage` (`sc.refresh_token`). See §8.
+- **The refresh token is a cookie** (`app/api/session_cookie.py`): every
+  route that logs someone in (register, login, refresh, reset confirm,
+  change password) calls `start_session(response, tokens)`, which sets
+  `refresh_token` (httpOnly, Secure, SameSite=Lax, path `/api/v1/auth`,
+  no Domain so only the API's host, max-age = the token's 7 days) and
+  returns `AccessOut` (`access_token`, `token_type`) without it.
+  `/auth/refresh` and `/auth/logout` read it with the `RefreshCookie`
+  parameter (missing → `""` → 401 `INVALID_TOKEN`); logout also deletes
+  it. A refresh token in a JSON body is ignored. Secure always: browsers
+  treat `http://localhost` as secure, so local dev works (app and API on
+  localhost are one site). It needs app and API on one site in
+  production too (`order.` and `api.oaksolve.com`): from vercel.app to
+  onrender.com the browser wouldn't send it.
+- Frontend: the access token is kept in memory only; `localStorage` has
+  only `sc.session` ("there may be a session to restore"). See §8.
 
 ### Tenant resolution and enforcement
 
@@ -764,16 +778,16 @@ from the schema.
 | Method | Path | Auth | Request | Response | Notes |
 |---|---|---|---|---|---|
 | GET | `/health` | none | — | `{"status": "ok"}` | Render health check |
-| POST | `/auth/register` | none | `RegisterIn` | `TokenPair` (201) | Creates seller + store; 5/min |
-| POST | `/auth/login` | none | `LoginIn` | `TokenPair` | 10/min |
-| POST | `/auth/refresh` | none | `RefreshIn` | `TokenPair` | Rotates; a retry within 60 s gets a new pair, later reuse ends all sessions; 30/min |
-| POST | `/auth/logout` | none | `RefreshIn` | 204 | Deletes that token's session; bad tokens ignored |
+| POST | `/auth/register` | none | `RegisterIn` | `AccessOut` + cookie (201) | Creates seller + store; 5/min |
+| POST | `/auth/login` | none | `LoginIn` | `AccessOut` + cookie | 10/min |
+| POST | `/auth/refresh` | refresh cookie | none | `AccessOut` + cookie | Rotates; a retry within 60 s gets a new pair, later reuse ends all sessions; 30/min |
+| POST | `/auth/logout` | refresh cookie | none | 204 | Deletes that token's session and the cookie; bad tokens ignored |
 | POST | `/auth/password-reset` | none | `PasswordResetIn` | 202 | Telegram link in the background (§4 Auth); same answer for any email; 5/min |
-| POST | `/auth/password-reset/confirm` | none | `PasswordResetConfirm` | `TokenPair` | Bad, expired or used link → 400 `RESET_LINK_INVALID`; 10/min |
+| POST | `/auth/password-reset/confirm` | none | `PasswordResetConfirm` | `AccessOut` + cookie | Bad, expired or used link → 400 `RESET_LINK_INVALID`; 10/min |
 | GET | `/seller/account` | seller | — | `AccountOut` | The person's own email, name, phone (`UnscopedDb`, filtered by the token's seller id) |
 | PATCH | `/seller/account` | seller | `AccountUpdate` | `AccountOut` | Partial; email lowercased, another account's → 409 `EMAIL_TAKEN` |
 | POST | `/seller/account/close-shop` | seller | `CloseShopIn` (`password`) | 204 | `seller.is_active = false` and every session deleted: the shop page is 404, login 403 `ACCOUNT_DISABLED` ("This shop is closed. Message Oak Order to open it again."). Nothing is erased; wrong password → 422 `WRONG_PASSWORD` |
-| POST | `/seller/account/password` | seller | `PasswordChange` | `TokenPair` | Wrong current password → 422 `WRONG_PASSWORD`; ends every other session (§4 Auth) |
+| POST | `/seller/account/password` | seller | `PasswordChange` | `AccessOut` + cookie | Wrong current password → 422 `WRONG_PASSWORD`; ends every other session (§4 Auth) |
 | GET | `/seller/store` | seller | — | `StoreOut` | Includes the three settings, `payment_set_up` (false until `payment_config` was saved once; the setup checklist), `delivery_set_up` (false until `delivery_config` was saved once: the shop runs on free own delivery), `telegram_connected`, `telegram_bot_available` |
 | PATCH | `/seller/store` | seller | `StoreUpdate` | `StoreOut` | Partial; settings blobs saved whole; null on name/slug/currency/mode = leave; `logo_url` only from this store's logo folder (null removes); slug clash → 409 `SLUG_TAKEN` |
 | POST | `/seller/store/logo` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT into `stores/<id>/logo/` |
@@ -821,7 +835,7 @@ from the schema.
 | POST | `/telegram/webhook` | header `X-Telegram-Bot-Api-Secret-Token` | Telegram update (raw dict) | Bot API method call as JSON, or `{}` | 404 if the secret is wrong or the bot is off |
 
 Schemas live in `app/schemas/<domain>.py`: auth (`RegisterIn`, `LoginIn`,
-`RefreshIn`, `PasswordResetIn`, `PasswordResetConfirm`, `TokenPair`), account (`AccountOut`, `AccountUpdate`,
+`PasswordResetIn`, `PasswordResetConfirm`, `TokenPair` (the service's pair), `AccessOut` (what routes answer)), account (`AccountOut`, `AccountUpdate`,
 `PasswordChange`), store (`StoreOut`, `StoreUpdate`,
 `TelegramLinkOut`), category, product (`ProductCreate/Update/Out`,
 `VariantIn/Out`, `Money`), upload (`ImageUploadIn/Out`), order
@@ -905,7 +919,10 @@ api<T>(path, { method = 'GET', body?, auth = true }): Promise<T>
 - On a 401 with `auth`, it calls `refreshTokens()` once and retries. If the
   refresh fails, it calls `clearTokens()` and the session-ended handler
   (which clears the query cache and sets the user anonymous).
-- `refreshTokens()` is serialized within the tab and across tabs (Web Locks
+- Every request is sent with `credentials: 'include'`, so the refresh
+  cookie goes to `/auth/*` and comes back from it.
+- `refreshTokens()` posts to `/auth/refresh` with no body (the browser sends
+  the cookie) and is serialized within the tab and across tabs (Web Locks
   `sc-token-refresh`), because each refresh token is swapped once (the
   server's 60 s retry grace covers an answer lost on the network, not
   tabs racing each other).
@@ -957,17 +974,17 @@ export const keys = {
 `AuthProvider` (`src/auth/AuthContext.tsx`) exposes `status: 'loading' |
 'authenticated' | 'anonymous' | 'unreachable'`, plus `login`, `register`,
 `logout`, `restoreError` and `retryRestore` through `useAuth()`. On load, if
-a refresh token is stored, it refreshes to restore the session. If the API
-can't be reached at all (the refresh rejects with `NETWORK_ERROR`), status
-becomes `'unreachable'`: the tokens stay stored, `DashboardLayout` shows
+`sc.session` is set, it refreshes (with the cookie) to restore the session.
+If the API can't be reached at all (the refresh rejects with `NETWORK_ERROR`),
+status becomes `'unreachable'`: the cookie stays, `DashboardLayout` shows
 `ErrorState` with a retry (`retryRestore`), and `Home` sends a stored session
-there instead of the landing page. `logout` ends the refresh token's session on the server (best
-effort), clears tokens and the query cache. Only `DashboardLayout` guards
+there instead of the landing page. `logout` ends the refresh token's session on the server and drops the
+cookie (best effort), clears the token, `sc.session` and the query cache. Only `DashboardLayout` guards
 routes.
 
 ### What the device remembers
 
-`localStorage`: `sc.refresh_token`, `sc.lang`, `sc.theme`,
+`localStorage`: `sc.session` (no token, just "try to restore"), `sc.lang`, `sc.theme`,
 `sc.cart.<slug>` (cart per shop), `sc.customer` (checkout details),
 `sc.orders` (last 20 orders with their phone, for tracking), `sc.links`
 (last link per shop and view timestamps: 30-minute view gap, 7-day order
@@ -1264,8 +1281,9 @@ and policy, endpoint list, JSONB shapes, link and tracking flows) matches
   literally). Payments can't be undone once paid or failed.
 - When the R2 public domain changes (planned `images.oaksolve.com`, domain bought 2026-10-09), existing
   absolute URLs in `product.image_urls` / `store.logo_url` must be
-  rewritten in the DB. Otherwise saving a product with old photos fails
-  the prefix check (`INVALID_IMAGE`).
+  rewritten in the DB (`python -m app.admin move-photos <old> <new>`,
+  docs/ADMIN.md). Otherwise saving a product with old photos fails the
+  prefix check (`INVALID_IMAGE`).
 - `*.r2.dev` is blocked on some networks, so photos look broken there
   (images fall back to placeholders).
 - A Telegram bot token is in git history and must be revoked before launch.
@@ -1291,7 +1309,7 @@ and policy, endpoint list, JSONB shapes, link and tracking flows) matches
     The order itself is unaffected.
 - **Any failed refresh logs the seller out.** In `frontend/src/lib/api.ts`,
   `api()` treats any failed refresh (`refreshTokens()` → `false`) as
-  session over: it clears the stored refresh token. A 429 or 5xx from
+  session over: it clears `sc.session`. A 429 or 5xx from
   `/auth/refresh` (not only a 401) therefore logs the seller out.
 - **Slug length mismatch.** `store.slug`, `product.slug` and
   `category.slug` are `String(64)`, but validation caps slugs at 50
@@ -1299,11 +1317,7 @@ and policy, endpoint list, JSONB shapes, link and tracking flows) matches
 
 ### TODO / FIXME in the code
 
-- `frontend/src/lib/api.ts:22`: `TODO(Phase 9, custom domain)`: move the
-  refresh token from localStorage to an httpOnly cookie once the API and
-  the app share a site.
-
-That is the only one (grep for TODO, FIXME, XXX and HACK over `backend/`,
+None (grep for TODO, FIXME, XXX and HACK over `backend/`,
 `frontend/src`, `middleware.ts` and workflows).
 
 ### Tech debt

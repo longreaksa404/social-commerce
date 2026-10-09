@@ -1,5 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
-const REFRESH_KEY = 'sc.refresh_token'
+// Not a secret: only whether this browser may have a session to restore.
+const SESSION_KEY = 'sc.session'
 
 /** Error from the API's envelope: {"error": {"code", "message", "field"}}. */
 export class ApiError extends Error {
@@ -15,44 +16,40 @@ export class ApiError extends Error {
   }
 }
 
-export type TokenPair = { access_token: string; refresh_token: string }
+/** What login, refresh and the like answer with. */
+export type AccessToken = { access_token: string }
 
-// The access token lives only in memory. The refresh token is in
-// localStorage so a reload keeps you logged in.
-// TODO(Phase 9, custom domain): move it to an httpOnly cookie once the API
-// and app share a site; cross-site cookies between vercel.app and
-// onrender.com are blocked by browsers.
+// The access token lives only in memory. The refresh token is an httpOnly
+// cookie the API sets (on order.oaksolve.com and api.oaksolve.com, one
+// site), so no script here can read it; a reload trades it for a new
+// access token. localStorage only remembers that there's a session to try.
 let accessToken: string | null = null
 let onSessionEnded: () => void = () => {}
 
-export function readRefreshToken(): string | null {
+export function saveTokens(token: AccessToken) {
+  accessToken = token.access_token
   try {
-    return localStorage.getItem(REFRESH_KEY)
+    localStorage.setItem(SESSION_KEY, '1')
   } catch {
-    return null
-  }
-}
-
-export function saveTokens(pair: TokenPair) {
-  accessToken = pair.access_token
-  try {
-    localStorage.setItem(REFRESH_KEY, pair.refresh_token)
-  } catch {
-    // Private mode etc.: the session just won't survive a reload.
+    // Private mode etc.: a reload just won't try to restore the session.
   }
 }
 
 export function clearTokens() {
   accessToken = null
   try {
-    localStorage.removeItem(REFRESH_KEY)
+    localStorage.removeItem(SESSION_KEY)
   } catch {
     // ignore
   }
 }
 
 export function hasStoredSession() {
-  return readRefreshToken() !== null
+  try {
+    return localStorage.getItem(SESSION_KEY) !== null
+  } catch {
+    return false
+  }
 }
 
 
@@ -63,7 +60,8 @@ export function setSessionEndedHandler(handler: () => void) {
 
 async function send(path: string, init: RequestInit): Promise<Response> {
   try {
-    return await fetch(`${API_URL}/api/v1${path}`, init)
+    // `include`: the refresh cookie goes to /auth and comes back from it.
+    return await fetch(`${API_URL}/api/v1${path}`, { ...init, credentials: 'include' })
   } catch {
     throw new ApiError(0, 'NETWORK_ERROR', 'Cannot reach the server. Check your connection.')
   }
@@ -83,21 +81,16 @@ async function toApiError(response: Response): Promise<ApiError> {
 let refreshing: Promise<boolean> | null = null
 
 /**
- * Exchange the stored refresh token for a new pair. Each refresh token
- * is swapped once (the server treats reuse after 60 s as theft and ends
- * every session; sooner is taken as a retry after a lost answer), so
- * refreshes are serialized within the tab and, via the Web Locks API,
- * across tabs; each one reads the latest token from storage.
+ * Trade the refresh cookie for a new access token (and a new cookie).
+ * Each refresh token is swapped once (the server treats reuse after 60 s
+ * as theft and ends every session; sooner is taken as a retry after a
+ * lost answer), so refreshes are serialized within the tab and, via the
+ * Web Locks API, across tabs; each one sends the cookie the last one set.
  */
 export function refreshTokens(): Promise<boolean> {
   refreshing ??= withRefreshLock(async () => {
-    const refreshToken = readRefreshToken()
-    if (!refreshToken) return false
-    const response = await send('/auth/refresh', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    })
+    if (!hasStoredSession()) return false
+    const response = await send('/auth/refresh', { method: 'POST' })
     if (!response.ok) {
       if (response.status === 401) clearTokens()
       return false

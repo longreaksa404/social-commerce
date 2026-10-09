@@ -5,8 +5,24 @@ from decimal import Decimal
 
 from sqlalchemy import select
 
+from app.api.session_cookie import REFRESH_COOKIE
 from app.db.session import unscoped_session
 from app.models import Category, Product, ProductStatus, ProductVariant, Store
+
+
+def session_of(response) -> dict:
+    """A login's tokens: the access token from the body, the refresh token
+    from the httpOnly cookie the API set."""
+    return {**response.json(), "refresh_token": response.cookies[REFRESH_COOKIE]}
+
+
+def with_refresh(token: str) -> dict[str, str]:
+    """Headers presenting `token` as the refresh cookie, as a browser would."""
+    return {"Cookie": f"{REFRESH_COOKIE}={token}"}
+
+
+async def refresh(client, token: str):
+    return await client.post("/api/v1/auth/refresh", headers=with_refresh(token))
 
 
 async def shop_slug(store_id) -> str:

@@ -63,3 +63,22 @@ has, then asks you to type the shop's link name (the part after
 R2. It refuses a shop that's still open. This can't be undone, except
 that the nightly backups (docs/BACKUPS.md) still hold the shop for up
 to 30 days.
+
+---
+
+## Photos moved to a new address
+
+When the R2 bucket gets a new public address (its `r2.dev` address →
+`images.oaksolve.com`, at the switch-over to oaksolve.com), the photos
+and logos already saved still point at the old one, and saving such a
+product is refused as "Invalid product image". Right after changing
+`R2_PUBLIC_URL` in Render:
+
+```bash
+python -m app.admin move-photos https://pub-xxxx.r2.dev https://images.oaksolve.com
+```
+
+The old address first, then the new one (both `https://`). The files
+don't move; only the saved addresses change. It says how many products
+and logos it changed. Running it again changes nothing; swapping the two
+addresses undoes it.

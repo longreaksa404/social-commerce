@@ -1,41 +1,46 @@
-from fastapi import APIRouter, BackgroundTasks, Request, status
+from fastapi import APIRouter, BackgroundTasks, Request, Response, status
 
 from app.api.deps import UnscopedDb
+from app.api.session_cookie import RefreshCookie, end_session, start_session
 from app.core.ratelimit import limiter
 from app.schemas.auth import (
+    AccessOut,
     LoginIn,
     PasswordResetConfirm,
     PasswordResetIn,
-    RefreshIn,
     RegisterIn,
-    TokenPair,
 )
 from app.services import auth as auth_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=TokenPair, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=AccessOut, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
-async def register(request: Request, data: RegisterIn, db: UnscopedDb) -> TokenPair:
-    return await auth_service.register(db, data)
+async def register(
+    request: Request, response: Response, data: RegisterIn, db: UnscopedDb
+) -> AccessOut:
+    return start_session(response, await auth_service.register(db, data))
 
 
-@router.post("/login", response_model=TokenPair)
+@router.post("/login", response_model=AccessOut)
 @limiter.limit("10/minute")
-async def login(request: Request, data: LoginIn, db: UnscopedDb) -> TokenPair:
-    return await auth_service.login(db, data)
+async def login(request: Request, response: Response, data: LoginIn, db: UnscopedDb) -> AccessOut:
+    return start_session(response, await auth_service.login(db, data))
 
 
-@router.post("/refresh", response_model=TokenPair)
+@router.post("/refresh", response_model=AccessOut)
 @limiter.limit("30/minute")
-async def refresh(request: Request, data: RefreshIn, db: UnscopedDb) -> TokenPair:
-    return await auth_service.refresh(db, data.refresh_token)
+async def refresh(
+    request: Request, response: Response, db: UnscopedDb, refresh_token: RefreshCookie = ""
+) -> AccessOut:
+    return start_session(response, await auth_service.refresh(db, refresh_token))
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-async def logout(data: RefreshIn, db: UnscopedDb) -> None:
-    await auth_service.logout(db, data.refresh_token)
+async def logout(response: Response, db: UnscopedDb, refresh_token: RefreshCookie = "") -> None:
+    await auth_service.logout(db, refresh_token)
+    end_session(response)
 
 
 @router.post("/password-reset", status_code=status.HTTP_202_ACCEPTED)
@@ -48,7 +53,9 @@ async def request_password_reset(
     background.add_task(auth_service.send_password_reset, data.email)
 
 
-@router.post("/password-reset/confirm", response_model=TokenPair)
+@router.post("/password-reset/confirm", response_model=AccessOut)
 @limiter.limit("10/minute")
-async def reset_password(request: Request, data: PasswordResetConfirm, db: UnscopedDb) -> TokenPair:
-    return await auth_service.reset_password(db, data)
+async def reset_password(
+    request: Request, response: Response, data: PasswordResetConfirm, db: UnscopedDb
+) -> AccessOut:
+    return start_session(response, await auth_service.reset_password(db, data))

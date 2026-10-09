@@ -1,5 +1,5 @@
 import { createContext, use } from 'react'
-import type { TokenPair } from '../lib/api.ts'
+import type { AccessToken } from '../lib/api.ts'
 
 // 'unreachable': a stored session couldn't be restored because the server
 // didn't answer (offline, or the API isn't running); not a logout.
@@ -20,7 +20,7 @@ type AuthValue = {
   login:(email: string, password: string) => Promise<void>
   register: (input: RegisterInput) => Promise<void>
   /** Logged in by another way than the login form (a password reset link). */
-  startSession: (pair: TokenPair) => void
+  startSession: (token: AccessToken) => void
   logout: () => Promise<void>
 }
 

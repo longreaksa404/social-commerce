@@ -6,7 +6,7 @@ from sqlalchemy import select
 from app import admin
 from app.db.session import unscoped_session
 from app.models import Customer, Delivery, Order, OrderItem, Payment, Product, Seller, Store
-from tests.helpers import add_product, place_order, registered_seller
+from tests.helpers import add_product, place_order, refresh, registered_seller
 
 
 async def test_reset_password_gives_a_working_password_and_logs_out_every_phone(client, register):
@@ -20,9 +20,7 @@ async def test_reset_password_gives_a_working_password_and_logs_out_every_phone(
     new = await client.post(
         "/api/v1/auth/login", json={"email": seller["email"], "password": password}
     )
-    phone = await client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": seller["refresh_token"]}
-    )
+    phone = await refresh(client, seller["refresh_token"])
     assert old.status_code == 401
     assert new.status_code == 200
     assert phone.status_code == 401
@@ -92,3 +90,44 @@ async def test_erasing_removes_the_shop_and_everything_in_it_only(client, auth_h
 
 def _store_column(model):
     return model.id if model is Store else model.store_id
+
+
+async def test_move_photos_points_saved_photos_and_logos_at_the_new_address(two_stores):
+    a, b = two_stores
+    old, new = "https://pub-old.r2.dev", "https://images.oaksolve.com"
+    shirt = await add_product(a.store_id, "shirt")
+    hat = await add_product(b.store_id, "hat")
+    bare = await add_product(b.store_id, "bare")
+    async with unscoped_session() as db:
+        (await db.get(Product, shirt)).image_urls = [
+            f"{old}/stores/{a.store_id}/products/{shirt}/1.jpg",
+            f"{old}/stores/{a.store_id}/products/{shirt}/2.jpg",
+        ]
+        hat_photo = f"{old}/stores/{b.store_id}/products/{hat}/1.jpg"
+        (await db.get(Product, hat)).image_urls = [hat_photo]
+        (await db.get(Store, a.store_id)).logo_url = f"{old}/stores/{a.store_id}/logo/l.png"
+        await db.commit()
+
+    moved = await admin.move_photos(old + "/", new)
+    again = await admin.move_photos(old, new)
+
+    assert (moved.products, moved.logos) == (2, 1)
+    assert (again.products, again.logos) == (0, 0)
+    async with unscoped_session() as db:
+        assert (await db.get(Product, shirt)).image_urls == [
+            f"{new}/stores/{a.store_id}/products/{shirt}/1.jpg",
+            f"{new}/stores/{a.store_id}/products/{shirt}/2.jpg",
+        ]
+        assert (await db.get(Product, hat)).image_urls == [
+            f"{new}/stores/{b.store_id}/products/{hat}/1.jpg"
+        ]
+        assert (await db.get(Product, bare)).image_urls == []
+        assert (await db.get(Store, a.store_id)).logo_url == f"{new}/stores/{a.store_id}/logo/l.png"
+        assert (await db.get(Store, b.store_id)).logo_url is None
+
+
+async def test_move_photos_needs_two_different_https_addresses():
+    with pytest.raises(admin.AdminError, match="two different https"):
+        await admin.move_photos("https://images.oaksolve.com", "https://images.oaksolve.com/")
+    with pytest.raises(admin.AdminError, match="two different https"):
+        await admin.move_photos("pub-old.r2.dev", "https://images.oaksolve.com")
