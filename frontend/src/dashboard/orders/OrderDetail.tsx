@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Copy, Link2, LoaderCircle, MapPin, MapPinned, MessageSquareText, MessagesSquare, Phone, Plus, ShoppingBag, Truck, Wallet, XCircle } from 'lucide-react'
+import { ChevronDown, ChevronRight, Copy, Link2, LoaderCircle, MapPin, MapPinned, MessageSquareText, MessagesSquare, Phone, Plus, Send, ShoppingBag, Truck, Wallet, XCircle } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { buzz } from '../../components/effects.ts'
@@ -7,6 +7,7 @@ import { SourceLogo } from '../../components/SourceLogo.tsx'
 import { hasLogo } from '../../lib/sourceLogos.ts'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card, ErrorState, Field, Input, LiveBadge, PageHeader, Skeleton } from '../../components/ui.tsx'
+import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { ApiError } from '../../lib/api.ts'
 import { deliveryAction, deliveryBadge } from '../../lib/delivery.ts'
@@ -714,6 +715,63 @@ const TONE_CIRCLE: Record<'neutral' | 'red' | 'green' | 'amber' | 'blue', string
   blue: 'bg-sky-50 text-sky-700',
 }
 
+/** The order as the driver (or the courier's form) needs it, in the
+ * seller's language: who, where, what, and the cash to collect. */
+function driverMessage(t: Messages, order: Order): string {
+  const d = t.orders.driver
+  const { payment } = order
+  const money = formatMoney(payment.amount, order.currency)
+  const lines = [`#${order.number} · ${order.customer.name} · ${formatPhone(order.customer.phone)}`]
+  if (order.delivery_address) lines.push(order.delivery_address)
+  if (order.delivery_lat !== null && order.delivery_lng !== null) {
+    lines.push(`${d.map}https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}`)
+  }
+  if (order.delivery_address_note) lines.push(`${d.note}${order.delivery_address_note}`)
+  for (const item of order.items) {
+    lines.push(`${item.quantity} × ${item.product_name}${item.variant_name ? ` (${item.variant_name})` : ''}`)
+  }
+  lines.push(
+    payment.status === 'paid'
+      ? d.paid
+      : payment.method === 'cod'
+        ? d.collect(money)
+        : d.payingBy(t.status.paymentMethod[payment.method]),
+  )
+  return lines.join('\n')
+}
+
+/** Send to driver (founder's pick 5B): the phone's share list (Telegram,
+ * Messenger, ...) with the message ready; on a laptop it's copied. */
+function SendToDriver({ order }: { order: Order }) {
+  const t = useT()
+  const o = t.orders
+  const { toast } = useFeedback()
+  async function send() {
+    const text = driverMessage(t, order)
+    const phone = window.matchMedia('(pointer: coarse)').matches
+    if (phone && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ text })
+        return
+      } catch (error) {
+        // Closed the share list: nothing to do.
+        if (error instanceof DOMException && error.name === 'AbortError') return
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text)
+      toast(o.driverCopied)
+    } catch {
+      toast(o.driverCopyFailed, 'error')
+    }
+  }
+  return (
+    <Button variant="secondary" icon={Send} onClick={send} className="mt-4 w-full">
+      {o.sendToDriver}
+    </Button>
+  )
+}
+
 /** The delivery is its own state machine too (02 section 7.3): moving it
  * never moves the order, but an order can only be completed once its
  * delivery is delivered (section 7.4). */
@@ -785,6 +843,7 @@ function DeliverySection({ order, onStale }: { order: Order; onStale: () => void
           {pickup ? o.waitsCollected : o.waitsDelivered}
         </p>
       )}
+      {!pickup && !CLOSED.has(order.status) && delivery.status !== 'delivered' && <SendToDriver order={order} />}
 
       {assigning ? (
         <form onSubmit={submit} className="mt-4 space-y-3">

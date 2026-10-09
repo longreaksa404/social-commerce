@@ -110,6 +110,23 @@ export const orders = {
     en: 'Link copied. Send it in the chat: the customer opens it with their phone number to follow the order and pay.',
     km: 'បានចម្លងតំណ។ ផ្ញើវាក្នុងឆាត៖ អតិថិជនបើកវាជាមួយលេខទូរស័ព្ទរបស់គេ ដើម្បីតាមដានការកុម្ម៉ង់ និងបង់ប្រាក់។',
   },
+  // Delivery card: the order typed out for the driver (founder's pick 5B).
+  sendToDriver: { en: 'Send to driver', km: 'ផ្ញើទៅអ្នកដឹក' },
+  driverCopied: {
+    en: "Copied. Paste it in the driver's chat.",
+    km: 'បានចម្លង។ សូមបិទភ្ជាប់ក្នុងឆាតរបស់អ្នកដឹក។',
+  },
+  driverCopyFailed: { en: "Couldn't copy the message.", km: 'ចម្លងសារមិនបាន។' },
+  driver: {
+    map: { en: 'Map: ', km: 'ផែនទី៖ ' },
+    note: { en: 'Note: ', km: 'ចំណាំ៖ ' },
+    collect: { en: (amount: string) => `Collect ${amount} cash`, km: (amount: string) => `ប្រមូលសាច់ប្រាក់ ${amount}` },
+    paid: { en: 'Paid already: collect nothing', km: 'បានបង់រួចហើយ៖ មិនត្រូវប្រមូលប្រាក់ទេ' },
+    payingBy: {
+      en: (method: string) => `Paying by ${method}: collect nothing`,
+      km: (method: string) => `បង់តាម ${method}៖ មិនត្រូវប្រមូលប្រាក់ទេ`,
+    },
+  },
   // Delivery card: the steps in between, for those who use them.
   moreSteps: { en: 'More steps (optional)', km: 'ជំហានបន្ថែម (មិនចាំបាច់)' },
   filterLabel: { en: 'Filter orders', km: 'ច្រោះការកុម្ម៉ង់' },
