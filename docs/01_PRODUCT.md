@@ -1027,10 +1027,12 @@ The MVP should therefore focus on the smallest complete transaction loop.
 - Pause orders for a while, with an optional day they open again by themselves
 - Contact buttons for customers: Telegram, Messenger (a Facebook page), a phone to call
 - Low-stock alert level
-- Account: name, phone, login email, password; a forgotten password is reset through the shop's Telegram chat (or by Oak Order)
-- Staff logins: helpers with their own email who can do everything except Settings
+- Account: name, phone number (the login, changed through Telegram), password; a forgotten password is reset through the shop's Telegram chat (or by Oak Order)
+- Staff logins: helpers with their own phone number who can do everything except Settings
 - Export orders to Excel
 - Close shop: the link and logins stop, nothing is erased; Oak Order reopens it or erases it for good on request
+
+**Decided (2026-10-09):** sellers sign up with a phone number proved through the Telegram bot (free; one shop per number) and a password, or with Google (Facebook and TikTok next). The purpose is ease of use; after signing up, sellers still pay a subscription to use the platform (pricing still open, §46).
 
 # 24. MVP Customer Features
 

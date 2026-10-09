@@ -1322,58 +1322,13 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-From the founder's decisions on sign-up (2026-10-09), not yet in
-01/02/03. Proposed text:
-
-- **02 §2 Tech Stack, Auth row:** "**JWT (access + refresh)**, `bcrypt`
-  for passwords; sign-up with a phone number proved through the Telegram
-  bot; 'Continue with Google' (ID token checked with PyJWT against
-  Google's keys); Facebook and TikTok to follow."
-- **02 §5.1:** under `seller (owner)` add `├─ seller_login (Google;
-  later Facebook, TikTok)`; **§5.3:** add `seller 1───N seller_login`.
-- **02 §5.2 `seller`:** `phone` text, **unique**, nullable: "the login,
-  a number proved in Telegram (staff: typed by the owner); null only for
-  accounts from before 2026-10-09"; `email` text, unique, **nullable**:
-  "accounts from before 2026-10-09 log in with it"; `password_hash`
-  **nullable**: "null for an account made with Google until it adds one".
-  New tables: "`seller_login`: id, seller_id (FK, cascade), provider
-  (`google`), provider_user_id (Google's sub), email (Google's, shown in
-  Settings), created_at; unique (provider, provider_user_id) and
-  (seller_id, provider)" and "`phone_check`: id (the page's secret),
-  code (in the t.me link), telegram_user_id, phone, verified_at,
-  expires_at (30 min), created_at". Neither is tenant data (no RLS
-  grant).
-- **02 §6.2 Auth:** `POST /auth/register` (shop name, name, password,
-  phone_check), `POST /auth/login` (phone number, or an older account's
-  email), `POST /auth/phone-checks`, `GET /auth/phone-checks/{id}`,
-  `POST /auth/google`, `POST /auth/social/register`; password-reset
-  "same answer for any login". **Account and staff:** `PATCH
-  /seller/account` (name only), `POST /seller/account/phone`, `POST
-  /seller/account/google`, `/password` "needs the current one if there
-  is one", `/close-shop` "password, if the account has one"; staff
-  "name, phone, first password".
-- **02 §12.1** (or a new §12.4 "Phone check"): "`/start phone_<code>`
-  answers with a 'Share my phone number' button (`request_contact`); the
-  shared contact counts only if it's the sender's own; it completes that
-  account's newest open check. Signing up connects that chat to the new
-  shop's alerts."
-- **02 §13 Auth & Security:** add "**Sign-up:** a phone number proved in
-  Telegram, one account per number. **Google:** ID token checked
-  (signature, audience = our client ID, issuer, expiry); a Google account
-  is joined to a shop only from that shop's own Settings, never by a
-  matching phone or email."
-- **01 §23.1** (after the 2026-10-08 list): "Decided (2026-10-09):
-  sellers sign up with a phone number proved through the Telegram bot
-  (free; one shop per number) and a password, or with Google (Facebook and
-  TikTok next). The account line becomes: name, phone number (the login,
-  changed through Telegram), password; staff log in with their phone
-  number." The 2026-10-08 lines "login email" and "their own email"
-  become "phone number".
-- **03 Phase 9 row:** "Sign-up with a phone number checked in Telegram,
-  phone logins, Continue with Google (founder's request 2026-10-09)
-  | 14". Subtotal ~203 hrs; §4 totals: Phase 9 203, total ~431 hrs.
-  Facebook and TikTok logins: later rows, once their developer apps are
-  approved.
+Applied to 01/02/03 on 2026-10-09 (founder said yes): sign-up with a
+phone number checked in Telegram, phone logins and Continue with Google
+(02 §2 Auth row, §4.3, §5.1, §5.2 `seller` + new `seller_login` and
+`phone_check`, §5.3, §6.2 Auth and Account/staff, new §12.4 Phone Check,
+§13; 01 §23.1; 03 Phase 9 row, 14 hrs; subtotal ~171 hrs; §4 totals:
+Phase 9 171, total ~399 hrs). The 32 hrs of the picks below aren't in 03
+yet.
 
 From the founder's picks 1C 2C 3A 4A 5B 6B 7C 8B 9B (2026-10-09), not
 yet in 01/02/03. Proposed text:

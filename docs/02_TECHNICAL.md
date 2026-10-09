@@ -80,7 +80,7 @@ No separate worker service in the MVP. No message queue in the MVP. `BackgroundT
 | Fonts | **Kantumruy Pro** for all text, Khmer and Latin (`@fontsource-variable`, self-hosted, two variable files picked by `unicode-range`) | One look for Khmer, English and prices on every phone; Khmer 57 KB + Latin 33 KB, each loaded once (Khmer 2026-10-04, Latin 2026-10-06) |
 | Motion | CSS keyframes (`index.css`) and the Web Animations API, no library | Taps get an answer (add to cart, order placed, a status moving on) without adding weight; off when the phone asks for reduced motion |
 | Database | **PostgreSQL 16** | Relational integrity for orders/payments/inventory; JSONB available for flexible fields (e.g., variant attributes) without needing a second database |
-| Auth | **JWT (access + refresh)**, `bcrypt` (used directly; passlib is unmaintained) for password hashing | Stateless, simple, no session-store dependency |
+| Auth | **JWT (access + refresh)**, `bcrypt` (used directly; passlib is unmaintained) for passwords; sign-up with a phone number proved through the Telegram bot; "Continue with Google" (ID token checked with PyJWT against Google's keys); Facebook and TikTok to follow (decided 2026-10-09) | Stateless, simple, no session-store dependency; the phone check is free (no SMS) and Google needs no secret |
 | Image storage | **S3-compatible object storage** (see §11) | Decoupled from app servers, cheap, standard presigned-upload pattern |
 | Background tasks | **FastAPI `BackgroundTasks`** (MVP) → Celery/RQ only if volume demands it later | Avoids running a queue + worker for MVP scale |
 | Telegram | Bot API called directly with **httpx** (webhook mode) | One message type and one command don't need a bot framework (decided 2026-10-03, instead of python-telegram-bot) |
@@ -131,7 +131,7 @@ Rejected alternatives and why:
 
 A `seller` (the account that logs in) owns one `store` in the MVP (1:1). The schema still models them as separate entities so a future "one seller, multiple stores" case doesn't require a migration — but the MVP UI and business logic assume 1:1.
 
-**Staff logins (decided 2026-10-08):** an owner owns one store; staff logins belong to one store (`seller.role = staff`, `seller.store_id`) and can do everything except Settings. The owner adds them with an email and a first password (no email is sent), sets a new password for them, and removes them. The access token carries the role; Settings endpoints refuse staff (403 `OWNER_ONLY`).
+**Staff logins (decided 2026-10-08):** an owner owns one store; staff logins belong to one store (`seller.role = staff`, `seller.store_id`) and can do everything except Settings. The owner adds them with a phone number (their login since 2026-10-09; typed by the owner, not checked in Telegram) and a first password (nothing is sent), sets a new password for them, and removes them. The access token carries the role; Settings endpoints refuse staff (403 `OWNER_ONLY`).
 
 ---
 
@@ -141,6 +141,7 @@ A `seller` (the account that logs in) owns one `store` in the MVP (1:1). The sch
 
 ```
 seller (owner)
+ ├─ seller_login (Google; later Facebook, TikTok)
  └─ store (1:1 in MVP)
      ├─ seller (staff logins, role staff)
      ├─ category
@@ -162,10 +163,10 @@ seller (owner)
 | Column | Type | Notes |
 |---|---|---|
 | id | UUID PK | |
-| email | text, unique | login |
-| password_hash | text | |
+| phone | text, unique, nullable | the login (2026-10-09): a number proved in Telegram (staff: typed by the owner), normalized; null only for accounts from before 2026-10-09 |
+| email | text, unique, nullable | accounts from before 2026-10-09 log in with it |
+| password_hash | text, nullable | null for an account made with Google until it adds one |
 | full_name | text | |
-| phone | text | |
 | created_at | timestamptz | |
 | is_active | bool | default true; false once the shop is closed (the shop page and logins stop) |
 | role | enum(`owner`,`staff`) | default `owner` (2026-10-08) |
@@ -294,11 +295,22 @@ seller (owner)
 
 > Each refresh token works once; reusing one revokes all of that seller's tokens (§13).
 
+### `seller_login` (2026-10-09)
+| id, seller_id (FK, cascade), provider (`google`; later `facebook`, `tiktok`), provider_user_id (Google's `sub`), email (Google's, when verified; shown in Settings), created_at |
+
+> Unique (provider, provider_user_id) and (seller_id, provider). Not tenant data: no RLS grant.
+
+### `phone_check` (2026-10-09)
+| id (the page's secret), code (in the `t.me` link), telegram_user_id, phone (normalized, once shared), verified_at, expires_at (30 min), created_at |
+
+> A phone number being proved through the bot (§12.4); used once by the form that needs it. Not tenant data: no RLS grant.
+
 ## 5.3 Entity-Relationship Summary
 
 ```
 seller 1───1 store
 seller 1───N refresh_token
+seller 1───N seller_login
 store 1───N category
 store 1───N product ──N product_variant
 store 1───N customer
@@ -333,22 +345,28 @@ store 1───N notification_log
 
 ### Auth
 ```
-POST   /api/v1/auth/register
-POST   /api/v1/auth/login
+POST   /api/v1/auth/register                # shop name, name, password, phone_check (2026-10-09)
+POST   /api/v1/auth/login                   # phone number, or an older account's email; password
 POST   /api/v1/auth/refresh
 POST   /api/v1/auth/logout
-POST   /api/v1/auth/password-reset            # Forgot password? a link to the shop's Telegram chat; same answer for any email
+POST   /api/v1/auth/password-reset            # Forgot password? a link to the shop's Telegram chat; same answer for any login
 POST   /api/v1/auth/password-reset/confirm    # the link's token + a new password; logs in
+POST   /api/v1/auth/phone-checks              # start proving a phone number in Telegram (§12.4)
+GET    /api/v1/auth/phone-checks/{id}         # read until it has the number
+POST   /api/v1/auth/google                    # Google's ID token: logged in, or a sign-up to finish
+POST   /api/v1/auth/social/register           # finish it: shop name, name, phone_check; no password
 ```
 
 ### Seller — Account and staff (2026-10-08)
 ```
-GET    /api/v1/seller/account                 # the logged-in person's name, phone, email, role
-PATCH  /api/v1/seller/account
-POST   /api/v1/seller/account/password        # needs the current one; logs out other phones
-POST   /api/v1/seller/account/close-shop      # owner; password; link and logins stop, nothing erased
+GET    /api/v1/seller/account                 # the logged-in person's name, phone, email (older accounts), role, password and Google status
+PATCH  /api/v1/seller/account                 # name only
+POST   /api/v1/seller/account/phone           # a new login number, from a phone check
+POST   /api/v1/seller/account/google          # log in with this Google account too
+POST   /api/v1/seller/account/password        # needs the current one if there is one; logs out other phones
+POST   /api/v1/seller/account/close-shop      # owner; password, if the account has one; link and logins stop, nothing erased
 GET    /api/v1/seller/staff                   # owner only, like everything under Settings
-POST   /api/v1/seller/staff                   # name, phone, email, first password
+POST   /api/v1/seller/staff                   # name, phone (their login), first password
 POST   /api/v1/seller/staff/{id}/password
 DELETE /api/v1/seller/staff/{id}
 ```
@@ -620,11 +638,18 @@ Customer taps "Ask seller on Telegram" on the product page
 - Single endpoint: `POST /api/v1/telegram/webhook`, registered with Telegram at startup where `PUBLIC_API_URL` is set (production only, so a laptop never takes the bot over).
 - Validates the Telegram secret token header before processing, per Telegram's webhook security guidance.
 
+## 12.4 Phone Check (decided 2026-10-09)
+- Sellers prove their phone number through the bot instead of an SMS code (free). The page starts a check and opens `t.me/{bot_username}?start=phone_{code}`; `/start phone_{code}` answers with a "Share my phone number" button (`request_contact`).
+- The shared contact counts only if it's the sender's own (`contact.user_id` = the sender); it completes the newest open check that account opened. The page reads the check until it has the number, then hands the check's id in with the form (sign-up, a new login number). A check lasts 30 minutes and works once.
+- Signing up connects that chat with the bot to the new shop's alerts (§12.1). One account per number.
+
 ---
 
 # 13. Auth & Security
 
 - **Passwords:** `bcrypt` (used directly; passlib is unmaintained), never stored/logged in plaintext.
+- **Sign-up (2026-10-09):** a phone number proved in Telegram (§12.4), one account per number; login by that number (any spelling) or, for accounts from before, their email.
+- **Google (2026-10-09):** the ID token is checked (signature against Google's keys, audience = our client ID, issuer, expiry); nothing is stored but Google's account id and its verified email. A Google account is joined to a shop only from that shop's own Settings, never by a matching phone number or email.
 - **Tokens:** short-lived access JWT (~15 min) + longer-lived refresh JWT (~7 days), refresh rotated on use. The access token is in the response body and kept in memory only; the refresh token is an httpOnly, Secure, SameSite=Lax cookie on the API's host, path `/api/v1/auth`, so no script can read it (app and API share the site oaksolve.com, 2026-10-09).
 - **Tenant isolation:** enforced at both application layer (service functions always scope by `store_id` from the authenticated token) and database layer (Postgres RLS, §4.2) — defense in depth, matching Rule 2 (`01_PRODUCT.md` §32).
 - **Rate limiting:** basic IP-based rate limiting on `/auth/login` and public storefront endpoints (e.g., via `slowapi`) to blunt brute-force and scraping — lightweight, no separate infra required. The client IP is taken from `CF-Connecting-IP` (set by Render's Cloudflare edge), not `X-Forwarded-For`, which clients can write and Render keeps (Phase 9 security review).
