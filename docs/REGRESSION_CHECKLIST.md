@@ -29,16 +29,19 @@ phone or laptop) before going on.
 - [ ] Order a second time on the same phone: name and phone show as one line with Change. Place order shows the total.
 - [ ] Name, phone, delivery by the shop, "Pin my location on the map" → move the map → Confirm. Choose KHQR. The breakdown shows items, delivery, total.
 - [ ] Place order. The order page shows the KHQR code with the exact total; "Save QR code" works.
+- [ ] Tap "I've paid: send receipt": the shop's Telegram opens with "I've paid order #…" typed in, and the order page says "You told <shop> you paid".
 
 **Seller: alerts and the order**
 
-- [ ] A Telegram alert arrives with the order number, items, total, customer and "Open order".
+- [ ] A Telegram alert (in Khmer) arrives with the order number, items, total, customer and the Open order button; then "<name> says they paid #…".
 - [ ] The bell shows a red count; the notification opens the order.
 - [ ] The order says "Came through your TikTok link". "Open in Google Maps" shows the pinned spot.
+- [ ] The Payment card shows "Customer says paid · <time>"; the bell has "<name> says they paid".
 - [ ] Accept → the customer's order page (reload) shows it accepted.
 - [ ] Payment: Mark paid with a note. The customer's page no longer shows the QR.
-- [ ] Delivery: Assign → Picked up → On the way → Delivered. The customer's page follows each step.
-- [ ] Order: move it on to Completed. It moves to the Delivered filter.
+- [ ] Delivery card: Send to driver opens the share list (copies on a laptop) with the address, map link and "Paid already".
+- [ ] To do card: "Next: deliver it" → Delivered. The customer's page shows it delivered.
+- [ ] To do card: Complete. It moves to the Delivered filter.
 
 **Seller: the numbers**
 
@@ -52,7 +55,9 @@ phone or laptop) before going on.
 
 **Payments**
 
-- [ ] Cash on delivery: deliver the order, then Complete without marking it paid. Works.
+- [ ] Cash on delivery: New → Accept → "Delivered, cash received" → Complete is 3 taps, and the payment shows paid.
+- [ ] Cash on delivery: Delivered alone, then Complete without marking it paid. Works.
+- [ ] A paid payment: "Not paid after all" (asks first) puts it back to not paid; the customer sees how to pay again.
 - [ ] Bank transfer: the customer sees the bank, name and account number with copy buttons.
 - [ ] Bank transfer, delivered but not paid: Complete is blocked with a hint.
 - [ ] Payment failed (asks first) shows "Payment failed" in the order list.
@@ -62,10 +67,12 @@ phone or laptop) before going on.
 - [ ] Pickup: the customer sees the pickup address; the seller taps Customer collected; the order completes.
 - [ ] Courier: choose one of the shop's couriers at checkout; the seller sees "Send with <courier>".
 - [ ] Delivery failed → Try again → Assign works.
+- [ ] The optional steps (Preparing, Ready, Shipped; Picked up, On the way) still work and show on the customer's page.
 
 **Orders and stock**
 
 - [ ] Reject an order (asks first): its stock comes back.
+- [ ] Orders → New order: a phone that ordered before fills in the name and address; add a product with options; Save. The order is accepted, says "Added by you from a chat", has "Copy link for the customer", and took the stock. No new-order alert.
 - [ ] Stock 1 → order it → the shop shows "Sold out"; a low-stock alert arrives (Telegram and bell).
 - [ ] Change a product's price while a customer is on checkout: placing the order says the total changed.
 
@@ -85,6 +92,11 @@ phone or laptop) before going on.
 - [ ] Open the customer's order link on another device: it asks for the phone; the wrong phone is refused.
 - [ ] After ordering, go back to the shop: a bar at the top shows the order and its status; it opens the order. With the cart empty, the cart page's Your orders lists it.
 - [ ] Leave the order page open and accept the order from the dashboard: within 30 s the page shows the new step without reloading.
+
+**New shop and numbers**
+
+- [ ] Register a new shop: the Orders tab says "Add your first product" and that delivery is free until a fee is set; Settings has "Set up your shop" and the Settings tab a dot, gone once a product, the delivery fee and the ways to pay are saved.
+- [ ] The owner's numbers card: Today / 7 days / This month match the orders (rejected ones left out); tapping a bar reads its day. A staff login doesn't see it.
 
 **Settings**
 

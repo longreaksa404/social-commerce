@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-09 (pre-pilot review: four fixes; login renewal retry, delivery-fee reminder, first-product empty state, Khmer bot)
+> **Last updated:** 2026-10-09 (pre-pilot review: four fixes, then the founder's picks 1C 2C 3A 4A 5B 6B 7C 8B 9B)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -949,12 +949,64 @@ shop shows the reminder and "Add your first product"; with a product,
 "No orders yet"; the reminder opens Settings → Delivery and is gone once
 delivery is saved; no sideways scroll; no console errors. No migration.
 
-The rest of the review (founder to pick, 2026-10-09): A fewer taps per
-order (13 measured for one cash-on-delivery order; skip steps, 02 §7.1 /
-§7.3), B orders from chat entered by the seller, C undo a wrong tap (02
-§7.2), D copy order for the driver, E "I've paid" for customers, F setup
-checklist, G today's numbers, H Khmer alerts (done as fix 4). Not in
-the docs: each needs the founder's yes.
+**Pre-pilot features** (the rest of the review; the founder picked from
+an options page 2026-10-09: 1C 2C 3A 4A 5B 6B 7C 8B 9B; H, Khmer alerts,
+was fix 4). Each committed on its own; not pushed:
+
+1. [x] **Short path, 13 taps → 3 for a cash order** (`73b362a`, 1C):
+   after Accept the order's preparing / ready / shipped are optional
+   chips and Complete is offered from any step once delivered and paid
+   (or cash on delivery); a delivery goes straight to Delivered (assigned
+   / picked up / on the way optional; failed once sent out; failed →
+   delivered too). "Delivered, cash received" on cash orders records the
+   delivery and the payment together, each through its own state
+   machine, both or neither (`POST /seller/orders/{id}/cash-handover`).
+   The To do card leads with the next real step. Measured in the
+   browser: Accept, Delivered cash received, Complete.
+2. [x] **Not paid after all** (`2210be2`, 2C): paid or failed → pending,
+   any time, after a confirm; `paid_at` and the note cleared; the
+   customer is shown how to pay again. Order and delivery steps still
+   have no way back; reject / cancel stay final.
+3. [x] **Orders from chat** (`5bf030d`, 3A + 4A): "+ New order" beside the
+   Orders title → `/dashboard/orders/new`. Phone first (someone who
+   ordered before fills in name and address), products from the
+   seller's list, the shop's delivery choices and ways to pay, a note.
+   `POST /seller/orders` = checkout's prices, stock, totals; taken while
+   paused; starts accepted; `order.source = "chat"` (a link can't be
+   named "chat"); no new-order alert, low stock still alerts. The order
+   says "Added by you from a chat" and has **"Copy link for the
+   customer"** (added so a chat customer can follow it and pay by KHQR;
+   it was in 3B's mockup, not 3A's).
+4. [x] **Send to driver** (`e59bec2`, 5B): on the Delivery card; number,
+   customer, phone, address, map link, note, items and "Collect $X cash"
+   / "Paid already" / "Paying by KHQR", in the app's language; the share
+   list on phones, copied on laptops.
+5. [x] **I've paid** (`f00ad15`, 6B): under the KHQR code or bank
+   account; opens the shop's Telegram (or Messenger, the line copied)
+   with "I've paid order #1001, $12.00. Here's my receipt:" typed in,
+   and `POST /shop/{slug}/orders/{id}/paid` (link + phone; 10/min per IP)
+   puts "Sokha says they paid #1001" on the bell plus a Khmer Telegram
+   alert (not again within 30 min). The payment stays pending; the
+   seller's Payment card shows "Customer says paid · 14:02". No column:
+   the newest `payment_claimed` notification row.
+6. [x] **Setup checklist** (`1fa7b24`, 7C): "Set up your shop · 2 of 6
+   done" tops Settings for owners → `/dashboard/settings/setup` (product,
+   delivery fee, ways to pay, Telegram alerts, contact, logo); an amber
+   dot on the Settings tab until the first three are done; "Hide this
+   list" per device. `GET /seller/store` adds `payment_set_up`.
+7. [x] **The owner's numbers** (`633f331`, 8B + 9B): a card on the Orders
+   tab once there's an order, owner only (`GET /seller/stats`, 403 for
+   staff): Today / 7 days / This month, sales, orders, "$X not paid yet",
+   a bar per day; tap a bar for its day. Rejected and cancelled orders
+   don't count; Phnom Penh days.
+
+Checked: 555 backend tests pass (29 new across the seven); ruff, oxlint
+and the build pass (JS 219.5 KB gzipped). Each screen clicked through in headless Chromium at
+390 px (English), most also at 320 px Khmer and 1280 px, the numbers
+card also in dark mode: no sideways scroll, no console errors. The
+customer's progress bar follows the order's own status, so with the
+short path it can read "Confirmed" while its delivery line reads
+"Delivered", until the seller taps Complete. No migration.
 
 Phase 9, waiting on the founder:
 
@@ -1190,6 +1242,47 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
+From the founder's picks 1C 2C 3A 4A 5B 6B 7C 8B 9B (2026-10-09), not
+yet in 01/02/03. Proposed text:
+
+- **02 §7.1 order transitions:** "pending → accepted | rejected;
+  accepted → processing | ready | shipped | completed* | cancelled;
+  processing → ready | shipped | completed* | cancelled; ready → shipped
+  | completed* | cancelled; shipped → delivered | completed*; delivered
+  → completed*. (* only if §7.4 holds.) The steps after accepted are
+  optional, forward only (the short path, 2026-10-09)."
+- **02 §7.2 payment transitions:** add "paid → pending and failed →
+  pending ('Not paid after all', any time; clears paid_at and the
+  note)."
+- **02 §7.3 seller_delivery:** "not_assigned → assigned | picked_up |
+  in_transit | delivered; assigned → picked_up | in_transit | delivered
+  | failed; picked_up → in_transit | delivered | failed; in_transit →
+  delivered | failed; failed → assigned | delivered." Add: "'Delivered,
+  cash received' (cash on delivery) records the delivery delivered and
+  the payment paid in one seller action, each through its own state
+  machine, both or neither; the order's status is not touched."
+- **02 §6.2 endpoints:** add `POST /seller/orders` (an order from a
+  chat, seller), `POST /seller/orders/{id}/cash-handover`, `GET
+  /seller/stats?period=today|week|month` (owner), `POST
+  /shop/{slug}/orders/{id}/paid` (public, link + phone).
+- **02 §5.2:** `order.source` may be `chat` (an order the seller added);
+  `notification_log.event_type` may be `payment_claimed`. **§12.1:**
+  alerts also for "the customer says they paid"; an order the seller
+  added sends only low stock.
+- **01 §23.1** (after the 2026-10-08 list): "Decided (2026-10-09): orders
+  that came by chat, added by the seller at the shop's prices; a short
+  path (Accept, Delivered, Complete; the steps between optional;
+  'Delivered, cash received' for cash on delivery); 'Not paid after
+  all'; Send to driver; a setup checklist for new shops; the owner's
+  numbers (today, 7 days, this month, a bar per day)." **01 §24:** add
+  "Tell the shop they've paid ('I've paid'), with the receipt in chat."
+- **03 Phase 9 row:** "Pre-pilot review: login renewal retry,
+  delivery-fee reminder, first-product empty state, Khmer bot; then the
+  short path, Not paid after all, orders from chat, Send to driver, I've
+  paid, setup checklist, the owner's numbers (founder's picks 2026-10-09)
+  | 32". Subtotal ~189 hrs (~14.5 weeks); §4 totals: Phase 9 189, total
+  ~417 hrs.
+
 From the pre-pilot review (founder approved 2026-10-09), not yet in 02:
 
 - **Login renewal retry window:** a refresh token reused within 60 s of
@@ -1352,9 +1445,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   `app/core/ratelimit.py`).
 - Completion (02 §7.4) is taken literally: a cash-on-delivery order can
   complete even if its payment was marked failed. The seller decides.
-- A payment can't be undone once marked paid or failed (02 §7.2 has no
-  way back); both ask first. If sellers mis-tap in practice, an "undo"
-  would be a deliberate change to 02 §7.2.
+- A payment marked paid or failed goes back to pending with "Not paid
+  after all" (founder's pick 2C, 2026-10-09); order and delivery steps
+  have no way back.
 - KHQR codes are made in `app/services/khqr.py` (no dependency); the
   tests pin it to strings from NBC's SDK. The frontend draws them with
   `uqr`. The KHQR card's red header is plain text "KHQR", not NBC's logo
@@ -1362,11 +1455,11 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 - Payment details on the order page are the store's current ones, not a
   copy from ordering time, and disappear if the seller turns the method
   off (the customer is told to ask the shop).
-- A pickup order still goes through the order's own `ready → shipped →
-  delivered` steps (02 §7.1 is the same for both methods); the customer
-  reads them as "Ready to collect / Handed over / Collected". If sellers
-  find the extra taps annoying, a shorter order path for pickup would be
-  a deliberate change to 02 §7.1.
+- Since the short path (1C, 2026-10-09) the order's own `processing →
+  ready → shipped → delivered` steps are optional for every method; a
+  pickup customer reads them as "Ready to collect / Handed over /
+  Collected" when the seller uses them, so a seller who wants pickup
+  customers told "Ready to collect" taps Ready.
 - Couriers are matched by name at checkout; renaming one while a
   customer is checking out makes them choose again.
 - The map's ◎ button needs https (or localhost): it works on the Vercel
@@ -1532,10 +1625,11 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-00. Founder: pick from the review's items A-G (In Progress, "Pre-pilot
-    review fixes"); try the four fixes on the dev server or after a
-    push (a new shop's Orders tab; a Telegram alert in Khmer); copy the
-    02 §5.2 / §13 text under Decisions into 02.
+00. Founder: try the four fixes and the seven picks (In Progress,
+    "Pre-pilot review fixes" and "Pre-pilot features") on the dev server
+    or after a push; `docs/REGRESSION_CHECKLIST.md` has the new steps.
+    Copy the 01 / 02 / 03 text under Decisions into those files (or ask
+    Claude to). Then push.
 0. Founder: try the new Settings pieces (list under In Progress, "More
    in Settings") on the dev server or after a push; choose the Oak Order
    support Telegram account and set `VITE_SUPPORT_TELEGRAM` in Vercel;
