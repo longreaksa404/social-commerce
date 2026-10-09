@@ -4,6 +4,7 @@
     python -m app.admin close-shop seller@example.com
     python -m app.admin reopen-shop seller@example.com
     python -m app.admin erase-shop seller@example.com
+    python -m app.admin move-photos https://pub-xxxx.r2.dev https://images.oaksolve.com
 
 On the live database: put Neon's direct connection string in
 DATABASE_URL for that one command (it wins over the .env file).
@@ -122,6 +123,41 @@ async def erase_shop(email: str, typed_slug: str) -> int:
     return delete_store_files(store_id)
 
 
+@dataclass(frozen=True)
+class MovedPhotos:
+    products: int
+    logos: int
+
+
+def _moved(url: str, old: str, new: str) -> str:
+    return new + url.removeprefix(old) if url.startswith(f"{old}/") else url
+
+
+async def move_photos(old: str, new: str) -> MovedPhotos:
+    """Point every saved product photo and shop logo at a new address for
+    the same R2 bucket (e.g. its r2.dev address → images.oaksolve.com).
+    The files don't move; only the addresses saved with them change.
+    Products and shops only accept photos under R2_PUBLIC_URL, so run it
+    right after changing that. Running it again changes nothing; swapping
+    the two addresses undoes it."""
+    old, new = old.rstrip("/"), new.rstrip("/")
+    if not (old.startswith("https://") and new.startswith("https://")) or old == new:
+        raise AdminError("Give two different https:// addresses: the old one, then the new one.")
+    async with unscoped_session() as db:
+        products = 0
+        for product in await db.scalars(select(Product)):
+            urls = [_moved(url, old, new) for url in product.image_urls]
+            if urls != product.image_urls:
+                product.image_urls = urls
+                products += 1
+        logos = 0
+        for store in await db.scalars(select(Store).where(Store.logo_url.startswith(f"{old}/"))):
+            store.logo_url = _moved(store.logo_url, old, new)
+            logos += 1
+        await db.commit()
+    return MovedPhotos(products, logos)
+
+
 async def _run(args: argparse.Namespace) -> str:
     if args.command == "reset-password":
         password = await reset_password(args.email)
@@ -144,6 +180,9 @@ async def _run(args: argparse.Namespace) -> str:
         typed = input("Type the shop's link name to erase it for good: ")
         files = await erase_shop(args.email, typed)
         return f"Erased {size.name} and {files} photo files."
+    if args.command == "move-photos":
+        moved = await move_photos(args.old, args.new)
+        return f"Moved the photo addresses of {moved.products} products and {moved.logos} logos."
     raise AdminError(f"Unknown command {args.command}.")
 
 
@@ -161,6 +200,9 @@ def main(argv: list[str] | None = None) -> None:
         ("erase-shop", "erase a closed shop and everything in it, for good"),
     ):
         commands.add_parser(name, help=help_text).add_argument("email")
+    move = commands.add_parser("move-photos", help="point saved photos at a new R2 address")
+    move.add_argument("old", help="the address photos have now, e.g. https://pub-xxxx.r2.dev")
+    move.add_argument("new", help="the new address, e.g. https://images.oaksolve.com")
     args = parser.parse_args(argv)
     try:
         print(asyncio.run(_run(args)))

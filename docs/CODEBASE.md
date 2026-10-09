@@ -251,7 +251,7 @@ cd frontend && npm install
 | API dev server | `uvicorn app.main:app --reload`: http://localhost:8000, OpenAPI at `/docs` |
 | Backend tests | `pytest` (backend). Needs Postgres running; uses its own `<db>_test` database, created, migrated and emptied automatically |
 | Backend lint | `ruff check . && ruff format --check .` (`ruff format .` fixes) |
-| Founder's commands | `python -m app.admin <command> <email>`, commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
+| Founder's commands | `python -m app.admin <command> <email>`, commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend), and `move-photos <old> <new>` (rewrites the R2 address saved in `product.image_urls` and `store.logo_url`, for `images.oaksolve.com`); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
 | Frontend dev server | `npm run dev`: http://localhost:5173 |
 | Frontend lint | `npm run lint` (oxlint) |
 | Frontend build | `npm run build` (`tsc -b && vite build`, type-checks) |
@@ -1281,8 +1281,9 @@ and policy, endpoint list, JSONB shapes, link and tracking flows) matches
   literally). Payments can't be undone once paid or failed.
 - When the R2 public domain changes (planned `images.oaksolve.com`, domain bought 2026-10-09), existing
   absolute URLs in `product.image_urls` / `store.logo_url` must be
-  rewritten in the DB. Otherwise saving a product with old photos fails
-  the prefix check (`INVALID_IMAGE`).
+  rewritten in the DB (`python -m app.admin move-photos <old> <new>`,
+  docs/ADMIN.md). Otherwise saving a product with old photos fails the
+  prefix check (`INVALID_IMAGE`).
 - `*.r2.dev` is blocked on some networks, so photos look broken there
   (images fall back to placeholders).
 - A Telegram bot token is in git history and must be revoked before launch.

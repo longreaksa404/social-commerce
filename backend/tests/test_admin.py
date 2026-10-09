@@ -90,3 +90,44 @@ async def test_erasing_removes_the_shop_and_everything_in_it_only(client, auth_h
 
 def _store_column(model):
     return model.id if model is Store else model.store_id
+
+
+async def test_move_photos_points_saved_photos_and_logos_at_the_new_address(two_stores):
+    a, b = two_stores
+    old, new = "https://pub-old.r2.dev", "https://images.oaksolve.com"
+    shirt = await add_product(a.store_id, "shirt")
+    hat = await add_product(b.store_id, "hat")
+    bare = await add_product(b.store_id, "bare")
+    async with unscoped_session() as db:
+        (await db.get(Product, shirt)).image_urls = [
+            f"{old}/stores/{a.store_id}/products/{shirt}/1.jpg",
+            f"{old}/stores/{a.store_id}/products/{shirt}/2.jpg",
+        ]
+        hat_photo = f"{old}/stores/{b.store_id}/products/{hat}/1.jpg"
+        (await db.get(Product, hat)).image_urls = [hat_photo]
+        (await db.get(Store, a.store_id)).logo_url = f"{old}/stores/{a.store_id}/logo/l.png"
+        await db.commit()
+
+    moved = await admin.move_photos(old + "/", new)
+    again = await admin.move_photos(old, new)
+
+    assert (moved.products, moved.logos) == (2, 1)
+    assert (again.products, again.logos) == (0, 0)
+    async with unscoped_session() as db:
+        assert (await db.get(Product, shirt)).image_urls == [
+            f"{new}/stores/{a.store_id}/products/{shirt}/1.jpg",
+            f"{new}/stores/{a.store_id}/products/{shirt}/2.jpg",
+        ]
+        assert (await db.get(Product, hat)).image_urls == [
+            f"{new}/stores/{b.store_id}/products/{hat}/1.jpg"
+        ]
+        assert (await db.get(Product, bare)).image_urls == []
+        assert (await db.get(Store, a.store_id)).logo_url == f"{new}/stores/{a.store_id}/logo/l.png"
+        assert (await db.get(Store, b.store_id)).logo_url is None
+
+
+async def test_move_photos_needs_two_different_https_addresses():
+    with pytest.raises(admin.AdminError, match="two different https"):
+        await admin.move_photos("https://images.oaksolve.com", "https://images.oaksolve.com/")
+    with pytest.raises(admin.AdminError, match="two different https"):
+        await admin.move_photos("pub-old.r2.dev", "https://images.oaksolve.com")
