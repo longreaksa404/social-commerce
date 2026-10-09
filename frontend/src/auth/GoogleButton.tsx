@@ -56,7 +56,7 @@ export function GoogleButton({ onCredential }: { onCredential: (credential: stri
     <div>
       {/* Google's button keeps 44 px of height while it loads. */}
       <div ref={box} className="flex min-h-11 justify-center" />
-      {failed && <p className="mt-1.5 text-center text-sm text-slate-500">{t.auth.google.unavailable}</p>}
+      {failed && <p className="mt-1.5 text-center text-sm text-slate-500">{t.auth.social.unavailable}</p>}
     </div>
   )
 }

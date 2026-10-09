@@ -2,9 +2,15 @@ import uuid
 
 from pydantic import BaseModel, Field
 
-from app.models import SellerRole
+from app.models import LoginProvider, SellerRole
 from app.schemas.auth import Password
 from app.schemas.common import Name
+
+
+class LoginOut(BaseModel):
+    provider: LoginProvider
+    # Its email, or (TikTok, or no email given) its name.
+    label: str | None
 
 
 class AccountOut(BaseModel):
@@ -18,11 +24,11 @@ class AccountOut(BaseModel):
     full_name: str
     # owner: everything; staff: everything but Settings.
     role: SellerRole
-    # False for an account made with Google until it adds a password.
+    # False for an account made with Google, Facebook or TikTok until it
+    # adds a password.
     has_password: bool
-    # The Google account that logs in to this one, if any.
-    google_email: str | None = None
-    google_connected: bool = False
+    # The Google, Facebook and TikTok accounts that log in to this one.
+    logins: list[LoginOut] = []
 
 
 class AccountUpdate(BaseModel):

@@ -2,13 +2,15 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useState, type FormEvent } from 'react'
 import { CircleCheck } from 'lucide-react'
 import { GoogleButton } from '../../auth/GoogleButton.tsx'
+import { ProviderButton, ProviderLogo } from '../../auth/ProviderLogo.tsx'
 import { PhoneCheck } from '../../auth/PhoneCheck.tsx'
 import { useFeedback } from '../../components/feedback.ts'
-import { Button, ErrorMessage, ErrorState, Field, Input, PasswordInput, Section, Skeleton } from '../../components/ui.tsx'
+import { Badge, Button, ErrorMessage, ErrorState, Field, Input, PasswordInput, Section, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { api, saveTokens, type AccessToken } from '../../lib/api.ts'
 import { fieldError, formError } from '../../lib/errors.ts'
 import { GOOGLE_CLIENT_ID } from '../../lib/google.ts'
+import { oauthAvailable, PROVIDER_NAMES, startOAuth } from '../../lib/oauth.ts'
 import { formatPhone } from '../../lib/orders.ts'
 import type { Account, PhoneCheck as PhoneCheckState } from '../../lib/types.ts'
 import { keys, useAccount } from '../queries.ts'
@@ -25,7 +27,7 @@ export function AccountPage() {
     <div className="space-y-4">
       <DetailsForm account={account.data} />
       <LoginPhone account={account.data} />
-      <GoogleLogin account={account.data} />
+      <OtherLogins account={account.data} />
       <PasswordForm login={account.data.phone ?? account.data.email ?? ''} hasPassword={account.data.has_password} />
     </div>
   )
@@ -133,36 +135,66 @@ function LoginPhone({ account }: { account: Account }) {
   )
 }
 
-/** "Continue with Google" for this account: shows which Google account
- * logs in to it, and connects one (or another one). Hidden when Google
- * sign-in isn't set up. */
-function GoogleLogin({ account }: { account: Account }) {
+/** Google, Facebook and TikTok for this account: which ones log in to it,
+ * and connecting one (or another account of that kind). Google's button
+ * gives the token here; Facebook and TikTok go off to their page and come
+ * back through /auth/<provider>/callback. Only providers that are set up;
+ * nothing when none is. */
+function OtherLogins({ account }: { account: Account }) {
   const queryClient = useQueryClient()
   const { toast } = useFeedback()
-  const s = useT().settings
-  const connect = useMutation({
+  const t = useT()
+  const s = t.settings
+  const connectGoogle = useMutation({
     mutationFn: (credential: string) =>
       api<Account>('/seller/account/google', { method: 'POST', body: { credential } }),
     onSuccess: (updated) => {
       queryClient.setQueryData(keys.account, updated)
-      toast(s.googleConnected)
+      toast(s.loginConnected(PROVIDER_NAMES.google))
     },
   })
-  const { mutate } = connect
+  const { mutate } = connectGoogle
 
-  if (!GOOGLE_CLIENT_ID) return null
+  const providers = (['google', 'facebook', 'tiktok'] as const).filter((p) =>
+    p === 'google' ? GOOGLE_CLIENT_ID !== '' : oauthAvailable(p),
+  )
+  if (providers.length === 0) return null
   return (
-    <Section title={s.google} description={account.google_connected ? s.googleOn : s.googleOff}>
-      <div className="space-y-3">
-        {account.google_connected && (
-          <p className="flex items-center gap-2 font-medium text-slate-900">
-            <CircleCheck aria-hidden className="size-5 text-emerald-600" />
-            {account.google_email ?? s.googleAccount}
-          </p>
-        )}
-        {account.google_connected && <p className="text-xs text-slate-500">{s.googleSwitch}</p>}
-        <GoogleButton onCredential={mutate} />
-        <ErrorMessage error={connect.error} />
+    <Section title={s.otherLogins} description={s.otherLoginsHint}>
+      <ul className="-my-2 divide-y divide-slate-100">
+        {providers.map((provider) => {
+          const login = account.logins.find((l) => l.provider === provider)
+          const name = PROVIDER_NAMES[provider]
+          return (
+            <li key={provider} className="space-y-3 py-3">
+              <div className="flex items-center gap-3">
+                <ProviderLogo provider={provider} className="size-6" />
+                <span className="min-w-0 flex-1">
+                  <span className="block font-medium text-slate-900">{name}</span>
+                  {login && <span className="block truncate text-sm text-slate-500">{login.label ?? name}</span>}
+                </span>
+                {login && (
+                  <Badge tone="green">
+                    <CircleCheck aria-hidden className="mr-1 size-3.5" />
+                    {s.connectedAccount}
+                  </Badge>
+                )}
+              </div>
+              {provider === 'google' ? (
+                <GoogleButton onCredential={mutate} />
+              ) : (
+                <ProviderButton
+                  provider={provider}
+                  label={login ? s.useAnotherAccount : t.auth.social.continueWith(name)}
+                  onClick={() => startOAuth(provider, 'connect')}
+                />
+              )}
+            </li>
+          )
+        })}
+      </ul>
+      <div className="mt-3">
+        <ErrorMessage error={connectGoogle.error} />
       </div>
     </Section>
   )

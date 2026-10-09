@@ -75,7 +75,7 @@ async def test_off_without_a_client_id(client, monkeypatch):
     monkeypatch.setattr(get_settings(), "google_client_id", "")
     response = await client.post(GOOGLE, json={"credential": id_token()})
     assert response.status_code == 503
-    assert response.json()["error"]["code"] == "GOOGLE_NOT_CONFIGURED"
+    assert response.json()["error"]["code"] == "SOCIAL_NOT_CONFIGURED"
 
 
 async def test_someone_new_signs_up_with_a_checked_phone_then_logs_in(client):
@@ -85,6 +85,7 @@ async def test_someone_new_signs_up_with_a_checked_phone_then_logs_in(client):
     assert started.status_code == 200
     assert started.json()["access_token"] is None
     assert started.json()["signup"]["full_name"] == "Sokha Chan"
+    assert started.json()["signup"]["provider"] == "google"
     assert started.json()["signup"]["email"] == "sokha@gmail.com"
     assert "refresh_token" not in started.cookies
 
@@ -96,8 +97,7 @@ async def test_someone_new_signs_up_with_a_checked_phone_then_logs_in(client):
         "full_name": "Sokha",
         "role": "owner",
         "has_password": False,
-        "google_connected": True,
-        "google_email": "sokha@gmail.com",
+        "logins": [{"provider": "google", "label": "sokha@gmail.com"}],
     }
 
     again = await client.post(GOOGLE, json={"credential": id_token(sub)})
@@ -120,7 +120,7 @@ async def test_someone_new_signs_up_with_a_checked_phone_then_logs_in(client):
 async def test_tokens_google_didnt_make_for_us_are_refused(client, token):
     response = await client.post(GOOGLE, json={"credential": token()})
     assert response.status_code == 401
-    assert response.json()["error"]["code"] == "GOOGLE_SIGN_IN_FAILED"
+    assert response.json()["error"]["code"] == "SOCIAL_SIGN_IN_FAILED"
 
 
 async def test_an_unchecked_email_isnt_kept(client):
@@ -146,7 +146,7 @@ async def test_a_google_account_signs_up_once(client):
     )
 
     assert again.status_code == 409
-    assert again.json()["error"]["code"] == "GOOGLE_TAKEN"
+    assert again.json()["error"]["code"] == "SOCIAL_TAKEN"
 
 
 async def test_bad_signup_tokens_are_refused(client, register):
@@ -227,10 +227,7 @@ async def test_a_phone_seller_connects_google_in_settings(client, register):
     login = await client.post(GOOGLE, json={"credential": id_token(sub)})
 
     assert connected.status_code == 200, connected.text
-    assert (connected.json()["google_connected"], connected.json()["google_email"]) == (
-        True,
-        "dara@gmail.com",
-    )
+    assert connected.json()["logins"] == [{"provider": "google", "label": "dara@gmail.com"}]
     me = await client.get("/api/v1/seller/account", headers=bearer(login.json()["access_token"]))
     assert me.json()["phone"] == seller["phone"]
 
@@ -257,4 +254,4 @@ async def test_a_google_account_of_another_shop_cant_be_connected(client, regist
     )
 
     assert response.status_code == 409
-    assert response.json()["error"]["code"] == "GOOGLE_TAKEN"
+    assert response.json()["error"]["code"] == "SOCIAL_TAKEN"

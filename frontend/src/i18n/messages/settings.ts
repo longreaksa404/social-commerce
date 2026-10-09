@@ -299,8 +299,8 @@ export const settings = {
 
   yourAccount: { en: 'Your account', km: 'គណនីរបស់អ្នក' },
   yourAccountHint: {
-    en: 'You log in with your phone number and password. Customers never see these.',
-    km: 'អ្នកចូលគណនីដោយលេខទូរស័ព្ទ និងពាក្យសម្ងាត់របស់អ្នក។ អតិថិជនមិនឃើញព័ត៌មានទាំងនេះទេ។',
+    en: 'Who you are and how you log in. Customers never see these.',
+    km: 'អ្នកជានរណា និងរបៀបដែលអ្នកចូលគណនី។ អតិថិជនមិនឃើញព័ត៌មានទាំងនេះទេ។',
   },
   yourDetails: { en: 'Your details', km: 'ព័ត៌មានរបស់អ្នក' },
   yourName: { en: 'Your name', km: 'ឈ្មោះរបស់អ្នក' },
@@ -319,25 +319,21 @@ export const settings = {
     km: 'គណនីផ្សេងមានលេខនេះរួចហើយ។',
   },
   loginEmail: { en: 'Email you log in with', km: 'អ៊ីមែលដែលអ្នកប្រើចូលគណនី' },
-  google: { en: 'Google', km: 'Google' },
-  googleOn: {
-    en: 'You can log in with this Google account too.',
-    km: 'អ្នកក៏អាចចូលគណនីដោយគណនី Google នេះបានដែរ។',
+  otherLogins: { en: 'Other ways to log in', km: 'វិធីផ្សេងទៀតដើម្បីចូលគណនី' },
+  otherLoginsHint: {
+    en: 'Log in with one tap using your Google, Facebook or TikTok account, as well as your phone number.',
+    km: 'ចូលគណនីដោយចុចតែម្ដង ជាមួយគណនី Google, Facebook ឬ TikTok របស់អ្នក ក្រៅពីលេខទូរស័ព្ទ។',
   },
-  googleOff: {
-    en: 'Log in with one tap using your Google account, as well as your phone number.',
-    km: 'ចូលគណនីដោយចុចតែម្ដង ជាមួយគណនី Google របស់អ្នក ក្រៅពីលេខទូរស័ព្ទ។',
+  connectedAccount: { en: 'Connected', km: 'បានភ្ជាប់' },
+  useAnotherAccount: { en: 'Use another account', km: 'ប្រើគណនីផ្សេង' },
+  loginConnected: {
+    en: (provider: string) => `${provider} connected`,
+    km: (provider: string) => `បានភ្ជាប់ ${provider}`,
   },
-  googleAccount: { en: 'Google account connected', km: 'បានភ្ជាប់គណនី Google' },
-  googleSwitch: {
-    en: 'To use another Google account instead, choose it below.',
-    km: 'ដើម្បីប្រើគណនី Google ផ្សេងជំនួសវិញ សូមជ្រើសវាខាងក្រោម។',
-  },
-  googleConnected: { en: 'Google connected', km: 'បានភ្ជាប់ Google' },
   addPassword: { en: 'Add a password', km: 'បន្ថែមពាក្យសម្ងាត់' },
   addPasswordHint: {
-    en: 'To log in with your phone number too, not only with Google.',
-    km: 'ដើម្បីចូលគណនីដោយលេខទូរស័ព្ទបានផងដែរ មិនមែនតែតាម Google ប៉ុណ្ណោះ។',
+    en: 'To log in with your phone number and a password too.',
+    km: 'ដើម្បីចូលគណនីដោយលេខទូរស័ព្ទ និងពាក្យសម្ងាត់បានផងដែរ។',
   },
   passwordAdded: { en: 'Password added', km: 'បានបន្ថែមពាក្យសម្ងាត់' },
   detailsSaved: { en: 'Details saved', km: 'បានរក្សាទុកព័ត៌មាន' },

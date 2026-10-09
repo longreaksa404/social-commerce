@@ -37,6 +37,14 @@ services:
         value: https://order.oaksolve.com
       - key: GOOGLE_CLIENT_ID
         sync: false
+      - key: FACEBOOK_APP_ID
+        sync: false
+      - key: FACEBOOK_APP_SECRET
+        sync: false
+      - key: TIKTOK_CLIENT_KEY
+        sync: false
+      - key: TIKTOK_CLIENT_SECRET
+        sync: false
       - key: R2_ACCOUNT_ID
         sync: false
       - key: R2_ACCESS_KEY_ID

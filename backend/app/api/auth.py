@@ -1,18 +1,24 @@
 import uuid
+from typing import Literal
 
 from fastapi import APIRouter, BackgroundTasks, Request, Response, status
 
 from app.api.deps import UnscopedDb
 from app.api.session_cookie import RefreshCookie, end_session, start_session
+from app.core import google as google_auth
+from app.core import oauth
 from app.core.ratelimit import limiter
+from app.models import LoginProvider
 from app.schemas.auth import (
     AccessOut,
     GoogleIn,
     LoginIn,
+    OAuthIn,
     PasswordResetConfirm,
     PasswordResetIn,
     PhoneCheckOut,
     RegisterIn,
+    SignupStart,
     SocialOut,
     SocialRegisterIn,
     TokenPair,
@@ -88,9 +94,29 @@ async def read_phone_check(request: Request, check_id: uuid.UUID, db: UnscopedDb
 @router.post("/google", response_model=SocialOut)
 @limiter.limit("10/minute")
 async def google(request: Request, response: Response, data: GoogleIn, db: UnscopedDb) -> SocialOut:
-    """ "Continue with Google": logs in the seller this Google account
+    """Continue with Google: logs in the seller this Google account
     belongs to, or answers `signup` for someone new."""
-    result = await social_service.google_sign_in(db, data.credential)
+    account = await google_auth.verify(data.credential)
+    return _social_out(response, await social_service.sign_in(db, account))
+
+
+@router.post("/oauth/{provider}", response_model=SocialOut)
+@limiter.limit("10/minute")
+async def oauth_sign_in(
+    request: Request,
+    response: Response,
+    provider: Literal["facebook", "tiktok"],
+    data: OAuthIn,
+    db: UnscopedDb,
+) -> SocialOut:
+    """Continue with Facebook / TikTok: the code the provider sent the
+    browser back with. Logs in, or answers `signup` for someone new."""
+    exchange = oauth.facebook if provider == LoginProvider.FACEBOOK else oauth.tiktok
+    account = await exchange(data.code, data.redirect_uri)
+    return _social_out(response, await social_service.sign_in(db, account))
+
+
+def _social_out(response: Response, result: TokenPair | SignupStart) -> SocialOut:
     if isinstance(result, TokenPair):
         return SocialOut(access_token=start_session(response, result).access_token)
     return SocialOut(signup=result)
@@ -101,6 +127,6 @@ async def google(request: Request, response: Response, data: GoogleIn, db: Unsco
 async def social_register(
     request: Request, response: Response, data: SocialRegisterIn, db: UnscopedDb
 ) -> AccessOut:
-    """Someone new from "Continue with Google": their shop, with a phone
-    number checked in Telegram."""
+    """Someone new from Continue with Google / Facebook / TikTok: their
+    shop, with a phone number checked in Telegram."""
     return start_session(response, await social_service.register(db, data))

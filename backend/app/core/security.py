@@ -85,11 +85,17 @@ def create_reset_token(seller_id: uuid.UUID, password_hash: str | None) -> str:
     )
 
 
-def create_signup_token(provider: str, provider_user_id: str, email: str | None) -> str:
-    """Someone new from "Continue with Google" (Facebook, TikTok later):
-    what they proved, carried to POST /auth/social/register. Not stored."""
+def create_signup_token(provider: str, provider_user_id: str, email: str | None, name: str) -> str:
+    """Someone new from "Continue with Google / Facebook / TikTok": what
+    they proved, carried to POST /auth/social/register. Not stored."""
     return _encode(
-        {"type": "signup", "sub": provider_user_id, "provider": provider, "email": email},
+        {
+            "type": "signup",
+            "sub": provider_user_id,
+            "provider": provider,
+            "email": email,
+            "name": name,
+        },
         timedelta(minutes=SIGNUP_TOKEN_MINUTES),
     )
 

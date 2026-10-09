@@ -6,16 +6,17 @@ import { Button, ErrorMessage, Field, Input, SlowNotice } from '../components/ui
 import { useT } from '../i18n/useT.ts'
 import { api, ApiError, type AccessToken } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
+import { PROVIDER_NAMES } from '../lib/oauth.ts'
 import { forgetSignup, savedSignup } from '../lib/signup.ts'
 import type { PhoneCheck as Check, SignupStart } from '../lib/types.ts'
 import { AuthLayout } from './AuthLayout.tsx'
 
 const FIELDS = ['store_name', 'full_name', 'phone_check']
 
-/** /register/google: someone new from "Continue with Google" names their
- * shop and proves a phone number in Telegram, like any sign-up, so every
- * shop has a real number. No password: Google is how they log in (they
- * can add one in Settings). */
+/** /register/finish: someone new from "Continue with Google / Facebook /
+ * TikTok" names their shop and proves a phone number in Telegram, like any
+ * sign-up, so every shop has a real number. No password: that account is
+ * how they log in (they can add one in Settings). */
 export function FinishSignup() {
   const location = useLocation()
   const signup = (location.state as SignupStart | null) ?? savedSignup()
@@ -34,7 +35,8 @@ function FinishForm({ signup }: { signup: SignupStart }) {
   const [error, setError] = useState<unknown>(null)
   const [pending, setPending] = useState(false)
   const t = useT()
-  const g = t.auth.google
+  const g = t.auth.social
+  const provider = PROVIDER_NAMES[signup.provider]
 
   const onPhone = useCallback((check: Check | null) => {
     setPhone(check)
@@ -78,7 +80,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
   return (
     <AuthLayout
       title={g.finishTitle}
-      subtitle={g.signedInAs(signup.email ?? signup.full_name)}
+      subtitle={g.signedInAs(provider, signup.email ?? signup.full_name)}
       footer={
         <>
           {t.auth.register.haveAccount}{' '}
@@ -125,7 +127,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
               label={t.auth.phone}
               error={fieldError(error, 'phone_check')}
               onChange={onPhone}
-              taken={<p className="text-sm text-slate-700">{g.phoneHasShop}</p>}
+              taken={<p className="text-sm text-slate-700">{g.phoneHasShop(provider)}</p>}
             />
             {!phone && <p className="mt-1.5 text-xs leading-5 text-slate-500">{g.phoneWhy}</p>}
           </div>

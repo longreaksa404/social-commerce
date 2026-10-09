@@ -32,8 +32,13 @@ export const auth = {
   // Accounts from before 2026-10-09 (and their staff) log in with an email.
   useEmail: { en: 'Log in with email instead', km: 'ចូលដោយអ៊ីមែលជំនួសវិញ' },
   usePhone: { en: 'Log in with phone number', km: 'ចូលដោយលេខទូរស័ព្ទ' },
-  // "Continue with Google" (Google draws its own button, in the app's language).
-  google: {
+  // "Continue with Google / Facebook / TikTok". Google draws its own
+  // button, in the app's language; Facebook's and TikTok's are ours.
+  social: {
+    continueWith: {
+      en: (provider: string) => `Continue with ${provider}`,
+      km: (provider: string) => `បន្តជាមួយ ${provider}`,
+    },
     or: { en: 'or with your phone number', km: 'ឬដោយលេខទូរស័ព្ទរបស់អ្នក' },
     unavailable: {
       en: "Google sign-in didn't load. Check your connection, or use your phone number.",
@@ -41,21 +46,36 @@ export const auth = {
     },
     finishTitle: { en: 'Set up your shop', km: 'រៀបចំហាងរបស់អ្នក' },
     signedInAs: {
-      en: (who: string) => `Signed in with Google as ${who}.`,
-      km: (who: string) => `បានចូលដោយ Google ជា ${who}។`,
+      en: (provider: string, who: string) => `Signed in with ${provider} as ${who}.`,
+      km: (provider: string, who: string) => `បានចូលដោយ ${provider} ជា ${who}។`,
     },
     phoneWhy: {
       en: 'Every shop has a real phone number: customers and Oak Order can reach you, and you can log in with it too.',
       km: 'ហាងនីមួយៗមានលេខទូរស័ព្ទពិត៖ អតិថិជន និង Oak Order អាចទាក់ទងអ្នកបាន ហើយអ្នកក៏អាចប្រើវាចូលគណនីបានដែរ។',
     },
     phoneHasShop: {
-      en: 'This number already has a shop. Log in with it, then connect Google in Settings → Your account.',
-      km: 'លេខនេះមានហាងរួចហើយ។ សូមចូលគណនីដោយលេខនោះ រួចភ្ជាប់ Google ក្នុង ការកំណត់ → គណនីរបស់អ្នក។',
+      en: (provider: string) =>
+        `This number already has a shop. Log in with it, then connect ${provider} in Settings → Your account.`,
+      km: (provider: string) =>
+        `លេខនេះមានហាងរួចហើយ។ សូមចូលគណនីដោយលេខនោះ រួចភ្ជាប់ ${provider} ក្នុង ការកំណត់ → គណនីរបស់អ្នក។`,
     },
     expired: {
-      en: 'This took too long. Start again with Continue with Google.',
-      km: 'ចំណាយពេលយូរពេក។ សូមចាប់ផ្ដើមម្ដងទៀតជាមួយ “បន្តជាមួយ Google”។',
+      en: 'This took too long. Please start again.',
+      km: 'ចំណាយពេលយូរពេក។ សូមចាប់ផ្ដើមម្ដងទៀត។',
     },
+    // /auth/<provider>/callback: back from Facebook or TikTok.
+    working: { en: 'Logging you in…', km: 'កំពុងចូលគណនី…' },
+    failedTitle: { en: "Couldn't log you in", km: 'មិនអាចចូលគណនីបាន' },
+    cancelled: {
+      en: (provider: string) => `${provider} didn't log you in (it was cancelled or refused).`,
+      km: (provider: string) => `${provider} មិនបានឱ្យអ្នកចូលទេ (បានបោះបង់ ឬត្រូវបានបដិសេធ)។`,
+    },
+    stale: {
+      en: 'This sign-in expired or was started in another browser. Please try again.',
+      km: 'ការចូលនេះផុតកំណត់ ឬត្រូវបានចាប់ផ្ដើមក្នុងកម្មវិធីរុករកផ្សេង។ សូមព្យាយាមម្ដងទៀត។',
+    },
+    tryAgain: { en: 'Back to log in', km: 'ត្រឡប់ទៅចូលគណនី' },
+    backToAccount: { en: 'Back to Your account', km: 'ត្រឡប់ទៅគណនីរបស់អ្នក' },
   },
   // Proving the phone number through the Telegram bot. The bot's button is
   // “ចែករំលែកលេខទូរស័ព្ទ” (backend/app/services/telegram.py).

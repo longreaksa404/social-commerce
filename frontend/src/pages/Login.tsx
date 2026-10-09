@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
-import { ContinueWithGoogle } from '../auth/ContinueWithGoogle.tsx'
+import { SocialButtons } from '../auth/SocialButtons.tsx'
 import { useAuth } from '../auth/useAuth.ts'
 import { Button, ErrorMessage, Field, PasswordInput, SlowNotice } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
@@ -48,7 +48,7 @@ export function Login() {
         </>
       }
     >
-      <ContinueWithGoogle />
+      <SocialButtons />
       <form onSubmit={submit} className="space-y-4">
         <LoginField value={login} onChange={setLogin} byEmail={byEmail} onByEmailChange={setByEmail} enterKeyHint="next" />
         <Field label={t.auth.password}>

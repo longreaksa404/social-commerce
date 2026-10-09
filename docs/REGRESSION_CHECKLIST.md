@@ -97,6 +97,7 @@ phone or laptop) before going on.
 
 - [ ] Register a new shop with a phone number: "Verify with Telegram" opens the bot, "Share my phone number" there, and the page shows the number as verified within a few seconds; a number that already has a shop says so with a Log in link. After creating the store, Telegram alerts are already on (Settings → Alerts), and you can log in with the number written as `+855 …`.
 - [ ] Continue with Google (once the client ID is set) on a phone: a new Google account goes to "Set up your shop", verifies a phone in Telegram and lands in the new shop; next time the same button logs straight in. Settings → Your account shows the Google email and "Add a password"; after adding one, the phone number and password log in too. A phone seller connects Google there and then logs in with it.
+- [ ] Continue with Facebook and Continue with TikTok (once their apps are set up and approved), on a phone: a new account goes to "Set up your shop" and on to the new shop; next time it logs straight in. Cancelling on Facebook's or TikTok's page comes back to "Couldn't log you in". Settings → Your account → Other ways to log in connects each one and shows its email or name.
 - [ ] Register a new shop: the Orders tab says "Add your first product" and that delivery is free until a fee is set; Settings has "Set up your shop" and the Settings tab a dot, gone once a product, the delivery fee and the ways to pay are saved.
 
 **Settings**

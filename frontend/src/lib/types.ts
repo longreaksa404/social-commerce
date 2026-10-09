@@ -88,12 +88,17 @@ export type Account = {
   email: string | null
   full_name: string
   role: Role
-  /** False for an account made with Google until it adds a password. */
+  /** False for an account made with Google, Facebook or TikTok until it
+   * adds a password. */
   has_password: boolean
-  /** A Google account logs in to this one too (its email, if Google gave one). */
-  google_connected: boolean
-  google_email: string | null
+  /** The Google, Facebook and TikTok accounts that log in to this one. */
+  logins: SocialLogin[]
 }
+
+export type SocialProvider = 'google' | 'facebook' | 'tiktok'
+
+/** label: the account's email, or (TikTok, or no email) its name. */
+export type SocialLogin = { provider: SocialProvider; label: string | null }
 
 /** A helper the owner added (Settings → Staff); logs in with the phone. */
 export type StaffMember = {
@@ -464,9 +469,16 @@ export type LinkStats = ShareLink & {
   orders: OrderSummary[]
 }
 
-/** Someone new from "Continue with Google": they finish with a shop name
- * and a phone checked in Telegram (POST /auth/social/register). */
-export type SignupStart = { signup_token: string; full_name: string; email: string | null }
+/** Someone new from "Continue with Google / Facebook / TikTok": they
+ * finish with a shop name and a phone checked in Telegram
+ * (POST /auth/social/register). */
+export type SignupStart = {
+  provider: SocialProvider
+  signup_token: string
+  full_name: string
+  email: string | null
+}
 
-/** POST /auth/google: logged in (access_token), or someone new (signup). */
+/** POST /auth/google or /auth/oauth/{provider}: logged in (access_token),
+ * or someone new (signup). */
 export type SocialResult = { access_token: string | null; signup: SignupStart | null }

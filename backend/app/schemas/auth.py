@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, AliasChoices, BaseModel, Field
 
+from app.models import LoginProvider
 from app.schemas.common import Name
 
 
@@ -83,18 +84,28 @@ class GoogleIn(BaseModel):
     credential: str = Field(min_length=1, max_length=4000)
 
 
-class SignupStart(BaseModel):
-    """A Google account with no shop yet: the seller finishes signing up
-    (shop name, phone checked in Telegram) with POST /auth/social/register."""
+class OAuthIn(BaseModel):
+    """What Facebook or TikTok sent the browser back with: a one-time code,
+    and the callback page's address (the code was made for it)."""
 
+    code: str = Field(min_length=1, max_length=2000)
+    redirect_uri: str = Field(max_length=500)
+
+
+class SignupStart(BaseModel):
+    """A Google, Facebook or TikTok account with no shop yet: the seller
+    finishes signing up (shop name, phone checked in Telegram) with POST
+    /auth/social/register."""
+
+    provider: LoginProvider
     signup_token: str
     full_name: str
     email: str | None
 
 
 class SocialOut(BaseModel):
-    """After "Continue with Google": logged in (access_token, and the
-    refresh cookie is set), or someone new (signup)."""
+    """After "Continue with Google / Facebook / TikTok": logged in
+    (access_token, and the refresh cookie is set), or someone new (signup)."""
 
     access_token: str | None = None
     token_type: Literal["bearer"] = "bearer"

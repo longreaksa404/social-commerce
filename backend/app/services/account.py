@@ -34,15 +34,13 @@ async def get_account(db: AsyncSession, seller_id: uuid.UUID) -> Seller:
 
 
 async def describe(db: AsyncSession, seller: Seller) -> AccountOut:
-    google_connected, google_email = await social.google_email(db, seller.id)
     return AccountOut(
         phone=seller.phone,
         email=seller.email,
         full_name=seller.full_name,
         role=seller.role,
         has_password=seller.has_password,
-        google_connected=google_connected,
-        google_email=google_email,
+        logins=await social.logins(db, seller.id),
     )
 
 

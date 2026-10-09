@@ -17,13 +17,13 @@ export const KM_BY_MESSAGE: Record<string, string> = {
     'សូមផ្ទៀងផ្ទាត់លេខទូរស័ព្ទរបស់អ្នកជាមួយ Telegram ជាមុនសិន។',
   'This check has expired. Verify your phone number again.':
     'ការផ្ទៀងផ្ទាត់នេះផុតកំណត់ហើយ។ សូមផ្ទៀងផ្ទាត់លេខទូរស័ព្ទម្ដងទៀត។',
-  "Google sign-in didn't work. Please try again.": 'ការចូលដោយ Google មិនបានសម្រេច។ សូមព្យាយាមម្ដងទៀត។',
-  'Google sign-in is off.': 'ការចូលដោយ Google កំពុងបិទ។',
-  'This Google account already has a shop. Log in with Google.':
-    'គណនី Google នេះមានហាងរួចហើយ។ សូមចូលគណនីដោយ Google។',
-  'This Google account already logs in to another shop.': 'គណនី Google នេះត្រូវបានប្រើចូលហាងផ្សេងរួចហើយ។',
-  'This sign-up took too long. Tap Continue with Google again.':
-    'ការចុះឈ្មោះនេះចំណាយពេលយូរពេក។ សូមចុច “បន្តជាមួយ Google” ម្ដងទៀត។',
+  "That sign-in didn't work. Please try again.": 'ការចូលនោះមិនបានសម្រេច។ សូមព្យាយាមម្ដងទៀត។',
+  'This way of logging in is off.': 'វិធីចូលគណនីនេះកំពុងបិទ។',
+  'This account already has a shop. Log in with it.': 'គណនីនេះមានហាងរួចហើយ។ សូមចូលដោយប្រើគណនីនោះ។',
+  'This account already logs in to another shop.': 'គណនីនេះត្រូវបានប្រើចូលហាងផ្សេងរួចហើយ។',
+  'This sign-up took too long. Please start again.':
+    'ការចុះឈ្មោះនេះចំណាយពេលយូរពេក។ សូមចាប់ផ្ដើមម្ដងទៀត។',
+  'That sign-in came back to the wrong page.': 'ការចូលនោះត្រឡប់មកទំព័រខុស។',
   'Phone checks need the Telegram bot, which is off.':
     'ការផ្ទៀងផ្ទាត់លេខទូរស័ព្ទត្រូវការ bot Telegram ដែលកំពុងបិទ។',
   'This shop is closed. Message Oak Order to open it again.':

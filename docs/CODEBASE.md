@@ -113,7 +113,8 @@ Render's health check.
 | Domain + Cloudflare DNS | DONE (live 2026-10-09) | `order.oaksolve.com` (Vercel), `api.oaksolve.com` (Render; `render.yaml` `PUBLIC_API_URL` / `PUBLIC_APP_URL`), `images.oaksolve.com` (R2, `R2_PUBLIC_URL`); the login page shows `order.oaksolve.com`. `oaksolve.com` (302) and the vercel.app address (308) forward to it (04) |
 | Refresh token in an httpOnly cookie (part of the domain work in 04) | DONE (live 2026-10-09) | `backend/app/api/session_cookie.py`, `frontend/src/lib/api.ts`; only works once app and API share oaksolve.com |
 | Phone check through the Telegram bot (founder's choice 2026-10-09: sellers sign up with a real phone; Google, then Facebook and TikTok, to follow) | DONE | `phone_check` table, `POST/GET /auth/phone-checks`, `services/phone_check.py`, the bot's share button (`services/telegram.py`), `app/telegram_poll.py` for laptops; `auth/PhoneCheck.tsx` |
-| Continue with Google (same decision; Facebook and TikTok later) | DONE (needs the founder's Google client ID) | `core/google.py`, `services/social.py`, `seller_login`, `POST /auth/google`, `/auth/social/register`, `/seller/account/google`; `auth/ContinueWithGoogle.tsx`, `pages/FinishSignup.tsx`, Settings → Your account (Google, Add a password); migration `4520c66e86de` |
+| Continue with Google (same decision) | DONE (needs the founder's Google client ID) | `core/google.py`, `services/social.py`, `seller_login`, `POST /auth/google`, `/auth/social/register`, `/seller/account/google`; `auth/SocialButtons.tsx`, `auth/GoogleButton.tsx`, `pages/FinishSignup.tsx`, Settings → Your account (Google, Add a password); migration `4520c66e86de` |
+| Continue with Facebook and TikTok (same decision) | DONE (needs the founder's Meta and TikTok apps) | `core/oauth.py`, `POST /auth/oauth/{provider}`, `/seller/account/oauth/{provider}`; `lib/oauth.ts`, `pages/OAuthCallback.tsx`, `auth/SocialButtons.tsx`, Settings → Your account → Other ways to log in; migration `39a133fd8c02` |
 | Phone number login (same decision) | DONE | Register with a finished phone check (no email), login by phone or an older account's email (`auth.login_filter`, `pages/LoginField.tsx`), staff added by phone, Your account → change number through Telegram (`POST /seller/account/phone`), `python -m app.admin test-shop`; migration `005c6870a409` |
 | Khmer / English switch | DONE | `frontend/src/i18n/`. The founder hasn't reviewed the Khmer yet; the Telegram bot's messages are Khmer only (2026-10-09) |
 | Light / dark mode | DONE | `src/theme/`, `index.css`, the inline script in `index.html` |
@@ -166,6 +167,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 │   │   │   ├── errors.py      AppError, NotFound, the error envelope and handlers
 │   │   │   ├── security.py    bcrypt (in a thread), JWT encode/decode (access, refresh, reset, signup)
 │   │   │   ├── google.py      Checks "Continue with Google" ID tokens against Google's keys
+│   │   │   ├── oauth.py       SocialAccount; trades Facebook / TikTok codes for the account (app secret)
 │   │   │   └── ratelimit.py   slowapi limiter keyed on CF-Connecting-IP; check_limit()
 │   │   ├── db/
 │   │   │   ├── base.py        Base, naming convention, UUIDPrimaryKeyMixin, CreatedAtMixin, TenantMixin
@@ -211,7 +213,7 @@ Backend modules, one line each:
 | `models/link.py` | `ShareableLink`, `LinkEvent`, `LinkTarget`, `LinkEventType` |
 | `models/notification.py` | `NotificationLog`, `NotificationChannel`, `NotificationStatus` |
 | `services/auth.py` | `create_shop` (seller and store together, with a checked phone), register, login (`login_filter`), `log_in`, refresh rotation and reuse detection, logout, `restart_sessions` (after a password change) |
-| `services/social.py` | "Continue with Google": sign in or start a sign-up, finish it (`register`), connect Google to an account (`connect_google`) |
+| `services/social.py` | "Continue with Google / Facebook / TikTok": sign in or start a sign-up (`sign_in`), finish it (`register`), connect an account in Settings (`connect`), list them (`logins`) |
 | `services/account.py` | The logged-in seller's own details and password change, closing a shop (unscoped session, filtered by the token's seller id) |
 | `services/staff.py` | The owner's staff: list, add, set a password, remove (unscoped session, filtered by the token's store id and role staff) |
 | `services/store.py` | Get/update the store; validates the three settings blobs and logo URLs |
@@ -286,8 +288,11 @@ blocks the deploy (04).
 | `PUBLIC_APP_URL` | backend | Base for the "Open order" button in alerts (only if https) |
 | `VITE_API_URL` | frontend, middleware.ts | API base; defaults to `http://localhost:8000` |
 | `VITE_SENTRY_DSN` | frontend | Optional |
-| `GOOGLE_CLIENT_ID` | backend | The Google OAuth client ID ("Web application"); empty: `/auth/google` answers 503 `GOOGLE_NOT_CONFIGURED`. Not a secret. In `render.yaml` as `sync: false` |
+| `GOOGLE_CLIENT_ID` | backend | The Google OAuth client ID ("Web application"); empty: `/auth/google` answers 503 `SOCIAL_NOT_CONFIGURED`. Not a secret. In `render.yaml` as `sync: false` |
+| `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET` | backend | The Meta app; both, or Facebook login is off (`facebook_configured`). The secret stays on the server |
+| `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET` | backend | The TikTok app (Login Kit); both, or TikTok login is off (`tiktok_configured`) |
 | `VITE_GOOGLE_CLIENT_ID` | frontend | The same client ID, for Google's button (`src/lib/google.ts`); empty hides every Google button |
+| `VITE_FACEBOOK_APP_ID`, `VITE_TIKTOK_CLIENT_KEY` | frontend | The public IDs for the Facebook / TikTok sign-in links (`src/lib/oauth.ts`); empty hides that button |
 | `VITE_SUPPORT_TELEGRAM` | frontend | Oak Order's own Telegram username (no @) for sellers' "Get help" links (`src/lib/support.ts`); empty hides them |
 | `VITE_USE_POLLING`, `WATCHFILES_FORCE_POLLING` | dev container | File polling (the repo is on a Windows drive mount) |
 | `BACKUP_DATABASE_URL`, `BACKUP_R2_ACCOUNT_ID`, `BACKUP_R2_ACCESS_KEY_ID`, `BACKUP_R2_SECRET_ACCESS_KEY`, `BACKUP_R2_BUCKET` | GitHub Actions secrets | Nightly backup workflow |
@@ -412,31 +417,45 @@ starts a new transaction.
 - `decode_token` requires `exp`, `sub` and `type`, and checks the type. An
   expired token raises 401 `TOKEN_EXPIRED`; any other bad token raises 401
   `INVALID_TOKEN`.
-- **Continue with Google** (founder's choice 2026-10-09; Facebook and
-  TikTok to follow as more `LoginProvider` values). The page's Google
-  button hands an ID token to `POST /auth/google`. `core/google.py` checks
-  it (RS256 against Google's keys via `PyJWKClient`, cached 6 h, fetched in
-  a thread; audience = `GOOGLE_CLIENT_ID`; issuer `accounts.google.com`;
-  `exp`/`iat`/`sub` required) → 401 `GOOGLE_SIGN_IN_FAILED` otherwise. A
-  `seller_login` row for that Google `sub` → logged in (`auth.log_in`:
-  closed shop 403, refresh cookie set, `SocialOut.access_token`). Otherwise
-  `SocialOut.signup`: a signup JWT (`{"type": "signup", "sub",
-  "provider", "email"}`, 30 min, not stored), Google's name, and the email
-  only if Google says it's verified. `POST /auth/social/register` finishes
-  it with `full_name`, `store_name` and a `phone_check` like any sign-up
-  (`auth.create_shop`), **no password**, and the `seller_login` row; bad
-  or expired token → 400 `SIGNUP_EXPIRED`; the Google account already has
-  a shop → 409 `GOOGLE_TAKEN`; the phone already has one → 409
-  `PHONE_TAKEN`. **A Google account is never joined to a shop by email or
-  phone**: someone with a phone shop logs in and connects Google in
-  Settings → Your account (`POST /seller/account/google`, which replaces a
-  Google account connected before; one connected to another shop → 409
-  `GOOGLE_TAKEN`). The Google email lives on `seller_login.email`, not
-  `seller.email`. An account without a password: phone + password login
-  fails like a wrong password; `POST /seller/account/password` without
-  `current_password` adds one; close shop needs no password; Forgot
-  password still works (the reset fingerprint of no password is the hash
-  of "").
+- **Continue with Google / Facebook / TikTok** (founder's choice
+  2026-10-09; `LoginProvider` google, facebook, tiktok). Who the account
+  is: `core/google.py` checks Google's ID token from its button (`POST
+  /auth/google {credential}`: RS256 against Google's keys via
+  `PyJWKClient`, cached 6 h, fetched in a thread; audience =
+  `GOOGLE_CLIENT_ID`; issuer `accounts.google.com`; `exp`/`iat`/`sub`
+  required). Facebook and TikTok send the browser to their page and back
+  to `/auth/<provider>/callback?code=&state=`; `POST
+  /auth/oauth/{provider} {code, redirect_uri}` and `core/oauth.py` trade
+  the code with the app's secret: Facebook `GET
+  graph.facebook.com/v26.0/oauth/access_token`, then `/me?fields=id,name,email`
+  with `appsecret_proof` (HMAC-SHA256 of the token with the secret);
+  TikTok `POST open.tiktokapis.com/v2/oauth/token/` (form: client_key,
+  client_secret, code, grant_type, redirect_uri; no PKCE, the web flow
+  doesn't use it), its `open_id`, then `/v2/user/info/?fields=open_id,display_name`.
+  `redirect_uri` must be `<one of CORS_ORIGINS or PUBLIC_APP_URL>/auth/<that
+  provider>/callback` (else 422 `INVALID_REDIRECT`, before calling the
+  provider). Any failure → 401 `SOCIAL_SIGN_IN_FAILED`; not set up → 503
+  `SOCIAL_NOT_CONFIGURED`. The email is kept only when the provider says
+  it's checked (TikTok gives none). Then `services/social.py`: a
+  `seller_login` row for that (provider, account id) → logged in
+  (`auth.log_in`: closed shop 403, refresh cookie set,
+  `SocialOut.access_token`). Otherwise `SocialOut.signup`: the provider, a
+  signup JWT (`{"type": "signup", "sub", "provider", "email", "name"}`, 30
+  min, not stored), the name and email. `POST /auth/social/register`
+  finishes it with `full_name`, `store_name` and a `phone_check` like any
+  sign-up (`auth.create_shop`), **no password**, and the `seller_login`
+  row; bad or expired token → 400 `SIGNUP_EXPIRED`; the account already
+  has a shop → 409 `SOCIAL_TAKEN`; the phone already has one → 409
+  `PHONE_TAKEN`. **An account is never joined to a shop by email or
+  phone**: someone with a shop logs in and connects it in Settings → Your
+  account (`POST /seller/account/google`, `POST
+  /seller/account/oauth/{provider}`; replaces an account of the same kind
+  connected before; one connected to another shop → 409 `SOCIAL_TAKEN`).
+  The provider's email and name live on `seller_login`, not `seller`. An
+  account without a password: phone + password login fails like a wrong
+  password; `POST /seller/account/password` without `current_password`
+  adds one; close shop needs no password; Forgot password still works
+  (the reset fingerprint of no password is the hash of "").
 - Changing the login number (`POST /seller/account/phone {phone_check}`):
   a check finished in Telegram, as at sign-up; another account's number →
   409 `PHONE_TAKEN`; your own again is fine. The email can't be changed
@@ -554,7 +573,7 @@ Codes in use: `ACCOUNT_DISABLED`, `ACCOUNT_NOT_FOUND`, `CATEGORY_NOT_FOUND`,
 `INVALID_TOKEN`, `LINK_NOT_FOUND`, `NOT_AUTHENTICATED`, `NOT_FOUND`,
 `ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`, `ORDERS_PAUSED`,
 `PHONE_CHECK_EXPIRED`, `PHONE_NOT_VERIFIED`, `PHONE_TAKEN`, `TELEGRAM_NOT_CONFIGURED`,
-`GOOGLE_SIGN_IN_FAILED`, `GOOGLE_NOT_CONFIGURED`, `GOOGLE_TAKEN`, `SIGNUP_EXPIRED`,
+`SOCIAL_SIGN_IN_FAILED`, `SOCIAL_NOT_CONFIGURED`, `SOCIAL_TAKEN`, `SIGNUP_EXPIRED`, `INVALID_REDIRECT`,
 `ORDER_TOTAL_CHANGED`, `PAYMENT_METHOD_UNAVAILABLE`, `PRODUCT_HIDDEN`,
 `PRODUCT_NOT_FOUND`, `PRODUCT_OUT_OF_STOCK`, `PRODUCT_UNAVAILABLE`,
 `OWNER_ONLY`, `RATE_LIMITED`, `RESET_LINK_INVALID`, `SLUG_TAKEN`, `STAFF_LIMIT`, `STAFF_NOT_FOUND`, `STORE_MISSING`, `STORE_NOT_FOUND`,
@@ -627,7 +646,7 @@ Mixins (`app/db/base.py`):
 
 | Table | Tenant | Key columns | FKs | Indexes / constraints |
 |---|---|---|---|---|
-| `seller_login` | **NO** (no `app_user` grant) | `seller_id`, `provider` (`google`), `provider_user_id` (Google's `sub`), `email` (Google's, when verified, shown in Settings), `created_at` | `seller_id → seller` CASCADE | `uq_seller_login_provider` (`provider`, `provider_user_id`), `uq_seller_login_seller_id` (`seller_id`, `provider`: one Google per seller) |
+| `seller_login` | **NO** (no `app_user` grant) | `seller_id`, `provider` (`google`, `facebook`, `tiktok`), `provider_user_id` (Google's `sub`, Facebook's id, TikTok's `open_id`), `email` (the provider's, when verified), `name` (the provider's; TikTok's display name), both shown in Settings, `created_at` | `seller_id → seller` CASCADE | `uq_seller_login_provider` (`provider`, `provider_user_id`), `uq_seller_login_seller_id` (`seller_id`, `provider`: one account of each kind per seller) |
 | `phone_check` | **NO** (no `app_user` grant) | `code` (`phone_` + 22 random characters, in the `t.me` link), `telegram_user_id` (bigint, who opened the link), `phone` (normalized, once shared), `verified_at`, `expires_at` (30 min), `created_at` | none | `uq_phone_check_code`; `ix_phone_check_telegram_user_id`. Expired rows are deleted when a new check starts |
 | `seller` | **NO** (an owner owns the tenant, staff belong to one; no RLS, no `app_user` grant) | `phone` (the login, normalized, NULL only for older accounts whose number another account had), `email` (NULL for accounts since 2026-10-09; older ones log in with it; stored lowercased), `password_hash` (NULL for an account made with Google until it adds one), `full_name`, `is_active` (default true), `role` (`owner`/`staff`, default owner), `store_id` (staff only), `created_at` | `store_id → store` CASCADE (`use_alter`: store also points at seller) | `uq_seller_phone`; `uq_seller_email`; `ix_seller_store_id`; CHECK `(role = 'staff') = (store_id IS NOT NULL)` |
 | `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `low_stock_alert` (int, default 5, 1–999 by the schema), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
@@ -688,7 +707,8 @@ messenger_username → `49da40196f18` store.low_stock_alert →
 `ae070e4b3006` seller.role + seller.store_id → `5b3201ea7f7d` phone_check
 → `005c6870a409` seller.phone unique, email nullable (existing phones
 normalized; a number that can't be read, or an older account's again, was
-cleared) → `4520c66e86de` seller_login, password_hash nullable (**head**).
+cleared) → `4520c66e86de` seller_login, password_hash nullable →
+`39a133fd8c02` seller_login.name, facebook and tiktok (**head**).
 
 ---
 
@@ -847,14 +867,16 @@ from the schema.
 | POST | `/auth/logout` | refresh cookie | none | 204 | Deletes that token's session and the cookie; bad tokens ignored |
 | POST | `/auth/password-reset` | none | `PasswordResetIn` (`login`) | 202 | Telegram link in the background (§4 Auth); same answer for any login; 5/min |
 | POST | `/auth/password-reset/confirm` | none | `PasswordResetConfirm` | `AccessOut` + cookie | Bad, expired or used link → 400 `RESET_LINK_INVALID`; 10/min |
-| POST | `/auth/google` | none | `GoogleIn` (`credential`: Google's ID token) | `SocialOut` | Logged in (`access_token` + cookie) or `signup` for someone new; 401 `GOOGLE_SIGN_IN_FAILED`, 503 `GOOGLE_NOT_CONFIGURED`; 10/min |
-| POST | `/auth/social/register` | none | `SocialRegisterIn` (`signup_token`, `full_name`, `store_name`, `phone_check`) | `AccessOut` + cookie (201) | No password; 400 `SIGNUP_EXPIRED`, 409 `GOOGLE_TAKEN` / `PHONE_TAKEN`; 5/min |
+| POST | `/auth/google` | none | `GoogleIn` (`credential`: Google's ID token) | `SocialOut` | Logged in (`access_token` + cookie) or `signup` for someone new; 401 `SOCIAL_SIGN_IN_FAILED`, 503 `SOCIAL_NOT_CONFIGURED`; 10/min |
+| POST | `/auth/oauth/{provider}` | none | `OAuthIn` (`code`, `redirect_uri`); provider `facebook` or `tiktok` | `SocialOut` | Logged in or `signup`; 422 `INVALID_REDIRECT`, 401 `SOCIAL_SIGN_IN_FAILED`, 503 `SOCIAL_NOT_CONFIGURED`; 10/min |
+| POST | `/auth/social/register` | none | `SocialRegisterIn` (`signup_token`, `full_name`, `store_name`, `phone_check`) | `AccessOut` + cookie (201) | No password; 400 `SIGNUP_EXPIRED`, 409 `SOCIAL_TAKEN` / `PHONE_TAKEN`; 5/min |
 | POST | `/auth/phone-checks` | none | none | `PhoneCheckOut` (201) | `{id, telegram_url, expires_at, phone: null, taken: false}`; 503 `TELEGRAM_NOT_CONFIGURED` without the bot; 10/min |
 | GET | `/auth/phone-checks/{id}` | the check's id | — | `PhoneCheckOut` | `phone` once shared in Telegram; `taken` when an account already has it; expired or unknown → 404 `PHONE_CHECK_EXPIRED`; 60/min (the page reads it every few seconds) |
-| GET | `/seller/account` | seller | — | `AccountOut` | The person's own phone (login), email (older accounts, else null), name, role, `has_password`, `google_connected`, `google_email` (`UnscopedDb`, filtered by the token's seller id) |
+| GET | `/seller/account` | seller | — | `AccountOut` | The person's own phone (login), email (older accounts, else null), name, role, `has_password`, `logins` (`[{provider, label}]`, label = the email or the name) (`UnscopedDb`, filtered by the token's seller id) |
 | PATCH | `/seller/account` | seller | `AccountUpdate` | `AccountOut` | `full_name` only |
 | POST | `/seller/account/phone` | seller | `PhoneChange` (`phone_check`) | `AccountOut` | New login number from a finished phone check; another account's → 409 `PHONE_TAKEN` |
-| POST | `/seller/account/google` | seller | `GoogleIn` (`credential`) | `AccountOut` | Log in with this Google account too (replaces one connected before); another shop's → 409 `GOOGLE_TAKEN` |
+| POST | `/seller/account/google` | seller | `GoogleIn` (`credential`) | `AccountOut` | Log in with this Google account too (replaces one connected before); another shop's → 409 `SOCIAL_TAKEN` |
+| POST | `/seller/account/oauth/{provider}` | seller | `OAuthIn` | `AccountOut` | Log in with this Facebook / TikTok account too (the code from `/auth/<provider>/callback`); another shop's → 409 `SOCIAL_TAKEN` |
 | POST | `/seller/account/close-shop` | seller | `CloseShopIn` (`password`, not needed without one) | 204 | `seller.is_active = false` and every session deleted: the shop page is 404, login 403 `ACCOUNT_DISABLED` ("This shop is closed. Message Oak Order to open it again."). Nothing is erased; wrong password → 422 `WRONG_PASSWORD` |
 | POST | `/seller/account/password` | seller | `PasswordChange` | `AccessOut` + cookie | Wrong current password → 422 `WRONG_PASSWORD`; ends every other session (§4 Auth) |
 | GET | `/seller/store` | seller | — | `StoreOut` | Includes the three settings, `payment_set_up` (false until `payment_config` was saved once; the setup checklist), `delivery_set_up` (false until `delivery_config` was saved once: the shop runs on free own delivery), `telegram_connected`, `telegram_bot_available` |
@@ -950,8 +972,9 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | Path | Component | Notes |
 |---|---|---|
 | `/` | `pages/Home` | Landing: Register / Log in |
-| `/login`, `/register` | `pages/Login`, `pages/Register` | "Continue with Google" over the phone form (`auth/ContinueWithGoogle.tsx`, when `VITE_GOOGLE_CLIENT_ID` is set); Login has "Forgot password?" |
-| `/register/google` | `pages/FinishSignup` | Someone new from Google: shop name, name, phone checked in Telegram → `POST /auth/social/register`. The signup comes in the navigation state or `sessionStorage` `sc.signup` (`lib/signup.ts`); without one, back to `/register` |
+| `/login`, `/register` | `pages/Login`, `pages/Register` | "Continue with Google / Facebook / TikTok" over the phone form (`auth/SocialButtons.tsx`; each only when its `VITE_` ID is set); Login has "Forgot password?" |
+| `/register/finish` | `pages/FinishSignup` | Someone new from Google, Facebook or TikTok: shop name, name, phone checked in Telegram → `POST /auth/social/register`. The signup comes in the navigation state or `sessionStorage` `sc.signup` (`lib/signup.ts`); without one, back to `/register` |
+| `/auth/:provider/callback` | `pages/OAuthCallback` | Back from Facebook / TikTok with `code` and `state`. Only the sign-in this tab started (`sessionStorage` `sc.oauth`, 15 min, `lib/oauth.ts`) is finished: log in (`POST /auth/oauth/{provider}`, then like Google, `auth/useSocialResult.ts`) or connect (waits for the session, `POST /seller/account/oauth/{provider}`, back to Your account). Cancelled, refused or someone else's → "Couldn't log you in" with a link back |
 | `/forgot-password`, `/reset-password#<token>` | `pages/ForgotPassword`, `pages/ResetPassword` | The link goes to the shop's Telegram; without Telegram, "Message Oak Order" (if `VITE_SUPPORT_TELEGRAM`). Saving logs in (`startSession` in `AuthContext`) |
 | `/dashboard` | `dashboard/Layout` (`DashboardLayout`) | **Auth guard**: spinner while loading, retry card if unreachable, `Navigate` to `/login` if anonymous; index redirects to `orders` |
 | `/dashboard/settings/setup` | `settings/SetupPage.tsx`, `settings/setup.ts` | A new shop's checklist (founder's pick 7C), owners only: add a product, delivery fee (`delivery_set_up`), ways to pay (`payment_set_up`), Telegram alerts (when the bot exists), contact buttons, logo; each opens its page. "Set up your shop · 2 of 6 done" tops the Settings menu until all are done or "Hide this list" (per device, `sc.setup.hidden.<store id>`); an amber dot on the Settings tab (and sidebar) until the first three are done |
@@ -1174,6 +1197,7 @@ through to the SPA.
 | Integration | State | Details |
 |---|---|---|
 | **Google sign-in** ("Continue with Google") | WIRED, env-gated (`GOOGLE_CLIENT_ID` / `VITE_GOOGLE_CLIENT_ID`); not set up yet (needs the founder's Google Cloud client) | Google Identity Services script (`accounts.google.com/gsi/client`, loaded on first use, `src/lib/google.ts`), its own button (`auth/GoogleButton.tsx`, outline, as wide as the form up to 400 px, in the app's language), popup mode; the ID token is checked by the API (`core/google.py`). No secret, no redirect URL; the client must list `https://order.oaksolve.com` and `http://localhost:5173` as JavaScript origins. Tested with a key made in the tests and a stand-in button in the browser, not yet with real Google |
+| **Facebook / TikTok sign-in** | WIRED, env-gated (`FACEBOOK_APP_ID`+`_SECRET` / `TIKTOK_CLIENT_KEY`+`_SECRET`, and the `VITE_` IDs); not set up yet (needs the founder's Meta and TikTok apps, and their reviews) | Redirect flow, no SDK: `lib/oauth.ts` sends the browser to `facebook.com/v26.0/dialog/oauth` (scope `public_profile,email`) or `tiktok.com/v2/auth/authorize/` (scope `user.info.basic`) with a random `state`; the API trades the code (`core/oauth.py`). Redirect URIs to register: `https://order.oaksolve.com/auth/facebook/callback` (+ `http://localhost:5173/...` for Facebook in development mode) and `https://order.oaksolve.com/auth/tiktok/callback` (TikTok takes https only, so no localhost). Their buttons are drawn like Google's outline button (`auth/ProviderLogo.tsx`). Tested with the providers' answers faked (tests and the browser), not yet with the real ones |
 | **Telegram bot** (seller alerts) | WIRED, env-gated | `services/telegram.py`: plain `httpx` calls to the Bot API (`sendMessage`, `setWebhook`). Webhook registered at startup only when `PUBLIC_API_URL` is set. Webhook checks the secret header with `hmac.compare_digest`. `/start <code>` in a private chat stores `store.telegram_chat_id` (the code is store id + expiry + 12-byte HMAC-SHA256, base64url, 43 chars, key derived from `JWT_SECRET`). Groups are ignored. Replies go back in the webhook response. Alerts (`services/notifications.py`) for new orders and low stock (crossing the shop's `low_stock_alert`, 5 to start, or to 0), and "<name> says they paid #1001" when a customer taps "I've paid" (`notify_payment_claimed`), go out after the response (`_send_all`). An order the seller added from a chat sends only low stock. Bot texts point to Settings → Alerts. Each writes a `notification_log` row (`telegram`, sent or failed). A 403, or a 400 "chat not found", disconnects the store. Every bot message (alerts, connect and help replies, the password reset) is in Khmer only, the app's default language, in the app's own Khmer words (decided 2026-10-09; no per-seller language is stored); HTML-escaped. The same chat gets "Forgot password?" links (`auth.send_password_reset`, no log row). **Phone check** (founder's choice 2026-10-09, instead of SMS codes; `services/phone_check.py`): `/start phone_<code>` remembers who opened it and answers with a reply keyboard button `request_contact` ("📱 ចែករំលែកលេខទូរស័ព្ទ"); the contact that comes back counts only if `contact.user_id` is the sender's own id (anyone can attach someone else's contact card), then completes the newest open check that account opened and removes the keyboard. Telegram numbers come without the + (`855…`), so the + is added before `normalize_phone`. Codes starting `phone_` go to the phone check, the rest to the store link. On a laptop, `python -m app.telegram_poll` stands in for the webhook. Live and tested by the founder (04). |
 | **"Ask seller": Telegram, Messenger, call** | WIRED (no bot) | `shop/ContactSeller.tsx` (+ `contact.ts`) on the product page and the order page: `https://t.me/<telegram_username>?text=<question>`; `https://m.me/<messenger_username>` (m.me can't type a message, so the question is copied to the clipboard first); `tel:<contact_phone>`. Each hidden when empty; one way shows as one button, more as a row that wraps. Set in Settings → Contact; `StoreUpdate` accepts a page's m.me / facebook.com link (`profile.php?id=` too) and any phone spelling. |
 | **Web notifications** | WIRED | `notification_log` rows with `channel=web`, written in the checkout transaction; the dashboard polls. No push. |

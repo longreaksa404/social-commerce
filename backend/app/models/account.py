@@ -36,9 +36,11 @@ class SellerRole(enum.StrEnum):
 
 class LoginProvider(enum.StrEnum):
     """Other ways to log in than a phone number and password (founder's
-    choice 2026-10-09): Google first, Facebook and TikTok to follow."""
+    choice 2026-10-09)."""
 
     GOOGLE = "google"
+    FACEBOOK = "facebook"
+    TIKTOK = "tiktok"
 
 
 class OrderConfirmationMode(enum.StrEnum):
@@ -96,7 +98,7 @@ class Seller(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
 
 
 class SellerLogin(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
-    """A Google (later Facebook, TikTok) account that logs in as a seller.
+    """A Google, Facebook or TikTok account that logs in as a seller.
     Not tenant-scoped; app_user has no grant on it."""
 
     __tablename__ = "seller_login"
@@ -111,8 +113,10 @@ class SellerLogin(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     # The provider's own id for the account (Google's `sub`): it stays when
     # the person changes their email.
     provider_user_id: Mapped[str] = mapped_column(Text)
-    # What the provider said when it was connected, to show in Settings.
+    # What the provider said when it was connected, to show in Settings
+    # (TikTok gives no email, only a name).
     email: Mapped[str | None] = mapped_column(Text)
+    name: Mapped[str | None] = mapped_column(Text)
 
 
 class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
