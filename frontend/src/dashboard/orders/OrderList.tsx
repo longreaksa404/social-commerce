@@ -10,7 +10,6 @@ import type { OrderStatus, OrderSummary } from '../../lib/types.ts'
 import { useOrders, useProducts, useRole, useStore } from '../queries.ts'
 import { OrderDetail } from './OrderDetail.tsx'
 import { OrderRow } from './OrderRow.tsx'
-import { StatsCard } from './StatsCard.tsx'
 
 const FILTERS: { key: 'all' | 'new' | 'active' | 'done' | 'closed'; statuses: OrderStatus[] }[] = [
   { key: 'all', statuses: [] },
@@ -28,9 +27,7 @@ export function OrdersPage() {
   const t = useT()
   const navigate = useNavigate()
   const { search, state } = useLocation()
-  const { orders, countOf } = useFiltered()
-  const role = useRole()
-  const hasOrders = (countOf([]) ?? 0) > 0
+  const { orders } = useFiltered()
   // Going through new orders: once the open one is accepted or rejected,
   // the next new one opens (founder's pick 1B, 2026-10-08). Not when it
   // was opened from a customer's or a link's page: back goes there.
@@ -47,8 +44,6 @@ export function OrdersPage() {
         <OrdersHeader />
         <PausedReminder />
         <DeliveryReminder />
-        {/* The owner's numbers (picks 8B, 9B), once there's an order. */}
-        {role === 'owner' && hasOrders && <StatsCard />}
       </div>
       <div className="lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,30rem)_minmax(0,1fr)]">
         <div className={orderId ? 'max-lg:hidden' : ''}>

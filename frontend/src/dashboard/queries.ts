@@ -16,8 +16,6 @@ import type {
   Product,
   ShareLink,
   StaffMember,
-  Stats,
-  StatsPeriod,
   Store,
 } from '../lib/types.ts'
 
@@ -40,7 +38,6 @@ export const keys = {
   customer: (id: string) => ['customers', id] as const,
   links: ['links'] as const,
   link: (id: string) => ['links', id] as const,
-  stats: ['stats'] as const,
 }
 
 const ORDER_PAGE = 50
@@ -125,19 +122,6 @@ export function useOrder(id: string) {
   })
 }
 
-/** The shop's numbers (owner only, founder's picks 8B, 9B); checked again
- * like the order list, and after any change to an order. */
-export function useStats(period: StatsPeriod, { enabled = true }: { enabled?: boolean } = {}) {
-  return useQuery({
-    queryKey: [...keys.stats, period],
-    queryFn: () => api<Stats>(`/seller/stats?period=${period}`),
-    enabled,
-    placeholderData: keepPreviousData,
-    refetchInterval: POLL_MS,
-    refetchOnWindowFocus: true,
-  })
-}
-
 export function useChangeOrderStatus(id: string) {
   const queryClient = useQueryClient()
   return useMutation({
@@ -145,7 +129,6 @@ export function useChangeOrderStatus(id: string) {
     onSuccess: (order) => {
       queryClient.setQueryData(keys.order(id), order)
       queryClient.invalidateQueries({ queryKey: [...keys.orders, 'list'] })
-      queryClient.invalidateQueries({ queryKey: keys.stats })
       // Rejecting or cancelling puts stock back.
       queryClient.invalidateQueries({ queryKey: keys.products })
     },
@@ -161,7 +144,6 @@ export function useRecordPayment(id: string) {
     onSuccess: (order) => {
       queryClient.setQueryData(keys.order(id), order)
       queryClient.invalidateQueries({ queryKey: [...keys.orders, 'list'] })
-      queryClient.invalidateQueries({ queryKey: keys.stats })
     },
   })
 }
@@ -190,7 +172,6 @@ export function useAddOrder() {
       // It took stock, and made or updated a customer.
       queryClient.invalidateQueries({ queryKey: keys.products })
       queryClient.invalidateQueries({ queryKey: keys.customers })
-      queryClient.invalidateQueries({ queryKey: keys.stats })
     },
   })
 }
@@ -204,7 +185,6 @@ export function useCashHandover(id: string) {
     onSuccess: (order) => {
       queryClient.setQueryData(keys.order(id), order)
       queryClient.invalidateQueries({ queryKey: [...keys.orders, 'list'] })
-      queryClient.invalidateQueries({ queryKey: keys.stats })
     },
   })
 }

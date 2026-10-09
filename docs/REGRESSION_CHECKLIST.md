@@ -93,10 +93,9 @@ phone or laptop) before going on.
 - [ ] After ordering, go back to the shop: a bar at the top shows the order and its status; it opens the order. With the cart empty, the cart page's Your orders lists it.
 - [ ] Leave the order page open and accept the order from the dashboard: within 30 s the page shows the new step without reloading.
 
-**New shop and numbers**
+**New shop**
 
 - [ ] Register a new shop: the Orders tab says "Add your first product" and that delivery is free until a fee is set; Settings has "Set up your shop" and the Settings tab a dot, gone once a product, the delivery fee and the ways to pay are saved.
-- [ ] The owner's numbers card: Today / 7 days / This month match the orders (rejected ones left out); tapping a bar reads its day. A staff login doesn't see it.
 
 **Settings**
 

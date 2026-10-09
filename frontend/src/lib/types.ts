@@ -381,23 +381,6 @@ export type CustomerSummary = {
   spent: Amount[]
 }
 
-/** The shop's numbers on the Orders tab (founder's picks 8B, 9B). */
-export type StatsPeriod = 'today' | 'week' | 'month'
-export type Stats = {
-  period: StatsPeriod
-  first: string
-  last: string
-  /** The chart's currency, the shop's current one. */
-  currency: Currency
-  /** Placed in the period, not rejected or cancelled. */
-  orders: number
-  sales: Amount[]
-  /** Their payments not paid yet (cash on delivery too). */
-  to_collect: Amount[]
-  /** A bar per day: the last 7 days for today and the week, this month's days so far. */
-  days: { date: string; orders: number; sales: string }[]
-}
-
 export type CustomerList = {
   customers: CustomerSummary[]
   has_more: boolean
