@@ -1,8 +1,9 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 
 from app.api.deps import Owner, Seller, UnscopedDb
+from app.api.session_cookie import start_session
 from app.schemas.account import AccountOut, AccountUpdate, CloseShopIn, PasswordChange
-from app.schemas.auth import TokenPair
+from app.schemas.auth import AccessOut
 from app.services import account as account_service
 
 # The seller table isn't tenant-scoped: the service filters by the seller
@@ -20,10 +21,13 @@ async def update_account(data: AccountUpdate, seller: Seller, db: UnscopedDb) ->
     return await account_service.update_account(db, seller.seller_id, data)
 
 
-@router.post("/password", response_model=TokenPair)
-async def change_password(data: PasswordChange, seller: Seller, db: UnscopedDb) -> TokenPair:
+@router.post("/password", response_model=AccessOut)
+async def change_password(
+    data: PasswordChange, seller: Seller, response: Response, db: UnscopedDb
+) -> AccessOut:
     """Logs out every other phone; this one carries on with the new pair."""
-    return await account_service.change_password(db, seller.seller_id, seller.store_id, data)
+    tokens = await account_service.change_password(db, seller.seller_id, seller.store_id, data)
+    return start_session(response, tokens)
 
 
 @router.post("/close-shop", status_code=status.HTTP_204_NO_CONTENT)

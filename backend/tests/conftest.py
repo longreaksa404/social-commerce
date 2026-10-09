@@ -66,6 +66,7 @@ asyncio.run(_empty_tables())
 # Imported only now, so the engine is built for the test database.
 from app.db.session import unscoped_session  # noqa: E402
 from app.models import Seller, Store  # noqa: E402
+from tests.helpers import session_of  # noqa: E402
 
 
 @dataclass
@@ -114,7 +115,7 @@ async def client():
 
 @pytest.fixture
 async def register(client):
-    """Register a seller through the API; returns the token pair."""
+    """Register a seller through the API; returns its tokens and email."""
 
     async def _register(**overrides) -> dict:
         tag = uuid.uuid4().hex[:10]
@@ -128,7 +129,7 @@ async def register(client):
         }
         response = await client.post("/api/v1/auth/register", json=body)
         assert response.status_code == 201, response.text
-        return {**response.json(), "email": body["email"]}
+        return {**session_of(response), "email": body["email"]}
 
     return _register
 

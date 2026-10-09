@@ -31,10 +31,6 @@ class LoginIn(BaseModel):
     password: str = Field(max_length=200)
 
 
-class RefreshIn(BaseModel):
-    refresh_token: str = Field(max_length=1000)
-
-
 class PasswordResetIn(BaseModel):
     email: EmailStr
 
@@ -45,6 +41,13 @@ class PasswordResetConfirm(BaseModel):
 
 
 class TokenPair(BaseModel):
+    """What the auth service issues. The API puts the refresh token in an
+    httpOnly cookie (app/api/session_cookie.py) and answers with AccessOut."""
+
     access_token: str
     refresh_token: str
+
+
+class AccessOut(BaseModel):
+    access_token: str
     token_type: Literal["bearer"] = "bearer"

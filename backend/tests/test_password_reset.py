@@ -10,6 +10,7 @@ from app.core.config import get_settings
 from app.db.session import tenant_session
 from app.models import Store
 from app.services import telegram
+from tests.helpers import refresh
 
 RESET = "/api/v1/auth/password-reset"
 
@@ -69,9 +70,7 @@ async def test_link_goes_to_the_shops_telegram_and_sets_a_new_password(client, r
         "/api/v1/seller/account",
         headers={"Authorization": f"Bearer {reset.json()['access_token']}"},
     )
-    stale = await client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": other_phone.json()["refresh_token"]}
-    )
+    stale = await refresh(client, other_phone.cookies["refresh_token"])
     login = await client.post(
         "/api/v1/auth/login", json={"email": seller["email"], "password": "brand-new-pass"}
     )

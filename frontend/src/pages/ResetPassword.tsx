@@ -4,7 +4,7 @@ import { useAuth } from '../auth/useAuth.ts'
 import { buttonClass } from '../components/styles.ts'
 import { Button, ErrorMessage, Field, PasswordInput, SlowNotice } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
-import { api, ApiError, type TokenPair } from '../lib/api.ts'
+import { api, ApiError, type AccessToken } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
 import { AuthLayout } from './AuthLayout.tsx'
 
@@ -26,12 +26,12 @@ export function ResetPassword() {
     setPending(true)
     setError(null)
     try {
-      const pair = await api<TokenPair>('/auth/password-reset/confirm', {
+      const session = await api<AccessToken>('/auth/password-reset/confirm', {
         method: 'POST',
         body: { token, new_password: password },
         auth: false,
       })
-      startSession(pair)
+      startSession(session)
       navigate('/dashboard', { replace: true })
     } catch (err) {
       setError(err)

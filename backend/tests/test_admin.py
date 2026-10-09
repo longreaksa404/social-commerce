@@ -6,7 +6,7 @@ from sqlalchemy import select
 from app import admin
 from app.db.session import unscoped_session
 from app.models import Customer, Delivery, Order, OrderItem, Payment, Product, Seller, Store
-from tests.helpers import add_product, place_order, registered_seller
+from tests.helpers import add_product, place_order, refresh, registered_seller
 
 
 async def test_reset_password_gives_a_working_password_and_logs_out_every_phone(client, register):
@@ -20,9 +20,7 @@ async def test_reset_password_gives_a_working_password_and_logs_out_every_phone(
     new = await client.post(
         "/api/v1/auth/login", json={"email": seller["email"], "password": password}
     )
-    phone = await client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": seller["refresh_token"]}
-    )
+    phone = await refresh(client, seller["refresh_token"])
     assert old.status_code == 401
     assert new.status_code == 200
     assert phone.status_code == 401

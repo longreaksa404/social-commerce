@@ -1435,9 +1435,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   `ENABLE ROW LEVEL SECURITY`, and a `tenant_isolation` policy on
   `store_id` (copy from the `ccd7d9bce820` migration). Seller endpoints use
   the `TenantDb` dependency; anything on `UnscopedDb` must filter by hand.
-- The refresh token is kept in localStorage (access token in memory only).
-  Move it to an httpOnly cookie once a custom domain puts app and API on
-  the same site (Phase 9). Refreshes are serialized across tabs.
+- The refresh token is an httpOnly cookie (2026-10-09, goes live with
+  the switch-over to oaksolve.com); the access token is in memory only.
+  Refreshes are serialized across tabs.
 - Removing a product photo only unlinks it; the file stays in R2. Fine at
   MVP volume.
 - Variants removed from a product are deleted; `order_item.variant_id`

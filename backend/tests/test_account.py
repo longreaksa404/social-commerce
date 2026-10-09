@@ -1,5 +1,7 @@
 """Settings → Your account: the seller's own details and password."""
 
+from tests.helpers import refresh
+
 
 def _bearer(tokens: dict) -> dict[str, str]:
     return {"Authorization": f"Bearer {tokens['access_token']}"}
@@ -79,13 +81,8 @@ async def test_password_change_logs_out_other_phones_and_keeps_this_one(client, 
     )
 
     assert change.status_code == 200, change.text
-    this_phone = change.json()
-    refresh_other = await client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": other_phone.json()["refresh_token"]}
-    )
-    refresh_this = await client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": this_phone["refresh_token"]}
-    )
+    refresh_other = await refresh(client, other_phone.cookies["refresh_token"])
+    refresh_this = await refresh(client, change.cookies["refresh_token"])
     old_login = await client.post(
         "/api/v1/auth/login", json={"email": a["email"], "password": "correct-horse"}
     )
@@ -128,5 +125,4 @@ async def test_a_closed_shop_is_gone_and_nobody_can_log_in(client, register):
     assert login.json()["error"]["message"] == (
         "This shop is closed. Message Oak Order to open it again."
     )
-    refresh = await client.post("/api/v1/auth/refresh", json={"refresh_token": a["refresh_token"]})
-    assert refresh.status_code == 401
+    assert (await refresh(client, a["refresh_token"])).status_code == 401

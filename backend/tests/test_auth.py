@@ -8,6 +8,8 @@ from app.core import security
 from app.db.session import unscoped_session
 from app.models import RefreshToken
 from app.services.auth import REUSE_GRACE
+from tests.helpers import refresh as _refresh
+from tests.helpers import with_refresh
 
 
 async def _swapped_ago(refresh_token: str, ago: timedelta) -> None:
@@ -20,10 +22,6 @@ async def _swapped_ago(refresh_token: str, ago: timedelta) -> None:
             .values(revoked_at=datetime.now(UTC) - ago)
         )
         await db.commit()
-
-
-async def _refresh(client, token: str):
-    return await client.post("/api/v1/auth/refresh", json={"refresh_token": token})
 
 
 async def test_login_with_wrong_password_uses_error_envelope(client, register):
@@ -70,7 +68,7 @@ async def test_refresh_token_reused_after_the_grace_ends_all_sessions(client, re
 
     rotated = await _refresh(client, first)
     assert rotated.status_code == 200
-    second = rotated.json()["refresh_token"]
+    second = rotated.cookies["refresh_token"]
     await _swapped_ago(first, REUSE_GRACE + timedelta(seconds=1))
 
     # Reusing the old token later is treated as theft...
@@ -95,8 +93,8 @@ async def test_refresh_retried_within_the_grace_keeps_the_seller_logged_in(clien
     assert lost.status_code == 200
     assert retried.status_code == 200
     # The retry's new token works, and so does the one whose answer was lost.
-    assert (await _refresh(client, retried.json()["refresh_token"])).status_code == 200
-    assert (await _refresh(client, lost.json()["refresh_token"])).status_code == 200
+    assert (await _refresh(client, retried.cookies["refresh_token"])).status_code == 200
+    assert (await _refresh(client, lost.cookies["refresh_token"])).status_code == 200
 
 
 async def test_retry_does_not_stretch_the_grace(client, register):
@@ -113,14 +111,14 @@ async def test_retry_does_not_stretch_the_grace(client, register):
 async def test_logout_revokes_the_refresh_token(client, register):
     seller = await register()
 
-    logout = await client.post(
-        "/api/v1/auth/logout", json={"refresh_token": seller["refresh_token"]}
-    )
-    refresh = await client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": seller["refresh_token"]}
-    )
+    logout = await client.post("/api/v1/auth/logout", headers=with_refresh(seller["refresh_token"]))
+    refresh = await _refresh(client, seller["refresh_token"])
 
     assert logout.status_code == 204
+    # The browser is told to drop the cookie...
+    assert 'refresh_token=""' in logout.headers["set-cookie"]
+    assert "Max-Age=0" in logout.headers["set-cookie"]
+    # ...and the token is dead even if someone kept a copy.
     assert refresh.status_code == 401
 
 
@@ -128,9 +126,9 @@ async def test_logged_out_token_is_refused_even_within_the_grace(client, registe
     """Logging out deletes the session, so the retry window never applies."""
     seller = await register()
     rotated = await _refresh(client, seller["refresh_token"])
-    current = rotated.json()["refresh_token"]
+    current = rotated.cookies["refresh_token"]
 
-    await client.post("/api/v1/auth/logout", json={"refresh_token": current})
+    await client.post("/api/v1/auth/logout", headers=with_refresh(current))
 
     assert (await _refresh(client, current)).status_code == 401
 
@@ -138,8 +136,41 @@ async def test_logged_out_token_is_refused_even_within_the_grace(client, registe
 async def test_access_token_is_not_accepted_as_refresh_token(client, register):
     seller = await register()
 
+    response = await _refresh(client, seller["access_token"])
+
+    assert response.status_code == 401
+
+
+async def test_refresh_token_is_an_httponly_cookie_not_in_the_body(client, register):
+    """Page scripts never see the refresh token: it's only in a cookie the
+    browser sends back to /api/v1/auth, on the app's own site."""
+    seller = await register()
+
+    login = await client.post(
+        "/api/v1/auth/login", json={"email": seller["email"], "password": "correct-horse"}
+    )
+
+    assert login.status_code == 200
+    assert set(login.json()) == {"access_token", "token_type"}
+    cookie = login.headers["set-cookie"]
+    for attribute in ("HttpOnly", "Secure", "SameSite=lax", "Path=/api/v1/auth", "Max-Age="):
+        assert attribute in cookie
+    assert "Domain=" not in cookie  # this API's host only
+
+
+async def test_refresh_without_the_cookie_is_refused(client):
+    response = await client.post("/api/v1/auth/refresh")
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "INVALID_TOKEN"
+
+
+async def test_refresh_token_in_the_body_is_ignored(client, register):
+    """The old way (token in the JSON body) no longer logs anyone in."""
+    seller = await register()
+
     response = await client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": seller["access_token"]}
+        "/api/v1/auth/refresh", json={"refresh_token": seller["refresh_token"]}
     )
 
     assert response.status_code == 401

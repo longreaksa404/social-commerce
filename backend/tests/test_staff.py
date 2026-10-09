@@ -6,7 +6,7 @@ import uuid
 import pytest
 
 from app import admin
-from tests.helpers import add_product, place_order, registered_seller
+from tests.helpers import add_product, place_order, refresh, registered_seller, session_of
 
 STAFF = "/api/v1/seller/staff"
 
@@ -31,7 +31,7 @@ async def _add_staff(client, owner_headers, email="helper@example.com", **overri
 async def _staff_login(client, email, password="first-password") -> dict:
     response = await client.post("/api/v1/auth/login", json={"email": email, "password": password})
     assert response.status_code == 200, response.text
-    return response.json()
+    return session_of(response)
 
 
 def _unique_email(tag: str) -> str:
@@ -116,9 +116,7 @@ async def test_owner_sees_sets_a_password_for_and_removes_only_their_staff(clien
     )
     assert reset.status_code == 200
     # Their phones are logged out; the new password works.
-    stale = await client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": phone["refresh_token"]}
-    )
+    stale = await refresh(client, phone["refresh_token"])
     assert stale.status_code == 401
     await _staff_login(client, email, "second-password")
 
@@ -188,9 +186,7 @@ async def test_staff_refresh_keeps_the_staff_role(client, auth_headers):
     await _add_staff(client, owner, email=email)
     tokens = await _staff_login(client, email)
 
-    refreshed = await client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
-    )
+    refreshed = await refresh(client, tokens["refresh_token"])
     still_staff = await client.patch(
         "/api/v1/seller/store", headers=_bearer(refreshed.json()), json={"name": "Mine"}
     )
