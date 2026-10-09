@@ -24,6 +24,7 @@ export function OrderRow({
   arrived = false,
   selected = false,
   timeOnly = false,
+  eager = false,
 }: {
   order: OrderSummary
   showCustomer?: boolean
@@ -34,6 +35,8 @@ export function OrderRow({
   selected?: boolean
   /** Under a day heading: the time is enough. */
   timeOnly?: boolean
+  /** Near the top of its list: the photo loads at once, not lazily. */
+  eager?: boolean
 }) {
   const t = useT()
   const { search } = useLocation()
@@ -66,7 +69,7 @@ export function OrderRow({
         className={`flex items-center gap-3 px-4 py-3 sm:px-5 ${selected ? '' : 'hover:bg-slate-50 active:bg-slate-100'} focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600`}
       >
         {order.first_item_image_url ? (
-          <ProductImage small src={order.first_item_image_url} alt="" className="size-12 shrink-0 rounded-xl" />
+          <ProductImage small eager={eager} src={order.first_item_image_url} alt="" className="size-12 shrink-0 rounded-xl" />
         ) : (
           // No photo yet: a soft bag, not a broken picture (founder's pick 4A).
           <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-navy-100 text-navy-500">

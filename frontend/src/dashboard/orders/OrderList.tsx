@@ -9,6 +9,7 @@ import { formatCalendarDay, formatDay } from '../../lib/orders.ts'
 import type { OrderStatus, OrderSummary } from '../../lib/types.ts'
 import { useOrders, useProducts, useRole, useStore } from '../queries.ts'
 import { OrderDetail } from './OrderDetail.tsx'
+import { EAGER_PHOTOS } from '../../shop/components.tsx'
 import { OrderRow } from './OrderRow.tsx'
 
 const FILTERS: { key: 'all' | 'new' | 'active' | 'done' | 'closed'; statuses: OrderStatus[] }[] = [
@@ -205,6 +206,7 @@ function OrderList({ selectedId }: { selectedId: string | undefined }) {
   const t = useT()
   const shown = orders.data?.pages.flatMap((page) => page.orders) ?? []
   const arrived = useArrivals(orders.data && !orders.isPlaceholderData ? shown : undefined, filter.key)
+  const first = new Set(shown.slice(0, EAGER_PHOTOS).map((order) => order.id))
 
   if (orders.isPending) return <ListSkeleton />
   if (orders.error) return <ErrorState error={orders.error} onRetry={() => orders.refetch()} />
@@ -232,6 +234,7 @@ function OrderList({ selectedId }: { selectedId: string | undefined }) {
                     arrived={arrived.has(order.id)}
                     selected={order.id === selectedId}
                     timeOnly
+                    eager={first.has(order.id)}
                   />
                 ))}
               </Card>

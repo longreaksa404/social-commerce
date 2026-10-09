@@ -5,6 +5,7 @@ import { Badge, Card, EmptyState, ErrorState, PageHeader, Select, Skeleton } fro
 import { buttonClass } from '../../components/styles.ts'
 import { useT } from '../../i18n/useT.ts'
 import { thumbnailUrl } from '../../lib/images.ts'
+import { EAGER_PHOTOS } from '../../shop/components.tsx'
 import { priceLabel, totalStock } from '../../lib/products.ts'
 import type { Currency, Product } from '../../lib/types.ts'
 import { useCategories, useProducts, useStore } from '../queries.ts'
@@ -158,10 +159,11 @@ export function ProductList() {
       ) : (
         <>
           <Card className="divide-y divide-slate-100 overflow-hidden lg:hidden">
-            {shown.map((product) => (
+            {shown.map((product, i) => (
               <ProductRow
                 key={product.id}
                 product={product}
+                eager={i < EAGER_PHOTOS}
                 currency={currency}
                 category={product.category_id ? categoryName.get(product.category_id) : undefined}
               />
@@ -234,7 +236,7 @@ function ProductGrid({ products, currency }: { products: Product[]; currency: Cu
   const p = useT().products
   return (
     <ul className="columns-2 gap-3 sm:columns-3 lg:columns-4 xl:columns-5">
-      {products.map((product) => {
+      {products.map((product, i) => {
         const hidden = product.status === 'inactive'
         return (
           // The gap is padding, not margin: Safari carries a margin (and
@@ -253,7 +255,8 @@ function ProductGrid({ products, currency }: { products: Product[]; currency: Cu
                       if (e.currentTarget.src !== full) e.currentTarget.src = full
                     }}
                     alt=""
-                    loading="lazy"
+                    loading={i < EAGER_PHOTOS ? 'eager' : 'lazy'}
+                    fetchPriority={i < EAGER_PHOTOS ? 'high' : undefined}
                     className={`block h-auto w-full ${hidden ? 'opacity-50' : ''}`}
                   />
                 ) : (
@@ -347,10 +350,10 @@ function ProductTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
-          {sorted.map((product) => (
+          {sorted.map((product, i) => (
             <tr key={product.id} className="relative transition-colors hover:bg-slate-50">
               <td className="px-4 py-2.5">
-                <Thumb product={product} className="size-11" />
+                <Thumb product={product} eager={i < EAGER_PHOTOS} className="size-11" />
               </td>
               <td className="max-w-80 px-4 py-2.5">
                 {/* The whole row opens the product (the link stretches over it). */}
@@ -380,7 +383,7 @@ function ProductTable({
   )
 }
 
-function Thumb({ product, className }: { product: Product; className: string }) {
+function Thumb({ product, eager = false, className }: { product: Product; eager?: boolean; className: string }) {
   const hidden = product.status === 'inactive'
   return product.image_urls[0] ? (
     <img
@@ -390,7 +393,8 @@ function Thumb({ product, className }: { product: Product; className: string }) 
         if (e.currentTarget.src !== full) e.currentTarget.src = full
       }}
       alt=""
-      loading="lazy"
+      loading={eager ? 'eager' : 'lazy'}
+      fetchPriority={eager ? 'high' : undefined}
       // max-w-none: the base img rule (max-width: 100%) squeezes it to a
       // narrow strip inside the desktop table's photo column.
       className={`max-w-none shrink-0 rounded-xl object-cover ${hidden ? 'opacity-50' : ''} ${className}`}
@@ -403,14 +407,24 @@ function Thumb({ product, className }: { product: Product; className: string }) 
 }
 
 /** Phones, List: a row per product. */
-function ProductRow({ product, currency, category }: { product: Product; currency: Currency; category?: string }) {
+function ProductRow({
+  product,
+  currency,
+  category,
+  eager,
+}: {
+  product: Product
+  currency: Currency
+  category?: string
+  eager: boolean
+}) {
   const p = useT().products
   return (
     <Link
       to={`/dashboard/products/${product.id}`}
       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
     >
-      <Thumb product={product} className="size-16" />
+      <Thumb product={product} eager={eager} className="size-16" />
       <span className="min-w-0 flex-1">
         <span className="line-clamp-2 leading-normal font-medium text-slate-900">{product.name}</span>
         <span className="mt-0.5 block font-semibold text-slate-900 tabular-nums">{priceLabel(product, currency)}</span>

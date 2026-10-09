@@ -7,6 +7,7 @@ import { useT } from '../../i18n/useT.ts'
 import { formatSpent } from '../../lib/customers.ts'
 import { formatDate, formatPhone } from '../../lib/orders.ts'
 import type { CustomerDetail as Customer } from '../../lib/types.ts'
+import { EAGER_PHOTOS } from '../../shop/components.tsx'
 import { OrderRow } from '../orders/OrderRow.tsx'
 import { useCustomer, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
@@ -98,10 +99,11 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
             {c.orders}
           </h2>
           <Card className="divide-y divide-slate-100 overflow-hidden">
-            {customer.orders.map((order) => (
+            {customer.orders.map((order, i) => (
               <OrderRow
                 key={order.id}
                 order={order}
+                eager={i < EAGER_PHOTOS}
                 showCustomer={false}
                 back={`/dashboard/customers/${customer.id}`}
               />

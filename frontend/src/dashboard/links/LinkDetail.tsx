@@ -10,6 +10,7 @@ import { useT } from '../../i18n/useT.ts'
 import { linkPlace, linkTargetName, linkUrl, TARGET_ICONS } from '../../lib/links.ts'
 import { formatDate } from '../../lib/orders.ts'
 import type { LinkStats } from '../../lib/types.ts'
+import { EAGER_PHOTOS } from '../../shop/components.tsx'
 import { OrderRow } from '../orders/OrderRow.tsx'
 import { useLinkStats } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
@@ -84,8 +85,8 @@ function LinkView({ link, back }: { link: LinkStats; back: string }) {
             <Card className="p-4 text-sm text-slate-500 sm:p-6">{l.noOrders}</Card>
           ) : (
             <Card className="divide-y divide-slate-100 overflow-hidden">
-              {link.orders.map((order) => (
-                <OrderRow key={order.id} order={order} back={`/dashboard/links/${link.id}`} />
+              {link.orders.map((order, i) => (
+                <OrderRow key={order.id} order={order} eager={i < EAGER_PHOTOS} back={`/dashboard/links/${link.id}`} />
               ))}
             </Card>
           )}

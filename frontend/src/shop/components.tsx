@@ -24,6 +24,11 @@ import { flyToCart } from './fly.ts'
 // just there at its own size, not a grey square fading into it again.
 const shownPhotos = new Map<string, number>()
 
+// How many of a list's first photos load at once rather than lazily: they
+// are on screen as the page opens, and the biggest one is what phones count
+// as the page having loaded (perf audit F5).
+export const EAGER_PHOTOS = 4
+
 /** A product photo, or a grey placeholder when the seller has none (or it
  * won't load). It fades in once loaded, over the grey. `className` sizes
  * and shapes it. `small` uses the photo's small copy (grids, lists), or
@@ -223,6 +228,7 @@ export function ProductGrid({
                       natural
                       src={product.image_url}
                       alt=""
+                      eager={row * count + c < EAGER_PHOTOS}
                       className={`w-full transition-transform group-hover:scale-[1.03] ${product.in_stock ? '' : 'opacity-60'}`}
                     />
                   </div>
