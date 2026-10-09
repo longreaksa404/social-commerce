@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-09 (sign-up with a phone number checked in Telegram, and Continue with Google)
+> **Last updated:** 2026-10-09 (sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -1024,7 +1024,7 @@ line: Safari carries the last card's margin and shadow over to the next
 column. The gap is now padding on each item. Checked in headless WebKit
 and Chromium at 414 px with mocked data, before and after.
 
-**Sign-up with a real phone number, and Continue with Google**
+**Sign-up with a real phone number; Google, Facebook and TikTok logins**
 (founder's decisions 2026-10-09: social logins for ease of use, in the
 order Google, then Facebook, then TikTok; phone number and password kept;
 phone numbers proved through the Telegram bot's "Share my phone number",
@@ -1060,8 +1060,25 @@ its own; not pushed:
    tap "Share" once. Migration `4520c66e86de` (`seller_login`,
    `password_hash` optional). Off until the Google client ID is set
    (Next Up).
+4. [x] **Continue with Facebook and TikTok** (`6863994`; founder asked to
+   finish everything before testing, 2026-10-09): their buttons under
+   Google's. The browser goes to their sign-in page and back to
+   `/auth/<provider>/callback`; the API trades the code with the app's
+   secret. New people set up their shop like with Google. Settings →
+   Your account → Other ways to log in connects Google, Facebook and
+   TikTok and shows each one's email or name. Migration `39a133fd8c02`.
+   Off until each app's keys are set.
+5. [x] **Privacy policy, terms, data deletion** (`7243183`): `/privacy`,
+   `/terms`, `/data-deletion`, English and Khmer, linked from the start
+   page and under Create store. Meta and TikTok need these URLs.
+   **Founder: read both languages before submitting** (they promise
+   erasing within 30 days; the contact is `VITE_SUPPORT_TELEGRAM`).
+   Also: the phone check offers Try again when it can't start.
+6. [x] **forget-customer** (`ff4576f`): `python -m app.admin
+   forget-customer <shop> <phone>` removes a customer's details from a
+   shop, as the Data deletion page promises (docs/ADMIN.md).
 
-Checked: 599 backend tests pass (39 new: the phone check, phone and
+Checked (steps 1–3): 599 backend tests pass (39 new: the phone check, phone and
 email logins, sign-up once per number and per check, staff by phone,
 account number change, Google tokens checked for real against a key made
 in the tests: wrong signature, app, issuer, expired; sign-up, sign-in,
@@ -1077,6 +1094,23 @@ password. No sideways scroll, no console errors. Three migrations run on
 Render's start: `5b3201ea7f7d`, `005c6870a409`, `4520c66e86de`. New
 dependency: `pyjwt[crypto]` (adds `cryptography`, for Google's RS256
 keys).
+Checked (steps 4–6): 612 backend tests pass (13 new: Facebook and
+TikTok sign-up, log in, connect, bad codes, codes only back to our own
+pages, providers' answers played by a fake; forget-customer), plus the
+Google tests on the shared codes; ruff, oxlint and the build pass. In
+headless Chromium at 390 px (English) and 320 px (Khmer), with Facebook's
+and TikTok's pages and servers faked: cancel → "Couldn't log you in";
+Facebook sign-up → Set up your shop → shop; Settings → connect TikTok →
+both shown; log out → TikTok logs straight in; a callback this tab didn't
+start is refused; the legal pages, start page links and the agree line.
+No sideways scroll, no console errors. Four migrations in all on
+Render's start: `5b3201ea7f7d`, `005c6870a409`, `4520c66e86de`,
+`39a133fd8c02`. **Not yet tried with the real Google, Facebook or
+TikTok** (they need the founder's apps). Two things to watch on the
+first real try: TikTok's web login is built without PKCE (TikTok's web
+docs don't ask for it; if TikTok answers "code_verifier required", it's a
+small change), and Facebook may stay limited to the app's own testers
+until Business Verification.
 
 Phase 9, waiting on the founder:
 
@@ -1326,10 +1360,11 @@ Nothing waiting: everything decided is in 01/02/03.
 
 Applied to 01/02/03 on 2026-10-09 (founder said yes), in two parts:
 
-- Sign-up with a phone number checked in Telegram, phone logins and
-  Continue with Google: 02 §2 Auth row, §4.3, §5.1, §5.2 `seller` + new
-  `seller_login` and `phone_check`, §5.3, §6.2 Auth and Account/staff,
-  new §12.4 Phone Check, §13; 01 §23.1; 03 Phase 9 row, 14 hrs.
+- Sign-up with a phone number checked in Telegram, phone logins,
+  Continue with Google, Facebook and TikTok, the legal pages: 02 §2 Auth
+  row, §4.3, §5.1, §5.2 `seller` + new `seller_login` and `phone_check`,
+  §5.3, §6.2 Auth and Account/staff, new §12.4 Phone Check, §13; 01
+  §23.1; 03 Phase 9 row, 24 hrs.
 - The pre-pilot review (founder's picks 1C 2C 3A 4A 5B 6B 7C 8B 9B and
   the four fixes): 02 §7.1 (the short path), §7.2 (Not paid after all),
   §7.3 (seller_delivery steps optional, Delivered cash received), §6.2
@@ -1337,8 +1372,8 @@ Applied to 01/02/03 on 2026-10-09 (founder said yes), in two parts:
   (`order.source` chat, `notification_log` payment_claimed,
   `refresh_token` 60 s retry), §12.1 (I've paid alert, Khmer-only bot),
   §13 (the retry); 01 §23.1 and §24 (I've paid); 03 Phase 9 row, 32 hrs.
-- 03 totals: Phase 9 subtotal ~203 hrs (~15.5 weeks); total ~431 hrs
-  (~33 weeks).
+- 03 totals: Phase 9 subtotal ~213 hrs (~16.5 weeks); total ~441 hrs
+  (~34 weeks).
 
 Applied to 01/02/03 on 2026-10-08 (at the founder's request): "More in
 Settings" (01 §23.1 Settings, §11, §46 Business; 02 §4.3, §5.1, §5.2
@@ -1669,28 +1704,53 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-000. Founder: try sign-up on the dev server. With your **test** bot in
-     `.env` (`TELEGRAM_*`; `PUBLIC_API_URL` empty), run `python -m
-     app.telegram_poll` beside uvicorn, then Create your store → Verify
-     with Telegram → Share my phone number. Your test shops log in with
-     "Log in with email instead".
-     **Google client ID** (free, ~15 min), at console.cloud.google.com:
-     new project "Oak Order"; Google Auth Platform → Branding: app name
-     Oak Order, your support email; Audience: External, then **Publish**
-     (In production; basic sign-in needs no review, but in Testing only
-     listed test users can sign in); Clients → Create client → Web
-     application, Authorized JavaScript origins
-     `https://order.oaksolve.com` and `http://localhost:5173` (no
-     redirect URIs). Put the Client ID in Render as `GOOGLE_CLIENT_ID`,
-     in Vercel as `VITE_GOOGLE_CLIENT_ID`, and both in your `.env`. Then
-     push (three migrations run on Render's start) and try Continue with
-     Google on your phone.
-     **Facebook and TikTok** (steps 2 and 3, founder's order): create the
-     Meta developer app and the TikTok for Developers app now, since
-     their reviews take days. Both need privacy policy and terms pages
-     on order.oaksolve.com (Claude can draft them for you to check);
-     Facebook may need Business Verification, which waits for the
-     registered business.
+000. Founder: set up and test sign-up and the three logins in one go
+     (founder's plan, 2026-10-09). Each part stays hidden until its keys
+     are set, so the order doesn't matter.
+     a. **Read** `/privacy`, `/terms`, `/data-deletion` (English and
+        Khmer; on the dev server or after a push). Set
+        `VITE_SUPPORT_TELEGRAM` in Vercel: it's the contact on those
+        pages.
+     b. **Locally:** your **test** bot in `.env` (`TELEGRAM_*`,
+        `PUBLIC_API_URL` empty), `python -m app.telegram_poll` beside
+        uvicorn, then Create your store → Verify with Telegram → Share
+        my phone number. Your old test shops log in with "Log in with
+        email instead".
+     c. **Google** (free, ~15 min), console.cloud.google.com: project
+        "Oak Order"; Google Auth Platform → Branding (name Oak Order,
+        your email, the privacy and terms URLs); Audience: External, then
+        **Publish**; Clients → Create → Web application, JavaScript
+        origins `https://order.oaksolve.com` and
+        `http://localhost:5173`. Client ID → Render `GOOGLE_CLIENT_ID`,
+        Vercel `VITE_GOOGLE_CLIENT_ID`, and your `.env`.
+     d. **Facebook**, developers.facebook.com: create an app (use case
+        "Authenticate and request data from users with Facebook Login");
+        Facebook Login → Settings → Valid OAuth Redirect URIs
+        `https://order.oaksolve.com/auth/facebook/callback` (and
+        `http://localhost:5173/auth/facebook/callback` to try locally);
+        App settings → Basic: privacy policy URL
+        `https://order.oaksolve.com/privacy`, terms URL `.../terms`,
+        data deletion instructions URL `.../data-deletion`, an icon, a
+        category; permissions `public_profile` and `email`; then switch
+        the app to Live. App ID → Render `FACEBOOK_APP_ID` and Vercel
+        `VITE_FACEBOOK_APP_ID`; App secret → Render `FACEBOOK_APP_SECRET`
+        only (never Vercel). If Meta asks for Business Verification,
+        Facebook works only for the app's testers until the business is
+        registered.
+     e. **TikTok**, developers.tiktok.com: create an app, add Login Kit,
+        platform Web; website `https://order.oaksolve.com` (verify the
+        domain as it asks), redirect URI
+        `https://order.oaksolve.com/auth/tiktok/callback`, terms and
+        privacy URLs as above, scope `user.info.basic`; submit for
+        review. Client key → Render `TIKTOK_CLIENT_KEY` and Vercel
+        `VITE_TIKTOK_CLIENT_KEY`; client secret → Render
+        `TIKTOK_CLIENT_SECRET` only. TikTok takes only https redirects,
+        so it can be tried only on the live site.
+     f. **Push** (four migrations run on Render's start), then on your
+        phone: Create your store with a phone; Continue with Google,
+        Facebook and TikTok; Settings → Your account → Other ways to log
+        in; `docs/REGRESSION_CHECKLIST.md` has the steps. Tell Claude
+        what each one did.
 00. Founder: try the four fixes and the seven picks (In Progress,
     "Pre-pilot review fixes" and "Pre-pilot features") on the dev server
     or after a push; `docs/REGRESSION_CHECKLIST.md` has the new steps.
