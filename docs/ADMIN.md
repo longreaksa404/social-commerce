@@ -72,6 +72,25 @@ to 30 days.
 
 ---
 
+## A customer wants their details removed
+
+The Data deletion page (order.oaksolve.com/data-deletion) tells
+customers to ask the shop or Oak Order, and promises it within 30 days.
+With the shop's link name (after `/shop/`) and the phone number they
+ordered with:
+
+```bash
+python -m app.admin forget-customer sokha-fashion 012345678
+```
+
+Their name becomes "(removed)", and their phone number, addresses, map
+pins and notes go from that shop's customer list, orders and alerts. The
+orders stay, with their items and money, for the seller's records. Tell
+the customer when it's done. A whole shop and its account are erased
+with `erase-shop` (above).
+
+---
+
 ## A shop to try things on
 
 Signing up in the app needs a phone number checked in Telegram, and each

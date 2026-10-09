@@ -6,7 +6,7 @@ from sqlalchemy import select
 from app import admin
 from app.db.session import unscoped_session
 from app.models import Customer, Delivery, Order, OrderItem, Payment, Product, Seller, Store
-from tests.helpers import add_product, place_order, refresh, registered_seller
+from tests.helpers import add_product, place_order, refresh, registered_seller, track
 
 
 async def test_reset_password_gives_a_working_password_and_logs_out_every_phone(client, register):
@@ -148,3 +148,47 @@ async def test_test_shop_logs_in_with_its_email(client):
     assert page.json()["name"] == "Load Test Shop"
     await admin.set_shop_open(shop.email.upper(), False)
     assert (await client.get(f"/api/v1/shop/{shop.slug}")).status_code == 404
+
+
+async def test_forget_customer_removes_them_but_keeps_the_orders(client, auth_headers):
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    cap = await add_product(store_id, "cap", stock=5)
+    placed = await place_order(
+        client,
+        slug,
+        [(cap, None, 1)],
+        total="10.00",
+        phone="097 111 2222",
+        name="Sokha",
+        address="House 5, St 2",
+        lat="11.556400",
+        lng="104.928200",
+        address_note="blue gate",
+    )
+    order_id = placed.json()["id"]
+
+    count = await admin.forget_customer(slug, "+855 97 111 2222")
+
+    assert count == 1
+    order = (await client.get(f"/api/v1/seller/orders/{order_id}", headers=headers)).json()
+    assert order["customer"]["name"] == admin.REMOVED
+    assert order["customer"]["phone"].startswith("removed-")
+    assert (order["delivery_address"], order["delivery_lat"], order["delivery_address_note"]) == (
+        None,
+        None,
+        None,
+    )
+    assert order["total"] == "10.00"  # the sale itself stays
+    alerts = (await client.get("/api/v1/seller/notifications", headers=headers)).json()
+    names = [n["order"]["customer_name"] for n in alerts["notifications"] if n["order"]]
+    assert names and set(names) == {admin.REMOVED}
+    # The tracking page no longer finds it with their phone.
+    assert (await track(client, slug, order_id, phone="0971112222")).status_code == 404
+
+
+async def test_forget_customer_says_what_it_couldnt_find(client, auth_headers):
+    _, _, slug = await registered_seller(client, auth_headers)
+    with pytest.raises(admin.AdminError, match="no customer"):
+        await admin.forget_customer(slug, "012 000 003")
+    with pytest.raises(admin.AdminError, match="No shop"):
+        await admin.forget_customer("no-such-shop", "012 000 003")

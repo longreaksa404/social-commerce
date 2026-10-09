@@ -1034,7 +1034,7 @@ The MVP should therefore focus on the smallest complete transaction loop.
 
 **Decided (2026-10-09):** orders that came by chat, added by the seller at the shop's prices; a short path (Accept, Delivered, Complete; the steps between optional; "Delivered, cash received" for cash on delivery); "Not paid after all"; Send to driver; a setup checklist for new shops. The shop's numbers wait for a seller dashboard.
 
-**Decided (2026-10-09):** sellers sign up with a phone number proved through the Telegram bot (free; one shop per number) and a password, or with Google (Facebook and TikTok next). The purpose is ease of use; after signing up, sellers still pay a subscription to use the platform (pricing still open, §46).
+**Decided (2026-10-09):** sellers sign up with a phone number proved through the Telegram bot (free; one shop per number) and a password, or with Google, Facebook or TikTok. The purpose is ease of use; after signing up, sellers still pay a subscription to use the platform (pricing still open, §46). A privacy policy, terms of service and data deletion instructions are public pages.
 
 # 24. MVP Customer Features
 

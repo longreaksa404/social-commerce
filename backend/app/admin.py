@@ -7,6 +7,7 @@ seller is named by their login, a phone number or (accounts from before
     python -m app.admin reopen-shop 012345678
     python -m app.admin erase-shop 012345678
     python -m app.admin test-shop
+    python -m app.admin forget-customer <shop link name> 012345678
     python -m app.admin move-photos https://pub-xxxx.r2.dev https://images.oaksolve.com
 
 On the live database: put Neon's direct connection string in
@@ -21,7 +22,7 @@ import asyncio
 import secrets
 from dataclasses import dataclass
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import security
@@ -30,6 +31,7 @@ from app.models import Customer, Order, Product, RefreshToken, Seller, Store
 from app.services.account import set_shop_logins
 from app.services.auth import login_filter
 from app.services.images import delete_store_files
+from app.services.phone import normalize_phone
 from app.services.slugs import slugify, unique_slug
 
 # No 0/o, 1/l/i: read out over the phone or typed from a Telegram message.
@@ -154,6 +156,59 @@ async def make_test_shop(name: str) -> MadeShop:
     return MadeShop(email, password, slug)
 
 
+# What a forgotten customer's name becomes in the shop's lists.
+REMOVED = "(removed)"
+
+
+async def forget_customer(slug: str, phone: str) -> int:
+    """A customer who asked to be forgotten (the Data deletion page): their
+    name, phone number, addresses, map pins and notes go from that shop's
+    customer list, orders and alerts. The orders stay, with their items
+    and money, for the seller's records. Returns how many orders."""
+    try:
+        phone = normalize_phone(phone)
+    except ValueError as exc:
+        raise AdminError(f"{phone} isn't a phone number.") from exc
+    async with unscoped_session() as db:
+        store = await db.scalar(select(Store).where(Store.slug == slug.strip()))
+        if store is None:
+            raise AdminError(f"No shop with the link name {slug}.")
+        customer = await db.scalar(
+            select(Customer).where(Customer.store_id == store.id, Customer.phone == phone)
+        )
+        if customer is None:
+            raise AdminError(f"/shop/{store.slug} has no customer with the phone {phone}.")
+        order_ids = list(await db.scalars(select(Order.id).where(Order.customer_id == customer.id)))
+        customer.name = REMOVED
+        # Unique per shop, and no longer anyone's number.
+        customer.phone = f"removed-{customer.id.hex[:8]}"
+        customer.address = None
+        customer.telegram_user_id = None
+        await db.execute(
+            update(Order)
+            .where(Order.customer_id == customer.id)
+            .values(
+                delivery_address=None,
+                delivery_lat=None,
+                delivery_lng=None,
+                delivery_address_note=None,
+                notes=None,
+            )
+        )
+        # The bell's alerts keep the name the order had.
+        await db.execute(
+            text(
+                "UPDATE notification_log SET payload = jsonb_set(payload,"
+                " '{order,customer_name}', to_jsonb(CAST(:removed AS text)))"
+                " WHERE store_id = :store_id"
+                " AND payload->'order'->>'id' = ANY(CAST(:ids AS text[]))"
+            ),
+            {"removed": REMOVED, "store_id": store.id, "ids": [str(i) for i in order_ids]},
+        )
+        await db.commit()
+    return len(order_ids)
+
+
 @dataclass(frozen=True)
 class MovedPhotos:
     products: int
@@ -217,6 +272,12 @@ async def _run(args: argparse.Namespace) -> str:
             f"Made /shop/{shop.slug}. Log in with {shop.email} and {shop.password}\n"
             f"Close it when you're done: python -m app.admin close-shop {shop.email}"
         )
+    if args.command == "forget-customer":
+        count = await forget_customer(args.shop, args.phone)
+        return (
+            f"Removed that customer's name, phone and addresses from /shop/{args.shop} "
+            f"({count} orders kept for the seller's records)."
+        )
     if args.command == "move-photos":
         moved = await move_photos(args.old, args.new)
         return f"Moved the photo addresses of {moved.products} products and {moved.logos} logos."
@@ -241,6 +302,11 @@ def main(argv: list[str] | None = None) -> None:
         )
     test = commands.add_parser("test-shop", help="make a shop to try things on (load test)")
     test.add_argument("--name", default="Load Test Shop", help="the shop's name")
+    forget = commands.add_parser(
+        "forget-customer", help="remove a customer's name, phone and address from a shop"
+    )
+    forget.add_argument("shop", help="the shop's link name (after /shop/)")
+    forget.add_argument("phone", help="the phone number they ordered with")
     move = commands.add_parser("move-photos", help="point saved photos at a new R2 address")
     move.add_argument("old", help="the address photos have now, e.g. https://pub-xxxx.r2.dev")
     move.add_argument("new", help="the new address, e.g. https://images.oaksolve.com")

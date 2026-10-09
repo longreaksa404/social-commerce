@@ -80,7 +80,7 @@ No separate worker service in the MVP. No message queue in the MVP. `BackgroundT
 | Fonts | **Kantumruy Pro** for all text, Khmer and Latin (`@fontsource-variable`, self-hosted, two variable files picked by `unicode-range`) | One look for Khmer, English and prices on every phone; Khmer 57 KB + Latin 33 KB, each loaded once (Khmer 2026-10-04, Latin 2026-10-06) |
 | Motion | CSS keyframes (`index.css`) and the Web Animations API, no library | Taps get an answer (add to cart, order placed, a status moving on) without adding weight; off when the phone asks for reduced motion |
 | Database | **PostgreSQL 16** | Relational integrity for orders/payments/inventory; JSONB available for flexible fields (e.g., variant attributes) without needing a second database |
-| Auth | **JWT (access + refresh)**, `bcrypt` (used directly; passlib is unmaintained) for passwords; sign-up with a phone number proved through the Telegram bot; "Continue with Google" (ID token checked with PyJWT against Google's keys); Facebook and TikTok to follow (decided 2026-10-09) | Stateless, simple, no session-store dependency; the phone check is free (no SMS) and Google needs no secret |
+| Auth | **JWT (access + refresh)**, `bcrypt` (used directly; passlib is unmaintained) for passwords; sign-up with a phone number proved through the Telegram bot; "Continue with Google" (ID token checked with PyJWT against Google's keys); "Continue with Facebook / TikTok" (redirect with a one-time code, traded by the API with the app's secret) (decided 2026-10-09) | Stateless, simple, no session-store dependency; the phone check is free (no SMS) and Google needs no secret |
 | Image storage | **S3-compatible object storage** (see §11) | Decoupled from app servers, cheap, standard presigned-upload pattern |
 | Background tasks | **FastAPI `BackgroundTasks`** (MVP) → Celery/RQ only if volume demands it later | Avoids running a queue + worker for MVP scale |
 | Telegram | Bot API called directly with **httpx** (webhook mode) | One message type and one command don't need a bot framework (decided 2026-10-03, instead of python-telegram-bot) |
@@ -141,7 +141,7 @@ A `seller` (the account that logs in) owns one `store` in the MVP (1:1). The sch
 
 ```
 seller (owner)
- ├─ seller_login (Google; later Facebook, TikTok)
+ ├─ seller_login (Google, Facebook, TikTok)
  └─ store (1:1 in MVP)
      ├─ seller (staff logins, role staff)
      ├─ category
@@ -296,7 +296,7 @@ seller (owner)
 > Each refresh token is swapped once. Shown again within 60 seconds it gets a new pair (a retry after the answer was lost); later, reusing it ends all of that seller's sessions (§13). Logging out deletes the row.
 
 ### `seller_login` (2026-10-09)
-| id, seller_id (FK, cascade), provider (`google`; later `facebook`, `tiktok`), provider_user_id (Google's `sub`), email (Google's, when verified; shown in Settings), created_at |
+| id, seller_id (FK, cascade), provider (`google`, `facebook`, `tiktok`), provider_user_id (Google's `sub`, Facebook's id, TikTok's `open_id`), email (the provider's, when verified), name (the provider's; TikTok gives no email), created_at |
 
 > Unique (provider, provider_user_id) and (seller_id, provider). Not tenant data: no RLS grant.
 
@@ -354,6 +354,7 @@ POST   /api/v1/auth/password-reset/confirm    # the link's token + a new passwor
 POST   /api/v1/auth/phone-checks              # start proving a phone number in Telegram (§12.4)
 GET    /api/v1/auth/phone-checks/{id}         # read until it has the number
 POST   /api/v1/auth/google                    # Google's ID token: logged in, or a sign-up to finish
+POST   /api/v1/auth/oauth/{facebook|tiktok}   # the code from /auth/<provider>/callback: logged in, or a sign-up to finish
 POST   /api/v1/auth/social/register           # finish it: shop name, name, phone_check; no password
 ```
 
@@ -363,6 +364,7 @@ GET    /api/v1/seller/account                 # the logged-in person's name, pho
 PATCH  /api/v1/seller/account                 # name only
 POST   /api/v1/seller/account/phone           # a new login number, from a phone check
 POST   /api/v1/seller/account/google          # log in with this Google account too
+POST   /api/v1/seller/account/oauth/{facebook|tiktok}   # or this Facebook / TikTok account
 POST   /api/v1/seller/account/password        # needs the current one if there is one; logs out other phones
 POST   /api/v1/seller/account/close-shop      # owner; password, if the account has one; link and logins stop, nothing erased
 GET    /api/v1/seller/staff                   # owner only, like everything under Settings
@@ -656,7 +658,8 @@ Customer taps "Ask seller on Telegram" on the product page
 
 - **Passwords:** `bcrypt` (used directly; passlib is unmaintained), never stored/logged in plaintext.
 - **Sign-up (2026-10-09):** a phone number proved in Telegram (§12.4), one account per number; login by that number (any spelling) or, for accounts from before, their email.
-- **Google (2026-10-09):** the ID token is checked (signature against Google's keys, audience = our client ID, issuer, expiry); nothing is stored but Google's account id and its verified email. A Google account is joined to a shop only from that shop's own Settings, never by a matching phone number or email.
+- **Google, Facebook, TikTok (2026-10-09):** Google's ID token is checked (signature against Google's keys, audience = our client ID, issuer, expiry). Facebook and TikTok send the browser back to `/auth/<provider>/callback` with a one-time code and the `state` the tab saved; the API trades the code with the app's secret (Facebook with `appsecret_proof`), and only for the app's own callback addresses. Nothing is stored but the account's id and its name and verified email. An account is joined to a shop only from that shop's own Settings, never by a matching phone number or email.
+- **Privacy policy, terms, data deletion (2026-10-09):** public pages at `/privacy`, `/terms` and `/data-deletion`, in English and Khmer, which Meta and TikTok require; they must stay true to what the code keeps.
 - **Tokens:** short-lived access JWT (~15 min) + longer-lived refresh JWT (~7 days), refresh rotated on use; a retry within 60 s of a rotation gets a new pair, later reuse ends every session of that seller. The access token is in the response body and kept in memory only; the refresh token is an httpOnly, Secure, SameSite=Lax cookie on the API's host, path `/api/v1/auth`, so no script can read it (app and API share the site oaksolve.com, 2026-10-09).
 - **Tenant isolation:** enforced at both application layer (service functions always scope by `store_id` from the authenticated token) and database layer (Postgres RLS, §4.2) — defense in depth, matching Rule 2 (`01_PRODUCT.md` §32).
 - **Rate limiting:** basic IP-based rate limiting on `/auth/login` and public storefront endpoints (e.g., via `slowapi`) to blunt brute-force and scraping — lightweight, no separate infra required. The client IP is taken from `CF-Connecting-IP` (set by Render's Cloudflare edge), not `X-Forwarded-For`, which clients can write and Render keeps (Phase 9 security review).

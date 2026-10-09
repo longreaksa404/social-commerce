@@ -278,10 +278,10 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Frontend redesign: Navy brand colour, Kantumruy Pro for all text, every screen reworked from options the founder picked (shop, checkout, order tracking, seller orders, products, customers, links, settings, login, start page), the brand name and mark, Oak Order since 2026-10-08 (founder's request 2026-10-06, done 2026-10-08) | 14 |
 | More in Settings: your account and password, forgot password via the shop's Telegram, pause orders with a reopening day, Call and Messenger buttons, low-stock alert level, export orders to Excel, close shop, staff logins (everything but Settings), the founder's commands (`docs/ADMIN.md`) (founder's request 2026-10-08, done the same day; plan and billing wait for pricing) | 39 |
 | Pre-pilot review: login renewal retry, delivery-fee reminder, first-product empty state, Khmer bot; then the short path, Not paid after all, orders from chat, Send to driver, I've paid, setup checklist (founder's picks 2026-10-09) | 32 |
-| Sign-up with a phone number checked through the Telegram bot, phone number logins (staff too), Continue with Google; Facebook and TikTok later, once their developer apps are approved (founder's request 2026-10-09) | 14 |
+| Sign-up with a phone number checked through the Telegram bot, phone number logins (staff too), Continue with Google, Facebook and TikTok; privacy policy, terms and data deletion pages (founder's request 2026-10-09) | 24 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~203 hours (**~15.5 weeks**)
+**Subtotal:** ~213 hours (**~16.5 weeks**)
 
 > **Decided (2026-10-04):** a .com domain bought through Cloudflare (oaksolve.com, bought 2026-10-09); Render
 > stays on the free plan for the first seller (the app says when the
@@ -306,8 +306,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 17 | 1.5 wks |
-| 9 — Polish/First Seller | 203 | 15.5 wks |
-| **Total** | **~431 hrs** | **~33 weeks (~7.5 months)** |
+| 9 — Polish/First Seller | 213 | 16.5 wks |
+| **Total** | **~441 hrs** | **~34 weeks (~8 months)** |
 
 This is a planning estimate, not a commitment.
 
