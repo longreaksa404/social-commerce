@@ -1026,14 +1026,17 @@ Phase 9, waiting on the founder:
 - **Domain:** oaksolve.com live since 2026-10-09 (switch-over pushed as
   `9ff0b9c`; `move-photos` moved 20 products and 1 logo; the founder
   checked login, photos, upload, a test order and the Telegram "Open
-  order" link on the phone). Left: forward the vercel.app address
-  (Vercel, Edit → Redirect to `order.oaksolve.com`, 308) and
-  `oaksolve.com` / `www` (Cloudflare: proxied A records to 192.0.2.1 and
-  a 302 Redirect Rule to `https://order.oaksolve.com`, 302 because it
-  becomes Oak Solutions' home page later); then drop the vercel.app
-  origin from Render's `CORS_ORIGINS` and from the R2 bucket's CORS.
-  Check "Oak Order" as a Facebook page name and on TikTok, Instagram
-  and Telegram.
+  order" link on the phone). Forwards checked from outside the same day:
+  `oaksolve.com`, `www` and `http://` → 302 to `order.oaksolve.com`
+  keeping the path and query (Cloudflare proxied A records to 192.0.2.1
+  and a Redirect Rule; 302 because it becomes Oak Solutions' home page
+  later); `social-commerce-eight.vercel.app` → 308 to `order.oaksolve.com`
+  (kept as a redirect, not removed: old Telegram and reset links keep
+  working, and nobody else can claim the name). `CORS_ORIGINS` and the
+  R2 bucket's CORS allow only `order.oaksolve.com` (and localhost for
+  R2). The cron-job.org ping still calls the onrender.com address, which
+  is the same service. Left: check "Oak Order" as a Facebook page name
+  and on TikTok, Instagram and Telegram.
 - **Backups:** the bucket, token and five GitHub secrets
   (`docs/BACKUPS.md`).
 - **Read the Khmer** and send corrections.
@@ -1672,8 +1675,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
    Khmer with the rest.
 5. Founder: read the Khmer on the live site; try dark mode; run the
    rate-limit check (Notes).
-6. Domain: live on order.oaksolve.com (2026-10-09). Founder: the two
-   forwards and the vercel.app clean-up (Notes, "Domain").
+6. Domain: done, live on order.oaksolve.com (2026-10-09). Founder:
+   check "Oak Order" on Facebook, TikTok, Instagram and Telegram.
 7. Founder: backup bucket, token and secrets (`docs/BACKUPS.md`).
 8. First real seller: data, walkthrough, `docs/REGRESSION_CHECKLIST.md`
    Part A on the live site, revoke the Telegram token.
