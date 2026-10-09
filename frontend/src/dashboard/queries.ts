@@ -68,8 +68,25 @@ export function useCategories() {
   return useQuery({ queryKey: keys.categories, queryFn: () => api<Category[]>('/seller/categories') })
 }
 
+const fetchProducts = () => api<Product[]>('/seller/products')
+
 export function useProducts() {
-  return useQuery({ queryKey: keys.products, queryFn: () => api<Product[]>('/seller/products') })
+  return useQuery({ queryKey: keys.products, queryFn: fetchProducts })
+}
+
+/** Whether the shop has a product at all, for the setup checklist that
+ * every screen shows (the Settings tab's dot). Products are hidden, never
+ * deleted, so once there is one there always is: from then on screens stop
+ * asking for the whole list again (511 KB for 500 products; perf audit
+ * F1). A product saved on this device still shows at once (saving
+ * invalidates the list), and so does the Products screen's own fresh copy. */
+export function useHasProduct() {
+  return useQuery({
+    queryKey: keys.products,
+    queryFn: fetchProducts,
+    staleTime: (query) => (query.state.data?.length ? Infinity : 0),
+    select: (products) => products.length > 0,
+  })
 }
 
 export function useProduct(id: string | undefined) {

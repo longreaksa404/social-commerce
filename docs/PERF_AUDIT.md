@@ -483,6 +483,7 @@ or input.
 
 | Finding | Commit | Before | After | Tests | Re-run on phones |
 |---|---|---|---|---|---|
+| F1 setup check stops refetching the product list | "Dashboard: the setup check stops asking for the whole product list on every screen" | The audit's 9-screen seller trace: `GET /seller/products` **5× (2,500 KB)**, on opening the dashboard, back to Orders, the Products tab, back to Products, Settings | **3× (1,500 KB)**: opening the dashboard (the setup check's one fetch) and the 2 visits to the Products screen, which still fetches on every visit to show current stock. "Once" would also need a freshness window on the Products screen (not approved). Settings tab dot for a new shop, saved in either order (product first, or delivery and payments first): shows until all three are saved, clears at once after the last, same as before | 614 backend pass; oxlint, `tsc -b` and build pass | 8, 10 |
 
 ---
 

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { useProducts, useRole, useStore } from '../queries.ts'
+import { useHasProduct, useRole, useStore } from '../queries.ts'
 
 /** The steps to get a new shop ready (founder's pick 7C, 2026-10-09), in
  * order. The first three are what taking orders needs; the rest help
@@ -56,14 +56,14 @@ export type Setup = {
  * loading. */
 export function useSetup(): Setup | null {
   const store = useStore()
-  const products = useProducts()
+  const hasProduct = useHasProduct()
   const role = useRole()
   const storeId = store.data?.id ?? ''
   const hidden = useSyncExternalStore(subscribe, () => (storeId ? isHidden(storeId) : false))
-  if (role !== 'owner' || !store.data || !products.data) return null
+  if (role !== 'owner' || !store.data || hasProduct.data === undefined) return null
   const s = store.data
   const steps: { step: SetupStep; done: boolean }[] = [
-    { step: 'product', done: products.data.length > 0 },
+    { step: 'product', done: hasProduct.data },
     { step: 'delivery', done: s.delivery_set_up },
     { step: 'payments', done: s.payment_set_up },
     // Only once the platform's bot is set up.
