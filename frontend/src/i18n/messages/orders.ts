@@ -68,6 +68,21 @@ export const orders = {
   // cash in hand, recorded together.
   cashHandover: { en: 'Delivered, cash received', km: 'បានដល់ដៃ និងបានទទួលសាច់ប្រាក់' },
   collectedCash: { en: 'Collected, cash received', km: 'បានមកយក និងបានទទួលសាច់ប្រាក់' },
+  // The shop's numbers, for the owner (founder's picks 8B, 9B).
+  stats: {
+    label: { en: 'Your numbers', km: 'លេខរបស់អ្នក' },
+    today: { en: 'Today', km: 'ថ្ងៃនេះ' },
+    week: { en: '7 days', km: '7 ថ្ងៃ' },
+    month: { en: 'This month', km: 'ខែនេះ' },
+    orders: { en: (n: number) => (n === 1 ? '1 order' : `${n} orders`), km: (n: number) => `ការកុម្ម៉ង់ ${n}` },
+    toCollect: { en: (amount: string) => `${amount} not paid yet`, km: (amount: string) => `${amount} មិនទាន់បង់` },
+    allPaid: { en: 'All paid', km: 'បានបង់ទាំងអស់' },
+    chart: { en: 'Sales per day', km: 'ការលក់ប្រចាំថ្ងៃ' },
+    day: {
+      en: (day: string, orders: string, sales: string) => `${day}: ${orders} · ${sales}`,
+      km: (day: string, orders: string, sales: string) => `${day}៖ ${orders} · ${sales}`,
+    },
+  },
   // An order that came by chat, added by the seller (founder's pick 3A).
   newOrder: {
     button: { en: 'New order', km: 'ការកុម្ម៉ង់ថ្មី' },
