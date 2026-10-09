@@ -46,13 +46,19 @@ const CUSTOMER_PAGE = 50
 // No push notifications in the MVP: the bell and an open order list check
 // for news now and then, and whenever the seller comes back to the app.
 const POLL_MS = 30_000
+// The shop's settings, the account and the categories change only when
+// someone in the shop saves them, and every save on this device updates
+// or invalidates them at once. So screens reuse them for 5 minutes instead
+// of asking again on each one (perf audit F9; founder, 2026-10-10: a change
+// made on another device can take up to 5 minutes to show).
+const SETTLED_MS = 5 * 60_000
 
 export function useStore() {
-  return useQuery({ queryKey: keys.store, queryFn: () => api<Store>('/seller/store') })
+  return useQuery({ queryKey: keys.store, queryFn: () => api<Store>('/seller/store'), staleTime: SETTLED_MS })
 }
 
 export function useAccount() {
-  return useQuery({ queryKey: keys.account, queryFn: () => api<Account>('/seller/account') })
+  return useQuery({ queryKey: keys.account, queryFn: () => api<Account>('/seller/account'), staleTime: SETTLED_MS })
 }
 
 /** The logged-in person's role, once known: staff see no store settings. */
@@ -65,7 +71,11 @@ export function useStaff() {
 }
 
 export function useCategories() {
-  return useQuery({ queryKey: keys.categories, queryFn: () => api<Category[]>('/seller/categories') })
+  return useQuery({
+    queryKey: keys.categories,
+    queryFn: () => api<Category[]>('/seller/categories'),
+    staleTime: SETTLED_MS,
+  })
 }
 
 const fetchProducts = () => api<Product[]>('/seller/products')
