@@ -1037,11 +1037,15 @@ replayed the rise and restarted each photo from a grey square.
    size is stored, so it alternates. Cards rise in only the first time a
    list shows; photos already shown appear at once at their size. The
    seller's grid is unchanged (still CSS columns).
+2. [x] Between All and a category the whole page no longer fades in
+   again (it was two pages to the app); the chip row is centred on the
+   chosen chip before it's drawn. Category to category never faded.
 
 Checked with mocked data in headless WebKit (iPhone 13), Chromium (Pixel
 7) and at 800, 1100 and 1440 px, sampling every frame: going back to a
-category already opened, both columns are fully drawn in the first
-frame and stay so. Real iPhone Safari still to check (founder).
+category already opened, or to All, both columns are fully drawn in the
+first frame and stay so (before: the right side finished 80-840 ms
+after the left). Real iPhone Safari still to check (founder).
 
 **Sign-up with a real phone number; Google, Facebook and TikTok logins**
 (founder's decisions 2026-10-09: social logins for ease of use, in the

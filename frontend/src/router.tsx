@@ -76,9 +76,11 @@ export const router = createBrowserRouter([
         path: '/shop/:storeSlug',
         element: <ShopLayout />,
         children: [
-          { index: true, element: <ShopHome /> },
+          // All and each category are tabs of one page: switching only
+          // changes the products, without the page fading in again.
+          { index: true, element: <ShopHome />, handle: { page: 'products' } },
           { path: 'product/:productSlug', element: <ShopProduct /> },
-          { path: 'category/:categorySlug', element: <ShopCategory /> },
+          { path: 'category/:categorySlug', element: <ShopCategory />, handle: { page: 'products' } },
           { path: 'cart', element: <ShopCheckout /> },
           // The cart and checkout are one page since the 2026-10-06 redesign.
           { path: 'checkout', element: <Navigate to="../cart" replace /> },

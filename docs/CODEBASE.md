@@ -991,7 +991,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/dashboard/notifications` | `Notifications` | |
 | `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public. While paused, `PausedNotice` (`shop/components.tsx`) tops every shop page and the cart's Place order is disabled; the seller's Orders tab shows a reminder |
 | `/shop/:storeSlug/product/:productSlug` | `ShopProduct` | |
-| `/shop/:storeSlug/category/:categorySlug` | `ShopCategory` | |
+| `/shop/:storeSlug/category/:categorySlug` | `ShopCategory` | A tab of the same page as `ShopHome` (`handle: { page: 'products' }`): switching between All and a category doesn't fade the page in |
 | `/shop/:storeSlug/cart` (`/checkout` forwards here) | `ShopCheckout` (with `CartItems` / `EmptyCart` from `ShopCart.tsx`) | The cart and checkout on one page (redesign 2026-10-06) |
 | `/shop/:storeSlug/order/:orderId` | `ShopOrderPage` | Confirmation + tracking |
 | `/shop/:storeSlug/orders` | `ShopOrders` | Orders placed on this device |
@@ -1099,8 +1099,10 @@ is wrapped in try/catch (private mode).
 
 - `components/ui.tsx`: `Field`, `Input`, `MoneyInput`, `PasswordInput`,
   `TextArea`, `Select`, `Switch`, `Button`, `IconButton`, `Card`,
-  `Section`, `PageHeader` (with back link), `PageOutlet` (animated
-  outlet), `Badge`, `LiveBadge`, `Skeleton`, `EmptyState`, `ErrorMessage`,
+  `Section`, `PageHeader` (with back link), `PageOutlet` (outlet that
+  fades a page in when another route opens; routes with the same
+  `handle.page` count as one page and don't fade: the shop's All and
+  category tabs), `Badge`, `LiveBadge`, `Skeleton`, `EmptyState`, `ErrorMessage`,
   `ErrorState` (with retry), `Spinner`, `SlowNotice` (after 4 s: "the
   first visit can take a minute"), `SuccessTick`, `SavedNote`.
   `Field` puts a red * on the label of a `required` control (CSS

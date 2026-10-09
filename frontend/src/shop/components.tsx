@@ -1,5 +1,13 @@
 import { CalendarClock, ImageOff, Minus, Plus, SearchX, Store } from 'lucide-react'
-import { useEffect, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type MouseEvent,
+  type ReactNode,
+} from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { Badge, Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { thumbnailUrl } from '../lib/images.ts'
@@ -94,7 +102,9 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
 
   // Someone landing on a category link should see which chip is theirs,
   // even when it starts off-screen. Sideways only: the page doesn't move.
-  useEffect(() => {
+  // Before it's drawn: between All and a category the row is new (another
+  // page component) and nothing fades over it.
+  useLayoutEffect(() => {
     const el = nav.current
     const active = el?.querySelector<HTMLElement>('[aria-current="page"]')
     if (el && active) el.scrollLeft = active.offsetLeft - (el.clientWidth - active.offsetWidth) / 2
