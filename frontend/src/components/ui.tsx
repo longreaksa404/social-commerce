@@ -354,10 +354,12 @@ export function Card({ children, className = '', id }: { children: ReactNode; cl
 }
 
 /** The layout's page, fading in when another page opens (not when only the
- * page's params or search change). `depth`: the page's place in the route
+ * page's params or search change, nor between routes with the same
+ * `handle.page`: tabs of one page). `depth`: the page's place in the route
  * tree (1 for the root's children, 2 for a layout's). */
 export function PageOutlet({ depth }: { depth: number }) {
-  const page = useMatches()[depth]?.id
+  const match = useMatches()[depth]
+  const page = (match?.handle as { page?: string } | undefined)?.page ?? match?.id
   return (
     <div key={page} className="animate-fade-in">
       <Outlet />
