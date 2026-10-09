@@ -4,6 +4,7 @@ import { Spinner } from '../components/ui.tsx'
 import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
 import { BrandMark } from './AuthLayout.tsx'
+import { LegalLinks } from './Legal.tsx'
 
 /** The start page, before logging in (founder's pick, 2026-10-08): deep
  * navy, the name Oak Order in very large letters, one line on what it's
@@ -41,6 +42,7 @@ export function Home() {
       <div className="flex flex-col gap-3 sm:hidden">
         <Actions />
       </div>
+      <LegalLinks onDark className="mt-4 justify-center sm:justify-start" />
     </main>
   )
 }

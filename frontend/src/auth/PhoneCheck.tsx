@@ -95,7 +95,18 @@ export function PhoneCheck({
           {done.taken && taken}
         </div>
       ) : created.error ? (
-        <ErrorMessage error={created.error} />
+        <div className="space-y-3">
+          <ErrorMessage error={created.error} />
+          <Button
+            variant="secondary"
+            icon={RotateCcw}
+            loading={created.isFetching}
+            onClick={() => created.refetch()}
+            className="w-full"
+          >
+            {t.common.tryAgain}
+          </Button>
+        </div>
       ) : expired ? (
         <div className="space-y-3">
           <ErrorMessage error={read.error} />

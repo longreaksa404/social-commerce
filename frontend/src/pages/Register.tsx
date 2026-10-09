@@ -8,6 +8,7 @@ import { ApiError } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
 import type { PhoneCheck as Check } from '../lib/types.ts'
 import { useT } from '../i18n/useT.ts'
+import { AgreeLine } from './AgreeLine.tsx'
 import { AuthLayout } from './AuthLayout.tsx'
 
 const FIELDS = ['store_name', 'full_name', 'phone_check', 'password']
@@ -129,6 +130,7 @@ export function Register() {
           {t.auth.register.submit}
         </Button>
         {pending && <SlowNotice />}
+        <AgreeLine />
       </form>
     </AuthLayout>
   )

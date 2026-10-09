@@ -16,6 +16,7 @@ import { SettingsPage } from './dashboard/settings/SettingsPage.tsx'
 import { FinishSignup } from './pages/FinishSignup.tsx'
 import { ForgotPassword } from './pages/ForgotPassword.tsx'
 import { Home } from './pages/Home.tsx'
+import { Legal } from './pages/Legal.tsx'
 import { Login } from './pages/Login.tsx'
 import { OAuthCallback } from './pages/OAuthCallback.tsx'
 import { Register } from './pages/Register.tsx'
@@ -39,6 +40,9 @@ export const router = createBrowserRouter([
       { path: '/register', element: <Register /> },
       { path: '/register/finish', element: <FinishSignup /> },
       { path: '/auth/:provider/callback', element: <OAuthCallback /> },
+      { path: '/privacy', element: <Legal doc="privacy" /> },
+      { path: '/terms', element: <Legal doc="terms" /> },
+      { path: '/data-deletion', element: <Legal doc="data-deletion" /> },
       { path: '/forgot-password', element: <ForgotPassword /> },
       // The link the bot sends to the shop's Telegram: /reset-password#<token>.
       { path: '/reset-password', element: <ResetPassword /> },
