@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-09 (pre-pilot review: four fixes, then the founder's picks 1C 2C 3A 4A 5B 6B 7C 8B 9B)
+> **Last updated:** 2026-10-09 (sign-up with a phone number checked in Telegram, and Continue with Google)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -1024,6 +1024,60 @@ line: Safari carries the last card's margin and shadow over to the next
 column. The gap is now padding on each item. Checked in headless WebKit
 and Chromium at 414 px with mocked data, before and after.
 
+**Sign-up with a real phone number, and Continue with Google**
+(founder's decisions 2026-10-09: social logins for ease of use, in the
+order Google, then Facebook, then TikTok; phone number and password kept;
+phone numbers proved through the Telegram bot's "Share my phone number",
+free, instead of SMS; only test shops on the live site). Each committed on
+its own; not pushed:
+
+1. [x] **Phone check through the Telegram bot** (`978fc50`): the page
+   opens `t.me/<bot>?start=phone_<code>`, the bot shows a "Share my phone
+   number" button, Telegram sends the account's own number (someone
+   else's contact card doesn't count), and the page sees it within a few
+   seconds. `python -m app.telegram_poll` answers a test bot from a
+   laptop, where Telegram's webhook can't reach.
+2. [x] **Register and log in with a phone number** (`c78d55b`): sign-up
+   takes the checked number (no email); that Telegram chat gets the new
+   shop's order alerts at once. Login and Forgot password take the number
+   written any way, or an older account's email behind "Log in with email
+   instead" (your test shops). Staff are added with a phone number. Your
+   account: change number through Telegram; the email is no longer
+   editable. `python -m app.admin` takes a phone or an email and has
+   `test-shop` (the load test's seed now logs in to that shop).
+   Migration `005c6870a409`: existing phones put in one form; a number
+   that couldn't be read, or that an older account already had, was
+   cleared (those test accounts keep their email login).
+3. [x] **Continue with Google** (`1e5d447`): Google's button on Login and
+   Register. A Google account with a shop logs straight in; someone new
+   sets up their shop (name, shop name, phone checked in Telegram) with
+   no password. Your account shows the Google account, connects one (or
+   another), and adds a password. Close shop needs no password when there
+   isn't one. **Not joined by phone or email** (differs from what Claude
+   first described): a Google sign-up whose phone already has a shop is
+   told to log in and connect Google in Settings, because joining on a
+   shared phone number would hand the shop to whoever got the owner to
+   tap "Share" once. Migration `4520c66e86de` (`seller_login`,
+   `password_hash` optional). Off until the Google client ID is set
+   (Next Up).
+
+Checked: 599 backend tests pass (39 new: the phone check, phone and
+email logins, sign-up once per number and per check, staff by phone,
+account number change, Google tokens checked for real against a key made
+in the tests: wrong signature, app, issuer, expired; sign-up, sign-in,
+connect, no-password accounts; no `app_user` grant on `phone_check` or
+`seller_login`); ruff, oxlint and the build pass; both migrations go down
+and up on the dev database. In headless Chromium at 390 px (English) and
+320 px (Khmer), with the bot's messages sent to the webhook by hand:
+register → Telegram share → shop created → log out → log in with
+`+855 …`; Your account and Staff; Google with a stand-in for Google's
+button (a real Google sign-in needs the founder's client ID): a refused
+token's message, Set up your shop, Your account with Google and Add a
+password. No sideways scroll, no console errors. Three migrations run on
+Render's start: `5b3201ea7f7d`, `005c6870a409`, `4520c66e86de`. New
+dependency: `pyjwt[crypto]` (adds `cryptography`, for Google's RS256
+keys).
+
 Phase 9, waiting on the founder:
 
 - **Live load test**, once, before the first real seller, from home
@@ -1267,6 +1321,59 @@ Resolved:
 ---
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
+
+From the founder's decisions on sign-up (2026-10-09), not yet in
+01/02/03. Proposed text:
+
+- **02 §2 Tech Stack, Auth row:** "**JWT (access + refresh)**, `bcrypt`
+  for passwords; sign-up with a phone number proved through the Telegram
+  bot; 'Continue with Google' (ID token checked with PyJWT against
+  Google's keys); Facebook and TikTok to follow."
+- **02 §5.1:** under `seller (owner)` add `├─ seller_login (Google;
+  later Facebook, TikTok)`; **§5.3:** add `seller 1───N seller_login`.
+- **02 §5.2 `seller`:** `phone` text, **unique**, nullable: "the login,
+  a number proved in Telegram (staff: typed by the owner); null only for
+  accounts from before 2026-10-09"; `email` text, unique, **nullable**:
+  "accounts from before 2026-10-09 log in with it"; `password_hash`
+  **nullable**: "null for an account made with Google until it adds one".
+  New tables: "`seller_login`: id, seller_id (FK, cascade), provider
+  (`google`), provider_user_id (Google's sub), email (Google's, shown in
+  Settings), created_at; unique (provider, provider_user_id) and
+  (seller_id, provider)" and "`phone_check`: id (the page's secret),
+  code (in the t.me link), telegram_user_id, phone, verified_at,
+  expires_at (30 min), created_at". Neither is tenant data (no RLS
+  grant).
+- **02 §6.2 Auth:** `POST /auth/register` (shop name, name, password,
+  phone_check), `POST /auth/login` (phone number, or an older account's
+  email), `POST /auth/phone-checks`, `GET /auth/phone-checks/{id}`,
+  `POST /auth/google`, `POST /auth/social/register`; password-reset
+  "same answer for any login". **Account and staff:** `PATCH
+  /seller/account` (name only), `POST /seller/account/phone`, `POST
+  /seller/account/google`, `/password` "needs the current one if there
+  is one", `/close-shop` "password, if the account has one"; staff
+  "name, phone, first password".
+- **02 §12.1** (or a new §12.4 "Phone check"): "`/start phone_<code>`
+  answers with a 'Share my phone number' button (`request_contact`); the
+  shared contact counts only if it's the sender's own; it completes that
+  account's newest open check. Signing up connects that chat to the new
+  shop's alerts."
+- **02 §13 Auth & Security:** add "**Sign-up:** a phone number proved in
+  Telegram, one account per number. **Google:** ID token checked
+  (signature, audience = our client ID, issuer, expiry); a Google account
+  is joined to a shop only from that shop's own Settings, never by a
+  matching phone or email."
+- **01 §23.1** (after the 2026-10-08 list): "Decided (2026-10-09):
+  sellers sign up with a phone number proved through the Telegram bot
+  (free; one shop per number) and a password, or with Google (Facebook and
+  TikTok next). The account line becomes: name, phone number (the login,
+  changed through Telegram), password; staff log in with their phone
+  number." The 2026-10-08 lines "login email" and "their own email"
+  become "phone number".
+- **03 Phase 9 row:** "Sign-up with a phone number checked in Telegram,
+  phone logins, Continue with Google (founder's request 2026-10-09)
+  | 14". Subtotal ~203 hrs; §4 totals: Phase 9 203, total ~431 hrs.
+  Facebook and TikTok logins: later rows, once their developer apps are
+  approved.
 
 From the founder's picks 1C 2C 3A 4A 5B 6B 7C 8B 9B (2026-10-09), not
 yet in 01/02/03. Proposed text:
@@ -1653,6 +1760,28 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
+000. Founder: try sign-up on the dev server. With your **test** bot in
+     `.env` (`TELEGRAM_*`; `PUBLIC_API_URL` empty), run `python -m
+     app.telegram_poll` beside uvicorn, then Create your store → Verify
+     with Telegram → Share my phone number. Your test shops log in with
+     "Log in with email instead".
+     **Google client ID** (free, ~15 min), at console.cloud.google.com:
+     new project "Oak Order"; Google Auth Platform → Branding: app name
+     Oak Order, your support email; Audience: External, then **Publish**
+     (In production; basic sign-in needs no review, but in Testing only
+     listed test users can sign in); Clients → Create client → Web
+     application, Authorized JavaScript origins
+     `https://order.oaksolve.com` and `http://localhost:5173` (no
+     redirect URIs). Put the Client ID in Render as `GOOGLE_CLIENT_ID`,
+     in Vercel as `VITE_GOOGLE_CLIENT_ID`, and both in your `.env`. Then
+     push (three migrations run on Render's start) and try Continue with
+     Google on your phone.
+     **Facebook and TikTok** (steps 2 and 3, founder's order): create the
+     Meta developer app and the TikTok for Developers app now, since
+     their reviews take days. Both need privacy policy and terms pages
+     on order.oaksolve.com (Claude can draft them for you to check);
+     Facebook may need Business Verification, which waits for the
+     registered business.
 00. Founder: try the four fixes and the seven picks (In Progress,
     "Pre-pilot review fixes" and "Pre-pilot features") on the dev server
     or after a push; `docs/REGRESSION_CHECKLIST.md` has the new steps.
