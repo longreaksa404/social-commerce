@@ -1015,6 +1015,15 @@ customer's progress bar follows the order's own status, so with the
 short path it can read "Confirmed" while its delivery line reads
 "Delivered", until the seller taps Complete. No migration.
 
+**Photo fixes** (founder's screenshots, 2026-10-09; not pushed):
+`221ca29` the desktop Products table showed each photo as a narrow
+strip (the base `img { max-width: 100% }` squeezed it to the column);
+then, on iPhone Safari, the second column of the photo wall (seller
+grid, shop grid and its loading grid) started 12 px lower under a stray
+line: Safari carries the last card's margin and shadow over to the next
+column. The gap is now padding on each item. Checked in headless WebKit
+and Chromium at 414 px with mocked data, before and after.
+
 Phase 9, waiting on the founder:
 
 - **Live load test**, once, before the first real seller, from home

@@ -237,7 +237,9 @@ function ProductGrid({ products, currency }: { products: Product[]; currency: Cu
       {products.map((product) => {
         const hidden = product.status === 'inactive'
         return (
-          <li key={product.id} className="mb-3 break-inside-avoid">
+          // The gap is padding, not margin: Safari carries a margin (and
+          // the card's shadow) over to the top of the next column.
+          <li key={product.id} className="break-inside-avoid pb-3">
             <Link
               to={`/dashboard/products/${product.id}`}
               className="block overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6 transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-[0.98]"

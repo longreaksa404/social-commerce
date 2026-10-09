@@ -128,34 +128,37 @@ export function ProductGrid({ shop, products }: { shop: ShopStore; products: Sho
       {products.map((product, i) => (
         // The first ones come in one after another. The whole card is the
         // link (its ::after covers it), so the + can sit on the photo
-        // without being inside the link (a button can't be).
-        <li
-          key={product.id}
-          className="group relative mb-3 animate-rise break-inside-avoid overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6 transition-transform has-[a:active]:scale-[0.98] has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-navy-600"
-          style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
-        >
-          <div className="relative">
-            <div className="overflow-hidden">
-              <ProductImage
-                small
-                natural
-                src={product.image_url}
-                alt=""
-                className={`w-full transition-transform group-hover:scale-[1.03] ${product.in_stock ? '' : 'opacity-60'}`}
-              />
-            </div>
-            {!product.has_variants && product.in_stock && <QuickAdd shop={shop} product={product} />}
-          </div>
-          <Link
-            to={`/shop/${shop.slug}/product/${product.slug}`}
-            className="block p-3 outline-none after:absolute after:inset-0"
+        // without being inside the link (a button can't be). The gap is
+        // the li's padding, not a margin on the card: Safari carries a
+        // margin (and the card's shadow) over to the top of the next column.
+        <li key={product.id} className="break-inside-avoid pb-3">
+          <div
+            className="group relative animate-rise overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6 transition-transform has-[a:active]:scale-[0.98] has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-navy-600"
+            style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
           >
-            <span className="line-clamp-2 text-sm leading-5 font-medium text-slate-900">{product.name}</span>
-            <span className="mt-0.5 block text-sm font-semibold text-slate-900 tabular-nums">
-              {formatPriceRange(product.price_min, product.price_max, shop.currency)}
-            </span>
-            <StockTag product={product} />
-          </Link>
+            <div className="relative">
+              <div className="overflow-hidden">
+                <ProductImage
+                  small
+                  natural
+                  src={product.image_url}
+                  alt=""
+                  className={`w-full transition-transform group-hover:scale-[1.03] ${product.in_stock ? '' : 'opacity-60'}`}
+                />
+              </div>
+              {!product.has_variants && product.in_stock && <QuickAdd shop={shop} product={product} />}
+            </div>
+            <Link
+              to={`/shop/${shop.slug}/product/${product.slug}`}
+              className="block p-3 outline-none after:absolute after:inset-0"
+            >
+              <span className="line-clamp-2 text-sm leading-5 font-medium text-slate-900">{product.name}</span>
+              <span className="mt-0.5 block text-sm font-semibold text-slate-900 tabular-nums">
+                {formatPriceRange(product.price_min, product.price_max, shop.currency)}
+              </span>
+              <StockTag product={product} />
+            </Link>
+          </div>
         </li>
       ))}
     </ul>
@@ -225,11 +228,13 @@ export function ProductGridSkeleton() {
   return (
     <div aria-hidden className="columns-2 gap-3 sm:columns-3 lg:columns-4 xl:columns-5">
       {SKELETON_SHAPES.map((shape, i) => (
-        <div key={i} className="mb-3 break-inside-avoid overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6">
-          <Skeleton className={`w-full rounded-none ${shape}`} />
-          <div className="p-3">
-            <Skeleton className="h-4 w-4/5" />
-            <Skeleton className="mt-2 h-4 w-1/3" />
+        <div key={i} className="break-inside-avoid pb-3">
+          <div className="overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6">
+            <Skeleton className={`w-full rounded-none ${shape}`} />
+            <div className="p-3">
+              <Skeleton className="h-4 w-4/5" />
+              <Skeleton className="mt-2 h-4 w-1/3" />
+            </div>
           </div>
         </div>
       ))}
