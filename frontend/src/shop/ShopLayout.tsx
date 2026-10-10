@@ -10,6 +10,7 @@ import type { Currency, ShopStore } from '../lib/types.ts'
 import { useCart } from './cart.ts'
 import { NotFound, PausedNotice, ShopLogo } from './components.tsx'
 import { CurrentOrderButton } from './CurrentOrder.tsx'
+import { MadeWithOak } from './MadeWithOak.tsx'
 import { openedLink } from './device.ts'
 import { onCartLanded } from './fly.ts'
 import { isNotFound, trackView, useShop } from './queries.ts'
@@ -60,6 +61,8 @@ export function ShopLayout() {
         {shop.data?.orders_paused && <PausedNotice shop={shop.data} />}
         {shop.error ? <ErrorState error={shop.error} onRetry={() => shop.refetch()} /> : <PageOutlet depth={2} />}
       </main>
+      {/* Not on product pages, the cart or Your orders (founder's pick 2A). */}
+      {shop.data && (browsing || orderPage) && <MadeWithOak />}
       {/* Room under the last row, and for the cart bar over it on phones. */}
       <div aria-hidden className={cartBar ? 'h-28 lg:h-10' : 'h-[calc(env(safe-area-inset-bottom)+2.5rem)]'} />
       {cartBar && <CartBar slug={storeSlug} currency={shop.data?.currency} />}

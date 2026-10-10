@@ -201,4 +201,13 @@ export const shop = {
     total: { en: 'Total', km: 'សរុប' },
   },
   orderNumber: { en: (n: number) => `Order #${n}`, km: (n: number) => `ការកុម្ម៉ង់ #${n}` },
+
+  // The line at the bottom of the shop's grid pages and the order page:
+  // "Made with Oak Order", then Privacy · Terms (founder's pick 1A 2A,
+  // 2026-10-10). "Oak Order" stays in English letters in both.
+  credit: {
+    madeWith: { en: 'Made with', km: 'ហាងនេះប្រើ' },
+    privacy: { en: 'Privacy', km: 'គោលការណ៍ឯកជនភាព' },
+    terms: { en: 'Terms', km: 'លក្ខខណ្ឌប្រើប្រាស់' },
+  },
 } satisfies Tree

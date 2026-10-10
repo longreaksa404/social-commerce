@@ -122,6 +122,7 @@ Render's health check.
 | Small photo copies | DONE | `-m` / `-s.jpg` naming, `thumbnail_size` on the images endpoint |
 | Nightly DB backup to R2 | PARTIAL | `.github/workflows/backup.yml` exists but skips until its five secrets are set (04: not set yet) |
 | UX pass (shop info, pinned Add to cart, logo, Settings menu, order summary, one row per option) | DONE | `POST /seller/store/logo`; `src/dashboard/settings/` |
+| Oak in the shop (founder's picks 2026-10-10: 1A 2A 3B 4B 5B) | IN PROGRESS | The oak leaf is the mark (`components/OakLeaf.tsx`, `public/favicon.svg`); "Made with Oak Order" with Privacy · Terms at the bottom of the shop's grid pages and the order page (`shop/MadeWithOak.tsx`) |
 | Customer order tracking (order truck in the shop's header, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrder.tsx`, `ShopOrders.tsx`, `useMyOrders` |
 | UX pass 2 (effects, cart bars, numbered checkout, Kantumruy Pro) | DONE | `components/effects.ts`, `shop/fly.ts`, `components/useBump.ts` |
 | Layout pass (edge-to-edge on phones, floating bars) | DONE | `cardClass` in `components/styles.ts` |
@@ -1142,6 +1143,11 @@ is wrapped in try/catch (private mode).
   except on the order, checkout and Your orders pages: a truck (a box
   for pickup) idling with `animate-drive`, that opens the order, or Your
   orders with several.
+- `shop/MadeWithOak.tsx`: the line at the very bottom of the shop's grid
+  pages (All, each category) and the order page (`ShopLayout`), not on
+  product pages, the cart or Your orders: our mark and "Made with Oak
+  Order" (to `/`), then Privacy · Terms, each in a new tab (founder's
+  picks 1A 2A, 2026-10-10). `components/OakLeaf.tsx` is the mark.
 - `shop/components.tsx`: `ProductImage` (thumbnail with fallback;
   `eager` loads it at once at high priority, `later` asks for it at low
   priority (a gallery's 2nd photo on); otherwise lazy. Lists pass `eager`
