@@ -1025,7 +1025,7 @@ column. The gap is now padding on each item. Checked in headless WebKit
 and Chromium at 414 px with mocked data, before and after.
 
 **Shop grid: right column painted late on iPhone** (founder's screen
-recording, 2026-10-09; not pushed). Tapping a category chip left the
+recording, 2026-10-09; pushed as `03fe087` and `73c09ac`). Tapping a category chip left the
 right column blank for 0.3-0.6 s, sometimes half drawn. Causes: CSS
 columns fill the left column first, so the right column's cards had the
 longest rise delays (up to 320 ms + 300 ms); Safari paints a fading card
