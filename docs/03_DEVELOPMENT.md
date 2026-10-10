@@ -279,9 +279,10 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | More in Settings: your account and password, forgot password via the shop's Telegram, pause orders with a reopening day, Call and Messenger buttons, low-stock alert level, export orders to Excel, close shop, staff logins (everything but Settings), the founder's commands (`docs/ADMIN.md`) (founder's request 2026-10-08, done the same day; plan and billing wait for pricing) | 39 |
 | Pre-pilot review: login renewal retry, delivery-fee reminder, first-product empty state, Khmer bot; then the short path, Not paid after all, orders from chat, Send to driver, I've paid, setup checklist (founder's picks 2026-10-09) | 32 |
 | Sign-up with a phone number checked through the Telegram bot, phone number logins (staff too), Continue with Google, Facebook and TikTok; privacy policy, terms and data deletion pages (founder's request 2026-10-09) | 24 |
+| Oak in the shop: "Made with Oak Order" with Privacy · Terms at the bottom of the shop's grid pages and the order page; link cards titled "… · Oak Order" with Oak's mark small on the logo or photo (drawn by the API); the oak leaf as the mark; Oak's own link card and iPhone icon (founder's picks 2026-10-10) | 4 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~213 hours (**~16.5 weeks**)
+**Subtotal:** ~217 hours (**~17 weeks**)
 
 > **Decided (2026-10-04):** a .com domain bought through Cloudflare (oaksolve.com, bought 2026-10-09); Render
 > stays on the free plan for the first seller (the app says when the
@@ -306,8 +307,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 17 | 1.5 wks |
-| 9 — Polish/First Seller | 213 | 16.5 wks |
-| **Total** | **~441 hrs** | **~34 weeks (~8 months)** |
+| 9 — Polish/First Seller | 217 | 17 wks |
+| **Total** | **~445 hrs** | **~34 weeks (~8 months)** |
 
 This is a planning estimate, not a commitment.
 
@@ -342,6 +343,7 @@ Maintain a **Requirements Log** for anything a seller asks for that isn't in thi
 |---|---|---|---|---|
 | 2026-10-02 | Founder (own idea while testing Phase 4; no seller yet) | **One-tap pay for several banks.** A "Pay" button that opens the customer's own bank app (ABA, ACLEDA, Wing, …) with the amount filled in, and marks the payment paid automatically. Today the customer saves the KHQR and scans it from their gallery, and the seller confirms by hand. | Possibly repeated. **Validate First** (`01_PRODUCT.md` §44) | Not yet; ask the first sellers |
 | 2026-10-09 | Founder (trying the Orders tab's numbers card locally; no seller yet) | **Seller dashboard.** A page for the shop's numbers (orders, sales, not paid yet; today, 7 days, this month) with a chart of sales per day. The Orders tab had them as a card for a day; the founder took it off until this page exists. The server part is built (`GET /seller/stats`, owner only). | Possibly repeated. **Build later** | Not yet |
+| 2026-10-10 | Founder (Oak in the shop; no seller yet) | **Hide "Made with Oak Order".** Sellers on a paid plan can turn off the line at the bottom of their shop (our mark and "Made with Oak Order"; Privacy · Terms would stay). A common paid extra on shop builders. | Possibly repeated. **Decide with pricing** (`01_PRODUCT.md` §46) | Not yet |
 | 2026-10-06 | Founder (shop redesign; no seller yet) | **Search in the shop.** A search box above the products, for shops with many products (30+). Not in the MVP customer features (`01_PRODUCT.md` §24). | Possibly repeated. **Validate First**: build when a seller's shop is big enough to need it | Not yet |
 
 Notes on the 2026-10-02 one-tap pay request:

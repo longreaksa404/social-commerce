@@ -1850,6 +1850,8 @@ Decided so far (details in §24, §25 and `02_TECHNICAL.md`):
 - Payment confirmation: by hand by the seller, for every method (2026-10-02)
 - Product name: Oak Order, under the brand Oak (2026-10-08; replaces Sroul Order from 2026-10-06)
 - Company Oak Solutions, domain oaksolve.com, this product at `order.oaksolve.com` (2026-10-09; Oak Shop considered and not picked)
+- Oak's mark: the oak leaf from the Oak Solutions logo (2026-10-10; replaces a stock tree icon)
+- Every shop credits Oak: "Made with Oak Order" with Privacy · Terms at the bottom of the shop's pages and the order page, and shared links end in "· Oak Order" with Oak's mark small on the picture (2026-10-10). Letting paid plans hide the line waits for pricing.
 
 # 47. Relationship With Other Project Documents
 

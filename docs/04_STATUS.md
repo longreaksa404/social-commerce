@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-10 (performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -783,6 +783,41 @@ performance this project can handle?"; pushed):**
       Starting the server at 0.1 CPU (migrations + Python) takes ~35 s,
       which is part of the wait after Render's free plan sleeps.
 
+**Oak in the shop (founder asked 2026-10-10 "should we add something for
+our branding or credit?"; picks 1A 2A 3B 4B 5B, with the mark small; not
+pushed):**
+
+- [x] The mark is the **oak leaf** from the Oak Solutions logo (4B), not
+      the stock tree: `components/OakLeaf.tsx` in `BrandMark` (login,
+      start page, legal pages), `public/favicon.svg`.
+- [x] **"Made with Oak Order"** (1A, 2A): at the very bottom of the
+      shop's page, each category and the order page, under a thin line,
+      the leaf on a small navy tile and "Made with Oak Order" (Khmer
+      "ហាងនេះប្រើ Oak Order", a draft for the founder to check), then
+      Privacy · Terms; each opens in a new tab (`shop/MadeWithOak.tsx`).
+      Not on product pages, the cart or Your orders. Checked in the
+      browser at 390 px, light and dark, Khmer and English.
+- [x] **Link cards** (3B, 5B): titles end in "· Oak Order" (a product's
+      with its price) and the picture is the API's copy with our mark
+      small in the corner: the logo (256 px) or the product's photo (a
+      1200 × 630 card, the whole photo over a blurred copy).
+      `GET /shop/{slug}/preview/logo` and `/preview/products/{slug}`
+      (`services/preview.py`, `oak_mark.py`, Pillow; photos only from
+      `R2_PUBLIC_URL`; 30/min per IP). A shop without a logo gets our
+      plain mark (`public/og/oak-mark.png`). Every other page, and a shop
+      link while Render sleeps, gets the generic card in `index.html`
+      (`public/og/oak-order.png`: the leaf, "Oak Order", the start
+      page's line in Khmer and English). iPhone home-screen icon added
+      (`public/apple-touch-icon.png`). Middleware run locally as
+      Facebook's bot; pictures drawn from sample photos; not yet seen on
+      the live Facebook or Telegram.
+- [x] Correction: link previews already existed (`middleware.ts`, since
+      2026-10-03); the options page wrongly showed today's shop link as
+      "Oak Order" only. That's only the fallback while the API sleeps.
+- [x] 4 new pytest tests (the logo and photo pictures, the plain mark,
+      another shop's or a hidden product 404, only our own photos
+      fetched); 622 in all. Lint and build pass.
+
 ---
 
 ## In Progress
@@ -1389,10 +1424,18 @@ Resolved:
       Sroul / Sroul Order below): one brand for all of the founder's
       projects, each product "Oak + a plain word". The app shows "Oak
       Order" in English letters in both languages, in very large letters
-      on the start page; the mark is a tree on navy. At
+      on the start page; the mark is a tree on navy (the oak leaf since
+      2026-10-10, below). At
       `order.oaksolve.com` (2026-10-09; Oak Shop considered: "shop"
       twice in a shop link, and the seller's shop should be the only
       shop a customer sees).
+- [x] **Oak's mark is the oak leaf, and shops credit Oak Order**
+      (2026-10-10, founder's picks 1A 2A 3B 4B 5B): the leaf from the Oak
+      Solutions logo replaces the stock tree everywhere; "Made with Oak
+      Order" with Privacy · Terms at the bottom of the shop's grid pages
+      and the order page; link cards end in "· Oak Order" with the mark
+      small on the picture; shops without a logo get the plain mark.
+      Hiding the line is logged for paid plans.
 - [x] ~~**Brand: Sroul (ស្រួល, "easy"); this product is Sroul Order**~~
       (replaced by Oak on 2026-10-08) (2026-10-06, replaces khmerorder.com from 2026-10-05, which was
       never bought). One brand for all of the founder's projects, so
@@ -1458,6 +1501,11 @@ Resolved:
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
 Nothing waiting: everything decided is in 01/02/03.
+
+Applied to 01/02/03 on 2026-10-10 (Oak in the shop, founder's picks 1A
+2A 3B 4B 5B): 01 §1.1 (the mark is the oak leaf) and §46 (decided list);
+02 §9.3 (Oak in every link card); 03 Phase 9 row (4 hrs) and §6 log
+(hide the line on paid plans).
 
 Applied to 01/02/03 on 2026-10-09 (founder said yes), in two parts:
 
@@ -1796,6 +1844,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 | Date | Source | Request | Status |
 |---|---|---|---|
+| 2026-10-10 | Founder (Oak in the shop) | Let sellers on a paid plan hide "Made with Oak Order" | Waiting: decide with pricing (01 §46). Details in 03 §6. |
 | 2026-10-09 | Founder (trying the numbers card locally) | A seller dashboard: a page for the shop's numbers, with the chart (sales per day; today, 7 days, this month) | Later: the page first, then the chart on it. The server part is ready (`GET /seller/stats`, owner only). Details in 03 §6. |
 | 2026-10-08 | Founder (Settings) | Plan and billing page: the seller's plan, price, paid-until date, how to pay Oak Order | Waiting: build once pricing is decided (01 §46). |
 | 2026-10-06 | Founder (shop redesign) | Search in the shop | Logged for later; build when a seller has 30+ products. Details in 03 §6. |
@@ -1805,6 +1854,16 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
+00000. Founder: Oak in the shop (after a push). (a) Read the Khmer line
+       at the bottom of a shop, "ហាងនេះប្រើ Oak Order", and say if
+       sellers would put it another way. (b) Paste a shop link, a
+       product link and order.oaksolve.com into Facebook's Sharing
+       Debugger (developers.facebook.com/tools/debug, "Scrape Again")
+       and into a Telegram chat: titles ending in "· Oak Order", the
+       logo or photo with the leaf in the corner. Links shared before
+       keep their old card until Facebook reads them again (about every
+       30 days) or you press Scrape Again. (c) Add the app to an
+       iPhone's home screen: the icon should be the leaf.
 0000. Founder: performance pass. (a) From home, run the three curl
       commands in `docs/PERF_AUDIT.md` section 8 and paste the output to
       Claude. (b) Once the Phase 2 fixes are live, run the device
