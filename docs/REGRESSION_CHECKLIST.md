@@ -90,7 +90,7 @@ phone or laptop) before going on.
 
 - [ ] Log out, log in. Open the dashboard on a second device: notifications read on one are read on the other.
 - [ ] Open the customer's order link on another device: it asks for the phone; the wrong phone is refused.
-- [ ] After ordering, go back to the shop: the order (photo, status) drops in under the header for a few seconds, then shrinks into the box button in the header, which rocks now and then; the box opens the order. Opening a product doesn't drop it in again. With the cart empty, the cart page's Your orders lists it.
+- [ ] After ordering, go back to the shop: a truck (a box for pickup) idles in the header with a dot; it opens the order, and is gone once the order is delivered. With the cart empty, the cart page's Your orders lists it.
 - [ ] Leave the order page open and accept the order from the dashboard: within 30 s the page shows the new step without reloading.
 
 **New shop**
