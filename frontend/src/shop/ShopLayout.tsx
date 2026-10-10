@@ -1,4 +1,4 @@
-import { ChevronRight, ShoppingBag } from 'lucide-react'
+import { ChevronRight, ShoppingCart } from 'lucide-react'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Link, useMatch, useParams, useSearchParams } from 'react-router'
 import { ErrorState, PageOutlet, Skeleton, SlowNotice } from '../components/ui.tsx'
@@ -162,7 +162,7 @@ function CartBar({ slug, currency }: { slug: string; currency: Currency | undefi
         to={`/shop/${slug}/cart`}
         className="mx-auto flex min-h-14 max-w-xl items-center gap-3 rounded-2xl bg-accent px-4 text-white shadow-lg transition-colors hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-[0.99]"
       >
-        <ShoppingBag aria-hidden className="size-5 shrink-0" />
+        <ShoppingCart aria-hidden className="size-5 shrink-0" />
         <span className="text-sm text-white/85">{t.shop.cartBar.items(count)}</span>
         {currency && <span className="font-bold tabular-nums">{formatMoney(total / 100, currency)}</span>}
         <span className="ml-auto flex items-center gap-1 font-semibold">
@@ -188,7 +188,7 @@ function CartButton({ slug }: { slug: string }) {
       aria-label={count ? t.shop.cartWithCount(count) : t.shop.cart}
       className="relative -mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
     >
-      <ShoppingBag key={bumps} aria-hidden className={`size-6 ${bump}`} />
+      <ShoppingCart key={bumps} aria-hidden className={`size-6 ${bump}`} />
       {count > 0 && (
         <span
           key={`count-${bumps}`}

@@ -1059,8 +1059,8 @@ after the left). Real iPhone Safari still to check (founder).
 **Shop: the order on its way moves into the header** (founder's
 screenshot, 2026-10-10: not a strip on top of the shop; picked 1F and
 2A on the options page, pushed as `34f7005`; then, the same day, a truck
-instead of the box, which read like a second cart, and no drop-in when
-the shop opens; not pushed). The full-width bar between the header and
+instead of the box, which read like a second cart, no drop-in when the
+shop opens, and a shopping cart instead of the bag; pushed the same day). The full-width bar between the header and
 the shop's name is gone. While an order placed on this phone is in
 progress (same pages as before: not the order, checkout or Your orders
 pages):
@@ -1074,6 +1074,9 @@ pages):
    in progress, 1 not paid yet" (new string).
 2. [x] Dropped (founder): the order dropping in under the header for 4 s
    when the shop opens, then shrinking into the button.
+3. [x] The cart is a shopping cart instead of a bag (founder picked 1A
+   2B on a second options page: the truck stays): in the header, the
+   cart bar, Add to cart and the empty cart.
 Reduced motion: the truck stays still. Checked with mocked data in
 headless Chromium at 390 px (English, light and dark, 1 and 3 orders,
 pickup) and 320 px (Khmer). Real iPhone Safari still to check (founder).

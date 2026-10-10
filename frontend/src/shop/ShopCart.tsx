@@ -1,4 +1,4 @@
-import { ChevronRight, ReceiptText, ShoppingBag, Trash2, Truck } from 'lucide-react'
+import { ChevronRight, ReceiptText, ShoppingCart, Trash2, Truck } from 'lucide-react'
 import { Link } from 'react-router'
 import { Card, EmptyState, IconButton } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
@@ -84,7 +84,7 @@ export function EmptyCart({ shop }: { shop: string }) {
   return (
     <div className="mx-auto max-w-xl">
       <EmptyState
-        icon={ShoppingBag}
+        icon={ShoppingCart}
         title={page.emptyTitle}
         action={
           <Link to={`/shop/${shop}`} className={buttonClass('primary')}>

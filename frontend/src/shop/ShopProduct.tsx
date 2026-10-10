@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
 import { useRef, useState, type Ref, type RefObject } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { buzz } from '../components/effects.ts'
@@ -183,7 +183,7 @@ function AddToCart({
               <Button
                 size="lg"
                 variant="secondary"
-                icon={ShoppingBag}
+                icon={ShoppingCart}
                 onClick={(event) => {
                   add(event.currentTarget)
                   toast(t.shop.product.added)
