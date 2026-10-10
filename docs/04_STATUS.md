@@ -793,7 +793,7 @@ pushed):**
 - [x] **"Made with Oak Order"** (1A, 2A): at the very bottom of the
       shop's page, each category and the order page, under a thin line,
       the leaf on a small navy tile and "Made with Oak Order" (Khmer
-      "ហាងនេះប្រើ Oak Order", a draft for the founder to check), then
+      "ដំណើរការដោយ Oak Order", the founder's wording), then
       Privacy · Terms; each opens in a new tab (`shop/MadeWithOak.tsx`).
       Not on product pages, the cart or Your orders. Checked in the
       browser at 390 px, light and dark, Khmer and English.
@@ -1854,9 +1854,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-00000. Founder: Oak in the shop (after a push). (a) Read the Khmer line
-       at the bottom of a shop, "ហាងនេះប្រើ Oak Order", and say if
-       sellers would put it another way. (b) Paste a shop link, a
+00000. Founder: Oak in the shop (after a push). (a) See the Khmer line
+       at the bottom of a shop, "ដំណើរការដោយ Oak Order". (b) Paste a shop link, a
        product link and order.oaksolve.com into Facebook's Sharing
        Debugger (developers.facebook.com/tools/debug, "Scrape Again")
        and into a Telegram chat: titles ending in "· Oak Order", the

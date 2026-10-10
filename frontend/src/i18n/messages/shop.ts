@@ -206,7 +206,8 @@ export const shop = {
   // "Made with Oak Order", then Privacy · Terms (founder's pick 1A 2A,
   // 2026-10-10). "Oak Order" stays in English letters in both.
   credit: {
-    madeWith: { en: 'Made with', km: 'ហាងនេះប្រើ' },
+    // Khmer "powered by", the founder's wording (2026-10-10).
+    madeWith: { en: 'Made with', km: 'ដំណើរការដោយ' },
     privacy: { en: 'Privacy', km: 'គោលការណ៍ឯកជនភាព' },
     terms: { en: 'Terms', km: 'លក្ខខណ្ឌប្រើប្រាស់' },
   },
