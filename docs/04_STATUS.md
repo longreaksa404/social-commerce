@@ -1056,6 +1056,30 @@ category already opened, or to All, both columns are fully drawn in the
 first frame and stay so (before: the right side finished 80-840 ms
 after the left). Real iPhone Safari still to check (founder).
 
+**Shop: the order on its way moves into the header** (founder's
+screenshot, 2026-10-10: not a strip on top of the shop; picked 1F and
+2A on the options page; not pushed). The full-width bar between the
+header and the shop's name is gone. While an order placed on this phone
+is in progress (same pages as before: not the order, checkout or Your
+orders pages):
+1. [x] A box button in the shop's header, before the theme and language
+   buttons, with a navy dot. It rocks briefly every 6 s, so customers
+   notice something is in it (founder's request). One order opens it;
+   several open Your orders.
+2. [x] When the shop opens, the order drops in under the header for 4 s
+   (longer while touched, hovered or focused), then shrinks into the
+   box, which pops. Once per page load: moving to a product doesn't
+   replay it; a reload or coming back through a link does.
+3. [x] The card says what was bought (2A): the first item's photo and
+   "Zip Hoodie and 1 more" over the status, "Not paid yet" in amber.
+   Several: their photos side by side, "3 orders in progress", and
+   "1 not paid yet" (new string) or "See them".
+Reduced motion: no drop-in or rocking; the card still goes after 4 s.
+Checked with mocked data in headless Chromium at 390 px (English, light
+and dark), 320 px (Khmer, 3 orders) and 1280 px (card under the box, at
+the right): drop-in, tuck, rocking, hover holding it, a product page
+without a second drop-in. Real iPhone Safari still to check (founder).
+
 **Sign-up with a real phone number; Google, Facebook and TikTok logins**
 (founder's decisions 2026-10-09: social logins for ease of use, in the
 order Google, then Facebook, then TikTok; phone number and password kept;

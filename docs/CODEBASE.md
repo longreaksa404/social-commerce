@@ -122,7 +122,7 @@ Render's health check.
 | Small photo copies | DONE | `-m` / `-s.jpg` naming, `thumbnail_size` on the images endpoint |
 | Nightly DB backup to R2 | PARTIAL | `.github/workflows/backup.yml` exists but skips until its five secrets are set (04: not set yet) |
 | UX pass (shop info, pinned Add to cart, logo, Settings menu, order summary, one row per option) | DONE | `POST /seller/store/logo`; `src/dashboard/settings/` |
-| Customer order tracking (order bar, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrderBar.tsx`, `ShopOrders.tsx`, `useMyOrders` |
+| Customer order tracking (order box in the shop's header, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrder.tsx`, `ShopOrders.tsx`, `useMyOrders` |
 | UX pass 2 (effects, cart bars, numbered checkout, Kantumruy Pro) | DONE | `components/effects.ts`, `shop/fly.ts`, `components/useBump.ts` |
 | Layout pass (edge-to-edge on phones, floating bars) | DONE | `cardClass` in `components/styles.ts` |
 | More in Settings (founder's request 2026-10-08): your account, Get help, Forgot password via Telegram, pause orders, Call / Messenger buttons, low-stock alert level, export orders to Excel, close shop, staff logins | DONE | `GET/PATCH /seller/account`, `POST /seller/account/password`; `src/dashboard/settings/AccountPage.tsx`; Get help opens Oak Order's Telegram (`VITE_SUPPORT_TELEGRAM`); `/forgot-password`, `/reset-password#<token>`; `store.orders_paused` / `orders_resume_on` (Settings → Orders), refused at checkout; `store.contact_phone` / `messenger_username` (Settings → Contact) as buttons in the shop (`shop/ContactSeller.tsx`); `store.low_stock_alert` (Settings → Alerts); `GET /seller/orders/export` (`services/export.py`, XlsxWriter); `POST /seller/account/close-shop` and the founder's `close-shop` / `reopen-shop` / `erase-shop` (`app/admin.py`); staff logins (`seller.role`, `/seller/staff`, `Owner` guard) |
@@ -1137,6 +1137,13 @@ is wrapped in try/catch (private mode).
 - `components/effects.ts` (confetti, vibration, `reducedMotion()`),
   `components/useBump.ts` (re-run an animation when a value changes),
   `shop/fly.ts` (photo flies into the cart).
+- `shop/CurrentOrder.tsx`: `CurrentOrderButton`, in the shop's header
+  (`ShopLayout`) while an order placed on this device is in progress,
+  except on the order, checkout and Your orders pages. A box button
+  (rocks every 6 s, `animate-nudge`) that opens the order, or Your
+  orders with several. Once per page load per shop, the order first
+  drops in under the header for 4 s (held while touched, hovered or
+  focused) with what was bought, then shrinks into the box.
 - `shop/components.tsx`: `ProductImage` (thumbnail with fallback;
   `eager` loads it at once at high priority, `later` asks for it at low
   priority (a gallery's 2nd photo on); otherwise lazy. Lists pass `eager`
@@ -1213,7 +1220,7 @@ message needs a Khmer entry there.** What sellers type is shown as typed.
   tick); don't use it for brand things.
 - Animations are theme tokens (`animate-rise`, `animate-fade-in`,
   `animate-pop`, `animate-sheet-up`, `animate-shimmer`, `animate-wiggle`,
-  `animate-arrive`, ...); a `prefers-reduced-motion` rule turns them off.
+  `animate-nudge`, `animate-drop-in`, `animate-arrive`, ...); a `prefers-reduced-motion` rule turns them off.
   Entrance animations use `backwards` fill so no transform lingers (it
   would pin fixed bars inside cards).
 - Font: Kantumruy Pro for everything (2026-10-06): two self-hosted

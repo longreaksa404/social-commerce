@@ -86,6 +86,11 @@
   --animate-toast: toast 3s ease backwards;
   --animate-shimmer: shimmer 1.6s linear infinite;
   --animate-wiggle: wiggle 0.8s ease-in-out;
+  /* The order box in the shop's header: a wiggle, then a rest, again and
+     again, like a parcel with something in it. */
+  --animate-nudge: nudge 6s ease-in-out 1s infinite;
+  /* An order dropping in from under the shop's header. */
+  --animate-drop-in: drop-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
   --animate-arrive:
     rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards, highlight 2.5s ease-out 0.2s backwards;
   --animate-tick: tick 0.4s 0.25s cubic-bezier(0.65, 0, 0.35, 1) both;
@@ -187,6 +192,30 @@
   }
   75% {
     rotate: -2deg;
+  }
+}
+/* The bell's wiggle in the first second, then still until the next. */
+@keyframes nudge {
+  3% {
+    rotate: -14deg;
+  }
+  6% {
+    rotate: 11deg;
+  }
+  9% {
+    rotate: -7deg;
+  }
+  12% {
+    rotate: 3deg;
+  }
+  15% {
+    rotate: 0deg;
+  }
+}
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    translate: 0 -10px;
   }
 }
 /* A tick drawing itself: on a path with pathLength="1" and a dash of 1. */

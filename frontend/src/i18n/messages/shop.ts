@@ -164,8 +164,8 @@ export const shop = {
     yourOrders: { en: 'Your orders', km: 'ការកុម្ម៉ង់របស់អ្នក' },
   },
 
-  // The bar on every shop page while an order is on its way, and the
-  // list of the orders placed on this phone.
+  // The order button in the shop's header while an order is on its way,
+  // and the list of the orders placed on this phone.
   myOrders: {
     tab: { en: (shop: string) => `Your orders · ${shop}`, km: (shop: string) => `ការកុម្ម៉ង់របស់អ្នក · ${shop}` },
     title: { en: 'Your orders', km: 'ការកុម្ម៉ង់របស់អ្នក' },
@@ -174,6 +174,10 @@ export const shop = {
       km: (n: number) => `ការកុម្ម៉ង់ ${n} កំពុងដំណើរការ`,
     },
     seeThem: { en: 'See them', km: 'មើល' },
+    notPaidCount: {
+      en: (n: number) => `${n} not paid yet`,
+      km: (n: number) => `ការកុម្ម៉ង់ ${n} មិនទាន់បង់`,
+    },
     inProgress: { en: 'In progress', km: 'កំពុងដំណើរការ' },
     past: { en: 'Past orders', km: 'ការកុម្ម៉ង់មុនៗ' },
     emptyTitle: { en: 'No orders on this phone yet', km: 'មិនទាន់មានការកុម្ម៉ង់នៅលើទូរស័ព្ទនេះទេ' },

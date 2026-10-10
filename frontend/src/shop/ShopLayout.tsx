@@ -9,7 +9,7 @@ import { formatMoney, toCents } from '../lib/money.ts'
 import type { Currency, ShopStore } from '../lib/types.ts'
 import { useCart } from './cart.ts'
 import { NotFound, PausedNotice, ShopLogo } from './components.tsx'
-import { CurrentOrderBar } from './CurrentOrderBar.tsx'
+import { CurrentOrderButton } from './CurrentOrder.tsx'
 import { openedLink } from './device.ts'
 import { onCartLanded } from './fly.ts'
 import { isNotFound, trackView, useShop } from './queries.ts'
@@ -26,7 +26,7 @@ export function ShopLayout() {
   const orderPage = useMatch('/shop/:storeSlug/order/:orderId') !== null
   const checkout = useMatch('/shop/:storeSlug/cart') !== null
   const ordersPage = useMatch('/shop/:storeSlug/orders') !== null
-  const showOrderBar = shop.data && !orderPage && !checkout && !ordersPage
+  const showOrder = Boolean(shop.data) && !orderPage && !checkout && !ordersPage
   // The grid pages: where the cart bar sits at the bottom.
   const home = useMatch('/shop/:storeSlug') !== null
   const category = useMatch('/shop/:storeSlug/category/:categorySlug') !== null
@@ -54,11 +54,10 @@ export function ShopLayout() {
           className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-linear-to-b from-navy-50 to-transparent"
         />
       )}
-      <Header shop={shop.data} slug={storeSlug} home={browsing} />
+      <Header shop={shop.data} slug={storeSlug} home={browsing} order={showOrder} />
       <main className="mx-auto w-full max-w-6xl px-4 pt-4 sm:pt-6">
         {shop.isPending && <SlowNotice className="mb-4" />}
         {shop.data?.orders_paused && <PausedNotice shop={shop.data} />}
-        {showOrderBar && <CurrentOrderBar slug={storeSlug} />}
         {shop.error ? <ErrorState error={shop.error} onRetry={() => shop.refetch()} /> : <PageOutlet depth={2} />}
       </main>
       {/* Room under the last row, and for the cart bar over it on phones. */}
@@ -81,7 +80,18 @@ function useLinkTracking(slug: string) {
   }, [slug, token])
 }
 
-function Header({ shop, slug, home }: { shop: ShopStore | undefined; slug: string; home: boolean }) {
+function Header({
+  shop,
+  slug,
+  home,
+  order,
+}: {
+  shop: ShopStore | undefined
+  slug: string
+  home: boolean
+  /** Room for the order on its way (CurrentOrderButton), if there is one. */
+  order: boolean
+}) {
   // At the top of the shop's home the header is see-through, over the
   // same wash as the shop's name, so the name shows once. On phones the
   // page shows it big and the header's small one waits until that has
@@ -118,6 +128,7 @@ function Header({ shop, slug, home }: { shop: ShopStore | undefined; slug: strin
           )}
         </Link>
         <div className="flex shrink-0 items-center">
+          {order && <CurrentOrderButton slug={slug} />}
           <ThemeToggle />
           <LanguageToggle />
           <CartButton slug={slug} />
