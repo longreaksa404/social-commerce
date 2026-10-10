@@ -1058,7 +1058,7 @@ after the left). Real iPhone Safari still to check (founder).
 
 **Shop: the order on its way moves into the header** (founder's
 screenshot, 2026-10-10: not a strip on top of the shop; picked 1F and
-2A on the options page; not pushed). The full-width bar between the
+2A on the options page; pushed as `34f7005`). The full-width bar between the
 header and the shop's name is gone. While an order placed on this phone
 is in progress (same pages as before: not the order, checkout or Your
 orders pages):
