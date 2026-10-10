@@ -1,11 +1,14 @@
 """Public storefront: no login, scoped by the store slug in the path."""
 
 import uuid
+from collections.abc import Awaitable, Callable
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, Response, status
+from fastapi.responses import RedirectResponse
 
 from app.api.deps import Shop, ShopDb
+from app.core.config import get_settings
 from app.core.ratelimit import check_limit, limiter
 from app.schemas.link import TrackViewIn
 from app.schemas.order import OrderCreate, PaymentClaimIn, ShopOrderOut
@@ -18,6 +21,7 @@ from app.schemas.storefront import (
 from app.services import checkout as checkout_service
 from app.services import link as link_service
 from app.services import notifications
+from app.services import preview as preview_service
 from app.services import storefront as storefront_service
 
 # Per IP, across all storefront endpoints. Generous because customers on
@@ -32,6 +36,9 @@ CLAIM_RATE_LIMIT = "10/minute"
 # Per IP, for counting link views. The app counts a link once per device
 # per half hour, so this only stops someone inflating a seller's numbers.
 VIEW_RATE_LIMIT = "60/minute"
+# Per IP, for link-preview pictures: each new one is drawn on the server.
+# Facebook and Telegram ask once per link and keep a copy.
+PREVIEW_RATE_LIMIT = "30/minute"
 
 
 # A shared scope, because slowapi otherwise keys limits on the full URL and
@@ -53,6 +60,10 @@ async def _view_rate_limit(request: Request) -> None:
 
 async def _claim_rate_limit(request: Request) -> None:
     check_limit(CLAIM_RATE_LIMIT, "payment-claim", request)
+
+
+async def _preview_rate_limit(request: Request) -> None:
+    check_limit(PREVIEW_RATE_LIMIT, "preview-picture", request)
 
 
 router = APIRouter(
@@ -136,3 +147,43 @@ async def track_view(data: TrackViewIn, shop: Shop, background: BackgroundTasks)
     02_TECHNICAL.md section 9.2). Written after the response; an unknown
     token is ignored, so the answer is the same either way."""
     background.add_task(link_service.record_view, shop.id, data.token)
+
+
+@router.get("/preview/logo", dependencies=[Depends(_preview_rate_limit)])
+async def logo_preview(shop: Shop) -> Response:
+    """og:image for a shop link (frontend/middleware.ts): the shop's logo
+    with our mark in the corner, or our plain mark without a logo."""
+    if not shop.logo_url:
+        return _plain_mark()
+    return await _preview(preview_service.logo_picture, shop.logo_url)
+
+
+@router.get("/preview/products/{product_slug}", dependencies=[Depends(_preview_rate_limit)])
+async def product_preview(product_slug: str, shop: Shop, db: ShopDb) -> Response:
+    """og:image for a product link: its first photo as a 1200 × 630 card
+    with our mark; the shop's picture if it has no photo."""
+    photo = await storefront_service.product_photo(db, shop.id, product_slug)
+    if photo is None:
+        return await logo_preview(shop)
+    return await _preview(preview_service.product_picture, photo)
+
+
+async def _preview(draw: Callable[[str], Awaitable[bytes]], url: str) -> Response:
+    try:
+        picture = await draw(url)
+    except preview_service.NoPicture:
+        return _plain_mark()
+    # The middleware adds ?v=<the photo's address>, so a new photo is a new URL.
+    return Response(
+        picture, media_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"}
+    )
+
+
+def _plain_mark() -> RedirectResponse:
+    """Our mark on navy, a fixed picture in the web app."""
+    app_url = get_settings().public_app_url.rstrip("/") or "http://localhost:5173"
+    return RedirectResponse(
+        f"{app_url}/og/oak-mark.png",
+        status_code=302,
+        headers={"Cache-Control": "public, max-age=300"},
+    )

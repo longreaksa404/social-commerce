@@ -131,6 +131,21 @@ async def get_product(db: AsyncSession, store_id: uuid.UUID, slug: str) -> ShopP
     )
 
 
+async def product_photo(db: AsyncSession, store_id: uuid.UUID, slug: str) -> str | None:
+    """A product's first photo, for its link preview; same rule as
+    get_product: only the shop's own products on sale."""
+    image_urls = await db.scalar(
+        select(Product.image_urls).where(
+            Product.store_id == store_id,
+            Product.slug == slug.lower(),
+            Product.status == ProductStatus.ACTIVE,
+        )
+    )
+    if image_urls is None:
+        raise NotFound("PRODUCT_NOT_FOUND", "This product isn't available.")
+    return image_urls[0] if image_urls else None
+
+
 async def category_page(db: AsyncSession, store_id: uuid.UUID, slug: str) -> ShopCategoryPageOut:
     category = await db.scalar(
         select(Category).where(Category.store_id == store_id, Category.slug == slug.lower())

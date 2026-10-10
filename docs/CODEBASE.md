@@ -221,7 +221,8 @@ Backend modules, one line each:
 | `services/store.py` | Get/update the store; validates the three settings blobs and logo URLs |
 | `services/category.py`, `product.py` | Catalog CRUD; variant merge; image URL prefix check |
 | `services/images.py` | Presigned R2 PUT URLs (product photo, thumbnail, logo) |
-| `services/storefront.py` | Public reads: shop by slug, cards, product, category page |
+| `services/storefront.py` | Public reads: shop by slug, cards, product, category page, a product's first photo |
+| `services/preview.py`, `oak_mark.py` | Link-preview pictures (Pillow): the shop's logo (256 px) or a product's photo (a 1200 × 630 card, the whole photo over a blurred copy) with our oak-leaf mark small in the corner; fetched only from `R2_PUBLIC_URL`, drawn in a thread, the last 64 kept in memory |
 | `services/checkout.py` | Guest checkout (`place_order`), tracking lookup (`track_order`), `shop_order_out` |
 | `services/pricing.py` | Line totals, discount, delivery fee, order totals (mirrored in `frontend/src/lib/pricing.ts`) |
 | `services/order.py` | Order state machine, completion rule, seller list/detail, the payment/delivery record wrappers |
@@ -604,6 +605,7 @@ decorated limit per request, so stricter second limits call
 | All `/shop/{slug}/*` (router dependency, shared scope `storefront`, applied before the slug lookup) | 300/min |
 | `POST /shop/{slug}/orders` (on top) | 10/min |
 | `POST /shop/{slug}/track-view` (on top) | 60/min |
+| `GET /shop/{slug}/preview/*` (on top) | 30/min |
 
 ### Other conventions in the backend
 
@@ -925,6 +927,8 @@ from the schema.
 | POST | `/shop/{store_slug}/orders` | public | `OrderCreate` | `ShopOrderOut` (201) | Guest checkout; 409 `ORDERS_PAUSED` while paused; +10/min; Telegram alert in background |
 | GET | `/shop/{store_slug}/orders/{order_id}` | public | `?phone=` (≤32) | `ShopOrderOut` | 404 unless phone matches (any spelling); includes how to pay while pending; each item carries its product's current first photo (`image_url`, not a snapshot) |
 | POST | `/shop/{store_slug}/track-view` | public | `TrackViewIn` (`token`) | 204 | View written in background; unknown token ignored; +60/min |
+| GET | `/shop/{store_slug}/preview/logo` | public | `?v=` (ignored; changes with the photo) | JPEG, or 302 | og:image for a shop link (`frontend/middleware.ts`, founder's pick 5B): the logo with our mark bottom right; no logo, or the photo can't be read: 302 to the app's `/og/oak-mark.png` (`PUBLIC_APP_URL`). `Cache-Control` one day; +30/min |
+| GET | `/shop/{store_slug}/preview/products/{product_slug}` | public | `?v=` | JPEG 1200 × 630, or 302 | og:image for a product (or category) link: the first photo with our mark; 404 for another shop's or a hidden product; no photo: as `/preview/logo`; +30/min |
 | POST | `/shop/{store_slug}/orders/{order_id}/paid` | public | `PaymentClaimIn` (`phone`) | 204 | "I've paid" (founder's pick 6B): the order link + phone like tracking (404 otherwise); 409 `NOTHING_TO_PAY` unless a pending KHQR / bank payment on an order that's on. Saves a web `payment_claimed` row and sends a Telegram alert in the background, not again within 30 min; the payment stays pending. +10/min |
 | POST | `/telegram/webhook` | header `X-Telegram-Bot-Api-Secret-Token` | Telegram update (raw dict) | Bot API method call as JSON, or `{}` | 404 if the secret is wrong or the bot is off |
 
