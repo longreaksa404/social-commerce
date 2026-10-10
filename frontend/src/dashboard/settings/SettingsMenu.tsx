@@ -21,6 +21,7 @@ import {
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../../auth/useAuth.ts'
+import { useFeedback } from '../../components/feedback.ts'
 import { Button, Card, ErrorState, PageHeader, Section, Skeleton } from '../../components/ui.tsx'
 import type { Messages } from '../../i18n/core.ts'
 import { LanguageSwitch } from '../../i18n/LanguageSwitch.tsx'
@@ -314,11 +315,17 @@ function AccountRows({ selected, store, owner }: { selected?: Selected; store?: 
   )
 }
 
+/** Asks first, so a stray tap doesn't log the seller out mid-day. */
 function LogOutButton() {
   const { logout } = useAuth()
+  const { confirm } = useFeedback()
   const s = useT().settings
+  async function confirmLogOut() {
+    const ok = await confirm({ title: s.logOutConfirmTitle, message: s.logOutConfirmMessage, confirmLabel: s.logOut })
+    if (ok) await logout()
+  }
   return (
-    <Button variant="secondary" icon={LogOut} onClick={logout} className="w-full sm:w-auto">
+    <Button variant="secondary" icon={LogOut} onClick={confirmLogOut} className="w-full sm:w-auto">
       {s.logOut}
     </Button>
   )

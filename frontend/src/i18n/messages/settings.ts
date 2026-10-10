@@ -296,6 +296,11 @@ export const settings = {
 
   account: { en: 'Account', km: 'គណនី' },
   logOut: { en: 'Log out', km: 'ចាកចេញ' },
+  logOutConfirmTitle: { en: 'Log out?', km: 'ចាកចេញ?' },
+  logOutConfirmMessage: {
+    en: "You'll need to log in again to see your orders.",
+    km: 'អ្នកនឹងត្រូវចូលគណនីម្តងទៀត ដើម្បីមើលការកុម្ម៉ង់របស់អ្នក។',
+  },
 
   yourAccount: { en: 'Your account', km: 'គណនីរបស់អ្នក' },
   yourAccountHint: {
