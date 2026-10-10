@@ -321,7 +321,7 @@ function LogOutButton() {
   const { confirm } = useFeedback()
   const s = useT().settings
   async function confirmLogOut() {
-    const ok = await confirm({ title: s.logOutConfirmTitle, message: s.logOutConfirmMessage, confirmLabel: s.logOut })
+    const ok = await confirm({ title: s.logOutConfirmTitle, confirmLabel: s.logOut })
     if (ok) await logout()
   }
   return (
