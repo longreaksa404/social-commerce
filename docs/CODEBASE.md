@@ -1404,8 +1404,9 @@ async def test_store_only_sees_its_own_rows(two_stores):
   register (5/min) and refresh (30/min). Logout is unlimited.
 - **Brand:** 01 §1.1 names the product Oak Order (renamed from Sroul Order
   2026-10-08). The start page (`pages/Home.tsx`, "Oak Order" in big
-  letters), `BrandMark` in `pages/AuthLayout.tsx` (a lucide
-  `TreeDeciduous` on navy), `public/favicon.svg` (the same tree), and
+  letters), `BrandMark` in `pages/AuthLayout.tsx` (the oak leaf,
+  `components/OakLeaf.tsx`, on navy; it replaced lucide's `TreeDeciduous`
+  2026-10-10), `public/favicon.svg` (the same leaf), and
   `index.html` (title, `apple-mobile-web-app-title`, so also the generic
   preview card) say Oak Order. Still "Social Commerce": the FastAPI title,
   Render and dev container names.

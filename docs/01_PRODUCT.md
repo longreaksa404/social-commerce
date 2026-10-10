@@ -32,7 +32,8 @@ the only shop a customer sees. `oaksolve.com` itself forwards to Oak
 Order until Oak Solutions has a home page.
 
 The app shows the name in English letters, in Khmer and in English.
-Its mark is a tree (an oak) on navy.
+Its mark is an oak leaf on navy: the leaf from the Oak Solutions logo
+(2026-10-10; before that, a stock tree icon).
 
 ---
 

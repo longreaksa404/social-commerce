@@ -1,11 +1,12 @@
-import { ShoppingBag, TreeDeciduous } from 'lucide-react'
+import { ShoppingBag } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { OakLeaf } from '../components/OakLeaf.tsx'
 import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
 
 /** The product's name, Oak Order (01_PRODUCT.md section 1.1), with its
- * mark: a tree (an oak) on navy, like public/favicon.svg. `onDark` for the
+ * mark: an oak leaf on navy, like public/favicon.svg. `onDark` for the
  * navy panel. */
 export function BrandMark({ className = '', onDark = false }: { className?: string; onDark?: boolean }) {
   return (
@@ -19,7 +20,7 @@ export function BrandMark({ className = '', onDark = false }: { className?: stri
           onDark ? 'bg-white/15' : 'bg-accent'
         }`}
       >
-        <TreeDeciduous className="size-5" />
+        <OakLeaf className="h-6 w-auto" />
       </span>
       <span>Oak Order</span>
     </Link>
