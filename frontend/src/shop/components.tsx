@@ -1,13 +1,5 @@
 import { CalendarClock, ImageOff, Minus, Plus, SearchX, Store } from 'lucide-react'
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type MouseEvent,
-  type ReactNode,
-} from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { Badge, Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { thumbnailUrl } from '../lib/images.ts'
@@ -16,6 +8,7 @@ import { formatCalendarDay } from '../lib/orders.ts'
 import { useT } from '../i18n/useT.ts'
 import type { ShopProductCard, ShopStore } from '../lib/types.ts'
 import { buzz } from '../components/effects.ts'
+import { deal, useColumnCount } from '../components/columns.ts'
 import { MAX_QUANTITY, useCart } from './cart.ts'
 import { flyToCart } from './fly.ts'
 
@@ -153,27 +146,6 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
  * Alerts), 5 to start. */
 export const LOW_STOCK = 5
 
-// The grid's columns at each width: 2 on phones, then 3, 4 and 5 from
-// Tailwind's sm, lg and xl.
-const WIDER = [
-  [5, window.matchMedia('(min-width: 80rem)')],
-  [4, window.matchMedia('(min-width: 64rem)')],
-  [3, window.matchMedia('(min-width: 40rem)')],
-] as const
-const columnCount = () => WIDER.find(([, query]) => query.matches)?.[0] ?? 2
-const onWidthChange = (notify: () => void) => {
-  for (const [, query] of WIDER) query.addEventListener('change', notify)
-  return () => WIDER.forEach(([, query]) => query.removeEventListener('change', notify))
-}
-
-/** `items` dealt into `count` columns like cards: the 1st to the left,
- * the 2nd beside it, and so on, so they read left to right, then down. */
-function deal<T>(items: T[], count: number): T[][] {
-  const columns = Array.from({ length: count }, (): T[] => [])
-  items.forEach((item, i) => columns[i % count].push(item))
-  return columns
-}
-
 // Product lists already shown since the page loaded (by shop and
 // category). Opened again, a list comes from the cache, so its cards are
 // just there instead of rising in again.
@@ -195,11 +167,9 @@ function useRising(list: string) {
 }
 
 /** Photos, each card as tall as its photo (no cropping to a square),
- * packed in columns like a photo wall: the same cards as the seller's
- * product list, photo on top and name, price, and stock under it. The
- * cards are dealt into side-by-side columns, not CSS columns: iPhone
- * Safari drew a CSS column's cards late, or half, while they rose in.
- * `category` is the category's slug, none for All. */
+ * packed in columns like a photo wall (`deal`): the same cards as the
+ * seller's product list, photo on top and name, price, and stock under
+ * it. `category` is the category's slug, none for All. */
 export function ProductGrid({
   shop,
   products,
@@ -209,7 +179,7 @@ export function ProductGrid({
   products: ShopProductCard[]
   category?: string
 }) {
-  const count = useSyncExternalStore(onWidthChange, columnCount)
+  const count = useColumnCount()
   const rising = useRising(`${shop.slug}/${category}`)
   return (
     <div className="flex gap-3">
@@ -317,7 +287,7 @@ function QuickAdd({ shop, product }: { shop: ShopStore; product: ShopProductCard
 const SKELETON_SHAPES = ['aspect-[4/5]', 'aspect-square', 'aspect-[3/4]', 'aspect-square', 'aspect-[4/5]', 'aspect-[3/4]']
 
 export function ProductGridSkeleton() {
-  const count = useSyncExternalStore(onWidthChange, columnCount)
+  const count = useColumnCount()
   return (
     <div aria-hidden className="flex gap-3">
       {deal(SKELETON_SHAPES, count).map((column, c) => (

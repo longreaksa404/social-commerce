@@ -5,6 +5,7 @@ import { Badge, Card, EmptyState, ErrorState, PageHeader, Select, Skeleton } fro
 import { buttonClass } from '../../components/styles.ts'
 import { useT } from '../../i18n/useT.ts'
 import { thumbnailUrl } from '../../lib/images.ts'
+import { deal, useColumnCount } from '../../components/columns.ts'
 import { EAGER_PHOTOS } from '../../shop/components.tsx'
 import { priceLabel, totalStock } from '../../lib/products.ts'
 import type { Currency, Product } from '../../lib/types.ts'
@@ -231,57 +232,64 @@ function StockTag({ product }: { product: Product }) {
 const DEFAULT_LOW_STOCK = 5
 
 /** Photos, each card as tall as its photo (no cropping to a square),
- * packed in columns like a photo wall. */
+ * packed in columns like a photo wall (`deal`, as the shop's). */
 function ProductGrid({ products, currency }: { products: Product[]; currency: Currency }) {
   const p = useT().products
+  const count = useColumnCount()
   return (
-    <ul className="columns-2 gap-3 sm:columns-3 lg:columns-4 xl:columns-5">
-      {products.map((product, i) => {
-        const hidden = product.status === 'inactive'
-        return (
-          // The gap is padding, not margin: Safari carries a margin (and
-          // the card's shadow) over to the top of the next column.
-          <li key={product.id} className="break-inside-avoid pb-3">
-            <Link
-              to={`/dashboard/products/${product.id}`}
-              className="block overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6 transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-[0.98]"
-            >
-              <span className="relative block">
-                {product.image_urls[0] ? (
-                  <img
-                    src={thumbnailUrl(product.image_urls[0])}
-                    onError={(e) => {
-                      const full = product.image_urls[0]
-                      if (e.currentTarget.src !== full) e.currentTarget.src = full
-                    }}
-                    alt=""
-                    loading={i < EAGER_PHOTOS ? 'eager' : 'lazy'}
-                    fetchPriority={i < EAGER_PHOTOS ? 'high' : undefined}
-                    className={`block h-auto w-full ${hidden ? 'opacity-50' : ''}`}
-                  />
-                ) : (
-                  <span className="flex aspect-square w-full items-center justify-center bg-slate-100 text-slate-400">
-                    <ImageIcon aria-hidden className="size-8" />
+    <div className="flex gap-3">
+      {deal(products, count).map((column, c) => (
+        <ul key={c} className="min-w-0 flex-1">
+          {column.map((product, row) => {
+            const hidden = product.status === 'inactive'
+            // Its place in the list: the first ones' photos load at once.
+            const eager = row * count + c < EAGER_PHOTOS
+            return (
+              <li key={product.id} className="pb-3">
+                <Link
+                  to={`/dashboard/products/${product.id}`}
+                  className="block overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6 transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-[0.98]"
+                >
+                  <span className="relative block">
+                    {product.image_urls[0] ? (
+                      <img
+                        src={thumbnailUrl(product.image_urls[0])}
+                        onError={(e) => {
+                          const full = product.image_urls[0]
+                          if (e.currentTarget.src !== full) e.currentTarget.src = full
+                        }}
+                        alt=""
+                        loading={eager ? 'eager' : 'lazy'}
+                        fetchPriority={eager ? 'high' : undefined}
+                        className={`block h-auto w-full ${hidden ? 'opacity-50' : ''}`}
+                      />
+                    ) : (
+                      <span className="flex aspect-square w-full items-center justify-center bg-slate-100 text-slate-400">
+                        <ImageIcon aria-hidden className="size-8" />
+                      </span>
+                    )}
+                    {hidden && (
+                      <span className="absolute top-2 left-2 rounded-full bg-black/70 px-2.5 py-0.5 text-xs font-semibold text-white">
+                        {p.hiddenFromShop}
+                      </span>
+                    )}
                   </span>
-                )}
-                {hidden && (
-                  <span className="absolute top-2 left-2 rounded-full bg-black/70 px-2.5 py-0.5 text-xs font-semibold text-white">
-                    {p.hiddenFromShop}
+                  <span className="block p-3">
+                    <span className="line-clamp-2 text-sm leading-5 font-medium text-slate-900">{product.name}</span>
+                    <span className="mt-0.5 block text-sm font-semibold text-slate-900 tabular-nums">
+                      {priceLabel(product, currency)}
+                    </span>
+                    <span className="mt-1.5 block">
+                      <StockTag product={product} />
+                    </span>
                   </span>
-                )}
-              </span>
-              <span className="block p-3">
-                <span className="line-clamp-2 text-sm leading-5 font-medium text-slate-900">{product.name}</span>
-                <span className="mt-0.5 block text-sm font-semibold text-slate-900 tabular-nums">{priceLabel(product, currency)}</span>
-                <span className="mt-1.5 block">
-                  <StockTag product={product} />
-                </span>
-              </span>
-            </Link>
-          </li>
-        )
-      })}
-    </ul>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      ))}
+    </div>
   )
 }
 

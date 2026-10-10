@@ -1149,20 +1149,22 @@ is wrapped in try/catch (private mode).
   instead of fading in again), `ProductGrid` (a photo wall with the same
   cards as the seller's grid view; the card's link covers it with
   `::after` so the + can sit on the photo), `ProductGridSkeleton`,
-  `CategoryChips`, `ShopLogo`, `NotFound`, `QuantityStepper`.
-  **The shop's photo wall is not CSS columns** (the seller's grid in
-  `ProductList.tsx` still is): iPhone Safari painted the second CSS
-  column late or half while its cards faded in. `deal()` hands the
-  products out in turn into side-by-side flex columns (`<ul>` each), 2 on
-  phones and 3/4/5 from Tailwind's sm/lg/xl (`matchMedia`, re-dealt on
-  rotate or resize), so they read left to right, then down (product
-  `row * count + column`). There's no photo size in the API, so it
-  alternates rather than filling the shortest column. The DOM, and so Tab
-  and screen readers, goes down one column, then the next. Cards rise in
-  (40 ms apart, by that order) only the first time a list (shop + category)
-  shows since the page loaded (`shownLists`, `useRising`); opened again,
-  it comes from the cache and is just there. The skeleton is dealt the
-  same way.
+  `CategoryChips`, `ShopLogo`, `NotFound`, `QuantityStepper`. The shop's
+  cards rise in (40 ms apart, in product order) only the first time a
+  list (shop + category) shows since the page loaded (`shownLists`,
+  `useRising`); opened again, it comes from the cache and is just there.
+- `components/columns.ts`: **photo walls are not CSS columns** (the
+  shop's grid and its skeleton, the seller's Photos view). iPhone Safari
+  draws a card that animates (fading in, or shrinking under a finger) in
+  a CSS column other than the first late, or not at all, for a moment.
+  `deal()` hands the items out in turn into side-by-side flex columns
+  (`<ul>` each); `useColumnCount()` gives 2 on phones and 3/4/5 from
+  Tailwind's sm/lg/xl (`matchMedia`, re-dealt on rotate or resize). They
+  read left to right, then down: item `row * count + column`, which is
+  also what decides the first `EAGER_PHOTOS`. There's no photo size in
+  the API, so it alternates rather than filling the shortest column. The
+  DOM, and so Tab and screen readers, goes down one column, then the
+  next.
 - `dashboard/useUnsavedChanges.ts` (blocks navigation with a confirm sheet
   while a form is dirty) and `dashboard/useBackTo.ts` (back arrow returns
   to `location.state.back`).

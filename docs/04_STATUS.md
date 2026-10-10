@@ -1035,11 +1035,20 @@ replayed the rise and restarted each photo from a grey square.
    5 as before), reading left to right then down: product 2 now sits
    beside product 1 instead of under it (founder's choice). No photo
    size is stored, so it alternates. Cards rise in only the first time a
-   list shows; photos already shown appear at once at their size. The
-   seller's grid is unchanged (still CSS columns).
+   list shows; photos already shown appear at once at their size.
 2. [x] Between All and a category the whole page no longer fades in
    again (it was two pages to the app); the chip row is centred on the
    chosen chip before it's drawn. Category to category never faded.
+3. [x] The seller's Photos view (Products) flickered on iPhone when a
+   card in the right column was tapped while scrolling (founder,
+   2026-10-10): the tap shrinks the card a little, and Safari draws that
+   late in a CSS column other than the first. It is dealt into columns
+   the same way now (`components/columns.ts`), reading left to right;
+   the first 4 by that order still load at once (perf F5). Checked on
+   the 500-product perf shop in headless WebKit and Chromium at phone,
+   1100 and 1440 px: 2/2/4/5 columns, all 500 in the API's order, the
+   photos loaded at once are the first 4. Tapping while scrolling can
+   only be checked on a real iPhone (founder). Not pushed.
 
 Checked with mocked data in headless WebKit (iPhone 13), Chromium (Pixel
 7) and at 800, 1100 and 1440 px, sampling every frame: going back to a
