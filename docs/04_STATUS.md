@@ -1064,8 +1064,8 @@ shop opens, and a shopping cart instead of the bag; pushed the same day). The fu
 the shop's name is gone. While an order placed on this phone is in
 progress (same pages as before: not the order, checkout or Your orders
 pages):
-1. [x] A truck button in the shop's header, before the theme and
-   language buttons, with a navy dot, idling as the truck on the order
+1. [x] A truck button in the shop's header, between the language
+   button and the cart (founder's OK), with a navy dot, idling as the truck on the order
    page does, so customers notice it (founder's request). A box instead
    when every order in progress is for pickup, as on the order page.
    One order opens it; several open Your orders. Its label (screen

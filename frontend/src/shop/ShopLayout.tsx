@@ -128,9 +128,11 @@ function Header({
           )}
         </Link>
         <div className="flex shrink-0 items-center">
-          {order && <CurrentOrderButton slug={slug} />}
           <ThemeToggle />
           <LanguageToggle />
+          {/* The order on its way beside the cart, both in the thumb's
+              reach; the settings, set once, further left. */}
+          {order && <CurrentOrderButton slug={slug} />}
           <CartButton slug={slug} />
         </div>
       </div>
