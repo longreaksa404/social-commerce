@@ -816,7 +816,7 @@ pushed):**
       "Oak Order" only. That's only the fallback while the API sleeps.
 - [x] 4 new pytest tests (the logo and photo pictures, the plain mark,
       another shop's or a hidden product 404, only our own photos
-      fetched); 622 in all. Lint and build pass.
+      fetched); 618 in all. Lint and build pass.
 
 ---
 
