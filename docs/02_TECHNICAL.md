@@ -562,6 +562,8 @@ This is intentionally simple — no attribution modeling, no multi-touch trackin
 
 Facebook, Messenger, Telegram, TikTok and similar apps build a link's preview card from the HTML without running JavaScript. A Vercel Routing Middleware (`frontend/middleware.ts`, decided 2026-10-03) on `/shop/*` gives those preview bots `index.html` with `og:` title, description and photo from the storefront API; people pass through untouched, so a slow API never slows a customer. If the API doesn't answer in 6 s (e.g. Render asleep), the bot gets the generic card. The card's own words (e.g. "Order online", a category's product count) are in Khmer, the default language. Preview bots don't run JavaScript, so they never count as views.
 
+**Oak in every card (decided 2026-10-10):** titles end in "· Oak Order" (a product's title also carries its price), and the picture is the shop's logo or the product's photo with Oak's mark (the oak leaf) small in the corner. The API draws those pictures (`GET /api/v1/shop/{slug}/preview/logo` and `/preview/products/{slug}`, Pillow, photos fetched only from our R2 address, 30/min per IP); a shop without a logo gets Oak's plain mark. Every other page, and a shop link while the API is asleep, shows the generic card in `index.html`: Oak's own picture with the leaf, "Oak Order" and the start page's line.
+
 ---
 
 # 10. Payment Integration

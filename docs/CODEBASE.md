@@ -122,7 +122,7 @@ Render's health check.
 | Small photo copies | DONE | `-m` / `-s.jpg` naming, `thumbnail_size` on the images endpoint |
 | Nightly DB backup to R2 | PARTIAL | `.github/workflows/backup.yml` exists but skips until its five secrets are set (04: not set yet) |
 | UX pass (shop info, pinned Add to cart, logo, Settings menu, order summary, one row per option) | DONE | `POST /seller/store/logo`; `src/dashboard/settings/` |
-| Oak in the shop (founder's picks 2026-10-10: 1A 2A 3B 4B 5B) | IN PROGRESS | The oak leaf is the mark (`components/OakLeaf.tsx`, `public/favicon.svg`); "Made with Oak Order" with Privacy · Terms at the bottom of the shop's grid pages and the order page (`shop/MadeWithOak.tsx`) |
+| Oak in the shop (founder's picks 2026-10-10: 1A 2A 3B 4B 5B) | DONE (link cards not yet checked live) | The oak leaf is the mark (`components/OakLeaf.tsx`, `public/favicon.svg`, `apple-touch-icon.png`); "Made with Oak Order" with Privacy · Terms at the bottom of the shop's grid pages and the order page (`shop/MadeWithOak.tsx`); link cards titled "… · Oak Order" with our mark on the picture (`middleware.ts`, `GET /shop/{slug}/preview/*`, `services/preview.py`); the generic card `public/og/oak-order.png` |
 | Customer order tracking (order truck in the shop's header, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrder.tsx`, `ShopOrders.tsx`, `useMyOrders` |
 | UX pass 2 (effects, cart bars, numbered checkout, Kantumruy Pro) | DONE | `components/effects.ts`, `shop/fly.ts`, `components/useBump.ts` |
 | Layout pass (edge-to-edge on phones, floating bars) | DONE | `cardClass` in `components/styles.ts` |
@@ -1242,6 +1242,21 @@ user agents only (Facebook, Telegram, TikTok, WhatsApp, ...), it fetches
 the storefront API (6 s timeout) and returns `index.html` with `og:` title,
 description and image filled in, in Khmer. Everyone else passes straight
 through to the SPA.
+
+Oak in every card (founder's picks 3B and 5B, 2026-10-10): titles end in
+"· Oak Order" (the page's own words are cut first, never the suffix), with
+`og:site_name` Oak Order; a product's title carries its price. The picture
+is the API's copy with our mark in the corner: `/shop/{slug}/preview/logo`
+(a small square, `twitter:card` summary) or `/preview/products/{slug}` (a
+1200 × 630 card, summary_large_image; a category uses its first product
+with a photo), each with `?v=` from the photo's address so a new photo is
+a new URL. No logo: `public/og/oak-mark.png`. Every other page, and a shop
+link while the API is asleep, gets the generic card in `index.html`:
+`public/og/oak-order.png` (the leaf, "Oak Order" and the line from the start
+page). `public/apple-touch-icon.png` is the iPhone home-screen icon (iPhones
+don't take the SVG favicon). The three PNGs were drawn once with
+`backend/app/services/oak_mark.py` and Kantumruy Pro; redraw them if the
+mark changes.
 
 ---
 

@@ -8,7 +8,12 @@
  * product's or category's title, description and photo filled in. People
  * go straight through to the app untouched, so a slow or sleeping API never
  * slows down a customer. If the API doesn't answer in time, the bot gets
- * the generic card.
+ * the generic Oak Order card from index.html.
+ *
+ * Oak shows in every card (founder's picks 3B and 5B, 2026-10-10): titles
+ * end in "· Oak Order", and the picture is the API's copy of the logo or
+ * photo with our mark small in the corner (/shop/{slug}/preview/...); a
+ * shop without a logo gets our plain mark (public/og/oak-mark.png).
  */
 import { next } from '@vercel/functions'
 
@@ -32,8 +37,10 @@ type Product = {
   image_urls: string[]
   variants: { price: string }[]
 }
-type CategoryPage = { category: { name: string }; products: { image_url: string | null }[] }
-type Preview = { title: string; description: string; image: string | null }
+type CategoryPage = { category: { name: string }; products: { slug: string; image_url: string | null }[] }
+// large: a wide 1200 × 630 card; otherwise a small square beside the words.
+type Picture = { url: string; large: boolean; width?: number; height?: number }
+type Preview = { title: string; description: string; picture: Picture }
 
 export default async function middleware(request: Request) {
   if (!PREVIEW_BOTS.test(request.headers.get('user-agent') ?? '')) return next()
@@ -45,7 +52,7 @@ export default async function middleware(request: Request) {
 
   let preview: Preview | null = null
   try {
-    preview = await describe(url.pathname)
+    preview = await describe(url)
   } catch {
     // API asleep or down, or no such page: the generic card.
   }
@@ -58,41 +65,65 @@ export default async function middleware(request: Request) {
   })
 }
 
-async function describe(pathname: string): Promise<Preview | null> {
+async function describe(url: URL): Promise<Preview | null> {
   // /shop/{store}, /shop/{store}/product/{slug}, /shop/{store}/category/{slug}
-  const [, , storeSlug, kind, slug] = pathname.split('/').map(decodeURIComponent)
+  const [, , storeSlug, kind, slug] = url.pathname.split('/').map(decodeURIComponent)
   if (!storeSlug) return null
   const shop = `/shop/${encodeURIComponent(storeSlug)}`
   const store = await api<Store>(shop)
+
+  const shopPicture: Picture = store.logo_url
+    ? { url: apiUrl(`${shop}/preview/logo?v=${version(store.logo_url)}`), large: false }
+    : { url: new URL('/og/oak-mark.png', url).href, large: false, width: 512, height: 512 }
+  const photoPicture = (productSlug: string, photo: string): Picture => ({
+    url: apiUrl(`${shop}/preview/products/${encodeURIComponent(productSlug)}?v=${version(photo)}`),
+    large: true,
+    width: 1200,
+    height: 630,
+  })
 
   if (kind === 'product' && slug) {
     const product = await api<Product>(`${shop}/products/${encodeURIComponent(slug)}`)
     const prices = product.variants.length ? product.variants.map((v) => Number(v.price)) : [Number(product.price)]
     const price = priceRange(Math.min(...prices), Math.max(...prices), store.currency)
+    const photo = product.image_urls[0]
     return {
-      title: product.name,
-      description: [price, store.name, product.description].filter(Boolean).join(' · '),
-      image: product.image_urls[0] ?? store.logo_url,
+      // The price in the title: apps often hide the description.
+      title: `${product.name} · ${price}`,
+      description: [store.name, product.description].filter(Boolean).join(' · '),
+      picture: photo ? photoPicture(slug, photo) : shopPicture,
     }
   }
   if (kind === 'category' && slug) {
     const page = await api<CategoryPage>(`${shop}/categories/${encodeURIComponent(slug)}`)
     const count = page.products.length
+    const first = page.products.find((p) => p.image_url)
     return {
       title: `${page.category.name} · ${store.name}`,
       description: `ទំនិញ ${count}។ ${ORDER_ONLINE}`,
-      image: page.products.find((p) => p.image_url)?.image_url ?? store.logo_url,
+      picture: first?.image_url ? photoPicture(first.slug, first.image_url) : shopPicture,
     }
   }
   if (kind && kind !== 'cart' && kind !== 'checkout') return null
-  return { title: store.name, description: store.description || ORDER_ONLINE, image: store.logo_url }
+  return { title: store.name, description: store.description || ORDER_ONLINE, picture: shopPicture }
+}
+
+function apiUrl(path: string): string {
+  return `${process.env.VITE_API_URL ?? 'http://localhost:8000'}/api/v1${path}`
 }
 
 async function api<T>(path: string): Promise<T> {
-  const base = process.env.VITE_API_URL ?? 'http://localhost:8000'
-  const response = await fetch(`${base}/api/v1${path}`, { signal: AbortSignal.timeout(API_TIMEOUT_MS) })
+  const response = await fetch(apiUrl(path), { signal: AbortSignal.timeout(API_TIMEOUT_MS) })
   if (!response.ok) throw new Error(`API ${response.status}`)
   return (await response.json()) as T
+}
+
+/** A short tag for a photo's address: a new logo or photo is a new picture
+ * URL, so Facebook and Telegram don't keep showing the old one. */
+function version(photoUrl: string): string {
+  let hash = 0
+  for (const char of photoUrl) hash = (hash * 31 + char.charCodeAt(0)) | 0
+  return (hash >>> 0).toString(36)
 }
 
 // Same as src/lib/money.ts (kept apart: this file is built on its own).
@@ -114,26 +145,34 @@ function shorten(text: string, max: number): string {
   return flat.length > max ? `${flat.slice(0, max - 1)}…` : flat
 }
 
-/** index.html with the page's own title, description and photo. */
+/** index.html with the page's own title, description and picture, in
+ * place of the generic Oak Order card's. */
 function withPreview(html: string, preview: Preview, pageUrl: string): string {
-  const title = escapeHtml(shorten(preview.title, 90))
+  // Cut the page's own words, never "· Oak Order".
+  const title = escapeHtml(`${shorten(preview.title, 80)} · Oak Order`)
   const description = escapeHtml(shorten(preview.description, 200))
+  const { picture } = preview
   const tags = [
     `<title>${title}</title>`,
     `<meta name="description" content="${description}" />`,
+    `<meta property="og:site_name" content="Oak Order" />`,
     `<meta property="og:type" content="website" />`,
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
     `<meta property="og:url" content="${escapeHtml(pageUrl)}" />`,
-    ...(preview.image
+    `<meta property="og:image" content="${escapeHtml(picture.url)}" />`,
+    ...(picture.width
       ? [
-          `<meta property="og:image" content="${escapeHtml(preview.image)}" />`,
-          `<meta name="twitter:card" content="summary_large_image" />`,
+          `<meta property="og:image:width" content="${picture.width}" />`,
+          `<meta property="og:image:height" content="${picture.height}" />`,
         ]
-      : [`<meta name="twitter:card" content="summary" />`]),
+      : []),
+    `<meta name="twitter:card" content="${picture.large ? 'summary_large_image' : 'summary'}" />`,
   ].join('\n    ')
   return html
     .replace(/<title>[^<]*<\/title>/, '')
     .replace(/<meta name="description"[^>]*>/, '')
+    .replace(/\s*<!-- The link-preview card[\s\S]*?-->/, '')
+    .replace(/\s*<meta (?:property="og:|name="twitter:)[^>]*>/g, '')
     .replace('</head>', `    ${tags}\n  </head>`)
 }

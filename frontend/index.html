@@ -3,12 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <!-- viewport-fit=cover: lay out under the notch; the app pads with safe-area insets. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="description" content="ប្រែការឆាតលើបណ្ដាញសង្គម ទៅជាការកុម្ម៉ង់ពិតៗ។" />
     <meta name="apple-mobile-web-app-title" content="Oak Order" />
     <title>Oak Order</title>
+    <!-- The link-preview card for every page. middleware.ts swaps in a
+         shop's or product's own card for preview bots on /shop/*. -->
+    <meta property="og:site_name" content="Oak Order" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Oak Order" />
+    <meta property="og:description" content="ប្រែការឆាតលើបណ្ដាញសង្គម ទៅជាការកុម្ម៉ង់ពិតៗ។" />
+    <meta property="og:image" content="https://order.oaksolve.com/og/oak-order.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <!-- Light or dark before the first paint (same rule as src/theme/theme.ts). -->
     <script>
       try {
