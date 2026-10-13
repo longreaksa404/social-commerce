@@ -1888,6 +1888,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
         origins `https://order.oaksolve.com` and
         `http://localhost:5173`. Client ID → Render `GOOGLE_CLIENT_ID`,
         Vercel `VITE_GOOGLE_CLIENT_ID`, and your `.env`.
+        **Done 2026-10-13:** keys in Render and Vercel; tried live
+        (sign-up, log in again, connect in Settings). No logo on the
+        consent screen (a logo needs Google's brand verification).
      d. **Facebook**, developers.facebook.com: create an app (use case
         "Authenticate and request data from users with Facebook Login");
         Facebook Login → Settings → Valid OAuth Redirect URIs
@@ -1902,6 +1905,14 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
         only (never Vercel). If Meta asks for Business Verification,
         Facebook works only for the app's testers until the business is
         registered.
+        **Status 2026-10-13:** app created (ID 1814899622969522, keys in
+        Render), tried live in Development mode: sign-up and connect in
+        Settings work for the founder (the app's admin). Going Live needs
+        Business verification through a Meta Business Suite portfolio,
+        then App Review (likely a demo video): waits for the registered
+        business. Until then `VITE_FACEBOOK_APP_ID` stays out of Vercel
+        (no button for sellers it wouldn't work for); add it back and
+        redeploy once the app is Live.
      e. **TikTok**, developers.tiktok.com: create an app, add Login Kit,
         platform Web; website `https://order.oaksolve.com` (verify the
         domain as it asks), redirect URI
