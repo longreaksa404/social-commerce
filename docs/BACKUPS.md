@@ -13,7 +13,7 @@ few MB).
 ## One-time setup (founder)
 
 1. **Private bucket.** Cloudflare dashboard → R2 → Create bucket, name
-   `oak-order-backups`. Leave **Public access off** (no r2.dev URL,
+   `social-commerce-backups`. Leave **Public access off** (no r2.dev URL,
    no custom domain): the copies hold customers' names, phones and
    addresses. Do not use the photo bucket, which is public.
 2. **Keep 30 nights.** In the new bucket: Settings → Object lifecycle
@@ -21,7 +21,7 @@ few MB).
    upload.
 3. **Token for this bucket only.** R2 → Manage API tokens → Create
    Account API token: permission **Object Read & Write**, applied to
-   **`oak-order-backups` only**. Copy the Access Key ID and Secret
+   **`social-commerce-backups` only**. Copy the Access Key ID and Secret
    Access Key (shown once).
 4. **GitHub secrets.** Repo → Settings → Secrets and variables → Actions
    → New repository secret, five times:
@@ -30,7 +30,7 @@ few MB).
    |---|---|
    | `BACKUP_DATABASE_URL` | Neon's **direct** connection string (as in Render's `DATABASE_URL`, `postgresql://...?sslmode=require`) |
    | `BACKUP_R2_ACCOUNT_ID` | the same account ID as Render's `R2_ACCOUNT_ID` |
-   | `BACKUP_R2_BUCKET` | `oak-order-backups` |
+   | `BACKUP_R2_BUCKET` | `social-commerce-backups` |
    | `BACKUP_R2_ACCESS_KEY_ID` | from step 3 |
    | `BACKUP_R2_SECRET_ACCESS_KEY` | from step 3 |
 
@@ -50,7 +50,7 @@ Restore into a **new** database first, check it, then decide. Never
 restore over production straight away.
 
 1. Download the night you want from the bucket (Cloudflare dashboard →
-   R2 → `oak-order-backups` → `nightly/` → the file → Download).
+   R2 → `social-commerce-backups` → `nightly/` → the file → Download).
 2. In Neon, create a new branch (or database) to restore into, and copy
    its direct connection string as `$TARGET`.
 3. The row-level security role, which a dump doesn't carry:

@@ -1435,10 +1435,11 @@ async def test_store_only_sees_its_own_rows(two_stores):
   on navy; 2026-10-13, replacing the drawn leaf of 2026-10-10),
   `public/favicon.svg` (the same mark), and
   `index.html` (title, `apple-mobile-web-app-title`, so also the generic
-  preview card), the FastAPI title and the backup bucket
-  (`oak-order-backups`) say Oak Order. Still "social-commerce": the repo,
-  Render and dev container names (left on purpose: links and the
-  keep-awake ping depend on them).
+  preview card), the FastAPI title and the nightly backup files
+  (`oak-order-<date>.dump`) say Oak Order. Still "social-commerce": the repo,
+  Render, the backup bucket (`social-commerce-backups`) and dev container
+  names (left on purpose: links and the keep-awake ping depend on them,
+  and R2 can't rename a bucket).
 
 Everything else checked (state machine tables, completion rule, RLS role
 and policy, endpoint list, JSONB shapes, link and tracking flows) matches
