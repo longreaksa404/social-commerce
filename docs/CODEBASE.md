@@ -122,7 +122,7 @@ Render's health check.
 | Small photo copies | DONE | `-m` / `-s.jpg` naming, `thumbnail_size` on the images endpoint |
 | Nightly DB backup to R2 | PARTIAL | `.github/workflows/backup.yml` exists but skips until its five secrets are set (04: not set yet) |
 | UX pass (shop info, pinned Add to cart, logo, Settings menu, order summary, one row per option) | DONE | `POST /seller/store/logo`; `src/dashboard/settings/` |
-| Oak in the shop (founder's picks 2026-10-10: 1A 2A 3B 4B 5B) | DONE (link cards not yet checked live) | The oak leaf is the mark (`components/OakLeaf.tsx`, `public/favicon.svg`, `apple-touch-icon.png`); "Made with Oak Order" with Privacy · Terms at the bottom of the shop's grid pages and the order page (`shop/MadeWithOak.tsx`); link cards titled "… · Oak Order" with our mark on the picture (`middleware.ts`, `GET /shop/{slug}/preview/*`, `services/preview.py`); the generic card `public/og/oak-order.png` |
+| Oak in the shop (founder's picks 2026-10-10: 1A 2A 3B 4B 5B) | DONE (link cards not yet checked live) | The mark is the oak leaf cut out of a hexagon (the founder's logo, traced to SVG 2026-10-13: `components/OakMark.tsx`, `public/favicon.svg`, `apple-touch-icon.png`); "Made with Oak Order" with Privacy · Terms at the bottom of the shop's grid pages and the order page (`shop/MadeWithOak.tsx`); link cards titled "… · Oak Order" with our mark on the picture (`middleware.ts`, `GET /shop/{slug}/preview/*`, `services/preview.py`); the generic card `public/og/oak-order.png` |
 | Customer order tracking (order truck in the shop's header, Your orders, auto-refresh, ask on Telegram) | DONE | `src/shop/CurrentOrder.tsx`, `ShopOrders.tsx`, `useMyOrders` |
 | UX pass 2 (effects, cart bars, numbered checkout, Kantumruy Pro) | DONE | `components/effects.ts`, `shop/fly.ts`, `components/useBump.ts` |
 | Layout pass (edge-to-edge on phones, floating bars) | DONE | `cardClass` in `components/styles.ts` |
@@ -222,7 +222,7 @@ Backend modules, one line each:
 | `services/category.py`, `product.py` | Catalog CRUD; variant merge; image URL prefix check |
 | `services/images.py` | Presigned R2 PUT URLs (product photo, thumbnail, logo) |
 | `services/storefront.py` | Public reads: shop by slug, cards, product, category page, a product's first photo |
-| `services/preview.py`, `oak_mark.py` | Link-preview pictures (Pillow): the shop's logo (256 px) or a product's photo (a 1200 × 630 card, the whole photo over a blurred copy) with our oak-leaf mark small in the corner; fetched only from `R2_PUBLIC_URL`, drawn in a thread, the last 64 kept in memory |
+| `services/preview.py`, `oak_mark.py` | Link-preview pictures (Pillow): the shop's logo (256 px) or a product's photo (a 1200 × 630 card, the whole photo over a blurred copy) with our mark small in the corner (drawn from `oak_mark_shape.png` / `oak_mark_outline.png`, masks of the SVG); fetched only from `R2_PUBLIC_URL`, drawn in a thread, the last 64 kept in memory |
 | `services/checkout.py` | Guest checkout (`place_order`), tracking lookup (`track_order`), `shop_order_out` |
 | `services/pricing.py` | Line totals, discount, delivery fee, order totals (mirrored in `frontend/src/lib/pricing.ts`) |
 | `services/order.py` | Order state machine, completion rule, seller list/detail, the payment/delivery record wrappers |
@@ -1151,7 +1151,7 @@ is wrapped in try/catch (private mode).
   pages (All, each category) and the order page (`ShopLayout`), not on
   product pages, the cart or Your orders: our mark and "Made with Oak
   Order" (to `/`), then Privacy · Terms, each in a new tab (founder's
-  picks 1A 2A, 2026-10-10). `components/OakLeaf.tsx` is the mark.
+  picks 1A 2A, 2026-10-10). `components/OakMark.tsx` is the mark.
 - `shop/components.tsx`: `ProductImage` (thumbnail with fallback;
   `eager` loads it at once at high priority, `later` asks for it at low
   priority (a gallery's 2nd photo on); otherwise lazy. Lists pass `eager`
@@ -1252,11 +1252,11 @@ is the API's copy with our mark in the corner: `/shop/{slug}/preview/logo`
 with a photo), each with `?v=` from the photo's address so a new photo is
 a new URL. No logo: `public/og/oak-mark.png`. Every other page, and a shop
 link while the API is asleep, gets the generic card in `index.html`:
-`public/og/oak-order.png` (the leaf, "Oak Order" and the line from the start
+`public/og/oak-order.png` (the mark, "Oak Order" and the line from the start
 page). `public/apple-touch-icon.png` is the iPhone home-screen icon (iPhones
-don't take the SVG favicon). The three PNGs were drawn once with
-`backend/app/services/oak_mark.py` and Kantumruy Pro; redraw them if the
-mark changes.
+don't take the SVG favicon). The three PNGs were drawn from the mark's SVG
+(the card's text with Kantumruy Pro); redraw them, and the backend's two
+`oak_mark_*.png` masks, if the mark changes.
 
 ---
 
@@ -1429,9 +1429,10 @@ async def test_store_only_sees_its_own_rows(two_stores):
   register (5/min) and refresh (30/min). Logout is unlimited.
 - **Brand:** 01 §1.1 names the product Oak Order (renamed from Sroul Order
   2026-10-08). The start page (`pages/Home.tsx`, "Oak Order" in big
-  letters), `BrandMark` in `pages/AuthLayout.tsx` (the oak leaf,
-  `components/OakLeaf.tsx`, on navy; it replaced lucide's `TreeDeciduous`
-  2026-10-10), `public/favicon.svg` (the same leaf), and
+  letters), `BrandMark` in `pages/AuthLayout.tsx` (the mark,
+  `components/OakMark.tsx`: the founder's oak leaf in a hexagon, navy, white
+  on navy; 2026-10-13, replacing the drawn leaf of 2026-10-10),
+  `public/favicon.svg` (the same mark), and
   `index.html` (title, `apple-mobile-web-app-title`, so also the generic
   preview card) say Oak Order. Still "Social Commerce": the FastAPI title,
   Render and dev container names.

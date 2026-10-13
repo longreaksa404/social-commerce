@@ -1,4 +1,4 @@
-import { OakLeaf } from '../components/OakLeaf.tsx'
+import { OakMark } from '../components/OakMark.tsx'
 import { useT } from '../i18n/useT.ts'
 
 const legalLink =
@@ -20,9 +20,7 @@ export function MadeWithOak() {
           rel="noopener"
           className="inline-flex min-h-10 items-center gap-2 rounded-lg px-2.5 text-sm hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
         >
-          <span aria-hidden className="flex size-5 shrink-0 items-center justify-center rounded-md bg-accent text-white">
-            <OakLeaf className="h-4 w-auto" />
-          </span>
+          <OakMark className="h-5 w-auto shrink-0 text-accent" />
           <span>
             {c.madeWith} <span className="font-semibold text-slate-700">Oak Order</span>
           </span>

@@ -64,7 +64,7 @@ async def test_logo_gets_our_mark_in_the_corner(client, make_store, photos):
     picture = Image.open(BytesIO(response.content))
     assert picture.size == (256, 256)
     assert _near(picture.getpixel((20, 20)), (230, 120, 40))  # the logo
-    assert _near(picture.getpixel((195, 215)), NAVY)  # our mark, bottom right
+    assert _near(picture.getpixel((215, 235)), NAVY)  # our mark, bottom right
     assert photos == [f"{PUBLIC}/stores/a/logo.jpg"]
 
 

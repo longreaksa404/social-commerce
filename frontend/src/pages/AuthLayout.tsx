@@ -1,12 +1,12 @@
 import { ShoppingBag } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
-import { OakLeaf } from '../components/OakLeaf.tsx'
+import { OakMark } from '../components/OakMark.tsx'
 import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
 
 /** The product's name, Oak Order (01_PRODUCT.md section 1.1), with its
- * mark: an oak leaf on navy, like public/favicon.svg. `onDark` for the
+ * mark (components/OakMark.tsx): navy, or white with `onDark` for the
  * navy panel. */
 export function BrandMark({ className = '', onDark = false }: { className?: string; onDark?: boolean }) {
   return (
@@ -14,14 +14,7 @@ export function BrandMark({ className = '', onDark = false }: { className?: stri
       to="/"
       className={`inline-flex items-center gap-2.5 font-bold tracking-tight ${onDark ? 'text-white' : 'text-slate-900'} ${className}`}
     >
-      <span
-        aria-hidden
-        className={`flex size-9 items-center justify-center rounded-xl text-white shadow-sm ${
-          onDark ? 'bg-white/15' : 'bg-accent'
-        }`}
-      >
-        <OakLeaf className="h-6 w-auto" />
-      </span>
+      <OakMark className={`h-9 w-auto ${onDark ? 'text-white' : 'text-accent'}`} />
       <span>Oak Order</span>
     </Link>
   )

@@ -1926,6 +1926,13 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
         Facebook and TikTok; Settings → Your account → Other ways to log
         in; `docs/REGRESSION_CHECKLIST.md` has the steps. Tell Claude
         what each one did.
+00a. Founder: check the new mark (your hexagon oak-leaf logo, traced to
+     SVG, 2026-10-13) after the push: the browser tab, the start page and
+     login header (white on navy, navy on white), the shop's "Made with
+     Oak Order" line, a shop link's preview picture (logo with our mark in
+     the corner; a shop without a logo gets `og/oak-mark.png`), and the
+     iPhone home-screen icon (remove and re-add it). Chats and Facebook
+     keep old previews for a while.
 00. Founder: try the four fixes and the seven picks (In Progress,
     "Pre-pilot review fixes" and "Pre-pilot features") on the dev server
     or on the live site (pushed); `docs/REGRESSION_CHECKLIST.md` has the
