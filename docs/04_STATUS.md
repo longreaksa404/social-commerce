@@ -1263,7 +1263,9 @@ Phase 9, waiting on the founder:
   R2). The cron-job.org ping still calls the onrender.com address, which
   is the same service. Left: check "Oak Order" as a Facebook page name
   and on TikTok, Instagram and Telegram.
-- **Backups:** the bucket, token and five GitHub secrets
+- [x] **Backups:** live 2026-10-14. Bucket `social-commerce-backups`
+  (private, 30 nights), its own token, five GitHub secrets; the first run
+  (#10, by hand) saved a 94 KB copy. Nightly at 02:00 Phnom Penh
   (`docs/BACKUPS.md`).
 - **Read the Khmer** and send corrections.
 - **Live check of the rate-limit fix** after deploying (see Notes).

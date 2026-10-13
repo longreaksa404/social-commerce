@@ -13,7 +13,9 @@ concurrency:
 
 jobs:
   backup:
-    runs-on: ubuntu-latest
+    # Pinned: the Postgres apt repo may lag a new Ubuntu (ubuntu-latest
+    # moves to 26 from 2026-10-19).
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
       DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
