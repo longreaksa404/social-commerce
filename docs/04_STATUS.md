@@ -1911,6 +1911,15 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
         `VITE_TIKTOK_CLIENT_KEY`; client secret → Render
         `TIKTOK_CLIENT_SECRET` only. TikTok takes only https redirects,
         so it can be tried only on the live site.
+        **Status 2026-10-13:** `oaksolve.com` verified (TXT record at the
+        root); Sandbox keys in Render and Vercel, the founder's TikTok a
+        target user. Tried live: connect in Settings, then log in with
+        TikTok, works (no PKCE needed). Submitted for review the same day
+        (Login Kit, `user.info.basic`, demo video). **After approval:**
+        swap in the Production client key and secret (Render both, Vercel
+        `VITE_TIKTOK_CLIENT_KEY`, redeploy Vercel); shops connected with
+        the Sandbox may need TikTok connected again (TikTok's ID differs
+        per app). A rejection's reason is under the app's history icon.
      f. Pushed 2026-10-09 (`39caba4`). Check CI (GitHub → Actions) and
         that Render deployed (four migrations run on its start). Then on
         your phone: Create your store with a phone; Continue with Google,
