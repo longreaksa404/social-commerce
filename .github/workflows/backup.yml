@@ -54,6 +54,6 @@ jobs:
       - name: Upload to R2
         if: steps.setup.outputs.configured == 'true'
         run: |
-          name="nightly/social-commerce-$(date -u +%Y-%m-%d).dump"
+          name="nightly/oak-order-$(date -u +%Y-%m-%d).dump"
           aws s3 cp backup.dump "s3://$BUCKET/$name" --endpoint-url "$R2_ENDPOINT" --no-progress
           echo "Saved $name ($(du -h backup.dump | cut -f1))" >> "$GITHUB_STEP_SUMMARY"

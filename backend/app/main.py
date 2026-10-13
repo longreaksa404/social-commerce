@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
 
 
-app = FastAPI(title="Social Commerce API", lifespan=lifespan)
+app = FastAPI(title="Oak Order API", lifespan=lifespan)
 app.state.limiter = limiter
 install_error_handlers(app)
 

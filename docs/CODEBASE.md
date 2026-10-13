@@ -19,9 +19,10 @@ sellers who sell through Facebook, TikTok and Instagram. A seller gets a
 dashboard and a public shop at `/shop/<slug>`. Customers check out as guests
 (no account) and pay by cash on delivery, bank transfer or KHQR. Every
 payment is confirmed by the seller by hand. The brand is Oak / "Oak
-Order" (01 §1.1): the start page, logo, tab title and favicon say so; the
-FastAPI title, the dev container and the Render service still say
-"Social Commerce".
+Order" (01 §1.1): the start page, logo, tab title, favicon, the API's
+title and the backup files say so; the repo, the dev container and the
+Render service (whose onrender.com address the keep-awake ping calls)
+still say "social-commerce", on purpose.
 
 ---
 
@@ -1434,8 +1435,10 @@ async def test_store_only_sees_its_own_rows(two_stores):
   on navy; 2026-10-13, replacing the drawn leaf of 2026-10-10),
   `public/favicon.svg` (the same mark), and
   `index.html` (title, `apple-mobile-web-app-title`, so also the generic
-  preview card) say Oak Order. Still "Social Commerce": the FastAPI title,
-  Render and dev container names.
+  preview card), the FastAPI title and the backup bucket
+  (`oak-order-backups`) say Oak Order. Still "social-commerce": the repo,
+  Render and dev container names (left on purpose: links and the
+  keep-awake ping depend on them).
 
 Everything else checked (state machine tables, completion rule, RLS role
 and policy, endpoint list, JSONB shapes, link and tracking flows) matches
