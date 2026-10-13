@@ -357,10 +357,13 @@ function ListSkeleton() {
     <>
       <Card className="mt-4 divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="space-y-2 px-4 py-3 sm:p-4">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-3 w-24" />
+          <div key={i} className="flex items-center gap-3 px-4 py-3 sm:p-4">
+            <Skeleton className="size-16 shrink-0 rounded-xl" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-24" />
+            </div>
           </div>
         ))}
       </Card>

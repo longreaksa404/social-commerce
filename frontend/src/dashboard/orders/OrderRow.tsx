@@ -68,12 +68,13 @@ export function OrderRow({
         aria-current={selected ? 'page' : undefined}
         className={`flex items-center gap-3 px-4 py-3 sm:px-5 ${selected ? '' : 'hover:bg-slate-50 active:bg-slate-100'} focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600`}
       >
+        {/* As big as a Products list row's photo. */}
         {order.first_item_image_url ? (
-          <ProductImage small eager={eager} src={order.first_item_image_url} alt="" className="size-12 shrink-0 rounded-xl" />
+          <ProductImage small eager={eager} src={order.first_item_image_url} alt="" className="size-16 shrink-0 rounded-xl" />
         ) : (
           // No photo yet: a soft bag, not a broken picture (founder's pick 4A).
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-navy-100 text-navy-500">
-            <ShoppingBag aria-hidden className="size-5.5" />
+          <span className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-navy-100 text-navy-500">
+            <ShoppingBag aria-hidden className="size-7" />
           </span>
         )}
         <span className="min-w-0 flex-1">
