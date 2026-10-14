@@ -1927,11 +1927,36 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
         set `VITE_SUPPORT_TELEGRAM` in Vercel, or Settings → Plan has no
         "Pay on Telegram" button; run `python -m app.admin plans` on the
         live database (docs/ADMIN.md); read Settings → Plan and the
-        Terms' Fees in Khmer. (c) Claude Code: move the frontend to
-        Cloudflare Pages before the first seller pays; the founder
-        connects the GitHub repo in Cloudflare when asked. The
-        vercel.app address's redirect to order.oaksolve.com (old
-        Telegram and reset links) needs a plan there too.
+        Terms' Fees in Khmer. (c) **Cloudflare Pages** (the move decided
+        2026-10-14; before the first seller pays): the code is ready and
+        not pushed (link previews in `linkPreview.ts`, run by a Pages
+        Function and, until the switch, by the Vercel middleware;
+        `public/_headers`; `.node-version`). Founder, after a push:
+        1. Cloudflare → Workers & Pages → Create → Pages → Connect to
+           Git → the GitHub repo (allow Cloudflare's GitHub app).
+           Project name `oak-order`, production branch `main`.
+        2. Build: framework preset None, build command `npm run build`,
+           output directory `dist`, root directory `frontend`.
+        3. Variables (Production): copy every `VITE_` variable from
+           Vercel's project settings (`VITE_API_URL` =
+           https://api.oaksolve.com, `VITE_SENTRY_DSN`,
+           `VITE_SUPPORT_TELEGRAM`, `VITE_GOOGLE_CLIENT_ID`,
+           `VITE_FACEBOOK_APP_ID`, `VITE_TIKTOK_CLIENT_KEY`). Deploy.
+        4. Open `oak-order.pages.dev`: the start page and a shop load
+           (logging in only works on order.oaksolve.com). Paste a
+           `oak-order.pages.dev/shop/...` link into Facebook's Sharing
+           Debugger: the shop's card.
+        5. Pages project → Custom domains → `order.oaksolve.com`; let
+           Cloudflare replace the record that points at Vercel. Then
+           remove the domain in Vercel.
+        6. Check on order.oaksolve.com: log in, Settings → Plan, a test
+           order, a shop link in Facebook's debugger and in Telegram.
+        7. Tell Claude Code: it removes `middleware.ts`, `vercel.json`
+           and `@vercel/functions`, and updates CLAUDE.md and the docs.
+           Then delete the Vercel project. The old
+           `social-commerce-eight.vercel.app` address stops forwarding
+           then; it only matters for links shared before 2026-10-09
+           (test links).
 00000. Founder: Oak in the shop (after a push). (a) See the Khmer line
        at the bottom of a shop, "ដំណើរការដោយ Oak Order". (b) Paste a shop link, a
        product link and order.oaksolve.com into Facebook's Sharing

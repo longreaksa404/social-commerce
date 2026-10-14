@@ -55,7 +55,7 @@ Build a **modular monolith**, not microservices. `01_PRODUCT.md` §28 explicitly
 | Unit | Description |
 |---|---|
 | `api` | FastAPI backend, serves REST API + Telegram webhook endpoint |
-| `web` | React SPA, static build served via CDN/static host; on Vercel, a Routing Middleware (`frontend/middleware.ts`) gives preview bots on `/shop/*` the page's title, description and photo (link previews, §9.3) |
+| `web` | React SPA, static build served via CDN/static host; on `/shop/*` the host runs `frontend/linkPreview.ts`, which gives preview bots the page's title, description and photo (link previews, §9.3): a Cloudflare Pages Function (`frontend/functions/shop/[[path]].ts`) and, until the move to Cloudflare Pages (2026-10-14), Vercel Routing Middleware (`frontend/middleware.ts`) |
 | `db` | Single PostgreSQL instance (managed) |
 | `storage` | Object storage bucket for product images |
 | `worker` (later) | Background jobs (notifications, link analytics rollups) — deferred until needed; run as FastAPI `BackgroundTasks` in MVP instead of a separate worker process |
@@ -574,7 +574,7 @@ This is intentionally simple — no attribution modeling, no multi-touch trackin
 
 ## 9.3 Link Previews
 
-Facebook, Messenger, Telegram, TikTok and similar apps build a link's preview card from the HTML without running JavaScript. A Vercel Routing Middleware (`frontend/middleware.ts`, decided 2026-10-03) on `/shop/*` gives those preview bots `index.html` with `og:` title, description and photo from the storefront API; people pass through untouched, so a slow API never slows a customer. If the API doesn't answer in 6 s (e.g. Render asleep), the bot gets the generic card. The card's own words (e.g. "Order online", a category's product count) are in Khmer, the default language. Preview bots don't run JavaScript, so they never count as views.
+Facebook, Messenger, Telegram, TikTok and similar apps build a link's preview card from the HTML without running JavaScript. Code on `/shop/*` (`frontend/linkPreview.ts`, decided 2026-10-03; run by a Cloudflare Pages Function, `frontend/functions/shop/[[path]].ts`, and by Vercel Routing Middleware, `frontend/middleware.ts`, until the move to Cloudflare Pages, 2026-10-14) gives those preview bots `index.html` with `og:` title, description and photo from the storefront API; people pass through untouched, so a slow API never slows a customer. If the API doesn't answer in 6 s (e.g. Render asleep), the bot gets the generic card. The card's own words (e.g. "Order online", a category's product count) are in Khmer, the default language. Preview bots don't run JavaScript, so they never count as views.
 
 **Oak in every card (decided 2026-10-10):** titles end in "· Oak Order" (a product's title also carries its price), and the picture is the shop's logo or the product's photo with Oak's mark (the oak leaf) small in the corner. The API draws those pictures (`GET /api/v1/shop/{slug}/preview/logo` and `/preview/products/{slug}`, Pillow, photos fetched only from our R2 address, 30/min per IP); a shop without a logo gets Oak's plain mark. Every other page, and a shop link while the API is asleep, shows the generic card in `index.html`: Oak's own picture with the leaf, "Oak Order" and the start page's line.
 

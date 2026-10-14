@@ -187,8 +187,12 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 │
 └── frontend/
     ├── index.html             Khmer <html lang>, theme set before first paint (reads sc.theme)
-    ├── middleware.ts          Vercel Routing Middleware: Open Graph cards for preview bots on /shop/*
-    ├── vercel.json            SPA rewrite + frame-ancestors 'none' / X-Frame-Options / nosniff
+    ├── linkPreview.ts         Open Graph cards for preview bots on /shop/* (shared by the two hosts below)
+    ├── functions/shop/[[path]].ts   Cloudflare Pages Function running linkPreview.ts (the host after the move)
+    ├── middleware.ts          Vercel Routing Middleware running linkPreview.ts (until the move)
+    ├── vercel.json            SPA rewrite + frame-ancestors 'none' / X-Frame-Options / nosniff (Vercel)
+    ├── public/_headers        The same headers for Cloudflare Pages
+    ├── .node-version          24, for Cloudflare Pages' build
     ├── vite.config.ts         React + Tailwind plugins, envDir '..' (root .env), optional polling
     ├── package.json           Node 24; scripts dev / build (tsc -b && vite build) / lint (oxlint)
     └── src/
@@ -1258,13 +1262,22 @@ message needs a Khmer entry there.** What sellers type is shown as typed.
   variable files picked by `unicode-range`, Khmer (~57 KB) and Latin
   (~33 KB), each downloaded once; the system fonts are the fallback.
 
-### Link previews (`frontend/middleware.ts`)
+### Link previews (`frontend/linkPreview.ts`)
 
-A Vercel Routing Middleware with `matcher: '/shop/:path*'`. For preview-bot
-user agents only (Facebook, Telegram, TikTok, WhatsApp, ...), it fetches
-the storefront API (6 s timeout) and returns `index.html` with `og:` title,
-description and image filled in, in Khmer. Everyone else passes straight
-through to the SPA.
+The logic is in `linkPreview.ts` (plain web APIs: `isPreviewBot`,
+`previewResponse`), run on `/shop/*` by the host: a Cloudflare Pages
+Function (`frontend/functions/shop/[[path]].ts`, `env.ASSETS` for
+`index.html`, `env.VITE_API_URL`) and, until the move to Cloudflare Pages
+(decided 2026-10-14; the founder switches the domain), Vercel Routing
+Middleware (`frontend/middleware.ts`, `matcher: '/shop/:path*'`,
+`process.env.VITE_API_URL`). For preview-bot user agents only (Facebook,
+Telegram, TikTok, WhatsApp, ...), it fetches the storefront API (6 s
+timeout) and returns `index.html` with `og:` title, description and image
+filled in, in Khmer. Everyone else passes straight through to the SPA
+(Cloudflare: its SPA fallback, as there's no `404.html`; Vercel: the
+`vercel.json` rewrite). The security headers are in both `vercel.json` and
+`public/_headers` (Cloudflare). Both hosts were run locally with bot and
+phone requests against the API (2026-10-14).
 
 Oak in every card (founder's picks 3B and 5B, 2026-10-10): titles end in
 "· Oak Order" (the page's own words are cut first, never the suffix), with
