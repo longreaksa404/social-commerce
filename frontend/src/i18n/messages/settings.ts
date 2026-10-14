@@ -75,6 +75,11 @@ export const settings = {
   },
   // Read the details from the seller's own bank QR (2026-10-14).
   uploadQr: { en: "Upload your bank's QR", km: 'បញ្ចូល QR ធនាគាររបស់អ្នក' },
+  uploadAnother: { en: 'Upload another QR', km: 'បញ្ចូល QR ផ្សេងទៀត' },
+  payTo: { en: 'Customers pay to', km: 'អតិថិជនបង់ទៅ' },
+  typeInstead: { en: 'No QR? Type the details instead', km: 'គ្មាន QR? វាយព័ត៌មានដោយខ្លួនឯង' },
+  editKhqr: { en: 'Edit the details', km: 'កែព័ត៌មាន' },
+  uploadInstead: { en: 'Upload a QR instead', km: 'បញ្ចូល QR ជំនួសវិញ' },
   uploadQrHint: {
     en: 'In your bank app, open your QR for receiving money and save it to photos, then pick it here. We fill in the rest.',
     km: 'ក្នុងកម្មវិធីធនាគាររបស់អ្នក បើក QR សម្រាប់ទទួលប្រាក់ ហើយរក្សាទុកក្នុងរូបថត រួចជ្រើសវានៅទីនេះ។ យើងនឹងបំពេញអ្វីដែលនៅសល់។',

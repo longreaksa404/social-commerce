@@ -165,7 +165,15 @@ export function OrdersFields({ form, update, error }: FieldsProps) {
  * phone (lib/readKhqr.ts), fills in the Bakong ID, the account and the
  * name. Warns when the QR's account isn't in the shop's currency (an ABA
  * QR points at the default account, often the riel one). */
-function QrUpload({ shopCurrency, onRead }: { shopCurrency: Currency; onRead: (account: Exclude<ReturnType<typeof parseKhqr>, string>) => void }) {
+function QrUpload({
+  again,
+  shopCurrency,
+  onRead,
+}: {
+  again: boolean
+  shopCurrency: Currency
+  onRead: (account: Exclude<ReturnType<typeof parseKhqr>, string>) => void
+}) {
   const s = useT().settings
   const { toast } = useFeedback()
   const input = useRef<HTMLInputElement>(null)
@@ -198,9 +206,9 @@ function QrUpload({ shopCurrency, onRead }: { shopCurrency: Currency; onRead: (a
     <div className="space-y-2">
       <input ref={input} type="file" accept="image/*" className="hidden" onChange={pick} />
       <Button variant="secondary" icon={QrCode} loading={reading} onClick={() => input.current?.click()} className="w-full sm:w-auto">
-        {s.uploadQr}
+        {again ? s.uploadAnother : s.uploadQr}
       </Button>
-      <p className="text-xs leading-5 text-slate-500">{s.uploadQrHint}</p>
+      {!again && <p className="text-xs leading-5 text-slate-500">{s.uploadQrHint}</p>}
       {problem && <p role="alert" className="rounded-xl bg-amber-50 px-3.5 py-2.5 text-sm leading-6 text-amber-900 ring-1 ring-amber-200 ring-inset">{problem}</p>}
     </div>
   )
@@ -212,6 +220,9 @@ export function PaymentsFields({ form, update, error }: FieldsProps) {
   const s = t.settings
   const noneOn = !cod.enabled && !bank.enabled && !khqr.enabled
   const fieldErr = (field: string) => fieldError(error, `payment_settings.${field}`)
+  const [typing, setTyping] = useState(false)
+  const khqrError = ['bakong_account_id', 'merchant_name', 'account_information', 'acquiring_bank'].some((f) => fieldErr(`khqr.${f}`))
+  const showKhqrFields = typing || Boolean(khqrError)
   const set = <M extends keyof PaymentSettings>(method: M, changes: Partial<PaymentSettings[M]>) =>
     update({ payment_settings: { ...form.payment_settings, [method]: { ...form.payment_settings[method], ...changes } } })
   return (
@@ -224,51 +235,78 @@ export function PaymentsFields({ form, update, error }: FieldsProps) {
       />
       {khqr.enabled && (
         <div className="space-y-4 border-l-2 border-slate-100 pl-4">
-          <QrUpload
-            shopCurrency={form.currency}
-            onRead={(account) =>
-              set('khqr', {
-                bakong_account_id: account.bakongAccountId,
-                account_information: account.accountInformation,
-                acquiring_bank: account.acquiringBank,
-                ...(account.name ? { merchant_name: account.name } : {}),
-              })
-            }
-          />
-          <Field label={s.bakongId} error={fieldErr('khqr.bakong_account_id')} hint={s.bakongIdHint}>
-            <Input
-              required
-              maxLength={32}
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              placeholder="name@bank"
-              value={khqr.bakong_account_id}
-              onChange={(e) => set('khqr', { bakong_account_id: e.target.value })}
+          {/* Uploading the bank's QR is the whole step; typing the four
+              fields is the fallback, or where Save found a problem. */}
+          {!showKhqrFields && khqr.bakong_account_id && (
+            <div className="rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200 ring-inset">
+              <p className="text-xs font-medium text-slate-500">{s.payTo}</p>
+              <p className="font-semibold text-slate-900">{khqr.merchant_name || khqr.bakong_account_id}</p>
+              <p className="text-sm text-slate-600">
+                {khqr.account_information
+                  ? `${khqr.acquiring_bank || khqr.bakong_account_id} ···${khqr.account_information.slice(-4)}`
+                  : khqr.bakong_account_id}
+              </p>
+            </div>
+          )}
+          {!showKhqrFields && (
+            <QrUpload
+              again={Boolean(khqr.bakong_account_id)}
+              shopCurrency={form.currency}
+              onRead={(account) =>
+                set('khqr', {
+                  bakong_account_id: account.bakongAccountId,
+                  account_information: account.accountInformation,
+                  acquiring_bank: account.acquiringBank,
+                  ...(account.name ? { merchant_name: account.name } : {}),
+                })
+              }
             />
-          </Field>
-          <Field label={s.merchantName} error={fieldErr('khqr.merchant_name')} hint={s.merchantNameHint}>
-            <Input
-              required
-              maxLength={25}
-              pattern="[ -~]*"
-              title={s.merchantNameTitle}
-              autoCapitalize="characters"
-              value={khqr.merchant_name}
-              onChange={(e) => set('khqr', { merchant_name: e.target.value })}
-            />
-          </Field>
-          <Field label={s.accountInfo} error={fieldErr('khqr.account_information')} hint={s.accountInfoHint}>
-            <Input
-              maxLength={32}
-              inputMode="numeric"
-              value={khqr.account_information}
-              onChange={(e) => set('khqr', { account_information: e.target.value })}
-            />
-          </Field>
-          <Field label={s.acquiringBank} error={fieldErr('khqr.acquiring_bank')}>
-            <Input maxLength={32} placeholder="ABA Bank" value={khqr.acquiring_bank} onChange={(e) => set('khqr', { acquiring_bank: e.target.value })} />
-          </Field>
+          )}
+          {showKhqrFields && (
+            <>
+              <Field label={s.bakongId} error={fieldErr('khqr.bakong_account_id')} hint={s.bakongIdHint}>
+                <Input
+                  required
+                  maxLength={32}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  placeholder="name@bank"
+                  value={khqr.bakong_account_id}
+                  onChange={(e) => set('khqr', { bakong_account_id: e.target.value })}
+                />
+              </Field>
+              <Field label={s.merchantName} error={fieldErr('khqr.merchant_name')} hint={s.merchantNameHint}>
+                <Input
+                  required
+                  maxLength={25}
+                  pattern="[ -~]*"
+                  title={s.merchantNameTitle}
+                  autoCapitalize="characters"
+                  value={khqr.merchant_name}
+                  onChange={(e) => set('khqr', { merchant_name: e.target.value })}
+                />
+              </Field>
+              <Field label={s.accountInfo} error={fieldErr('khqr.account_information')} hint={s.accountInfoHint}>
+                <Input
+                  maxLength={32}
+                  inputMode="numeric"
+                  value={khqr.account_information}
+                  onChange={(e) => set('khqr', { account_information: e.target.value })}
+                />
+              </Field>
+              <Field label={s.acquiringBank} error={fieldErr('khqr.acquiring_bank')}>
+                <Input maxLength={32} placeholder="ABA Bank" value={khqr.acquiring_bank} onChange={(e) => set('khqr', { acquiring_bank: e.target.value })} />
+              </Field>
+            </>
+          )}
+          <button
+            type="button"
+            onClick={() => setTyping(!showKhqrFields)}
+            className="inline-flex min-h-11 items-center text-sm font-medium text-navy-700 hover:underline"
+          >
+            {showKhqrFields ? s.uploadInstead : khqr.bakong_account_id ? s.editKhqr : s.typeInstead}
+          </button>
         </div>
       )}
 
