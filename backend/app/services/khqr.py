@@ -32,9 +32,16 @@ def individual_khqr(
     amount: Decimal,
     bill_number: str,
     now: datetime,
+    account_information: str = "",
+    acquiring_bank: str = "",
 ) -> str | None:
     """The code for paying `amount` to this Bakong account, or None if the
-    amount can't be paid by KHQR (nothing to pay, or riel with cents)."""
+    amount can't be paid by KHQR (nothing to pay, or riel with cents).
+
+    Some banks give their customers no Bakong ID of their own: ABA's QR
+    carries the bank's (abaakhppxxx@abaa) with the customer's account
+    number (`account_information`) and the bank's name (`acquiring_bank`),
+    the SDK's optional individual fields."""
     amount_text = _amount(amount, currency)
     if amount_text is None:
         return None
@@ -42,7 +49,12 @@ def individual_khqr(
         [
             _tlv("00", "01"),  # payload format
             _tlv("01", "12"),  # dynamic: carries an amount
-            _tlv("29", _tlv("00", bakong_account_id)),  # an individual's account
+            _tlv(  # an individual's account
+                "29",
+                _tlv("00", bakong_account_id)
+                + (_tlv("01", account_information) if account_information else "")
+                + (_tlv("02", acquiring_bank) if acquiring_bank else ""),
+            ),
             _tlv("52", MERCHANT_CATEGORY),
             _tlv("53", CURRENCY_CODES[currency]),
             _tlv("54", amount_text),

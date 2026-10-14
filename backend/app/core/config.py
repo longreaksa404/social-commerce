@@ -67,6 +67,11 @@ class Settings(BaseSettings):
     # Oak Order.
     oak_khqr_account: str = ""
     oak_khqr_name: str = "OAK ORDER"
+    # For banks whose customers share the bank's Bakong ID (ABA:
+    # abaakhppxxx@abaa): the account number and the bank's name, as in the
+    # bank app's own KHQR (e.g. 501378897 and "ABA Bank").
+    oak_khqr_account_info: str = ""
+    oak_khqr_bank: str = ""
     oak_bank_name: str = ""
     oak_bank_account_name: str = ""
     oak_bank_account_number: str = ""

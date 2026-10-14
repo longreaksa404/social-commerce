@@ -160,6 +160,8 @@ def pay_to(code: str) -> PayToOut:
                 amount=PRICES[period],
                 bill_number=code,
                 now=datetime.now(UTC),
+                account_information=settings.oak_khqr_account_info,
+                acquiring_bank=settings.oak_khqr_bank,
             )
     bank = None
     if settings.oak_bank_name and settings.oak_bank_account_number:

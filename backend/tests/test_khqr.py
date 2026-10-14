@@ -110,3 +110,21 @@ async def test_no_code_once_the_seller_turns_khqr_off(client, auth_headers):
 
     tracked = (await track(client, slug, placed.json()["id"])).json()
     assert (tracked["payment"]["method"], tracked["payment"]["khqr"]) == ("khqr", None)
+
+
+def test_an_aba_account_goes_with_abas_bakong_id():
+    """ABA's own QR: the bank's Bakong ID, the account number, the bank."""
+    code = individual_khqr(
+        bakong_account_id="abaakhppxxx@abaa",
+        merchant_name="OAK ORDER",
+        currency=Currency.USD,
+        amount=Decimal("9.99"),
+        bill_number="OAK-KFP64L",
+        now=datetime(2026, 10, 14, tzinfo=UTC),
+        account_information="501378897",
+        acquiring_bank="ABA Bank",
+    )
+
+    # Tag 29 exactly as in ABA's own QR.
+    assert "29450016abaakhppxxx@abaa01095013788970208ABA Bank" in code
+    assert code[-4:] == crc16(code[:-4])

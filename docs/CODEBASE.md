@@ -730,7 +730,7 @@ the `payway` branch, not merged, its migration `747c15ec63b4` never run on
 production). Settings → Plan shows the shop's code (`plan.shop_code`:
 "OAK-" + 6 letters from the store id's first 30 bits, no column, no 0/O
 or 1/I), Oak's KHQR for a month and a year with the code as the bill
-number (`OAK_KHQR_ACCOUNT`, `OAK_KHQR_NAME`; made fresh on each read, a
+number (`OAK_KHQR_ACCOUNT`, `OAK_KHQR_NAME`, and for ABA, whose customers share the bank's Bakong ID `abaakhppxxx@abaa`, `OAK_KHQR_ACCOUNT_INFO` (the account number) and `OAK_KHQR_BANK` ("ABA Bank"), tag 29's subtags 01 and 02; made fresh on each read, a
 day's validity) and/or Oak's bank account (`OAK_BANK_*`). "I've paid"
 (`POST /seller/plan/paid`, owner, 10/min) saves a pending payment (one at
 a time) and, after the response, sends a Telegram alert to the chat of

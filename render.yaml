@@ -49,6 +49,10 @@ services:
         sync: false
       - key: OAK_KHQR_NAME
         sync: false
+      - key: OAK_KHQR_ACCOUNT_INFO
+        sync: false
+      - key: OAK_KHQR_BANK
+        sync: false
       - key: OAK_BANK_NAME
         sync: false
       - key: OAK_BANK_ACCOUNT_NAME
