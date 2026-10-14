@@ -88,16 +88,18 @@ async def test_a_new_shop_starts_a_30_day_free_trial(client, auth_headers, today
     plan = await client.get(PLAN, headers=headers)
 
     assert plan.status_code == 200, plan.text
-    assert plan.json() == {
+    body = plan.json()
+    assert body.pop("code").startswith("OAK-")
+    assert body == {
         "stage": "active",
         "on_trial": True,
         "paid_until": "2026-11-30",
         "pay_by": "2026-12-07",
         "days_left": 30,
         "prices": {"month": "9.99", "year": "99.00"},
-        "payway": False,
-        "auto_charge": None,
-        "charge_failed": False,
+        # No OAK_* settings in tests: Settings → Plan says to message Oak Order.
+        "pay_to": {"khqr_month": None, "khqr_year": None, "khqr_name": None, "bank": None},
+        "claim": None,
         "payments": [],
     }
 

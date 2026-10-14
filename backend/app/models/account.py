@@ -181,14 +181,6 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     # pays Oak Order (plan_payment). A week after it the shop stops taking
     # new orders until it pays (app/services/plan.py, 01_PRODUCT.md §33.1).
     paid_until: Mapped[date] = mapped_column(Date, default=trial_end)
-    # Monthly auto-charge (01_PRODUCT.md §33.1): the seller's ABA account or
-    # card saved at PayWay. ctid is our id for the seller there; the token
-    # (PayWay's pwt) is private and never leaves the server; the label is
-    # what the seller sees ("ABA ···5312"). Auto-charge is on while there's
-    # a token.
-    payway_ctid: Mapped[str | None] = mapped_column(Text, unique=True)
-    payway_token: Mapped[str | None] = mapped_column(Text)
-    payway_token_label: Mapped[str | None] = mapped_column(Text)
 
     seller: Mapped[Seller] = relationship(back_populates="store", foreign_keys=[seller_id])
 

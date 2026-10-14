@@ -58,8 +58,7 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   'No order matches this link and phone number.': 'រកមិនឃើញការកុម្ម៉ង់ដែលត្រូវនឹងតំណ និងលេខទូរស័ព្ទនេះទេ។',
   'Enter a valid phone number.': 'សូមបញ្ចូលលេខទូរស័ព្ទឱ្យបានត្រឹមត្រូវ។',
   "This shop isn't taking orders right now.": 'ហាងនេះមិនទទួលការកុម្ម៉ង់នៅពេលនេះទេ។',
-  "Paying in the app isn't set up yet. Message Oak Order.": 'ការបង់ប្រាក់ក្នុងកម្មវិធីមិនទាន់រៀបចំនៅឡើយ។ សូមផ្ញើសារទៅ Oak Order។',
-  'Auto-charge is for the monthly plan.': 'ការគិតប្រាក់ស្វ័យប្រវត្តិ គឺសម្រាប់គម្រោងប្រចាំខែ។',
+  'This payment was already checked.': 'ការបង់ប្រាក់នេះត្រូវបានពិនិត្យរួចហើយ។',
   'Payment not found.': 'រកមិនឃើញការបង់ប្រាក់។',
   'This page is for Oak Order only.': 'ទំព័រនេះសម្រាប់តែ Oak Order ប៉ុណ្ណោះ។',
   "Your shop isn't taking new orders until Oak Order is paid (Settings → Plan).":

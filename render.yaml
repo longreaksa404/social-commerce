@@ -45,11 +45,15 @@ services:
         sync: false
       - key: TIKTOK_CLIENT_SECRET
         sync: false
-      - key: PAYWAY_MERCHANT_ID
+      - key: OAK_KHQR_ACCOUNT
         sync: false
-      - key: PAYWAY_API_KEY
+      - key: OAK_KHQR_NAME
         sync: false
-      - key: PAYWAY_BASE_URL
+      - key: OAK_BANK_NAME
+        sync: false
+      - key: OAK_BANK_ACCOUNT_NAME
+        sync: false
+      - key: OAK_BANK_ACCOUNT_NUMBER
         sync: false
       - key: BILLING_CRON_SECRET
         sync: false

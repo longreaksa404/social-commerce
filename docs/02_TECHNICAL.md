@@ -105,7 +105,7 @@ Given the constraint of a solo, part-time founder (`01_PRODUCT.md` §2.3, §38.8
 
 A VPS (DigitalOcean/Hetzner) is **not recommended** for the MVP: it trades a small cost saving for meaningful ongoing operational burden (patching, TLS renewal, process supervision, backups) that directly works against the founder's time constraint. Revisit VPS/self-hosting only if managed-platform costs become material at scale — this is a "build later" decision per the `01_PRODUCT.md` §44 decision framework, not a day-one one.
 
-**Estimated MVP infra cost:** roughly $0–25/month at low traffic (most of the above have functional free tiers), scaling gradually with usage — consistent with the "low operating cost" constraint. Once sellers pay (2026-10-14): about $8/month (Render Starter $7, the domain ~$10/year; Neon, R2 and Cloudflare Pages free), where staying on Vercel would add $20/month for Pro.
+**Estimated MVP infra cost:** roughly $0–25/month at low traffic (most of the above have functional free tiers), scaling gradually with usage — consistent with the "low operating cost" constraint. Once sellers pay (2026-10-14): about $8/month (Render Starter $7, the domain ~$10/year; Neon, R2 and Cloudflare Pages free), where staying on Vercel would add $20/month for Pro. Collecting by hand adds nothing; cron-job.org (free) also calls the daily billing run.
 
 ---
 
@@ -193,7 +193,6 @@ seller (owner)
 | orders_paused | bool | default false; not taking orders for a while: the shop can be browsed, checkout is refused (2026-10-08) |
 | orders_resume_on | date, nullable | the first day orders open again (Phnom Penh), by themselves; null: until the seller turns them back on (2026-10-08) |
 | low_stock_alert | int | default 5; an order leaving this many or fewer alerts the seller (bell, Telegram). Customers' "Only N left" stays at 5 (2026-10-08) |
-| payway_ctid, payway_token, payway_token_label | text, nullable | the monthly auto-charge (2026-10-14): our id for the seller at ABA PayWay (unique), the saved ABA account or card's token (private; auto-charge is on while it's set) and what the seller sees ("ABA ···5312") |
 | paid_until | date | the last day the shop is covered (Phnom Penh): sign-up sets the end of the 30-day free trial, each `plan_payment` moves it on. From it: reminders in its last 6 days, 7 days to pay after it, then no new orders (§6.2 Plan; 01 §33.1; 2026-10-14). Shops that existed when it shipped got 30 days from that day |
 | created_at | timestamptz | |
 
@@ -308,9 +307,9 @@ seller (owner)
 > A phone number being proved through the bot (§12.4); used once by the form that needs it. Not tenant data: no RLS grant.
 
 ### `plan_payment` (2026-10-14)
-| id, store_id (FK, tenant scope), period (`month`, `year`), amount (numeric(12,2), US dollars: $9.99 a month, $99 a year unless the founder records another amount), method (`manual`: paid to the founder by hand; `payway`: Pay now; `payway_subscribe`: Pay now that saves the account or card for auto-charge; `payway_auto`: an auto-charge), status (`pending`, `paid`, `failed`), tran_id (ours at PayWay, unique, nullable), failure (nullable; PayWay's words), reference (nullable; the founder's note), paid_on (date), covers_from / covers_until (dates, both included; the three set once paid), created_at |
+| id, store_id (FK, tenant scope), period (`month`, `year`), amount (numeric(12,2), US dollars: $9.99 a month, $99 a year unless the founder records another amount), method (`manual`: KHQR or transfer to Oak's account), status (`pending`: the seller said "I've paid"; `paid`; `failed`: the founder didn't find it), failure (nullable; the founder's note to the seller), reference (nullable; the founder's own note), paid_on (date), covers_from / covers_until (dates, both included; the three set once paid), created_at |
 
-> One payment a shop made, or tried to make, to Oak Order (01 §33.1). Once paid it sets `store.paid_until` to `covers_until`. A payment carries on from the day after `paid_until`; once the shop has stopped taking orders, from the day it's paid. A PayWay payment is marked paid only on PayWay's answer to a transaction check (§6.2 Plan). RLS like every tenant table, but `app_user` may only SELECT: billing writes on its own session.
+> One payment a shop made, or says it made, to Oak Order (01 §33.1). Once paid it sets `store.paid_until` to `covers_until`. A payment carries on from the day after `paid_until`; once the shop has stopped taking orders, from the day it's paid. Only the founder marks one paid (§6.2 Admin). RLS like every tenant table, but `app_user` may only SELECT: billing writes the seller's "I've paid" on its own session. The ABA PayWay version (transactions, saved tokens) is parked on the `payway` branch.
 
 ## 5.3 Entity-Relationship Summary
 
@@ -395,24 +394,22 @@ DELETE /api/v1/seller/store/telegram          # disconnect the seller's chat
 GET    /api/v1/seller/plan                    # the shop's plan with Oak Order: stage, free trial or not, paid-until date, prices, payments; staff may read it
 ```
 
-Stages from `store.paid_until` (01 §33.1): `active`; `ending_soon` (its last 6 days; the dashboard reminds the seller); `overdue` (1–7 days after; orders still come); `stopped` (from the 8th day). A stopped shop shows customers the paused notice with no reopening day, checkout answers 409 `ORDERS_PAUSED` (nothing about payment) and an order from a chat 409 `PLAN_UNPAID`; orders already placed carry on. Paying through ABA PayWay (founder's design, 2026-10-14):
+Stages from `store.paid_until` (01 §33.1): `active`; `ending_soon` (its last 6 days; the dashboard reminds the seller); `overdue` (1–7 days after; orders still come); `stopped` (from the 8th day). A stopped shop shows customers the paused notice with no reopening day, checkout answers 409 `ORDERS_PAUSED` (nothing about payment) and an order from a chat 409 `PLAN_UNPAID`; orders already placed carry on. Paying Oak Order by hand (founder, 2026-10-14; ABA PayWay later, parked on the `payway` branch):
 
 ```
-POST   /api/v1/seller/plan/checkout            # owner; {period, auto_charge: aba|card|null}: a pending payment and PayWay's signed checkout form
-GET    /api/v1/seller/plan/payments/{id}       # owner; back from PayWay: asks PayWay while pending
-DELETE /api/v1/seller/plan/auto-charge         # owner; the token is forgotten and removed at PayWay
-POST   /api/v1/payway/callback                 # PayWay: a payment finished (only makes us ask PayWay)
-POST   /api/v1/payway/token-callback           # PayWay: a subscription saved an account or card (we ask PayWay for it)
-POST   /api/v1/billing/run                     # cron-job.org, daily, X-Cron-Secret: settle what's pending, then auto-charge
+POST   /api/v1/seller/plan/paid                # owner; {period}: "I've paid": a pending payment, a Telegram alert to the founder
+POST   /api/v1/billing/run                     # cron-job.org, daily, X-Cron-Secret: payment reminders (day 1 and day 5)
 ```
 
-A payment is paid only when PayWay's Check Transaction says APPROVED with our amount in USD. The monthly auto-charge is a PayWay subscription (Credentials on File, scheduled payment: `CITR_FIX`, `1M`; PayWay's subscriptions don't do years), charged with `MITR_FIX` on the shop's start day and each day of the 7 days to pay while it fails; Telegram on the first failure and on day 5. The founder can still record a payment by hand (`python -m app.admin paid`, or the admin page).
+`GET /seller/plan` also gives the shop's code ("OAK-K7Q2MX", from the store id; the KHQR's bill number and the transfer's note), Oak's KHQR for a month and a year and/or bank account (`OAK_*` settings), and a waiting "I've paid". The daily run sends Telegram reminders (Khmer) on day 1 and day 5 after the paid time ends ("pay by hand; new orders stop on day 8"), once each, to shops with Telegram and no waiting "I've paid"; the others see the Orders tab's banner.
 
 ### Admin (the founder's page, 2026-10-14)
 ```
-GET    /api/v1/admin/shops                     # every shop's plan: stage, paid until, auto-charge, next charge, last failure
+GET    /api/v1/admin/shops                     # every shop's plan: code, stage, paid until, a waiting "I've paid"
 GET    /api/v1/admin/shops/{store_id}          # the same, with every payment
 POST   /api/v1/admin/shops/{store_id}/payments # mark paid by hand: {period, amount (0 = free time), note}
+POST   /api/v1/admin/shops/{store_id}/payments/{id}/confirm   # the seller's "I've paid", found: paid
+POST   /api/v1/admin/shops/{store_id}/payments/{id}/reject    # not found: {note} the seller sees
 ```
 
 Only for a login whose phone number is in `ADMIN_PHONES` (checked in the database on each request), else 403 `ADMIN_ONLY`. The only endpoints that read across shops, on an unscoped session.
@@ -557,6 +554,18 @@ NOT_ASSIGNED ──▶ ASSIGNED ──▶ PICKED_UP ──▶ IN_TRANSIT ──�
 
 No database constraint forces payment/delivery status to match order status — this is intentional. Valid real-world combinations like `order=shipped, payment=pending` (COD) must remain possible. The only enforced coupling: an order cannot move to `completed` unless `delivery.status = delivered` **and** (`payment.status = paid` **or** `payment.method = cod`) (COD orders complete on delivery regardless of when cash changes hands; the delivery condition was added 2026-10-03) — this single business rule lives in the order-transition service function, not the schema.
 
+## 7.5 Oak Order's Own Billing (2026-10-14)
+
+Separate from the shop's orders: what a shop pays Oak Order (`plan_payment`, 01 §33.1). By hand until ABA PayWay:
+
+```
+(seller taps "I've paid") → pending ──(founder: found it)──→ paid      (store.paid_until moves on)
+                                     └─(founder: not found)─→ failed    (note to the seller; they can say it again)
+(founder marks a payment made by hand) ───────────────────→ paid
+```
+
+One pending payment per shop at a time. The shop's own stage (taking orders or not) follows only `store.paid_until` (services/plan.py), never a pending payment.
+
 ---
 
 # 8. Order Tracking (Customer-Facing)
@@ -688,6 +697,10 @@ Customer taps "Ask seller on Telegram" on the product page
 - Sellers prove their phone number through the bot instead of an SMS code (free). The page starts a check and opens `t.me/{bot_username}?start=phone_{code}`; `/start phone_{code}` answers with a "Share my phone number" button (`request_contact`).
 - The shared contact counts only if it's the sender's own (`contact.user_id` = the sender); it completes the newest open check that account opened. The page reads the check until it has the number, then hands the check's id in with the form (sign-up, a new login number). A check lasts 30 minutes and works once.
 - Signing up connects that chat with the bot to the new shop's alerts (§12.1). One account per number.
+
+## 12.5 Oak Order's Billing Messages (2026-10-14)
+- **To the seller, payment reminders:** a daily run (cron-job.org calls `POST /api/v1/billing/run`) sends a Khmer reminder on day 1 and day 5 after a shop's paid time ends ("pay by hand with your code; new orders stop on day 8"), once each per paid-until date (logged as `plan_reminder`), and not while an "I've paid" waits. Telegram is optional (01 §32 Rule 7): shops without it see the reminder on the Orders tab instead.
+- **To the founder:** "I've paid" sends the shop's name, code and amount to the Telegram chat of each shop whose owner is in `ADMIN_PHONES` (their own shop's alerts chat), with a button to the admin page.
 
 ---
 

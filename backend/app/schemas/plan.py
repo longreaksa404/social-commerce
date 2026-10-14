@@ -2,10 +2,8 @@ import enum
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
-from pydantic_core import PydanticCustomError
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models import PlanPaymentMethod, PlanPaymentStatus, PlanPeriod
 
@@ -26,8 +24,9 @@ class PlanPaymentOut(BaseModel):
     period: PlanPeriod
     amount: Decimal  # USD
     method: PlanPaymentMethod
+    # pending: the seller said "I've paid"; failed: Oak Order didn't find it.
     status: PlanPaymentStatus
-    # Why it failed, in PayWay's words.
+    # Oak Order's note when it didn't find it.
     failure: str | None
     created_at: datetime
     # Set once paid.
@@ -43,14 +42,21 @@ class PlanPricesOut(BaseModel):
     year: Decimal
 
 
-class AutoChargeOut(BaseModel):
-    """The monthly auto-charge, while it's on."""
+class BankOut(BaseModel):
+    bank_name: str
+    account_name: str
+    account_number: str
 
-    label: str  # the saved ABA account or card: "ABA ···5312"
-    amount: Decimal  # USD, each month
-    # The next try: the shop's start day, then daily for the 7 days to pay;
-    # none once orders have stopped (paying now starts it again).
-    next_charge: date | None
+
+class PayToOut(BaseModel):
+    """How to pay Oak Order by hand (OAK_* settings): KHQR codes for a month
+    and a year, with the shop's code as their bill number, and/or a bank
+    account. Both empty: message Oak Order."""
+
+    khqr_month: str | None
+    khqr_year: str | None
+    khqr_name: str | None  # the name the bank app shows
+    bank: BankOut | None
 
 
 class PlanOut(BaseModel):
@@ -61,43 +67,42 @@ class PlanOut(BaseModel):
     pay_by: date  # the last day to pay before new orders stop
     days_left: int  # covered days left, today included; 0 once it has run out
     prices: PlanPricesOut
-    # Pay now and auto-charge through PayWay are set up (else: message Oak Order).
-    payway: bool
-    auto_charge: AutoChargeOut | None
-    # An auto-charge failed since the paid time ran out (it's tried daily).
-    charge_failed: bool
-    # Paid ones, and auto-charges that failed; newest first.
+    # The shop's code ("OAK-K7Q2MX"): in the transfer's note, so Oak Order
+    # can tell whose money it is; the KHQR's bill number.
+    code: str
+    pay_to: PayToOut
+    # The seller's "I've paid" Oak Order hasn't checked yet.
+    claim: PlanPaymentOut | None
+    # Paid ones, and ones Oak Order didn't find; newest first.
     payments: list[PlanPaymentOut]
 
 
-class CheckoutIn(BaseModel):
+class PaidClaimIn(BaseModel):
+    """ "I've paid": what for."""
+
     period: PlanPeriod
-    # Also save an ABA account ("aba") or a card ("card") and charge it each
-    # month: the monthly plan only (PayWay's subscriptions don't do years).
-    auto_charge: Literal["aba", "card"] | None = None
-
-    @model_validator(mode="after")
-    def _monthly_only(self) -> "CheckoutIn":
-        if self.auto_charge and self.period is not PlanPeriod.MONTH:
-            raise PydanticCustomError("auto_charge", "Auto-charge is for the monthly plan.")
-        return self
-
-
-class CheckoutOut(BaseModel):
-    """The form the browser posts to PayWay (its checkout page answers)."""
-
-    payment_id: uuid.UUID
-    action: str
-    fields: dict[str, str]
 
 
 class AdminPaymentIn(BaseModel):
-    """The founder marks a payment made by hand (or gives free time: 0)."""
+    """The founder marks a payment paid (or gives free time: 0)."""
 
     period: PlanPeriod
     # US dollars; empty means the price.
     amount: Decimal | None = Field(default=None, ge=0, le=10_000, decimal_places=2)
     note: str | None = Field(default=None, max_length=200)
+
+
+class AdminConfirmIn(BaseModel):
+    """Confirming a seller's "I've paid": the amount found, if not theirs."""
+
+    amount: Decimal | None = Field(default=None, ge=0, le=10_000, decimal_places=2)
+    note: str | None = Field(default=None, max_length=200)
+
+
+class AdminRejectIn(BaseModel):
+    """Not found: the seller sees the note."""
+
+    note: str = Field(min_length=1, max_length=200)
 
 
 class AdminShopOut(BaseModel):
@@ -106,22 +111,21 @@ class AdminShopOut(BaseModel):
     id: uuid.UUID
     name: str
     slug: str
+    code: str
     login: str  # the owner's phone number (older accounts: email)
     is_open: bool  # false once closed (Settings → Close shop)
+    telegram: bool  # gets reminders on Telegram
     created_at: datetime
     stage: PlanStage
     on_trial: bool
     paid_until: date
     pay_by: date
-    auto_charge: str | None  # the saved account or card, while auto-charge is on
-    next_charge: date | None
     last_paid_on: date | None
-    last_failure: str | None  # the latest auto-charge failure since the paid time ran out
+    claim: PlanPaymentOut | None  # an "I've paid" waiting for the founder
 
 
 class AdminPaymentOut(PlanPaymentOut):
     reference: str | None  # the founder's note
-    tran_id: str | None  # PayWay's transaction (ours)
 
 
 class AdminShopDetailOut(AdminShopOut):

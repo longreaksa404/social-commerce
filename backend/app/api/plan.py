@@ -1,11 +1,10 @@
 """The shop's plan with Oak Order (Settings → Plan, 01_PRODUCT.md §33.1)."""
 
-import uuid
-
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 
 from app.api.deps import Owner, Seller, TenantDb
-from app.schemas.plan import CheckoutIn, CheckoutOut, PlanOut, PlanPaymentOut
+from app.core.ratelimit import check_limit
+from app.schemas.plan import PaidClaimIn, PlanOut
 from app.services import billing
 from app.services import plan as plan_service
 
@@ -19,19 +18,18 @@ async def get_plan(seller: Seller, db: TenantDb) -> PlanOut:
     return await plan_service.get_plan(db, seller.store_id)
 
 
-@router.post("/checkout", response_model=CheckoutOut)
-async def checkout(data: CheckoutIn, seller: Owner) -> CheckoutOut:
-    """Pay now through PayWay: the form the browser posts to PayWay."""
-    return await billing.start_checkout(seller.store_id, data.period, data.auto_charge)
+def _claim_rate_limit(request: Request) -> None:
+    # Each one can alert the founder.
+    check_limit("10/minute", "plan-paid", request)
 
 
-@router.get("/payments/{payment_id}", response_model=PlanPaymentOut)
-async def check_payment(payment_id: uuid.UUID, seller: Owner, db: TenantDb) -> PlanPaymentOut:
-    """Back from PayWay's page: paid yet? (Asks PayWay while pending.)"""
-    return await billing.check_payment(db, seller.store_id, payment_id)
-
-
-@router.delete("/auto-charge", response_model=PlanOut)
-async def turn_off_auto_charge(seller: Owner, db: TenantDb) -> PlanOut:
-    await billing.turn_off_auto_charge(seller.store_id)
+@router.post("/paid", response_model=PlanOut, dependencies=[Depends(_claim_rate_limit)])
+async def say_paid(
+    data: PaidClaimIn, seller: Owner, db: TenantDb, background: BackgroundTasks
+) -> PlanOut:
+    """ "I've paid" (by KHQR or transfer to Oak): waits for the founder to
+    find it; they get a Telegram alert. Again while one waits: nothing new."""
+    payment_id = await billing.claim(seller.store_id, data.period)
+    if payment_id is not None:
+        background.add_task(billing.notify_claim, seller.store_id, payment_id)
     return await plan_service.get_plan(db, seller.store_id)

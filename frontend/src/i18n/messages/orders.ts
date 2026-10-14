@@ -36,10 +36,10 @@ export const orders = {
     en: "Your shop isn't taking new orders. Tap to pay and open it again.",
     km: 'ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ថ្មីទេ។ ចុចដើម្បីបង់ ហើយបើកវាវិញ។',
   },
-  // Auto-charge on, and it failed (it's tried again each day).
-  planChargeFailed: {
-    en: (label: string, day: string) => `We couldn't charge ${label}. Pay by ${day} to keep taking orders.`,
-    km: (label: string, day: string) => `យើងមិនអាចគិតប្រាក់ពី ${label} បានទេ។ សូមបង់ត្រឹម ${day} ដើម្បីបន្តទទួលការកុម្ម៉ង់។`,
+  // The seller said "I've paid": Oak Order checks.
+  planClaimed: {
+    en: 'Oak Order is checking your payment. Your shop is extended once it’s found.',
+    km: 'Oak Order កំពុងពិនិត្យការបង់ប្រាក់របស់អ្នក។ ហាងរបស់អ្នកនឹងត្រូវបានបន្ត នៅពេលរកឃើញ។',
   },
   // Paying is the owner's.
   planStoppedStaff: {

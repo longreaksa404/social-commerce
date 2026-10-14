@@ -82,9 +82,9 @@ export type TelegramLink = { url: string; expires_at: string }
 export type PlanStage = 'active' | 'ending_soon' | 'overdue' | 'stopped'
 export type PlanPeriod = 'month' | 'year'
 
-/** manual: paid to Oak Order by hand; payway: Pay now; payway_subscribe:
- * Pay now that turned on auto-charge; payway_auto: an auto-charge. */
-export type PlanPaymentMethod = 'manual' | 'payway' | 'payway_subscribe' | 'payway_auto'
+/** Paid to Oak Order by hand (KHQR or transfer) until ABA PayWay. */
+export type PlanPaymentMethod = 'manual'
+/** pending: the seller said "I've paid"; failed: Oak Order didn't find it. */
 export type PlanPaymentStatus = 'pending' | 'paid' | 'failed'
 
 export type PlanPayment = {
@@ -94,7 +94,7 @@ export type PlanPayment = {
   amount: string
   method: PlanPaymentMethod
   status: PlanPaymentStatus
-  /** Why it failed, in PayWay's words. */
+  /** Oak Order's note when it didn't find it. */
   failure: string | null
   created_at: string
   /** Set once paid; the days it pays for, both included ("2026-12-01"). */
@@ -115,44 +115,46 @@ export type Plan = {
   days_left: number
   /** Oak Order Standard, US dollars. */
   prices: { month: string; year: string }
-  /** Pay now through ABA PayWay is set up (else: message Oak Order). */
-  payway: boolean
-  /** The monthly auto-charge while it's on: the saved account or card
-   * ("ABA ···5312"), the amount, and the day it next tries (null once
-   * orders have stopped: paying now starts it again). */
-  auto_charge: { label: string; amount: string; next_charge: string | null } | null
-  /** An auto-charge failed since the paid time ran out (tried daily). */
-  charge_failed: boolean
-  /** Paid ones and failed auto-charges, newest first. */
+  /** The shop's code ("OAK-K7Q2MX"): in the transfer's note, so Oak
+   * Order knows whose money it is; the KHQR's bill number. */
+  code: string
+  /** How to pay Oak by hand: KHQR strings (a month, a year) and/or a
+   * bank account; all empty: message Oak Order. */
+  pay_to: {
+    khqr_month: string | null
+    khqr_year: string | null
+    khqr_name: string | null
+    bank: BankAccount | null
+  }
+  /** "I've paid", waiting for Oak Order to find it. */
+  claim: PlanPayment | null
+  /** Paid ones, and ones Oak Order didn't find; newest first. */
   payments: PlanPayment[]
 }
-
-/** The form the browser posts to PayWay's checkout. */
-export type Checkout = { payment_id: string; action: string; fields: Record<string, string> }
 
 /** A row of Oak Order's admin page. */
 export type AdminShop = {
   id: string
   name: string
   slug: string
+  code: string
   /** The owner's login: phone number (older accounts: email). */
   login: string
   is_open: boolean
+  /** Gets the payment reminders on Telegram. */
+  telegram: boolean
   created_at: string
   stage: PlanStage
   on_trial: boolean
   paid_until: string
   pay_by: string
-  /** The saved account or card while auto-charge is on. */
-  auto_charge: string | null
-  next_charge: string | null
   last_paid_on: string | null
-  /** The latest auto-charge failure since the paid time ran out. */
-  last_failure: string | null
+  /** An "I've paid" waiting to be checked. */
+  claim: PlanPayment | null
 }
 
 export type AdminShopDetail = AdminShop & {
-  payments: (PlanPayment & { reference: string | null; tran_id: string | null })[]
+  payments: (PlanPayment & { reference: string | null })[]
 }
 
 /** owner: everything; staff: everything but Settings (founder's choice

@@ -19,38 +19,32 @@ class PlanPeriod(enum.StrEnum):
 
 
 class PlanPaymentMethod(enum.StrEnum):
-    """How it reached Oak Order (01_PRODUCT.md §33.1)."""
+    """How it reached Oak Order (01_PRODUCT.md §33.1). By hand until Oak
+    Solutions qualifies for ABA PayWay (its checkout and auto-charge are
+    parked on the payway branch, 2026-10-14)."""
 
-    # Paid to the founder by hand, recorded with `python -m app.admin paid`
-    # or the admin page.
+    # KHQR or a bank transfer to Oak's account, confirmed by the founder.
     MANUAL = "manual"
-    # Pay now: PayWay's checkout.
-    PAYWAY = "payway"
-    # Pay now that also saves the seller's ABA account or card for a
-    # monthly auto-charge (PayWay subscription, CITR_FIX).
-    PAYWAY_SUBSCRIBE = "payway_subscribe"
-    # An auto-charge of the saved token on the shop's start day (MITR_FIX).
-    PAYWAY_AUTO = "payway_auto"
 
 
 class PlanPaymentStatus(enum.StrEnum):
-    # Waiting for PayWay to say (a checkout not paid yet, a charge in progress).
+    # The seller tapped "I've paid": waiting for the founder to find it.
     PENDING = "pending"
     PAID = "paid"
-    # Declined, or a checkout left unpaid.
+    # The founder didn't find it (the note says why).
     FAILED = "failed"
 
 
 class PlanPayment(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
-    """One payment a shop made, or tried to make, to Oak Order for its
+    """One payment a shop made, or says it made, to Oak Order for its
     plan, in US dollars. Once paid it moves store.paid_until to
     covers_until; the days it covers are set then (they depend on the day
     it's paid).
 
     Sellers only read these (Settings → Plan): app_user has SELECT and
-    nothing else on the table. Billing writes them on its own session,
-    and marks one paid only on PayWay's word or the founder's
-    (app/services/billing.py).
+    nothing else on the table. Billing writes the seller's "I've paid" on
+    its own session (app/services/billing.py), and only the founder marks
+    one paid (the admin page, `python -m app.admin paid`).
     """
 
     __tablename__ = "plan_payment"
@@ -74,9 +68,7 @@ class PlanPayment(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
         default=PlanPaymentStatus.PAID,
         server_default="paid",
     )
-    # PayWay's transaction: our tran_id, unique.
-    tran_id: Mapped[str | None] = mapped_column(Text, unique=True)
-    # Why it failed, in PayWay's words ("Payment was declined").
+    # Why it failed: the founder's words to the seller ("Not in my account").
     failure: Mapped[str | None] = mapped_column(Text)
     # The founder's note, e.g. "ABA transfer, ref 4821".
     reference: Mapped[str | None] = mapped_column(Text)

@@ -1,39 +1,35 @@
-"""Sellers paying Oak Order through ABA PayWay (01_PRODUCT.md §33.1).
+"""Sellers paying Oak Order by hand (01_PRODUCT.md §33.1, 2026-10-14),
+until Oak Solutions qualifies for ABA PayWay (its checkout and auto-charge
+are parked on the payway branch).
 
-Pay now: a pending payment and PayWay's checkout form, which the seller's
-browser posts; they pay on PayWay's page. Then PayWay calls back (POST
-/payway/callback), the seller comes back to Settings → Plan, and the daily
-run looks again. Each of these only makes us ask PayWay about the
-transaction (payway.check_transaction), and only PayWay's answer marks a
-payment paid, so a forged callback pays for nothing.
+- The seller pays by KHQR or bank transfer to Oak's account, with the
+  shop's code (plan.shop_code), and taps "I've paid" (`claim`): a pending
+  payment, and a Telegram alert to the founder. Like a customer's "I've
+  paid" on an order (founder's pick 6B), it changes nothing by itself;
+  the founder finds the money and marks it paid on the admin page.
+- Once a day cron-job.org calls the run (`run_daily`): on a shop's start
+  day (the day after its paid time ends) and on day 5, the seller gets a
+  Telegram reminder; new orders stop on day 8. Shops without Telegram
+  (it's optional, 01 §32 Rule 7) see the reminder on the Orders tab.
 
-Auto-charge, monthly: a Pay now with `auto_charge` is a PayWay
-subscription, which saves the seller's ABA account or card. PayWay sends
-the token (POST /payway/token-callback); we ask PayWay for it again before
-saving it. The daily run (POST /billing/run, called by cron-job.org)
-charges each shop that has one on its start day, the day after its paid
-time ends, and again each day of the 7 days to pay while it fails. The
-seller hears on Telegram on the first failure and on day 5 (founder's
-pick 3A); on day 8 the shop stops taking new orders (services/plan.py).
-
-Writes go through their own unscoped session, filtered by store_id or
-tran_id: app_user may only read plan_payment, and PayWay's callbacks and
-the daily run have no tenant.
+Writes go through their own unscoped session filtered by store_id:
+app_user may only read plan_payment, and the run has no tenant.
 """
 
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, timedelta
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import clock
 from app.core.config import get_settings
-from app.core.errors import AppError, NotFound
+from app.core.errors import NotFound
 from app.db.session import unscoped_session
 from app.models import (
+    NotificationLog,
     PlanPayment,
     PlanPaymentMethod,
     PlanPaymentStatus,
@@ -41,366 +37,153 @@ from app.models import (
     Seller,
     Store,
 )
-from app.schemas.plan import CheckoutOut, PlanPaymentOut, PlanStage
-from app.services import notifications, payway
+from app.services import admin as admin_service
+from app.services import notifications
 from app.services import plan as plan_service
 from app.services.telegram import escape
 
 logger = logging.getLogger(__name__)
 
-M = PlanPaymentMethod
-S = PlanPaymentStatus
-ITEMS = {
-    PlanPeriod.MONTH: "Oak Order Standard, 1 month",
-    PlanPeriod.YEAR: "Oak Order Standard, 1 year",
-}
-# A checkout is open for an hour (payway.CHECKOUT_MINUTES); one still
-# unpaid after two has been left. A charge PayWay hasn't settled in a day
-# counts as failed, and is tried again.
-CHECKOUT_GIVE_UP = timedelta(hours=2)
-CHARGE_GIVE_UP = timedelta(days=1)
-# Telegram after the first failed charge, and on day 5 of the 7 days to pay.
-WARN_DAY = 5
-CHARGE_FAILED = "plan_charge_failed"
+PLAN_CLAIMED = "plan_claimed"  # to the founder: a seller says they've paid
+PLAN_REMINDER = "plan_reminder"  # to the seller: time to pay
+# Reminders on day 1 (the start day) and day 5 of the 7 days to pay
+# (founder, 2026-10-14). A run missed is made up the next day.
+REMINDERS = {"start": range(1, 5), "day5": range(5, 8)}
 
 
-def _not_configured() -> AppError:
-    return AppError(
-        503, "PAYWAY_NOT_CONFIGURED", "Paying in the app isn't set up yet. Message Oak Order."
-    )
-
-
-def _app_url() -> str:
-    settings = get_settings()
-    origin = settings.public_app_url or (settings.cors_origins[0] if settings.cors_origins else "")
-    return origin.rstrip("/")
-
-
-def _api_url(path: str) -> str | None:
-    """Where PayWay calls back: only on a public address (not localhost);
-    without one, the seller coming back and the daily run still settle."""
-    base = get_settings().public_api_url.rstrip("/")
-    return f"{base}/api/v1{path}" if base.startswith("https://") else None
-
-
-async def start_checkout(
-    store_id: uuid.UUID, period: PlanPeriod, auto_charge: str | None
-) -> CheckoutOut:
-    """Pay now: a pending payment, and the form for PayWay's checkout.
-    `auto_charge` ("aba" or "card", monthly only) makes it a subscription
-    that saves that account or card."""
-    if not get_settings().payway_configured:
-        raise _not_configured()
+async def claim(store_id: uuid.UUID, period: PlanPeriod) -> uuid.UUID | None:
+    """ "I've paid": a pending payment for `period`, unless one is already
+    waiting. Returns the new one's id (None: nothing new, no alert)."""
     async with unscoped_session() as db:
         store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
         if store is None:
             raise NotFound("STORE_NOT_FOUND", "Store not found.")
-        subscribe = None
-        if auto_charge:
-            if store.payway_ctid is None:
-                store.payway_ctid = payway.new_ctid()
-            subscribe = (store.payway_ctid, "abapay" if auto_charge == "aba" else "cards")
+        waiting = await db.scalar(
+            select(PlanPayment.id).where(
+                PlanPayment.store_id == store_id,
+                PlanPayment.status == PlanPaymentStatus.PENDING,
+            )
+        )
+        if waiting is not None:
+            return None
         payment = PlanPayment(
             store_id=store_id,
             period=period,
             amount=plan_service.PRICES[period],
-            method=M.PAYWAY_SUBSCRIBE if auto_charge else M.PAYWAY,
-            status=S.PENDING,
-            tran_id=payway.new_tran_id(),
+            method=PlanPaymentMethod.MANUAL,
+            status=PlanPaymentStatus.PENDING,
         )
         db.add(payment)
-        await db.flush()
-        plan_page = f"{_app_url()}/dashboard/settings/plan"
-        form = payway.checkout_form(
-            tran_id=payment.tran_id or "",
-            amount=payment.amount,
-            item=ITEMS[period],
-            callback_url=_api_url("/payway/callback"),
-            continue_url=f"{plan_page}?payment={payment.id}",
-            cancel_url=plan_page,
-            subscribe=subscribe,
-        )
         await db.commit()
-    return CheckoutOut(payment_id=payment.id, action=form.action, fields=form.fields)
+        return payment.id
 
 
-def _given_up(payment: PlanPayment) -> bool:
-    waited = datetime.now(UTC) - payment.created_at
-    limit = CHARGE_GIVE_UP if payment.method is M.PAYWAY_AUTO else CHECKOUT_GIVE_UP
-    return waited > limit
-
-
-async def settle(tran_id: str) -> PlanPaymentStatus | None:
-    """Ask PayWay about a pending payment and record its answer: paid (the
-    shop is extended at once), failed, or still pending. Returns the
-    payment's status after (None: not ours)."""
+async def notify_claim(store_id: uuid.UUID, payment_id: uuid.UUID) -> None:
+    """Telegram to the founder (the shops of ADMIN_PHONES' logins), after
+    the seller's response."""
     async with unscoped_session() as db:
-        payment = await db.scalar(select(PlanPayment).where(PlanPayment.tran_id == tran_id))
-        if payment is None or payment.status is not S.PENDING:
-            return None if payment is None else payment.status
-    try:
-        found = await payway.check_transaction(tran_id)
-    except payway.PaywayError as exc:
-        logger.warning("PayWay check failed: %s", exc)
-        return S.PENDING
-    async with unscoped_session() as db:
-        # Locked and read again: a callback and the seller's page may ask together.
-        payment = await db.scalar(
-            select(PlanPayment).where(PlanPayment.tran_id == tran_id).with_for_update()
-        )
-        assert payment is not None
-        if payment.status is not S.PENDING:
-            return payment.status
-        if found.state == "approved":
-            if found.amount is not None and (
-                found.amount != payment.amount or found.currency not in (None, "USD")
-            ):
-                payment.status = S.FAILED
-                payment.failure = f"PayWay says {found.amount} {found.currency}, not this price"
-                logger.error("PayWay amount mismatch on %s", tran_id)
-            else:
-                store = await db.scalar(
-                    select(Store).where(Store.id == payment.store_id).with_for_update()
-                )
-                assert store is not None
-                plan_service.mark_paid(payment, store)
-        elif found.state == "declined":
-            payment.status = S.FAILED
-            payment.failure = payment.failure or "Payment was declined"
-        elif _given_up(payment):
-            payment.status = S.FAILED
-            payment.failure = payment.failure or "Not paid"
-        await db.commit()
-        status, method = payment.status, payment.method
-    if status is S.PAID and method is M.PAYWAY_SUBSCRIBE:
-        # The token callback may come late, or not at all: fetch it.
-        await save_token(tran_id)
-    return status
-
-
-async def check_payment(
-    db: AsyncSession, store_id: uuid.UUID, payment_id: uuid.UUID
-) -> PlanPaymentOut:
-    """The seller back from PayWay's page: asks PayWay if it's still pending."""
-    payment = await db.scalar(
-        select(PlanPayment).where(PlanPayment.id == payment_id, PlanPayment.store_id == store_id)
-    )
-    if payment is None:
-        raise NotFound("PAYMENT_NOT_FOUND", "Payment not found.")
-    if payment.status is S.PENDING and payment.tran_id and get_settings().payway_configured:
-        await settle(payment.tran_id)
-        await db.refresh(payment)
-    return PlanPaymentOut.model_validate(payment)
-
-
-async def save_token(request_id: str) -> bool:
-    """Save the ABA account or card a subscription (our tran_id) linked:
-    asked of PayWay, never taken from a callback's body. Replaces the
-    shop's earlier one, which is then removed at PayWay."""
-    try:
-        token = await payway.token_details(request_id)
-    except payway.PaywayError as exc:
-        logger.warning("PayWay token details failed: %s", exc)
-        return False
-    if token is None or not token.active:
-        return False
-    async with unscoped_session() as db:
-        payment = await db.scalar(
-            select(PlanPayment).where(
-                PlanPayment.tran_id == request_id, PlanPayment.method == M.PAYWAY_SUBSCRIBE
+        store = await db.get(Store, store_id)
+        payment = await db.get(PlanPayment, payment_id)
+        if store is None or payment is None:
+            return
+        text = claim_text(store, payment)
+        button = _button(f"/dashboard/admin/{store_id}", "ពិនិត្យ")
+        for chat_store in await founder_shops(db):
+            await notifications.send_to_seller(
+                db,
+                chat_store,
+                PLAN_CLAIMED,
+                {"store_id": str(store_id), "payment_id": str(payment_id)},
+                text,
+                button,
             )
+
+
+async def founder_shops(db: AsyncSession) -> list[Store]:
+    """The founder's own shops: their Telegram chat gets Oak Order's alerts."""
+    phones = admin_service.admin_phones()
+    if not phones:
+        return []
+    return list(
+        await db.scalars(
+            select(Store)
+            .join(Seller, Seller.id == Store.seller_id)
+            .where(Seller.phone.in_(phones), Store.telegram_chat_id.is_not(None))
         )
-        if payment is None:
-            return False
-        store = await db.scalar(select(Store).where(Store.id == payment.store_id).with_for_update())
-        assert store is not None
-        if store.payway_ctid != token.ctid:
-            logger.error("PayWay token for another customer id on %s", request_id)
-            return False
-        old = store.payway_token
-        if old != token.pwt:
-            store.payway_token = token.pwt
-            store.payway_token_label = token.label
-            await db.commit()
-    if old and old != token.pwt:
-        await _remove_at_payway(token.ctid, old)
-    return True
-
-
-async def _remove_at_payway(ctid: str, pwt: str) -> None:
-    try:
-        if not await payway.remove_token(ctid, pwt):
-            logger.error("PayWay didn't remove a token for %s", ctid)
-    except payway.PaywayError as exc:
-        logger.error("PayWay remove token failed: %s", exc)
-
-
-async def turn_off_auto_charge(store_id: uuid.UUID) -> None:
-    """No more charges: forgotten here at once, and removed at PayWay."""
-    async with unscoped_session() as db:
-        store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
-        if store is None:
-            raise NotFound("STORE_NOT_FOUND", "Store not found.")
-        ctid, pwt = store.payway_ctid, store.payway_token
-        store.payway_token = None
-        store.payway_token_label = None
-        await db.commit()
-    if ctid and pwt and get_settings().payway_configured:
-        await _remove_at_payway(ctid, pwt)
+    )
 
 
 @dataclass
 class RunSummary:
-    settled: int = 0  # pending payments PayWay answered for
-    charged: int = 0  # auto-charges paid
-    failed: int = 0  # auto-charges that failed
+    reminders: int = 0  # Telegram reminders sent
 
 
 async def run_daily() -> RunSummary:
-    """Once a day (cron-job.org): settle what's pending, then auto-charge
-    the shops whose paid time has run out, up to 7 days ago."""
+    """Once a day (cron-job.org): payment reminders for every open shop
+    whose paid time ran out 1 to 7 days ago and that hasn't said it paid."""
     summary = RunSummary()
-    if not get_settings().payway_configured:
+    settings = get_settings()
+    if not settings.telegram_configured:
         return summary
-    async with unscoped_session() as db:
-        pending = list(
-            await db.scalars(
-                select(PlanPayment.tran_id).where(
-                    PlanPayment.status == S.PENDING, PlanPayment.tran_id.is_not(None)
-                )
-            )
-        )
-    for tran_id in pending:
-        if tran_id and await settle(tran_id) is not S.PENDING:
-            summary.settled += 1
-
     today = clock.today()
     async with unscoped_session() as db:
         due = list(
             await db.scalars(
-                select(Store.id)
+                select(Store)
                 .join(Seller, Seller.id == Store.seller_id)
                 .where(
-                    Store.payway_token.is_not(None),
                     Seller.is_active.is_(True),
+                    Store.telegram_chat_id.is_not(None),
                     Store.paid_until < today,
                     Store.paid_until >= today - timedelta(days=plan_service.GRACE_DAYS),
                 )
             )
         )
-    for store_id in due:
-        status = await charge(store_id)
-        if status is S.PAID:
-            summary.charged += 1
-        elif status is S.FAILED:
-            summary.failed += 1
+    for store in due:
+        if await remind(store.id, today):
+            summary.reminders += 1
     logger.info("Billing run: %s", summary)
     return summary
 
 
-async def charge(store_id: uuid.UUID) -> PlanPaymentStatus | None:
-    """One auto-charge, at most one a day, while the shop is in its 7 days
-    to pay. Returns its status (None: nothing to do today)."""
-    today = clock.today()
-    async with unscoped_session() as db:
-        store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
-        if (
-            store is None
-            or store.payway_ctid is None
-            or store.payway_token is None
-            or plan_service.stage(store.paid_until, today) is not PlanStage.OVERDUE
-        ):
-            return None
-        tried = await db.scalar(
-            select(func.count()).where(
-                PlanPayment.store_id == store_id,
-                PlanPayment.method == M.PAYWAY_AUTO,
-                or_(
-                    PlanPayment.status == S.PENDING,
-                    PlanPayment.created_at >= plan_service.day_start(today),
-                ),
-            )
-        )
-        if tried:
-            return None
-        payment = PlanPayment(
-            store_id=store_id,
-            period=PlanPeriod.MONTH,
-            amount=plan_service.PRICES[PlanPeriod.MONTH],
-            method=M.PAYWAY_AUTO,
-            status=S.PENDING,
-            tran_id=payway.new_tran_id(),
-        )
-        db.add(payment)
-        await db.commit()
-        tran_id, ctid, pwt = payment.tran_id or "", store.payway_ctid, store.payway_token
-    try:
-        result = await payway.charge_token(
-            tran_id=tran_id,
-            ctid=ctid,
-            pwt=pwt,
-            amount=payment.amount,
-            callback_url=_api_url("/payway/callback"),
-        )
-    except payway.PaywayError as exc:
-        # No answer: it may have gone through. Settled by the next run.
-        logger.warning("PayWay charge failed to send: %s", exc)
-        return S.PENDING
-    if result.accepted:
-        status = await settle(tran_id)
-    else:
-        status = await _refused(tran_id, result)
-    if status is S.FAILED:
-        await _tell_failed(store_id, today)
-    return status
-
-
-async def _refused(tran_id: str, result: payway.Charge) -> PlanPaymentStatus:
-    async with unscoped_session() as db:
-        payment = await db.scalar(
-            select(PlanPayment).where(PlanPayment.tran_id == tran_id).with_for_update()
-        )
-        assert payment is not None
-        payment.status = S.FAILED
-        payment.failure = result.message or f"PayWay code {result.code}"
-        if result.token_dead:
-            # Expired or removed: no use trying it again.
-            store = await db.scalar(
-                select(Store).where(Store.id == payment.store_id).with_for_update()
-            )
-            assert store is not None
-            store.payway_token = None
-            store.payway_token_label = None
-        await db.commit()
-    return S.FAILED
-
-
-async def _tell_failed(store_id: uuid.UUID, today: date) -> None:
-    """Telegram, on the first failure since the paid time ran out and on
-    day 5 of the 7 days to pay (founder's pick 3A)."""
+async def remind(store_id: uuid.UUID, today: date) -> bool:
+    """This shop's reminder for today, if one is due and not sent yet."""
     async with unscoped_session() as db:
         store = await db.get(Store, store_id)
-        if store is None:
-            return
-        failures = await db.scalar(
-            select(func.count()).where(
+        if store is None or store.telegram_chat_id is None:
+            return False
+        day = (today - store.paid_until).days
+        kind = next((k for k, days in REMINDERS.items() if day in days), None)
+        if kind is None:
+            return False
+        claimed = await db.scalar(
+            select(PlanPayment.id).where(
                 PlanPayment.store_id == store_id,
-                PlanPayment.method == M.PAYWAY_AUTO,
-                PlanPayment.status == S.FAILED,
-                PlanPayment.created_at >= plan_service.day_start(store.paid_until + timedelta(1)),
+                PlanPayment.status == PlanPaymentStatus.PENDING,
             )
         )
-        day = (today - store.paid_until).days
-        if failures != 1 and day != WARN_DAY and store.payway_token is not None:
-            return
-        text = charge_failed_text(
-            label=store.payway_token_label,
-            pay_by=plan_service.pay_by(store.paid_until),
-            last_warning=day >= WARN_DAY,
+        if claimed is not None:
+            return False  # waiting for the founder, not for the seller
+        sent = await db.scalar(
+            select(NotificationLog.id).where(
+                NotificationLog.store_id == store_id,
+                NotificationLog.event_type == PLAN_REMINDER,
+                NotificationLog.payload["paid_until"].astext == store.paid_until.isoformat(),
+                NotificationLog.payload["kind"].astext == kind,
+            )
         )
+        if sent is not None:
+            return False
+        text = reminder_text(store, kind)
         await notifications.send_to_seller(
-            db, store, CHARGE_FAILED, {"day": day}, text, _plan_button()
+            db,
+            store,
+            PLAN_REMINDER,
+            {"paid_until": store.paid_until.isoformat(), "kind": kind},
+            text,
+            _button("/dashboard/settings/plan", "បង់ប្រាក់"),
         )
+        return True
 
 
 KHMER_MONTHS = (
@@ -424,36 +207,46 @@ def khmer_day(day: date) -> str:
     return f"{day.day} {KHMER_MONTHS[day.month - 1]}"
 
 
-def charge_failed_text(*, label: str | None, pay_by: date, last_warning: bool) -> str:
-    """Khmer only, like every bot message (2026-10-09). `label` None: the
-    saved account or card can't be used any more, so auto-charge is off."""
-    price = f"${plan_service.PRICES[PlanPeriod.MONTH]}"
-    by = khmer_day(pay_by)
-    if label is None:
+def _price(amount) -> str:
+    return f"${amount:.2f}".replace(".00", "")
+
+
+def reminder_text(store: Store, kind: str) -> str:
+    """Khmer only, like every bot message (2026-10-09)."""
+    pay_by = plan_service.pay_by(store.paid_until)
+    stop = khmer_day(pay_by + timedelta(days=1))
+    code = plan_service.shop_code(store.id)
+    month = _price(plan_service.PRICES[PlanPeriod.MONTH])
+    year = _price(plan_service.PRICES[PlanPeriod.YEAR])
+    how = (
+        f"បង់ {month} ក្នុងមួយខែ ឬ {year} ក្នុងមួយឆ្នាំ តាម KHQR ឬផ្ទេរប្រាក់ "
+        f"ក្នុង ការកំណត់ → គម្រោង ដោយដាក់លេខកូដ <b>{code}</b> ហើយចុច «ខ្ញុំបានបង់»។"
+    )
+    if kind == "start":
         return (
-            "⚠️ <b>Oak Order</b>\n"
-            f"គណនី ឬកាតដែលអ្នកបានរក្សាទុក មិនអាចប្រើបានទៀតទេ ដូច្នេះការគិតប្រាក់ {price} "
-            "ស្វ័យប្រវត្តិត្រូវបានបិទ។\n"
-            f"សូមបង់ត្រឹម {by} ក្នុង ការកំណត់ → គម្រោង ដើម្បីបន្តទទួលការកុម្ម៉ង់។"
-        )
-    if last_warning:
-        return (
-            "⚠️ <b>Oak Order</b>\n"
-            f"ការគិតប្រាក់ {price} ពី {escape(label)} នៅតែមិនបានសម្រេច។\n"
-            f"សូមបង់ត្រឹម {by} ក្នុង ការកំណត់ → គម្រោង បើមិនដូច្នោះទេ "
-            "ហាងរបស់អ្នកនឹងឈប់ទទួលការកុម្ម៉ង់ថ្មី។"
+            f"🔔 <b>Oak Order</b> · {escape(store.name)}\n"
+            f"ដល់ពេលបង់ប្រាក់សម្រាប់គម្រោងរបស់អ្នកហើយ។ {how}\n"
+            f"បើមិនទាន់បង់ត្រឹម {khmer_day(pay_by)} ទេ ហាងរបស់អ្នកនឹងឈប់ទទួលការកុម្ម៉ង់ថ្មីនៅ {stop}។"
         )
     return (
-        "⚠️ <b>Oak Order</b>\n"
-        f"យើងមិនអាចគិតប្រាក់ {price} ពី {escape(label)} សម្រាប់គម្រោងប្រចាំខែរបស់អ្នកបានទេ។ "
-        "យើងនឹងព្យាយាមម្ដងទៀតរៀងរាល់ថ្ងៃ។\n"
-        f"ហាងរបស់អ្នកនៅតែទទួលការកុម្ម៉ង់រហូតដល់ {by}។ អ្នកក៏អាចបង់ឥឡូវនេះ ក្នុង ការកំណត់ → គម្រោង។"
+        f"⚠️ <b>Oak Order</b> · {escape(store.name)}\n"
+        f"យើងមិនទាន់ទទួលបានការបង់ប្រាក់របស់អ្នកនៅឡើយ។ {how}\n"
+        f"សូមបង់ត្រឹម {khmer_day(pay_by)}៖ ហាងរបស់អ្នកនឹងឈប់ទទួលការកុម្ម៉ង់ថ្មីនៅ {stop}។"
     )
 
 
-def _plan_button() -> tuple[str, str] | None:
+def claim_text(store: Store, payment: PlanPayment) -> str:
+    period = "មួយខែ" if payment.period is PlanPeriod.MONTH else "មួយឆ្នាំ"
+    return (
+        f"💰 <b>{escape(store.name)}</b> ({plan_service.shop_code(store.id)}) "
+        f"និយាយថាបានបង់ {_price(payment.amount)} សម្រាប់{period}។\n"
+        "ពិនិត្យគណនីរបស់អ្នក ហើយកត់ថាបានបង់ ក្នុងទំព័រគ្រប់គ្រង។"
+    )
+
+
+def _button(path: str, label: str) -> tuple[str, str] | None:
     """Telegram refuses buttons to non-https addresses such as localhost."""
-    app = _app_url()
+    app = get_settings().public_app_url.rstrip("/")
     if not app.startswith("https://"):
         return None
-    return "បង់ឥឡូវនេះ", f"{app}/dashboard/settings/plan"
+    return label, f"{app}{path}"

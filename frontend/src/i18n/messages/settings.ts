@@ -347,14 +347,14 @@ export const settings = {
     perMonth: { en: (price: string) => `${price} a month`, km: (price: string) => `${price} ក្នុងមួយខែ` },
     perYear: { en: (price: string) => `${price} a year`, km: (price: string) => `${price} ក្នុងមួយឆ្នាំ` },
     save: { en: (amount: string) => `Save ${amount}`, km: (amount: string) => `សន្សំ ${amount}` },
-    // Until the app takes payments (a payment gateway, later).
+    // Without Oak's KHQR or bank account set (OAK_* settings).
     howToPay: {
-      en: "For now you pay Oak Order by bank transfer or KHQR. Message us on Telegram and we'll send the details. Your shop is extended as soon as the money arrives.",
-      km: 'សម្រាប់ពេលនេះ អ្នកបង់ឱ្យ Oak Order តាមការផ្ទេរប្រាក់តាមធនាគារ ឬ KHQR។ ផ្ញើសារមកយើងតាម Telegram ហើយយើងនឹងផ្ញើព័ត៌មានឱ្យអ្នក។ ហាងរបស់អ្នកនឹងត្រូវបានបន្តភ្លាមៗ នៅពេលប្រាក់មកដល់។',
+      en: "Message Oak Order on Telegram and we'll send you where to pay. Give your shop's code.",
+      km: 'ផ្ញើសារមក Oak Order តាម Telegram ហើយយើងនឹងប្រាប់អ្នកពីកន្លែងបង់។ សូមប្រាប់លេខកូដហាងរបស់អ្នក។',
     },
     howToPayContact: {
-      en: 'For now you pay Oak Order by bank transfer or KHQR. Contact Oak Order for the details.',
-      km: 'សម្រាប់ពេលនេះ អ្នកបង់ឱ្យ Oak Order តាមការផ្ទេរប្រាក់តាមធនាគារ ឬ KHQR។ សូមទាក់ទង Oak Order ដើម្បីទទួលព័ត៌មាន។',
+      en: "Contact Oak Order for where to pay, and give your shop's code.",
+      km: 'សូមទាក់ទង Oak Order ដើម្បីដឹងពីកន្លែងបង់ ហើយប្រាប់លេខកូដហាងរបស់អ្នក។',
     },
     payOnTelegram: { en: (price: string) => `Pay ${price} on Telegram`, km: (price: string) => `បង់ ${price} តាម Telegram` },
     carriesOn: {
@@ -364,66 +364,46 @@ export const settings = {
     aMonth: { en: 'a month', km: 'មួយខែ' },
     aYear: { en: 'a year', km: 'មួយឆ្នាំ' },
     payMessage: {
-      en: (price: string, period: string, shop: string, link: string) =>
-        `Hi Oak Order, I'd like to pay ${price} for ${period} for my shop ${shop} (${link}).`,
-      km: (price: string, period: string, shop: string, link: string) =>
-        `សួស្ដី Oak Order ខ្ញុំចង់បង់ ${price} សម្រាប់${period} សម្រាប់ហាង ${shop} (${link})។`,
+      en: (price: string, period: string, shop: string, code: string) =>
+        `Hi Oak Order, I'd like to pay ${price} for ${period} for my shop ${shop} (code ${code}).`,
+      km: (price: string, period: string, shop: string, code: string) =>
+        `សួស្ដី Oak Order ខ្ញុំចង់បង់ ${price} សម្រាប់${period} សម្រាប់ហាង ${shop} (លេខកូដ ${code})។`,
     },
     payments: { en: 'Your payments', km: 'ការបង់ប្រាក់របស់អ្នក' },
     paidOn: {
       en: (paid: string, from: string, until: string) => `Paid ${paid} · for ${from} to ${until}`,
       km: (paid: string, from: string, until: string) => `បានបង់ ${paid} · សម្រាប់ ${from} ដល់ ${until}`,
     },
-    // Paying in the app, through ABA PayWay.
-    payNow: { en: (price: string) => `Pay ${price}`, km: (price: string) => `បង់ ${price}` },
-    payWays: {
-      en: 'Pay with ABA PAY, KHQR from any bank, or a card, on ABA PayWay’s page. Your shop is extended as soon as it’s paid.',
-      km: 'បង់ដោយ ABA PAY, KHQR ពីធនាគារណាមួយ ឬកាត នៅលើទំព័រ ABA PayWay។ ហាងរបស់អ្នកនឹងត្រូវបានបន្តភ្លាមៗ នៅពេលបានបង់។',
+    // Paying Oak Order by hand (KHQR or transfer), with the shop's code.
+    yourCode: { en: "Your shop's code", km: 'លេខកូដហាងរបស់អ្នក' },
+    codeHint: {
+      en: 'Put it in the transfer’s note, so Oak Order knows the money is yours. The KHQR puts it in for you.',
+      km: 'ដាក់វាក្នុងកំណត់ចំណាំនៃការផ្ទេរប្រាក់ ដើម្បីឱ្យ Oak Order ដឹងថាប្រាក់នោះជារបស់អ្នក។ KHQR ដាក់វាឱ្យអ្នកស្រាប់។',
     },
-    autoChargeOffer: { en: 'Charge me automatically each month', km: 'គិតប្រាក់ពីខ្ញុំដោយស្វ័យប្រវត្តិរៀងរាល់ខែ' },
-    autoChargeOfferHint: {
-      en: (price: string) =>
-        `Pay this month now with your ABA account or a card, and ${price} is taken from it on your start day each month. Turn it off at any time.`,
-      km: (price: string) =>
-        `បង់ខែនេះឥឡូវ ដោយគណនី ABA ឬកាតរបស់អ្នក ហើយ ${price} នឹងត្រូវកាត់ពីវានៅថ្ងៃចាប់ផ្ដើមរបស់អ្នករៀងរាល់ខែ។ អាចបិទបានគ្រប់ពេល។`,
+    scanToPay: {
+      en: 'Scan it with your bank app, or save it and pick it in your bank app.',
+      km: 'ស្កេនវាដោយកម្មវិធីធនាគាររបស់អ្នក ឬរក្សាទុក ហើយជ្រើសវាក្នុងកម្មវិធីធនាគារ។',
     },
-    withAba: { en: 'ABA account', km: 'គណនី ABA' },
-    withCard: { en: 'Card', km: 'កាត' },
-    opening: { en: 'Opening ABA PayWay…', km: 'កំពុងបើក ABA PayWay…' },
-    autoChargeOn: { en: 'Auto-charge is on', km: 'ការគិតប្រាក់ស្វ័យប្រវត្តិកំពុងបើក' },
-    autoChargeNext: {
-      en: (price: string, label: string, day: string) => `${price} from ${label} on ${day}, then each month.`,
-      km: (price: string, label: string, day: string) => `${price} ពី ${label} នៅ ${day} ហើយរៀងរាល់ខែ។`,
+    saveQr: { en: 'Save QR to photos', km: 'រក្សាទុក QR ក្នុងរូបថត' },
+    khqrCaption: { en: (code: string) => `Oak Order · ${code}`, km: (code: string) => `Oak Order · ${code}` },
+    orTransfer: { en: 'Or transfer to', km: 'ឬផ្ទេរទៅ' },
+    transferTo: { en: 'Transfer to', km: 'ផ្ទេរទៅ' },
+    bank: { en: 'Bank', km: 'ធនាគារ' },
+    accountName: { en: 'Account name', km: 'ឈ្មោះគណនី' },
+    accountNumber: { en: 'Account number', km: 'លេខគណនី' },
+    iPaid: { en: "I've paid", km: 'ខ្ញុំបានបង់' },
+    iPaidHint: {
+      en: 'Tap after paying. Oak Order checks its account and extends your shop, usually within a day.',
+      km: 'ចុចបន្ទាប់ពីបង់។ Oak Order ពិនិត្យគណនីរបស់ខ្លួន ហើយបន្តហាងរបស់អ្នក ជាធម្មតាក្នុងរយៈពេលមួយថ្ងៃ។',
     },
-    autoChargeAfterPay: {
-      en: (price: string, label: string) => `${price} from ${label} each month, starting again once you pay below.`,
-      km: (price: string, label: string) => `${price} ពី ${label} រៀងរាល់ខែ ចាប់ផ្ដើមម្ដងទៀតនៅពេលអ្នកបង់នៅខាងក្រោម។`,
+    waiting: {
+      en: (amount: string, period: string, when: string) =>
+        `Oak Order is checking your ${amount} for ${period} (you said you paid on ${when}). Your shop is extended once it’s found.`,
+      km: (amount: string, period: string, when: string) =>
+        `Oak Order កំពុងពិនិត្យ ${amount} សម្រាប់${period}របស់អ្នក (អ្នកបានប្រាប់ថាបានបង់នៅ ${when})។ ហាងរបស់អ្នកនឹងត្រូវបានបន្ត នៅពេលរកឃើញ។`,
     },
-    turnOff: { en: 'Turn off auto-charge', km: 'បិទការគិតប្រាក់ស្វ័យប្រវត្តិ' },
-    turnOffTitle: { en: 'Turn off auto-charge?', km: 'បិទការគិតប្រាក់ស្វ័យប្រវត្តិ?' },
-    turnOffMessage: {
-      en: 'Nothing more is taken from your account or card. You pay each month yourself here.',
-      km: 'គ្មានប្រាក់ត្រូវបានកាត់ពីគណនី ឬកាតរបស់អ្នកទៀតទេ។ អ្នកបង់ដោយខ្លួនឯងនៅទីនេះរៀងរាល់ខែ។',
-    },
-    turnedOff: { en: 'Auto-charge turned off', km: 'បានបិទការគិតប្រាក់ស្វ័យប្រវត្តិ' },
-    chargeFailed: {
-      en: (label: string, day: string) => `We couldn’t charge ${label}. We try again each day until ${day}, or pay now below.`,
-      km: (label: string, day: string) => `យើងមិនអាចគិតប្រាក់ពី ${label} បានទេ។ យើងព្យាយាមម្ដងទៀតរៀងរាល់ថ្ងៃរហូតដល់ ${day} ឬបង់ឥឡូវនេះនៅខាងក្រោម។`,
-    },
-    // Back from PayWay's page.
-    checking: { en: 'Checking your payment…', km: 'កំពុងពិនិត្យការបង់ប្រាក់របស់អ្នក…' },
-    paidNow: { en: (day: string) => `Thank you! Paid until ${day}.`, km: (day: string) => `សូមអរគុណ! បានបង់រហូតដល់ ${day}។` },
-    notPaid: { en: (why: string) => `Not paid: ${why}`, km: (why: string) => `មិនទាន់បានបង់៖ ${why}` },
-    stillWaiting: {
-      en: 'ABA PayWay hasn’t told us yet. This page updates by itself once it does.',
-      km: 'ABA PayWay មិនទាន់ប្រាប់យើងនៅឡើយ។ ទំព័រនេះនឹងធ្វើបច្ចុប្បន្នភាពដោយខ្លួនឯង នៅពេលវាប្រាប់។',
-    },
-    autoCharge: { en: 'Auto-charge', km: 'ស្វ័យប្រវត្តិ' },
-    failed: { en: (why: string) => `Failed: ${why}`, km: (why: string) => `បរាជ័យ៖ ${why}` },
-    menuAuto: {
-      en: (day: string) => `Auto-charge on, next ${day}`,
-      km: (day: string) => `គិតប្រាក់ស្វ័យប្រវត្តិ បន្ទាប់ ${day}`,
-    },
+    notFound: { en: (note: string) => `Oak Order didn't find it: ${note}`, km: (note: string) => `Oak Order រកមិនឃើញ៖ ${note}` },
+    menuClaimed: { en: 'Oak Order is checking your payment', km: 'Oak Order កំពុងពិនិត្យការបង់ប្រាក់របស់អ្នក' },
     // The Settings menu's row.
     menuTrial: { en: (day: string) => `Free trial until ${day}`, km: (day: string) => `សាកល្បងឥតគិតថ្លៃរហូតដល់ ${day}` },
     menuPaid: { en: (day: string) => `Standard, paid until ${day}`, km: (day: string) => `Standard បានបង់រហូតដល់ ${day}` },

@@ -29,8 +29,9 @@ export function Reminder({ icon: Icon, setting, children }: { icon: LucideIcon; 
 }
 
 /** The shop's plan with Oak Order running out (01_PRODUCT.md §33.1): its
- * last 6 days, the 7 days to pay, then no new orders; with auto-charge on,
- * only once a charge has failed. Staff only hear when orders have stopped:
+ * last 6 days, the 7 days to pay, then no new orders. It's also the
+ * dashboard's payment reminder for shops without Telegram (the daily run
+ * reminds the others there). Staff only hear when orders have stopped:
  * paying is the owner's. `stoppedOnly`: where only
  * that matters (adding an order). */
 export function PlanReminder({ stoppedOnly = false }: { stoppedOnly?: boolean }) {
@@ -38,20 +39,18 @@ export function PlanReminder({ stoppedOnly = false }: { stoppedOnly?: boolean })
   const role = useRole()
   const o = useT().orders
   if (!plan.data || !role || plan.data.stage === 'active') return null
-  const { stage, on_trial: trial, paid_until, pay_by, auto_charge: auto, charge_failed: failed } = plan.data
+  const { stage, on_trial: trial, paid_until, pay_by, claim } = plan.data
   if (stage !== 'stopped' && (stoppedOnly || role !== 'owner')) return null
-  // Auto-charge on: nothing to do until a charge fails (it's tried daily).
-  if (stage !== 'stopped' && auto && !failed) return null
   const text =
     stage === 'stopped'
       ? role === 'owner'
         ? o.planStopped
         : o.planStoppedStaff
-      : stage === 'overdue'
-        ? auto
-          ? o.planChargeFailed(auto.label, formatCalendarDay(pay_by))
-          : (trial ? o.planOverdueTrial : o.planOverdue)(formatCalendarDay(pay_by))
-        : (trial ? o.planEndingTrial : o.planEnding)(formatCalendarDay(paid_until))
+      : claim
+        ? o.planClaimed // said "I've paid": nothing more for the seller to do
+        : stage === 'overdue'
+          ? (trial ? o.planOverdueTrial : o.planOverdue)(formatCalendarDay(pay_by))
+          : (trial ? o.planEndingTrial : o.planEnding)(formatCalendarDay(paid_until))
   return (
     <Reminder icon={CalendarClock} setting="plan">
       {text}

@@ -6,7 +6,13 @@ import uuid
 from fastapi import APIRouter
 
 from app.api.deps import Admin, UnscopedDb
-from app.schemas.plan import AdminPaymentIn, AdminShopDetailOut, AdminShopOut
+from app.schemas.plan import (
+    AdminConfirmIn,
+    AdminPaymentIn,
+    AdminRejectIn,
+    AdminShopDetailOut,
+    AdminShopOut,
+)
 from app.services import admin as admin_service
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -28,3 +34,19 @@ async def mark_paid(
 ) -> AdminShopDetailOut:
     """A payment made by hand (or free time: amount 0)."""
     return await admin_service.mark_paid(db, store_id, data)
+
+
+@router.post("/shops/{store_id}/payments/{payment_id}/confirm", response_model=AdminShopDetailOut)
+async def confirm(
+    store_id: uuid.UUID, payment_id: uuid.UUID, data: AdminConfirmIn, _: Admin, db: UnscopedDb
+) -> AdminShopDetailOut:
+    """The seller's "I've paid", found in the bank."""
+    return await admin_service.confirm(db, store_id, payment_id, data)
+
+
+@router.post("/shops/{store_id}/payments/{payment_id}/reject", response_model=AdminShopDetailOut)
+async def reject(
+    store_id: uuid.UUID, payment_id: uuid.UUID, data: AdminRejectIn, _: Admin, db: UnscopedDb
+) -> AdminShopDetailOut:
+    """Not found: the seller sees the note."""
+    return await admin_service.reject(db, store_id, payment_id, data)

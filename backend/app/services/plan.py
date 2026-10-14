@@ -13,7 +13,7 @@ itself; there's no scheduled job). With paid_until = 30 Nov:
 """
 
 import uuid
-from datetime import date, datetime, time, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -21,8 +21,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import clock
 from app.core.config import get_settings
-from app.models import PlanPayment, PlanPaymentMethod, PlanPaymentStatus, PlanPeriod, Store
-from app.schemas.plan import AutoChargeOut, PlanOut, PlanPaymentOut, PlanPricesOut, PlanStage
+from app.models import (
+    Currency,
+    PlanPayment,
+    PlanPaymentMethod,
+    PlanPaymentStatus,
+    PlanPeriod,
+    Store,
+)
+from app.schemas.plan import (
+    BankOut,
+    PayToOut,
+    PlanOut,
+    PlanPaymentOut,
+    PlanPricesOut,
+    PlanStage,
+)
+from app.services import khqr as khqr_service
 from app.services import store as store_service
 
 REMIND_DAYS = 6
@@ -112,77 +127,89 @@ def day_start(day: date) -> datetime:
     return datetime.combine(day, time(), tzinfo=clock.PHNOM_PENH)
 
 
-def auto_charge_failed(
-    store: Store, payments: list[PlanPayment], today: date
-) -> PlanPayment | None:
-    """The latest auto-charge that failed since the paid time ran out."""
-    if stage(store.paid_until, today) in (PlanStage.ACTIVE, PlanStage.ENDING_SOON):
-        return None
-    since = day_start(store.paid_until + timedelta(days=1))
-    failed = [
-        p
-        for p in payments
-        if p.method is PlanPaymentMethod.PAYWAY_AUTO
-        and p.status is PlanPaymentStatus.FAILED
-        and p.created_at >= since
-    ]
-    return max(failed, key=lambda p: p.created_at, default=None)
+# No 0/O or 1/I: read off a bank statement or typed in a transfer note.
+CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 
-def next_charge(store: Store, payments: list[PlanPayment], today: date) -> date | None:
-    """When auto-charge next tries (app/services/billing.py): the shop's
-    start day; during the 7 days to pay, today, or tomorrow once today's
-    try is done; none once orders have stopped (paying now starts it again)."""
-    if store.payway_token is None:
-        return None
-    start = store.paid_until + timedelta(days=1)
-    if today < start:
-        return start
-    if stage(store.paid_until, today) is PlanStage.STOPPED:
-        return None
-    tried = any(
-        p.method is PlanPaymentMethod.PAYWAY_AUTO and p.created_at >= day_start(today)
-        for p in payments
+def shop_code(store_id: uuid.UUID) -> str:
+    """The shop's code for paying Oak Order ("OAK-K7Q2MX"): what the seller
+    puts in the transfer's note and the KHQR's bill number, so the founder
+    can match money to shops. From the store id's first 30 bits, so it
+    never changes and needs no column; two shops sharing one is about a 1
+    in 200,000 chance at 100 shops (the admin page shows both)."""
+    n = store_id.int >> 98
+    chars = []
+    for _ in range(6):
+        n, digit = divmod(n, 32)
+        chars.append(CODE_ALPHABET[digit])
+    return "OAK-" + "".join(chars)
+
+
+def pay_to(code: str) -> PayToOut:
+    """Oak's own KHQR (with the shop's code as the bill number) and bank
+    account, from the OAK_* settings. A KHQR with an amount expires in a
+    day: a fresh one is made each time the page asks."""
+    settings = get_settings()
+    khqr = {}
+    if settings.oak_khqr_account:
+        for period in PlanPeriod:
+            khqr[period] = khqr_service.individual_khqr(
+                bakong_account_id=settings.oak_khqr_account,
+                merchant_name=settings.oak_khqr_name,
+                currency=Currency.USD,
+                amount=PRICES[period],
+                bill_number=code,
+                now=datetime.now(UTC),
+            )
+    bank = None
+    if settings.oak_bank_name and settings.oak_bank_account_number:
+        bank = BankOut(
+            bank_name=settings.oak_bank_name,
+            account_name=settings.oak_bank_account_name,
+            account_number=settings.oak_bank_account_number,
+        )
+    return PayToOut(
+        khqr_month=khqr.get(PlanPeriod.MONTH),
+        khqr_year=khqr.get(PlanPeriod.YEAR),
+        khqr_name=settings.oak_khqr_name if khqr else None,
+        bank=bank,
     )
-    if not tried:
-        return today
-    tomorrow = today + timedelta(days=1)
-    return tomorrow if tomorrow <= pay_by(store.paid_until) else None
 
 
-async def get_plan(db: AsyncSession, store_id: uuid.UUID) -> PlanOut:
-    store = await store_service.get_store(db, store_id)
-    payments = list(
+def open_claim(payments: list[PlanPayment]) -> PlanPayment | None:
+    """The seller's "I've paid" still waiting for the founder."""
+    return next((p for p in payments if p.status is PlanPaymentStatus.PENDING), None)
+
+
+async def payments_of(db: AsyncSession, store_id: uuid.UUID) -> list[PlanPayment]:
+    return list(
         await db.scalars(
             select(PlanPayment)
             .where(PlanPayment.store_id == store_id)
             .order_by(PlanPayment.created_at.desc())
         )
     )
+
+
+async def get_plan(db: AsyncSession, store_id: uuid.UUID) -> PlanOut:
+    store = await store_service.get_store(db, store_id)
+    payments = await payments_of(db, store_id)
     today = clock.today()
-    paid = [p for p in payments if p.status is PlanPaymentStatus.PAID]
-    shown = [
-        p
-        for p in payments
-        if p.status is PlanPaymentStatus.PAID
-        or (p.status is PlanPaymentStatus.FAILED and p.method is PlanPaymentMethod.PAYWAY_AUTO)
-    ]
-    auto_charge = None
-    if store.payway_token is not None:
-        auto_charge = AutoChargeOut(
-            label=store.payway_token_label or "",
-            amount=PRICES[PlanPeriod.MONTH],
-            next_charge=next_charge(store, payments, today),
-        )
+    claim = open_claim(payments)
+    code = shop_code(store_id)
     return PlanOut(
         stage=stage(store.paid_until, today),
-        on_trial=not paid,
+        on_trial=not any(p.status is PlanPaymentStatus.PAID for p in payments),
         paid_until=store.paid_until,
         pay_by=pay_by(store.paid_until),
         days_left=max((store.paid_until - today).days + 1, 0),
         prices=PlanPricesOut(month=PRICES[PlanPeriod.MONTH], year=PRICES[PlanPeriod.YEAR]),
-        payway=get_settings().payway_configured,
-        auto_charge=auto_charge,
-        charge_failed=auto_charge_failed(store, payments, today) is not None,
-        payments=[PlanPaymentOut.model_validate(p) for p in shown],
+        code=code,
+        pay_to=pay_to(code),
+        claim=PlanPaymentOut.model_validate(claim) if claim else None,
+        payments=[
+            PlanPaymentOut.model_validate(p)
+            for p in payments
+            if p.status is not PlanPaymentStatus.PENDING
+        ],
     )

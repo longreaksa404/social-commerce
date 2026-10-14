@@ -9,13 +9,13 @@ from app.api import (
     account,
     admin,
     auth,
+    billing,
     categories,
     customers,
     health,
     links,
     notifications,
     orders,
-    payway,
     plan,
     products,
     shop,
@@ -68,7 +68,7 @@ api_v1.include_router(orders.router)
 api_v1.include_router(stats.router)
 api_v1.include_router(plan.router)
 api_v1.include_router(admin.router)
-api_v1.include_router(payway.router)
+api_v1.include_router(billing.router)
 api_v1.include_router(customers.router)
 api_v1.include_router(notifications.router)
 api_v1.include_router(links.router)

@@ -7,14 +7,15 @@ import { Badge, Button, ErrorMessage, ErrorState, Field, Input, PageHeader, Sect
 import { useT } from '../../i18n/useT.ts'
 import { formatMoney } from '../../lib/money.ts'
 import { formatDate, formatPhone } from '../../lib/orders.ts'
-import type { AdminShopDetail, PlanPeriod } from '../../lib/types.ts'
-import { useAccount, useAdminShop, useMarkPaid } from '../queries.ts'
+import type { AdminShopDetail, PlanPayment, PlanPeriod } from '../../lib/types.ts'
+import { useAccount, useAdminShop, useCheckClaim, useMarkPaid } from '../queries.ts'
 import { STAGE_TONE, day } from './shared.ts'
 
 const usd = (amount: string | number) => formatMoney(amount, 'USD')
 
-/** /dashboard/admin/:storeId: one shop's plan, its payments, and "mark
- * paid" for a payment made by hand (0 gives free time). */
+/** /dashboard/admin/:storeId: one shop's plan and code, its "I've paid"
+ * to check (found: paid; not found: the seller sees why), "mark paid" for
+ * a payment made by hand (0 gives free time), and every payment. */
 export function AdminShop() {
   const { storeId = '' } = useParams()
   const a = useT().admin
@@ -32,6 +33,7 @@ export function AdminShop() {
       ) : (
         <div className="space-y-6">
           <Summary shop={shop.data} />
+          {shop.data.claim && <CheckClaim shop={shop.data} claim={shop.data.claim} />}
           <MarkPaid shop={shop.data} />
           <Payments shop={shop.data} />
         </div>
@@ -44,7 +46,7 @@ function Summary({ shop }: { shop: AdminShopDetail }) {
   const a = useT().admin
   return (
     <Section
-      title={`/shop/${shop.slug}`}
+      title={shop.code}
       action={
         <a href={`/shop/${shop.slug}`} target="_blank" rel="noreferrer" className={buttonClass('secondary')}>
           <ExternalLink aria-hidden className="size-4" />
@@ -56,18 +58,70 @@ function Summary({ shop }: { shop: AdminShopDetail }) {
         <Badge tone={STAGE_TONE[shop.stage]}>{a.stage[shop.stage]}</Badge>
         <Badge>{shop.on_trial ? a.trial : a.paying}</Badge>
         {!shop.is_open && <Badge tone="red">{a.closed}</Badge>}
+        {!shop.telegram && <Badge>{a.noTelegram}</Badge>}
       </div>
       <ul className="space-y-1 text-sm leading-6 text-slate-700">
-        <li>{formatPhone(shop.login)}</li>
+        <li>
+          /shop/{shop.slug} · {formatPhone(shop.login)}
+        </li>
         <li>
           {a.paidUntil(day(shop.paid_until))}
           {shop.stage === 'overdue' && ` · ${a.payBy(day(shop.pay_by))}`}
         </li>
-        {shop.auto_charge && <li>{shop.next_charge ? a.nextCharge(shop.auto_charge, day(shop.next_charge)) : a.autoChargeOnly(shop.auto_charge)}</li>}
         {shop.last_paid_on && <li>{a.lastPaid(day(shop.last_paid_on))}</li>}
-        {shop.last_failure && <li className="text-amber-800">{a.lastFailure(shop.last_failure)}</li>}
         <li className="text-slate-500">{a.signedUp(formatDate(shop.created_at))}</li>
       </ul>
+    </Section>
+  )
+}
+
+/** The seller said "I've paid": found in the bank (mark paid, the amount
+ * found if different) or not (the seller sees the note). */
+function CheckClaim({ shop, claim }: { shop: AdminShopDetail; claim: PlanPayment }) {
+  const a = useT().admin
+  const { confirm, toast } = useFeedback()
+  const check = useCheckClaim(shop.id)
+  const [amount, setAmount] = useState('')
+  const [note, setNote] = useState('')
+  const period = claim.period === 'month' ? a.month : a.year
+
+  async function found() {
+    const paid = amount.trim() || claim.amount
+    const ok = await confirm({ title: a.foundTitle(shop.name), message: a.confirmMessage(usd(paid), period.toLowerCase()), confirmLabel: a.found })
+    if (!ok) return
+    check.mutate(
+      { paymentId: claim.id, found: true, amount: amount.trim() || null, note: note.trim() || null },
+      { onSuccess: (updated) => toast(a.marked(day(updated.paid_until))) },
+    )
+  }
+
+  async function notFound() {
+    const why = note.trim() || a.notFoundDefault
+    const ok = await confirm({ title: a.notFoundTitle, message: why, confirmLabel: a.notFound, danger: true })
+    if (!ok) return
+    check.mutate({ paymentId: claim.id, found: false, note: why }, { onSuccess: () => toast(a.checked) })
+  }
+
+  return (
+    <Section title={a.claim(usd(claim.amount), period.toLowerCase(), formatDate(claim.created_at))} description={a.checkClaim}>
+      <p className="font-mono text-2xl font-bold tracking-wide text-slate-900">{shop.code}</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label={a.amount}>
+          <Input type="number" inputMode="decimal" min="0" max="10000" step="0.01" leading="$" placeholder={claim.amount} value={amount} onChange={(e) => setAmount(e.target.value)} />
+        </Field>
+        <Field label={a.note}>
+          <Input maxLength={200} placeholder={a.notFoundDefault} value={note} onChange={(e) => setNote(e.target.value)} />
+        </Field>
+      </div>
+      <ErrorMessage error={check.error} />
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button loading={check.isPending} onClick={found} className="w-full sm:w-auto">
+          {a.found}
+        </Button>
+        <Button variant="secondary" disabled={check.isPending} onClick={notFound} className="w-full sm:w-auto">
+          {a.notFound}
+        </Button>
+      </div>
     </Section>
   )
 }
@@ -149,8 +203,7 @@ function Payments({ shop }: { shop: AdminShopDetail }) {
             <li key={payment.id} className="space-y-0.5 py-3 text-sm">
               <p className="flex flex-wrap items-center gap-1.5 font-medium text-slate-900">
                 {usd(payment.amount)} · {payment.period === 'month' ? a.month : a.year}
-                <Badge>{a.method[payment.method]}</Badge>
-                <Badge tone={payment.status === 'paid' ? 'green' : payment.status === 'failed' ? 'amber' : 'neutral'}>
+                <Badge tone={payment.status === 'paid' ? 'green' : payment.status === 'failed' ? 'amber' : 'blue'}>
                   {a.status[payment.status]}
                 </Badge>
               </p>
@@ -160,7 +213,6 @@ function Payments({ shop }: { shop: AdminShopDetail }) {
               </p>
               {payment.failure && <p className="text-amber-800">{payment.failure}</p>}
               {payment.reference && <p className="text-slate-600">{payment.reference}</p>}
-              {payment.tran_id && <p className="font-mono text-xs text-slate-400">{payment.tran_id}</p>}
             </li>
           ))}
         </ul>

@@ -4,20 +4,23 @@ import { Link, Navigate } from 'react-router'
 import { Badge, Card, EmptyState, ErrorState, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
 import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
-import { formatPhone } from '../../lib/orders.ts'
+import { formatMoney } from '../../lib/money.ts'
+import { formatDate, formatPhone } from '../../lib/orders.ts'
 import type { AdminShop } from '../../lib/types.ts'
 import { useAccount, useAdminShops } from '../queries.ts'
 import { STAGE_TONE, day } from './shared.ts'
 
-const FILTERS = ['all', 'ending', 'unpaid', 'stopped', 'auto'] as const
+const usd = (amount: string) => formatMoney(amount, 'USD')
+
+const FILTERS = ['all', 'claimed', 'ending', 'unpaid', 'stopped'] as const
 type Filter = (typeof FILTERS)[number]
 
 const matches: Record<Filter, (shop: AdminShop) => boolean> = {
   all: () => true,
+  claimed: (shop) => shop.claim !== null,
   ending: (shop) => shop.stage === 'ending_soon',
   unpaid: (shop) => shop.stage === 'overdue',
   stopped: (shop) => shop.stage === 'stopped',
-  auto: (shop) => shop.auto_charge !== null,
 }
 
 /** /dashboard/admin: Oak Order's admin page (founder's pick 2B): every
@@ -39,6 +42,7 @@ export function AdminShops() {
       matches[filter](shop) &&
       (!words ||
         shop.name.toLowerCase().includes(words) ||
+        shop.code.toLowerCase().includes(words) ||
         shop.slug.includes(words) ||
         (digits.length > 2 && shop.login.replace(/\D/g, '').includes(digits))),
   )
@@ -109,18 +113,18 @@ function ShopRow({ shop, a }: { shop: AdminShop; a: Messages['admin'] }) {
           {!shop.is_open && <Badge tone="red">{a.closed}</Badge>}
         </span>
         <span className="block truncate text-sm text-slate-500">
-          /shop/{shop.slug} · {formatPhone(shop.login)}
+          <span className="font-mono font-semibold text-slate-700">{shop.code}</span> · /shop/{shop.slug} · {formatPhone(shop.login)}
+          {!shop.telegram && ` · ${a.noTelegram}`}
         </span>
         <span className="block text-sm text-slate-600">
           {a.paidUntil(day(shop.paid_until))}
           {shop.stage === 'overdue' && ` · ${a.payBy(day(shop.pay_by))}`}
         </span>
-        {shop.auto_charge && (
-          <span className="block text-sm text-slate-600">
-            {shop.next_charge ? a.nextCharge(shop.auto_charge, day(shop.next_charge)) : a.autoChargeOnly(shop.auto_charge)}
+        {shop.claim && (
+          <span className="block text-sm font-medium text-navy-700">
+            {a.claim(usd(shop.claim.amount), shop.claim.period === 'month' ? a.month.toLowerCase() : a.year.toLowerCase(), formatDate(shop.claim.created_at))}
           </span>
         )}
-        {shop.last_failure && <span className="block text-sm text-amber-800">{a.lastFailure(shop.last_failure)}</span>}
       </span>
       <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
     </Link>
