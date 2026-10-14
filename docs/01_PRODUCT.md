@@ -1309,9 +1309,42 @@ Potential revenue sources:
 
 Recurring monthly or annual fee for software access.
 
-Every new shop starts with a 1-month free trial. There is no free plan:
-after the trial, the shop needs a paid subscription (decided 2026-10-14;
-the price and what happens to an unpaid shop are still open, §46).
+Decided 2026-10-14 (founder's picks 1B 3A 4B 5A 6A from a pricing plan
+the founder brought; no early-seller offer):
+
+- **One plan at launch, Oak Order Standard: $9.99 a month, or $99 a
+  year** ($8.25 a month, $20.88 less than 12 monthly payments). Per
+  shop, in US dollars. It includes every feature built, up to 10 staff
+  logins, and hosting (§33.3). "Made with Oak Order" shows on every
+  Standard shop.
+- **A 1-month free trial** (30 days) for every new shop. There is no
+  free plan and no early-seller discount.
+- **When the trial ends** (day 1 is the day the shop signs up):
+  - Day 25: the seller sees a reminder in the dashboard with the price
+    (monthly and yearly) and the day the trial ends. The founder also
+    messages the first sellers on Telegram.
+  - Day 31: the trial has ended. The seller sees a clear notice and has
+    7 days to pay (days 31–37); the shop still takes orders.
+  - Day 38, still unpaid: the shop takes **no new orders**. Customers
+    can still open the shop and see the same "not taking orders right
+    now" notice as when a seller pauses orders, never anything about
+    payment. The seller can still finish the orders already placed, see
+    everything and export; only new orders stop, orders added from a
+    chat too. Paying opens the shop again at once.
+  - A paid month or year that runs out works the same way: a reminder 6
+    days before, 7 days to pay, then no new orders.
+  - Nothing is cancelled or deleted. The sign-up page and the Terms say
+    all of this.
+- **How sellers pay Oak Order:** in the app, through a payment gateway
+  (ABA PayWay or similar) that confirms the payment and extends the
+  shop by itself. It needs the founder's merchant account (usually a
+  registered business) and takes a fee per payment. Until it is set up,
+  sellers pay the founder by hand and the founder extends the shop with
+  a command.
+- **Later plans, not built:** Growth ($15–19 a month: more staff,
+  advanced reports, automation) and Business ($29+ a month: several
+  shops, more complex operations), when sellers show they need them.
+  Hiding "Made with Oak Order" could come with them.
 
 ## 33.2 Implementation / Onboarding
 
@@ -1323,9 +1356,16 @@ Potential one-time fee for:
 - Training
 - Custom setup
 
+Decided 2026-10-14: creating the shop and guiding the seller through
+setup are always included. Adding products and training are free for
+the first 3–5 sellers; the founder writes down how long each takes and
+sets the prices from that (starting ideas, not published: $10–15 for up
+to 50 products, $20–30 for up to 100, $10–20 for training).
+
 ## 33.3 Hosting
 
-Potential recurring hosting/service fee where appropriate.
+Included in the subscription: no separate hosting fee (decided
+2026-10-14).
 
 ## 33.4 Premium Features
 
@@ -1337,10 +1377,11 @@ Potential future paid features:
 - Additional users
 - Advanced reporting
 - Marketing features
+- Removing the "Made with Oak Order" line (§33.1)
 
-Pricing is not finalized.
-
-Pricing should be based on actual customer validation.
+The launch price is set (§33.1) but not yet tested with real sellers
+(§35, Critical Assumption 5). Measure how many trials become paying
+shops before changing it.
 
 # 34. Customer Acquisition Strategy
 
@@ -1828,12 +1869,8 @@ The following are intentionally not finalized.
 
 ## Business
 
-- Subscription price
-- What happens to a shop when its free trial ends without payment (e.g. the shop stops taking orders until paid)
-- Setup fee
-- Hosting fee
-- Pricing tiers
-- Plan and billing page in Settings: waits for the subscription price (founder, 2026-10-08; the free trial was decided 2026-10-14)
+- Setup fee amounts: set after timing the first 3–5 sellers' setups (§33.2)
+- Which payment gateway collects the subscriptions (ABA PayWay or similar): when the founder opens a merchant account (§33.1)
 
 ## Market
 
@@ -1855,8 +1892,8 @@ Decided so far (details in §24, §25 and `02_TECHNICAL.md`):
 - Product name: Oak Order, under the brand Oak (2026-10-08; replaces Sroul Order from 2026-10-06)
 - Company Oak Solutions, domain oaksolve.com, this product at `order.oaksolve.com` (2026-10-09; Oak Shop considered and not picked)
 - Oak's mark: the oak leaf from the Oak Solutions logo (2026-10-10; replaces a stock tree icon)
-- Free trial: 1 month for every new shop; no free plan (2026-10-14, §33.1)
-- Every shop credits Oak: "Made with Oak Order" with Privacy · Terms at the bottom of the shop's pages and the order page, and shared links end in "· Oak Order" with Oak's mark small on the picture (2026-10-10). Letting paid plans hide the line waits for pricing.
+- Every shop credits Oak: "Made with Oak Order" with Privacy · Terms at the bottom of the shop's pages and the order page, and shared links end in "· Oak Order" with Oak's mark small on the picture (2026-10-10). The line stays on the Standard plan (2026-10-14); hiding it may come with a later plan.
+- Pricing (2026-10-14, §33): one plan, Standard, $9.99 a month or $99 a year per shop, hosting included; a 1-month free trial, no free plan, no early-seller discount; unpaid 7 days after the trial (or a paid period), the shop takes no new orders and nothing is deleted; sellers pay in the app through a payment gateway (by hand until it is set up); setup free for the first 3–5 sellers. Growth and Business plans are for later.
 
 # 47. Relationship With Other Project Documents
 

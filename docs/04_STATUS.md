@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-14 (decided: 1-month free trial, no free plan; not built yet). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-14 (pricing decided, nothing built yet: Standard $9.99/month or $99/year, 1-month free trial, no free plan, no new orders 7 days after an unpaid trial, a payment gateway, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -1283,6 +1283,12 @@ Phase 9, waiting on the founder:
 
 ## Known Issues / Blockers
 
+- **Before charging sellers (2026-10-14):** the frontend has to leave
+  Vercel's Hobby plan, which is for non-commercial use only (moving to
+  Cloudflare Pages, 03 Phase 9). Paying in the app needs a payment
+  gateway merchant account (ABA PayWay or similar), which only the
+  founder can open and which usually needs a registered business; until
+  then sellers pay the founder by hand.
 - Company laptop blocks Windows `.exe` launchers; all dev happens inside the
   devcontainer (or GitHub Codespaces if Docker is blocked). Personal laptop
   uses the same devcontainer.
@@ -1311,6 +1317,11 @@ Phase 9, waiting on the founder:
 
 Resolved:
 
+- [x] **Frontend hosting: Cloudflare Pages** (2026-10-14, founder's
+      pick 6A). Vercel's Hobby plan is for non-commercial use only, and
+      Pro costs $20/month. The move (with `frontend/middleware.ts` as a
+      Pages Function) happens before the first seller pays Oak Order;
+      until then the app stays on Vercel.
 - [x] **Performance pass picks** (2026-10-10): Render stays on the
       free plan (F3 not taken; the 2026-10-08 triggers stand and the live
       load test still decides). The shop and product grids keep the column
@@ -1511,11 +1522,15 @@ Resolved:
 
 Nothing waiting: everything decided is in 01/02/03.
 
-Applied to 01 on 2026-10-14 (founder): a 1-month free trial for every
-new shop, no free plan. 01 §33.1 and §46 (open list and decided list).
+Applied to 01/02/03 on 2026-10-14 (pricing; founder's picks 1B 3A 4B
+5A 6A, from a pricing plan the founder brought, and no early-seller
+offer): 01 §33.1–33.4 and §46 (open list, decided list, the Oak line);
+02 §3 (frontend hosting: Cloudflare Pages; the cost once sellers pay);
+03 Phase 9 rows (plan and billing part 1, 12 hrs; the Cloudflare move,
+4 hrs; part 2 with a payment gateway, 20 hrs; subtotal ~253 hrs), §4
+totals (~481 hrs, ~37 weeks), §6 log (the Oak line stays on Standard).
 Not built: nothing in the code has a trial or a plan yet, so every shop
-is free with no end date. Still open: the price, and what happens to a
-shop when its trial ends unpaid.
+is free with no end date.
 
 Applied to 01/02/03 on 2026-10-10 (Oak in the shop, founder's picks 1A
 2A 3B 4B 5B): 01 §1.1 (the mark is the oak leaf) and §46 (decided list);
@@ -1861,9 +1876,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 | Date | Source | Request | Status |
 |---|---|---|---|
-| 2026-10-10 | Founder (Oak in the shop) | Let sellers on a paid plan hide "Made with Oak Order" | Waiting: decide with pricing (01 §46). Details in 03 §6. |
+| 2026-10-10 | Founder (Oak in the shop) | Let sellers on a paid plan hide "Made with Oak Order" | Decided 2026-10-14: the line stays on the Standard plan; hiding it may come with a later plan (01 §33.1). Details in 03 §6. |
 | 2026-10-09 | Founder (trying the numbers card locally) | A seller dashboard: a page for the shop's numbers, with the chart (sales per day; today, 7 days, this month) | Later: the page first, then the chart on it. The server part is ready (`GET /seller/stats`, owner only). Details in 03 §6. |
-| 2026-10-08 | Founder (Settings) | Plan and billing page: the seller's plan, price, paid-until date, how to pay Oak Order | Waiting: the trial is decided (1 month, no free plan, 2026-10-14); build once the price and the end-of-trial rule are decided (01 §46). |
+| 2026-10-08 | Founder (Settings) | Plan and billing page: the seller's plan, price, paid-until date, how to pay Oak Order | Pricing decided 2026-10-14 (01 §33.1). To build in 03 Phase 9: part 1 (trial, Settings → Plan, no new orders when unpaid, the founder's payment command), then part 2 (payment gateway, once the founder has a merchant account). |
 | 2026-10-06 | Founder (shop redesign) | Search in the shop | Logged for later; build when a seller has 30+ products. Details in 03 §6. |
 | 2026-10-02 | Founder (testing Phase 4) | One-tap pay for several banks (ABA, ACLEDA, Wing): open the customer's bank app with the amount filled in, and mark it paid automatically | Validate First: ask first sellers which banks their customers use, whether they're a registered business, and whether they'd pay per-payment fees. Details in 03 §6. |
 
@@ -1871,6 +1886,14 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
+000000. Pricing (decided 2026-10-14, 01 §33.1). (a) Founder: ask ABA
+        what a PayWay merchant account needs (a registered business?),
+        the fee per payment and how long it takes, or ask another
+        gateway. (b) Founder: approve the billing data model (a
+        paid-until date per shop and a list of payments); then Claude
+        Code builds part 1. (c) Claude Code: move the frontend to
+        Cloudflare Pages before the first seller pays; the founder
+        connects the GitHub repo in Cloudflare when asked.
 00000. Founder: Oak in the shop (after a push). (a) See the Khmer line
        at the bottom of a shop, "ដំណើរការដោយ Oak Order". (b) Paste a shop link, a
        product link and order.oaksolve.com into Facebook's Sharing
