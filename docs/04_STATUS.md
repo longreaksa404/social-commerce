@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-14 (pricing decided, nothing built yet: Standard $9.99/month or $99/year, 1-month free trial, no free plan, no new orders 7 days after an unpaid trial, a payment gateway, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-14 (plan and billing part 1 built, not pushed: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -1248,6 +1248,39 @@ then fix only the approved findings, one commit each):
    order photos fill in late in flow 8). On resume, re-run measure.py
    and Lighthouse on the new features instead of a full new audit.
 
+**Plan and billing, part 1** (pricing decided 2026-10-14, 01 §33.1; the
+founder approved the data model the same day and said build it; not
+pushed):
+
+1. [x] **Backend** (`55b3cea`): `store.paid_until` (the last day
+   covered: day 30 of the free trial from sign-up; shops that exist when
+   it deploys get 30 days from that day) and `plan_payment` (RLS;
+   sellers may only read it). The stage is worked out when read, no job:
+   the last 6 days, then 7 days to pay with orders still coming, then no
+   new orders. Customers then see the paused notice, never a word about
+   payment; an order from a chat gets `PLAN_UNPAID`; orders already
+   placed carry on. `GET /seller/plan`. The founder's `python -m
+   app.admin plans` (who to remind) and `paid <login> month|year`
+   (shows the days it covers and asks first; `docs/ADMIN.md`). A payment
+   carries on from the end of the covered time, or from the day it's
+   paid once orders have stopped. 25 tests.
+2. [x] **App** (`1849cb9`): Settings → Plan (free until / paid until with
+   days left, what's included, Monthly / Yearly with "Save $20.88", "Pay
+   $9.99 on Telegram" opening Oak Order's Telegram with the amount and
+   the shop typed, the payments so far), its row in the Settings menu,
+   the reminder on the Orders tab (owners from day 25; staff only once
+   orders stop) and on New order, "Free for 1 month, then $9.99 a month
+   or $99 a year." under Create store, and the Terms' Fees (dated
+   2026-10-14). English and Khmer.
+3. [ ] **Part 2**: paying in the app through a payment gateway (ABA
+   PayWay or similar), once the founder has a merchant account.
+
+Checked: 643 backend tests, ruff, oxlint and the build pass. In headless
+Chromium at 390 px on a local test shop: the trial, 3 days left, 2 days
+over and 10 days over (Orders tab, Plan, New order, the shop's notice),
+a yearly payment recorded with `paid` (Plan in English and Khmer, the
+Settings menu), the sign-up page in Khmer and the Terms' Fees.
+
 Phase 9, waiting on the founder:
 
 - **Live load test**, once, before the first real seller, from home
@@ -1878,7 +1911,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 |---|---|---|---|
 | 2026-10-10 | Founder (Oak in the shop) | Let sellers on a paid plan hide "Made with Oak Order" | Decided 2026-10-14: the line stays on the Standard plan; hiding it may come with a later plan (01 §33.1). Details in 03 §6. |
 | 2026-10-09 | Founder (trying the numbers card locally) | A seller dashboard: a page for the shop's numbers, with the chart (sales per day; today, 7 days, this month) | Later: the page first, then the chart on it. The server part is ready (`GET /seller/stats`, owner only). Details in 03 §6. |
-| 2026-10-08 | Founder (Settings) | Plan and billing page: the seller's plan, price, paid-until date, how to pay Oak Order | Pricing decided 2026-10-14 (01 §33.1). To build in 03 Phase 9: part 1 (trial, Settings → Plan, no new orders when unpaid, the founder's payment command), then part 2 (payment gateway, once the founder has a merchant account). |
+| 2026-10-08 | Founder (Settings) | Plan and billing page: the seller's plan, price, paid-until date, how to pay Oak Order | Part 1 built 2026-10-14, not pushed (trial, Settings → Plan, no new orders when unpaid, the founder's `paid` command). Part 2 (payment gateway) once the founder has a merchant account. |
 | 2026-10-06 | Founder (shop redesign) | Search in the shop | Logged for later; build when a seller has 30+ products. Details in 03 §6. |
 | 2026-10-02 | Founder (testing Phase 4) | One-tap pay for several banks (ABA, ACLEDA, Wing): open the customer's bank app with the amount filled in, and mark it paid automatically | Validate First: ask first sellers which banks their customers use, whether they're a registered business, and whether they'd pay per-payment fees. Details in 03 §6. |
 
@@ -1889,11 +1922,16 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 000000. Pricing (decided 2026-10-14, 01 §33.1). (a) Founder: ask ABA
         what a PayWay merchant account needs (a registered business?),
         the fee per payment and how long it takes, or ask another
-        gateway. (b) Founder: approve the billing data model (a
-        paid-until date per shop and a list of payments); then Claude
-        Code builds part 1. (c) Claude Code: move the frontend to
+        gateway. (b) Part 1 is built, not pushed (In Progress, "Plan and
+        billing"). After a push: every shop gets 30 days from that day;
+        set `VITE_SUPPORT_TELEGRAM` in Vercel, or Settings → Plan has no
+        "Pay on Telegram" button; run `python -m app.admin plans` on the
+        live database (docs/ADMIN.md); read Settings → Plan and the
+        Terms' Fees in Khmer. (c) Claude Code: move the frontend to
         Cloudflare Pages before the first seller pays; the founder
-        connects the GitHub repo in Cloudflare when asked.
+        connects the GitHub repo in Cloudflare when asked. The
+        vercel.app address's redirect to order.oaksolve.com (old
+        Telegram and reset links) needs a plan there too.
 00000. Founder: Oak in the shop (after a push). (a) See the Khmer line
        at the bottom of a shop, "ដំណើរការដោយ Oak Order". (b) Paste a shop link, a
        product link and order.oaksolve.com into Facebook's Sharing
