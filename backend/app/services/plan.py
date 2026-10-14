@@ -129,6 +129,27 @@ def auto_charge_failed(
     return max(failed, key=lambda p: p.created_at, default=None)
 
 
+def next_charge(store: Store, payments: list[PlanPayment], today: date) -> date | None:
+    """When auto-charge next tries (app/services/billing.py): the shop's
+    start day; during the 7 days to pay, today, or tomorrow once today's
+    try is done; none once orders have stopped (paying now starts it again)."""
+    if store.payway_token is None:
+        return None
+    start = store.paid_until + timedelta(days=1)
+    if today < start:
+        return start
+    if stage(store.paid_until, today) is PlanStage.STOPPED:
+        return None
+    tried = any(
+        p.method is PlanPaymentMethod.PAYWAY_AUTO and p.created_at >= day_start(today)
+        for p in payments
+    )
+    if not tried:
+        return today
+    tomorrow = today + timedelta(days=1)
+    return tomorrow if tomorrow <= pay_by(store.paid_until) else None
+
+
 async def get_plan(db: AsyncSession, store_id: uuid.UUID) -> PlanOut:
     store = await store_service.get_store(db, store_id)
     payments = list(
@@ -151,7 +172,7 @@ async def get_plan(db: AsyncSession, store_id: uuid.UUID) -> PlanOut:
         auto_charge = AutoChargeOut(
             label=store.payway_token_label or "",
             amount=PRICES[PlanPeriod.MONTH],
-            next_charge=max(store.paid_until + timedelta(days=1), today),
+            next_charge=next_charge(store, payments, today),
         )
     return PlanOut(
         stage=stage(store.paid_until, today),

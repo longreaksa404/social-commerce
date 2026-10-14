@@ -4,6 +4,7 @@ import type { Tree } from '../core.ts'
 export const common = {
   back: { en: 'Back', km: 'ត្រឡប់ក្រោយ' },
   cancel: { en: 'Cancel', km: 'បោះបង់' },
+  close: { en: 'Close', km: 'បិទ' },
   confirm: { en: 'Confirm', km: 'បញ្ជាក់' },
   save: { en: 'Save', km: 'រក្សាទុក' },
   saving: { en: 'Saving…', km: 'កំពុងរក្សាទុក…' },

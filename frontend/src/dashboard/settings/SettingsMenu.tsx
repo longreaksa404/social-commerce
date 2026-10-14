@@ -15,6 +15,7 @@ import {
   Tag,
   Truck,
   UserRound,
+  ShieldCheck,
   Users,
   Wallet,
   type LucideIcon,
@@ -215,8 +216,9 @@ function MenuRow({
     )
   }
   return (
-    // From the menu's own address, so it works beside an open setting too.
-    <Link to={`/dashboard/settings/${to}`} aria-current={selected ? 'page' : undefined} className={className}>
+    // From the menu's own address, so it works beside an open setting too;
+    // an address starting with / is a page of its own (the admin page).
+    <Link to={to?.startsWith('/') ? to : `/dashboard/settings/${to}`} aria-current={selected ? 'page' : undefined} className={className}>
       {content}
     </Link>
   )
@@ -281,9 +283,12 @@ function DisplaySection() {
 
 /** The person's own things, apart from the store's settings. */
 function AccountRows({ selected, store, owner }: { selected?: Selected; store?: Store; owner: boolean }) {
-  const s = useT().settings
+  const t = useT()
+  const s = t.settings
+  const a = t.admin
   const plan = usePlan()
-  const rows: { id: PageId | 'help'; href?: string; icon: LucideIcon; title: string; summary: string }[] = [
+  const isAdmin = useAccount().data?.is_admin === true
+  const rows: { id: PageId | 'help' | 'admin'; to?: string; href?: string; icon: LucideIcon; title: string; summary: string }[] = [
     { id: 'account', icon: UserRound, title: s.yourAccount, summary: s.menu.accountHint },
   ]
   if (owner) {
@@ -295,6 +300,7 @@ function AccountRows({ selected, store, owner }: { selected?: Selected; store?: 
     rows.push({ id: 'help', href: supportLink(shop), icon: LifeBuoy, title: s.help, summary: s.menu.helpHint })
   }
   if (owner) rows.push({ id: 'close', icon: DoorClosed, title: s.closeShop, summary: s.menu.closeHint })
+  if (isAdmin) rows.push({ id: 'admin', to: '/dashboard/admin', icon: ShieldCheck, title: a.title, summary: a.menuHint })
   return (
     <section aria-labelledby="account">
       <h2 id="account" className="mb-2 sm:px-1 text-sm font-semibold text-slate-500">
@@ -302,10 +308,10 @@ function AccountRows({ selected, store, owner }: { selected?: Selected; store?: 
       </h2>
       <Card>
         <ul className="divide-y divide-slate-100">
-          {rows.map(({ id, href, icon, title, summary }) => (
+          {rows.map(({ id, to, href, icon, title, summary }) => (
             <li key={id}>
               <MenuRow
-                to={href ? undefined : id}
+                to={href ? undefined : (to ?? id)}
                 href={href}
                 selected={selected === id}
                 icon={<RowIcon icon={icon} />}
@@ -325,6 +331,7 @@ function planSummary(plan: Plan | undefined, p: Messages['settings']['plan']): s
   if (!plan) return ''
   if (plan.stage === 'stopped') return p.menuStopped
   if (plan.stage === 'overdue') return p.menuOverdue(formatCalendarDay(plan.pay_by))
+  if (plan.auto_charge?.next_charge) return p.menuAuto(formatCalendarDay(plan.auto_charge.next_charge))
   return (plan.on_trial ? p.menuTrial : p.menuPaid)(formatDate(`${plan.paid_until}T00:00`))
 }
 

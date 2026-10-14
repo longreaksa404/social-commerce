@@ -1,0 +1,71 @@
+import type { Tree } from '../core.ts'
+
+/** Oak Order's admin page: only the founder's login sees it (ADMIN_PHONES). */
+export const admin = {
+  title: { en: 'Oak Order admin', km: 'គ្រប់គ្រង Oak Order' },
+  menuHint: { en: "Every shop's plan", km: 'គម្រោងរបស់ហាងទាំងអស់' },
+  search: { en: 'Shop, link or phone', km: 'ហាង តំណ ឬលេខទូរស័ព្ទ' },
+  filters: {
+    all: { en: 'All', km: 'ទាំងអស់' },
+    ending: { en: 'Ends soon', km: 'ជិតផុត' },
+    unpaid: { en: 'Unpaid', km: 'មិនទាន់បង់' },
+    stopped: { en: 'No orders', km: 'ឈប់ទទួល' },
+    auto: { en: 'Auto-charge', km: 'ស្វ័យប្រវត្តិ' },
+  },
+  count: { en: (n: number) => (n === 1 ? '1 shop' : `${n} shops`), km: (n: number) => `${n} ហាង` },
+  none: { en: 'No shops here.', km: 'គ្មានហាងនៅទីនេះទេ។' },
+  stage: {
+    active: { en: 'OK', km: 'ធម្មតា' },
+    ending_soon: { en: 'Ends soon', km: 'ជិតផុត' },
+    overdue: { en: 'Unpaid', km: 'មិនទាន់បង់' },
+    stopped: { en: 'No orders', km: 'ឈប់ទទួល' },
+  },
+  trial: { en: 'Trial', km: 'សាកល្បង' },
+  paying: { en: 'Paying', km: 'កំពុងបង់' },
+  closed: { en: 'Closed', km: 'បានបិទ' },
+  paidUntil: { en: (day: string) => `Paid until ${day}`, km: (day: string) => `បានបង់រហូតដល់ ${day}` },
+  payBy: { en: (day: string) => `pay by ${day}`, km: (day: string) => `បង់ត្រឹម ${day}` },
+  nextCharge: {
+    en: (label: string, day: string) => `Auto-charge ${label}, next ${day}`,
+    km: (label: string, day: string) => `ស្វ័យប្រវត្តិ ${label} បន្ទាប់ ${day}`,
+  },
+  autoChargeOnly: { en: (label: string) => `Auto-charge ${label}`, km: (label: string) => `ស្វ័យប្រវត្តិ ${label}` },
+  lastFailure: { en: (why: string) => `Last charge failed: ${why}`, km: (why: string) => `ការគិតប្រាក់ចុងក្រោយបរាជ័យ៖ ${why}` },
+  lastPaid: { en: (day: string) => `Last paid ${day}`, km: (day: string) => `បង់ចុងក្រោយ ${day}` },
+  signedUp: { en: (day: string) => `Signed up ${day}`, km: (day: string) => `ចុះឈ្មោះ ${day}` },
+  openShop: { en: 'Open shop', km: 'បើកហាង' },
+  payments: { en: 'Payments', km: 'ការបង់ប្រាក់' },
+  noPayments: { en: 'No payments yet.', km: 'មិនទាន់មានការបង់ប្រាក់ទេ។' },
+  method: {
+    manual: { en: 'By hand', km: 'ដោយដៃ' },
+    payway: { en: 'PayWay', km: 'PayWay' },
+    payway_subscribe: { en: 'PayWay + auto-charge', km: 'PayWay + ស្វ័យប្រវត្តិ' },
+    payway_auto: { en: 'Auto-charge', km: 'ស្វ័យប្រវត្តិ' },
+  },
+  status: {
+    pending: { en: 'Waiting', km: 'កំពុងរង់ចាំ' },
+    paid: { en: 'Paid', km: 'បានបង់' },
+    failed: { en: 'Failed', km: 'បរាជ័យ' },
+  },
+  covers: {
+    en: (from: string, until: string) => `${from} to ${until}`,
+    km: (from: string, until: string) => `${from} ដល់ ${until}`,
+  },
+  markPaid: { en: 'Mark paid', km: 'កត់ថាបានបង់' },
+  markPaidHint: {
+    en: 'A payment made to you by hand. It covers the next month or year at once. 0 gives free time.',
+    km: 'ការបង់ប្រាក់ដែលបានបង់ឱ្យអ្នកដោយដៃ។ វាគ្របដណ្ដប់ខែ ឬឆ្នាំបន្ទាប់ភ្លាមៗ។ 0 ផ្ដល់ពេលឥតគិតថ្លៃ។',
+  },
+  period: { en: 'For', km: 'សម្រាប់' },
+  month: { en: 'A month', km: 'មួយខែ' },
+  year: { en: 'A year', km: 'មួយឆ្នាំ' },
+  amount: { en: 'Amount (US dollars)', km: 'ចំនួន (ដុល្លារអាមេរិក)' },
+  note: { en: 'Note (optional)', km: 'កំណត់ចំណាំ (មិនចាំបាច់)' },
+  notePlaceholder: { en: 'ABA transfer, ref 4821', km: 'ផ្ទេរ ABA លេខយោង 4821' },
+  confirmTitle: { en: (shop: string) => `Mark ${shop} paid?`, km: (shop: string) => `កត់ថា ${shop} បានបង់?` },
+  confirmMessage: {
+    en: (amount: string, period: string) => `${amount} for ${period}. This can't be undone here.`,
+    km: (amount: string, period: string) => `${amount} សម្រាប់${period}។ មិនអាចត្រឡប់វិញនៅទីនេះបានទេ។`,
+  },
+  marked: { en: (day: string) => `Recorded. Paid until ${day}.`, km: (day: string) => `បានកត់ត្រា។ បានបង់រហូតដល់ ${day}។` },
+} satisfies Tree

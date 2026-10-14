@@ -13,7 +13,10 @@ import type {
   OrderList,
   OrderStatus,
   PaymentStatus,
+  AdminShop,
+  AdminShopDetail,
   Plan,
+  PlanPayment,
   Product,
   ShareLink,
   StaffMember,
@@ -25,6 +28,9 @@ export const keys = {
   account: ['account'] as const,
   staff: ['staff'] as const,
   plan: ['plan'] as const,
+  planPayment: (id: string) => ['plan', 'payments', id] as const,
+  adminShops: ['admin', 'shops'] as const,
+  adminShop: (id: string) => ['admin', 'shops', id] as const,
   telegramLink: ['telegram-link'] as const,
   categories: ['categories'] as const,
   products: ['products'] as const,
@@ -68,6 +74,52 @@ export function useAccount() {
  * Oak Order changes it (a payment), so a fresh copy on each visit is enough. */
 export function usePlan() {
   return useQuery({ queryKey: keys.plan, queryFn: () => api<Plan>('/seller/plan'), staleTime: SETTLED_MS })
+}
+
+/** A payment the seller just made on PayWay's page: asked again every few
+ * seconds while PayWay hasn't answered (the API asks PayWay each time). */
+export function usePlanPayment(id: string | null) {
+  const queryClient = useQueryClient()
+  return useQuery({
+    queryKey: keys.planPayment(id ?? ''),
+    queryFn: async () => {
+      const payment = await api<PlanPayment>(`/seller/plan/payments/${id}`)
+      if (payment.status !== 'pending') queryClient.invalidateQueries({ queryKey: keys.plan, exact: true })
+      return payment
+    },
+    enabled: id !== null,
+    refetchInterval: (query) => (query.state.data?.status === 'pending' && query.state.dataUpdateCount < 20 ? 3000 : false),
+  })
+}
+
+export function useTurnOffAutoCharge() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => api<Plan>('/seller/plan/auto-charge', { method: 'DELETE' }),
+    onSuccess: (plan) => queryClient.setQueryData(keys.plan, plan),
+  })
+}
+
+/** Oak Order's admin page: every shop's plan. */
+export function useAdminShops() {
+  return useQuery({ queryKey: keys.adminShops, queryFn: () => api<AdminShop[]>('/admin/shops') })
+}
+
+export function useAdminShop(id: string) {
+  return useQuery({ queryKey: keys.adminShop(id), queryFn: () => api<AdminShopDetail>(`/admin/shops/${id}`) })
+}
+
+/** Mark a payment made by hand (amount "0": free time). */
+export function useMarkPaid(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { period: 'month' | 'year'; amount: string | null; note: string | null }) =>
+      api<AdminShopDetail>(`/admin/shops/${id}/payments`, { method: 'POST', body }),
+    onSuccess: (shop) => {
+      queryClient.setQueryData(keys.adminShop(id), shop)
+      queryClient.invalidateQueries({ queryKey: keys.adminShops, exact: true })
+    },
+  })
 }
 
 /** The logged-in person's role, once known: staff see no store settings. */

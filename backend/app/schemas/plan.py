@@ -48,7 +48,9 @@ class AutoChargeOut(BaseModel):
 
     label: str  # the saved ABA account or card: "ABA ···5312"
     amount: Decimal  # USD, each month
-    next_charge: date  # the shop's next start day (retried daily for 7 days if it fails)
+    # The next try: the shop's start day, then daily for the 7 days to pay;
+    # none once orders have stopped (paying now starts it again).
+    next_charge: date | None
 
 
 class PlanOut(BaseModel):

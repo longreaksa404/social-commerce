@@ -1,4 +1,5 @@
 import type { Tree } from '../core.ts'
+import { admin } from './admin.ts'
 import { auth } from './auth.ts'
 import { categories } from './categories.ts'
 import { checkout } from './checkout.ts'
@@ -14,4 +15,4 @@ import { settings } from './settings.ts'
 import { shop } from './shop.ts'
 import { status } from './status.ts'
 
-export const messageTree = { common, auth, shop, checkout, order, status, dashboard, orders, customers, products, categories, links, settings, legal } satisfies Tree
+export const messageTree = { common, auth, shop, checkout, order, status, dashboard, orders, customers, products, categories, links, settings, legal, admin } satisfies Tree

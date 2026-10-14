@@ -36,6 +36,11 @@ export const orders = {
     en: "Your shop isn't taking new orders. Tap to pay and open it again.",
     km: 'ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ថ្មីទេ។ ចុចដើម្បីបង់ ហើយបើកវាវិញ។',
   },
+  // Auto-charge on, and it failed (it's tried again each day).
+  planChargeFailed: {
+    en: (label: string, day: string) => `We couldn't charge ${label}. Pay by ${day} to keep taking orders.`,
+    km: (label: string, day: string) => `យើងមិនអាចគិតប្រាក់ពី ${label} បានទេ។ សូមបង់ត្រឹម ${day} ដើម្បីបន្តទទួលការកុម្ម៉ង់។`,
+  },
   // Paying is the owner's.
   planStoppedStaff: {
     en: "The shop isn't taking new orders until the owner pays for Oak Order.",

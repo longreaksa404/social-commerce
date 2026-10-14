@@ -374,6 +374,56 @@ export const settings = {
       en: (paid: string, from: string, until: string) => `Paid ${paid} · for ${from} to ${until}`,
       km: (paid: string, from: string, until: string) => `បានបង់ ${paid} · សម្រាប់ ${from} ដល់ ${until}`,
     },
+    // Paying in the app, through ABA PayWay.
+    payNow: { en: (price: string) => `Pay ${price}`, km: (price: string) => `បង់ ${price}` },
+    payWays: {
+      en: 'Pay with ABA PAY, KHQR from any bank, or a card, on ABA PayWay’s page. Your shop is extended as soon as it’s paid.',
+      km: 'បង់ដោយ ABA PAY, KHQR ពីធនាគារណាមួយ ឬកាត នៅលើទំព័រ ABA PayWay។ ហាងរបស់អ្នកនឹងត្រូវបានបន្តភ្លាមៗ នៅពេលបានបង់។',
+    },
+    autoChargeOffer: { en: 'Charge me automatically each month', km: 'គិតប្រាក់ពីខ្ញុំដោយស្វ័យប្រវត្តិរៀងរាល់ខែ' },
+    autoChargeOfferHint: {
+      en: (price: string) =>
+        `Pay this month now with your ABA account or a card, and ${price} is taken from it on your start day each month. Turn it off at any time.`,
+      km: (price: string) =>
+        `បង់ខែនេះឥឡូវ ដោយគណនី ABA ឬកាតរបស់អ្នក ហើយ ${price} នឹងត្រូវកាត់ពីវានៅថ្ងៃចាប់ផ្ដើមរបស់អ្នករៀងរាល់ខែ។ អាចបិទបានគ្រប់ពេល។`,
+    },
+    withAba: { en: 'ABA account', km: 'គណនី ABA' },
+    withCard: { en: 'Card', km: 'កាត' },
+    opening: { en: 'Opening ABA PayWay…', km: 'កំពុងបើក ABA PayWay…' },
+    autoChargeOn: { en: 'Auto-charge is on', km: 'ការគិតប្រាក់ស្វ័យប្រវត្តិកំពុងបើក' },
+    autoChargeNext: {
+      en: (price: string, label: string, day: string) => `${price} from ${label} on ${day}, then each month.`,
+      km: (price: string, label: string, day: string) => `${price} ពី ${label} នៅ ${day} ហើយរៀងរាល់ខែ។`,
+    },
+    autoChargeAfterPay: {
+      en: (price: string, label: string) => `${price} from ${label} each month, starting again once you pay below.`,
+      km: (price: string, label: string) => `${price} ពី ${label} រៀងរាល់ខែ ចាប់ផ្ដើមម្ដងទៀតនៅពេលអ្នកបង់នៅខាងក្រោម។`,
+    },
+    turnOff: { en: 'Turn off auto-charge', km: 'បិទការគិតប្រាក់ស្វ័យប្រវត្តិ' },
+    turnOffTitle: { en: 'Turn off auto-charge?', km: 'បិទការគិតប្រាក់ស្វ័យប្រវត្តិ?' },
+    turnOffMessage: {
+      en: 'Nothing more is taken from your account or card. You pay each month yourself here.',
+      km: 'គ្មានប្រាក់ត្រូវបានកាត់ពីគណនី ឬកាតរបស់អ្នកទៀតទេ។ អ្នកបង់ដោយខ្លួនឯងនៅទីនេះរៀងរាល់ខែ។',
+    },
+    turnedOff: { en: 'Auto-charge turned off', km: 'បានបិទការគិតប្រាក់ស្វ័យប្រវត្តិ' },
+    chargeFailed: {
+      en: (label: string, day: string) => `We couldn’t charge ${label}. We try again each day until ${day}, or pay now below.`,
+      km: (label: string, day: string) => `យើងមិនអាចគិតប្រាក់ពី ${label} បានទេ។ យើងព្យាយាមម្ដងទៀតរៀងរាល់ថ្ងៃរហូតដល់ ${day} ឬបង់ឥឡូវនេះនៅខាងក្រោម។`,
+    },
+    // Back from PayWay's page.
+    checking: { en: 'Checking your payment…', km: 'កំពុងពិនិត្យការបង់ប្រាក់របស់អ្នក…' },
+    paidNow: { en: (day: string) => `Thank you! Paid until ${day}.`, km: (day: string) => `សូមអរគុណ! បានបង់រហូតដល់ ${day}។` },
+    notPaid: { en: (why: string) => `Not paid: ${why}`, km: (why: string) => `មិនទាន់បានបង់៖ ${why}` },
+    stillWaiting: {
+      en: 'ABA PayWay hasn’t told us yet. This page updates by itself once it does.',
+      km: 'ABA PayWay មិនទាន់ប្រាប់យើងនៅឡើយ។ ទំព័រនេះនឹងធ្វើបច្ចុប្បន្នភាពដោយខ្លួនឯង នៅពេលវាប្រាប់។',
+    },
+    autoCharge: { en: 'Auto-charge', km: 'ស្វ័យប្រវត្តិ' },
+    failed: { en: (why: string) => `Failed: ${why}`, km: (why: string) => `បរាជ័យ៖ ${why}` },
+    menuAuto: {
+      en: (day: string) => `Auto-charge on, next ${day}`,
+      km: (day: string) => `គិតប្រាក់ស្វ័យប្រវត្តិ បន្ទាប់ ${day}`,
+    },
     // The Settings menu's row.
     menuTrial: { en: (day: string) => `Free trial until ${day}`, km: (day: string) => `សាកល្បងឥតគិតថ្លៃរហូតដល់ ${day}` },
     menuPaid: { en: (day: string) => `Standard, paid until ${day}`, km: (day: string) => `Standard បានបង់រហូតដល់ ${day}` },

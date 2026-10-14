@@ -9,7 +9,7 @@ ADMIN_PHONES.
 
 import uuid
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import date
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,7 +53,7 @@ def _shop(store: Store, owner: Seller, payments: list[PlanPayment], today: date)
         paid_until=store.paid_until,
         pay_by=plan_service.pay_by(store.paid_until),
         auto_charge=store.payway_token_label if charging else None,
-        next_charge=max(store.paid_until + timedelta(days=1), today) if charging else None,
+        next_charge=plan_service.next_charge(store, payments, today),
         last_paid_on=max((p.paid_on for p in paid if p.paid_on), default=None),
         last_failure=failed.failure if failed else None,
     )

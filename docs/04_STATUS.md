@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-14 (plan and billing part 1 built, not pushed: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-14 (billing through ABA PayWay built, not pushed and not yet tried against PayWay: Pay now, monthly auto-charge with retries and Telegram, the founder's admin page; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -1272,14 +1272,33 @@ pushed):
    orders stop) and on New order, "Free for 1 month, then $9.99 a month
    or $99 a year." under Create store, and the Terms' Fees (dated
    2026-10-14). English and Khmer.
-3. [ ] **Part 2**: paying in the app through a payment gateway (ABA
-   PayWay or similar), once the founder has a merchant account.
+3. [x] **ABA PayWay, steps 1 and 2, and the admin page** (founder's
+   design, picks 1A 2B 3A, 2026-10-14; backend `1af6470`, app in the
+   commit after it). Pay now: PayWay's checkout (ABA PAY, KHQR, card),
+   marked paid only on PayWay's own transaction check (its callback, the
+   seller coming back, and the daily run each just ask). Monthly
+   auto-charge: Pay now with "Charge me automatically each month" (ABA
+   account or card) is a PayWay subscription; PayWay's subscriptions do
+   weekly, monthly or 2 months, so yearly stays Pay now. The daily run
+   (`POST /billing/run`, cron-job.org) charges on the shop's start day
+   and each day of the 7 days to pay; Telegram on the first failure and
+   day 5; a dead token turns auto-charge off; the seller can turn it off.
+   The admin page (Settings → Oak Order admin, only `ADMIN_PHONES`):
+   every shop's plan, next charge, last failure, and Mark paid (0 = free
+   time). 23 tests with a fake PayWay (664 in all).
+   **Not tried against PayWay yet**: the field formats follow PayWay's
+   docs of 2026-10-14; the sandbox may still turn up a field to fix
+   (e.g. whether `return_url` is base64).
 
 Checked: 643 backend tests, ruff, oxlint and the build pass. In headless
 Chromium at 390 px on a local test shop: the trial, 3 days left, 2 days
 over and 10 days over (Orders tab, Plan, New order, the shop's notice),
 a yearly payment recorded with `paid` (Plan in English and Khmer, the
 Settings menu), the sign-up page in Khmer and the Terms' Fees.
+PayWay screens checked the same way with test settings: Plan with Pay
+now and the auto-charge switch (ABA account / card), auto-charge on, a
+failed charge (Plan in English and Khmer, the Orders reminder), back
+from PayWay ("Thank you! Paid until …"), the admin list and a shop.
 
 Phase 9, waiting on the founder:
 
@@ -1919,7 +1938,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 |---|---|---|---|
 | 2026-10-10 | Founder (Oak in the shop) | Let sellers on a paid plan hide "Made with Oak Order" | Decided 2026-10-14: the line stays on the Standard plan; hiding it may come with a later plan (01 §33.1). Details in 03 §6. |
 | 2026-10-09 | Founder (trying the numbers card locally) | A seller dashboard: a page for the shop's numbers, with the chart (sales per day; today, 7 days, this month) | Later: the page first, then the chart on it. The server part is ready (`GET /seller/stats`, owner only). Details in 03 §6. |
-| 2026-10-08 | Founder (Settings) | Plan and billing page: the seller's plan, price, paid-until date, how to pay Oak Order | Part 1 built 2026-10-14, not pushed (trial, Settings → Plan, no new orders when unpaid, the founder's `paid` command). Part 2 (payment gateway) once the founder has a merchant account. |
+| 2026-10-08 | Founder (Settings) | Plan and billing page: the seller's plan, price, paid-until date, how to pay Oak Order | Built 2026-10-14, not pushed: part 1 (trial, Settings → Plan, no new orders when unpaid, the founder's `paid` command) and ABA PayWay (Pay now, monthly auto-charge, admin page). Waits for the founder's PayWay sandbox keys (Next Up). |
 | 2026-10-06 | Founder (shop redesign) | Search in the shop | Logged for later; build when a seller has 30+ products. Details in 03 §6. |
 | 2026-10-02 | Founder (testing Phase 4) | One-tap pay for several banks (ABA, ACLEDA, Wing): open the customer's bank app with the amount filled in, and mark it paid automatically | Validate First: ask first sellers which banks their customers use, whether they're a registered business, and whether they'd pay per-payment fees. Details in 03 §6. |
 
@@ -1927,10 +1946,35 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-000000. Pricing (decided 2026-10-14, 01 §33.1). (a) Founder: ask ABA
-        what a PayWay merchant account needs (a registered business?),
-        the fee per payment and how long it takes, or ask another
-        gateway. (b) Part 1 is built, not pushed (In Progress, "Plan and
+0000000. **ABA PayWay** (built, not pushed; In Progress, "Plan and
+        billing" 3). Founder:
+        1. Register PayWay's sandbox (sandbox.payway.com.kh/register-sandbox);
+           the merchant ID and API key come by email.
+        2. Ask PayWay's integration team to: whitelist `order.oaksolve.com`
+           (the browser posts the checkout), `api.oaksolve.com` and Render's
+           outgoing IP addresses for Singapore (Render → the service →
+           Connect → Outbound); turn on Credentials on File with scheduled
+           payments (CITR_FIX, MITR_FIX); set the Credential on File
+           callback URL to https://api.oaksolve.com/api/v1/payway/token-callback
+           and allow https://api.oaksolve.com/api/v1/payway/callback.
+        3. Render variables: `PAYWAY_MERCHANT_ID`, `PAYWAY_API_KEY`,
+           `PAYWAY_BASE_URL` (the sandbox's for now),
+           `BILLING_CRON_SECRET` (a long random string), `ADMIN_PHONES`
+           (your login number).
+        4. cron-job.org: a job once a day (e.g. 07:30 Phnom Penh), POST
+           https://api.oaksolve.com/api/v1/billing/run with the header
+           `X-Cron-Secret: <the same secret>`.
+        5. Push, then on the live site with the sandbox: pay a month, a
+           year, and a month with auto-charge (ABA, then card); open
+           Settings → Oak Order admin. Send Claude anything PayWay
+           refuses (its code and message) to adjust.
+        6. Live: ask paywaysales@ababank.com for production keys (likely
+           a registered business), then change the three PAYWAY_
+           variables. Move Render to Starter before real payments: on
+           the free plan a sleeping server can miss PayWay's callback
+           (the seller's page and the daily run still catch it).
+000000. Pricing (decided 2026-10-14, 01 §33.1). (a) Done: PayWay is the
+        gateway (item above). (b) Part 1 is built, not pushed (In Progress, "Plan and
         billing"). After a push: every shop gets 30 days from that day;
         set `VITE_SUPPORT_TELEGRAM` in Vercel, or Settings → Plan has no
         "Pay on Telegram" button; run `python -m app.admin plans` on the

@@ -553,3 +553,18 @@ async def test_the_browser_never_gets_our_api_key(client, auth_headers, fake):
         rows = list(await db.scalars(select(PlanPayment)))
     pending = [p for p in rows if p.id.hex == form.json()["payment_id"].replace("-", "")]
     assert [(p.method, p.status) for p in pending] == [("payway", "pending")]
+
+
+async def test_the_next_charge_moves_to_tomorrow_after_a_failure(client, register, fake):
+    headers, store = await auto_charging_shop(client, register, fake, days_over=1)
+    fake.charge_status = "DECLINED"
+
+    before = (await client.get(PLAN, headers=headers)).json()["auto_charge"]["next_charge"]
+    await billing.run_daily()
+    after = (await client.get(PLAN, headers=headers)).json()["auto_charge"]["next_charge"]
+    await set_store(store["id"], paid_until=clock.today() - timedelta(days=8))
+    stopped = (await client.get(PLAN, headers=headers)).json()["auto_charge"]["next_charge"]
+
+    assert before == clock.today().isoformat()
+    assert after == (clock.today() + timedelta(days=1)).isoformat()
+    assert stopped is None

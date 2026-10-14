@@ -7,6 +7,8 @@ import { DashboardLayout } from './dashboard/Layout.tsx'
 import { LinkDetail } from './dashboard/links/LinkDetail.tsx'
 import { LinkList } from './dashboard/links/LinkList.tsx'
 import { NewLink } from './dashboard/links/NewLink.tsx'
+import { AdminShop } from './dashboard/admin/AdminShop.tsx'
+import { AdminShops } from './dashboard/admin/AdminShops.tsx'
 import { Notifications } from './dashboard/Notifications.tsx'
 import { NewOrder } from './dashboard/orders/NewOrder.tsx'
 import { OrdersPage } from './dashboard/orders/OrderList.tsx'
@@ -69,6 +71,9 @@ export const router = createBrowserRouter([
           { path: 'settings', element: <SettingsPage /> },
           { path: 'settings/:section', element: <SettingsPage /> },
           { path: 'notifications', element: <Notifications /> },
+          // Oak Order's admin page: the founder's login only (ADMIN_PHONES).
+          { path: 'admin', element: <AdminShops /> },
+          { path: 'admin/:storeId', element: <AdminShop /> },
         ],
       },
       {
