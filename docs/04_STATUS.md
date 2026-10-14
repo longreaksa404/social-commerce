@@ -1240,6 +1240,13 @@ then fix only the approved findings, one commit each):
    waits for photo 1 measured 9.7 s to 6.8 s, F6b, for the founder).
    F4 skipped: no live curl output yet. 614 backend tests, oxlint and
    the build pass after each.
+3. [ ] **Paused** (founder, 2026-10-14) until the next features
+   are done. F1 accepted at 3 fetches (the Products screen refetches
+   for current stock). Pending on resume: section 8 curls (decide F4);
+   device checklist (decides F2, F16, F17; F6b by timing the first
+   photo on a 1-photo vs a 4-photo product in flow 3; F18 by whether
+   order photos fill in late in flow 8). On resume, re-run measure.py
+   and Lighthouse on the new features instead of a full new audit.
 
 Phase 9, waiting on the founder:
 
@@ -1769,6 +1776,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
   a broad `git add`; its docs came in `2a54bd6`. The code is complete
   and tested; only the commit message doesn't say so. Two Claude
   sessions worked on the repo at once that day: stage files by name.
+  It happened again during the performance pass. Run one session at a
+  time when both touch the frontend.
 - Anyone can still create a store at `/register` (03 says onboarding is
   manual for now). Founder to decide whether to close sign-up before
   launch.
@@ -1871,12 +1880,6 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
        keep their old card until Facebook reads them again (about every
        30 days) or you press Scrape Again. (c) Add the app to an
        iPhone's home screen: the icon should be the leaf.
-0000. Founder: performance pass. (a) From home, run the three curl
-      commands in `docs/PERF_AUDIT.md` section 8 and paste the output to
-      Claude. (b) Once the Phase 2 fixes are live, run the device
-      checklist (section 9) on an iPhone and an Android phone and send the
-      grid. (c) Take the results to the planning project to decide F2,
-      F16, F17.
 000. Founder: set up and test sign-up and the three logins in one go
      (founder's plan, 2026-10-09). Each part stays hidden until its keys
      are set, so the order doesn't matter.
@@ -1990,3 +1993,9 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 9. Founder: the live load test from home (the bcrypt fix is live)
    (`backend/loadtest/README.md`); send Claude the
    summary lines. Decide Render free vs Starter with those numbers.
+10. Founder: performance pass, **paused until the next features are
+    done** (founder, 2026-10-14). (a) From home, run the three curl
+    commands in `docs/PERF_AUDIT.md` section 8 and paste the output to
+    Claude. (b) Run the device checklist (section 9) on an iPhone and an
+    Android phone and send the grid. (c) Take the results to the planning
+    project to decide F2, F16, F17.

@@ -4,7 +4,9 @@
 > 2026-10-10:** F1, F5, F6 and F9 fixed, one commit each, before / after in
 > section 10 (founder's picks in 04, "Pre-launch performance pass"). F4
 > waits for the live curl output (section 8). Next: the device checklist
-> (section 9) on the live site, then F2, F16, F17 are decided. The audit's
+> (section 9) on the live site, then F2, F16, F17 are decided.
+> **Paused 2026-10-14** (founder) until the next features are done: see 04,
+> "Pre-launch performance pass", item 3. The audit's
 > tooling is in `backend/loadtest/` (`seed_perf.py`, `measure.py`, commit
 > `77fbca2`).
 
@@ -518,3 +520,6 @@ F5 `7b22bff`, F6 `28050ce`.
   shop passes ~100 products.
 - **F10 lazy boto3:** not taken; it would move the import onto the
   first photo upload after each start.
+- **F1 at 3 fetches, not 1:** accepted (founder, 2026-10-14); the Products screen refetches for current stock.
+- **F6b gallery photos 2+ after photo 1:** decided by the device checklist, timing the first photo on a 1-photo vs a 4-photo product in flow 3.
+- **F18 smaller photos for order rows:** decided by the device checklist, by whether order photos fill in late in flow 8.
