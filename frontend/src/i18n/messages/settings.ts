@@ -294,6 +294,93 @@ export const settings = {
     staffHint: { en: 'Let others help with orders', km: 'ឱ្យអ្នកផ្សេងជួយការកុម្ម៉ង់' },
   },
 
+  // Settings → Plan: the shop's plan with Oak Order (01_PRODUCT.md §33.1).
+  plan: {
+    title: { en: 'Plan', km: 'គម្រោង' },
+    hint: {
+      en: 'What you pay Oak Order for your shop, and until when.',
+      km: 'អ្វីដែលអ្នកបង់ឱ្យ Oak Order សម្រាប់ហាងរបស់អ្នក និងរហូតដល់ពេលណា។',
+    },
+    freeTrial: { en: 'Free trial', km: 'សាកល្បងឥតគិតថ្លៃ' },
+    standard: { en: 'Oak Order Standard', km: 'Oak Order Standard' },
+    freeUntil: { en: (day: string) => `Free until ${day}`, km: (day: string) => `ឥតគិតថ្លៃរហូតដល់ ${day}` },
+    paidUntil: { en: (day: string) => `Paid until ${day}`, km: (day: string) => `បានបង់រហូតដល់ ${day}` },
+    daysLeft: {
+      en: (n: number) => (n === 1 ? '1 day left' : `${n} days left`),
+      km: (n: number) => `នៅសល់ ${n} ថ្ងៃ`,
+    },
+    afterTrial: {
+      en: (month: string, year: string) => `Then ${month} a month or ${year} a year.`,
+      km: (month: string, year: string) => `បន្ទាប់មក ${month} ក្នុងមួយខែ ឬ ${year} ក្នុងមួយឆ្នាំ។`,
+    },
+    trialEnded: {
+      en: (day: string) => `Your free trial ended on ${day}.`,
+      km: (day: string) => `ការសាកល្បងឥតគិតថ្លៃរបស់អ្នកបានបញ្ចប់នៅ ${day}។`,
+    },
+    planEnded: {
+      en: (day: string) => `Your plan ended on ${day}.`,
+      km: (day: string) => `គម្រោងរបស់អ្នកបានបញ្ចប់នៅ ${day}។`,
+    },
+    // pay_by: the last day orders still come.
+    payBy: {
+      en: (day: string) => `Your shop takes orders until ${day}. Pay by then to keep it open.`,
+      km: (day: string) => `ហាងរបស់អ្នកទទួលការកុម្ម៉ង់រហូតដល់ ${day}។ សូមបង់ត្រឹមថ្ងៃនោះ ដើម្បីរក្សាហាងឱ្យបើក។`,
+    },
+    stopped: {
+      en: "Your shop isn't taking new orders. Pay to open it again at once.",
+      km: 'ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ថ្មីទេ។ សូមបង់ ដើម្បីបើកវាវិញភ្លាមៗ។',
+    },
+    stoppedNote: {
+      en: 'Customers can still see your shop, and you can finish the orders you have. Nothing is deleted.',
+      km: 'អតិថិជននៅតែអាចមើលហាងរបស់អ្នកបាន ហើយអ្នកអាចបញ្ចប់ការកុម្ម៉ង់ដែលមានស្រាប់បាន។ គ្មានអ្វីត្រូវបានលុបទេ។',
+    },
+    includes: { en: "What's included", km: 'អ្វីដែលមានក្នុងគម្រោង' },
+    includesEverything: {
+      en: 'Everything in Oak Order: your shop, orders, payments, delivery, customers, links and alerts',
+      km: 'អ្វីៗទាំងអស់ក្នុង Oak Order៖ ហាង ការកុម្ម៉ង់ ការបង់ប្រាក់ ការដឹកជញ្ជូន អតិថិជន តំណ និងការជូនដំណឹង',
+    },
+    includesStaff: { en: 'Up to 10 staff logins', km: 'គណនីបុគ្គលិករហូតដល់ 10 នាក់' },
+    includesHosting: { en: 'Hosting and updates', km: 'សេវាបង្ហោះ និងការធ្វើបច្ចុប្បន្នភាព' },
+    pay: { en: 'Pay', km: 'បង់ប្រាក់' },
+    monthly: { en: 'Monthly', km: 'ប្រចាំខែ' },
+    yearly: { en: 'Yearly', km: 'ប្រចាំឆ្នាំ' },
+    perMonth: { en: (price: string) => `${price} a month`, km: (price: string) => `${price} ក្នុងមួយខែ` },
+    perYear: { en: (price: string) => `${price} a year`, km: (price: string) => `${price} ក្នុងមួយឆ្នាំ` },
+    save: { en: (amount: string) => `Save ${amount}`, km: (amount: string) => `សន្សំ ${amount}` },
+    // Until the app takes payments (a payment gateway, later).
+    howToPay: {
+      en: "For now you pay Oak Order by bank transfer or KHQR. Message us on Telegram and we'll send the details. Your shop is extended as soon as the money arrives.",
+      km: 'សម្រាប់ពេលនេះ អ្នកបង់ឱ្យ Oak Order តាមការផ្ទេរប្រាក់តាមធនាគារ ឬ KHQR។ ផ្ញើសារមកយើងតាម Telegram ហើយយើងនឹងផ្ញើព័ត៌មានឱ្យអ្នក។ ហាងរបស់អ្នកនឹងត្រូវបានបន្តភ្លាមៗ នៅពេលប្រាក់មកដល់។',
+    },
+    howToPayContact: {
+      en: 'For now you pay Oak Order by bank transfer or KHQR. Contact Oak Order for the details.',
+      km: 'សម្រាប់ពេលនេះ អ្នកបង់ឱ្យ Oak Order តាមការផ្ទេរប្រាក់តាមធនាគារ ឬ KHQR។ សូមទាក់ទង Oak Order ដើម្បីទទួលព័ត៌មាន។',
+    },
+    payOnTelegram: { en: (price: string) => `Pay ${price} on Telegram`, km: (price: string) => `បង់ ${price} តាម Telegram` },
+    carriesOn: {
+      en: 'Paying early loses no days: the new month or year starts when your time now ends.',
+      km: 'ការបង់មុនមិនបាត់បង់ថ្ងៃណាមួយទេ៖ ខែ ឬឆ្នាំថ្មីចាប់ផ្ដើមនៅពេលដែលពេលវេលាបច្ចុប្បន្នរបស់អ្នកបញ្ចប់។',
+    },
+    aMonth: { en: 'a month', km: 'មួយខែ' },
+    aYear: { en: 'a year', km: 'មួយឆ្នាំ' },
+    payMessage: {
+      en: (price: string, period: string, shop: string, link: string) =>
+        `Hi Oak Order, I'd like to pay ${price} for ${period} for my shop ${shop} (${link}).`,
+      km: (price: string, period: string, shop: string, link: string) =>
+        `សួស្ដី Oak Order ខ្ញុំចង់បង់ ${price} សម្រាប់${period} សម្រាប់ហាង ${shop} (${link})។`,
+    },
+    payments: { en: 'Your payments', km: 'ការបង់ប្រាក់របស់អ្នក' },
+    paidOn: {
+      en: (paid: string, from: string, until: string) => `Paid ${paid} · for ${from} to ${until}`,
+      km: (paid: string, from: string, until: string) => `បានបង់ ${paid} · សម្រាប់ ${from} ដល់ ${until}`,
+    },
+    // The Settings menu's row.
+    menuTrial: { en: (day: string) => `Free trial until ${day}`, km: (day: string) => `សាកល្បងឥតគិតថ្លៃរហូតដល់ ${day}` },
+    menuPaid: { en: (day: string) => `Standard, paid until ${day}`, km: (day: string) => `Standard បានបង់រហូតដល់ ${day}` },
+    menuOverdue: { en: (day: string) => `Ended: pay by ${day}`, km: (day: string) => `បានបញ្ចប់៖ សូមបង់ត្រឹម ${day}` },
+    menuStopped: { en: 'Not taking new orders: pay to reopen', km: 'មិនទទួលការកុម្ម៉ង់ថ្មី៖ សូមបង់ដើម្បីបើកវិញ' },
+  },
+
   account: { en: 'Account', km: 'គណនី' },
   logOut: { en: 'Log out', km: 'ចាកចេញ' },
   logOutConfirmTitle: { en: 'Log out?', km: 'ចាកចេញ?' },

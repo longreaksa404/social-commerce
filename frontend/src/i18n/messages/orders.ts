@@ -15,6 +15,32 @@ export const orders = {
     en: (day: string) => `Your shop isn't taking orders until ${day}.`,
     km: (day: string) => `ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់រហូតដល់ ${day}។`,
   },
+  // The shop's plan with Oak Order running out (Settings → Plan).
+  planEndingTrial: {
+    en: (day: string) => `Your free trial ends on ${day}. Tap to see how to pay.`,
+    km: (day: string) => `ការសាកល្បងឥតគិតថ្លៃរបស់អ្នកបញ្ចប់នៅ ${day}។ ចុចដើម្បីមើលរបៀបបង់។`,
+  },
+  planEnding: {
+    en: (day: string) => `Your plan ends on ${day}. Tap to see how to pay.`,
+    km: (day: string) => `គម្រោងរបស់អ្នកបញ្ចប់នៅ ${day}។ ចុចដើម្បីមើលរបៀបបង់។`,
+  },
+  planOverdueTrial: {
+    en: (day: string) => `Your free trial has ended. Pay by ${day} to keep taking orders.`,
+    km: (day: string) => `ការសាកល្បងឥតគិតថ្លៃរបស់អ្នកបានបញ្ចប់។ សូមបង់ត្រឹម ${day} ដើម្បីបន្តទទួលការកុម្ម៉ង់។`,
+  },
+  planOverdue: {
+    en: (day: string) => `Your plan has ended. Pay by ${day} to keep taking orders.`,
+    km: (day: string) => `គម្រោងរបស់អ្នកបានបញ្ចប់។ សូមបង់ត្រឹម ${day} ដើម្បីបន្តទទួលការកុម្ម៉ង់។`,
+  },
+  planStopped: {
+    en: "Your shop isn't taking new orders. Tap to pay and open it again.",
+    km: 'ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ថ្មីទេ។ ចុចដើម្បីបង់ ហើយបើកវាវិញ។',
+  },
+  // Paying is the owner's.
+  planStoppedStaff: {
+    en: "The shop isn't taking new orders until the owner pays for Oak Order.",
+    km: 'ហាងមិនទទួលការកុម្ម៉ង់ថ្មីទេ រហូតដល់ម្ចាស់ហាងបង់ប្រាក់ឱ្យ Oak Order។',
+  },
   // Settings → Delivery never saved: the shop delivers for free.
   deliveryNotSet: {
     en: 'Delivery is free for customers until you set your delivery fee. Tap to set it.',

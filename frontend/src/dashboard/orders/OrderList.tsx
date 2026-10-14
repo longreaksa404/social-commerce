@@ -1,4 +1,4 @@
-import { CalendarClock, ChevronRight, ExternalLink, Inbox, MousePointerClick, Package, Plus, SearchX, Truck, type LucideIcon } from 'lucide-react'
+import { CalendarClock, ExternalLink, Inbox, MousePointerClick, Package, Plus, SearchX, Truck } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { buttonClass } from '../../components/styles.ts'
@@ -9,6 +9,7 @@ import { formatCalendarDay, formatDay } from '../../lib/orders.ts'
 import type { OrderStatus, OrderSummary } from '../../lib/types.ts'
 import { useOrders, useProducts, useRole, useStore } from '../queries.ts'
 import { OrderDetail } from './OrderDetail.tsx'
+import { PlanReminder, Reminder } from '../Reminder.tsx'
 import { EAGER_PHOTOS } from '../../shop/components.tsx'
 import { OrderRow } from './OrderRow.tsx'
 
@@ -43,6 +44,7 @@ export function OrdersPage() {
     <>
       <div className={orderId ? 'max-lg:hidden' : ''}>
         <OrdersHeader />
+        <PlanReminder />
         <PausedReminder />
         <DeliveryReminder />
       </div>
@@ -99,29 +101,6 @@ function DeliveryReminder() {
   )
 }
 
-/** An amber strip above the list that opens the setting it's about (for
- * the owner; staff can't open Settings, so they just get the news). */
-function Reminder({ icon: Icon, setting, children }: { icon: LucideIcon; setting: string; children: string }) {
-  const role = useRole()
-  const className =
-    '-mx-4 mb-4 flex min-h-12 items-center gap-3 border-y border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 sm:mx-0 sm:rounded-2xl sm:border'
-  const content = (
-    <>
-      <Icon aria-hidden className="size-5 shrink-0 text-amber-700" />
-      <span className="min-w-0 flex-1">{children}</span>
-    </>
-  )
-  if (role !== 'owner') return <p className={className}>{content}</p>
-  return (
-    <Link
-      to={`/dashboard/settings/${setting}`}
-      className={`${className} transition-colors hover:bg-amber-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600`}
-    >
-      {content}
-      <ChevronRight aria-hidden className="size-5 shrink-0 text-amber-700" />
-    </Link>
-  )
-}
 
 /** Which tab is showing, from the URL (so it survives opening an order and
  * coming back), and that tab's orders; the header and the list share the

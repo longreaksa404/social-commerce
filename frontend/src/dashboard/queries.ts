@@ -13,6 +13,7 @@ import type {
   OrderList,
   OrderStatus,
   PaymentStatus,
+  Plan,
   Product,
   ShareLink,
   StaffMember,
@@ -23,6 +24,7 @@ export const keys = {
   store: ['store'] as const,
   account: ['account'] as const,
   staff: ['staff'] as const,
+  plan: ['plan'] as const,
   telegramLink: ['telegram-link'] as const,
   categories: ['categories'] as const,
   products: ['products'] as const,
@@ -59,6 +61,13 @@ export function useStore() {
 
 export function useAccount() {
   return useQuery({ queryKey: keys.account, queryFn: () => api<Account>('/seller/account'), staleTime: SETTLED_MS })
+}
+
+/** The shop's plan with Oak Order (Settings → Plan). Staff read it too:
+ * the Orders tab tells them when the shop stops taking new orders. Only
+ * Oak Order changes it (a payment), so a fresh copy on each visit is enough. */
+export function usePlan() {
+  return useQuery({ queryKey: keys.plan, queryFn: () => api<Plan>('/seller/plan'), staleTime: SETTLED_MS })
 }
 
 /** The logged-in person's role, once known: staff see no store settings. */

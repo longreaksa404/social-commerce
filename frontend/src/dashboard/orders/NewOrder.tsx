@@ -23,6 +23,7 @@ import { deliveryFeeCents, discountCents } from '../../lib/pricing.ts'
 import type { PaymentMethod, Product, ShopStore, Store, Variant } from '../../lib/types.ts'
 import { ProductImage } from '../../shop/components.tsx'
 import { useAddOrder, useCustomer, useCustomers, useProducts, useStore } from '../queries.ts'
+import { PlanReminder } from '../Reminder.tsx'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
 
 /** One line of the order: a product, or one of its options. */
@@ -187,6 +188,8 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
       <PageHeader title={n.title} back="/dashboard/orders" />
       <title>{n.title}</title>
       <p className="mb-4 text-sm text-slate-600">{n.intro}</p>
+      {/* Saving is refused while the shop's plan is unpaid (PLAN_UNPAID). */}
+      <PlanReminder stoppedOnly />
       <form onSubmit={submit} className="space-y-4">
         <Section title={n.customer}>
           <Field label={n.phone} error={fieldError(add.error, 'phone')} hint={match ? n.known(match.order_count) : undefined}>

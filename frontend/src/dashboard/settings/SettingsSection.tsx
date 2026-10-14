@@ -25,6 +25,7 @@ import { AccountPage } from './AccountPage.tsx'
 import { CloseShopPage } from './CloseShopPage.tsx'
 import { StaffPage } from './StaffPage.tsx'
 import { ExportPage } from './ExportPage.tsx'
+import { PlanPage } from './PlanPage.tsx'
 import { SetupPage } from './SetupPage.tsx'
 import { isPageId, isSectionId, SECTIONS, toForm, type PageId, type SectionId } from './form.ts'
 
@@ -42,6 +43,7 @@ const FIELDS: Record<SectionId, ComponentType<FieldsProps>> = {
 /** Pages with their own form and endpoint, not the store's PATCH. */
 const PAGES: Record<PageId, { title: (s: Messages['settings']) => string; hint?: (s: Messages['settings']) => string; Page: ComponentType }> = {
   account: { title: (s) => s.yourAccount, hint: (s) => s.yourAccountHint, Page: AccountPage },
+  plan: { title: (s) => s.plan.title, hint: (s) => s.plan.hint, Page: PlanPage },
   export: { title: (s) => s.exportOrders, hint: (s) => s.exportHint, Page: ExportPage },
   close: { title: (s) => s.closeShop, Page: CloseShopPage },
   staff: { title: (s) => s.staff, hint: (s) => s.staffHint, Page: StaffPage },

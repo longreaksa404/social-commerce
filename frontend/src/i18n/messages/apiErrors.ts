@@ -58,6 +58,8 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   'No order matches this link and phone number.': 'រកមិនឃើញការកុម្ម៉ង់ដែលត្រូវនឹងតំណ និងលេខទូរស័ព្ទនេះទេ។',
   'Enter a valid phone number.': 'សូមបញ្ចូលលេខទូរស័ព្ទឱ្យបានត្រឹមត្រូវ។',
   "This shop isn't taking orders right now.": 'ហាងនេះមិនទទួលការកុម្ម៉ង់នៅពេលនេះទេ។',
+  "Your shop isn't taking new orders until Oak Order is paid (Settings → Plan).":
+    'ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ថ្មីទេ រហូតដល់បង់ប្រាក់ឱ្យ Oak Order (ការកំណត់ → គម្រោង)។',
 
   // Products and categories
   'Product not found.': 'រកមិនឃើញទំនិញ។',

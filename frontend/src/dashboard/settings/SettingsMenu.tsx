@@ -1,5 +1,6 @@
 import {
   Bell,
+  CalendarCheck,
   ChevronRight,
   DoorClosed,
   Download,
@@ -27,12 +28,12 @@ import type { Messages } from '../../i18n/core.ts'
 import { LanguageSwitch } from '../../i18n/LanguageSwitch.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { formatMoney } from '../../lib/money.ts'
-import { formatCalendarDay, formatPhone } from '../../lib/orders.ts'
+import { formatCalendarDay, formatDate, formatPhone } from '../../lib/orders.ts'
 import { PAYMENT_METHOD_ORDER } from '../../lib/payments.ts'
 import { SUPPORT_TELEGRAM, supportLink } from '../../lib/support.ts'
-import type { Store } from '../../lib/types.ts'
+import type { Plan, Store } from '../../lib/types.ts'
 import { ThemeSwitch } from '../../theme/ThemeSwitch.tsx'
-import { useAccount, useStore } from '../queries.ts'
+import { useAccount, usePlan, useStore } from '../queries.ts'
 import { SECTIONS, type PageId, type SectionId } from './form.ts'
 import { useSetup } from './setup.ts'
 
@@ -281,10 +282,14 @@ function DisplaySection() {
 /** The person's own things, apart from the store's settings. */
 function AccountRows({ selected, store, owner }: { selected?: Selected; store?: Store; owner: boolean }) {
   const s = useT().settings
+  const plan = usePlan()
   const rows: { id: PageId | 'help'; href?: string; icon: LucideIcon; title: string; summary: string }[] = [
     { id: 'account', icon: UserRound, title: s.yourAccount, summary: s.menu.accountHint },
   ]
-  if (owner) rows.push({ id: 'staff', icon: Users, title: s.staff, summary: s.menu.staffHint })
+  if (owner) {
+    rows.push({ id: 'plan', icon: CalendarCheck, title: s.plan.title, summary: planSummary(plan.data, s.plan) })
+    rows.push({ id: 'staff', icon: Users, title: s.staff, summary: s.menu.staffHint })
+  }
   if (SUPPORT_TELEGRAM) {
     const shop = store ? s.supportText(store.name, `${location.origin}/shop/${store.slug}`) : s.supportTextNoShop
     rows.push({ id: 'help', href: supportLink(shop), icon: LifeBuoy, title: s.help, summary: s.menu.helpHint })
@@ -313,6 +318,14 @@ function AccountRows({ selected, store, owner }: { selected?: Selected; store?: 
       </Card>
     </section>
   )
+}
+
+/** The Plan row: until when the shop is covered, or what to do now. */
+function planSummary(plan: Plan | undefined, p: Messages['settings']['plan']): string {
+  if (!plan) return ''
+  if (plan.stage === 'stopped') return p.menuStopped
+  if (plan.stage === 'overdue') return p.menuOverdue(formatCalendarDay(plan.pay_by))
+  return (plan.on_trial ? p.menuTrial : p.menuPaid)(formatDate(`${plan.paid_until}T00:00`))
 }
 
 /** Asks first, so a stray tap doesn't log the seller out mid-day. */

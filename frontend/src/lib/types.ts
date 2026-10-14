@@ -76,6 +76,39 @@ export type Store = {
 
 export type TelegramLink = { url: string; expires_at: string }
 
+/** The shop's plan with Oak Order (Settings → Plan, 01_PRODUCT.md §33.1).
+ * ending_soon: its last 6 days; overdue: ran out up to 7 days ago, orders
+ * still come; stopped: no new orders until paid. */
+export type PlanStage = 'active' | 'ending_soon' | 'overdue' | 'stopped'
+export type PlanPeriod = 'month' | 'year'
+
+export type PlanPayment = {
+  id: string
+  period: PlanPeriod
+  /** US dollars ("9.99"). */
+  amount: string
+  paid_on: string
+  /** The days it pays for, both included ("2026-12-01"). */
+  covers_from: string
+  covers_until: string
+}
+
+export type Plan = {
+  stage: PlanStage
+  /** No payment yet: the free trial. */
+  on_trial: boolean
+  /** The last day covered, Phnom Penh ("2026-11-30"). */
+  paid_until: string
+  /** The last day to pay before new orders stop. */
+  pay_by: string
+  /** Covered days left, today included; 0 once it has run out. */
+  days_left: number
+  /** Oak Order Standard, US dollars. */
+  prices: { month: string; year: string }
+  /** Newest first. */
+  payments: PlanPayment[]
+}
+
 /** owner: everything; staff: everything but Settings (founder's choice
  * 2026-10-08). */
 export type Role = 'owner' | 'staff'
