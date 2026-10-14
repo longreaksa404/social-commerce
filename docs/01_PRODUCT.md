@@ -1309,6 +1309,10 @@ Potential revenue sources:
 
 Recurring monthly or annual fee for software access.
 
+Every new shop starts with a 1-month free trial. There is no free plan:
+after the trial, the shop needs a paid subscription (decided 2026-10-14;
+the price and what happens to an unpaid shop are still open, §46).
+
 ## 33.2 Implementation / Onboarding
 
 Potential one-time fee for:
@@ -1825,11 +1829,11 @@ The following are intentionally not finalized.
 ## Business
 
 - Subscription price
-- Free trial
+- What happens to a shop when its free trial ends without payment (e.g. the shop stops taking orders until paid)
 - Setup fee
 - Hosting fee
 - Pricing tiers
-- Plan and billing page in Settings: waits for the subscription price and free trial (founder, 2026-10-08)
+- Plan and billing page in Settings: waits for the subscription price (founder, 2026-10-08; the free trial was decided 2026-10-14)
 
 ## Market
 
@@ -1851,6 +1855,7 @@ Decided so far (details in §24, §25 and `02_TECHNICAL.md`):
 - Product name: Oak Order, under the brand Oak (2026-10-08; replaces Sroul Order from 2026-10-06)
 - Company Oak Solutions, domain oaksolve.com, this product at `order.oaksolve.com` (2026-10-09; Oak Shop considered and not picked)
 - Oak's mark: the oak leaf from the Oak Solutions logo (2026-10-10; replaces a stock tree icon)
+- Free trial: 1 month for every new shop; no free plan (2026-10-14, §33.1)
 - Every shop credits Oak: "Made with Oak Order" with Privacy · Terms at the bottom of the shop's pages and the order page, and shared links end in "· Oak Order" with Oak's mark small on the picture (2026-10-10). Letting paid plans hide the line waits for pricing.
 
 # 47. Relationship With Other Project Documents

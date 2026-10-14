@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-14 (decided: 1-month free trial, no free plan; not built yet). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -1504,6 +1504,12 @@ Resolved:
 
 Nothing waiting: everything decided is in 01/02/03.
 
+Applied to 01 on 2026-10-14 (founder): a 1-month free trial for every
+new shop, no free plan. 01 §33.1 and §46 (open list and decided list).
+Not built: nothing in the code has a trial or a plan yet, so every shop
+is free with no end date. Still open: the price, and what happens to a
+shop when its trial ends unpaid.
+
 Applied to 01/02/03 on 2026-10-10 (Oak in the shop, founder's picks 1A
 2A 3B 4B 5B): 01 §1.1 (the mark is the oak leaf) and §46 (decided list);
 02 §9.3 (Oak in every link card); 03 Phase 9 row (4 hrs) and §6 log
@@ -1848,7 +1854,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 |---|---|---|---|
 | 2026-10-10 | Founder (Oak in the shop) | Let sellers on a paid plan hide "Made with Oak Order" | Waiting: decide with pricing (01 §46). Details in 03 §6. |
 | 2026-10-09 | Founder (trying the numbers card locally) | A seller dashboard: a page for the shop's numbers, with the chart (sales per day; today, 7 days, this month) | Later: the page first, then the chart on it. The server part is ready (`GET /seller/stats`, owner only). Details in 03 §6. |
-| 2026-10-08 | Founder (Settings) | Plan and billing page: the seller's plan, price, paid-until date, how to pay Oak Order | Waiting: build once pricing is decided (01 §46). |
+| 2026-10-08 | Founder (Settings) | Plan and billing page: the seller's plan, price, paid-until date, how to pay Oak Order | Waiting: the trial is decided (1 month, no free plan, 2026-10-14); build once the price and the end-of-trial rule are decided (01 §46). |
 | 2026-10-06 | Founder (shop redesign) | Search in the shop | Logged for later; build when a seller has 30+ products. Details in 03 §6. |
 | 2026-10-02 | Founder (testing Phase 4) | One-tap pay for several banks (ABA, ACLEDA, Wing): open the customer's bank app with the amount filled in, and mark it paid automatically | Validate First: ask first sellers which banks their customers use, whether they're a registered business, and whether they'd pay per-payment fees. Details in 03 §6. |
 
