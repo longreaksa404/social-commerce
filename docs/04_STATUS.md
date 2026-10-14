@@ -1962,9 +1962,11 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
            account; ABA gives every customer the bank's Bakong ID plus
            the account), `OAK_KHQR_BANK=ABA Bank`; no `OAK_KHQR_NAME`
            (the code shows OAK ORDER). Tested locally 2026-10-14: a
-           payment from another bank landed in the USD account (the first
-           test, with the riel account's number, was exchanged into
-           riel). Optional: `OAK_BANK_NAME`, `OAK_BANK_ACCOUNT_NAME`,
+           payment from Wing landed in the USD account (the first test,
+           with the riel account's number, was exchanged into riel).
+           ABA's receipt shows the KHQR's name as "Outlet" but not its
+           bill number, so the name now carries the shop's code ("OAK
+           ORDER OAK-SBZ9WZ"). Optional: `OAK_BANK_NAME`, `OAK_BANK_ACCOUNT_NAME`,
            `OAK_BANK_ACCOUNT_NUMBER` (the same USD account); `ADMIN_PHONES` (your login number;
            your shop's Telegram chat gets the "I've paid" alerts);
            `BILLING_CRON_SECRET` (a long random string).

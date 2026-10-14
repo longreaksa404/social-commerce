@@ -93,6 +93,9 @@ async def test_the_plan_shows_oaks_khqr_with_the_shops_code(client, auth_headers
         assert "oaksolutions@aclb" in khqr
         assert amount in khqr
         assert f"0110{code}" in khqr  # the bill number
+        # ABA shows the receiver the name ("Outlet"), not the bill number.
+        assert f"5920OAK ORDER {code}" in khqr
+    assert pay_to["khqr_name"] == f"OAK ORDER {code}"
     assert plan["pay_to"]["bank"]["account_number"] == "000 111 222"
 
 

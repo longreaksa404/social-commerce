@@ -145,6 +145,15 @@ def shop_code(store_id: uuid.UUID) -> str:
     return "OAK-" + "".join(chars)
 
 
+def khqr_name(code: str) -> str:
+    """The name on Oak's KHQR, with the shop's code: "OAK ORDER OAK-SBZ9WZ".
+    ABA shows the founder this name ("Outlet") on the received payment, but
+    not the bill number (tested 2026-10-14), so the code goes here too.
+    KHQR names are at most 25 characters."""
+    base = get_settings().oak_khqr_name.strip()[: 25 - len(code) - 1]
+    return f"{base} {code}".strip()
+
+
 def pay_to(code: str) -> PayToOut:
     """Oak's own KHQR (with the shop's code as the bill number) and bank
     account, from the OAK_* settings. A KHQR with an amount expires in a
@@ -155,7 +164,7 @@ def pay_to(code: str) -> PayToOut:
         for period in PlanPeriod:
             khqr[period] = khqr_service.individual_khqr(
                 bakong_account_id=settings.oak_khqr_account,
-                merchant_name=settings.oak_khqr_name,
+                merchant_name=khqr_name(code),
                 currency=Currency.USD,
                 amount=PRICES[period],
                 bill_number=code,
@@ -173,7 +182,7 @@ def pay_to(code: str) -> PayToOut:
     return PayToOut(
         khqr_month=khqr.get(PlanPeriod.MONTH),
         khqr_year=khqr.get(PlanPeriod.YEAR),
-        khqr_name=settings.oak_khqr_name if khqr else None,
+        khqr_name=khqr_name(code) if khqr else None,
         bank=bank,
     )
 
