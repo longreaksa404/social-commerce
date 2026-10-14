@@ -1957,10 +1957,15 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 0000000. **Hand collection** (built, not pushed; In Progress, "Plan and
         billing" 4). Founder:
-        1. Render variables: `OAK_KHQR_ACCOUNT` (your Bakong ID, e.g.
-           name@aclb, from your bank app) and `OAK_KHQR_NAME` (the name
-           on the KHQR), and/or `OAK_BANK_NAME`, `OAK_BANK_ACCOUNT_NAME`,
-           `OAK_BANK_ACCOUNT_NUMBER`; `ADMIN_PHONES` (your login number;
+        1. Render variables: `OAK_KHQR_ACCOUNT=abaakhppxxx@abaa`,
+           `OAK_KHQR_ACCOUNT_INFO=019782164` (the founder's ABA **USD**
+           account; ABA gives every customer the bank's Bakong ID plus
+           the account), `OAK_KHQR_BANK=ABA Bank`; no `OAK_KHQR_NAME`
+           (the code shows OAK ORDER). Tested locally 2026-10-14: a
+           payment from another bank landed in the USD account (the first
+           test, with the riel account's number, was exchanged into
+           riel). Optional: `OAK_BANK_NAME`, `OAK_BANK_ACCOUNT_NAME`,
+           `OAK_BANK_ACCOUNT_NUMBER` (the same USD account); `ADMIN_PHONES` (your login number;
            your shop's Telegram chat gets the "I've paid" alerts);
            `BILLING_CRON_SECRET` (a long random string).
         2. cron-job.org: a job once a day (e.g. 08:00 Phnom Penh), POST
