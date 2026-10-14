@@ -11,6 +11,7 @@ from sqlalchemy.exc import DBAPIError
 
 from app import admin
 from app.core import clock
+from app.core.config import get_settings
 from app.db.session import tenant_session, unscoped_session
 from app.models import PlanPayment, PlanPeriod, Store
 from app.schemas.plan import PlanStage
@@ -82,7 +83,10 @@ def test_paying_after_orders_stopped_starts_that_day():
     )
 
 
-async def test_a_new_shop_starts_a_30_day_free_trial(client, auth_headers, today):
+async def test_a_new_shop_starts_a_30_day_free_trial(client, auth_headers, today, monkeypatch):
+    # Whatever the local .env says: no Oak payment details.
+    for name in ("oak_khqr_account", "oak_bank_name", "oak_bank_account_number"):
+        monkeypatch.setattr(get_settings(), name, "")
     headers = await auth_headers()
 
     plan = await client.get(PLAN, headers=headers)
