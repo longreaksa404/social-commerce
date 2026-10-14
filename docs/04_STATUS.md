@@ -1555,6 +1555,14 @@ Resolved:
 
 Nothing waiting: everything decided is in 01/02/03.
 
+Applied to 01/03 on 2026-10-14 (billing through ABA PayWay, the
+founder's design; picks 1A cron-job.org runs the daily charge, 2B a web
+admin page, 3A retries for 7 days with Telegram on the first failure and
+day 5, and the data model): 01 §33.1 and §46; 03 Phase 9 rows (step 1,
+26 hrs; step 2, 20 hrs; subtotal ~279 hrs) and §4 totals (~507 hrs).
+Found in PayWay's docs: their subscriptions charge weekly, monthly or
+every 2 months, so auto-charge is monthly only.
+
 Applied to 01/02/03 on 2026-10-14 (pricing; founder's picks 1B 3A 4B
 5A 6A, from a pricing plan the founder brought, and no early-seller
 offer): 01 §33.1–33.4 and §46 (open list, decided list, the Oak line);
