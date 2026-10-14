@@ -10,7 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.errors import AppError
 from app.core.security import decode_token
 from app.db.session import get_db, tenant_session, unscoped_session
+from app.models import Seller as SellerModel
 from app.models import SellerRole, Store
+from app.services import admin as admin_service
 from app.services import storefront as storefront_service
 
 _bearer = HTTPBearer(auto_error=False)
@@ -50,6 +52,18 @@ async def current_owner(
     return seller
 
 
+async def current_admin(
+    seller: Annotated[CurrentSeller, Depends(current_seller)],
+) -> CurrentSeller:
+    """The founder's admin page: a login whose phone number is in
+    ADMIN_PHONES, read from the database each time (not the token)."""
+    async with unscoped_session() as db:
+        account = await db.get(SellerModel, seller.seller_id)
+        if account is None or not account.is_active or not admin_service.is_admin(account):
+            raise AppError(403, "ADMIN_ONLY", "This page is for Oak Order only.")
+    return seller
+
+
 async def get_tenant_db(
     seller: Annotated[CurrentSeller, Depends(current_seller)],
 ) -> AsyncIterator[AsyncSession]:
@@ -76,6 +90,7 @@ async def get_shop_db(shop: Annotated[Store, Depends(get_shop)]) -> AsyncIterato
 
 Seller = Annotated[CurrentSeller, Depends(current_seller)]
 Owner = Annotated[CurrentSeller, Depends(current_owner)]
+Admin = Annotated[CurrentSeller, Depends(current_admin)]
 TenantDb = Annotated[AsyncSession, Depends(get_tenant_db)]
 UnscopedDb = Annotated[AsyncSession, Depends(get_db)]
 Shop = Annotated[Store, Depends(get_shop)]

@@ -351,6 +351,20 @@ async def notify_payment_claimed(store_id: uuid.UUID, order_id: uuid.UUID) -> No
         )
 
 
+async def send_to_seller(
+    db: AsyncSession,
+    store: Store,
+    event_type: str,
+    payload: dict[str, Any],
+    text: str,
+    button: tuple[str, str] | None = None,
+) -> None:
+    """One Telegram message to the store's chat, logged like the alerts
+    (billing's messages, app/services/billing.py). Commits."""
+    if get_settings().telegram_configured and store.telegram_chat_id is not None:
+        await _send_all(db, store, [(event_type, payload, text, button)])
+
+
 async def _send_all(
     db: AsyncSession,
     store: Store,

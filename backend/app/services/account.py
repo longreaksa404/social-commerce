@@ -16,6 +16,7 @@ from app.core.errors import AppError, NotFound
 from app.models import RefreshToken, Seller
 from app.schemas.account import AccountOut, AccountUpdate, PasswordChange
 from app.schemas.auth import TokenPair
+from app.services import admin as admin_service
 from app.services import auth as auth_service
 from app.services import phone_check, social
 
@@ -41,6 +42,7 @@ async def describe(db: AsyncSession, seller: Seller) -> AccountOut:
         role=seller.role,
         has_password=seller.has_password,
         logins=await social.logins(db, seller.id),
+        is_admin=admin_service.is_admin(seller),
     )
 
 

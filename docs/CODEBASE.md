@@ -162,7 +162,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 │   ├── requirements.txt       Pinned runtime deps (no lock file); XlsxWriter for the orders export
 │   ├── requirements-dev.txt   + pytest, pytest-asyncio, httpx2 (test client), ruff
 │   ├── alembic.ini, alembic/env.py   Async Alembic; URL from app settings; imports app.models
-│   ├── alembic/versions/      19 migrations, linear (chain in §5)
+│   ├── alembic/versions/      20 migrations, linear (chain in §5)
 │   ├── app/
 │   │   ├── main.py            Builds `app`: Sentry, lifespan (Telegram webhook), CORS, routers
 │   │   ├── admin.py           The founder's commands (`python -m app.admin ...`, docs/ADMIN.md)
@@ -217,7 +217,7 @@ Backend modules, one line each:
 | `models/catalog.py` | `Category`, `Product`, `ProductVariant`, `ProductStatus`, the `Money = Numeric(12,2)` type |
 | `models/order.py` | `Customer`, `Order`, `OrderItem`, `OrderStatus` |
 | `models/payment.py` | `Payment`, `PaymentMethod`, `PaymentStatus` |
-| `models/plan.py` | `PlanPayment` (what a shop paid Oak Order), `PlanPeriod`, `PlanPaymentMethod` |
+| `models/plan.py` | `PlanPayment` (what a shop paid, or tried to pay, Oak Order), `PlanPeriod`, `PlanPaymentMethod` (manual, payway, payway_subscribe, payway_auto), `PlanPaymentStatus` (pending, paid, failed) |
 | `models/delivery.py` | `Delivery`, `DeliveryMethod`, `DeliveryStatus` |
 | `models/link.py` | `ShareableLink`, `LinkEvent`, `LinkTarget`, `LinkEventType` |
 | `models/notification.py` | `NotificationLog`, `NotificationChannel`, `NotificationStatus` |
@@ -236,6 +236,9 @@ Backend modules, one line each:
 | `services/payment.py` | Payment state machine, payment settings checks, what the customer is shown to pay with |
 | `services/delivery.py` | Delivery state machine, delivery/discount settings checks, checkout delivery choice |
 | `services/khqr.py` | Builds KHQR (EMVCo) strings with CRC16, no network |
+| `services/payway.py` | ABA PayWay's API, only what billing needs: the checkout form (Pay now; a subscription with `ctid`/`CITR_FIX`/`1M`), check a transaction, charge a saved token (`MITR_FIX`), a token's details, remove a token; every request signed (HMAC-SHA512, base64, PayWay's field order, key `PAYWAY_API_KEY`); `_http()` for tests |
+| `services/billing.py` | Sellers paying Oak Order: `start_checkout`, `settle` (asks PayWay, marks paid only on its word), `check_payment` (the seller back from PayWay), `save_token` (asked of PayWay), `turn_off_auto_charge`, `run_daily` / `charge` (the auto-charge and its retries), the Khmer Telegram texts. Writes on its own unscoped session |
+| `services/admin.py` | The founder's admin page: `is_admin` (`ADMIN_PHONES`), every shop's plan, a shop's payments, mark paid |
 | `services/plan.py` | The shop's plan with Oak Order: prices, the stage from `store.paid_until` (`stage`, `orders_stopped`), the days a payment covers (`next_period`, `add_months`), `record_payment` (the founder's command), `get_plan` |
 | `services/export.py` | The orders export: a .xlsx with one row per order (XlsxWriter, write-only), headings and statuses in English or Khmer |
 | `services/customer.py` | Customer list with search, detail with history, "spent" per currency |
@@ -349,6 +352,7 @@ real environment variables are used.
 ```python
 Seller     = Annotated[CurrentSeller, Depends(current_seller)]  # seller_id + store_id + role from the access JWT
 Owner      = Annotated[CurrentSeller, Depends(current_owner)]   # the same, 403 OWNER_ONLY for staff
+Admin      = Annotated[CurrentSeller, Depends(current_admin)]   # a login in ADMIN_PHONES (read from the DB), else 403 ADMIN_ONLY
 TenantDb   = Annotated[AsyncSession, Depends(get_tenant_db)]    # RLS-scoped to the seller's store
 UnscopedDb = Annotated[AsyncSession, Depends(get_db)]           # NOT RLS-scoped (auth only)
 Shop       = Annotated[Store, Depends(get_shop)]                # store from /shop/{store_slug}, via a short unscoped session
@@ -583,7 +587,7 @@ Codes in use: `ACCOUNT_DISABLED`, `ACCOUNT_NOT_FOUND`, `CATEGORY_NOT_FOUND`,
 `INVALID_DATE_RANGE`, `INVALID_DELIVERY_TRANSITION`, `INVALID_IMAGE`,
 `INVALID_PAYMENT_TRANSITION`, `INVALID_RESUME_DATE`, `INVALID_STATUS_TRANSITION`,
 `INVALID_TOKEN`, `LINK_NOT_FOUND`, `NOT_AUTHENTICATED`, `NOT_FOUND`,
-`ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`, `ORDERS_PAUSED`, `PLAN_UNPAID`,
+`ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`, `ORDERS_PAUSED`, `PLAN_UNPAID`, `PAYWAY_NOT_CONFIGURED`, `PAYMENT_NOT_FOUND`, `ADMIN_ONLY`,
 `PHONE_CHECK_EXPIRED`, `PHONE_NOT_VERIFIED`, `PHONE_TAKEN`, `TELEGRAM_NOT_CONFIGURED`,
 `SOCIAL_SIGN_IN_FAILED`, `SOCIAL_NOT_CONFIGURED`, `SOCIAL_TAKEN`, `SIGNUP_EXPIRED`, `INVALID_REDIRECT`,
 `ORDER_TOTAL_CHANGED`, `PAYMENT_METHOD_UNAVAILABLE`, `PRODUCT_HIDDEN`,
@@ -613,6 +617,7 @@ decorated limit per request, so stricter second limits call
 | All `/shop/{slug}/*` (router dependency, shared scope `storefront`, applied before the slug lookup) | 300/min |
 | `POST /shop/{slug}/orders` (on top) | 10/min |
 | `POST /shop/{slug}/track-view` (on top) | 60/min |
+| `POST /payway/callback`, `/payway/token-callback` (shared scope `payway`) | 120/min |
 | `GET /shop/{slug}/preview/*` (on top) | 30/min |
 
 ### Other conventions in the backend
@@ -662,7 +667,7 @@ Mixins (`app/db/base.py`):
 | `seller_login` | **NO** (no `app_user` grant) | `seller_id`, `provider` (`google`, `facebook`, `tiktok`), `provider_user_id` (Google's `sub`, Facebook's id, TikTok's `open_id`), `email` (the provider's, when verified), `name` (the provider's; TikTok's display name), both shown in Settings, `created_at` | `seller_id → seller` CASCADE | `uq_seller_login_provider` (`provider`, `provider_user_id`), `uq_seller_login_seller_id` (`seller_id`, `provider`: one account of each kind per seller) |
 | `phone_check` | **NO** (no `app_user` grant) | `code` (`phone_` + 22 random characters, in the `t.me` link), `telegram_user_id` (bigint, who opened the link), `phone` (normalized, once shared), `verified_at`, `expires_at` (30 min), `created_at` | none | `uq_phone_check_code`; `ix_phone_check_telegram_user_id`. Expired rows are deleted when a new check starts |
 | `seller` | **NO** (an owner owns the tenant, staff belong to one; no RLS, no `app_user` grant) | `phone` (the login, normalized, NULL only for older accounts whose number another account had), `email` (NULL for accounts since 2026-10-09; older ones log in with it; stored lowercased), `password_hash` (NULL for an account made with Google until it adds one), `full_name`, `is_active` (default true), `role` (`owner`/`staff`, default owner), `store_id` (staff only), `created_at` | `store_id → store` CASCADE (`use_alter`: store also points at seller) | `uq_seller_phone`; `uq_seller_email`; `ix_seller_store_id`; CHECK `(role = 'staff') = (store_id IS NOT NULL)` |
-| `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `low_stock_alert` (int, default 5, 1–999 by the schema), `paid_until` (date: the last day covered, by the 30-day free trial from sign-up, then by `plan_payment`s; Python default `account.trial_end()`), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
+| `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `low_stock_alert` (int, default 5, 1–999 by the schema), `paid_until` (date: the last day covered, by the 30-day free trial from sign-up, then by `plan_payment`s; Python default `account.trial_end()`), `payway_ctid` (unique; our id for the seller at PayWay), `payway_token` (the saved account or card for auto-charge, private; auto-charge is on while it's set), `payway_token_label` ("ABA ···5312"), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
 | `refresh_token` | **NO** (per seller; no RLS, no `app_user` grant) | `id` (= JWT `jti`), `expires_at`, `revoked_at`, `created_at` | `seller_id → seller` CASCADE | `ix_refresh_token_seller_id` |
 | `category` | yes | `name`, `slug` String(64), `created_at` | none besides `store_id` | UNIQUE (`store_id`, `slug`) |
 | `product` | yes | `name`, `slug`, `description`, `price` Numeric(12,2), `image_urls` JSONB list, `status` (`active`/`inactive`), `has_variants`, `stock_quantity` int NULL (only when no variants), `created_at`, `updated_at` | `category_id → category` ON DELETE SET NULL | UNIQUE (`store_id`, `slug`); (`store_id`, `status`); (`store_id`, `category_id`); CHECK `price >= 0`; CHECK stock NULL or ≥0 |
@@ -675,7 +680,7 @@ Mixins (`app/db/base.py`):
 | `shareable_link` | yes | `target_type` (`store`/`product`/`category`), `target_id` UUID NULL (**no FK**), `token` (8 chars `[a-z0-9]`, **globally** unique), `source`, `campaign`, `created_at` | none | (`store_id`, `created_at`); CHECK `(target_type = 'store') = (target_id IS NULL)` |
 | `link_event` | yes (store_id copied from link) | `event_type` (`view`/`order`), `created_at` | `link_id → shareable_link` CASCADE; `order_id → order` CASCADE NULL | (`store_id`, `link_id`); UNIQUE index on `order_id` (an order counts for one link); CHECK `(event_type = 'order') = (order_id IS NOT NULL)` |
 | `notification_log` | yes | `channel` (`web`/`telegram`), `event_type` text (`new_order`/`low_stock`), `payload` JSONB, `status` (`sent`/`failed`), `sent_at` (acts as created_at), `read_at` (web only; null = unread) | none | (`store_id`, `channel`, `sent_at`) |
-| `plan_payment` | yes, but `app_user` has **SELECT only** (sellers read; only the founder's command writes) | `period` (`month`/`year`), `amount` Numeric(12,2) USD, `method` (`manual`), `reference` (the founder's note), `paid_on`, `covers_from`, `covers_until` (dates, both included), `created_at` | none besides `store_id` | CHECK amount ≥0; CHECK covers_from ≤ covers_until |
+| `plan_payment` | yes, but `app_user` has **SELECT only** (sellers read; billing and the founder's tools write on their own session) | `period` (`month`/`year`), `amount` Numeric(12,2) USD, `method` (`manual`/`payway`/`payway_subscribe`/`payway_auto`), `status` (`pending`/`paid`/`failed`, default paid), `tran_id` (ours at PayWay, unique), `failure` (PayWay's words), `reference` (the founder's note), `paid_on`, `covers_from`, `covers_until` (dates, both included; set when paid), `created_at` | none besides `store_id` | CHECK amount ≥0; CHECK covers_from ≤ covers_until; CHECK paid ⇔ the three dates set; (`store_id`, `created_at`) |
 
 **JSONB settings on `store`.** The shapes are Pydantic models, and `{}` or
 missing parts read as the defaults:
@@ -713,11 +718,39 @@ is shown as paused to customers (`ShopStoreOut.orders_paused` true,
 same as paused: customers never hear about the plan. An order from a chat
 gets 409 `PLAN_UNPAID` instead (paused shops still take those). Everything
 else, orders already placed included, carries on. The seller's own
-`StoreOut.orders_paused` is only their switch. A payment
-(`plan.record_payment`, only from `python -m app.admin paid`) covers a
-month or a year from the day after `paid_until`, or from the day it's paid
-once the shop has stopped (`next_period`); `add_months` rolls a missing
-day (31 Jan + 1 month) to the 1st after.
+`StoreOut.orders_paused` is only their switch. A payment, once paid
+(`plan.mark_paid`), covers a month or a year from the day after
+`paid_until`, or from the day it's paid once the shop has stopped
+(`next_period`); `add_months` rolls a missing day (31 Jan + 1 month) to the
+1st after.
+
+**Paying through ABA PayWay** (01 §33.1, founder's design 2026-10-14;
+`services/billing.py`, `services/payway.py`). Pay now: `POST
+/seller/plan/checkout` saves a pending payment (a `tran_id`) and answers
+PayWay's form, signed on the server; the browser posts it to PayWay's
+checkout (hosted view; back to `/dashboard/settings/plan?payment=<id>`).
+Three things settle a pending payment, and each only makes us ask PayWay
+(`payway.check_transaction`): PayWay's callback (`POST /payway/callback`,
+the `return_url` we send, base64), the seller's page (`GET
+/seller/plan/payments/{id}`) and the daily run. PayWay's answer: APPROVED
+with our amount in USD → paid (`mark_paid` under a lock on the payment and
+the store); DECLINED or CANCELLED → failed; still pending → stays, until a
+checkout is 2 hours old or a charge a day ("Not paid"). Monthly
+auto-charge: a checkout with `auto_charge` (`aba` or `card`) is a PayWay
+subscription (`ctid` = `store.payway_ctid`, `CITR_FIX`, `1M`); the token
+comes by `POST /payway/token-callback` (set in PayWay's Credential on File
+settings) or after the payment is paid, and is saved only as PayWay's
+`get-token-details` answers. `POST /billing/run` (cron-job.org, once a day,
+`X-Cron-Secret` = `BILLING_CRON_SECRET`, else 404) settles what's pending,
+then charges every open shop with a token whose paid time ran out 1 to 7
+days ago, at most once a day (`charge`): accepted → checked like the rest;
+refused → failed, and a dead token (codes 83, 84, 87) turns auto-charge
+off. Telegram (Khmer) on the first failure since the paid time ran out, on
+day 5, and when the token died (`notifications.send_to_seller`, logged
+`plan_charge_failed`). Turning it off (`DELETE /seller/plan/auto-charge`)
+forgets the token at once and removes it at PayWay. Not checked against
+PayWay's sandbox yet (needs the founder's account): the field formats
+follow PayWay's docs as of 2026-10-14.
 
 **Duplicated on purpose:** `order.delivery_method` and `delivery.method` are
 both set at checkout to the same value. `payment.amount` equals
@@ -739,7 +772,9 @@ normalized; a number that can't be read, or an older account's again, was
 cleared) → `4520c66e86de` seller_login, password_hash nullable →
 `39a133fd8c02` seller_login.name, facebook and tiktok → `d450a35183c0`
 store.paid_until (existing shops: 30 days from that day) + plan_payment
-(RLS, `app_user` SELECT only) (**head**).
+(RLS, `app_user` SELECT only) → `747c15ec63b4` plan_payment status,
+tran_id, failure, dates set when paid, PayWay methods + store's PayWay
+token (**head**).
 
 ---
 
@@ -903,7 +938,7 @@ from the schema.
 | POST | `/auth/social/register` | none | `SocialRegisterIn` (`signup_token`, `full_name`, `store_name`, `phone_check`) | `AccessOut` + cookie (201) | No password; 400 `SIGNUP_EXPIRED`, 409 `SOCIAL_TAKEN` / `PHONE_TAKEN`; 5/min |
 | POST | `/auth/phone-checks` | none | none | `PhoneCheckOut` (201) | `{id, telegram_url, expires_at, phone: null, taken: false}`; 503 `TELEGRAM_NOT_CONFIGURED` without the bot; 10/min |
 | GET | `/auth/phone-checks/{id}` | the check's id | — | `PhoneCheckOut` | `phone` once shared in Telegram; `taken` when an account already has it; expired or unknown → 404 `PHONE_CHECK_EXPIRED`; 60/min (the page reads it every few seconds) |
-| GET | `/seller/account` | seller | — | `AccountOut` | The person's own phone (login), email (older accounts, else null), name, role, `has_password`, `logins` (`[{provider, label}]`, label = the email or the name) (`UnscopedDb`, filtered by the token's seller id) |
+| GET | `/seller/account` | seller | — | `AccountOut` | The person's own phone (login), email (older accounts, else null), name, role, `has_password`, `logins` (`[{provider, label}]`, label = the email or the name) (`UnscopedDb`, filtered by the token's seller id); `is_admin` (the login is in `ADMIN_PHONES`: the app shows the admin page) |
 | PATCH | `/seller/account` | seller | `AccountUpdate` | `AccountOut` | `full_name` only |
 | POST | `/seller/account/phone` | seller | `PhoneChange` (`phone_check`) | `AccountOut` | New login number from a finished phone check; another account's → 409 `PHONE_TAKEN` |
 | POST | `/seller/account/google` | seller | `GoogleIn` (`credential`) | `AccountOut` | Log in with this Google account too (replaces one connected before); another shop's → 409 `SOCIAL_TAKEN` |
@@ -931,7 +966,13 @@ from the schema.
 | POST | `/seller/products/{product_id}/images` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT (+ thumbnail PUT if `thumbnail_size`); max 5 images, 5 MB, JPEG/PNG/WebP |
 | POST | `/seller/orders` | seller | `SellerOrderCreate` | `OrderOut` (201) | An order from a chat (founder's pick 3A): `checkout.place_order(by_seller=True)`, so checkout's prices, stock, totals and `expected_total` check; taken while paused; starts `accepted`; `source = "chat"`; no "new order" on the bell or Telegram, low stock only |
 | GET | `/seller/stats` | **owner** | `?period=today\|week\|month` | `StatsOut` | **Not shown in the app yet**: kept for the seller dashboard (founder, 2026-10-09: the numbers and chart wait for it; picks 8B, 9B; `services/stats.py`): orders placed in the period except rejected / cancelled, their totals and their pending payments per currency, Phnom Penh days; `days` = sales per day in the shop's currency, the last 7 days for today and the week, this month's days so far for the month. 403 `OWNER_ONLY` for staff |
-| GET | `/seller/plan` | seller (staff too) | — | `PlanOut` | The shop's plan with Oak Order (01 §33.1): `stage` (`active`/`ending_soon`/`overdue`/`stopped`), `on_trial` (no payment yet), `paid_until`, `pay_by` (paid_until + 7: the last day before new orders stop), `days_left` (today included, 0 once run out), `prices` (`month` "9.99", `year` "99.00", USD), `payments` newest first. Nothing pays through the API yet: the founder records payments (`python -m app.admin paid`) |
+| GET | `/seller/plan` | seller (staff too) | — | `PlanOut` | The shop's plan with Oak Order (01 §33.1): `stage` (`active`/`ending_soon`/`overdue`/`stopped`), `on_trial` (no payment yet), `paid_until`, `pay_by` (paid_until + 7: the last day before new orders stop), `days_left` (today included, 0 once run out), `prices` (`month` "9.99", `year` "99.00", USD), `payway` (Pay now set up), `auto_charge` (`{label, amount, next_charge}` while on), `charge_failed` (an auto-charge failed since the paid time ran out), `payments` newest first: paid ones and failed auto-charges |
+| POST | `/seller/plan/checkout` | owner | `CheckoutIn` (`period`, `auto_charge`: `aba`/`card`/null, monthly only) | `CheckoutOut` (`payment_id`, `action`, `fields`) | Pay now through PayWay: a pending payment and the signed form the browser posts. 503 `PAYWAY_NOT_CONFIGURED` without `PAYWAY_MERCHANT_ID` / `PAYWAY_API_KEY`; auto-charge with a year → 422 |
+| GET | `/seller/plan/payments/{payment_id}` | owner | — | `PlanPaymentOut` | Back from PayWay: asks PayWay while pending. Another shop's → 404 `PAYMENT_NOT_FOUND` |
+| DELETE | `/seller/plan/auto-charge` | owner | — | `PlanOut` | Turns auto-charge off: the token is forgotten and removed at PayWay |
+| GET | `/admin/shops` | **admin** (`ADMIN_PHONES`) | — | `list[AdminShopOut]` | Every shop, the soonest to run out first: login, open or closed, stage, trial or paying, paid until, pay by, auto-charge, next charge, last paid, last failure. Others 403 `ADMIN_ONLY` |
+| GET | `/admin/shops/{store_id}` | admin | — | `AdminShopDetailOut` | The same, with every payment (notes, `tran_id`) |
+| POST | `/admin/shops/{store_id}/payments` | admin | `AdminPaymentIn` (`period`, `amount` or the price, `note`) | `AdminShopDetailOut` | Mark paid (by hand); `amount` 0 gives free time |
 | GET | `/seller/orders` | seller | `?status=` (repeatable) `&created_from=&created_to=&limit=1..100(50)&offset=` | `OrderListOut` | By number desc; `counts` per status ignore the status filter; each row leads with its biggest line (`first_item_name`, `line_count`, `first_item_image_url`: that product's photo now), also on a customer's and a link's orders |
 | GET | `/seller/orders/export` | seller | `?first=&last=` (dates, Phnom Penh days, both included) `&lang=en\|km` | `.xlsx` file | One row per order, oldest first: number, date, customer, phone (as text), items, the four amounts (number format per currency), payment, delivery, statuses, address, source, note; frozen, filterable heading row. Over a year or ending before it starts → 422 `INVALID_DATE_RANGE`. Declared before `/{order_id}` |
 | GET | `/seller/orders/{order_id}` | seller | — | `OrderOut` | With `next_statuses` on order, payment, delivery; each item carries its product's current first photo (`image_url`, as on the shop's order page; also on the three PATCHes below) |
@@ -957,6 +998,9 @@ from the schema.
 | GET | `/shop/{store_slug}/preview/logo` | public | `?v=` (ignored; changes with the photo) | JPEG, or 302 | og:image for a shop link (`frontend/middleware.ts`, founder's pick 5B): the logo with our mark bottom right; no logo, or the photo can't be read: 302 to the app's `/og/oak-mark.png` (`PUBLIC_APP_URL`). `Cache-Control` one day; +30/min |
 | GET | `/shop/{store_slug}/preview/products/{product_slug}` | public | `?v=` | JPEG 1200 × 630, or 302 | og:image for a product (or category) link: the first photo with our mark; 404 for another shop's or a hidden product; no photo: as `/preview/logo`; +30/min |
 | POST | `/shop/{store_slug}/orders/{order_id}/paid` | public | `PaymentClaimIn` (`phone`) | 204 | "I've paid" (founder's pick 6B): the order link + phone like tracking (404 otherwise); 409 `NOTHING_TO_PAY` unless a pending KHQR / bank payment on an order that's on. Saves a web `payment_claimed` row and sends a Telegram alert in the background, not again within 30 min; the payment stays pending. +10/min |
+| POST | `/payway/callback` | none (asks PayWay) | PayWay's JSON (`tran_id`, ...) | `{}` | Settles that payment by asking PayWay; the body isn't trusted; hidden from the schema; 120/min |
+| POST | `/payway/token-callback` | none (asks PayWay) | PayWay's JSON (`request_id`, `payment_credential`) | `{}` | Saves the token PayWay's `get-token-details` gives for that `request_id`; hidden; 120/min |
+| POST | `/billing/run` | header `X-Cron-Secret` | — | 202 `{"started": true}` | The daily run, after the response (cron-job.org); wrong or no secret → 404; hidden |
 | POST | `/telegram/webhook` | header `X-Telegram-Bot-Api-Secret-Token` | Telegram update (raw dict) | Bot API method call as JSON, or `{}` | 404 if the secret is wrong or the bot is off |
 
 Schemas live in `app/schemas/<domain>.py`: auth (`RegisterIn`, `LoginIn`,
@@ -1306,6 +1350,7 @@ don't take the SVG favicon). The three PNGs were drawn from the mark's SVG
 | **"Ask seller": Telegram, Messenger, call** | WIRED (no bot) | `shop/ContactSeller.tsx` (+ `contact.ts`) on the product page and the order page: `https://t.me/<telegram_username>?text=<question>`; `https://m.me/<messenger_username>` (m.me can't type a message, so the question is copied to the clipboard first); `tel:<contact_phone>`. Each hidden when empty; one way shows as one button, more as a row that wraps. Set in Settings → Contact; `StoreUpdate` accepts a page's m.me / facebook.com link (`profile.php?id=` too) and any phone spelling. |
 | **Web notifications** | WIRED | `notification_log` rows with `channel=web`, written in the checkout transaction; the dashboard polls. No push. |
 | **Payments: COD, bank transfer** | WIRED, manual | No provider. Bank details from `payment_config` (current values, not a copy at order time) are shown on the order page while the payment is pending and the order isn't rejected or cancelled. |
+| **ABA PayWay** (sellers paying Oak Order) | BUILT, env-gated, not tried against PayWay yet | `services/payway.py`, `services/billing.py`: Pay now (checkout), the monthly auto-charge (Credentials on File, scheduled payment), callbacks, the daily run. Off until `PAYWAY_MERCHANT_ID` and `PAYWAY_API_KEY` are set (Settings → Plan then says to message Oak Order). Needs PayWay to whitelist `order.oaksolve.com` (the browser posts the form) and the API's domain and Render's outgoing IPs (our server calls), and the token callback URL in PayWay's Credential on File settings. |
 | **Payments: KHQR** | WIRED, manual confirmation | `services/khqr.py` builds an individual KHQR (EMVCo TLV + CRC16) for the exact total, bill number `#<order number>`, 24 h expiry, made fresh on every order-page load; none for riel totals with cents. Tests pin it to strings from NBC's `bakong-khqr` 1.0.20 SDK. Drawn in the browser with `uqr`. |
 | **Bakong Open API** (auto-confirm) | NOT BUILT | Post-MVP (02 §10.3). |
 | **Cloudflare R2** (images) | WIRED, env-gated | `services/images.py`: boto3 S3 client against `https://<account>.r2.cloudflarestorage.com`, presigned `put_object` URLs (10 min) signed with exact `ContentType` + `ContentLength`. Keys: `stores/<store>/products/<product>/<hex>[-m].<ext>`, thumbnail `<hex>-s.jpg`, logo `stores/<store>/logo/<hex>.<ext>`. Public URL = `R2_PUBLIC_URL/<key>`, stored **absolute** in `product.image_urls` / `store.logo_url`. The browser PUTs directly. Removing a photo only unlinks it; the object stays. |

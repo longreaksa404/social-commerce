@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
     account,
+    admin,
     auth,
     categories,
     customers,
@@ -14,6 +15,7 @@ from app.api import (
     links,
     notifications,
     orders,
+    payway,
     plan,
     products,
     shop,
@@ -65,6 +67,8 @@ api_v1.include_router(products.router)
 api_v1.include_router(orders.router)
 api_v1.include_router(stats.router)
 api_v1.include_router(plan.router)
+api_v1.include_router(admin.router)
+api_v1.include_router(payway.router)
 api_v1.include_router(customers.router)
 api_v1.include_router(notifications.router)
 api_v1.include_router(links.router)

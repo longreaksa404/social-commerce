@@ -45,6 +45,16 @@ services:
         sync: false
       - key: TIKTOK_CLIENT_SECRET
         sync: false
+      - key: PAYWAY_MERCHANT_ID
+        sync: false
+      - key: PAYWAY_API_KEY
+        sync: false
+      - key: PAYWAY_BASE_URL
+        sync: false
+      - key: BILLING_CRON_SECRET
+        sync: false
+      - key: ADMIN_PHONES
+        sync: false
       - key: R2_ACCOUNT_ID
         sync: false
       - key: R2_ACCESS_KEY_ID

@@ -60,6 +60,24 @@ class Settings(BaseSettings):
     tiktok_client_key: str = ""
     tiktok_client_secret: str = ""
 
+    # ABA PayWay: how sellers pay Oak Order (01_PRODUCT.md §33.1). Off until
+    # the merchant ID and API key are set; Settings → Plan then says to
+    # message Oak Order. Sandbox https://checkout-sandbox.payway.com.kh,
+    # live https://checkout.payway.com.kh.
+    payway_merchant_id: str = ""
+    payway_api_key: str = ""
+    payway_base_url: str = "https://checkout-sandbox.payway.com.kh"
+    # Any long random string: cron-job.org sends it on the daily billing
+    # run (POST /api/v1/billing/run). Empty turns the run off.
+    billing_cron_secret: str = ""
+    # The founder's own login phone numbers, comma-separated: they get the
+    # admin page (every shop's plan).
+    admin_phones: str = ""
+
+    @property
+    def payway_configured(self) -> bool:
+        return bool(self.payway_merchant_id and self.payway_api_key)
+
     @property
     def facebook_configured(self) -> bool:
         return bool(self.facebook_app_id and self.facebook_app_secret)

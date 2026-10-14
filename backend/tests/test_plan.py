@@ -95,6 +95,9 @@ async def test_a_new_shop_starts_a_30_day_free_trial(client, auth_headers, today
         "pay_by": "2026-12-07",
         "days_left": 30,
         "prices": {"month": "9.99", "year": "99.00"},
+        "payway": False,
+        "auto_charge": None,
+        "charge_failed": False,
         "payments": [],
     }
 

@@ -13,15 +13,16 @@ itself; there's no scheduled job). With paid_until = 30 Nov:
 """
 
 import uuid
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import clock
-from app.models import PlanPayment, PlanPaymentMethod, PlanPeriod, Store
-from app.schemas.plan import PlanOut, PlanPaymentOut, PlanPricesOut, PlanStage
+from app.core.config import get_settings
+from app.models import PlanPayment, PlanPaymentMethod, PlanPaymentStatus, PlanPeriod, Store
+from app.schemas.plan import AutoChargeOut, PlanOut, PlanPaymentOut, PlanPricesOut, PlanStage
 from app.services import store as store_service
 
 REMIND_DAYS = 6
@@ -72,6 +73,18 @@ def next_period(paid_until: date, today: date, period: PlanPeriod) -> tuple[date
     return start, add_months(start, MONTHS[period]) - timedelta(days=1)
 
 
+def mark_paid(payment: PlanPayment, store: Store) -> None:
+    """The payment reached Oak Order today: it covers the next month or
+    year (next_period) and moves the shop's paid-until date. Lock the store
+    row first when anything else may move it."""
+    today = clock.today()
+    payment.covers_from, payment.covers_until = next_period(store.paid_until, today, payment.period)
+    payment.status = PlanPaymentStatus.PAID
+    payment.paid_on = today
+    payment.failure = None
+    store.paid_until = payment.covers_until
+
+
 def record_payment(
     db: AsyncSession,
     store: Store,
@@ -80,40 +93,75 @@ def record_payment(
     amount: Decimal | None = None,
     reference: str | None = None,
 ) -> PlanPayment:
-    """A payment that reached Oak Order: covers the next month or year and
-    moves the shop's paid-until date. Added to the session, not committed."""
-    today = clock.today()
-    covers_from, covers_until = next_period(store.paid_until, today, period)
+    """A payment made by hand (the founder's command or admin page). Added
+    to the session, not committed."""
     payment = PlanPayment(
         store_id=store.id,
         period=period,
         amount=PRICES[period] if amount is None else amount,
         method=PlanPaymentMethod.MANUAL,
         reference=reference,
-        paid_on=today,
-        covers_from=covers_from,
-        covers_until=covers_until,
     )
+    mark_paid(payment, store)
     db.add(payment)
-    store.paid_until = covers_until
     return payment
+
+
+def day_start(day: date) -> datetime:
+    """Midnight in Phnom Penh, to compare with created_at."""
+    return datetime.combine(day, time(), tzinfo=clock.PHNOM_PENH)
+
+
+def auto_charge_failed(
+    store: Store, payments: list[PlanPayment], today: date
+) -> PlanPayment | None:
+    """The latest auto-charge that failed since the paid time ran out."""
+    if stage(store.paid_until, today) in (PlanStage.ACTIVE, PlanStage.ENDING_SOON):
+        return None
+    since = day_start(store.paid_until + timedelta(days=1))
+    failed = [
+        p
+        for p in payments
+        if p.method is PlanPaymentMethod.PAYWAY_AUTO
+        and p.status is PlanPaymentStatus.FAILED
+        and p.created_at >= since
+    ]
+    return max(failed, key=lambda p: p.created_at, default=None)
 
 
 async def get_plan(db: AsyncSession, store_id: uuid.UUID) -> PlanOut:
     store = await store_service.get_store(db, store_id)
-    payments = await db.scalars(
-        select(PlanPayment)
-        .where(PlanPayment.store_id == store_id)
-        .order_by(PlanPayment.paid_on.desc(), PlanPayment.created_at.desc())
+    payments = list(
+        await db.scalars(
+            select(PlanPayment)
+            .where(PlanPayment.store_id == store_id)
+            .order_by(PlanPayment.created_at.desc())
+        )
     )
-    payments_out = [PlanPaymentOut.model_validate(payment) for payment in payments]
     today = clock.today()
+    paid = [p for p in payments if p.status is PlanPaymentStatus.PAID]
+    shown = [
+        p
+        for p in payments
+        if p.status is PlanPaymentStatus.PAID
+        or (p.status is PlanPaymentStatus.FAILED and p.method is PlanPaymentMethod.PAYWAY_AUTO)
+    ]
+    auto_charge = None
+    if store.payway_token is not None:
+        auto_charge = AutoChargeOut(
+            label=store.payway_token_label or "",
+            amount=PRICES[PlanPeriod.MONTH],
+            next_charge=max(store.paid_until + timedelta(days=1), today),
+        )
     return PlanOut(
         stage=stage(store.paid_until, today),
-        on_trial=not payments_out,
+        on_trial=not paid,
         paid_until=store.paid_until,
         pay_by=pay_by(store.paid_until),
         days_left=max((store.paid_until - today).days + 1, 0),
         prices=PlanPricesOut(month=PRICES[PlanPeriod.MONTH], year=PRICES[PlanPeriod.YEAR]),
-        payments=payments_out,
+        payway=get_settings().payway_configured,
+        auto_charge=auto_charge,
+        charge_failed=auto_charge_failed(store, payments, today) is not None,
+        payments=[PlanPaymentOut.model_validate(p) for p in shown],
     )

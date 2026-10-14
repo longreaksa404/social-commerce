@@ -29,6 +29,8 @@ class AccountOut(BaseModel):
     has_password: bool
     # The Google, Facebook and TikTok accounts that log in to this one.
     logins: list[LoginOut] = []
+    # The founder's own login (ADMIN_PHONES): the app shows the admin page.
+    is_admin: bool = False
 
 
 class AccountUpdate(BaseModel):
