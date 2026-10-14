@@ -1335,28 +1335,24 @@ the founder brought; no early-seller offer):
     days before, 7 days to pay, then no new orders.
   - Nothing is cancelled or deleted. The sign-up page and the Terms say
     all of this.
-- **How sellers pay Oak Order:** through **ABA PayWay** (founder's
-  design, picks 1A 2B 3A, 2026-10-14). It needs the founder's merchant
-  account (usually a registered business) and takes a fee per payment.
-  Until it is set up, sellers pay the founder by hand and the founder
-  records it.
-  - **Pay now:** PayWay's checkout (ABA PAY, KHQR from any bank, card),
-    confirmed by PayWay (its callback, checked with PayWay's own
-    transaction check), and the shop is extended at once.
-  - **Auto-charge, monthly only** (PayWay's subscriptions run weekly,
-    monthly or every 2 months): the seller pays the first month with
-    their ABA account or card and allows the same amount each month
-    (PayWay Credentials on File, scheduled payment). Oak Order charges it
-    on the shop's own start day, the day after its paid time ends. A
-    yearly plan is paid with Pay now once a year. The seller can turn
-    auto-charge off.
-  - **A failed charge** is tried again each day for the 7 days to pay;
-    the seller gets a Telegram message on the first failure and on day 5;
-    on day 8 the shop stops taking new orders (nothing deleted). Paying
-    with Pay now, or by hand, opens it again.
+- **How sellers pay Oak Order.** Decided (2026-10-14): sellers pay
+  monthly by hand until Oak Solutions qualifies for ABA PayWay (MOC
+  registration, ABA account, 6 months of business). Then PayWay: Pay now
+  (ABA PAY, KHQR, card) and auto-charge from a linked ABA account or card
+  on each shop's start day, with 7 days to pay.
+  - **By hand, now:** Settings → Plan shows the shop's code (e.g.
+    OAK-K7Q2MX) and Oak's KHQR (the code as its bill number) and/or bank
+    account. The seller pays, puts the code in the transfer's note, and
+    taps "I've paid": the founder gets a Telegram alert, finds the money,
+    and marks it paid on the admin page (or "not found", with a note the
+    seller sees).
+  - **Reminders:** on the shop's start day (the day after its paid time
+    ends) and on day 5, a Telegram message says to pay by hand and that
+    new orders stop on day 8. Shops without Telegram (it's optional, Rule
+    7) see it on the Orders tab.
 - **The founder's admin page** (web, only for the founder's login): every
-  shop's plan, next charge date and status, and "mark paid" for a payment
-  made by hand (an amount of 0 gives free time).
+  shop's plan, code and status, the "I've paid" to check, and "mark paid"
+  for any payment made by hand (an amount of 0 gives free time).
 - **Later plans, not built:** Growth ($15–19 a month: more staff,
   advanced reports, automation) and Business ($29+ a month: several
   shops, more complex operations), when sellers show they need them.
@@ -1886,7 +1882,7 @@ The following are intentionally not finalized.
 ## Business
 
 - Setup fee amounts: set after timing the first 3–5 sellers' setups (§33.2)
-- PayWay merchant account: the founder opens it with ABA (sandbox first, then live; whitelisting of our domains) (§33.1)
+- Registering Oak Solutions with MOC: type (sole proprietorship or PLC) and date. Needed for ABA PayWay and before charging sellers.
 
 ## Market
 
@@ -1909,7 +1905,7 @@ Decided so far (details in §24, §25 and `02_TECHNICAL.md`):
 - Company Oak Solutions, domain oaksolve.com, this product at `order.oaksolve.com` (2026-10-09; Oak Shop considered and not picked)
 - Oak's mark: the oak leaf from the Oak Solutions logo (2026-10-10; replaces a stock tree icon)
 - Every shop credits Oak: "Made with Oak Order" with Privacy · Terms at the bottom of the shop's pages and the order page, and shared links end in "· Oak Order" with Oak's mark small on the picture (2026-10-10). The line stays on the Standard plan (2026-10-14); hiding it may come with a later plan.
-- Pricing (2026-10-14, §33): one plan, Standard, $9.99 a month or $99 a year per shop, hosting included; a 1-month free trial, no free plan, no early-seller discount; unpaid 7 days after the trial (or a paid period), the shop takes no new orders and nothing is deleted; sellers pay in the app through ABA PayWay, now or by a monthly auto-charge with retries for 7 days (by hand until PayWay is set up); the founder has an admin page; setup free for the first 3–5 sellers. Growth and Business plans are for later.
+- Pricing (2026-10-14, §33): one plan, Standard, $9.99 a month or $99 a year per shop, hosting included; a 1-month free trial, no free plan, no early-seller discount; unpaid 7 days after the trial (or a paid period), the shop takes no new orders and nothing is deleted; sellers pay by hand (KHQR or transfer with the shop's code, "I've paid", the founder confirms on an admin page; Telegram reminders on day 1 and day 5) until Oak Solutions qualifies for ABA PayWay; setup free for the first 3–5 sellers. Growth and Business plans are for later.
 
 # 47. Relationship With Other Project Documents
 

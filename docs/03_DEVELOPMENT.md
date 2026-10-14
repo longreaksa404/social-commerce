@@ -282,11 +282,10 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Oak in the shop: "Made with Oak Order" with Privacy · Terms at the bottom of the shop's grid pages and the order page; link cards titled "… · Oak Order" with Oak's mark small on the logo or photo (drawn by the API); the oak leaf as the mark; Oak's own link card and iPhone icon (founder's picks 2026-10-10) | 4 |
 | Plan and billing, part 1 (pricing decided 2026-10-14, `01_PRODUCT.md` §33.1; the data model is shown to the founder first): the 1-month free trial, Settings → Plan (trial or paid-until date, the price, past payments), reminders in the dashboard, no new orders 7 days after an unpaid trial or period, the founder's command to record a payment made by hand, the sign-up and Terms text | 12 |
 | Move the frontend from Vercel to Cloudflare Pages, link previews included (founder's pick 6A, 2026-10-14; before the first seller pays) | 4 |
-| Plan and billing, step 1: Pay now through ABA PayWay's checkout (ABA PAY, KHQR, card), confirmed by PayWay's callback and transaction check; payment statuses; the founder's admin page (every shop's plan, next charge, status, mark paid) (founder's picks 2026-10-14; tested against PayWay's sandbox once the founder has it) | 26 |
-| Plan and billing, step 2: monthly auto-charge (PayWay Credentials on File, scheduled payment) on each shop's start day, a daily run called by cron-job.org, retries for 7 days with Telegram on the first failure and day 5, turning it off (founder's picks 2026-10-14) | 20 |
+| Plan and billing part 2, hand collection: admin page, payment status, daily reminders, I've paid (founder's picks 2026-10-14; real time spent, about 2 hrs: the admin page and payment statuses carried over from the PayWay work, then the rework) | 2 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~279 hours (**~21.5 weeks**)
+**Subtotal:** ~235 hours (**~18 weeks**)
 
 > **Decided (2026-10-04):** a .com domain bought through Cloudflare (oaksolve.com, bought 2026-10-09); Render
 > stays on the free plan for the first seller (the app says when the
@@ -311,8 +310,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 17 | 1.5 wks |
-| 9 — Polish/First Seller | 279 | 21.5 wks |
-| **Total** | **~507 hrs** | **~39 weeks (~9 months)** |
+| 9 — Polish/First Seller | 235 | 18 wks |
+| **Total** | **~463 hrs** | **~35.5 weeks (~8 months)** |
 
 This is a planning estimate, not a commitment.
 
@@ -349,6 +348,7 @@ Maintain a **Requirements Log** for anything a seller asks for that isn't in thi
 | 2026-10-09 | Founder (trying the Orders tab's numbers card locally; no seller yet) | **Seller dashboard.** A page for the shop's numbers (orders, sales, not paid yet; today, 7 days, this month) with a chart of sales per day. The Orders tab had them as a card for a day; the founder took it off until this page exists. The server part is built (`GET /seller/stats`, owner only). | Possibly repeated. **Build later** | Not yet |
 | 2026-10-10 | Founder (Oak in the shop; no seller yet) | **Hide "Made with Oak Order".** Sellers on a paid plan can turn off the line at the bottom of their shop (our mark and "Made with Oak Order"; Privacy · Terms would stay). A common paid extra on shop builders. | Possibly repeated. **Decided 2026-10-14:** the line stays on the Standard plan; hiding it may come with a later plan, Growth or Business (`01_PRODUCT.md` §33.1, §33.4) | Not yet |
 | 2026-10-06 | Founder (shop redesign; no seller yet) | **Search in the shop.** A search box above the products, for shops with many products (30+). Not in the MVP customer features (`01_PRODUCT.md` §24). | Possibly repeated. **Validate First**: build when a seller's shop is big enough to need it | Not yet |
+| 2026-10-14 | Founder (Oak's own billing; no seller yet) | Automatic subscription payments with ABA PayWay: Pay now and auto-charge from a linked ABA account or card. Built up to the PayWay calls; parked on branch payway. | Platform (Oak's own billing). Build Later: when Oak Solutions has MOC registration and 6 months of business, or hand collection takes over ~4 hrs/month | n/a |
 
 Notes on the 2026-10-02 one-tap pay request:
 
