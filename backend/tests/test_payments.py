@@ -319,3 +319,30 @@ async def test_seller_cannot_record_another_stores_payment(client, auth_headers)
 
     detail = (await client.get(f"/api/v1/seller/orders/{order['id']}", headers=a_headers)).json()
     assert detail["payment"]["status"] == "pending"
+
+
+async def test_an_aba_sellers_khqr_names_their_account(client, auth_headers):
+    """ABA customers share ABA's Bakong ID: the code carries the seller's
+    account number and the bank too, read from their own QR (2026-10-14)."""
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    saved = await set_payments(
+        client,
+        headers,
+        khqr={
+            "enabled": True,
+            "bakong_account_id": "abaakhppxxx@abaa",
+            "merchant_name": "SOK DARA",
+            "account_information": "019782164",
+            "acquiring_bank": "ABA Bank",
+        },
+    )
+    cap = await add_product(store_id, "cap", stock=5)
+    order = await place_order(client, slug, [(cap, None, 1)], total="10.00", payment_method="khqr")
+
+    page = await track(client, slug, order.json()["id"])
+
+    assert saved.status_code == 200, saved.text
+    assert (
+        "29450016abaakhppxxx@abaa01090197821640208ABA Bank"
+        in page.json()["payment"]["khqr"]["code"]
+    )

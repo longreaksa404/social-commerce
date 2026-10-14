@@ -35,6 +35,7 @@ BakongAccountId = Annotated[
     StringConstraints(strip_whitespace=True, max_length=32),
     AfterValidator(_bakong_account_id),
 ]
+KhqrAccount = Annotated[str, StringConstraints(strip_whitespace=True, max_length=32)]
 KhqrName = Annotated[
     str, StringConstraints(strip_whitespace=True, max_length=25), AfterValidator(_latin)
 ]
@@ -63,6 +64,11 @@ class KhqrSettings(BaseModel):
     bakong_account_id: BakongAccountId = ""
     # What the customer's bank app shows as who they are paying.
     merchant_name: KhqrName = ""
+    # For banks whose customers share the bank's Bakong ID (ABA's
+    # abaakhppxxx@abaa): the seller's account number and the bank's name.
+    # Read from the QR the seller uploads from their bank app (2026-10-14).
+    account_information: KhqrAccount = ""
+    acquiring_bank: KhqrAccount = ""
 
 
 class PaymentSettings(BaseModel):

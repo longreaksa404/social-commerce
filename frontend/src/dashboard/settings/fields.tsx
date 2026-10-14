@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CircleCheck, ExternalLink, ImagePlus, Plus, Send, Share2, Store as StoreIcon, Trash2 } from 'lucide-react'
+import { CircleCheck, ExternalLink, ImagePlus, Plus, QrCode, Send, Share2, Store as StoreIcon, Trash2 } from 'lucide-react'
 import { useRef, useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
@@ -21,6 +21,7 @@ import { api } from '../../lib/api.ts'
 import { errorText, fieldError } from '../../lib/errors.ts'
 import { prepareLogo, uploadStoreLogo } from '../../lib/images.ts'
 import { phnomPenhDate } from '../../lib/orders.ts'
+import { parseKhqr, readQrImage } from '../../lib/readKhqr.ts'
 import type { Currency, PaymentSettings, Store, TelegramLink } from '../../lib/types.ts'
 import { keys } from '../queries.ts'
 import type { DeliveryForm, Form, RuleRow } from './form.ts'
@@ -160,6 +161,51 @@ export function OrdersFields({ form, update, error }: FieldsProps) {
   )
 }
 
+/** "Upload your bank's QR": the seller's own KHQR picture, read on the
+ * phone (lib/readKhqr.ts), fills in the Bakong ID, the account and the
+ * name. Warns when the QR's account isn't in the shop's currency (an ABA
+ * QR points at the default account, often the riel one). */
+function QrUpload({ shopCurrency, onRead }: { shopCurrency: Currency; onRead: (account: Exclude<ReturnType<typeof parseKhqr>, string>) => void }) {
+  const s = useT().settings
+  const { toast } = useFeedback()
+  const input = useRef<HTMLInputElement>(null)
+  const [problem, setProblem] = useState<string | null>(null)
+  const [reading, setReading] = useState(false)
+
+  async function pick(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setReading(true)
+    setProblem(null)
+    let result: ReturnType<typeof parseKhqr>
+    try {
+      result = parseKhqr(await readQrImage(file))
+    } catch {
+      result = 'no_qr'
+    }
+    setReading(false)
+    if (typeof result === 'string') {
+      setProblem(result === 'no_qr' ? s.qrNone : result === 'business' ? s.qrBusiness : s.qrNotKhqr)
+      return
+    }
+    onRead(result)
+    toast(s.qrRead)
+    if (result.currency && result.currency !== shopCurrency) setProblem(s.qrCurrency(result.currency, shopCurrency))
+  }
+
+  return (
+    <div className="space-y-2">
+      <input ref={input} type="file" accept="image/*" className="hidden" onChange={pick} />
+      <Button variant="secondary" icon={QrCode} loading={reading} onClick={() => input.current?.click()} className="w-full sm:w-auto">
+        {s.uploadQr}
+      </Button>
+      <p className="text-xs leading-5 text-slate-500">{s.uploadQrHint}</p>
+      {problem && <p role="alert" className="rounded-xl bg-amber-50 px-3.5 py-2.5 text-sm leading-6 text-amber-900 ring-1 ring-amber-200 ring-inset">{problem}</p>}
+    </div>
+  )
+}
+
 export function PaymentsFields({ form, update, error }: FieldsProps) {
   const { cod, bank_transfer: bank, khqr } = form.payment_settings
   const t = useT()
@@ -178,6 +224,17 @@ export function PaymentsFields({ form, update, error }: FieldsProps) {
       />
       {khqr.enabled && (
         <div className="space-y-4 border-l-2 border-slate-100 pl-4">
+          <QrUpload
+            shopCurrency={form.currency}
+            onRead={(account) =>
+              set('khqr', {
+                bakong_account_id: account.bakongAccountId,
+                account_information: account.accountInformation,
+                acquiring_bank: account.acquiringBank,
+                ...(account.name ? { merchant_name: account.name } : {}),
+              })
+            }
+          />
           <Field label={s.bakongId} error={fieldErr('khqr.bakong_account_id')} hint={s.bakongIdHint}>
             <Input
               required
@@ -200,6 +257,17 @@ export function PaymentsFields({ form, update, error }: FieldsProps) {
               value={khqr.merchant_name}
               onChange={(e) => set('khqr', { merchant_name: e.target.value })}
             />
+          </Field>
+          <Field label={s.accountInfo} error={fieldErr('khqr.account_information')} hint={s.accountInfoHint}>
+            <Input
+              maxLength={32}
+              inputMode="numeric"
+              value={khqr.account_information}
+              onChange={(e) => set('khqr', { account_information: e.target.value })}
+            />
+          </Field>
+          <Field label={s.acquiringBank} error={fieldErr('khqr.acquiring_bank')}>
+            <Input maxLength={32} placeholder="ABA Bank" value={khqr.acquiring_bank} onChange={(e) => set('khqr', { acquiring_bank: e.target.value })} />
           </Field>
         </div>
       )}

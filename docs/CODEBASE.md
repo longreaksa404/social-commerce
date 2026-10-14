@@ -688,7 +688,7 @@ missing parts read as the defaults:
 - `payment_config` ↔ `PaymentSettings` (`schemas/payment.py`): `cod
   {enabled=true}`, `bank_transfer {enabled=false, bank_name, account_name,
   account_number}`, `khqr {enabled=false, bakong_account_id,
-  merchant_name}`. A method can't be on without its details, and at least
+  merchant_name, account_information, acquiring_bank}` (the last two: ABA-style banks, put in tag 29 by `khqr.individual_khqr`; read from the seller's own QR picture by `frontend/src/lib/readKhqr.ts`, "Upload your bank's QR" in Settings → Payments, 2026-10-14). A method can't be on without its details, and at least
   one must be on.
 - `delivery_config` ↔ `DeliverySettings` (`schemas/delivery.py`): `fee=0`,
   `free_from_amount`, `free_from_items`, `own_delivery {enabled=true}`,

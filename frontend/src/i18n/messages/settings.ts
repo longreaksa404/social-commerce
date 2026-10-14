@@ -73,6 +73,37 @@ export const settings = {
     en: 'In your bank app, with your Bakong or KHQR details. It looks like name@aclb.',
     km: 'មាននៅក្នុងកម្មវិធីធនាគាររបស់អ្នក ជាមួយព័ត៌មាន Bakong ឬ KHQR។ វាមានទម្រង់ដូចជា name@aclb។',
   },
+  // Read the details from the seller's own bank QR (2026-10-14).
+  uploadQr: { en: "Upload your bank's QR", km: 'បញ្ចូល QR ធនាគាររបស់អ្នក' },
+  uploadQrHint: {
+    en: 'In your bank app, open your QR for receiving money and save it to photos, then pick it here. We fill in the rest.',
+    km: 'ក្នុងកម្មវិធីធនាគាររបស់អ្នក បើក QR សម្រាប់ទទួលប្រាក់ ហើយរក្សាទុកក្នុងរូបថត រួចជ្រើសវានៅទីនេះ។ យើងនឹងបំពេញអ្វីដែលនៅសល់។',
+  },
+  qrRead: { en: 'Filled in from your QR. Check and save.', km: 'បានបំពេញពី QR របស់អ្នក។ សូមពិនិត្យ ហើយរក្សាទុក។' },
+  qrNone: {
+    en: "No QR code found in that picture. Try a screenshot of the QR, or a clearer photo.",
+    km: 'រកមិនឃើញ QR ក្នុងរូបនោះទេ។ សូមសាកល្បងរូបថតអេក្រង់នៃ QR ឬរូបដែលច្បាស់ជាងនេះ។',
+  },
+  qrNotKhqr: {
+    en: "That's not a bank KHQR for receiving money. Use the QR from your bank app's Receive screen.",
+    km: 'នោះមិនមែនជា KHQR ធនាគារសម្រាប់ទទួលប្រាក់ទេ។ សូមប្រើ QR ពីផ្ទាំងទទួលប្រាក់ក្នុងកម្មវិធីធនាគាររបស់អ្នក។',
+  },
+  qrBusiness: {
+    en: "That's a business (merchant) QR, which this can't use. Use your personal account's QR, or fill in the fields.",
+    km: 'នោះជា QR អាជីវកម្ម (merchant) ដែលមិនអាចប្រើបាន។ សូមប្រើ QR គណនីផ្ទាល់ខ្លួន ឬបំពេញវាលដោយខ្លួនឯង។',
+  },
+  qrCurrency: {
+    en: (qr: string, shop: string) =>
+      `This QR is for your ${qr} account, but your shop's prices are in ${shop}: the bank will change the money. If you have a ${shop} account, set it as default in your bank app and upload its QR.`,
+    km: (qr: string, shop: string) =>
+      `QR នេះសម្រាប់គណនី ${qr} របស់អ្នក ប៉ុន្តែតម្លៃក្នុងហាងគឺជា ${shop}៖ ធនាគារនឹងប្ដូរប្រាក់។ បើអ្នកមានគណនី ${shop} សូមកំណត់វាជាគណនីលំនាំដើមក្នុងកម្មវិធីធនាគារ ហើយបញ្ចូល QR របស់វា។`,
+  },
+  accountInfo: { en: 'Account number (if your bank needs it)', km: 'លេខគណនី (បើធនាគាររបស់អ្នកត្រូវការ)' },
+  accountInfoHint: {
+    en: 'ABA and some banks give one Bakong ID to all their customers; the account number says which is yours. Filled in from your QR.',
+    km: 'ABA និងធនាគារខ្លះផ្ដល់ Bakong ID តែមួយដល់អតិថិជនទាំងអស់ លេខគណនីប្រាប់ថាមួយណាជារបស់អ្នក។ បំពេញពី QR របស់អ្នក។',
+  },
+  acquiringBank: { en: 'Bank (if your bank needs it)', km: 'ធនាគារ (បើធនាគាររបស់អ្នកត្រូវការ)' },
   merchantName: { en: 'Name customers see', km: 'ឈ្មោះដែលអតិថិជនឃើញ' },
   merchantNameHint: {
     en: "Shown in the customer's bank app when they scan. Use the name on your account, in English letters.",

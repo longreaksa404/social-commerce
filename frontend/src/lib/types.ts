@@ -16,7 +16,15 @@ export type DeliveryStatus = 'not_assigned' | 'assigned' | 'picked_up' | 'in_tra
 export type PaymentSettings = {
   cod: { enabled: boolean }
   bank_transfer: { enabled: boolean; bank_name: string; account_name: string; account_number: string }
-  khqr: { enabled: boolean; bakong_account_id: string; merchant_name: string }
+  /** account_information and acquiring_bank: for banks like ABA whose
+   * customers share the bank's Bakong ID (read from the seller's own QR). */
+  khqr: {
+    enabled: boolean
+    bakong_account_id: string
+    merchant_name: string
+    account_information: string
+    acquiring_bank: string
+  }
 }
 
 /** How the shop gets orders to customers: one fee for any delivery

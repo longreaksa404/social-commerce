@@ -135,6 +135,8 @@ def shop_payment_out(store: Store, order: Order) -> ShopPaymentOut:
             amount=payment.amount,
             bill_number=f"#{order.number}",
             now=datetime.now(UTC),
+            account_information=settings.khqr.account_information,
+            acquiring_bank=settings.khqr.acquiring_bank,
         )
         if code is not None:
             out.khqr = ShopKhqr(code=code, merchant_name=settings.khqr.merchant_name)
