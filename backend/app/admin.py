@@ -2,6 +2,8 @@
 seller is named by their login, a phone number or (accounts from before
 2026-10-09) an email:
 
+    python -m app.admin plans
+    python -m app.admin paid 012345678 month --note "ABA transfer, ref 4821"
     python -m app.admin reset-password 012345678
     python -m app.admin close-shop 012345678
     python -m app.admin reopen-shop 012345678
@@ -21,13 +23,26 @@ import argparse
 import asyncio
 import secrets
 from dataclasses import dataclass
+from datetime import date
+from decimal import Decimal, InvalidOperation
 
-from sqlalchemy import delete, func, select, text, update
+from sqlalchemy import delete, exists, func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core import security
+from app.core import clock, security
 from app.db.session import unscoped_session
-from app.models import Customer, Order, Product, RefreshToken, Seller, Store
+from app.models import (
+    Customer,
+    Order,
+    PlanPayment,
+    PlanPeriod,
+    Product,
+    RefreshToken,
+    Seller,
+    Store,
+)
+from app.schemas.plan import PlanStage
+from app.services import plan
 from app.services.account import set_shop_logins
 from app.services.auth import login_filter
 from app.services.images import delete_store_files
@@ -69,18 +84,135 @@ async def _seller(db: AsyncSession, login: str) -> Seller:
     return seller
 
 
+async def _owner_and_shop(db: AsyncSession, login: str) -> tuple[Seller, Store]:
+    seller = await _seller(db, login)
+    store = await db.scalar(select(Store).where(Store.seller_id == seller.id))
+    if store is None:
+        raise AdminError("This is a staff login, not a shop's owner. Use the owner's login.")
+    return seller, store
+
+
 async def set_shop_open(login: str, is_open: bool) -> str:
     """Close a shop (its link and logins stop; nothing is erased) or open
     it again. Returns the shop's link name."""
     async with unscoped_session() as db:
-        seller = await _seller(db, login)
-        store = await db.scalar(select(Store).where(Store.seller_id == seller.id))
-        if store is None:
-            raise AdminError("This is a staff login, not a shop's owner. Use the owner's login.")
+        seller, store = await _owner_and_shop(db, login)
         # The owner's and the staff's logins together.
         await set_shop_logins(db, seller.id, store.id, active=is_open)
         await db.commit()
     return store.slug
+
+
+@dataclass(frozen=True)
+class PaymentPreview:
+    name: str
+    slug: str
+    amount: Decimal
+    covers_from: date
+    covers_until: date
+    reopens: bool  # it had stopped taking orders
+
+
+async def preview_payment(login: str, period: PlanPeriod, amount: Decimal | None) -> PaymentPreview:
+    """What recording a payment would do, to show before asking."""
+    async with unscoped_session() as db:
+        _, store = await _owner_and_shop(db, login)
+        today = clock.today()
+        covers_from, covers_until = plan.next_period(store.paid_until, today, period)
+        return PaymentPreview(
+            store.name,
+            store.slug,
+            plan.PRICES[period] if amount is None else amount,
+            covers_from,
+            covers_until,
+            plan.stage(store.paid_until, today) is PlanStage.STOPPED,
+        )
+
+
+async def record_payment(
+    login: str, period: PlanPeriod, *, amount: Decimal | None = None, note: str | None = None
+) -> date:
+    """A payment the seller made to Oak Order by hand (01_PRODUCT.md
+    §33.1): the next month or year is covered at once. Returns the shop's
+    new paid-until date."""
+    async with unscoped_session() as db:
+        _, store = await _owner_and_shop(db, login)
+        plan.record_payment(db, store, period, amount=amount, reference=note)
+        await db.commit()
+        return store.paid_until
+
+
+@dataclass(frozen=True)
+class PlanRow:
+    paid_until: date
+    stage: PlanStage
+    paying: bool  # has paid at least once; else still on the free trial
+    login: str
+    slug: str
+    name: str
+
+
+async def list_plans() -> list[PlanRow]:
+    """Every open shop, the soonest to run out first: who to remind, and
+    who has stopped taking orders."""
+    async with unscoped_session() as db:
+        paying = exists().where(PlanPayment.store_id == Store.id)
+        rows = await db.execute(
+            select(Store, Seller.phone, Seller.email, paying)
+            .join(Seller, Seller.id == Store.seller_id)
+            .where(Seller.is_active.is_(True))
+            .order_by(Store.paid_until, Store.name)
+        )
+        today = clock.today()
+        return [
+            PlanRow(
+                store.paid_until,
+                plan.stage(store.paid_until, today),
+                has_paid,
+                phone or email or "",
+                store.slug,
+                store.name,
+            )
+            for store, phone, email, has_paid in rows
+        ]
+
+
+def _day(day: date) -> str:
+    return f"{day.day} {day:%b %Y}"
+
+
+def _amount(text: str) -> Decimal:
+    """--amount: US dollars, like 9.99 or $99."""
+    try:
+        amount = Decimal(text.strip().removeprefix("$"))
+    except InvalidOperation:
+        amount = Decimal("NaN")
+    if not amount.is_finite() or not 0 <= amount <= 10_000 or amount != round(amount, 2):
+        raise argparse.ArgumentTypeError(f"{text} isn't an amount in dollars, e.g. 9.99")
+    return round(amount, 2)
+
+
+_STAGE = {
+    PlanStage.ACTIVE: "ok",
+    PlanStage.ENDING_SOON: "ends soon",
+    PlanStage.OVERDUE: "unpaid",
+    PlanStage.STOPPED: "NO ORDERS",
+}
+
+
+def _plans_table(rows: list[PlanRow]) -> str:
+    if not rows:
+        return "No open shops."
+    lines = ["Paid until   Status     Plan    Login         Shop"]
+    for row in rows:
+        status = _STAGE[row.stage]
+        if row.stage is PlanStage.OVERDUE:
+            status = f"pay by {_day(plan.pay_by(row.paid_until))}"
+        lines.append(
+            f"{_day(row.paid_until):<11}  {status:<9}  {'paying' if row.paying else 'trial':<6}  "
+            f"{row.login:<12}  /shop/{row.slug}  {row.name}"
+        )
+    return "\n".join(lines)
 
 
 @dataclass
@@ -245,6 +377,20 @@ async def move_photos(old: str, new: str) -> MovedPhotos:
 
 
 async def _run(args: argparse.Namespace) -> str:
+    if args.command == "plans":
+        return _plans_table(await list_plans())
+    if args.command == "paid":
+        period = PlanPeriod(args.period)
+        preview = await preview_payment(args.login, period, args.amount)
+        print(
+            f"{preview.name} (/shop/{preview.slug}): ${preview.amount} for a {period}, "
+            f"{_day(preview.covers_from)} to {_day(preview.covers_until)}."
+        )
+        if input("Record it? Type yes: ").strip().lower() != "yes":
+            raise AdminError("Nothing was recorded.")
+        paid_until = await record_payment(args.login, period, amount=args.amount, note=args.note)
+        reopened = " It takes orders again." if preview.reopens else ""
+        return f"Recorded. /shop/{preview.slug} is paid until {_day(paid_until)}.{reopened}"
     if args.command == "reset-password":
         password = await reset_password(args.login)
         return (
@@ -291,6 +437,18 @@ def main(argv: list[str] | None = None) -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     commands = parser.add_subparsers(dest="command", required=True)
+    commands.add_parser("plans", help="every open shop's plan, the soonest to run out first")
+    paid = commands.add_parser("paid", help="record a payment a seller made to Oak Order")
+    paid.add_argument(
+        "login", help="the owner's phone number, or email for accounts from before 2026-10-09"
+    )
+    paid.add_argument(
+        "period", choices=["month", "year"], help="what it pays for: $9.99 a month, $99 a year"
+    )
+    paid.add_argument(
+        "--amount", type=_amount, help="what they paid in US dollars, if not the price"
+    )
+    paid.add_argument("--note", help="your note, e.g. ABA transfer, ref 4821")
     for name, help_text in (
         ("reset-password", "give a seller a new password"),
         ("close-shop", "close a shop: its link and logins stop, nothing is erased"),

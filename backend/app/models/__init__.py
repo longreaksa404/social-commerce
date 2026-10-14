@@ -21,6 +21,7 @@ from app.models.notification import (
 )
 from app.models.order import Customer, Order, OrderItem, OrderStatus
 from app.models.payment import Payment, PaymentMethod, PaymentStatus
+from app.models.plan import PlanPayment, PlanPaymentMethod, PlanPeriod
 
 __all__ = [
     "Category",
@@ -44,6 +45,9 @@ __all__ = [
     "PaymentMethod",
     "PaymentStatus",
     "PhoneCheck",
+    "PlanPayment",
+    "PlanPaymentMethod",
+    "PlanPeriod",
     "Product",
     "ProductStatus",
     "ProductVariant",

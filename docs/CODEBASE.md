@@ -121,6 +121,7 @@ Render's health check.
 | Khmer / English switch | DONE | `frontend/src/i18n/`. The founder hasn't reviewed the Khmer yet; the Telegram bot's messages are Khmer only (2026-10-09) |
 | Light / dark mode | DONE | `src/theme/`, `index.css`, the inline script in `index.html` |
 | Small photo copies | DONE | `-m` / `-s.jpg` naming, `thumbnail_size` on the images endpoint |
+| Plan and billing, part 1 (pricing decided 2026-10-14, 01 §33.1) | IN PROGRESS | Backend done: `store.paid_until`, `plan_payment`, `services/plan.py`, `GET /seller/plan`, checkout refuses new orders 7 days after the trial or paid time runs out, `python -m app.admin paid` / `plans`; migration `d450a35183c0`. Settings → Plan, the reminders and the sign-up / Terms text next |
 | Nightly DB backup to R2 | PARTIAL | `.github/workflows/backup.yml` exists but skips until its five secrets are set (04: not set yet) |
 | UX pass (shop info, pinned Add to cart, logo, Settings menu, order summary, one row per option) | DONE | `POST /seller/store/logo`; `src/dashboard/settings/` |
 | Oak in the shop (founder's picks 2026-10-10: 1A 2A 3B 4B 5B) | DONE (link cards not yet checked live) | The mark is the oak leaf cut out of a hexagon (the founder's logo, traced to SVG 2026-10-13: `components/OakMark.tsx`, `public/favicon.svg`, `apple-touch-icon.png`); "Made with Oak Order" with Privacy · Terms at the bottom of the shop's grid pages and the order page (`shop/MadeWithOak.tsx`); link cards titled "… · Oak Order" with our mark on the picture (`middleware.ts`, `GET /shop/{slug}/preview/*`, `services/preview.py`); the generic card `public/og/oak-order.png` |
@@ -161,7 +162,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 │   ├── requirements.txt       Pinned runtime deps (no lock file); XlsxWriter for the orders export
 │   ├── requirements-dev.txt   + pytest, pytest-asyncio, httpx2 (test client), ruff
 │   ├── alembic.ini, alembic/env.py   Async Alembic; URL from app settings; imports app.models
-│   ├── alembic/versions/      10 migrations, linear (chain in §5)
+│   ├── alembic/versions/      19 migrations, linear (chain in §5)
 │   ├── app/
 │   │   ├── main.py            Builds `app`: Sentry, lifespan (Telegram webhook), CORS, routers
 │   │   ├── admin.py           The founder's commands (`python -m app.admin ...`, docs/ADMIN.md)
@@ -212,6 +213,7 @@ Backend modules, one line each:
 | `models/catalog.py` | `Category`, `Product`, `ProductVariant`, `ProductStatus`, the `Money = Numeric(12,2)` type |
 | `models/order.py` | `Customer`, `Order`, `OrderItem`, `OrderStatus` |
 | `models/payment.py` | `Payment`, `PaymentMethod`, `PaymentStatus` |
+| `models/plan.py` | `PlanPayment` (what a shop paid Oak Order), `PlanPeriod`, `PlanPaymentMethod` |
 | `models/delivery.py` | `Delivery`, `DeliveryMethod`, `DeliveryStatus` |
 | `models/link.py` | `ShareableLink`, `LinkEvent`, `LinkTarget`, `LinkEventType` |
 | `models/notification.py` | `NotificationLog`, `NotificationChannel`, `NotificationStatus` |
@@ -230,6 +232,7 @@ Backend modules, one line each:
 | `services/payment.py` | Payment state machine, payment settings checks, what the customer is shown to pay with |
 | `services/delivery.py` | Delivery state machine, delivery/discount settings checks, checkout delivery choice |
 | `services/khqr.py` | Builds KHQR (EMVCo) strings with CRC16, no network |
+| `services/plan.py` | The shop's plan with Oak Order: prices, the stage from `store.paid_until` (`stage`, `orders_stopped`), the days a payment covers (`next_period`, `add_months`), `record_payment` (the founder's command), `get_plan` |
 | `services/export.py` | The orders export: a .xlsx with one row per order (XlsxWriter, write-only), headings and statuses in English or Khmer |
 | `services/customer.py` | Customer list with search, detail with history, "spent" per currency |
 | `services/notifications.py` | Web notification rows, Telegram alert text and sending, the low-stock rule |
@@ -576,7 +579,7 @@ Codes in use: `ACCOUNT_DISABLED`, `ACCOUNT_NOT_FOUND`, `CATEGORY_NOT_FOUND`,
 `INVALID_DATE_RANGE`, `INVALID_DELIVERY_TRANSITION`, `INVALID_IMAGE`,
 `INVALID_PAYMENT_TRANSITION`, `INVALID_RESUME_DATE`, `INVALID_STATUS_TRANSITION`,
 `INVALID_TOKEN`, `LINK_NOT_FOUND`, `NOT_AUTHENTICATED`, `NOT_FOUND`,
-`ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`, `ORDERS_PAUSED`,
+`ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`, `ORDERS_PAUSED`, `PLAN_UNPAID`,
 `PHONE_CHECK_EXPIRED`, `PHONE_NOT_VERIFIED`, `PHONE_TAKEN`, `TELEGRAM_NOT_CONFIGURED`,
 `SOCIAL_SIGN_IN_FAILED`, `SOCIAL_NOT_CONFIGURED`, `SOCIAL_TAKEN`, `SIGNUP_EXPIRED`, `INVALID_REDIRECT`,
 `ORDER_TOTAL_CHANGED`, `PAYMENT_METHOD_UNAVAILABLE`, `PRODUCT_HIDDEN`,
@@ -655,7 +658,7 @@ Mixins (`app/db/base.py`):
 | `seller_login` | **NO** (no `app_user` grant) | `seller_id`, `provider` (`google`, `facebook`, `tiktok`), `provider_user_id` (Google's `sub`, Facebook's id, TikTok's `open_id`), `email` (the provider's, when verified), `name` (the provider's; TikTok's display name), both shown in Settings, `created_at` | `seller_id → seller` CASCADE | `uq_seller_login_provider` (`provider`, `provider_user_id`), `uq_seller_login_seller_id` (`seller_id`, `provider`: one account of each kind per seller) |
 | `phone_check` | **NO** (no `app_user` grant) | `code` (`phone_` + 22 random characters, in the `t.me` link), `telegram_user_id` (bigint, who opened the link), `phone` (normalized, once shared), `verified_at`, `expires_at` (30 min), `created_at` | none | `uq_phone_check_code`; `ix_phone_check_telegram_user_id`. Expired rows are deleted when a new check starts |
 | `seller` | **NO** (an owner owns the tenant, staff belong to one; no RLS, no `app_user` grant) | `phone` (the login, normalized, NULL only for older accounts whose number another account had), `email` (NULL for accounts since 2026-10-09; older ones log in with it; stored lowercased), `password_hash` (NULL for an account made with Google until it adds one), `full_name`, `is_active` (default true), `role` (`owner`/`staff`, default owner), `store_id` (staff only), `created_at` | `store_id → store` CASCADE (`use_alter`: store also points at seller) | `uq_seller_phone`; `uq_seller_email`; `ix_seller_store_id`; CHECK `(role = 'staff') = (store_id IS NOT NULL)` |
-| `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `low_stock_alert` (int, default 5, 1–999 by the schema), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
+| `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `low_stock_alert` (int, default 5, 1–999 by the schema), `paid_until` (date: the last day covered, by the 30-day free trial from sign-up, then by `plan_payment`s; Python default `account.trial_end()`), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
 | `refresh_token` | **NO** (per seller; no RLS, no `app_user` grant) | `id` (= JWT `jti`), `expires_at`, `revoked_at`, `created_at` | `seller_id → seller` CASCADE | `ix_refresh_token_seller_id` |
 | `category` | yes | `name`, `slug` String(64), `created_at` | none besides `store_id` | UNIQUE (`store_id`, `slug`) |
 | `product` | yes | `name`, `slug`, `description`, `price` Numeric(12,2), `image_urls` JSONB list, `status` (`active`/`inactive`), `has_variants`, `stock_quantity` int NULL (only when no variants), `created_at`, `updated_at` | `category_id → category` ON DELETE SET NULL | UNIQUE (`store_id`, `slug`); (`store_id`, `status`); (`store_id`, `category_id`); CHECK `price >= 0`; CHECK stock NULL or ≥0 |
@@ -668,6 +671,7 @@ Mixins (`app/db/base.py`):
 | `shareable_link` | yes | `target_type` (`store`/`product`/`category`), `target_id` UUID NULL (**no FK**), `token` (8 chars `[a-z0-9]`, **globally** unique), `source`, `campaign`, `created_at` | none | (`store_id`, `created_at`); CHECK `(target_type = 'store') = (target_id IS NULL)` |
 | `link_event` | yes (store_id copied from link) | `event_type` (`view`/`order`), `created_at` | `link_id → shareable_link` CASCADE; `order_id → order` CASCADE NULL | (`store_id`, `link_id`); UNIQUE index on `order_id` (an order counts for one link); CHECK `(event_type = 'order') = (order_id IS NOT NULL)` |
 | `notification_log` | yes | `channel` (`web`/`telegram`), `event_type` text (`new_order`/`low_stock`), `payload` JSONB, `status` (`sent`/`failed`), `sent_at` (acts as created_at), `read_at` (web only; null = unread) | none | (`store_id`, `channel`, `sent_at`) |
+| `plan_payment` | yes, but `app_user` has **SELECT only** (sellers read; only the founder's command writes) | `period` (`month`/`year`), `amount` Numeric(12,2) USD, `method` (`manual`), `reference` (the founder's note), `paid_on`, `covers_from`, `covers_until` (dates, both included), `created_at` | none besides `store_id` | CHECK amount ≥0; CHECK covers_from ≤ covers_until |
 
 **JSONB settings on `store`.** The shapes are Pydantic models, and `{}` or
 missing parts read as the defaults:
@@ -696,6 +700,21 @@ effective values (`orders_paused_now`, `orders_resume_on_now`). Saving
 422 `INVALID_RESUME_DATE`. Checkout refuses with 409 `ORDERS_PAUSED`
 (checked after the store row lock).
 
+**The plan** (01 §33.1, 2026-10-14; `services/plan.py`): the stage comes
+from `store.paid_until` and `clock.today()` the same way, with no job:
+`active`, `ending_soon` (its last 6 days), `overdue` (1–7 days after),
+`stopped` (from the 8th day; `plan.orders_stopped(store)`). A stopped shop
+is shown as paused to customers (`ShopStoreOut.orders_paused` true,
+`orders_resume_on` null) and its checkout answers 409 `ORDERS_PAUSED`, the
+same as paused: customers never hear about the plan. An order from a chat
+gets 409 `PLAN_UNPAID` instead (paused shops still take those). Everything
+else, orders already placed included, carries on. The seller's own
+`StoreOut.orders_paused` is only their switch. A payment
+(`plan.record_payment`, only from `python -m app.admin paid`) covers a
+month or a year from the day after `paid_until`, or from the day it's paid
+once the shop has stopped (`next_period`); `add_months` rolls a missing
+day (31 Jan + 1 month) to the 1st after.
+
 **Duplicated on purpose:** `order.delivery_method` and `delivery.method` are
 both set at checkout to the same value. `payment.amount` equals
 `order.total` at checkout.
@@ -714,7 +733,9 @@ messenger_username → `49da40196f18` store.low_stock_alert →
 → `005c6870a409` seller.phone unique, email nullable (existing phones
 normalized; a number that can't be read, or an older account's again, was
 cleared) → `4520c66e86de` seller_login, password_hash nullable →
-`39a133fd8c02` seller_login.name, facebook and tiktok (**head**).
+`39a133fd8c02` seller_login.name, facebook and tiktok → `d450a35183c0`
+store.paid_until (existing shops: 30 days from that day) + plan_payment
+(RLS, `app_user` SELECT only) (**head**).
 
 ---
 
@@ -906,6 +927,7 @@ from the schema.
 | POST | `/seller/products/{product_id}/images` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT (+ thumbnail PUT if `thumbnail_size`); max 5 images, 5 MB, JPEG/PNG/WebP |
 | POST | `/seller/orders` | seller | `SellerOrderCreate` | `OrderOut` (201) | An order from a chat (founder's pick 3A): `checkout.place_order(by_seller=True)`, so checkout's prices, stock, totals and `expected_total` check; taken while paused; starts `accepted`; `source = "chat"`; no "new order" on the bell or Telegram, low stock only |
 | GET | `/seller/stats` | **owner** | `?period=today\|week\|month` | `StatsOut` | **Not shown in the app yet**: kept for the seller dashboard (founder, 2026-10-09: the numbers and chart wait for it; picks 8B, 9B; `services/stats.py`): orders placed in the period except rejected / cancelled, their totals and their pending payments per currency, Phnom Penh days; `days` = sales per day in the shop's currency, the last 7 days for today and the week, this month's days so far for the month. 403 `OWNER_ONLY` for staff |
+| GET | `/seller/plan` | seller (staff too) | — | `PlanOut` | The shop's plan with Oak Order (01 §33.1): `stage` (`active`/`ending_soon`/`overdue`/`stopped`), `on_trial` (no payment yet), `paid_until`, `pay_by` (paid_until + 7: the last day before new orders stop), `days_left` (today included, 0 once run out), `prices` (`month` "9.99", `year` "99.00", USD), `payments` newest first. Nothing pays through the API yet: the founder records payments (`python -m app.admin paid`) |
 | GET | `/seller/orders` | seller | `?status=` (repeatable) `&created_from=&created_to=&limit=1..100(50)&offset=` | `OrderListOut` | By number desc; `counts` per status ignore the status filter; each row leads with its biggest line (`first_item_name`, `line_count`, `first_item_image_url`: that product's photo now), also on a customer's and a link's orders |
 | GET | `/seller/orders/export` | seller | `?first=&last=` (dates, Phnom Penh days, both included) `&lang=en\|km` | `.xlsx` file | One row per order, oldest first: number, date, customer, phone (as text), items, the four amounts (number format per currency), payment, delivery, statuses, address, source, note; frozen, filterable heading row. Over a year or ending before it starts → 422 `INVALID_DATE_RANGE`. Declared before `/{order_id}` |
 | GET | `/seller/orders/{order_id}` | seller | — | `OrderOut` | With `next_statuses` on order, payment, delivery; each item carries its product's current first photo (`image_url`, as on the shop's order page; also on the three PATCHes below) |

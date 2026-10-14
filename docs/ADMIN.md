@@ -24,6 +24,42 @@ email.
 
 ---
 
+## Plans: who to remind, and a seller who paid
+
+Every new shop gets a 30-day free trial, then pays $9.99 a month or $99
+a year (01_PRODUCT.md §33.1). From day 25 the seller sees a reminder in
+their dashboard; from day 31 they have 7 days to pay; from day 38 the
+shop takes no new orders until you record a payment. Shops that existed
+when this shipped got 30 days from that day.
+
+To see every open shop, the soonest to run out first:
+
+```bash
+python -m app.admin plans
+```
+
+`Status` is `ok`, `ends soon` (its last 6 days: a good day to message
+them on Telegram), `pay by <day>` (ran out; orders still come) or
+`NO ORDERS`. `Plan` is `trial` until their first payment.
+
+When a seller's payment reaches you (until the app takes payments, they
+pay you by hand, e.g. to your ABA account), record it with their login
+and `month` or `year`:
+
+```bash
+python -m app.admin paid 012345678 month --note "ABA transfer, ref 4821"
+```
+
+It shows the shop, the amount and the days it covers, and records it
+only after you type `yes`. The month or year carries on from the end of
+the trial or the last payment, so paying during the 7 days doesn't add
+them for free; a shop that had stopped taking orders gets it from today,
+and takes orders again at once. If they paid a different amount (a
+discount you gave), add `--amount 5` (US dollars). The note is optional;
+the seller sees the payment, without your note, in Settings → Plan.
+
+---
+
 ## A seller forgot their password
 
 Sellers whose shop has Telegram connected can reset it themselves:

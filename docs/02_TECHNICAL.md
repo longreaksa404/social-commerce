@@ -193,6 +193,7 @@ seller (owner)
 | orders_paused | bool | default false; not taking orders for a while: the shop can be browsed, checkout is refused (2026-10-08) |
 | orders_resume_on | date, nullable | the first day orders open again (Phnom Penh), by themselves; null: until the seller turns them back on (2026-10-08) |
 | low_stock_alert | int | default 5; an order leaving this many or fewer alerts the seller (bell, Telegram). Customers' "Only N left" stays at 5 (2026-10-08) |
+| paid_until | date | the last day the shop is covered (Phnom Penh): sign-up sets the end of the 30-day free trial, each `plan_payment` moves it on. From it: reminders in its last 6 days, 7 days to pay after it, then no new orders (§6.2 Plan; 01 §33.1; 2026-10-14). Shops that existed when it shipped got 30 days from that day |
 | created_at | timestamptz | |
 
 ### `category`
@@ -305,6 +306,11 @@ seller (owner)
 
 > A phone number being proved through the bot (§12.4); used once by the form that needs it. Not tenant data: no RLS grant.
 
+### `plan_payment` (2026-10-14)
+| id, store_id (FK, tenant scope), period (`month`, `year`), amount (numeric(12,2), US dollars: $9.99 a month, $99 a year unless the founder records another amount), method (`manual`: paid to the founder by hand; a payment gateway's value comes with it), reference (nullable; the founder's note), paid_on (date), covers_from / covers_until (dates, both included), created_at |
+
+> One payment a shop made to Oak Order (01 §33.1). Recording it sets `store.paid_until` to `covers_until`. A payment carries on from the day after `paid_until`; once the shop has stopped taking orders, from the day it's paid. RLS like every tenant table, but `app_user` may only SELECT: no seller request can add a payment.
+
 ## 5.3 Entity-Relationship Summary
 
 ```
@@ -319,6 +325,7 @@ order 1───1 payment
 order 1───1 delivery
 store 1───N shareable_link ──N link_event
 store 1───N notification_log
+store 1───N plan_payment
 ```
 
 ## 5.4 Guest Checkout Decision
@@ -381,6 +388,13 @@ POST   /api/v1/seller/store/logo              # presigned logo upload, see §11
 POST   /api/v1/seller/store/telegram/link     # signed t.me/<bot>?start=<code> link, 30 min
 DELETE /api/v1/seller/store/telegram          # disconnect the seller's chat
 ```
+
+### Seller — Plan (2026-10-14)
+```
+GET    /api/v1/seller/plan                    # the shop's plan with Oak Order: stage, free trial or not, paid-until date, prices, payments; staff may read it
+```
+
+Stages from `store.paid_until` (01 §33.1): `active`; `ending_soon` (its last 6 days; the dashboard reminds the seller); `overdue` (1–7 days after; orders still come); `stopped` (from the 8th day). A stopped shop shows customers the paused notice with no reopening day, checkout answers 409 `ORDERS_PAUSED` (nothing about payment) and an order from a chat 409 `PLAN_UNPAID`; orders already placed carry on. No seller endpoint pays: the founder records payments (`python -m app.admin paid`) until a payment gateway is added.
 
 ### Seller — Products
 ```

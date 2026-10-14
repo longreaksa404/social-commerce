@@ -38,6 +38,7 @@ from app.services import link as link_service
 from app.services import notifications
 from app.services import order as order_service
 from app.services import payment as payment_service
+from app.services import plan as plan_service
 from app.services.payment import ORDER_IS_OFF
 from app.services.phone import normalize_phone
 from app.services.pricing import line_total, order_totals
@@ -87,14 +88,24 @@ async def place_order(
     pick 3A). The same prices, stock and totals as checkout; it's taken
     while the shop is paused, starts accepted (the seller agreed to it in
     the chat), is marked as from a chat, and puts no "new order" on the
-    bell (the seller did it; low stock still does)."""
+    bell (the seller did it; low stock still does). Neither is taken once
+    the shop has stopped taking orders for its plan (services/plan.py)."""
     # Locks the store row until commit, so checkouts in one store run one
     # at a time: order numbers stay unique, and one phone can't become two
     # customers. Fine at MVP volume.
     store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
     assert store is not None  # the shop was found by slug moments ago
-    if store.orders_paused_now and not by_seller:
+    stopped = plan_service.orders_stopped(store)
+    if not by_seller and (store.orders_paused_now or stopped):
+        # Customers only hear that orders are off, never about the shop's
+        # plan (01_PRODUCT.md §33.1).
         raise AppError(409, "ORDERS_PAUSED", "This shop isn't taking orders right now.")
+    if stopped:
+        raise AppError(
+            409,
+            "PLAN_UNPAID",
+            "Your shop isn't taking new orders until Oak Order is paid (Settings → Plan).",
+        )
     payment_service.check_method_available(store, data.payment_method)
     delivery_settings = delivery_service.delivery_settings(store)
     courier = delivery_service.check_checkout_choice(

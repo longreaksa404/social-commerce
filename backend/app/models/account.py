@@ -1,6 +1,6 @@
 import enum
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import (
@@ -46,6 +46,16 @@ class LoginProvider(enum.StrEnum):
 class OrderConfirmationMode(enum.StrEnum):
     AUTOMATIC = "automatic"
     MANUAL = "manual"
+
+
+# Every new shop's free trial (01_PRODUCT.md §33.1): 30 days, the day it
+# signs up included.
+TRIAL_DAYS = 30
+
+
+def trial_end() -> date:
+    """The last day of a free trial that starts today (Phnom Penh)."""
+    return clock.today() + timedelta(days=TRIAL_DAYS - 1)
 
 
 def str_enum(enum_cls: type[enum.StrEnum], name: str) -> Enum:
@@ -167,6 +177,10 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     # left" for customers stays at 5.
     low_stock_alert: Mapped[int] = mapped_column(default=5, server_default="5")
     orders_resume_on: Mapped[date | None] = mapped_column(Date)
+    # The last day the shop is covered: by its free trial, then by what it
+    # pays Oak Order (plan_payment). A week after it the shop stops taking
+    # new orders until it pays (app/services/plan.py, 01_PRODUCT.md §33.1).
+    paid_until: Mapped[date] = mapped_column(Date, default=trial_end)
 
     seller: Mapped[Seller] = relationship(back_populates="store", foreign_keys=[seller_id])
 
