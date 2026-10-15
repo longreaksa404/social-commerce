@@ -1970,9 +1970,11 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
            `OAK_BANK_ACCOUNT_NUMBER` (the same USD account); `ADMIN_PHONES` (your login number;
            your shop's Telegram chat gets the "I've paid" alerts);
            `BILLING_CRON_SECRET` (a long random string).
-        2. cron-job.org: a job once a day (e.g. 08:00 Phnom Penh), POST
+        2. ~~cron-job.org: a job once a day, POST
            https://api.oaksolve.com/api/v1/billing/run, header
-           `X-Cron-Secret: <the same secret>`.
+           `X-Cron-Secret: <the same secret>`.~~ Done 2026-10-15: daily
+           08:00 Asia/Bangkok (= Phnom Penh, inside the /health awake
+           hours), no body; test run answered 202 in 288 ms.
         3. Push. Then on the live site with a test shop: set its
            paid-until to yesterday (ask Claude for the one-line command
            against Neon) → the next run sends the reminder → tap "I've
