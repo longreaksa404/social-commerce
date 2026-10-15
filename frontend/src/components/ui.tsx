@@ -1,15 +1,17 @@
-import { AlertCircle, ChevronLeft, CircleCheck, Eye, EyeOff, LoaderCircle, RotateCw } from 'lucide-react'
+import { AlertCircle, ChevronLeft, CircleCheck, Ellipsis, Eye, EyeOff, LoaderCircle, RotateCw } from 'lucide-react'
 import {
   createContext,
   use,
   useEffect,
   useId,
+  useRef,
   useState,
   type ButtonHTMLAttributes,
   type ComponentType,
   type CSSProperties,
   type FormEvent,
   type InputHTMLAttributes,
+  type KeyboardEvent,
   type ReactNode,
   type Ref,
   type SelectHTMLAttributes,
@@ -409,14 +411,17 @@ export function Section({
 /** Page title row. `back` adds a back arrow (a real link, so it works with
  * open-in-new-tab and the browser's back stack stays predictable). */
 /** `backOnPhonesOnly`: where a laptop shows the page beside the one the
- * arrow goes back to (an order beside the order list). */
+ * arrow goes back to (an order beside the order list). `subtitle`: a line
+ * under the title (an order's number, time and total). */
 export function PageHeader({
   title,
+  subtitle,
   back,
   action,
   backOnPhonesOnly = false,
 }: {
   title: ReactNode
+  subtitle?: ReactNode
   back?: string
   action?: ReactNode
   backOnPhonesOnly?: boolean
@@ -433,8 +438,90 @@ export function PageHeader({
           <ChevronLeft aria-hidden className="size-6" />
         </Link>
       )}
-      <h1 className="min-w-0 flex-1 truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
+      {subtitle ? (
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
+          <p className="truncate text-sm text-slate-500 tabular-nums">{subtitle}</p>
+        </div>
+      ) : (
+        <h1 className="min-w-0 flex-1 truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
+      )}
       {action}
+    </div>
+  )
+}
+
+export type MenuItem = {
+  label: string
+  icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
+  danger?: boolean
+  onSelect: () => void
+}
+
+/** A ⋯ button with a small menu under it. Closes on a choice, a tap
+ * outside or Escape (which puts focus back on the button); arrow keys move
+ * between the items. Red is for the words only (founder, 2026-10-15). */
+export function MenuButton({ label, items, disabled }: { label: string; items: MenuItem[]; disabled?: boolean }) {
+  const [open, setOpen] = useState(false)
+  const wrap = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    wrap.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus()
+    const outside = (e: PointerEvent) => {
+      if (!wrap.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', outside)
+    return () => document.removeEventListener('pointerdown', outside)
+  }, [open])
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      setOpen(false)
+      wrap.current?.querySelector<HTMLElement>('[aria-haspopup]')?.focus()
+    } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      const all = [...(wrap.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])]
+      const at = all.indexOf(document.activeElement as HTMLElement)
+      all[(at + (e.key === 'ArrowDown' ? 1 : all.length - 1)) % all.length]?.focus()
+    }
+  }
+
+  return (
+    <div ref={wrap} className="relative" onKeyDown={onKeyDown}>
+      <IconButton
+        icon={Ellipsis}
+        label={label}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        disabled={disabled}
+        onClick={() => setOpen((o) => !o)}
+      />
+      {open && (
+        <div
+          role="menu"
+          aria-label={label}
+          className="absolute top-full right-0 z-20 mt-1 flex min-w-48 animate-zoom-in flex-col rounded-xl bg-surface p-1.5 shadow-lg ring-1 ring-slate-900/10"
+        >
+          {items.map(({ label: text, icon: Icon, danger, onSelect }) => (
+            <button
+              key={text}
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false)
+                onSelect()
+              }}
+              className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-sm font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 sm:min-h-10 ${
+                danger ? 'text-red-600' : 'text-slate-800'
+              }`}
+            >
+              <Icon aria-hidden className={`size-4.5 ${danger ? '' : 'text-slate-500'}`} />
+              {text}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

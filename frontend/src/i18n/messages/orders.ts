@@ -73,28 +73,16 @@ export const orders = {
       km: 'ការកុម្ម៉ង់នេះត្រូវបានលុបចោល។ ទំនិញបានត្រឡប់ចូលស្តុកវិញ។',
     },
   },
-  // The card at the top of an order: what to do next.
-  todo: {
-    label: { en: 'To do', km: 'ត្រូវធ្វើ' },
-    accept: { en: 'New order: accept or reject', km: 'ការកុម្ម៉ង់ថ្មី៖ ទទួល ឬបដិសេធ' },
-    next: { en: 'Next step', km: 'ជំហានបន្ទាប់' },
-    payment: { en: 'Check the payment, then mark it paid', km: 'ពិនិត្យការបង់ប្រាក់ រួចកត់ថាបានបង់' },
-    paymentClaimed: {
-      en: 'The customer says they paid: check, then mark it paid',
-      km: 'អតិថិជនថាបានបង់៖ សូមពិនិត្យ រួចកត់ថាបានបង់',
-    },
-    cash: { en: 'Mark the cash as received when you get it', km: 'កត់ថាបានទទួលសាច់ប្រាក់ ពេលអ្នកទទួលបាន' },
-    driver: { en: 'Assign a driver', km: 'ចាត់អ្នកដឹក' },
-    delivery: { en: 'Update the delivery', km: 'ធ្វើបច្ចុប្បន្នភាពការដឹកជញ្ជូន' },
-    // The short path (founder's pick 1C, 2026-10-09).
-    ready: { en: 'Ready to complete', km: 'រួចរាល់សម្រាប់បញ្ចប់' },
-    deliver: { en: 'Next: deliver it', km: 'បន្ទាប់៖ ដឹកជូនអតិថិជន' },
-    collect: { en: 'Next: the customer collects it', km: 'បន្ទាប់៖ អតិថិជនមកយក' },
-    optional: {
-      en: 'Steps customers can follow (optional)',
-      km: 'ជំហានដែលអតិថិជនអាចតាមដាន (មិនចាំបាច់)',
-    },
+  // The card at the top of an order: a row per status, each with its own
+  // buttons (founder's pick 1A, 2026-10-15).
+  statuses: { en: 'Where the order stands', km: 'ស្ថានភាពការកុម្ម៉ង់' },
+  // The order's own steps between Accept and Complete.
+  optionalSteps: {
+    en: 'Steps customers can follow (optional)',
+    km: 'ជំហានដែលអតិថិជនអាចតាមដាន (មិនចាំបាច់)',
   },
+  // The ⋯ menu at the top: cancel, failed, not paid after all.
+  more: { en: (n: number) => `More for order #${n}`, km: (n: number) => `ផ្សេងទៀតសម្រាប់ការកុម្ម៉ង់ #${n}` },
   // One tap on a cash-on-delivery order: delivered (or collected) and the
   // cash in hand, recorded together.
   cashHandover: { en: 'Delivered, cash received', km: 'បានដល់ដៃ និងបានទទួលសាច់ប្រាក់' },
@@ -139,7 +127,6 @@ export const orders = {
   },
   // On an order the seller added from a chat.
   fromChat: { en: 'Added by you from a chat', km: 'អ្នកបានបន្ថែមពីឆាត' },
-  chatNote: { en: 'Note: ', km: 'ចំណាំ៖ ' },
   copyOrderLink: { en: 'Copy link for the customer', km: 'ចម្លងតំណសម្រាប់អតិថិជន' },
   orderLinkCopied: {
     en: 'Link copied. Send it in the chat: the customer opens it with their phone number to follow the order and pay.',
@@ -152,6 +139,10 @@ export const orders = {
     km: 'បានចម្លង។ សូមបិទភ្ជាប់ក្នុងឆាតរបស់អ្នកដឹក។',
   },
   driverCopyFailed: { en: "Couldn't copy the message.", km: 'ចម្លងសារមិនបាន។' },
+  // Send to driver also records who's delivering (founder's pick 4A).
+  send: { en: 'Send', km: 'ផ្ញើ' },
+  saveWithoutSending: { en: 'Save without sending', km: 'រក្សាទុកដោយមិនផ្ញើ' },
+  sendAgain: { en: 'Send again', km: 'ផ្ញើម្ដងទៀត' },
   driver: {
     title: {
       en: (number: number, shop: string | null) => `🛵 Delivery${shop ? ` for ${shop}` : ''} · Order #${number}`,
@@ -257,7 +248,10 @@ export const orders = {
     en: (source: string) => `Came through your ${source} link`,
     km: (source: string) => `មកតាមតំណ ${source} របស់អ្នក`,
   },
-  noteFromCustomer: { en: 'Note from the customer: ', km: 'ចំណាំពីអតិថិជន៖ ' },
+  // Above the items: the customer's note as a message from them (founder's
+  // pick 7A), or the seller's own on an order from a chat.
+  customerWrote: { en: (name: string) => `${name} wrote`, km: (name: string) => `${name} បានសរសេរ` },
+  yourNote: { en: 'Your note', km: 'ចំណាំរបស់អ្នក' },
   customer: { en: 'Customer', km: 'អតិថិជន' },
   viewCustomer: { en: 'View customer', km: 'មើលអតិថិជន' },
   // The customer shared their Telegram number for updates (2026-10-15).
@@ -272,10 +266,6 @@ export const orders = {
 
   payment: { en: 'Payment', km: 'ការបង់ប្រាក់' },
   markedPaid: { en: (time: string) => `Marked paid ${time}`, km: (time: string) => `បានកត់ថាបង់ ${time}` },
-  waitsForPayment: {
-    en: 'Mark it paid to complete this order.',
-    km: 'សូមកត់ថាបានបង់ ដើម្បីបញ្ចប់ការកុម្ម៉ង់នេះ។',
-  },
   failTitle: { en: 'Mark the payment as failed?', km: 'កត់ថាការបង់ប្រាក់មិនបានសម្រេច?' },
   failMessage: {
     en: "Use this when the customer didn't pay, or the transfer never arrived. You can put it back to not paid later.",
@@ -299,12 +289,10 @@ export const orders = {
   paidToast: { en: 'paid', km: 'បានបង់' },
   failedToast: { en: 'payment failed', km: 'បង់ប្រាក់មិនបាន' },
   noteOptional: { en: 'Note (optional)', km: 'ចំណាំ (មិនចាំបាច់)' },
-  noteHintCod: { en: 'For example, who collected the cash.', km: 'ឧទាហរណ៍ អ្នកណាជាអ្នកទទួលសាច់ប្រាក់។' },
   noteHintTransfer: {
     en: 'For example: ABA, 2:05 PM, last digits 123.',
     km: 'ឧទាហរណ៍៖ ABA, ម៉ោង 2:05 PM, លេខខាងចុង 123។',
   },
-  confirmCash: { en: 'Confirm cash received', km: 'បញ្ជាក់ថាបានទទួលសាច់ប្រាក់' },
   confirmPaid: { en: 'Confirm paid', km: 'បញ្ជាក់ថាបានបង់' },
   cashReceived: { en: 'Cash received', km: 'បានទទួលសាច់ប្រាក់' },
   markPaid: { en: 'Mark paid', km: 'កត់ថាបានបង់' },
@@ -314,19 +302,15 @@ export const orders = {
   sendWith: { en: (courier: string) => `Send with ${courier}`, km: (courier: string) => `ផ្ញើតាម ${courier}` },
   ownDelivery: { en: 'Your own delivery', km: 'ដឹកដោយខ្លួនឯង' },
   delivering: { en: 'Delivering: ', km: 'អ្នកដឹក៖ ' },
-  waitsCollected: {
-    en: 'Mark it collected to complete this order.',
-    km: 'សូមកត់ថាអតិថិជនបានមកយក ដើម្បីបញ្ចប់ការកុម្ម៉ង់នេះ។',
-  },
-  waitsDelivered: {
-    en: 'Mark the delivery delivered to complete this order.',
-    km: 'សូមកត់ថាការដឹកបានដល់ដៃ ដើម្បីបញ្ចប់ការកុម្ម៉ង់នេះ។',
-  },
   courierNote: {
     en: 'Courier branch or tracking number (optional)',
     km: 'សាខាក្រុមហ៊ុនដឹក ឬលេខតាមដាន (មិនចាំបាច់)',
   },
-  driverNote: { en: "Who's delivering? (optional)", km: 'អ្នកណាជាអ្នកដឹក? (មិនចាំបាច់)' },
+  // Asked by Send to driver (founder's wording, 2026-10-15).
+  driverNote: {
+    en: "Driver's name and phone number (optional)",
+    km: 'ឈ្មោះ និងលេខទូរស័ព្ទអ្នកដឹក (មិនចាំបាច់)',
+  },
   courierNoteHint: {
     en: (courier: string) => `For example: ${courier} Takeo branch, no. 123456. Only you see this.`,
     km: (courier: string) => `ឧទាហរណ៍៖ ${courier} សាខាតាកែវ លេខ 123456។ មានតែអ្នកទេដែលឃើញ។`,

@@ -1,5 +1,7 @@
-/** danger: outlined red (secondary destructive); destructive: solid red. */
-export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'destructive' | 'ghost'
+/** danger: outlined red (secondary destructive); destructive: solid red;
+ * quietDanger: a plain outlined button with red words only (founder,
+ * 2026-10-15: red and amber on text, not on boxes). */
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'quietDanger' | 'destructive' | 'ghost'
 export type ButtonSize = 'md' | 'lg'
 
 const buttonBase =
@@ -11,6 +13,7 @@ const buttonVariants: Record<ButtonVariant, string> = {
   primary: 'bg-accent text-white shadow-sm hover:bg-accent-hover',
   secondary: 'border border-slate-300 bg-surface text-slate-800 shadow-xs hover:bg-slate-50',
   danger: 'border border-red-200 bg-surface text-red-600 shadow-xs hover:bg-red-50',
+  quietDanger: 'border border-slate-300 bg-surface text-red-600 shadow-xs hover:bg-slate-50',
   destructive: 'bg-danger text-white shadow-sm hover:bg-danger-hover',
   ghost: 'text-slate-700 hover:bg-slate-100',
 }

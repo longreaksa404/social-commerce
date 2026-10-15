@@ -1,26 +1,23 @@
-import { ChevronDown, ChevronRight, CircleCheck, Copy, Link2, LoaderCircle, MapPin, MapPinned, MessageSquareText, MessagesSquare, Phone, Plus, Send, ShoppingBag, Truck, Wallet, XCircle } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { BanknoteX, ChevronRight, CircleCheck, CircleX, Copy, Link2, MapPinned, MessagesSquare, PackageX, Phone, Send, ShoppingBag, Undo2 } from 'lucide-react'
+import { useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
-import { buzz } from '../../components/effects.ts'
 import { useFeedback } from '../../components/feedback.ts'
 import { SourceLogo } from '../../components/SourceLogo.tsx'
-import { hasLogo } from '../../lib/sourceLogos.ts'
 import { buttonClass } from '../../components/styles.ts'
-import { Button, Card, ErrorState, Field, Input, LiveBadge, PageHeader, Skeleton } from '../../components/ui.tsx'
-import type { Messages } from '../../i18n/core.ts'
+import { Button, Card, ErrorState, MenuButton, PageHeader, Skeleton, type MenuItem } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
-import { ApiError } from '../../lib/api.ts'
-import { deliveryAction, deliveryBadge } from '../../lib/delivery.ts'
 import { sourceLabel } from '../../lib/links.ts'
-import { errorText } from '../../lib/errors.ts'
 import { formatMoney } from '../../lib/money.ts'
-import { formatOrderTime, formatPhone, ORDER_STATUS_TONES } from '../../lib/orders.ts'
-import { paymentBadge } from '../../lib/payments.ts'
-import type { DeliveryStatus, Order, OrderStatus, Store } from '../../lib/types.ts'
+import { formatOrderTime, formatPhone } from '../../lib/orders.ts'
+import { hasLogo } from '../../lib/sourceLogos.ts'
+import type { Order, OrderStatus } from '../../lib/types.ts'
 import { ProductImage } from '../../shop/components.tsx'
-import { useCashHandover, useOrder, useRecordDelivery, useRecordPayment, useStore } from '../queries.ts'
+import { useOrder, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
-import { ENDS_ORDER, useMoveOrder } from './useMoveOrder.ts'
+import { CLOSED } from './orderSteps.ts'
+import { SendToDriverSheet } from './SendToDriver.tsx'
+import { StatusCard } from './StatusCard.tsx'
+import { useOrderActions, type OrderActions } from './useOrderActions.ts'
 
 /** /dashboard/orders/:orderId. `onDecided` runs once a new order is
  * accepted or rejected here (OrdersPage opens the next new one). */
@@ -52,6 +49,10 @@ export function OrderDetail({ onDecided }: { onDecided?: () => void }) {
   )
 }
 
+/** The seller's order page (founder's picks 1A 2A 3A 4A 5A, 2026-10-15):
+ * the customer's name on top with the number, time and total; one card
+ * with where the order, delivery and payment stand and their buttons; the
+ * items; then the customer and where it goes. Rare actions in a ⋯ menu. */
 function OrderView({
   order,
   back,
@@ -64,391 +65,99 @@ function OrderView({
   onDecided?: () => void
 }) {
   const t = useT()
+  const actions = useOrderActions(order, onStale, onDecided)
+  const [paying, setPaying] = useState(false)
+  const [sending, setSending] = useState(false)
+  const menu = useMenuItems(order, actions)
   return (
     <>
       <PageHeader
-        title={t.shop.orderNumber(order.number)}
+        title={order.customer.name}
+        subtitle={
+          <>
+            <span className="text-base font-bold text-slate-900">#{order.number}</span>
+            {' · '}
+            {formatOrderTime(order.created_at)}
+            {' · '}
+            {formatMoney(order.total, order.currency)}
+          </>
+        }
         back={back}
         backOnPhonesOnly
-        action={<span className="shrink-0 text-sm text-slate-500">{formatOrderTime(order.created_at)}</span>}
+        action={
+          menu.length > 0 && <MenuButton label={t.orders.more(order.number)} items={menu} disabled={actions.busy} />
+        }
       />
       <title>{t.shop.orderNumber(order.number)}</title>
       <div className="space-y-4">
-        {CLOSED.has(order.status) ? (
-          <ClosedNote status={order.status} />
-        ) : (
-          <TodoCard order={order} onStale={onStale} onDecided={onDecided} />
-        )}
-        <SummaryCard order={order} />
-        <CustomerCard order={order} />
+        {CLOSED.has(order.status) && <ClosedNote status={order.status} />}
+        <StatusCard
+          order={order}
+          actions={actions}
+          paying={paying}
+          setPaying={setPaying}
+          onSend={() => setSending(true)}
+        />
         <ItemsCard order={order} />
-        <DeliverySection order={order} onStale={onStale} />
-        <PaymentSection order={order} onStale={onStale} />
+        <CustomerCard order={order} />
       </div>
+      <SendToDriverSheet order={order} open={sending} onClose={() => setSending(false)} onAssign={actions.assign} />
     </>
   )
 }
 
-/** A rejected or cancelled order says so first: nothing is left to do. */
+/** Rare actions that are hard to undo, out of the way of the everyday
+ * buttons (founder's pick 5A, 2026-10-15). */
+function useMenuItems(order: Order, actions: OrderActions): MenuItem[] {
+  const t = useT()
+  const o = t.orders
+  const { payment, delivery } = order
+  const on = order.status !== 'pending' && !CLOSED.has(order.status)
+  const items: MenuItem[] = []
+  if (on && order.next_statuses.includes('cancelled')) {
+    items.push({ label: o.action.cancelled, icon: CircleX, danger: true, onSelect: () => actions.move('cancelled') })
+  }
+  if (on && delivery.next_statuses.includes('failed')) {
+    items.push({ label: t.status.deliveryAction.failed, icon: PackageX, danger: true, onSelect: actions.deliveryFailed })
+  }
+  if (on && payment.next_statuses.includes('failed')) {
+    items.push({ label: o.paymentFailed, icon: BanknoteX, danger: true, onSelect: actions.paymentFailed })
+  }
+  if (payment.next_statuses.includes('pending')) {
+    items.push({
+      label: payment.status === 'paid' ? o.notPaidAfterAll : o.backToNotPaid,
+      icon: Undo2,
+      onSelect: actions.notPaid,
+    })
+  }
+  return items
+}
+
+/** A rejected or cancelled order says so first: nothing is left to do.
+ * Red on the words only (founder, 2026-10-15). */
 function ClosedNote({ status }: { status: OrderStatus }) {
   const o = useT().orders
   return (
-    <p className="-mx-4 flex items-start gap-2.5 bg-red-50 px-4 py-3 text-sm font-medium text-red-800 sm:mx-0 sm:rounded-2xl sm:px-5">
-      <XCircle aria-hidden className="mt-0.5 size-4.5 shrink-0" />
+    <p className="flex items-start gap-2.5 text-sm font-medium text-red-700">
+      <CircleX aria-hidden className="mt-0.5 size-4.5 shrink-0" />
       {o.closedNote[status as 'rejected' | 'cancelled']}
     </p>
   )
 }
 
-/** Scrolls to a card and flashes a ring around it, so it's clear which
- * block the tap went to. */
-function scrollToSection(id: string) {
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const target = document.getElementById(id)
-  if (!target) return
-  target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
-  const ring = 'var(--color-brand)'
-  target.animate(
-    [
-      { boxShadow: `0 0 0 3px ${ring}` },
-      { boxShadow: `0 0 0 3px ${ring}`, offset: 0.6 },
-      { boxShadow: '0 0 0 3px transparent' },
-    ],
-    // After a smooth scroll has mostly arrived; held still without motion.
-    { duration: 1800, delay: reduce ? 0 : 300, easing: 'ease-out' },
-  )
-}
-
-// The order's own steps between Accept and Complete: optional since the
-// short path (founder's pick 1C, 2026-10-09), for customers who follow
-// along. Its "delivered" is left out: the delivery's own Delivered says it.
-const OPTIONAL_STEPS = new Set<OrderStatus>(['processing', 'ready', 'shipped'])
-
-/** What the order needs from the seller now, first thing on the page. A
- * new order: accept or reject. Then the short path (founder's pick 1C,
- * 2026-10-09): deliver it (for cash on delivery, "Delivered, cash
- * received" records both at once), then Complete as soon as the
- * completion rule holds, from whatever step the order is at. The order's
- * own steps in between are optional chips; a payment to check or a driver
- * to assign are links to their cards. The three statuses never set each
- * other (02 section 7): every button records only what it says. */
-function TodoCard({ order, onStale, onDecided }: { order: Order; onStale: () => void; onDecided?: () => void }) {
-  const t = useT()
-  const o = t.orders
-  const { toast } = useFeedback()
-  const { move: moveOrder, change } = useMoveOrder(order.id, order.number, onStale)
-  const deliver = useRecordDelivery(order.id)
-  const handover = useCashHandover(order.id)
-  const busy = change.isPending || deliver.isPending || handover.isPending
-  // A new order accepted or rejected (`order` as it was when tapped): on to
-  // the next one.
-  async function move(status: OrderStatus, button: HTMLElement) {
-    if ((await moveOrder(status, button)) && order.status === 'pending') onDecided?.()
-  }
-  async function record(action: () => Promise<unknown>, what: string) {
-    try {
-      await action()
-      buzz()
-      toast(o.changed(order.number, what))
-    } catch (error) {
-      toast(errorText(error), 'error')
-      if (error instanceof ApiError && error.status === 409) onStale()
-    }
-  }
-  const { payment, delivery } = order
-  const pending = order.status === 'pending'
-  const pickup = delivery.method === 'pickup'
-  const ends = order.next_statuses.filter((s) => ENDS_ORDER.has(s))
-  const optional = order.next_statuses.filter((s) => OPTIONAL_STEPS.has(s))
-  const canComplete = order.next_statuses.includes('completed')
-  const canDeliver = delivery.next_statuses.includes('delivered')
-  const cashDue = payment.method === 'cod' && payment.next_statuses.includes('paid')
-  const delivered = deliveryBadge(t, delivery.method, 'delivered').label
-
-  const links: { id: string; text: string }[] = []
-  if (!pending && payment.next_statuses.includes('paid')) {
-    if (payment.method !== 'cod') links.push({ id: 'payment', text: payment.claimed_at ? o.todo.paymentClaimed : o.todo.payment })
-    // Cash is in hand once it's been handed over.
-    else if (delivery.status === 'delivered') links.push({ id: 'payment', text: o.todo.cash })
-  }
-  if (!pending && !canComplete && !pickup && delivery.status === 'not_assigned') {
-    links.push({ id: 'delivery', text: o.todo.driver })
-  }
-  // A completed order: nothing left to do.
-  if (!pending && !canComplete && !canDeliver && links.length + optional.length + ends.length === 0) return null
-
-  return (
-    <section
-      aria-label={o.todo.label}
-      className="-mx-4 border-y-2 border-brand/40 bg-surface p-4 sm:mx-0 sm:rounded-2xl sm:border-2 sm:p-5"
-    >
-      <p className="text-xs font-bold tracking-wide text-brand">{o.todo.label}</p>
-      <h2 className="mt-1 text-lg font-bold text-slate-900">
-        {pending ? o.todo.accept : canComplete ? o.todo.ready : canDeliver ? (pickup ? o.todo.collect : o.todo.deliver) : o.todo.next}
-      </h2>
-      {pending ? (
-        <div className="mt-3 flex gap-3">
-          {ends.map((status) => (
-            <Button key={status} variant="danger" disabled={busy} onClick={(e) => move(status, e.currentTarget)}>
-              {o.action[status as keyof typeof o.action]}
-            </Button>
-          ))}
-          <Button
-            loading={change.isPending && change.variables === 'accepted'}
-            disabled={busy}
-            onClick={(e) => move('accepted', e.currentTarget)}
-            className="flex-1"
-          >
-            {o.action.accepted}
-          </Button>
-        </div>
-      ) : canComplete ? (
-        <Button
-          loading={change.isPending && change.variables === 'completed'}
-          disabled={busy}
-          onClick={(e) => move('completed', e.currentTarget)}
-          className="mt-3 w-full"
-        >
-          {o.action.completed}
-        </Button>
-      ) : (
-        canDeliver && (
-          <div className="mt-3 flex flex-wrap gap-3">
-            {cashDue && (
-              <Button
-                loading={handover.isPending}
-                disabled={busy}
-                onClick={() => record(() => handover.mutateAsync(), pickup ? o.collectedCash : o.cashHandover)}
-                className="flex-1"
-              >
-                {pickup ? o.collectedCash : o.cashHandover}
-              </Button>
-            )}
-            <Button
-              variant={cashDue ? 'secondary' : 'primary'}
-              loading={deliver.isPending}
-              disabled={busy}
-              onClick={() => record(() => deliver.mutateAsync({ status: 'delivered', assignee_note: null }), delivered)}
-              className={cashDue ? '' : 'flex-1'}
-            >
-              {deliveryAction(t, delivery, 'delivered')}
-            </Button>
-          </div>
-        )
-      )}
-      {links.length > 0 && (
-        <ul className={`divide-y divide-slate-100 ${pending || canComplete || canDeliver ? 'mt-3 border-t border-slate-100' : 'mt-1'}`}>
-          {links.map((link) => (
-            <li key={link.text}>
-              <button
-                type="button"
-                onClick={() => scrollToSection(link.id)}
-                className="flex min-h-11 w-full items-center gap-2 py-2 text-left font-medium text-slate-900 hover:text-navy-700 focus-visible:outline-2 focus-visible:outline-navy-600"
-              >
-                <span className="flex-1">{link.text}</span>
-                <ChevronDown aria-hidden className="size-4.5 text-slate-400" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {!pending && (optional.length > 0 || ends.length > 0) && (
-        <div className="mt-3 border-t border-slate-100 pt-3">
-          {optional.length > 0 && (
-            <>
-              <p className="text-xs text-slate-500">{o.todo.optional}</p>
-              <StepChips
-                steps={optional}
-                label={(s) => t.status.order[s]}
-                busy={busy}
-                pending={change.isPending ? change.variables : undefined}
-                onPick={(s, button) => move(s, button)}
-              />
-            </>
-          )}
-          {ends.length > 0 && (
-            <div className="mt-3 flex justify-end">
-              {ends.map((status) => (
-                <button key={status} type="button" disabled={busy} onClick={(e) => move(status, e.currentTarget)} className={RED_TEXT_BUTTON}>
-                  {o.action[status as keyof typeof o.action]}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </section>
-  )
-}
-
-// Cancel order, Delivery failed: there when needed, quiet until then.
-const RED_TEXT_BUTTON =
-  'inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 disabled:opacity-50 sm:min-h-10'
-
-/** Small buttons for optional steps, in state-machine order. */
-function StepChips<S extends string>({
-  steps,
-  label,
-  busy,
-  pending,
-  onPick,
-}: {
-  steps: S[]
-  label: (step: S) => string
-  busy: boolean
-  pending?: S
-  onPick: (step: S, button: HTMLElement) => void
-}) {
-  return (
-    <div className="mt-1.5 flex flex-wrap gap-2">
-      {steps.map((step) => (
-        <button
-          key={step}
-          type="button"
-          disabled={busy}
-          aria-busy={pending === step || undefined}
-          onClick={(e) => onPick(step, e.currentTarget)}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-dashed border-slate-300 px-3.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 disabled:opacity-50 sm:min-h-9"
-        >
-          {pending === step ? <LoaderCircle aria-hidden className="size-3.5 animate-spin" /> : <Plus aria-hidden className="size-3.5" />}
-          {label(step)}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-/** The order at a glance: what it comes to, and its three statuses in
- * one strip (order, delivery, payment). They move independently (02
- * section 7); a dot marks the one waiting on the seller, and delivery and
- * payment jump to their cards. */
-function SummaryCard({ order }: { order: Order }) {
-  const t = useT()
-  const o = t.orders
-  const payment = paymentBadge(t, order.payment.method, order.payment.status)
-  const delivery = deliveryBadge(t, order.delivery.method, order.delivery.status)
-  const count = order.items.reduce((sum, item) => sum + item.quantity, 0)
-  const closed = CLOSED.has(order.status)
-  // Order, then delivery, then payment; each with its own status.
-  const parts = [
-    {
-      key: 'order',
-      icon: ShoppingBag,
-      label: o.order,
-      status: order.status,
-      badge: { label: t.status.order[order.status], tone: ORDER_STATUS_TONES[order.status] },
-      needs: order.status === 'pending',
-      target: null,
-    },
-    {
-      key: 'delivery',
-      icon: order.delivery.method === 'pickup' ? MapPin : Truck,
-      label: order.delivery.method === 'pickup' ? t.checkout.pickup : o.delivery,
-      status: order.delivery.status,
-      badge: delivery,
-      needs:
-        !closed &&
-        (order.delivery.status === 'failed' ||
-          (order.status !== 'pending' && order.delivery.method !== 'pickup' && order.delivery.status === 'not_assigned')),
-      target: 'delivery',
-    },
-    {
-      key: 'payment',
-      icon: Wallet,
-      label: o.payment,
-      status: order.payment.status,
-      badge: payment,
-      needs: !closed && order.payment.status === 'pending' && order.payment.method !== 'cod' && order.status !== 'pending',
-      target: 'payment',
-    },
-  ]
-  return (
-    <Card className="p-4 sm:p-6">
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">{formatMoney(order.total, order.currency)}</p>
-        <p className="text-sm text-slate-500">{o.items(count)}</p>
-      </div>
-      {/* One strip in three (three rows on a phone): an icon in the
-          status's colour, the name small, the status in bold; a dot on
-          the icon marks what waits on the seller. */}
-      {/* Side by side only where the card itself is wide enough (it can be
-          a narrow column beside the order list), else three rows. */}
-      <div className="@container mt-4">
-      <ul className="grid divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 @xl:grid-cols-3 @xl:divide-x @xl:divide-y-0">
-        {parts.map(({ key, icon: Icon, label, status, badge, needs, target }) => {
-          const body = (
-            <>
-              <span className={`relative flex size-9 shrink-0 items-center justify-center rounded-full ${TONE_CIRCLE[badge.tone]}`}>
-                <Icon aria-hidden className="size-4.5" />
-                {needs && (
-                  <span aria-hidden className="absolute -top-0.5 -right-0.5 size-3 rounded-full border-2 border-surface bg-amber-500" />
-                )}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-xs text-slate-500">{label}</span>
-                <span key={status} className="block animate-pop font-semibold break-words text-slate-900">
-                  {badge.label}
-                </span>
-              </span>
-              {target && <ChevronDown aria-hidden className="size-4 shrink-0 text-slate-400 @xl:hidden" />}
-            </>
-          )
-          // A closed order's delivery and payment no longer matter: faded.
-          const cell = `flex min-h-14 w-full items-center gap-3 px-3.5 py-3 text-left ${closed && key !== 'order' ? 'opacity-50' : ''}`
-          return (
-            <li key={key} className="min-w-0">
-              {target ? (
-                <button
-                  type="button"
-                  onClick={() => scrollToSection(target)}
-                  className={`${cell} transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600`}
-                >
-                  {body}
-                </button>
-              ) : (
-                <div className={cell}>{body}</div>
-              )}
-            </li>
-          )
-        })}
-      </ul>
-      </div>
-      {order.source === 'chat' ? (
-        <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
-          <MessagesSquare aria-hidden className="size-4 shrink-0" />
-          {o.fromChat}
-        </p>
-      ) : (
-        order.source && (
-          <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
-            {hasLogo(order.source) ? (
-              <SourceLogo source={order.source} className="size-5" />
-            ) : (
-              <Link2 aria-hidden className="size-4 shrink-0" />
-            )}
-            {o.cameThrough(sourceLabel(order.source))}
-          </p>
-        )
-      )}
-      {order.notes && (
-        <div className="mt-3 flex gap-2.5 rounded-xl bg-amber-50 px-3.5 py-3 text-sm text-amber-900">
-          <MessageSquareText aria-hidden className="mt-0.5 size-4 shrink-0" />
-          <p>
-            {/* Typed by the seller on an order from a chat. */}
-            <span className="font-semibold">{order.source === 'chat' ? o.chatNote : o.noteFromCustomer}</span>
-            <span className="whitespace-pre-line break-words">{order.notes}</span>
-          </p>
-        </div>
-      )}
-    </Card>
-  )
-}
-
+/** What was bought first (founder's pick 3A): before accepting you check
+ * you have it, after accepting you pack it. The customer's note sits above
+ * the items it's usually about. */
 function ItemsCard({ order }: { order: Order }) {
   const t = useT()
+  const count = order.items.reduce((sum, item) => sum + item.quantity, 0)
   return (
     <Card className="p-4 sm:p-6">
-      <h2 className="mb-2 font-semibold text-slate-900">{t.order.items}</h2>
+      <h2 className="mb-1 flex items-baseline gap-2 font-semibold text-slate-900">
+        {t.order.items}
+        <span className="font-normal text-slate-500 tabular-nums">{count}</span>
+      </h2>
+      <CustomerNote order={order} />
       <ul className="divide-y divide-slate-100">
         {order.items.map((item, i) => (
           <li key={i} className="flex items-center gap-3 py-2.5">
@@ -465,15 +174,15 @@ function ItemsCard({ order }: { order: Order }) {
                 {item.product_name}
                 {item.variant_name && <span className="text-slate-500"> · {item.variant_name}</span>}
               </span>
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-slate-500 tabular-nums">
                 {item.quantity} × {formatMoney(item.unit_price, order.currency)}
               </span>
             </span>
-            <span className="font-medium text-slate-900">{formatMoney(item.line_total, order.currency)}</span>
+            <span className="font-medium text-slate-900 tabular-nums">{formatMoney(item.line_total, order.currency)}</span>
           </li>
         ))}
       </ul>
-      <dl className="mt-2 space-y-1 border-t border-slate-200 pt-3 text-sm">
+      <dl className="mt-2 space-y-1 border-t border-slate-200 pt-3 text-sm tabular-nums">
         <div className="flex justify-between">
           <dt className="text-slate-600">{t.shop.summary.items}</dt>
           <dd className="text-slate-900">{formatMoney(order.subtotal, order.currency)}</dd>
@@ -493,9 +202,27 @@ function ItemsCard({ order }: { order: Order }) {
       </dl>
       <div className="mt-2 flex items-baseline justify-between border-t border-slate-200 pt-3">
         <span className="font-semibold text-slate-900">{t.shop.summary.total}</span>
-        <span className="text-lg font-bold text-slate-900">{formatMoney(order.total, order.currency)}</span>
+        <span className="text-lg font-bold text-slate-900 tabular-nums">{formatMoney(order.total, order.currency)}</span>
       </div>
     </Card>
+  )
+}
+
+/** The customer's note as a message from them, a grey bubble like in
+ * Messenger or Telegram (founder's pick 7A): no coloured box. On an order
+ * from a chat it's the seller's own note. */
+function CustomerNote({ order }: { order: Order }) {
+  const o = useT().orders
+  if (!order.notes) return null
+  return (
+    <div className="mt-2 mb-3">
+      <p className="truncate text-xs text-slate-500">
+        {order.source === 'chat' ? o.yourNote : o.customerWrote(order.customer.name)}
+      </p>
+      <p className="mt-1 inline-block max-w-full rounded-[4px_18px_18px_18px] bg-slate-100 px-3.5 py-2 whitespace-pre-line break-words text-slate-900">
+        {order.notes}
+      </p>
+    </div>
   )
 }
 
@@ -526,36 +253,57 @@ function TelegramPhone({ customer }: { customer: Order['customer'] }) {
   )
 }
 
+const ROUND_BUTTON =
+  'inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-surface text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-95'
+
+/** Who and where in one card (founder's pick 3A): the name, the phone with
+ * Call and Copy beside it, then the address and the map. */
 function CustomerCard({ order }: { order: Order }) {
-  const o = useT().orders
+  const t = useT()
+  const o = t.orders
+  const c = t.customers
+  const { toast } = useFeedback()
+  const { customer } = order
+  async function copyPhone() {
+    try {
+      await navigator.clipboard.writeText(customer.phone)
+      toast(c.phoneCopied)
+    } catch {
+      toast(formatPhone(customer.phone))
+    }
+  }
   return (
     <Card className="p-4 sm:p-6">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="font-semibold text-slate-900">{o.customer}</h2>
+        <h2 className="min-w-0 font-semibold break-words text-slate-900">{customer.name}</h2>
         <Link
-          to={`/dashboard/customers/${order.customer.id}`}
+          to={`/dashboard/customers/${customer.id}`}
           state={{ back: `/dashboard/orders/${order.id}` }}
-          className="-my-2 -mr-2 inline-flex min-h-11 items-center gap-0.5 rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
+          className="-my-2 -mr-2 inline-flex min-h-11 shrink-0 items-center gap-0.5 rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
         >
           {o.viewCustomer}
           <ChevronRight aria-hidden className="size-4" />
         </Link>
       </div>
-      <p className="mt-2 break-words text-slate-900">{order.customer.name}</p>
-      <a
-        href={`tel:${order.customer.phone}`}
-        className="-mx-2 mt-1 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
-      >
-        <Phone aria-hidden className="size-4" />
-        {formatPhone(order.customer.phone)}
-      </a>
-      <TelegramPhone customer={order.customer} />
+      <div className="mt-1 flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-base font-semibold text-slate-900 tabular-nums">{formatPhone(customer.phone)}</p>
+          <TelegramPhone customer={customer} />
+        </div>
+        <a href={`tel:${customer.phone}`} aria-label={c.call} title={c.call} className={ROUND_BUTTON}>
+          <Phone aria-hidden className="size-4.5" />
+        </a>
+        <button type="button" onClick={copyPhone} aria-label={c.copyPhone} title={c.copyPhone} className={ROUND_BUTTON}>
+          <Copy aria-hidden className="size-4.5" />
+        </button>
+      </div>
       {/* An order from a chat: the customer hasn't seen the order page,
           where they follow it and see how to pay (KHQR, bank). */}
       {order.source === 'chat' && <CopyOrderLink order={order} />}
+      <Source order={order} />
       {order.delivery_method === 'seller_delivery' && (
-        <>
-          <h3 className="mt-3 text-sm font-medium text-slate-500">{o.deliverTo}</h3>
+        <div className="mt-4 border-t border-slate-100 pt-4">
+          <h3 className="text-sm text-slate-500">{o.deliverTo}</h3>
           {order.delivery_address && (
             <p className="mt-0.5 whitespace-pre-line break-words text-slate-900">{order.delivery_address}</p>
           )}
@@ -576,9 +324,33 @@ function CustomerCard({ order }: { order: Order }) {
               {o.openMaps}
             </a>
           )}
-        </>
+        </div>
       )}
     </Card>
+  )
+}
+
+/** Where the order came from: a chat (added by the seller) or a shop link. */
+function Source({ order }: { order: Order }) {
+  const o = useT().orders
+  if (order.source === 'chat') {
+    return (
+      <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
+        <MessagesSquare aria-hidden className="size-4 shrink-0" />
+        {o.fromChat}
+      </p>
+    )
+  }
+  if (!order.source) return null
+  return (
+    <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
+      {hasLogo(order.source) ? (
+        <SourceLogo source={order.source} className="size-5" />
+      ) : (
+        <Link2 aria-hidden className="size-4 shrink-0" />
+      )}
+      {o.cameThrough(sourceLabel(order.source))}
+    </p>
   )
 }
 
@@ -599,366 +371,9 @@ function CopyOrderLink({ order }: { order: Order }) {
     }
   }
   return (
-    <Button variant="secondary" onClick={copy} className="mt-2 w-full sm:w-auto">
-      <Copy aria-hidden className="size-4" />
+    <Button variant="secondary" icon={Copy} onClick={copy} className="mt-3 w-full sm:w-auto">
       {o.copyOrderLink}
     </Button>
-  )
-}
-
-/** The payment is its own state machine (02 section 7.2): recording it
- * never moves the order, but an order that isn't cash on delivery can only
- * be completed once it's paid (section 7.4). */
-function PaymentSection({ order, onStale }: { order: Order; onStale: () => void }) {
-  const { toast, confirm } = useFeedback()
-  const t = useT()
-  const o = t.orders
-  const record = useRecordPayment(order.id)
-  const [confirming, setConfirming] = useState(false)
-  const [reference, setReference] = useState('')
-  const { payment } = order
-  const badge = paymentBadge(t, payment.method, payment.status)
-  const cod = payment.method === 'cod'
-  // Delivered both ways, but the payment still holds up completing (02 section 7.4).
-  const waitsForPayment =
-    order.status === 'delivered' && order.delivery.status === 'delivered' && !order.next_statuses.includes('completed')
-
-  async function save(status: 'paid' | 'failed' | 'pending') {
-    try {
-      await record.mutateAsync({ status, reference: status === 'pending' ? null : reference.trim() || null })
-      buzz()
-      toast(o.changed(order.number, status === 'paid' ? o.paidToast : status === 'failed' ? o.failedToast : o.unpaidToast))
-      setConfirming(false)
-      setReference('')
-    } catch (error) {
-      toast(errorText(error), 'error')
-      if (error instanceof ApiError && error.status === 409) onStale()
-    }
-  }
-
-  async function markFailed() {
-    const ok = await confirm({
-      title: o.failTitle,
-      message: o.failMessage,
-      confirmLabel: o.paymentFailed,
-      danger: true,
-    })
-    if (ok) save('failed')
-  }
-
-  function submit(event: FormEvent) {
-    event.preventDefault()
-    save('paid')
-  }
-
-  // Paid or failed back to not paid, any time (founder's pick 2C).
-  async function markNotPaid() {
-    const ok = await confirm({
-      title: o.unpayTitle(order.number),
-      message: o.unpayMessage,
-      confirmLabel: o.unpayConfirm,
-      danger: true,
-    })
-    if (ok) save('pending')
-  }
-
-  return (
-    <Card id="payment" className="scroll-mt-4 p-4 sm:p-6">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="font-semibold text-slate-900">{o.payment}</h2>
-        <LiveBadge value={payment.status} tone={badge.tone}>
-          {badge.label}
-        </LiveBadge>
-      </div>
-      <p className="mt-2 text-slate-900">
-        {t.status.paymentMethod[payment.method]} · {formatMoney(payment.amount, order.currency)}
-      </p>
-      {payment.paid_at && (
-        <p className="mt-0.5 text-sm text-slate-500">{o.markedPaid(formatOrderTime(payment.paid_at))}</p>
-      )}
-      {/* "I've paid" from the customer (founder's pick 6B): still to check. */}
-      {payment.status === 'pending' && payment.claimed_at && (
-        <p className="mt-2 inline-flex rounded-full bg-amber-50 px-2.5 py-0.5 text-sm font-medium text-amber-800">
-          {o.customerSaysPaid(formatOrderTime(payment.claimed_at))}
-        </p>
-      )}
-      {payment.reference && (
-        <p className="mt-1 text-sm break-words text-slate-600">
-          <span className="text-slate-500">{o.note}</span>
-          {payment.reference}
-        </p>
-      )}
-      {waitsForPayment && (
-        <p className="mt-2 text-sm text-amber-800">{o.waitsForPayment}</p>
-      )}
-
-      {payment.next_statuses.includes('paid') &&
-        (confirming ? (
-          <form onSubmit={submit} className="mt-4 space-y-3">
-            <Field
-              label={o.noteOptional}
-              hint={cod ? o.noteHintCod : o.noteHintTransfer}
-            >
-              <Input
-                maxLength={200}
-                autoFocus
-                value={reference}
-                onChange={(e) => setReference(e.target.value)}
-              />
-            </Field>
-            <div className="flex gap-3">
-              <Button variant="ghost" onClick={() => setConfirming(false)} disabled={record.isPending}>
-                {t.common.back}
-              </Button>
-              <Button type="submit" loading={record.isPending} className="flex-1">
-                {cod ? o.confirmCash : o.confirmPaid}
-              </Button>
-            </div>
-          </form>
-        ) : (
-          <div className="mt-4 flex gap-3">
-            {payment.next_statuses.includes('failed') && (
-              <Button variant="danger" onClick={markFailed} disabled={record.isPending}>
-                {o.paymentFailed}
-              </Button>
-            )}
-            <Button variant="secondary" onClick={() => setConfirming(true)} className="flex-1">
-              {cod ? o.cashReceived : o.markPaid}
-            </Button>
-          </div>
-        ))}
-      {payment.next_statuses.includes('pending') && (
-        <div className="mt-3 flex justify-end">
-          <Button variant="secondary" loading={record.isPending} onClick={markNotPaid}>
-            {payment.status === 'paid' ? o.notPaidAfterAll : o.backToNotPaid}
-          </Button>
-        </div>
-      )}
-    </Card>
-  )
-}
-
-const CLOSED = new Set<OrderStatus>(['rejected', 'cancelled'])
-
-// The status icon's circle, in the status's colour.
-const TONE_CIRCLE: Record<'neutral' | 'red' | 'green' | 'amber' | 'blue', string> = {
-  neutral: 'bg-slate-100 text-slate-600',
-  red: 'bg-red-50 text-red-700',
-  green: 'bg-emerald-50 text-emerald-700',
-  amber: 'bg-amber-50 text-amber-700',
-  blue: 'bg-sky-50 text-sky-700',
-}
-
-/** The order as the driver (or the courier's form) needs it, in the
- * seller's language: whose delivery, who and where, what, the cash to
- * collect and how it adds up, and the shop's number for when something's
- * wrong. Blank lines split it into blocks a driver can scan on a phone. */
-function driverMessage(t: Messages, order: Order, store: Store | undefined): string {
-  const d = t.orders.driver
-  const { payment, currency } = order
-  const money = (amount: string) => formatMoney(amount, currency)
-
-  const who = [d.customer + order.customer.name, d.phone + formatPhone(order.customer.phone)]
-  const pinned = order.delivery_lat !== null && order.delivery_lng !== null
-  if (order.delivery_address) who.push(d.address + order.delivery_address)
-  if (pinned) who.push(`${d.map}https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}`)
-  if (!order.delivery_address && !pinned) who.push(d.noAddress)
-  if (order.delivery_address_note) who.push(d.note + order.delivery_address_note)
-
-  const count = order.items.reduce((sum, item) => sum + item.quantity, 0)
-  const what = [
-    d.items(count),
-    ...order.items.map(
-      (item) => `• ${item.quantity} × ${item.product_name}${item.variant_name ? ` (${item.variant_name})` : ''}`,
-    ),
-  ]
-
-  let cash: string[]
-  if (payment.status === 'paid') cash = [d.paid]
-  else if (payment.method !== 'cod') cash = [d.payingBy(t.status.paymentMethod[payment.method])]
-  else {
-    cash = [d.collect(money(payment.amount))]
-    const discount = Number(order.discount) > 0 ? money(order.discount) : null
-    if (discount || Number(order.delivery_fee) > 0) {
-      cash.push(d.breakdown(money(order.subtotal), discount, money(order.delivery_fee)))
-    }
-  }
-
-  const blocks = [[d.title(order.number, store?.name ?? null)], who, what, cash]
-  if (store?.contact_phone) blocks.push([d.shopPhone(formatPhone(store.contact_phone))])
-  return blocks.map((block) => block.join('\n')).join('\n\n')
-}
-
-/** Send to driver (founder's pick 5B): the phone's share list (Telegram,
- * Messenger, ...) with the message ready; on a laptop it's copied. */
-function SendToDriver({ order }: { order: Order }) {
-  const t = useT()
-  const o = t.orders
-  const { toast } = useFeedback()
-  const store = useStore()
-  async function send() {
-    const text = driverMessage(t, order, store.data)
-    const phone = window.matchMedia('(pointer: coarse)').matches
-    if (phone && typeof navigator.share === 'function') {
-      try {
-        await navigator.share({ text })
-        return
-      } catch (error) {
-        // Closed the share list: nothing to do.
-        if (error instanceof DOMException && error.name === 'AbortError') return
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(text)
-      toast(o.driverCopied)
-    } catch {
-      toast(o.driverCopyFailed, 'error')
-    }
-  }
-  return (
-    <Button variant="secondary" icon={Send} onClick={send} className="mt-4 w-full">
-      {o.sendToDriver}
-    </Button>
-  )
-}
-
-/** The delivery is its own state machine too (02 section 7.3): moving it
- * never moves the order, but an order can only be completed once its
- * delivery is delivered (section 7.4). */
-function DeliverySection({ order, onStale }: { order: Order; onStale: () => void }) {
-  const { toast } = useFeedback()
-  const t = useT()
-  const o = t.orders
-  const record = useRecordDelivery(order.id)
-  const [assigning, setAssigning] = useState(false)
-  const [note, setNote] = useState('')
-  const { delivery } = order
-  const pickup = delivery.method === 'pickup'
-  const badge = deliveryBadge(t, delivery.method, delivery.status)
-  const Icon = pickup ? MapPin : Truck
-  // Nothing to deliver once the order is off, so no buttons (the server
-  // would still allow it: the two never set each other).
-  const actions = CLOSED.has(order.status) ? [] : delivery.next_statuses
-  const main = actions.filter((s) => s === 'assigned' || s === 'delivered')
-  const steps = actions.filter((s) => s === 'picked_up' || s === 'in_transit')
-  const waitsForDelivery = order.status === 'delivered' && delivery.status !== 'delivered'
-
-  async function save(status: DeliveryStatus) {
-    try {
-      await record.mutateAsync({ status, assignee_note: status === 'assigned' ? note.trim() || null : null })
-      buzz()
-      toast(o.changed(order.number, deliveryBadge(t, delivery.method, status).label))
-      setAssigning(false)
-      setNote('')
-    } catch (error) {
-      toast(errorText(error), 'error')
-      if (error instanceof ApiError && error.status === 409) onStale()
-    }
-  }
-
-  function startAssigning() {
-    setNote(delivery.assignee_note ?? '')
-    setAssigning(true)
-  }
-
-  function submit(event: FormEvent) {
-    event.preventDefault()
-    save('assigned')
-  }
-
-  return (
-    <Card id="delivery" className="scroll-mt-4 p-4 sm:p-6">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 font-semibold text-slate-900">
-          <Icon aria-hidden className="size-4.5 text-slate-500" />
-          {pickup ? t.checkout.pickup : o.delivery}
-        </h2>
-        <LiveBadge value={delivery.status} tone={badge.tone}>
-          {badge.label}
-        </LiveBadge>
-      </div>
-      <p className="mt-2 text-slate-900">
-        {pickup ? o.customerCollects : delivery.courier ? o.sendWith(delivery.courier) : o.ownDelivery}
-        {' · '}
-        {Number(order.delivery_fee) > 0 ? formatMoney(order.delivery_fee, order.currency) : t.shop.summary.free}
-      </p>
-      {delivery.assignee_note && (
-        <p className="mt-1 text-sm break-words text-slate-600">
-          <span className="text-slate-500">{delivery.courier ? o.note : o.delivering}</span>
-          {delivery.assignee_note}
-        </p>
-      )}
-      {waitsForDelivery && (
-        <p className="mt-2 text-sm text-amber-800">
-          {pickup ? o.waitsCollected : o.waitsDelivered}
-        </p>
-      )}
-      {!pickup && !CLOSED.has(order.status) && delivery.status !== 'delivered' && <SendToDriver order={order} />}
-
-      {assigning ? (
-        <form onSubmit={submit} className="mt-4 space-y-3">
-          <Field
-            label={delivery.courier ? o.courierNote : o.driverNote}
-            hint={delivery.courier ? o.courierNoteHint(delivery.courier) : o.driverNoteHint}
-          >
-            <Input maxLength={200} autoFocus value={note} onChange={(e) => setNote(e.target.value)} />
-          </Field>
-          <div className="flex gap-3">
-            <Button variant="ghost" onClick={() => setAssigning(false)} disabled={record.isPending}>
-              {t.common.back}
-            </Button>
-            <Button type="submit" loading={record.isPending} className="flex-1">
-              {deliveryAction(t, delivery, 'assigned')}
-            </Button>
-          </div>
-        </form>
-      ) : (
-        actions.length > 0 && (
-          <>
-            {/* Assign (or book the courier, or try again) and Delivered;
-                the steps in between are optional chips (founder's pick
-                1C, 2026-10-09); failing is apart, in red. */}
-            {main.length > 0 && (
-              <div className="mt-4 flex gap-3">
-                {main.map((status) => (
-                  <Button
-                    key={status}
-                    variant="secondary"
-                    loading={record.isPending && record.variables?.status === status}
-                    disabled={record.isPending}
-                    onClick={() => (status === 'assigned' ? startAssigning() : save(status))}
-                    className="flex-1"
-                  >
-                    {deliveryAction(t, delivery, status)}
-                  </Button>
-                ))}
-              </div>
-            )}
-            {(steps.length > 0 || actions.includes('failed')) && (
-              <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
-                {steps.length > 0 && (
-                  <div>
-                    <p className="text-xs text-slate-500">{o.moreSteps}</p>
-                    <StepChips
-                      steps={steps}
-                      label={(s) => deliveryAction(t, delivery, s)}
-                      busy={record.isPending}
-                      pending={record.isPending ? record.variables?.status : undefined}
-                      onPick={(s) => save(s)}
-                    />
-                  </div>
-                )}
-                {actions.includes('failed') && (
-                  <button type="button" onClick={() => save('failed')} disabled={record.isPending} className={RED_TEXT_BUTTON}>
-                    {deliveryAction(t, delivery, 'failed')}
-                  </button>
-                )}
-              </div>
-            )}
-          </>
-        )
-      )}
-    </Card>
   )
 }
 
@@ -968,9 +383,9 @@ function DetailSkeleton({ back }: { back: string }) {
     <>
       <PageHeader title={t.orders.order} back={back} backOnPhonesOnly />
       <div aria-hidden className="space-y-4">
-        <Skeleton className="h-20 w-full rounded-2xl" />
-        <Skeleton className="h-36 w-full rounded-2xl" />
+        <Skeleton className="h-56 w-full rounded-2xl" />
         <Skeleton className="h-40 w-full rounded-2xl" />
+        <Skeleton className="h-36 w-full rounded-2xl" />
       </div>
     </>
   )

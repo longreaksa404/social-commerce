@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, Ellipsis, Pencil, Plus, Share2, Tags, Trash2, X } from 'lucide-react'
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { Check, Pencil, Plus, Share2, Tags, Trash2, X } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import {
@@ -12,6 +12,7 @@ import {
   Field,
   IconButton,
   Input,
+  MenuButton,
   PageHeader,
   Skeleton,
 } from '../components/ui.tsx'
@@ -219,7 +220,7 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
           <p className="text-sm text-slate-500">{c.noProducts}</p>
         )}
       </div>
-      <RowMenu
+      <MenuButton
         label={c.more(category.name)}
         disabled={remove.isPending}
         items={[
@@ -228,76 +229,6 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
           { label: t.common.delete, icon: Trash2, danger: true, onSelect: confirmDelete },
         ]}
       />
-    </div>
-  )
-}
-
-type MenuItem = { label: string; icon: typeof Pencil; danger?: boolean; onSelect: () => void }
-
-/** A ⋯ button with a small menu under it. Closes on a choice, a tap
- * outside or Escape (which puts focus back on the button); arrow keys move
- * between the items. */
-function RowMenu({ label, items, disabled }: { label: string; items: MenuItem[]; disabled?: boolean }) {
-  const [open, setOpen] = useState(false)
-  const wrap = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    wrap.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus()
-    const outside = (e: PointerEvent) => {
-      if (!wrap.current?.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('pointerdown', outside)
-    return () => document.removeEventListener('pointerdown', outside)
-  }, [open])
-
-  function onKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
-      setOpen(false)
-      wrap.current?.querySelector<HTMLElement>('[aria-haspopup]')?.focus()
-    } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault()
-      const all = [...(wrap.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])]
-      const at = all.indexOf(document.activeElement as HTMLElement)
-      all[(at + (e.key === 'ArrowDown' ? 1 : all.length - 1)) % all.length]?.focus()
-    }
-  }
-
-  return (
-    <div ref={wrap} className="relative" onKeyDown={onKeyDown}>
-      <IconButton
-        icon={Ellipsis}
-        label={label}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        disabled={disabled}
-        onClick={() => setOpen((o) => !o)}
-      />
-      {open && (
-        <div
-          role="menu"
-          aria-label={label}
-          className="absolute top-full right-0 z-20 mt-1 flex min-w-48 animate-zoom-in flex-col rounded-xl bg-surface p-1.5 shadow-lg ring-1 ring-slate-900/10"
-        >
-          {items.map(({ label: text, icon: Icon, danger, onSelect }) => (
-            <button
-              key={text}
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setOpen(false)
-                onSelect()
-              }}
-              className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-sm font-medium focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 sm:min-h-10 ${
-                danger ? 'text-red-600 hover:bg-red-50' : 'text-slate-800 hover:bg-slate-100'
-              }`}
-            >
-              <Icon aria-hidden className={`size-4.5 ${danger ? '' : 'text-slate-500'}`} />
-              {text}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
