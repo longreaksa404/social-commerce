@@ -11,6 +11,17 @@ export const checkout = {
     en: "The seller will contact you on this number. You'll also need it to check your order.",
     km: 'អ្នកលក់នឹងទាក់ទងអ្នកតាមលេខនេះ។ អ្នកក៏ត្រូវការវា ដើម្បីពិនិត្យមើលការកុម្ម៉ង់របស់អ្នកដែរ។',
   },
+  // Once the number is whole, read back as the seller will see it, so a
+  // swapped digit gets noticed before ordering.
+  phoneWillCall: {
+    en: (phone: string) => `The seller will call ${phone}. Check it's right: you'll also need it to check your order.`,
+    km: (phone: string) =>
+      `អ្នកលក់នឹងហៅមកលេខ ${phone}។ សូមពិនិត្យថាត្រឹមត្រូវ ព្រោះអ្នកក៏ត្រូវការវា ដើម្បីពិនិត្យមើលការកុម្ម៉ង់ដែរ។`,
+  },
+  phoneUnusual: {
+    en: (phone: string) => `${phone} doesn't look like a Cambodian phone number. Check it before you order.`,
+    km: (phone: string) => `លេខ ${phone} មិនដូចលេខទូរស័ព្ទនៅកម្ពុជាទេ។ សូមពិនិត្យវាម្ដងទៀត មុនពេលកុម្ម៉ង់។`,
+  },
   address: { en: 'Address', km: 'អាសយដ្ឋាន' },
   addressOptional: { en: 'Address (optional)', km: 'អាសយដ្ឋាន (មិនចាំបាច់)' },
   addressHintPinned: {

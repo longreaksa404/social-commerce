@@ -18,6 +18,7 @@ import { ApiError } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
 import { formatMoney, fromCents } from '../lib/money.ts'
 import { PAYMENT_METHOD_ORDER } from '../lib/payments.ts'
+import { lookAtPhone } from '../lib/phone.ts'
 import { deliveryFeeCents, discountCents } from '../lib/pricing.ts'
 import type { Currency, PaymentMethod, ShopStore } from '../lib/types.ts'
 import { useCart, useCheckedCart } from './cart.ts'
@@ -249,7 +250,7 @@ export function ShopCheckout() {
                 </Field>
                 <Field
                   label={c.phone}
-                  hint={c.phoneHint}
+                  hint={<PhoneHint phone={form.phone} />}
                   error={fieldError(place.error, 'phone')}
                 >
                   <Input
@@ -409,6 +410,17 @@ export function ShopCheckout() {
       </div>
     </form>
   )
+}
+
+/** Under the phone field: the number read back once it's whole, so a
+ * mistyped digit gets noticed, or a warning when no Cambodian number
+ * starts like it. Only a warning: the API decides what it accepts. */
+function PhoneHint({ phone }: { phone: string }) {
+  const c = useT().checkout
+  const look = lookAtPhone(phone)
+  if (look === null) return c.phoneHint
+  if (look.kind === 'unusual') return <span className="text-amber-800">{c.phoneUnusual(look.shown)}</span>
+  return c.phoneWillCall(look.shown)
 }
 
 function DeliverySection({

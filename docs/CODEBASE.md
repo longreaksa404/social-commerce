@@ -1062,7 +1062,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public. While paused, `PausedNotice` (`shop/components.tsx`) tops every shop page and the cart's Place order is disabled; the seller's Orders tab shows a reminder |
 | `/shop/:storeSlug/product/:productSlug` | `ShopProduct` | |
 | `/shop/:storeSlug/category/:categorySlug` | `ShopCategory` | A tab of the same page as `ShopHome` (`handle: { page: 'products' }`): switching between All and a category doesn't fade the page in |
-| `/shop/:storeSlug/cart` (`/checkout` forwards here) | `ShopCheckout` (with `CartItems` / `EmptyCart` from `ShopCart.tsx`) | The cart and checkout on one page (redesign 2026-10-06) |
+| `/shop/:storeSlug/cart` (`/checkout` forwards here) | `ShopCheckout` (with `CartItems` / `EmptyCart` from `ShopCart.tsx`) | The cart and checkout on one page (redesign 2026-10-06). Under the phone field, `PhoneHint` reads the number back ("The seller will call 012 345 678") or warns about an unusual prefix (2026-10-15) |
 | `/shop/:storeSlug/order/:orderId` | `ShopOrderPage` | Confirmation + tracking |
 | `/shop/:storeSlug/orders` | `ShopOrders` | Orders placed on this device |
 | `*` | redirect to `/` | |
@@ -1254,7 +1254,10 @@ is wrapped in try/catch (private mode).
   integer cents; change both together**), `images.ts` (shrinks to 1600 px
   JPEG and makes the ~480 px thumbnail, then uploads; `thumbnailUrl()`),
   `orders.ts`, `payments.ts`, `delivery.ts` (status tones, badges, labels),
-  `links.ts`, `customers.ts`, `products.ts`, `useDebounced.ts`.
+  `links.ts`, `customers.ts`, `products.ts`, `useDebounced.ts`,
+  `phone.ts` (`lookAtPhone`: the checkout's phone hint reads the number back
+  once it's whole, and warns, without blocking, when no Cambodian mobile or
+  landline prefix matches; `normalize_phone` in the API still decides).
 - `lib/types.ts` hand-mirrors the backend response models. There is no
   codegen; update it by hand when a schema changes.
 

@@ -283,9 +283,11 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Plan and billing, part 1 (pricing decided 2026-10-14, `01_PRODUCT.md` §33.1; the data model is shown to the founder first): the 1-month free trial, Settings → Plan (trial or paid-until date, the price, past payments), reminders in the dashboard, no new orders 7 days after an unpaid trial or period, the founder's command to record a payment made by hand, the sign-up and Terms text | 12 |
 | Move the frontend from Vercel to Cloudflare Pages, link previews included (founder's pick 6A, 2026-10-14; before the first seller pays) | 4 |
 | Plan and billing part 2, hand collection: admin page, payment status, daily reminders, I've paid (founder's picks 2026-10-14; real time spent, about 2 hrs: the admin page and payment statuses carried over from the PayWay work, then the rework) | 2 |
+| Wrong or fake customer phones, part 1: checkout reads the number back once it's whole ("The seller will call 012 345 678") and warns when no Cambodian number starts like it (founder's pick 2026-10-15) | 2 |
+| Wrong or fake customer phones, part 2: "Get updates on Telegram" on the customer's order page; the customer shares their Telegram number with Oak's bot and gets their order's news there; the seller sees "Phone confirmed in Telegram", or the Telegram number when it's another one (founder's pick 2026-10-15; adds `customer.telegram_phone`) | 10 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~235 hours (**~18 weeks**)
+**Subtotal:** ~247 hours (**~19 weeks**)
 
 > **Decided (2026-10-04):** a .com domain bought through Cloudflare (oaksolve.com, bought 2026-10-09); Render
 > stays on the free plan for the first seller (the app says when the
@@ -310,8 +312,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 17 | 1.5 wks |
-| 9 — Polish/First Seller | 235 | 18 wks |
-| **Total** | **~463 hrs** | **~35.5 weeks (~8 months)** |
+| 9 — Polish/First Seller | 247 | 19 wks |
+| **Total** | **~475 hrs** | **~36.5 weeks (~8.5 months)** |
 
 This is a planning estimate, not a commitment.
 
@@ -349,6 +351,7 @@ Maintain a **Requirements Log** for anything a seller asks for that isn't in thi
 | 2026-10-10 | Founder (Oak in the shop; no seller yet) | **Hide "Made with Oak Order".** Sellers on a paid plan can turn off the line at the bottom of their shop (our mark and "Made with Oak Order"; Privacy · Terms would stay). A common paid extra on shop builders. | Possibly repeated. **Decided 2026-10-14:** the line stays on the Standard plan; hiding it may come with a later plan, Growth or Business (`01_PRODUCT.md` §33.1, §33.4) | Not yet |
 | 2026-10-06 | Founder (shop redesign; no seller yet) | **Search in the shop.** A search box above the products, for shops with many products (30+). Not in the MVP customer features (`01_PRODUCT.md` §24). | Possibly repeated. **Validate First**: build when a seller's shop is big enough to need it | Not yet |
 | 2026-10-14 | Founder (Oak's own billing; no seller yet) | Automatic subscription payments with ABA PayWay: Pay now and auto-charge from a linked ABA account or card. Built up to the PayWay calls; parked on branch payway. | Platform (Oak's own billing). Build Later: when Oak Solutions has MOC registration and 6 months of business, or hand collection takes over ~4 hrs/month | n/a |
+| 2026-10-15 | Founder (customers giving wrong or fake phone numbers; no seller yet) | **Seller tools against fake orders.** On the order, a "Couldn't reach the customer" reason when cancelling; on the customer, a "No cash on delivery" or "Block" mark, so the next order from that number shows a warning or must be paid by KHQR first. About 4–6 hrs. Parts 1 and 2 (phone read back at checkout, phone confirmed in Telegram) were built instead (§3, Phase 9). | Possibly repeated. **Validate First**: build when a seller gets a fake order | Not yet |
 
 Notes on the 2026-10-02 one-tap pay request:
 
