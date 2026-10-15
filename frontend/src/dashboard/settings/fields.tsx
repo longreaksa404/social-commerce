@@ -1,5 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, CircleCheck, ExternalLink, ImagePlus, Plus, QrCode, Send, Share2, Store as StoreIcon, Trash2 } from 'lucide-react'
+import {
+  Check,
+  CircleCheck,
+  ExternalLink,
+  ImagePlus,
+  Plus,
+  QrCode,
+  Send,
+  Share2,
+  Store as StoreIcon,
+  Trash2,
+} from 'lucide-react'
 import { useRef, useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
@@ -19,7 +30,7 @@ import {
 import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
 import { errorText, fieldError } from '../../lib/errors.ts'
-import { prepareLogo, uploadStoreLogo } from '../../lib/images.ts'
+import { prepareCover, prepareLogo, uploadStoreCover, uploadStoreLogo } from '../../lib/images.ts'
 import { phnomPenhDate } from '../../lib/orders.ts'
 import { parseKhqr, readQrImage } from '../../lib/readKhqr.ts'
 import type { Currency, PaymentSettings, ShopColor, Store, TelegramLink } from '../../lib/types.ts'
@@ -39,6 +50,7 @@ export function ShopFields({ store, form, update, error }: FieldsProps) {
   const s = useT().settings
   return (
     <>
+      <CoverField store={store} />
       <LogoField store={store} />
       <ColorField store={store} />
       <Field label={s.storeName} error={fieldError(error, 'name')}>
@@ -65,6 +77,74 @@ export function ShopFields({ store, form, update, error }: FieldsProps) {
         </Select>
       </Field>
     </>
+  )
+}
+
+/** The wide photo at the top of the shop and on its link card (founder's
+ * picks 3A 4A 5A, 2026-10-15). Saved as soon as it's picked, like the logo;
+ * the box shows the strip that was kept. */
+function CoverField({ store }: { store: Store }) {
+  const queryClient = useQueryClient()
+  const { toast } = useFeedback()
+  const input = useRef<HTMLInputElement>(null)
+  const s = useT().settings
+  const save = useMutation({
+    mutationFn: async (file: File | null) => {
+      const cover_url = file ? await uploadStoreCover(await prepareCover(file)) : null
+      return api<Store>('/seller/store', { method: 'PATCH', body: { cover_url } })
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(keys.store, updated)
+      toast(updated.cover_url ? s.coverSaved : s.coverRemoved)
+    },
+  })
+
+  function pick(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (file) save.mutate(file)
+  }
+
+  return (
+    <div role="group" aria-labelledby="cover-label" aria-describedby="cover-desc">
+      <p id="cover-label" className="mb-1.5 text-sm font-medium text-slate-700">
+        {s.cover}
+      </p>
+      {store.cover_url ? (
+        <img
+          src={store.cover_url}
+          alt=""
+          className="aspect-[3/1] w-full rounded-xl bg-slate-100 object-cover ring-1 ring-slate-200"
+        />
+      ) : (
+        <div
+          aria-hidden
+          className="flex aspect-[3/1] w-full items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400"
+        >
+          <ImagePlus className="size-7" />
+        </div>
+      )}
+      <div className="mt-2 flex flex-wrap gap-2">
+        <Button variant="secondary" icon={ImagePlus} loading={save.isPending} onClick={() => input.current?.click()}>
+          {store.cover_url ? s.changeCover : s.addCover}
+        </Button>
+        {store.cover_url && (
+          <Button variant="ghost" disabled={save.isPending} onClick={() => save.mutate(null)}>
+            {s.removeCover}
+          </Button>
+        )}
+      </div>
+      <input ref={input} type="file" accept="image/*" tabIndex={-1} hidden onChange={pick} />
+      {save.error ? (
+        <p id="cover-desc" role="alert" className="mt-1.5 text-sm text-red-600">
+          {errorText(save.error)}
+        </p>
+      ) : (
+        <p id="cover-desc" className="mt-1.5 text-xs leading-5 text-slate-500">
+          {s.coverHint}
+        </p>
+      )}
+    </div>
   )
 }
 

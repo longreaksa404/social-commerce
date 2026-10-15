@@ -43,21 +43,55 @@ export function ShopHome() {
 /** The top of the shop's grid pages, the same on All and on each
  * category so switching tabs only changes the products: the shop's name
  * and logo (like its page on social media; on laptops the header shows
- * these big instead, only the description stays here), how buying works,
- * and the category tabs. */
+ * these big instead, only the description stays here), or its cover with
+ * them, how buying works, and the category tabs. */
 export function ShopIntro({ shop }: { shop: ShopStore }) {
   return (
     <>
-      <div className={band}>
-        <ShopLogo shop={shop} className="size-16 shadow-md ring-4 ring-surface lg:hidden" />
-        <div className="min-w-0 flex-1 pt-1 lg:pt-0">
-          <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900 lg:sr-only">{shop.name}</h1>
-          {shop.description && <Description text={shop.description} />}
+      {shop.cover_url ? (
+        <CoverBand shop={shop} cover={shop.cover_url} />
+      ) : (
+        <div className={band}>
+          <ShopLogo shop={shop} className="size-16 shadow-md ring-4 ring-surface lg:hidden" />
+          <div className="min-w-0 flex-1 pt-1 lg:pt-0">
+            <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900 lg:sr-only">{shop.name}</h1>
+            {shop.description && <Description text={shop.description} />}
+          </div>
         </div>
-      </div>
+      )}
       <ShopInfo shop={shop} className="mb-5" />
       <CategoryChips shop={shop} />
     </>
+  )
+}
+
+/** With a cover (founder's pick 3A, 2026-10-15), like the shop's Facebook
+ * page: the cover across the top, edge to edge on phones, the logo over
+ * its bottom edge and the name beside it, the same on laptops (the header
+ * stays small there; ShopLayout). */
+function CoverBand({ shop, cover }: { shop: ShopStore; cover: string }) {
+  const [failed, setFailed] = useState<string | null>(null)
+  return (
+    <div className="mb-5">
+      <div className="-mx-4 -mt-4 aspect-[3/1] overflow-hidden bg-navy-100 sm:mx-0 sm:mt-0 sm:rounded-2xl">
+        {failed !== cover && (
+          <img
+            src={cover}
+            alt=""
+            fetchPriority="high"
+            onError={() => setFailed(cover)}
+            className="size-full object-cover"
+          />
+        )}
+      </div>
+      <div className="flex items-start gap-3 sm:px-4 lg:gap-4">
+        <ShopLogo shop={shop} className="relative -mt-9 size-18 shadow-md ring-4 ring-surface lg:-mt-12 lg:size-24" />
+        <div className="min-w-0 flex-1 pt-2 lg:pt-3">
+          <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900 lg:text-3xl">{shop.name}</h1>
+          {shop.description && <Description text={shop.description} />}
+        </div>
+      </div>
+    </div>
   )
 }
 

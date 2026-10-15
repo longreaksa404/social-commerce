@@ -111,29 +111,36 @@ function Header({
   // page shows it big and the header's small one waits until that has
   // scrolled away; on laptops the header itself is the big one (logo and
   // name beside the language and cart), shrinking to the bar on scroll.
-  const scrolled = useScrolledPast(home ? 96 : 0)
+  // With a cover the page shows the name below it on laptops too, and the
+  // header turns solid as soon as the page moves, so its buttons never sit
+  // over the photo.
+  const cover = Boolean(shop?.cover_url)
+  const scrolled = useScrolledPast(home ? (cover ? belowCover : 96) : 0)
+  const moved = useScrolledPast(home && cover ? 1 : 0)
   const top = home && !scrolled
+  const clear = cover ? home && !moved : top
+  const big = top && !cover
   return (
     <header
       className={`sticky top-0 z-30 border-b pt-[env(safe-area-inset-top)] transition-colors duration-200 ${
-        top ? 'border-transparent bg-transparent' : 'border-slate-200 bg-surface/90 backdrop-blur'
+        clear ? 'border-transparent bg-transparent' : 'border-slate-200 bg-surface/90 backdrop-blur'
       }`}
     >
       <div
         className={`mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 transition-[height] duration-200 ${
-          top ? 'h-14 lg:h-24' : 'h-14'
+          big ? 'h-14 lg:h-24' : 'h-14'
         }`}
       >
         <Link
           to={`/shop/${slug}`}
           className={`-mx-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2 transition-opacity duration-200 focus-visible:outline-2 focus-visible:outline-navy-600 ${
-            top ? 'max-lg:invisible max-lg:opacity-0 lg:gap-4' : ''
+            big ? 'max-lg:invisible max-lg:opacity-0 lg:gap-4' : top ? 'invisible opacity-0' : ''
           }`}
         >
-          <ShopLogo shop={shop} className={top ? 'size-8 shadow-md ring-4 ring-surface lg:size-16' : 'size-8'} />
+          <ShopLogo shop={shop} className={big ? 'size-8 shadow-md ring-4 ring-surface lg:size-16' : 'size-8'} />
           {shop ? (
             <span
-              className={`truncate font-semibold text-slate-900 ${top ? 'lg:text-2xl lg:font-bold lg:tracking-tight' : ''}`}
+              className={`truncate font-semibold text-slate-900 ${big ? 'lg:text-2xl lg:font-bold lg:tracking-tight' : ''}`}
             >
               {shop.name}
             </span>
@@ -155,8 +162,17 @@ function Header({
 }
 
 /** True once the page has scrolled more than `px` (always true for 0). */
-function useScrolledPast(px: number) {
-  return useSyncExternalStore(onScroll, () => px === 0 || window.scrollY > px)
+function useScrolledPast(px: number | (() => number)) {
+  return useSyncExternalStore(onScroll, () => {
+    const limit = typeof px === 'function' ? px() : px
+    return limit === 0 || window.scrollY > limit
+  })
+}
+
+/** About where the shop's name ends under a 3:1 cover (ShopHome's
+ * CoverBand): the cover is as wide as the page, up to the shop's width. */
+function belowCover() {
+  return Math.min(window.innerWidth, 1152) / 3 + 48
 }
 
 function onScroll(notify: () => void) {

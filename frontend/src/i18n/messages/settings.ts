@@ -30,6 +30,16 @@ export const settings = {
   removeLogo: { en: 'Remove logo', km: 'ដកឡូហ្គោចេញ' },
   logoSaved: { en: 'Logo saved', km: 'បានរក្សាទុកឡូហ្គោ' },
   logoRemoved: { en: 'Logo removed', km: 'បានដកឡូហ្គោចេញ' },
+  cover: { en: 'Cover photo', km: 'រូបក្រប' },
+  coverHint: {
+    en: 'A wide picture across the top of your shop, also shown when you share its link. Your Facebook cover works well. Saved at once.',
+    km: 'រូបធំទទឹងនៅខាងលើហាងរបស់អ្នក ហើយក៏បង្ហាញពេលអ្នកចែករំលែកតំណហាងដែរ។ រូបក្រប Facebook របស់អ្នកប្រើបានល្អ។ រក្សាទុកភ្លាមៗ។',
+  },
+  addCover: { en: 'Add cover photo', km: 'បន្ថែមរូបក្រប' },
+  changeCover: { en: 'Change cover', km: 'ប្ដូររូបក្រប' },
+  removeCover: { en: 'Remove cover', km: 'ដករូបក្របចេញ' },
+  coverSaved: { en: 'Cover photo saved', km: 'បានរក្សាទុករូបក្រប' },
+  coverRemoved: { en: 'Cover photo removed', km: 'បានដករូបក្របចេញ' },
   shopColor: { en: 'Shop color', km: 'ពណ៌ហាង' },
   colorHint: {
     en: "Customers see it on your shop's buttons. Saved at once.",
@@ -315,7 +325,7 @@ export const settings = {
     hide: { en: 'Hide this list', km: 'លាក់បញ្ជីនេះ' },
   },
   menu: {
-    shopHint: { en: 'Logo, name, description, currency', km: 'ឡូហ្គោ ឈ្មោះ ការពិពណ៌នា រូបិយប័ណ្ណ' },
+    shopHint: { en: 'Cover, logo, color, name, currency', km: 'រូបក្រប ឡូហ្គោ ពណ៌ ឈ្មោះ រូបិយប័ណ្ណ' },
     selling: { en: 'Selling', km: 'ការលក់' },
     autoOn: { en: 'Accepted automatically', km: 'ទទួលដោយស្វ័យប្រវត្តិ' },
     paused: { en: 'Not taking orders', km: 'មិនទទួលការកុម្ម៉ង់' },

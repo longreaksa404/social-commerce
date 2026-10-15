@@ -13,7 +13,9 @@
  * Oak shows in every card (founder's picks 3B and 5B, 2026-10-10): titles
  * end in "· Oak Order", and the picture is the API's copy of the logo or
  * photo with our mark small in the corner (/shop/{slug}/preview/...); a
- * shop without a logo gets our plain mark (public/og/oak-mark.png).
+ * shop without a logo gets our plain mark (public/og/oak-mark.png). A shop
+ * with a cover photo gets a large card made from it, with its logo
+ * (founder's pick 4A, 2026-10-15).
  *
  * The host runs it on /shop/*: a Cloudflare Pages Function
  * (functions/shop/[[path]].ts) and, until the move to Cloudflare Pages
@@ -31,7 +33,13 @@ const API_TIMEOUT_MS = 6000
 const ORDER_ONLINE = 'កុម្ម៉ង់តាមអនឡាញ។'
 
 type Currency = 'USD' | 'KHR'
-type Store = { name: string; description: string | null; logo_url: string | null; currency: Currency }
+type Store = {
+  name: string
+  description: string | null
+  logo_url: string | null
+  cover_url: string | null
+  currency: Currency
+}
 type Product = {
   name: string
   description: string | null
@@ -76,9 +84,17 @@ async function describe(url: URL, apiBase: string): Promise<Preview | null> {
   const shop = `/shop/${encodeURIComponent(storeSlug)}`
   const store = await api<Store>(shop)
 
-  const shopPicture: Picture = store.logo_url
-    ? { url: apiUrl(apiBase, `${shop}/preview/logo?v=${version(store.logo_url)}`), large: false }
-    : { url: new URL('/og/oak-mark.png', url).href, large: false, width: 512, height: 512 }
+  const shopPicture: Picture = store.cover_url
+    ? {
+        // The logo is on the card too: a new one is a new picture.
+        url: apiUrl(apiBase, `${shop}/preview/cover?v=${version(`${store.cover_url} ${store.logo_url}`)}`),
+        large: true,
+        width: 1200,
+        height: 630,
+      }
+    : store.logo_url
+      ? { url: apiUrl(apiBase, `${shop}/preview/logo?v=${version(store.logo_url)}`), large: false }
+      : { url: new URL('/og/oak-mark.png', url).href, large: false, width: 512, height: 512 }
   const photoPicture = (productSlug: string, photo: string): Picture => ({
     url: apiUrl(apiBase, `${shop}/preview/products/${encodeURIComponent(productSlug)}?v=${version(photo)}`),
     large: true,

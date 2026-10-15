@@ -85,9 +85,26 @@ export async function uploadProductImage(productId: string, { image, thumbnail }
 
 // Logos show at most ~64px wide; this is sharp on any phone screen.
 const LOGO_SIDE = 256
+// Covers are 3:1 (founder's pick 3A, 2026-10-15). They show at most about
+// 1100px wide (the shop on a laptop) and make the 1200 × 630 link card;
+// 1800 × 600 stays sharp for both at a few hundred KB.
+const COVER_RATIO = 3
+const COVER_WIDTH = 1800
 
 /** The shop's logo: the middle square of the picture, 256px, JPEG. */
-export async function prepareLogo(file: File): Promise<Blob> {
+export function prepareLogo(file: File): Promise<Blob> {
+  return cropMiddle(file, 1, LOGO_SIDE, 0.9)
+}
+
+/** The shop's cover photo: the middle 3:1 strip of the picture, at most
+ * 1800 × 600, JPEG. Settings shows what was kept. */
+export function prepareCover(file: File): Promise<Blob> {
+  return cropMiddle(file, COVER_RATIO, COVER_WIDTH, QUALITY)
+}
+
+/** The largest middle part of the picture that is `ratio` wide to 1 tall,
+ * shrunk to at most `maxWidth`, as JPEG. */
+async function cropMiddle(file: File, ratio: number, maxWidth: number, quality: number): Promise<Blob> {
   if (!file.type.startsWith('image/')) {
     throw new ApiError(422, 'INVALID_IMAGE', 'Please choose a photo.')
   }
@@ -97,28 +114,40 @@ export async function prepareLogo(file: File): Promise<Blob> {
   } catch {
     throw new ApiError(422, 'INVALID_IMAGE', "This photo format isn't supported. Try a JPEG or PNG.")
   }
-  const side = Math.min(bitmap.width, bitmap.height)
-  const out = Math.min(LOGO_SIDE, side)
+  const width = Math.min(bitmap.width, bitmap.height * ratio)
+  const height = width / ratio
+  const outWidth = Math.round(Math.min(maxWidth, width))
+  const outHeight = Math.round(outWidth / ratio)
   const canvas = document.createElement('canvas')
-  canvas.width = out
-  canvas.height = out
+  canvas.width = outWidth
+  canvas.height = outHeight
   const ctx = canvas.getContext('2d')!
   ctx.fillStyle = '#fff'
-  ctx.fillRect(0, 0, out, out)
-  ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, out, out)
+  ctx.fillRect(0, 0, outWidth, outHeight)
+  const [left, top] = [(bitmap.width - width) / 2, (bitmap.height - height) / 2]
+  ctx.drawImage(bitmap, left, top, width, height, 0, 0, outWidth, outHeight)
   bitmap.close()
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9))
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality))
   if (!blob) throw new ApiError(422, 'INVALID_IMAGE', "Couldn't read this photo.")
   return blob
 }
 
 /** Upload a prepared logo; returns its public URL for the store's logo_url. */
-export async function uploadStoreLogo(logo: Blob): Promise<string> {
-  const upload = await api<ImageUpload>('/seller/store/logo', {
+export function uploadStoreLogo(logo: Blob): Promise<string> {
+  return uploadStorePicture('logo', logo)
+}
+
+/** Upload a prepared cover; returns its public URL for the store's cover_url. */
+export function uploadStoreCover(cover: Blob): Promise<string> {
+  return uploadStorePicture('cover', cover)
+}
+
+async function uploadStorePicture(kind: 'logo' | 'cover', picture: Blob): Promise<string> {
+  const upload = await api<ImageUpload>(`/seller/store/${kind}`, {
     method: 'POST',
-    body: { content_type: logo.type, size: logo.size },
+    body: { content_type: picture.type, size: picture.size },
   })
-  await put(upload.upload_url, upload.headers, logo)
+  await put(upload.upload_url, upload.headers, picture)
   return upload.public_url
 }
 
