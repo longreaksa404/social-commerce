@@ -66,10 +66,13 @@ async def get_store(db: AsyncSession, store_id: uuid.UUID) -> Store:
 
 async def update_store(db: AsyncSession, store_id: uuid.UUID, data: StoreUpdate) -> Store:
     store = await get_store(db, store_id)
-    # Only a logo or cover uploaded for this store (POST /seller/store/logo, /cover).
-    if not _own_upload(data.logo_url, logo_prefix(store_id)):
+    # Only a logo or cover uploaded for this store (POST /seller/store/logo,
+    # /cover), or the one it has: Settings sends both with every save.
+    if data.logo_url != store.logo_url and not _own_upload(data.logo_url, logo_prefix(store_id)):
         raise AppError(422, "INVALID_IMAGE", "Invalid logo image.", "logo_url")
-    if not _own_upload(data.cover_url, cover_prefix(store_id)):
+    if data.cover_url != store.cover_url and not _own_upload(
+        data.cover_url, cover_prefix(store_id)
+    ):
         raise AppError(422, "INVALID_IMAGE", "Invalid cover photo.", "cover_url")
     if data.slug is not None and data.slug != store.slug:
         await change_slug(db, store, data.slug)

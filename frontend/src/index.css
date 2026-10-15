@@ -48,6 +48,8 @@
   --color-brand: #2f4669;
   /* Oak's own navy, kept where a shop's colour replaces the others (shop/colors.css). */
   --color-oak: #1f3350;
+  /* Words on bg-accent: white, dark on a shop's light colour (colors.css). */
+  --color-on-accent: #fff;
 
   --color-navy-50: #eef2f7;
   --color-navy-100: #e3e8ef;

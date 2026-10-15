@@ -192,10 +192,10 @@ function CartBar({ slug, currency }: { slug: string; currency: Currency | undefi
     <div className="fixed inset-x-0 bottom-0 z-30 animate-rise px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:hidden">
       <Link
         to={`/shop/${slug}/cart`}
-        className="mx-auto flex min-h-14 max-w-xl items-center gap-3 rounded-2xl bg-accent px-4 text-white shadow-lg transition-colors hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-[0.99]"
+        className="mx-auto flex min-h-14 max-w-xl items-center gap-3 rounded-2xl bg-accent px-4 text-on-accent shadow-lg transition-colors hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-[0.99]"
       >
         <ShoppingCart aria-hidden className="size-5 shrink-0" />
-        <span className="text-sm text-white/85">{t.shop.cartBar.items(count)}</span>
+        <span className="text-sm text-on-accent/85">{t.shop.cartBar.items(count)}</span>
         {currency && <span className="font-bold tabular-nums">{formatMoney(total / 100, currency)}</span>}
         <span className="ml-auto flex items-center gap-1 font-semibold">
           {t.shop.cartBar.view}
@@ -225,7 +225,7 @@ function CartButton({ slug }: { slug: string }) {
         <span
           key={`count-${bumps}`}
           aria-hidden
-          className={`absolute top-0.5 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-bold text-white tabular-nums ${bump}`}
+          className={`absolute top-0.5 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-bold text-on-accent tabular-nums ${bump}`}
         >
           {count > 99 ? '99+' : count}
         </span>

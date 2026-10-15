@@ -25,13 +25,15 @@ async def test_shop_colour_starts_navy_and_shows_in_the_shop(client, register):
     b_headers = {"Authorization": f"Bearer {b['access_token']}"}
 
     new = (await client.get("/api/v1/seller/store", headers=a_headers)).json()
+    light = await client.patch("/api/v1/seller/store", headers=a_headers, json={"color": "mint"})
     picked = await client.patch("/api/v1/seller/store", headers=a_headers, json={"color": "forest"})
     kept = await client.patch("/api/v1/seller/store", headers=a_headers, json={"color": None})
-    wrong = await client.patch("/api/v1/seller/store", headers=a_headers, json={"color": "pink"})
+    wrong = await client.patch("/api/v1/seller/store", headers=a_headers, json={"color": "red"})
     shop = (await client.get(f"/api/v1/shop/{new['slug']}")).json()
     other = (await client.get("/api/v1/seller/store", headers=b_headers)).json()
 
     assert new["color"] == "navy"
+    assert light.json()["color"] == "mint"
     assert picked.json()["color"] == "forest"
     assert kept.json()["color"] == "forest"  # null leaves it
     assert wrong.status_code == 422

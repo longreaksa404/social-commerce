@@ -940,7 +940,11 @@ page (artifact "Shop Colour and Cover").
       navy's own steps at another hue; white on a button at least 12:1
       light, 6:1 dark). Oak's leaf in "Made with Oak Order" stays navy.
       After trying it, the founder asked for the seller's dashboard in
-      the shop's colour too: done (`dashboard/Layout.tsx`).
+      the shop's colour too: done (`dashboard/Layout.tsx`). Then six
+      light colours (pink, sky, mint, peach, lilac, sand: pastel buttons
+      with dark words, `text-on-accent`; migration `b8e4f0c3d5a2`), and
+      the cover, logo and colour now change only on Save, like the rest
+      of the page (founder: "click save first before change").
 - [x] Cover photo (3A 5A): `POST /seller/store/cover`; the phone keeps the
       middle 3:1 strip (at most 1800 × 600 JPEG), saved at once. The shop
       shows it like a Facebook page: edge to edge on phones, the logo

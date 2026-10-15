@@ -3,7 +3,21 @@
 
 export type Currency = 'USD' | 'KHR'
 /** The shop's colour, in the shop and the seller's dashboard (shop/colors.ts). */
-export type ShopColor = 'navy' | 'teal' | 'forest' | 'olive' | 'coffee' | 'wine' | 'plum' | 'charcoal'
+export type ShopColor =
+  | 'navy'
+  | 'teal'
+  | 'forest'
+  | 'olive'
+  | 'coffee'
+  | 'wine'
+  | 'plum'
+  | 'charcoal'
+  | 'pink'
+  | 'sky'
+  | 'mint'
+  | 'peach'
+  | 'lilac'
+  | 'sand'
 export type ProductStatus = 'active' | 'inactive'
 export type OrderConfirmationMode = 'automatic' | 'manual'
 export type PaymentMethod = 'cod' | 'bank_transfer' | 'khqr'

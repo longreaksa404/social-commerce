@@ -182,7 +182,7 @@ seller (owner)
 | description | text, nullable | |
 | logo_url | text, nullable | the shop's logo, uploaded with `POST /seller/store/logo` (Phase 9); shown in the shop and dashboard headers |
 | cover_url | text, nullable | the shop's cover photo, 3:1, uploaded with `POST /seller/store/cover`: across the top of the shop's grid pages with the logo over its bottom edge, and the shop's large link card (founder's picks 3A, 4A; 2026-10-15) |
-| color | enum(`navy`,`teal`,`forest`,`olive`,`coffee`,`wine`,`plum`,`charcoal`) | default `navy`; the shop's colour for customers: everything navy in the shop takes it (buttons, the chosen tab, links, the wash at the top). Each has a light and a dark scale; the seller's dashboard takes it too (founder, 2026-10-15) (founder's picks 1A, 2A; 2026-10-15) |
+| color | enum(`navy`,`teal`,`forest`,`olive`,`coffee`,`wine`,`plum`,`charcoal`, and the light `pink`,`sky`,`mint`,`peach`,`lilac`,`sand`) | default `navy`; the light ones have dark words on their buttons (2026-10-15); the shop's colour for customers: everything navy in the shop takes it (buttons, the chosen tab, links, the wash at the top). Each has a light and a dark scale; the seller's dashboard takes it too (founder, 2026-10-15) (founder's picks 1A, 2A; 2026-10-15) |
 | telegram_chat_id | text, nullable | for seller notifications; private, never shown on the shop |
 | telegram_username | text, nullable | the seller's own Telegram username (without @), public on the shop page for "Ask seller" |
 | contact_phone | text, nullable | a number customers can call, stored like customers' phones (`012345678`); public (2026-10-08) |

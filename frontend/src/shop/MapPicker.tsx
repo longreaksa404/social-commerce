@@ -135,7 +135,7 @@ export default function MapPicker({
         <div ref={container} className="absolute inset-0" aria-label={m.map} />
         {/* The pin's tip marks the middle of the map. */}
         <div className="pointer-events-none absolute top-1/2 left-1/2 z-[450] -translate-x-1/2 -translate-y-full">
-          <MapPin aria-hidden className="size-11 fill-accent text-white drop-shadow-md" strokeWidth={1.5} />
+          <MapPin aria-hidden className="size-11 fill-accent text-on-accent drop-shadow-md" strokeWidth={1.5} />
         </div>
         <div className="pointer-events-none absolute top-1/2 left-1/2 z-[440] size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/40" />
 

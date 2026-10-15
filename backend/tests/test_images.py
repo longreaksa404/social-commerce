@@ -1,8 +1,11 @@
+import uuid
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 
 from app.core.config import get_settings
+from app.db.session import unscoped_session
+from app.models import Store
 from app.services.images import _r2_client
 
 
@@ -232,3 +235,24 @@ async def test_cover_must_be_this_stores_upload(client, auth_headers, r2):
         assert response.json()["error"]["field"] == "cover_url"
     store = (await client.get("/api/v1/seller/store", headers=headers)).json()
     assert store["cover_url"] is None
+
+
+async def test_saving_the_shop_keeps_its_current_pictures(client, auth_headers, r2):
+    """Settings sends the logo and cover with every save of the shop's page;
+    the ones it already has pass, even saved under an older address."""
+    headers = await auth_headers()
+    store = (await client.get("/api/v1/seller/store", headers=headers)).json()
+    old_logo = f"https://pub-old.r2.dev/stores/{store['id']}/logo/l.jpg"
+    async with unscoped_session() as db:
+        (await db.get(Store, uuid.UUID(store["id"]))).logo_url = old_logo
+        await db.commit()
+
+    response = await client.patch(
+        "/api/v1/seller/store",
+        headers=headers,
+        json={"name": "Sokha Shop", "logo_url": old_logo, "cover_url": None, "color": "sky"},
+    )
+
+    assert response.status_code == 200, response.json()
+    assert response.json()["logo_url"] == old_logo
+    assert response.json()["color"] == "sky"

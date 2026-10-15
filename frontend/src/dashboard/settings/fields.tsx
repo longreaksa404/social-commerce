@@ -34,7 +34,7 @@ import { prepareCover, prepareLogo, uploadStoreCover, uploadStoreLogo } from '..
 import { phnomPenhDate } from '../../lib/orders.ts'
 import { parseKhqr, readQrImage } from '../../lib/readKhqr.ts'
 import type { Currency, PaymentSettings, ShopColor, Store, TelegramLink } from '../../lib/types.ts'
-import { SHOP_COLORS } from '../../shop/colors.ts'
+import { DEEP_COLORS, LIGHT_COLORS } from '../../shop/colors.ts'
 import { keys } from '../queries.ts'
 import type { DeliveryForm, Form, RuleRow } from './form.ts'
 
@@ -50,9 +50,9 @@ export function ShopFields({ store, form, update, error }: FieldsProps) {
   const s = useT().settings
   return (
     <>
-      <CoverField store={store} />
-      <LogoField store={store} />
-      <ColorField store={store} />
+      <CoverField form={form} update={update} error={error} />
+      <LogoField form={form} update={update} error={error} />
+      <ColorField store={store} form={form} update={update} />
       <Field label={s.storeName} error={fieldError(error, 'name')}>
         <Input
           required
@@ -80,39 +80,37 @@ export function ShopFields({ store, form, update, error }: FieldsProps) {
   )
 }
 
-/** The wide photo at the top of the shop and on its link card (founder's
- * picks 3A 4A 5A, 2026-10-15). Saved as soon as it's picked, like the logo;
- * the box shows the strip that was kept. */
-function CoverField({ store }: { store: Store }) {
-  const queryClient = useQueryClient()
-  const { toast } = useFeedback()
-  const input = useRef<HTMLInputElement>(null)
-  const s = useT().settings
-  const save = useMutation({
-    mutationFn: async (file: File | null) => {
-      const cover_url = file ? await uploadStoreCover(await prepareCover(file)) : null
-      return api<Store>('/seller/store', { method: 'PATCH', body: { cover_url } })
-    },
-    onSuccess: (updated) => {
-      queryClient.setQueryData(keys.store, updated)
-      toast(updated.cover_url ? s.coverSaved : s.coverRemoved)
-    },
-  })
+type PictureProps = Pick<FieldsProps, 'form' | 'update' | 'error'>
 
-  function pick(event: ChangeEvent<HTMLInputElement>) {
+/** A picture for the shop, picked from the phone: shrunk and uploaded to
+ * storage right away (that takes a moment), but the shop keeps its old one
+ * until Save (founder, 2026-10-15: nothing changes before Save). */
+function usePictureUpload(prepare: (file: File) => Promise<Blob>, upload: (picture: Blob) => Promise<string>) {
+  const input = useRef<HTMLInputElement>(null)
+  const send = useMutation({ mutationFn: async (file: File) => upload(await prepare(file)) })
+  function pick(event: ChangeEvent<HTMLInputElement>, done: (url: string) => void) {
     const file = event.target.files?.[0]
     event.target.value = ''
-    if (file) save.mutate(file)
+    if (file) send.mutate(file, { onSuccess: done })
   }
+  return { input, send, pick, choose: () => input.current?.click() }
+}
+
+/** The wide photo at the top of the shop and on its link card (founder's
+ * picks 3A 4A, 2026-10-15); the box shows the strip that was kept. */
+function CoverField({ form, update, error }: PictureProps) {
+  const s = useT().settings
+  const { input, send, pick, choose } = usePictureUpload(prepareCover, uploadStoreCover)
+  const problem = send.error ?? (fieldError(error, 'cover_url') ? error : null)
 
   return (
     <div role="group" aria-labelledby="cover-label" aria-describedby="cover-desc">
       <p id="cover-label" className="mb-1.5 text-sm font-medium text-slate-700">
         {s.cover}
       </p>
-      {store.cover_url ? (
+      {form.cover_url ? (
         <img
-          src={store.cover_url}
+          src={form.cover_url}
           alt=""
           className="aspect-[3/1] w-full rounded-xl bg-slate-100 object-cover ring-1 ring-slate-200"
         />
@@ -125,19 +123,26 @@ function CoverField({ store }: { store: Store }) {
         </div>
       )}
       <div className="mt-2 flex flex-wrap gap-2">
-        <Button variant="secondary" icon={ImagePlus} loading={save.isPending} onClick={() => input.current?.click()}>
-          {store.cover_url ? s.changeCover : s.addCover}
+        <Button variant="secondary" icon={ImagePlus} loading={send.isPending} onClick={choose}>
+          {form.cover_url ? s.changeCover : s.addCover}
         </Button>
-        {store.cover_url && (
-          <Button variant="ghost" disabled={save.isPending} onClick={() => save.mutate(null)}>
+        {form.cover_url && (
+          <Button variant="ghost" disabled={send.isPending} onClick={() => update({ cover_url: null })}>
             {s.removeCover}
           </Button>
         )}
       </div>
-      <input ref={input} type="file" accept="image/*" tabIndex={-1} hidden onChange={pick} />
-      {save.error ? (
+      <input
+        ref={input}
+        type="file"
+        accept="image/*"
+        tabIndex={-1}
+        hidden
+        onChange={(e) => pick(e, (cover_url) => update({ cover_url }))}
+      />
+      {problem ? (
         <p id="cover-desc" role="alert" className="mt-1.5 text-sm text-red-600">
-          {errorText(save.error)}
+          {errorText(problem)}
         </p>
       ) : (
         <p id="cover-desc" className="mt-1.5 text-xs leading-5 text-slate-500">
@@ -148,29 +153,10 @@ function CoverField({ store }: { store: Store }) {
   )
 }
 
-/** Saved as soon as it's picked, like product photos: not part of the
- * form, so unsaved edits beside it are left alone. */
-function LogoField({ store }: { store: Store }) {
-  const queryClient = useQueryClient()
-  const { toast } = useFeedback()
-  const input = useRef<HTMLInputElement>(null)
+function LogoField({ form, update, error }: PictureProps) {
   const s = useT().settings
-  const save = useMutation({
-    mutationFn: async (file: File | null) => {
-      const logo_url = file ? await uploadStoreLogo(await prepareLogo(file)) : null
-      return api<Store>('/seller/store', { method: 'PATCH', body: { logo_url } })
-    },
-    onSuccess: (updated) => {
-      queryClient.setQueryData(keys.store, updated)
-      toast(updated.logo_url ? s.logoSaved : s.logoRemoved)
-    },
-  })
-
-  function pick(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (file) save.mutate(file)
-  }
+  const { input, send, pick, choose } = usePictureUpload(prepareLogo, uploadStoreLogo)
+  const problem = send.error ?? (fieldError(error, 'logo_url') ? error : null)
 
   return (
     <div role="group" aria-labelledby="logo-label" aria-describedby="logo-desc">
@@ -178,28 +164,35 @@ function LogoField({ store }: { store: Store }) {
         {s.logo}
       </p>
       <div className="flex items-center gap-4">
-        {store.logo_url ? (
-          <img src={store.logo_url} alt="" className="size-16 shrink-0 rounded-full object-cover ring-1 ring-slate-200" />
+        {form.logo_url ? (
+          <img src={form.logo_url} alt="" className="size-16 shrink-0 rounded-full object-cover ring-1 ring-slate-200" />
         ) : (
           <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand text-white">
             <StoreIcon aria-hidden className="size-7" />
           </span>
         )}
         <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" icon={ImagePlus} loading={save.isPending} onClick={() => input.current?.click()}>
-            {store.logo_url ? s.changeLogo : s.addLogo}
+          <Button variant="secondary" icon={ImagePlus} loading={send.isPending} onClick={choose}>
+            {form.logo_url ? s.changeLogo : s.addLogo}
           </Button>
-          {store.logo_url && (
-            <Button variant="ghost" disabled={save.isPending} onClick={() => save.mutate(null)}>
+          {form.logo_url && (
+            <Button variant="ghost" disabled={send.isPending} onClick={() => update({ logo_url: null })}>
               {s.removeLogo}
             </Button>
           )}
         </div>
       </div>
-      <input ref={input} type="file" accept="image/*" tabIndex={-1} hidden onChange={pick} />
-      {save.error ? (
+      <input
+        ref={input}
+        type="file"
+        accept="image/*"
+        tabIndex={-1}
+        hidden
+        onChange={(e) => pick(e, (logo_url) => update({ logo_url }))}
+      />
+      {problem ? (
         <p id="logo-desc" role="alert" className="mt-1.5 text-sm text-red-600">
-          {errorText(save.error)}
+          {errorText(problem)}
         </p>
       ) : (
         <p id="logo-desc" className="mt-1.5 text-xs leading-5 text-slate-500">
@@ -211,63 +204,49 @@ function LogoField({ store }: { store: Store }) {
 }
 
 /** The shop's colour, for customers and the seller's dashboard (founder's
- * picks 1A 5A, 2026-10-15), saved as soon as it's tapped, like the logo. Each swatch carries its own
- * colour (shop/colors.css), so it shows as customers see it, light or dark. */
-function ColorField({ store }: { store: Store }) {
-  const queryClient = useQueryClient()
-  const { toast } = useFeedback()
+ * picks 1A, 2026-10-15; the light ones the same day), used once saved. Each
+ * swatch carries its own colour (shop/colors.css), so it shows as it will
+ * look, light or dark. */
+function ColorField({ store, form, update }: Pick<FieldsProps, 'store' | 'form' | 'update'>) {
   const s = useT().settings
-  const save = useMutation({
-    mutationFn: (color: ShopColor) => api<Store>('/seller/store', { method: 'PATCH', body: { color } }),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(keys.store, updated)
-      toast(s.colorSaved)
-    },
-  })
-  const shown = save.isPending ? save.variables : store.color
+  const swatch = (color: ShopColor) => {
+    const on = color === form.color
+    return (
+      <label
+        key={color}
+        data-shop-color={color}
+        className="flex aspect-square cursor-pointer items-center justify-center rounded-full has-focus-visible:outline-2 has-focus-visible:outline-navy-600"
+      >
+        <input
+          type="radio"
+          name="shop-color"
+          value={color}
+          checked={on}
+          onChange={() => update({ color })}
+          aria-label={s.colors[color]}
+          className="sr-only"
+        />
+        <span
+          className={`flex size-9 items-center justify-center rounded-full bg-accent text-on-accent transition-shadow ${
+            on ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface' : 'ring-1 ring-slate-900/10'
+          }`}
+        >
+          {on && <Check aria-hidden className="size-5" />}
+        </span>
+      </label>
+    )
+  }
 
   return (
     <fieldset aria-describedby="color-desc">
       <legend className="mb-1.5 text-sm font-medium text-slate-700">{s.shopColor}</legend>
-      {/* One row on any phone: the cells shrink a little on narrow ones. */}
-      <div className="-mx-1 grid max-w-sm grid-cols-8">
-        {SHOP_COLORS.map((color) => {
-          const on = color === shown
-          return (
-            <label
-              key={color}
-              data-shop-color={color}
-              className="flex aspect-square cursor-pointer items-center justify-center rounded-full has-focus-visible:outline-2 has-focus-visible:outline-navy-600"
-            >
-              <input
-                type="radio"
-                name="shop-color"
-                value={color}
-                checked={on}
-                onChange={() => save.mutate(color)}
-                aria-label={s.colors[color]}
-                className="sr-only"
-              />
-              <span
-                className={`flex size-9 items-center justify-center rounded-full bg-accent text-white transition-shadow ${
-                  on ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface' : 'ring-1 ring-slate-900/10'
-                }`}
-              >
-                {on && <Check aria-hidden className="size-5" />}
-              </span>
-            </label>
-          )
-        })}
-      </div>
-      {save.error ? (
-        <p id="color-desc" role="alert" className="mt-1.5 text-sm text-red-600">
-          {errorText(save.error)}
-        </p>
-      ) : (
-        <p id="color-desc" className="mt-1.5 text-xs leading-5 text-slate-500">
-          <span className="font-medium text-slate-700">{s.colors[shown]}</span> · {s.colorHint}
-        </p>
-      )}
+      {/* A row of deep colours, then the light ones; each row fits any
+          phone (the cells shrink a little on narrow ones). */}
+      <div className="-mx-1 grid max-w-sm grid-cols-8">{DEEP_COLORS.map(swatch)}</div>
+      <div className="-mx-1 grid max-w-sm grid-cols-8">{LIGHT_COLORS.map(swatch)}</div>
+      <p id="color-desc" className="mt-1.5 text-xs leading-5 text-slate-500">
+        <span className="font-medium text-slate-700">{s.colors[form.color]}</span> · {s.colorHint}
+      </p>
       <Link
         to={`/shop/${store.slug}`}
         target="_blank"

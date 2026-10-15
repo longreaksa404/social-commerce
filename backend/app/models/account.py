@@ -61,6 +61,13 @@ class ShopColor(enum.StrEnum):
     WINE = "wine"
     PLUM = "plum"
     CHARCOAL = "charcoal"
+    # Light ones, with dark words on their buttons (founder, 2026-10-15).
+    PINK = "pink"
+    SKY = "sky"
+    MINT = "mint"
+    PEACH = "peach"
+    LILAC = "lilac"
+    SAND = "sand"
 
 
 # Every new shop's free trial (01_PRODUCT.md §33.1): 30 days, the day it

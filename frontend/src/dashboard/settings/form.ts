@@ -1,6 +1,13 @@
 import type { Messages } from '../../i18n/core.ts'
 import { formatPhone } from '../../lib/orders.ts'
-import type { Currency, DeliverySettings, OrderConfirmationMode, PaymentSettings, Store } from '../../lib/types.ts'
+import type {
+  Currency,
+  DeliverySettings,
+  OrderConfirmationMode,
+  PaymentSettings,
+  ShopColor,
+  Store,
+} from '../../lib/types.ts'
 
 // Rows the seller can add and remove carry a key for React; inputs hold
 // strings, turned back into the API's shape by each section's body.
@@ -19,6 +26,10 @@ export type Form = {
   name: string
   slug: string
   description: string
+  /** Uploaded as soon as picked, but the shop's only once saved. */
+  logo_url: string | null
+  cover_url: string | null
+  color: ShopColor
   currency: Currency
   order_confirmation_mode: OrderConfirmationMode
   orders_paused: boolean
@@ -42,6 +53,9 @@ export const toForm = (store: Store): Form => {
     name: store.name,
     slug: store.slug,
     description: store.description ?? '',
+    logo_url: store.logo_url,
+    cover_url: store.cover_url,
+    color: store.color,
     currency: store.currency,
     order_confirmation_mode: store.order_confirmation_mode,
     orders_paused: store.orders_paused,
@@ -96,9 +110,12 @@ export const SECTIONS: Record<SectionId, Section> = {
     body: (form) => ({
       name: form.name.trim(),
       description: form.description.trim() || null,
+      logo_url: form.logo_url,
+      cover_url: form.cover_url,
+      color: form.color,
       currency: form.currency,
     }),
-    fields: () => ['name', 'description', 'currency'],
+    fields: () => ['name', 'description', 'currency', 'logo_url', 'cover_url', 'color'],
   },
   orders: {
     title: (s) => s.orders,

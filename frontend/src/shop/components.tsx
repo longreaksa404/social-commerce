@@ -116,7 +116,7 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
   const chip = ({ isActive }: { isActive: boolean }) =>
     `flex min-h-10 shrink-0 items-center rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 ${
       isActive
-        ? 'border-accent bg-accent text-white'
+        ? 'border-accent bg-accent text-on-accent'
         : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50 active:bg-slate-100'
     }`
   return (
@@ -274,7 +274,7 @@ function QuickAdd({ shop, product }: { shop: ShopStore; product: ShopProductCard
       <span
         key={inCart}
         className={`flex size-9 items-center justify-center rounded-full text-sm font-bold shadow-md ring-1 ring-slate-900/10 tabular-nums transition-colors ${
-          inCart ? 'animate-pop bg-accent text-white' : 'bg-raised text-navy-700 active:bg-slate-100'
+          inCart ? 'animate-pop bg-accent text-on-accent' : 'bg-raised text-navy-700 active:bg-slate-100'
         }`}
       >
         {inCart ? inCart : <Plus aria-hidden className="size-5" />}

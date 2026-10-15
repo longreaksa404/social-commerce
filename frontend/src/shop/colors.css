@@ -23,6 +23,7 @@
   --color-navy-950: #0b1320;
   --color-accent: #1f3350;
   --color-accent-hover: #182841;
+  --color-on-accent: #fff;
   --color-brand: #2f4669;
 }
 :root[data-theme='dark'] [data-shop-color='navy'] {
@@ -39,6 +40,7 @@
   --color-navy-950: #f3f7fc;
   --color-accent: #415f92;
   --color-accent-hover: #4a6a9e;
+  --color-on-accent: #fff;
   --color-brand: #5a7bb0;
 }
 
@@ -56,6 +58,7 @@
   --color-navy-950: #001718;
   --color-accent: #003b3d;
   --color-accent-hover: #002f31;
+  --color-on-accent: #fff;
   --color-brand: #005054;
 }
 :root[data-theme='dark'][data-shop-color='teal'],
@@ -73,6 +76,7 @@
   --color-navy-950: #f1f8f9;
   --color-accent: #016d72;
   --color-accent-hover: #03797e;
+  --color-on-accent: #fff;
   --color-brand: #148b91;
 }
 [data-shop-color='forest'] {
@@ -89,6 +93,7 @@
   --color-navy-950: #07170c;
   --color-accent: #153c22;
   --color-accent-hover: #0e301a;
+  --color-on-accent: #fff;
   --color-brand: #235132;
 }
 :root[data-theme='dark'][data-shop-color='forest'],
@@ -106,6 +111,7 @@
   --color-navy-950: #f3f8f4;
   --color-accent: #2c6f42;
   --color-accent-hover: #377a4c;
+  --color-on-accent: #fff;
   --color-brand: #488b5d;
 }
 [data-shop-color='olive'] {
@@ -122,6 +128,7 @@
   --color-navy-950: #121503;
   --color-accent: #303705;
   --color-accent-hover: #252c02;
+  --color-on-accent: #fff;
   --color-brand: #424b11;
 }
 :root[data-theme='dark'][data-shop-color='olive'],
@@ -139,6 +146,7 @@
   --color-navy-950: #f6f8f0;
   --color-accent: #5a670d;
   --color-accent-hover: #65721c;
+  --color-on-accent: #fff;
   --color-brand: #758330;
 }
 [data-shop-color='coffee'] {
@@ -155,6 +163,7 @@
   --color-navy-950: #1e0e04;
   --color-accent: #4c280c;
   --color-accent-hover: #3e1f07;
+  --color-on-accent: #fff;
   --color-brand: #643919;
 }
 :root[data-theme='dark'][data-shop-color='coffee'],
@@ -172,6 +181,7 @@
   --color-navy-950: #fcf5f1;
   --color-accent: #8b4d1c;
   --color-accent-hover: #975827;
+  --color-on-accent: #fff;
   --color-brand: #a96839;
 }
 [data-shop-color='wine'] {
@@ -188,6 +198,7 @@
   --color-navy-950: #220b0d;
   --color-accent: #531f25;
   --color-accent-hover: #44171d;
+  --color-on-accent: #fff;
   --color-brand: #6d2e36;
 }
 :root[data-theme='dark'][data-shop-color='wine'],
@@ -205,6 +216,7 @@
   --color-navy-950: #fef4f4;
   --color-accent: #973d49;
   --color-accent-hover: #a44853;
+  --color-on-accent: #fff;
   --color-brand: #b75963;
 }
 [data-shop-color='plum'] {
@@ -221,6 +233,7 @@
   --color-navy-950: #1b0d1a;
   --color-accent: #452543;
   --color-accent-hover: #381c36;
+  --color-on-accent: #fff;
   --color-brand: #5c3659;
 }
 :root[data-theme='dark'][data-shop-color='plum'],
@@ -238,6 +251,7 @@
   --color-navy-950: #faf4fa;
   --color-accent: #7f487b;
   --color-accent-hover: #8b5286;
+  --color-on-accent: #fff;
   --color-brand: #9d6398;
 }
 [data-shop-color='charcoal'] {
@@ -254,6 +268,7 @@
   --color-navy-950: #121314;
   --color-accent: #303336;
   --color-accent-hover: #26282b;
+  --color-on-accent: #fff;
   --color-brand: #43464a;
 }
 :root[data-theme='dark'][data-shop-color='charcoal'],
@@ -271,5 +286,222 @@
   --color-navy-950: #f6f7f7;
   --color-accent: #5c6066;
   --color-accent-hover: #666a70;
+  --color-on-accent: #fff;
   --color-brand: #767b81;
+}
+
+/* Light colours (founder's request, 2026-10-15): the buttons are pastel
+   with dark words (--color-on-accent, the colour's own deep shade; at least
+   10:1 light, 8:1 dark), while links, icons and tints keep a deep scale of
+   the same hue, so they stay readable on white. brand stays deep: small
+   marks (dots, the switch, the logo's stand-in) must show on white. */
+[data-shop-color='pink'] {
+  --color-navy-50: #f8eff2;
+  --color-navy-100: #f0e4e8;
+  --color-navy-200: #e1cad2;
+  --color-navy-300: #c9a4b1;
+  --color-navy-400: #a37285;
+  --color-navy-500: #804d61;
+  --color-navy-600: #673148;
+  --color-navy-700: #4e2134;
+  --color-navy-800: #3f1929;
+  --color-navy-900: #30131f;
+  --color-navy-950: #1f0b14;
+  --color-accent: #ffbad4;
+  --color-accent-hover: #eeaac4;
+  --color-on-accent: #30131f;
+  --color-brand: #673148;
+}
+:root[data-theme='dark'][data-shop-color='pink'],
+:root[data-theme='dark'] [data-shop-color='pink'] {
+  --color-navy-50: #361d27;
+  --color-navy-100: #482433;
+  --color-navy-200: #552c3d;
+  --color-navy-300: #6b3a4e;
+  --color-navy-400: #945b72;
+  --color-navy-500: #ba8297;
+  --color-navy-600: #daa3b7;
+  --color-navy-700: #e7bbcb;
+  --color-navy-800: #f1d5df;
+  --color-navy-900: #f9e8ee;
+  --color-navy-950: #fdf4f7;
+  --color-accent: #eaa7c0;
+  --color-accent-hover: #f8b4cd;
+  --color-on-accent: #30131f;
+  --color-brand: #ae5c7e;
+}
+[data-shop-color='sky'] {
+  --color-navy-50: #ecf3f7;
+  --color-navy-100: #e0e9ef;
+  --color-navy-200: #c2d4e0;
+  --color-navy-300: #96b5c8;
+  --color-navy-400: #5e89a2;
+  --color-navy-500: #366580;
+  --color-navy-600: #0e4b68;
+  --color-navy-700: #013750;
+  --color-navy-800: #002c40;
+  --color-navy-900: #022131;
+  --color-navy-950: #031520;
+  --color-accent: #a1dafc;
+  --color-accent-hover: #91c9eb;
+  --color-on-accent: #022131;
+  --color-brand: #0e4b68;
+}
+:root[data-theme='dark'][data-shop-color='sky'],
+:root[data-theme='dark'] [data-shop-color='sky'] {
+  --color-navy-50: #112936;
+  --color-navy-100: #103548;
+  --color-navy-200: #164055;
+  --color-navy-300: #21526b;
+  --color-navy-400: #417694;
+  --color-navy-500: #6a9cb9;
+  --color-navy-600: #8dbcd8;
+  --color-navy-700: #abcfe6;
+  --color-navy-800: #cbe2f0;
+  --color-navy-900: #e3f0f8;
+  --color-navy-950: #f1f8fc;
+  --color-accent: #8ec6e7;
+  --color-accent-hover: #9ad3f5;
+  --color-on-accent: #022131;
+  --color-brand: #2e84af;
+}
+[data-shop-color='mint'] {
+  --color-navy-50: #ecf4f0;
+  --color-navy-100: #e0eae5;
+  --color-navy-200: #c2d7cd;
+  --color-navy-300: #97b9a9;
+  --color-navy-400: #5f8f7a;
+  --color-navy-500: #366b55;
+  --color-navy-600: #0e523b;
+  --color-navy-700: #003d2a;
+  --color-navy-800: #003121;
+  --color-navy-900: #022518;
+  --color-navy-950: #03180f;
+  --color-accent: #a3e1c5;
+  --color-accent-hover: #93d1b5;
+  --color-on-accent: #022518;
+  --color-brand: #0e523b;
+}
+:root[data-theme='dark'][data-shop-color='mint'],
+:root[data-theme='dark'] [data-shop-color='mint'] {
+  --color-navy-50: #122c21;
+  --color-navy-100: #103a2a;
+  --color-navy-200: #174533;
+  --color-navy-300: #225743;
+  --color-navy-400: #427d65;
+  --color-navy-500: #6ba38a;
+  --color-navy-600: #8fc3ab;
+  --color-navy-700: #acd4c1;
+  --color-navy-800: #cce5d9;
+  --color-navy-900: #e3f1ea;
+  --color-navy-950: #f1f9f5;
+  --color-accent: #90ceb2;
+  --color-accent-hover: #9cdbbe;
+  --color-on-accent: #022518;
+  --color-brand: #2e8e6b;
+}
+[data-shop-color='peach'] {
+  --color-navy-50: #f7f0ec;
+  --color-navy-100: #efe5e0;
+  --color-navy-200: #e0cdc2;
+  --color-navy-300: #c8a897;
+  --color-navy-400: #a37860;
+  --color-navy-500: #7f533a;
+  --color-navy-600: #67371a;
+  --color-navy-700: #4e260d;
+  --color-navy-800: #3f1d08;
+  --color-navy-900: #301607;
+  --color-navy-950: #1f0e05;
+  --color-accent: #ffc2a0;
+  --color-accent-hover: #eeb190;
+  --color-on-accent: #301607;
+  --color-brand: #67371a;
+}
+:root[data-theme='dark'][data-shop-color='peach'],
+:root[data-theme='dark'] [data-shop-color='peach'] {
+  --color-navy-50: #352013;
+  --color-navy-100: #482815;
+  --color-navy-200: #55311c;
+  --color-navy-300: #6a4027;
+  --color-navy-400: #946246;
+  --color-navy-500: #b9886d;
+  --color-navy-600: #d9a98f;
+  --color-navy-700: #e6c0ac;
+  --color-navy-800: #f0d8cc;
+  --color-navy-900: #f8eae3;
+  --color-navy-950: #fcf5f1;
+  --color-accent: #ebae8d;
+  --color-accent-hover: #f9bb99;
+  --color-on-accent: #301607;
+  --color-brand: #ad663b;
+}
+[data-shop-color='lilac'] {
+  --color-navy-50: #f3f0f7;
+  --color-navy-100: #e9e6ef;
+  --color-navy-200: #d5cddf;
+  --color-navy-300: #b6a9c6;
+  --color-navy-400: #8b7aa1;
+  --color-navy-500: #68557e;
+  --color-navy-600: #4f3a66;
+  --color-navy-700: #3b294e;
+  --color-navy-800: #2f203f;
+  --color-navy-900: #231830;
+  --color-navy-950: #160f1f;
+  --color-accent: #dcc5f9;
+  --color-accent-hover: #ccb5e8;
+  --color-on-accent: #231830;
+  --color-brand: #4f3a66;
+}
+:root[data-theme='dark'][data-shop-color='lilac'],
+:root[data-theme='dark'] [data-shop-color='lilac'] {
+  --color-navy-50: #2a2135;
+  --color-navy-100: #372a47;
+  --color-navy-200: #423354;
+  --color-navy-300: #544269;
+  --color-navy-400: #796492;
+  --color-navy-500: #9e8ab7;
+  --color-navy-600: #beabd7;
+  --color-navy-700: #d1c2e4;
+  --color-navy-800: #e2d9ef;
+  --color-navy-900: #f0ebf7;
+  --color-navy-950: #f8f5fc;
+  --color-accent: #c9b2e5;
+  --color-accent-hover: #d6bff2;
+  --color-on-accent: #231830;
+  --color-brand: #896aac;
+}
+[data-shop-color='sand'] {
+  --color-navy-50: #f5f1eb;
+  --color-navy-100: #ece7df;
+  --color-navy-200: #dad0c0;
+  --color-navy-300: #bead93;
+  --color-navy-400: #957f5a;
+  --color-navy-500: #725b33;
+  --color-navy-600: #5a410e;
+  --color-navy-700: #442e02;
+  --color-navy-800: #362401;
+  --color-navy-900: #291b02;
+  --color-navy-950: #1a1103;
+  --color-accent: #e8cda1;
+  --color-accent-hover: #d7bd92;
+  --color-on-accent: #291b02;
+  --color-brand: #5a410e;
+}
+:root[data-theme='dark'][data-shop-color='sand'],
+:root[data-theme='dark'] [data-shop-color='sand'] {
+  --color-navy-50: #2f2410;
+  --color-navy-100: #3f2e0f;
+  --color-navy-200: #4a3715;
+  --color-navy-300: #5e481f;
+  --color-navy-400: #856b3e;
+  --color-navy-500: #aa9166;
+  --color-navy-600: #cab189;
+  --color-navy-700: #dac7a7;
+  --color-navy-800: #e8dcc9;
+  --color-navy-900: #f3ece1;
+  --color-navy-950: #faf6f0;
+  --color-accent: #d4ba8e;
+  --color-accent-hover: #e1c79b;
+  --color-on-accent: #291b02;
+  --color-brand: #99732c;
 }

@@ -154,7 +154,7 @@ function NotificationBell() {
         <span
           key={`count-${rings}`}
           aria-hidden
-          className={`absolute top-1 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[11px] font-semibold text-white ring-2 ring-surface ${rings ? 'animate-pop' : ''}`}
+          className={`absolute top-1 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[11px] font-semibold text-on-accent ring-2 ring-surface ${rings ? 'animate-pop' : ''}`}
         >
           {unread > 99 ? '99+' : unread}
         </span>
