@@ -1,6 +1,6 @@
 import { Bell, Inbox, Link2, Package, Settings, Store, Tags, Users } from 'lucide-react'
 import { useState } from 'react'
-import { NavLink, Navigate, useLocation, useMatch } from 'react-router'
+import { Link, NavLink, Navigate, useLocation, useMatch } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { ErrorState, PageOutlet, Skeleton, Spinner } from '../components/ui.tsx'
 import { useBump } from '../components/useBump.ts'
@@ -108,6 +108,19 @@ function StoreName() {
   )
 }
 
+/** The shop's logo and name: a way home to Orders from anywhere. */
+function StoreHome() {
+  return (
+    <Link
+      to="/dashboard/orders"
+      className="-my-1 -ml-1.5 flex min-w-0 flex-1 items-center gap-2.5 rounded-xl py-1 pl-1.5 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-navy-600"
+    >
+      <StoreMark />
+      <StoreName />
+    </Link>
+  )
+}
+
 /** New orders and low stock since the seller last looked, on any device. */
 function NotificationBell() {
   const unread = useUnreadNotifications().data ?? 0
@@ -151,8 +164,7 @@ function MobileTopBar() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
       <div className="flex h-14 items-center gap-2.5 pr-2 pl-4">
-        <StoreMark />
-        <StoreName />
+        <StoreHome />
         <NotificationBell />
       </div>
     </header>
@@ -210,8 +222,7 @@ function Sidebar() {
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-slate-200 bg-surface lg:flex">
       <div className="flex h-16 items-center gap-2.5 border-b border-slate-100 pr-3 pl-5">
-        <StoreMark />
-        <StoreName />
+        <StoreHome />
         <NotificationBell />
       </div>
       <nav aria-label={t.dashboard.mainNav} className="flex flex-col gap-1 p-3">
