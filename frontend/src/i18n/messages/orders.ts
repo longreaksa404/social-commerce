@@ -249,8 +249,8 @@ export const orders = {
     km: (source: string) => `មកតាមតំណ ${source} របស់អ្នក`,
   },
   // Above the items: the customer's note as a message from them (founder's
-  // pick 7A), or the seller's own on an order from a chat.
-  customerWrote: { en: (name: string) => `${name} wrote`, km: (name: string) => `${name} បានសរសេរ` },
+  // pick 7A, with this label), or the seller's own on an order from a chat.
+  customerNote: { en: 'Note from the customer', km: 'ចំណាំពីអតិថិជន' },
   yourNote: { en: 'Your note', km: 'ចំណាំរបស់អ្នក' },
   customer: { en: 'Customer', km: 'អតិថិជន' },
   viewCustomer: { en: 'View customer', km: 'មើលអតិថិជន' },

@@ -874,7 +874,7 @@ during the trial); a custom domain is logged as a later paid extra (03
 - [x] 8 new pytest tests (`tests/test_store_links.py`, with tenant
       isolation of old links); 689 in all. Lint and build pass.
 
-**Seller's order page redesign (founder's picks 1A 2A 3A 4A 5A 6A,
+**Seller's order page redesign (founder's picks 1A 2A 3A 4A 5A 6A 7A,
 2026-10-15; not pushed):** from an options page that started from
 today's page and its problems (a new order showed ten buttons for one
 decision; the total, method and "Delivered" twice; "Delivered" as the
@@ -894,8 +894,8 @@ pills or borders (this page; other screens still have some, ask first).
       with the time and total (founder asked for the number bolder).
 - [x] **Items, then one customer card** (3A): Call and Copy beside the
       phone, then the address, note and map. The customer's note is a
-      grey message bubble above the items ("Sreymom Chan wrote"),
-      recommended 7A, in place until the founder picks from 7A / 7B / 7C.
+      grey message bubble above the items under "Note from the customer"
+      (founder's pick 7A, with that label instead of "<name> wrote").
 - [x] **Send to driver in one step** (4A): a sheet with the message,
       "Driver's name and phone number (optional)" (founder's wording),
       Send (shares or copies, then records the delivery as assigned) and
@@ -2058,10 +2058,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 ## Next Up
 
 0000000000. **Seller's order page redesign** (built, not pushed). Founder:
-        pick the customer's note design (7A, 7B or 7C on the options
-        page; 7A is in for now), then push and open a few orders on your
-        phone: a new one, one where the customer says they paid, and a
-        cash order with a driver.
+        push, then open a few orders on your phone: a new one, one where
+        the customer says they paid, and a cash order with a driver.
 000000000. **Customer updates on Telegram** (built, not pushed). Founder:
         push when ready, then on the live site place an order, tap "Get
         updates on Telegram", share your number with the bot, and move

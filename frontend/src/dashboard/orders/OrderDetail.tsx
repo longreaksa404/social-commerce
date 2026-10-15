@@ -236,9 +236,7 @@ function CustomerNote({ order }: { order: Order }) {
   if (!order.notes) return null
   return (
     <div className="mt-2 mb-3">
-      <p className="truncate text-xs text-slate-500">
-        {order.source === 'chat' ? o.yourNote : o.customerWrote(order.customer.name)}
-      </p>
+      <p className="text-xs text-slate-500">{order.source === 'chat' ? o.yourNote : o.customerNote}</p>
       <p className="mt-1 inline-block max-w-full rounded-[4px_18px_18px_18px] bg-slate-100 px-3.5 py-2 whitespace-pre-line break-words text-slate-900">
         {order.notes}
       </p>
