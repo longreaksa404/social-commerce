@@ -210,8 +210,8 @@ function LogoField({ store }: { store: Store }) {
   )
 }
 
-/** The shop's colour for customers (founder's picks 1A 5A, 2026-10-15),
- * saved as soon as it's tapped, like the logo. Each swatch carries its own
+/** The shop's colour, for customers and the seller's dashboard (founder's
+ * picks 1A 5A, 2026-10-15), saved as soon as it's tapped, like the logo. Each swatch carries its own
  * colour (shop/colors.css), so it shows as customers see it, light or dark. */
 function ColorField({ store }: { store: Store }) {
   const queryClient = useQueryClient()

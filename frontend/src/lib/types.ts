@@ -2,7 +2,7 @@
 // decimal string (e.g. "12.50") to avoid float rounding.
 
 export type Currency = 'USD' | 'KHR'
-/** The shop's colour for customers (shop/colors.ts); the dashboard stays navy. */
+/** The shop's colour, in the shop and the seller's dashboard (shop/colors.ts). */
 export type ShopColor = 'navy' | 'teal' | 'forest' | 'olive' | 'coffee' | 'wine' | 'plum' | 'charcoal'
 export type ProductStatus = 'active' | 'inactive'
 export type OrderConfirmationMode = 'automatic' | 'manual'

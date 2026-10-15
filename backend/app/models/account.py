@@ -51,7 +51,7 @@ class OrderConfirmationMode(enum.StrEnum):
 class ShopColor(enum.StrEnum):
     """The shop's colour for customers, one of a few made for light and
     dark mode (Settings → the shop; founder's pick 1A, 2026-10-15). The
-    seller's dashboard stays navy."""
+    seller's dashboard takes it too (founder, the same day)."""
 
     NAVY = "navy"
     TEAL = "teal"

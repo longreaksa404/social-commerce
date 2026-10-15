@@ -23,7 +23,7 @@ class StoreOut(BaseModel):
     logo_url: str | None
     # The wide photo at the top of the shop, and its link card.
     cover_url: str | None
-    # The shop's colour for customers; the dashboard stays navy.
+    # The shop's colour, for customers and the seller's dashboard.
     color: ShopColor
     currency: Currency
     # automatic: new orders are accepted at once; manual: they wait as pending.

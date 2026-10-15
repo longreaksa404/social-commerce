@@ -42,8 +42,8 @@ export const settings = {
   coverRemoved: { en: 'Cover photo removed', km: 'បានដករូបក្របចេញ' },
   shopColor: { en: 'Shop color', km: 'ពណ៌ហាង' },
   colorHint: {
-    en: "Customers see it on your shop's buttons. Saved at once.",
-    km: 'អតិថិជនឃើញពណ៌នេះលើប៊ូតុងក្នុងហាងរបស់អ្នក។ រក្សាទុកភ្លាមៗ។',
+    en: 'For your shop and this app. Saved at once.',
+    km: 'សម្រាប់ហាងរបស់អ្នក និងកម្មវិធីនេះ។ រក្សាទុកភ្លាមៗ។',
   },
   colorSaved: { en: 'Shop color saved', km: 'បានរក្សាទុកពណ៌ហាង' },
   seeShop: { en: 'See your shop', km: 'មើលហាងរបស់អ្នក' },

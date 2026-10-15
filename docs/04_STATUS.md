@@ -938,8 +938,9 @@ page (artifact "Shop Colour and Cover").
       (the wash at the top, the chosen tab, the + buttons, the cart bar,
       Checkout, links, focus rings), light and dark (`shop/colors.css`:
       navy's own steps at another hue; white on a button at least 12:1
-      light, 6:1 dark). The dashboard stays navy, and so does Oak's leaf
-      in "Made with Oak Order".
+      light, 6:1 dark). Oak's leaf in "Made with Oak Order" stays navy.
+      After trying it, the founder asked for the seller's dashboard in
+      the shop's colour too: done (`dashboard/Layout.tsx`).
 - [x] Cover photo (3A 5A): `POST /seller/store/cover`; the phone keeps the
       middle 3:1 strip (at most 1800 × 600 JPEG), saved at once. The shop
       shows it like a Facebook page: edge to edge on phones, the logo
@@ -1717,7 +1718,8 @@ Resolved:
 
 Shop colour and cover photo (2026-10-15, founder's picks 1A 2A 3A 4A
 5A, data OK): eight calm colours a seller can pick (navy by default);
-everything navy in the shop takes it, the dashboard stays navy; a 3:1
+everything navy in the shop and in the seller's dashboard takes it
+(the dashboard was added at the founder's request after trying it); a 3:1
 cover photo across the top of the shop like a Facebook page, which also
 becomes the shop's large link card. Both optional. 02 updated in the
 commits. Waiting for the founder to apply to 01 §23.1 (Store) and the

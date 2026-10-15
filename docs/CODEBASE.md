@@ -1329,7 +1329,9 @@ message needs a Khmer entry there.** What sellers type is shown as typed.
   it too; Settings puts it on each swatch. So in the shop, write `navy-*` /
   `bg-accent` as usual and they follow the shop's colour. Oak's own things
   that must stay navy (the leaf in "Made with Oak Order") use `text-oak`.
-  The dashboard never sets it.
+  The seller's dashboard sets it too (`dashboard/Layout.tsx`, founder
+  2026-10-15), so the dashboard is in the shop's colour as well; a
+  `navy` block lets the Navy swatch show navy inside another colour.
 - Animations are theme tokens (`animate-rise`, `animate-fade-in`,
   `animate-pop`, `animate-sheet-up`, `animate-shimmer`, `animate-wiggle`,
   `animate-drive`, `animate-arrive`, ...); a `prefers-reduced-motion` rule turns them off.

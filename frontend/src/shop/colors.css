@@ -1,11 +1,46 @@
 /* A shop's own colour (founder's picks 1A 2A, 2026-10-15): the shop's pages
-   set data-shop-color on <html> (shop/ShopLayout.tsx), and Settings sets it
-   on each swatch. Each colour replaces the navy scale and the solid fills
+   and the seller's dashboard set data-shop-color on <html> (useShopColor),
+   and Settings sets it on each swatch. Each colour replaces the navy scale and the solid fills
    (accent, brand) in light and dark mode, so everything navy in the shop
    takes it. Navy itself is index.css's default. Made from navy's own
    lightness and chroma steps at another hue (charcoal: almost no colour),
    so each reads like navy does: white on accent at least 12:1 light and
    6:1 dark. Dark selectors carry :root to outrank index.css's dark block. */
+
+/* Navy again (index.css's own values), for a navy swatch inside a page in
+   another colour. */
+[data-shop-color='navy'] {
+  --color-navy-50: #eef2f7;
+  --color-navy-100: #e3e8ef;
+  --color-navy-200: #c8d2e0;
+  --color-navy-300: #a1b1c8;
+  --color-navy-400: #6f84a3;
+  --color-navy-500: #4a6080;
+  --color-navy-600: #2f4669;
+  --color-navy-700: #1f3350;
+  --color-navy-800: #182841;
+  --color-navy-900: #121e31;
+  --color-navy-950: #0b1320;
+  --color-accent: #1f3350;
+  --color-accent-hover: #182841;
+  --color-brand: #2f4669;
+}
+:root[data-theme='dark'] [data-shop-color='navy'] {
+  --color-navy-50: #1c2636;
+  --color-navy-100: #243149;
+  --color-navy-200: #2c3b56;
+  --color-navy-300: #3a4c6c;
+  --color-navy-400: #5a7095;
+  --color-navy-500: #7f96ba;
+  --color-navy-600: #9fb7d9;
+  --color-navy-700: #b8cbe6;
+  --color-navy-800: #d3dff0;
+  --color-navy-900: #e7eef8;
+  --color-navy-950: #f3f7fc;
+  --color-accent: #415f92;
+  --color-accent-hover: #4a6a9e;
+  --color-brand: #5a7bb0;
+}
 
 [data-shop-color='teal'] {
   --color-navy-50: #ecf3f4;
