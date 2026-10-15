@@ -39,7 +39,7 @@ phone or laptop) before going on.
 - [ ] The Payment card shows "Customer says paid · <time>"; the bell has "<name> says they paid".
 - [ ] Accept → the customer's order page (reload) shows it accepted.
 - [ ] Payment: Mark paid with a note. The customer's page no longer shows the QR.
-- [ ] Delivery card: Send to driver opens the share list (copies on a laptop) with the address, map link and "Paid already".
+- [ ] Delivery card: Send to driver opens the share list (copies on a laptop) with the shop name, labelled customer/address/map lines, bulleted items, "COLLECT $X CASH" with how it adds up (or "Paid already"), and the shop's phone.
 - [ ] To do card: "Next: deliver it" → Delivered. The customer's page shows it delivered.
 - [ ] To do card: Complete. It moves to the Delivered filter.
 

@@ -16,7 +16,7 @@ import { errorText } from '../../lib/errors.ts'
 import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, formatPhone, ORDER_STATUS_TONES } from '../../lib/orders.ts'
 import { paymentBadge } from '../../lib/payments.ts'
-import type { DeliveryStatus, Order, OrderStatus } from '../../lib/types.ts'
+import type { DeliveryStatus, Order, OrderStatus, Store } from '../../lib/types.ts'
 import { ProductImage } from '../../shop/components.tsx'
 import { useCashHandover, useOrder, useRecordDelivery, useRecordPayment, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
@@ -750,28 +750,43 @@ const TONE_CIRCLE: Record<'neutral' | 'red' | 'green' | 'amber' | 'blue', string
 }
 
 /** The order as the driver (or the courier's form) needs it, in the
- * seller's language: who, where, what, and the cash to collect. */
-function driverMessage(t: Messages, order: Order): string {
+ * seller's language: whose delivery, who and where, what, the cash to
+ * collect and how it adds up, and the shop's number for when something's
+ * wrong. Blank lines split it into blocks a driver can scan on a phone. */
+function driverMessage(t: Messages, order: Order, store: Store | undefined): string {
   const d = t.orders.driver
-  const { payment } = order
-  const money = formatMoney(payment.amount, order.currency)
-  const lines = [`#${order.number} · ${order.customer.name} · ${formatPhone(order.customer.phone)}`]
-  if (order.delivery_address) lines.push(order.delivery_address)
-  if (order.delivery_lat !== null && order.delivery_lng !== null) {
-    lines.push(`${d.map}https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}`)
+  const { payment, currency } = order
+  const money = (amount: string) => formatMoney(amount, currency)
+
+  const who = [d.customer + order.customer.name, d.phone + formatPhone(order.customer.phone)]
+  const pinned = order.delivery_lat !== null && order.delivery_lng !== null
+  if (order.delivery_address) who.push(d.address + order.delivery_address)
+  if (pinned) who.push(`${d.map}https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}`)
+  if (!order.delivery_address && !pinned) who.push(d.noAddress)
+  if (order.delivery_address_note) who.push(d.note + order.delivery_address_note)
+
+  const count = order.items.reduce((sum, item) => sum + item.quantity, 0)
+  const what = [
+    d.items(count),
+    ...order.items.map(
+      (item) => `• ${item.quantity} × ${item.product_name}${item.variant_name ? ` (${item.variant_name})` : ''}`,
+    ),
+  ]
+
+  let cash: string[]
+  if (payment.status === 'paid') cash = [d.paid]
+  else if (payment.method !== 'cod') cash = [d.payingBy(t.status.paymentMethod[payment.method])]
+  else {
+    cash = [d.collect(money(payment.amount))]
+    const discount = Number(order.discount) > 0 ? money(order.discount) : null
+    if (discount || Number(order.delivery_fee) > 0) {
+      cash.push(d.breakdown(money(order.subtotal), discount, money(order.delivery_fee)))
+    }
   }
-  if (order.delivery_address_note) lines.push(`${d.note}${order.delivery_address_note}`)
-  for (const item of order.items) {
-    lines.push(`${item.quantity} × ${item.product_name}${item.variant_name ? ` (${item.variant_name})` : ''}`)
-  }
-  lines.push(
-    payment.status === 'paid'
-      ? d.paid
-      : payment.method === 'cod'
-        ? d.collect(money)
-        : d.payingBy(t.status.paymentMethod[payment.method]),
-  )
-  return lines.join('\n')
+
+  const blocks = [[d.title(order.number, store?.name ?? null)], who, what, cash]
+  if (store?.contact_phone) blocks.push([d.shopPhone(formatPhone(store.contact_phone))])
+  return blocks.map((block) => block.join('\n')).join('\n\n')
 }
 
 /** Send to driver (founder's pick 5B): the phone's share list (Telegram,
@@ -780,8 +795,9 @@ function SendToDriver({ order }: { order: Order }) {
   const t = useT()
   const o = t.orders
   const { toast } = useFeedback()
+  const store = useStore()
   async function send() {
-    const text = driverMessage(t, order)
+    const text = driverMessage(t, order, store.data)
     const phone = window.matchMedia('(pointer: coarse)').matches
     if (phone && typeof navigator.share === 'function') {
       try {

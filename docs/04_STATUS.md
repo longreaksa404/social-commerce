@@ -1074,7 +1074,10 @@ was fix 4). Each committed on its own; pushed:
 4. [x] **Send to driver** (`e59bec2`, 5B): on the Delivery card; number,
    customer, phone, address, map link, note, items and "Collect $X cash"
    / "Paid already" / "Paying by KHQR", in the app's language; the share
-   list on phones, copied on laptops.
+   list on phones, copied on laptops. Made clearer (2026-10-15): labelled
+   blocks with blank lines between (shop name in the title, item count
+   and bullets, how the cash adds up, "Address: none given, call the
+   customer", and the shop's contact phone at the end).
 5. [x] **I've paid** (`f00ad15`, 6B): under the KHQR code or bank
    account; opens the shop's Telegram (or Messenger, the line copied)
    with "I've paid order #1001, $12.00. Here's my receipt:" typed in,

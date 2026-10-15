@@ -153,13 +153,42 @@ export const orders = {
   },
   driverCopyFailed: { en: "Couldn't copy the message.", km: 'ចម្លងសារមិនបាន។' },
   driver: {
-    map: { en: 'Map: ', km: 'ផែនទី៖ ' },
-    note: { en: 'Note: ', km: 'ចំណាំ៖ ' },
-    collect: { en: (amount: string) => `Collect ${amount} cash`, km: (amount: string) => `ប្រមូលសាច់ប្រាក់ ${amount}` },
-    paid: { en: 'Paid already: collect nothing', km: 'បានបង់រួចហើយ៖ មិនត្រូវប្រមូលប្រាក់ទេ' },
+    title: {
+      en: (number: number, shop: string | null) => `🛵 Delivery${shop ? ` for ${shop}` : ''} · Order #${number}`,
+      km: (number: number, shop: string | null) => `🛵 ដឹកជូន${shop ? `ហាង ${shop}` : ''} · ការកុម្ម៉ង់ #${number}`,
+    },
+    customer: { en: '👤 Customer: ', km: '👤 អតិថិជន៖ ' },
+    phone: { en: '📞 Phone: ', km: '📞 លេខទូរស័ព្ទ៖ ' },
+    address: { en: '📍 Address: ', km: '📍 អាសយដ្ឋាន៖ ' },
+    noAddress: {
+      en: '📍 Address: none given, call the customer',
+      km: '📍 អាសយដ្ឋាន៖ មិនមាន សូមហៅទូរស័ព្ទទៅអតិថិជន',
+    },
+    map: { en: '🗺️ Map: ', km: '🗺️ ផែនទី៖ ' },
+    note: { en: '📝 Note: ', km: '📝 ចំណាំ៖ ' },
+    items: {
+      en: (n: number) => `📦 ${n} ${n === 1 ? 'item' : 'items'}:`,
+      km: (n: number) => `📦 ទំនិញ ${n}៖`,
+    },
+    collect: {
+      en: (amount: string) => `💵 COLLECT ${amount} CASH`,
+      km: (amount: string) => `💵 ប្រមូលសាច់ប្រាក់ ${amount}`,
+    },
+    /** How the cash adds up, so the driver can explain it at the door. */
+    breakdown: {
+      en: (items: string, discount: string | null, delivery: string) =>
+        `(items ${items}${discount ? ` − discount ${discount}` : ''} + delivery ${delivery})`,
+      km: (items: string, discount: string | null, delivery: string) =>
+        `(ទំនិញ ${items}${discount ? ` − បញ្ចុះតម្លៃ ${discount}` : ''} + ថ្លៃដឹក ${delivery})`,
+    },
+    paid: { en: '✅ PAID ALREADY: collect nothing', km: '✅ បានបង់រួចហើយ៖ មិនត្រូវប្រមូលប្រាក់ទេ' },
     payingBy: {
-      en: (method: string) => `Paying by ${method}: collect nothing`,
-      km: (method: string) => `បង់តាម ${method}៖ មិនត្រូវប្រមូលប្រាក់ទេ`,
+      en: (method: string) => `✅ Paying by ${method}: collect nothing`,
+      km: (method: string) => `✅ បង់តាម ${method}៖ មិនត្រូវប្រមូលប្រាក់ទេ`,
+    },
+    shopPhone: {
+      en: (phone: string) => `A problem? Call the shop: ${phone}`,
+      km: (phone: string) => `មានបញ្ហា? ហៅទូរស័ព្ទមកហាង៖ ${phone}`,
     },
   },
   // Delivery card: the steps in between, for those who use them.
