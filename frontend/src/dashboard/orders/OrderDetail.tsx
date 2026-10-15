@@ -1,6 +1,7 @@
 import { BanknoteX, ChevronRight, CircleCheck, CircleX, Copy, Link2, MapPinned, MessagesSquare, PackageX, Phone, Send, ShoppingBag, Undo2 } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
+import { reducedMotion } from '../../components/effects.ts'
 import { useFeedback } from '../../components/feedback.ts'
 import { SourceLogo } from '../../components/SourceLogo.tsx'
 import { buttonClass } from '../../components/styles.ts'
@@ -15,6 +16,7 @@ import { ProductImage } from '../../shop/components.tsx'
 import { useOrder, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
 import { CLOSED } from './orderSteps.ts'
+import { PinnedStep } from './PinnedStep.tsx'
 import { SendToDriverSheet } from './SendToDriver.tsx'
 import { StatusCard } from './StatusCard.tsx'
 import { useOrderActions, type OrderActions } from './useOrderActions.ts'
@@ -49,10 +51,11 @@ export function OrderDetail({ onDecided }: { onDecided?: () => void }) {
   )
 }
 
-/** The seller's order page (founder's picks 1A 2A 3A 4A 5A, 2026-10-15):
- * the customer's name on top with the number, time and total; one card
- * with where the order, delivery and payment stand and their buttons; the
- * items; then the customer and where it goes. Rare actions in a ⋯ menu. */
+/** The seller's order page (founder's picks 1A-6A, 2026-10-15): the
+ * customer's name on top with the number, time and total; one card with
+ * where the order, delivery and payment stand and their buttons; the
+ * items; then the customer and where it goes. Rare actions in a ⋯ menu;
+ * on phones the next button stays in reach once the card scrolls away. */
 function OrderView({
   order,
   back,
@@ -68,7 +71,15 @@ function OrderView({
   const actions = useOrderActions(order, onStale, onDecided)
   const [paying, setPaying] = useState(false)
   const [sending, setSending] = useState(false)
+  const card = useRef<HTMLElement>(null)
   const menu = useMenuItems(order, actions)
+  // From the pinned button: open the note form and bring it into view.
+  function pay() {
+    setPaying(true)
+    requestAnimationFrame(() =>
+      document.getElementById('mark-paid')?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'center' }),
+    )
+  }
   return (
     <>
       <PageHeader
@@ -92,6 +103,7 @@ function OrderView({
       <div className="space-y-4">
         {CLOSED.has(order.status) && <ClosedNote status={order.status} />}
         <StatusCard
+          ref={card}
           order={order}
           actions={actions}
           paying={paying}
@@ -101,6 +113,14 @@ function OrderView({
         <ItemsCard order={order} />
         <CustomerCard order={order} />
       </div>
+      <PinnedStep
+        order={order}
+        actions={actions}
+        card={card}
+        paying={paying}
+        onPay={pay}
+        onSend={() => setSending(true)}
+      />
       <SendToDriverSheet order={order} open={sending} onClose={() => setSending(false)} onAssign={actions.assign} />
     </>
   )
