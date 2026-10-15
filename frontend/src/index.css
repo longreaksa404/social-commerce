@@ -38,7 +38,7 @@
    and a bg-navy-50 tint turns deep blue: write classes for light mode.
    Solid fills that must not flip use these instead: bg-surface (cards,
    bars, inputs; never bg-white), bg-raised (the chosen segment of a
-   switch), bg-accent / bg-brand / bg-danger with text-white, and black
+   switch), bg-accent / bg-brand with text-white, and black
    for labels laid over photos. */
 @theme {
   --color-surface: #fff;
@@ -60,8 +60,6 @@
   --color-navy-800: #182841;
   --color-navy-900: #121e31;
   --color-navy-950: #0b1320;
-  --color-danger: oklch(57.7% 0.245 27.325);
-  --color-danger-hover: oklch(50.5% 0.213 27.518);
 
   /* Cards: a soft shadow and a faint outline (ring-slate-900/6, which
      dark mode turns into a faint light line) instead of a grey border. */

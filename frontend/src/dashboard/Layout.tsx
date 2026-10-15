@@ -151,7 +151,7 @@ function NotificationBell() {
         <span
           key={`count-${rings}`}
           aria-hidden
-          className={`absolute top-1 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-semibold text-white ring-2 ring-surface ${rings ? 'animate-pop' : ''}`}
+          className={`absolute top-1 right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[11px] font-semibold text-white ring-2 ring-surface ${rings ? 'animate-pop' : ''}`}
         >
           {unread > 99 ? '99+' : unread}
         </span>
@@ -166,7 +166,7 @@ function NotificationBell() {
 function SetupDot({ className }: { className: string }) {
   const setup = useSetup()
   if (!setup?.needsAttention) return null
-  return <span aria-hidden className={`absolute size-2.5 rounded-full bg-amber-500 ring-2 ring-surface ${className}`} />
+  return <span aria-hidden className={`absolute size-2.5 rounded-full bg-brand ring-2 ring-surface ${className}`} />
 }
 
 function MobileTopBar() {

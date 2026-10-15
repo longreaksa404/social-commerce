@@ -70,6 +70,8 @@ function OrderRow({ item, slug }: { item: MyOrder; slug: string }) {
   const first = order?.items[0]
   const more = order ? order.items.length - 1 : 0
   const tag = 'rounded-full px-2 py-0.5 text-xs font-semibold'
+  // Red and amber as words only, no pill (founder, 2026-10-15).
+  const word = 'py-0.5 text-xs font-semibold'
   return (
     <Link
       to={`/shop/${slug}/order/${item.id}`}
@@ -96,14 +98,14 @@ function OrderRow({ item, slug }: { item: MyOrder; slug: string }) {
           <span className="mt-1.5 flex flex-wrap gap-1.5">
             {order ? (
               <>
-                <span className={`${tag} ${closed ? 'bg-red-50 text-red-700' : 'bg-navy-50 text-navy-800'}`}>
+                <span className={closed ? `${word} text-red-700` : `${tag} bg-navy-50 text-navy-800`}>
                   {orderHeadline(t, order)}
                 </span>
                 {!closed && order.payment.status === 'paid' && (
                   <span className={`${tag} bg-emerald-50 text-emerald-800`}>{t.status.paymentBadge.paid}</span>
                 )}
                 {inProgress(order) && awaitsPayment(order) && (
-                  <span className={`${tag} bg-amber-50 text-amber-800`}>{t.order.notPaidYet}</span>
+                  <span className={`${word} text-amber-700`}>{t.order.notPaidYet}</span>
                 )}
               </>
             ) : (

@@ -391,10 +391,10 @@ export function PausedNotice({ shop }: { shop: ShopStore }) {
   return (
     <div
       role="status"
-      className="-mx-4 -mt-4 mb-4 flex items-start gap-3 border-b border-amber-200 bg-amber-50 px-4 py-3 sm:mx-0 sm:mt-0 sm:mb-6 sm:rounded-2xl sm:border sm:px-3.5"
+      className="-mx-4 -mt-4 mb-4 flex items-start gap-3 border-b border-slate-200 bg-surface px-4 py-3 sm:mx-0 sm:mt-0 sm:mb-6 sm:rounded-2xl sm:border sm:px-3.5"
     >
       <CalendarClock aria-hidden className="mt-0.5 size-5 shrink-0 text-amber-700" />
-      <p className="min-w-0 text-sm leading-6 text-amber-900">
+      <p className="min-w-0 text-sm leading-6 text-amber-800">
         <span className="block font-semibold">{p.title}</span>
         {shop.orders_resume_on ? p.until(formatCalendarDay(shop.orders_resume_on)) : p.noDate}
       </p>

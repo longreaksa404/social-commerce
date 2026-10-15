@@ -104,10 +104,10 @@ function StoreRows({ store, selected }: { store: Store; selected?: Selected }) {
             to="setup"
             selected={selected === 'setup'}
             icon={
-              <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-700">
+              <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-amber-700">
                 <ListChecks aria-hidden className="size-6" />
                 {setup.needsAttention && (
-                  <span aria-hidden className="absolute top-0.5 right-0.5 size-3 rounded-full border-2 border-surface bg-amber-500" />
+                  <span aria-hidden className="absolute top-0.5 right-0.5 size-3 rounded-full border-2 border-surface bg-brand" />
                 )}
               </span>
             }

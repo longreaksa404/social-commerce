@@ -4,12 +4,13 @@ import { useT } from '../i18n/useT.ts'
 import { formatCalendarDay } from '../lib/orders.ts'
 import { usePlan, useRole } from './queries.ts'
 
-/** An amber strip that opens the setting it's about (for the owner; staff
- * can't open Settings, so they just get the news). */
+/** A strip that opens the setting it's about (for the owner; staff can't
+ * open Settings, so they just get the news). Amber words on a plain card:
+ * no amber box (founder, 2026-10-15). */
 export function Reminder({ icon: Icon, setting, children }: { icon: LucideIcon; setting: string; children: string }) {
   const role = useRole()
   const className =
-    '-mx-4 mb-4 flex min-h-12 items-center gap-3 border-y border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 sm:mx-0 sm:rounded-2xl sm:border'
+    '-mx-4 mb-4 flex min-h-12 items-center gap-3 border-y border-slate-200 bg-surface px-4 py-2.5 text-sm font-medium text-amber-800 sm:mx-0 sm:rounded-2xl sm:border'
   const content = (
     <>
       <Icon aria-hidden className="size-5 shrink-0 text-amber-700" />
@@ -20,10 +21,10 @@ export function Reminder({ icon: Icon, setting, children }: { icon: LucideIcon; 
   return (
     <Link
       to={`/dashboard/settings/${setting}`}
-      className={`${className} transition-colors hover:bg-amber-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600`}
+      className={`${className} transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600`}
     >
       {content}
-      <ChevronRight aria-hidden className="size-5 shrink-0 text-amber-700" />
+      <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
     </Link>
   )
 }

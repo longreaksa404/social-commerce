@@ -361,7 +361,7 @@ function QrUpload({
         {again ? s.uploadAnother : s.uploadQr}
       </Button>
       {!again && <p className="text-xs leading-5 text-slate-500">{s.uploadQrHint}</p>}
-      {problem && <p role="alert" className="rounded-xl bg-amber-50 px-3.5 py-2.5 text-sm leading-6 text-amber-900 ring-1 ring-amber-200 ring-inset">{problem}</p>}
+      {problem && <p role="alert" className="text-sm leading-6 font-medium text-amber-800">{problem}</p>}
     </div>
   )
 }

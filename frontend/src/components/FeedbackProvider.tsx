@@ -89,7 +89,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
               <button
                 type="button"
                 autoFocus
-                className={buttonClass(pending.danger ? 'destructive' : 'primary')}
+                className={buttonClass(pending.danger ? 'danger' : 'primary')}
                 onClick={() => close(true)}
               >
                 {pending.confirmLabel ?? t.common.confirm}

@@ -109,7 +109,7 @@ function describe(t: Messages, n: SellerNotification): Shown | null {
     const { order } = n
     return {
       icon: Wallet,
-      iconClass: 'bg-amber-50 text-amber-700',
+      iconClass: 'bg-slate-100 text-amber-700',
       title: words.paymentClaimed(order.customer_name, order.number),
       body: `${formatMoney(order.total, order.currency)} · ${words.checkBank}`,
       to: `/dashboard/orders/${order.id}`,
@@ -119,7 +119,7 @@ function describe(t: Messages, n: SellerNotification): Shown | null {
     const products = new Set(n.items.map((item) => item.product_id))
     return {
       icon: TriangleAlert,
-      iconClass: 'bg-amber-50 text-amber-700',
+      iconClass: 'bg-slate-100 text-amber-700',
       title: n.items.every((item) => item.left === 0) ? words.soldOut : words.runningLow,
       body: n.items
         .map((item) => (item.left === 0 ? words.itemSoldOut(item.name) : words.itemLeft(item.name, item.left)))

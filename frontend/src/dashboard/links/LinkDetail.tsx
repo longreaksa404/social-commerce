@@ -154,7 +154,7 @@ function NotWorking({ link }: { link: LinkStats }) {
   const t = useT()
   const message = link.target_type === 'category' ? t.links.categoryDeleted : t.links.productHidden
   return (
-    <p className="mt-4 flex gap-2.5 rounded-xl bg-amber-50 px-3.5 py-3 text-sm text-amber-900">
+    <p className="mt-4 flex gap-2.5 text-sm font-medium text-amber-800">
       <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
       {message}
     </p>

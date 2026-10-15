@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-15 (seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-15 (shop colour and cover photo, not pushed: eight colours a seller can pick, the shop takes it; a cover photo across the top like a Facebook page, and the shop's large link card made from it; before that the same day, seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only across the app; less motion on the order page; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -904,6 +904,17 @@ pills or borders (this page; other screens still have some, ask first).
       paid after all.
 - [x] **Pinned button on phones** (`9612b15`, 6A): once the status card
       scrolls away, the shaded row's buttons slide up at the bottom.
+- [x] After the founder's test (2026-10-15): the pinned button now
+      follows the dark button itself (on a short order the card never
+      left the screen, so it never showed); no pop on a status that
+      changes and no confetti or vibration on Complete (this page only;
+      other motion stays). Red and amber on words only everywhere
+      (dashboard and shop): reminders, notices and errors as coloured
+      words on plain cards; red / amber tags as words without a pill;
+      danger buttons, the confirm dialog's included, as red words with a
+      grey outline; no red border on a field with a problem; the bell's
+      count and the setup dot navy. The small dot before a status in the
+      order list and the shop's stock line kept.
 - [x] Checked in headless Chromium against the local API: phone (English
       and Khmer, light and dark) and laptop; #1004 walked through Mark
       paid with a note, Send to driver (message copied, assigned with the
@@ -912,6 +923,45 @@ pills or borders (this page; other screens still have some, ask first).
       migration; lint and build pass.
 
 ---
+
+**Shop colour and cover photo (founder's picks 1A 2A 3A 4A 5A and OK on
+the data, 2026-10-15; not pushed):** the founder asked whether sellers
+could make the shop their own without effort. Picked from the options
+page (artifact "Shop Colour and Cover").
+
+- [x] Two new columns on `store` (migration `a7d3e9b2c4f1`): `color` (navy,
+      teal, forest, olive, coffee, wine, plum or charcoal; default navy,
+      so existing shops don't change) and `cover_url`. 02 §5, §6, §9.3,
+      §11 updated.
+- [x] Shop colour (1A 2A): Settings → the shop has eight swatches, saved
+      on tap, and "See your shop". In the shop everything navy takes it
+      (the wash at the top, the chosen tab, the + buttons, the cart bar,
+      Checkout, links, focus rings), light and dark (`shop/colors.css`:
+      navy's own steps at another hue; white on a button at least 12:1
+      light, 6:1 dark). The dashboard stays navy, and so does Oak's leaf
+      in "Made with Oak Order".
+- [x] Cover photo (3A 5A): `POST /seller/store/cover`; the phone keeps the
+      middle 3:1 strip (at most 1800 × 600 JPEG), saved at once. The shop
+      shows it like a Facebook page: edge to edge on phones, the logo
+      over its bottom edge, the name beside it; the header stays small
+      and turns solid as soon as the page moves. Optional, not on the
+      setup checklist.
+- [x] Link card (4A): a shop with a cover shares as a large 1200 × 630
+      card made from it, with the logo and Oak's mark
+      (`/preview/cover`); without one, the logo card as before.
+      `move-photos` rewrites covers too.
+- [x] Checked in headless Chromium against the local API: phone (light,
+      dark, scrolling), laptop, Settings (the swatches on one row at
+      390 px), the menu's summary; the crop (4000 × 3000 → 1800 × 600,
+      900 × 900 → 900 × 300); the card drawn from a sample cover; the
+      link-preview tags with and without a cover. A real upload to R2
+      wasn't tried locally (it would write to the bucket): try it live.
+- [x] 5 new pytest tests (colour, cover upload, another shop's cover
+      refused, staff refused, the cover card); 694 in all. Lint and
+      build pass.
+- [ ] Founder: check the Khmer words: រូបក្រប (cover photo) and the colour
+      names (ខៀវចាស់, ខៀវបៃតង, បៃតងចាស់, បៃតងអូលីវ, ពណ៌កាហ្វេ,
+      ក្រហមចាស់, ស្វាយចាស់, ប្រផេះចាស់).
 
 ## In Progress
 
@@ -1665,6 +1715,14 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
+Shop colour and cover photo (2026-10-15, founder's picks 1A 2A 3A 4A
+5A, data OK): eight calm colours a seller can pick (navy by default);
+everything navy in the shop takes it, the dashboard stays navy; a 3:1
+cover photo across the top of the shop like a Facebook page, which also
+becomes the shop's large link card. Both optional. 02 updated in the
+commits. Waiting for the founder to apply to 01 §23.1 (Store) and the
+03 §4 Phase 9 table (text given in the session).
+
 Customer phones (2026-10-15, founder): the checkout reads the phone back;
 customers can get order updates on Telegram, which proves their number;
 a different Telegram number still gets updates and shows to the seller
@@ -2057,6 +2115,12 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
+00000000000. **Shop colour and cover photo** (built, not pushed).
+        Founder: push (the migration adds two columns at start), then in
+        Settings → your shop pick a colour and add a cover, open the shop
+        on your phone (light and dark), and share the shop link in
+        Telegram to see the big card. Facebook keeps a link's old card:
+        use its Sharing Debugger's "Scrape Again".
 0000000000. **Seller's order page redesign** (built, not pushed). Founder:
         push, then open a few orders on your phone: a new one, one where
         the customer says they paid, and a cash order with a driver.

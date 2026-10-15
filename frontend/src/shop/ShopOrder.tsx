@@ -239,7 +239,7 @@ function ThankYou({
       {next && (
         <p
           className={`mx-auto mt-4 max-w-md rounded-xl px-3.5 py-2.5 text-sm font-semibold ${
-            next.urgent ? 'bg-amber-50 text-amber-900' : 'bg-slate-100 text-slate-700'
+            next.urgent ? 'bg-slate-100 text-amber-800' : 'bg-slate-100 text-slate-700'
           }`}
         >
           {next.text}

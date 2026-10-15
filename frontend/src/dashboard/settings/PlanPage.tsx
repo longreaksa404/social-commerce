@@ -61,7 +61,7 @@ function Status({ plan }: { plan: Plan }) {
           {plan.on_trial && <p className="mt-1 text-sm text-slate-600">{p.afterTrial(usd(plan.prices.month), usd(plan.prices.year))}</p>}
         </div>
       ) : (
-        <div className="space-y-1 rounded-xl bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900 ring-1 ring-amber-200 ring-inset">
+        <div className="space-y-1 text-sm leading-6 text-amber-800">
           {plan.stage === 'overdue' ? (
             <>
               <p className="font-semibold">{(plan.on_trial ? p.trialEnded : p.planEnded)(day(plan.paid_until))}</p>

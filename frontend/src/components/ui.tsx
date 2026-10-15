@@ -38,11 +38,10 @@ const control =
   'placeholder:text-slate-400 transition-colors focus:outline-none focus:ring-4 ' +
   'disabled:bg-slate-100 disabled:text-slate-500 sm:py-2 sm:text-sm'
 
-function controlClass(invalid: boolean, extra = '') {
-  const tone = invalid
-    ? 'border-red-400 focus:border-red-500 focus:ring-red-500/15'
-    : 'border-slate-300 focus:border-navy-600 focus:ring-navy-600/15'
-  return `${control} ${tone} ${extra}`
+// A problem shows as red words under the field, not a red border (founder,
+// 2026-10-15); the field itself is marked aria-invalid for screen readers.
+function controlClass(extra = '') {
+  return `${control} border-slate-300 focus:border-navy-600 focus:ring-navy-600/15 ${extra}`
 }
 
 type FormControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -148,12 +147,12 @@ type InputProps = InputHTMLAttributes<HTMLInputElement> & {
 }
 
 export function Input({ leading, trailing, className = '', ...props }: InputProps) {
-  const { invalid, field } = useFieldProps()
+  const { field } = useFieldProps()
   const input = (
     <input
       {...field}
       {...props}
-      className={controlClass(invalid, `${leading ? 'pl-9' : ''} ${trailing ? 'pr-12' : ''} ${className}`)}
+      className={controlClass(`${leading ? 'pl-9' : ''} ${trailing ? 'pr-12' : ''} ${className}`)}
     />
   )
   if (!leading && !trailing) return input
@@ -224,24 +223,24 @@ export function PasswordInput(props: InputHTMLAttributes<HTMLInputElement>) {
 }
 
 export function TextArea({ className = '', ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  const { invalid, field } = useFieldProps()
+  const { field } = useFieldProps()
   return (
     <textarea
       rows={3}
       {...field}
       {...props}
-      className={controlClass(invalid, `resize-y ${className}`)}
+      className={controlClass(`resize-y ${className}`)}
     />
   )
 }
 
 export function Select({ className = '', ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
-  const { invalid, field } = useFieldProps()
+  const { field } = useFieldProps()
   return (
     <select
       {...field}
       {...props}
-      className={controlClass(invalid, `pr-9 ${className}`)}
+      className={controlClass(`pr-9 ${className}`)}
     />
   )
 }
@@ -329,7 +328,7 @@ export function IconButton({
   icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
   tone?: 'neutral' | 'danger'
 }) {
-  const colors = tone === 'danger' ? 'text-red-600 hover:bg-red-50' : 'text-slate-600 hover:bg-slate-100'
+  const colors = tone === 'danger' ? 'text-red-600 hover:bg-slate-100' : 'text-slate-600 hover:bg-slate-100'
   return (
     <button
       type="button"
@@ -528,12 +527,19 @@ export function MenuButton({ label, items, disabled }: { label: string; items: M
 
 type BadgeTone = 'neutral' | 'red' | 'green' | 'amber' | 'blue'
 
+/** A short status tag. Red and amber ones are the coloured words alone, no
+ * pill (founder, 2026-10-15: red and amber go on text only). */
 export function Badge({ tone = 'neutral', children }: { tone?: BadgeTone; children: ReactNode }) {
+  if (tone === 'red' || tone === 'amber') {
+    return (
+      <span className={`inline-flex shrink-0 items-center py-0.5 text-xs font-semibold ${tone === 'red' ? 'text-red-700' : 'text-amber-700'}`}>
+        {children}
+      </span>
+    )
+  }
   const colors = {
     neutral: 'bg-slate-100 text-slate-700 ring-slate-200',
-    red: 'bg-red-50 text-red-700 ring-red-200',
     green: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-    amber: 'bg-amber-50 text-amber-800 ring-amber-200',
     blue: 'bg-sky-50 text-sky-800 ring-sky-200',
   }[tone]
   return (
@@ -623,7 +629,7 @@ export function ErrorMessage({ error }: { error: unknown }) {
   useT() // re-render in the new language
   if (!error) return null
   return (
-    <p role="alert" className="flex items-start gap-2 rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">
+    <p role="alert" className="flex items-start gap-2 text-sm text-red-700">
       <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
       {errorText(error)}
     </p>
@@ -635,7 +641,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry: () => 
   const t = useT()
   return (
     <Card className="flex flex-col items-center px-6 py-10 text-center">
-      <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-red-50 text-red-600">
+      <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-slate-100 text-red-600">
         <AlertCircle aria-hidden className="size-6" />
       </span>
       <p className="font-semibold text-slate-900">{t.common.couldNotLoad}</p>
