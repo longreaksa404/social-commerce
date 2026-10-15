@@ -1,6 +1,6 @@
 import { Bell, ShoppingBag, TriangleAlert, Wallet, type LucideIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Link, useLocation } from 'react-router'
 import { Button, Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../components/ui.tsx'
 import type { Messages } from '../i18n/core.ts'
 import { useT } from '../i18n/useT.ts'
@@ -8,6 +8,7 @@ import { formatMoney } from '../lib/money.ts'
 import { formatOrderTime } from '../lib/orders.ts'
 import type { SellerNotification } from '../lib/types.ts'
 import { useMarkNotificationsRead, useNotifications } from './queries.ts'
+import { notificationsLink } from './useBackTo.ts'
 
 /** /dashboard/notifications: new orders, and products running low or sold
  * out because of one. Newest first. */
@@ -18,6 +19,9 @@ export function Notifications() {
   // once, but highlighted until the seller leaves the page.
   const [fresh, setFresh] = useState<ReadonlySet<string>>(() => new Set())
   const t = useT()
+  // The back arrow goes to the page the bell was tapped on.
+  const { pathname, search } = useLocation()
+  const header = <PageHeader title={t.dashboard.notifications} back={notificationsLink(pathname, search)} />
 
   // Seeing them is reading them: the bell clears, on every device.
   useEffect(() => {
@@ -29,11 +33,11 @@ export function Notifications() {
     })
   }, [list.data, markRead])
 
-  if (list.isPending) return <ListSkeleton />
+  if (list.isPending) return <ListSkeleton header={header} />
   if (list.error) {
     return (
       <>
-        <PageHeader title={t.dashboard.notifications} />
+        {header}
         <ErrorState error={list.error} onRetry={() => list.refetch()} />
       </>
     )
@@ -42,7 +46,7 @@ export function Notifications() {
   const shown = uniqueById(list.data.pages.flatMap((page) => page.notifications))
   return (
     <>
-      <PageHeader title={t.dashboard.notifications} />
+      {header}
       {shown.length === 0 ? (
         <EmptyState icon={Bell} title={t.customers.notifications.emptyTitle}>
           {t.customers.notifications.emptyText}
@@ -129,13 +133,14 @@ function describe(t: Messages, n: SellerNotification): Shown | null {
 
 function NotificationRow({ notification, unread }: { notification: SellerNotification; unread: boolean }) {
   const t = useT()
+  const { search } = useLocation()
   const shown = describe(t, notification)
   if (!shown) return null
   const { icon: Icon } = shown
   return (
     <Link
       to={shown.to}
-      state={{ back: '/dashboard/notifications' }}
+      state={{ back: `/dashboard/notifications${search}` }}
       className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4 ${
         unread ? 'bg-navy-50/50' : ''
       }`}
@@ -163,11 +168,10 @@ function NotificationRow({ notification, unread }: { notification: SellerNotific
   )
 }
 
-function ListSkeleton() {
-  const t = useT()
+function ListSkeleton({ header }: { header: ReactNode }) {
   return (
     <>
-      <PageHeader title={t.dashboard.notifications} />
+      {header}
       <Card className="divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="flex gap-3 px-4 py-3 sm:p-4">

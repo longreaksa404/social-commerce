@@ -8,6 +8,7 @@ import type { Messages } from '../i18n/core.ts'
 import { useT } from '../i18n/useT.ts'
 import { useStore, useUnreadNotifications } from './queries.ts'
 import { useSetup } from './settings/setup.ts'
+import { notificationsLink } from './useBackTo.ts'
 
 // Five tabs fit a 320px phone. Categories is a button on Products there,
 // and its own entry in the wider sidebar.
@@ -121,21 +122,29 @@ function StoreHome() {
   )
 }
 
-/** New orders and low stock since the seller last looked, on any device. */
+/** New orders and low stock since the seller last looked, on any device.
+ * Tapped again on the notifications page, it closes them. */
 function NotificationBell() {
   const unread = useUnreadNotifications().data ?? 0
   // Rings each time the count goes up (a new order, low stock).
   const rings = useBump(unread, (before, now) => now > before)
+  const { pathname, search } = useLocation()
+  const open = useMatch('/dashboard/notifications') !== null
   const t = useT()
   return (
-    <NavLink
-      to="/dashboard/notifications"
-      aria-label={unread > 0 ? t.dashboard.notificationsUnread(unread) : t.dashboard.notifications}
-      className={({ isActive }) =>
-        `relative inline-flex size-11 shrink-0 items-center justify-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-navy-600 ${
-          isActive ? 'bg-navy-50 text-navy-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-        }`
+    <Link
+      to={notificationsLink(pathname, search)}
+      aria-label={
+        open
+          ? t.dashboard.closeNotifications
+          : unread > 0
+            ? t.dashboard.notificationsUnread(unread)
+            : t.dashboard.notifications
       }
+      aria-pressed={open}
+      className={`relative inline-flex size-11 shrink-0 items-center justify-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-navy-600 ${
+        open ? 'bg-navy-50 text-navy-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+      }`}
     >
       <Bell key={rings} aria-hidden className={`size-5.5 ${rings ? 'origin-top animate-wiggle' : ''}`} />
       {unread > 0 && (
@@ -147,7 +156,7 @@ function NotificationBell() {
           {unread > 99 ? '99+' : unread}
         </span>
       )}
-    </NavLink>
+    </Link>
   )
 }
 

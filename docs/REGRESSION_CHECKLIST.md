@@ -35,6 +35,7 @@ phone or laptop) before going on.
 
 - [ ] A Telegram alert (in Khmer) arrives with the order number, items, total, customer and the Open order button; then "<name> says they paid #…".
 - [ ] The bell shows a red count; the notification opens the order.
+- [ ] On Products, tap the bell: notifications open; tap the bell again (or the back arrow) and you're back on Products.
 - [ ] The order says "Came through your TikTok link". "Open in Google Maps" shows the pinned spot.
 - [ ] The Payment card shows "Customer says paid · <time>"; the bell has "<name> says they paid".
 - [ ] Accept → the customer's order page (reload) shows it accepted.

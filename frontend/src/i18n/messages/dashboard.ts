@@ -17,4 +17,5 @@ export const dashboard = {
     en: (n: number) => `Notifications, ${n} unread`,
     km: (n: number) => `ការជូនដំណឹង, ${n} មិនទាន់អាន`,
   },
+  closeNotifications: { en: 'Close notifications', km: 'បិទការជូនដំណឹង' },
 } satisfies Tree
