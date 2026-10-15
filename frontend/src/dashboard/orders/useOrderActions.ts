@@ -41,9 +41,9 @@ export function useOrderActions(order: Order, onStale: () => void, onDecided?: (
     }
   }
 
-  async function move(status: OrderStatus, button?: HTMLElement) {
+  async function move(status: OrderStatus) {
     // `order` as it was when tapped: a new one accepted or rejected.
-    if ((await moveOrder(status, button)) && order.status === 'pending') onDecided?.()
+    if ((await moveOrder(status)) && order.status === 'pending') onDecided?.()
   }
 
   const recordDelivery = (status: DeliveryStatus, note: string | null, what: string | null) =>

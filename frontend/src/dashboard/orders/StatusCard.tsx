@@ -1,7 +1,6 @@
 import { LoaderCircle, MapPin, Plus, Send, ShoppingBag, Truck, Wallet, type LucideIcon } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode, type Ref } from 'react'
 import { Button, Card, Field, Input } from '../../components/ui.tsx'
-import { useBump } from '../../components/useBump.ts'
 import { useT } from '../../i18n/useT.ts'
 import { deliveryAction, deliveryBadge } from '../../lib/delivery.ts'
 import { formatMoney } from '../../lib/money.ts'
@@ -81,8 +80,6 @@ function Row({
   shaded: boolean
   children?: ReactNode
 }) {
-  // The status pops when it changes here, not when the page opens.
-  const bumps = useBump(value)
   return (
     <div className={`flex gap-3 px-4 py-3.5 transition-colors sm:px-5 ${shaded ? 'bg-navy-50' : ''}`}>
       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
@@ -90,14 +87,17 @@ function Row({
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-xs text-slate-500">{label}</p>
-        <p key={bumps} className={`font-semibold break-words ${TONE_TEXT[tone]} ${bumps ? 'animate-pop' : ''}`}>
-          {value}
-        </p>
+        <p className={`font-semibold break-words ${TONE_TEXT[tone]}`}>{value}</p>
         {children}
       </div>
     </div>
   )
 }
+
+/** On the shaded row's dark button: the pinned bar on phones shows while
+ * it's off the screen. */
+const NEXT = { 'data-next-step': true }
+const nextIf = (on: boolean) => (on ? NEXT : {})
 
 const Sub = ({ children }: { children: ReactNode }) => <p className="mt-0.5 text-sm break-words text-slate-500">{children}</p>
 const Buttons = ({ children }: { children: ReactNode }) => <div className="mt-3 flex flex-wrap gap-2.5">{children}</div>
@@ -114,14 +114,15 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
     body = (
       <Buttons>
         {ends.map((status) => (
-          <Button key={status} variant="quietDanger" disabled={busy} onClick={(e) => move(status, e.currentTarget)}>
+          <Button key={status} variant="danger" disabled={busy} onClick={() => move(status)}>
             {o.action.rejected}
           </Button>
         ))}
         <Button
+          {...NEXT}
           loading={change.isPending && change.variables === 'accepted'}
           disabled={busy}
-          onClick={(e) => move('accepted', e.currentTarget)}
+          onClick={() => move('accepted')}
           className="flex-1"
         >
           {o.action.accepted}
@@ -132,9 +133,10 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
     body = (
       <Buttons>
         <Button
+          {...nextIf(step === 'complete')}
           loading={change.isPending && change.variables === 'completed'}
           disabled={busy}
-          onClick={(e) => move('completed', e.currentTarget)}
+          onClick={() => move('completed')}
           className="flex-1"
         >
           {o.action.completed}
@@ -150,7 +152,7 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
           label={(s) => t.status.order[s]}
           busy={busy}
           pending={change.isPending ? change.variables : undefined}
-          onPick={(s, button) => move(s, button)}
+          onPick={(s) => move(s)}
         />
       </>
     )
@@ -198,6 +200,7 @@ function DeliveryRow({
 
   const handover = (primary: boolean) => (
     <Button
+      {...nextIf(primary)}
       variant={primary ? 'primary' : 'secondary'}
       loading={actions.handover.isPending}
       disabled={busy}
@@ -209,6 +212,7 @@ function DeliveryRow({
   )
   const delivered = (primary: boolean) => (
     <Button
+      {...nextIf(primary)}
       variant={primary ? 'primary' : 'secondary'}
       loading={pending('delivered')}
       disabled={busy}
@@ -225,7 +229,14 @@ function DeliveryRow({
     // (the short path, founder's pick 1C, 2026-10-09).
     buttons = (
       <Buttons>
-        <Button variant={step === 'send' ? 'primary' : 'secondary'} icon={Send} disabled={busy} onClick={onSend} className="flex-1">
+        <Button
+          {...nextIf(step === 'send')}
+          variant={step === 'send' ? 'primary' : 'secondary'}
+          icon={Send}
+          disabled={busy}
+          onClick={onSend}
+          className="flex-1"
+        >
           {delivery.status === 'failed'
             ? t.status.deliveryAction.tryAgain
             : delivery.courier
@@ -319,7 +330,13 @@ function PaymentRow({
       <PaidForm onBack={() => setPaying(false)} actions={actions} onDone={() => setPaying(false)} />
     ) : (
       <Buttons>
-        <Button variant={step === 'markPaid' ? 'primary' : 'secondary'} disabled={actions.busy} onClick={() => setPaying(true)} className="flex-1">
+        <Button
+          {...nextIf(step === 'markPaid')}
+          variant={step === 'markPaid' ? 'primary' : 'secondary'}
+          disabled={actions.busy}
+          onClick={() => setPaying(true)}
+          className="flex-1"
+        >
           {o.markPaid}
         </Button>
       </Buttons>
@@ -399,7 +416,7 @@ function StepChips<S extends string>({
   label: (step: S) => string
   busy: boolean
   pending?: S
-  onPick: (step: S, button: HTMLElement) => void
+  onPick: (step: S) => void
 }) {
   return (
     <div className="mt-1.5 flex flex-wrap gap-2">
@@ -409,7 +426,7 @@ function StepChips<S extends string>({
           type="button"
           disabled={busy}
           aria-busy={pending === step || undefined}
-          onClick={(e) => onPick(step, e.currentTarget)}
+          onClick={() => onPick(step)}
           className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-dashed border-slate-300 px-3.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 disabled:opacity-50 sm:min-h-9"
         >
           {pending === step ? <LoaderCircle aria-hidden className="size-3.5 animate-spin" /> : <Plus aria-hidden className="size-3.5" />}

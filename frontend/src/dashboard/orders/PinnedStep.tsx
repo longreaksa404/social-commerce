@@ -7,10 +7,13 @@ import type { Order } from '../../lib/types.ts'
 import { cashDue, nextStep } from './orderSteps.ts'
 import type { OrderActions } from './useOrderActions.ts'
 
-/** Phones (founder's pick 6A, 2026-10-15): once the status card has
- * scrolled away (checking the items, the address), the shaded row's
- * button slides up at the bottom, under the thumb. The same buttons as in
- * the card, so it records the same things. Laptops show the order beside
+/** Phones (founder's pick 6A, 2026-10-15): while the shaded row's dark
+ * button is off the screen (scrolled away to check the items or the
+ * address, or still below on a small phone), the same buttons sit at the
+ * bottom, under the thumb. It watches that button, not the whole card: on
+ * an order with one or two items the page is too short for the card to
+ * leave the screen (the founder never saw the bar). The same buttons as in
+ * the card, so they record the same things. Laptops show the order beside
  * the list, so not there. */
 export function PinnedStep({
   order,
@@ -22,7 +25,7 @@ export function PinnedStep({
 }: {
   order: Order
   actions: OrderActions
-  /** The status card: the bar shows once it's above the screen. */
+  /** The status card, holding the dark button (`data-next-step`). */
   card: RefObject<HTMLElement | null>
   paying: boolean
   onPay: () => void
@@ -30,18 +33,20 @@ export function PinnedStep({
 }) {
   const t = useT()
   const o = t.orders
-  const [past, setPast] = useState(false)
+  const [hidden, setHidden] = useState(false)
   const step = nextStep(order)
 
+  // Looked up again whenever the order moves on: the dark button changes.
   useEffect(() => {
-    const el = card.current
-    if (!el) return
-    const watch = new IntersectionObserver(([entry]) => {
-      setPast(!entry.isIntersecting && entry.boundingClientRect.bottom < 0)
+    const button = card.current?.querySelector('[data-next-step]')
+    if (!button) return
+    // A button behind the bar itself counts as off the screen.
+    const watch = new IntersectionObserver(([entry]) => setHidden(!entry.isIntersecting), {
+      rootMargin: '0px 0px -88px 0px',
     })
-    watch.observe(el)
+    watch.observe(button)
     return () => watch.disconnect()
-  }, [card])
+  }, [card, step, order.updated_at, paying])
 
   if (!step) return null
   const { busy, change, move } = actions
@@ -51,13 +56,13 @@ export function PinnedStep({
     case 'accept':
       buttons = (
         <>
-          <Button variant="quietDanger" disabled={busy} onClick={(e) => move('rejected', e.currentTarget)}>
+          <Button variant="danger" disabled={busy} onClick={() => move('rejected')}>
             {o.action.rejected}
           </Button>
           <Button
             loading={change.isPending && change.variables === 'accepted'}
             disabled={busy}
-            onClick={(e) => move('accepted', e.currentTarget)}
+            onClick={() => move('accepted')}
             className="flex-1"
           >
             {o.action.accepted}
@@ -104,7 +109,7 @@ export function PinnedStep({
         <Button
           loading={change.isPending && change.variables === 'completed'}
           disabled={busy}
-          onClick={(e) => move('completed', e.currentTarget)}
+          onClick={() => move('completed')}
           className="flex-1"
         >
           {o.action.completed}
@@ -113,7 +118,7 @@ export function PinnedStep({
       break
   }
   // Not while the Mark paid form is open: that's where the next tap goes.
-  const show = past && !paying
+  const show = hidden && !paying
   return (
     <div
       inert={!show}
