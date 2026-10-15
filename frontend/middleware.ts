@@ -4,7 +4,9 @@
  * code as functions/shop/[[path]].ts. What it does: linkPreview.ts.
  */
 import { next } from '@vercel/functions'
-import { isPreviewBot, previewResponse } from './linkPreview.ts'
+// ".js", not ".ts": Vercel compiles each file to .js without bundling, so a
+// ".ts" import points at a file that isn't there and every /shop/* page fails.
+import { isPreviewBot, previewResponse } from './linkPreview.js'
 
 export const config = { matcher: '/shop/:path*' }
 
