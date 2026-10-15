@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-15 (shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-15 (seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -873,6 +873,43 @@ during the trial); a custom domain is logged as a later paid extra (03
       empty for "សុខា", and keeps what the seller typed.
 - [x] 8 new pytest tests (`tests/test_store_links.py`, with tenant
       isolation of old links); 689 in all. Lint and build pass.
+
+**Seller's order page redesign (founder's picks 1A 2A 3A 4A 5A 6A,
+2026-10-15; not pushed):** from an options page that started from
+today's page and its problems (a new order showed ten buttons for one
+decision; the total, method and "Delivered" twice; "Delivered" as the
+big button while the customer said they'd paid). Also the founder's rule
+from the same review: red and amber on the words only, no tinted boxes,
+pills or borders (this page; other screens still have some, ask first).
+
+- [x] **One status card** (`fe87b1c`, 1A): the To do card, the status strip
+      and the Delivery and Payment cards are one card with a row each for
+      the order, the delivery and the payment, each with its own
+      buttons. The row waiting on the seller is shaded with the dark
+      button, in the order a seller works: accept; a payment the customer
+      says they made; send to a driver; deliver; complete. A new order
+      shows only Reject / Accept. Short path kept: Delivered (cash:
+      "Delivered, cash received") works without assigning anyone.
+- [x] **The customer's name as the title** (2A), the number bold under it
+      with the time and total (founder asked for the number bolder).
+- [x] **Items, then one customer card** (3A): Call and Copy beside the
+      phone, then the address, note and map. The customer's note is a
+      grey message bubble above the items ("Sreymom Chan wrote"),
+      recommended 7A, in place until the founder picks from 7A / 7B / 7C.
+- [x] **Send to driver in one step** (4A): a sheet with the message,
+      "Driver's name and phone number (optional)" (founder's wording),
+      Send (shares or copies, then records the delivery as assigned) and
+      "Save without sending".
+- [x] **⋯ menu** (5A): Cancel order, Delivery failed, Payment failed, Not
+      paid after all.
+- [x] **Pinned button on phones** (`9612b15`, 6A): once the status card
+      scrolls away, the shaded row's buttons slide up at the bottom.
+- [x] Checked in headless Chromium against the local API: phone (English
+      and Khmer, light and dark) and laptop; #1004 walked through Mark
+      paid with a note, Send to driver (message copied, assigned with the
+      driver's name), Delivered, Complete; the menu, the sheet and the
+      pinned button. No console errors. Frontend only: no API change, no
+      migration; lint and build pass.
 
 ---
 
@@ -2020,6 +2057,11 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
+0000000000. **Seller's order page redesign** (built, not pushed). Founder:
+        pick the customer's note design (7A, 7B or 7C on the options
+        page; 7A is in for now), then push and open a few orders on your
+        phone: a new one, one where the customer says they paid, and a
+        cash order with a driver.
 000000000. **Customer updates on Telegram** (built, not pushed). Founder:
         push when ready, then on the live site place an order, tap "Get
         updates on Telegram", share your number with the bot, and move
