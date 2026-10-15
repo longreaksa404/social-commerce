@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-15 (wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -818,6 +818,37 @@ pushed):**
       another shop's or a hidden product 404, only our own photos
       fetched); 618 in all. Lint and build pass.
 
+**Wrong or fake customer phones (founder's picks 2026-10-15; not pushed):**
+
+- [x] Part 1: under the checkout's phone field, the number is read back
+      once it's whole ("The seller will call 012 345 678. Check it's
+      right…"); a number no Cambodian mobile or landline starts like
+      gets an amber warning (it doesn't block; the API still decides).
+      `frontend/src/lib/phone.ts`.
+- [x] Part 2: "Get updates on Telegram" on the customer's order page
+      while it's in progress. The customer opens Oak's bot, taps Share
+      my phone number (the bot says the shop will see it), and gets a
+      Khmer message with a View order button when the seller confirms,
+      packs, sends, rejects or cancels the order, when the delivery is
+      on the way, delivered or failed, and when a KHQR / transfer
+      payment is recorded paid (never the same thing twice; nothing for
+      preparing, completing, assigning a driver or cash). Later orders
+      from that phone at that shop get updates too. The seller's order
+      shows "Phone confirmed in Telegram", or the Telegram number when
+      it's another one (founder's pick: still send updates, show it as a
+      second number). New column `customer.telegram_phone` (migration
+      `c3f8a1d6e2b4`); `customer.telegram_user_id` is now written.
+      Blocking the bot stops the updates. `forget-customer` clears both.
+      Privacy page updated (2026-10-15).
+- [x] Checked: the bot flow through the local webhook with a stand-in
+      bot (start, share another number, the order page turns to "You'll
+      get updates", the seller sees 097 123 4567); screenshots of both
+      pages at iPhone width. Not yet tried in real Telegram.
+- [x] 23 new pytest tests (`tests/test_customer_updates.py`: codes,
+      the link needs the order's phone and the bot, the same phone in
+      two shops (tenant isolation), each tap's message, a blocked bot);
+      the suite passes. Lint and build pass.
+
 ---
 
 ## In Progress
@@ -1569,7 +1600,12 @@ Resolved:
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
 
-Nothing waiting: everything decided is in 01/02/03.
+Customer phones (2026-10-15, founder): the checkout reads the phone back;
+customers can get order updates on Telegram, which proves their number;
+a different Telegram number still gets updates and shows to the seller
+(`customer.telegram_phone`). Waiting for the founder to apply to 01 and
+02 (text given in the session): 01 §19/§27, 02 §5 `customer`, §6 API,
+§12.
 
 Subscription billing: by hand until PayWay (2026-10-14, founder):
 sellers pay Oak by KHQR or bank transfer to Oak's account; the founder
@@ -1945,6 +1981,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 | Date | Source | Request | Status |
 |---|---|---|---|
+| 2026-10-15 | Founder (customers giving wrong or fake phones) | Seller tools against fake orders: "Couldn't reach the customer" when cancelling, a "No cash on delivery" / block mark on a customer | Validate First: build when a seller gets a fake order. Parts 1 and 2 built instead. Details in 03 §6. |
 | 2026-10-10 | Founder (Oak in the shop) | Let sellers on a paid plan hide "Made with Oak Order" | Decided 2026-10-14: the line stays on the Standard plan; hiding it may come with a later plan (01 §33.1). Details in 03 §6. |
 | 2026-10-09 | Founder (trying the numbers card locally) | A seller dashboard: a page for the shop's numbers, with the chart (sales per day; today, 7 days, this month) | Later: the page first, then the chart on it. The server part is ready (`GET /seller/stats`, owner only). Details in 03 §6. |
 | 2026-10-08 | Founder (Settings) | Plan and billing page: the seller's plan, price, paid-until date, how to pay Oak Order | Built 2026-10-14, not pushed: part 1 (trial, Settings → Plan, no new orders when unpaid) and part 2 by hand (the shop's code, Oak's KHQR, "I've paid", the admin page, reminders). ABA PayWay parked on branch `payway` (03 §6). |
@@ -1955,6 +1992,12 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
+000000000. **Customer updates on Telegram** (built, not pushed). Founder:
+        push when ready, then on the live site place an order, tap "Get
+        updates on Telegram", share your number with the bot, and move
+        the order along from the dashboard: each step should arrive in
+        Telegram, and the order should show "Phone confirmed in
+        Telegram". No new variables (it uses the same bot).
 0000000. **Hand collection** (built, not pushed; In Progress, "Plan and
         billing" 4). Founder:
         1. Render variables: `OAK_KHQR_ACCOUNT=abaakhppxxx@abaa`,

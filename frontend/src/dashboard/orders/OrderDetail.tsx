@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Copy, Link2, LoaderCircle, MapPin, MapPinned, MessageSquareText, MessagesSquare, Phone, Plus, Send, ShoppingBag, Truck, Wallet, XCircle } from 'lucide-react'
+import { ChevronDown, ChevronRight, CircleCheck, Copy, Link2, LoaderCircle, MapPin, MapPinned, MessageSquareText, MessagesSquare, Phone, Plus, Send, ShoppingBag, Truck, Wallet, XCircle } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { buzz } from '../../components/effects.ts'
@@ -499,6 +499,33 @@ function ItemsCard({ order }: { order: Order }) {
   )
 }
 
+/** What the customer's Telegram proved (they asked for updates there):
+ * this number, or another one of theirs, which is worth a call too. */
+function TelegramPhone({ customer }: { customer: Order['customer'] }) {
+  const o = useT().orders
+  if (customer.telegram_phone === null) return null
+  if (customer.telegram_phone === customer.phone) {
+    return (
+      <p className="flex items-center gap-1.5 text-sm text-emerald-700">
+        <CircleCheck aria-hidden className="size-4" />
+        {o.phoneConfirmed}
+      </p>
+    )
+  }
+  return (
+    <div>
+      <a
+        href={`tel:${customer.telegram_phone}`}
+        className="-mx-2 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
+      >
+        <Send aria-hidden className="size-4" />
+        {formatPhone(customer.telegram_phone)}
+      </a>
+      <p className="text-xs text-slate-500">{o.telegramPhone}</p>
+    </div>
+  )
+}
+
 function CustomerCard({ order }: { order: Order }) {
   const o = useT().orders
   return (
@@ -522,6 +549,7 @@ function CustomerCard({ order }: { order: Order }) {
         <Phone aria-hidden className="size-4" />
         {formatPhone(order.customer.phone)}
       </a>
+      <TelegramPhone customer={order.customer} />
       {/* An order from a chat: the customer hasn't seen the order page,
           where they follow it and see how to pay (KHQR, bank). */}
       {order.source === 'chat' && <CopyOrderLink order={order} />}

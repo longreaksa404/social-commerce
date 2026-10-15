@@ -316,6 +316,7 @@ async def forget_customer(slug: str, phone: str) -> int:
         customer.phone = f"removed-{customer.id.hex[:8]}"
         customer.address = None
         customer.telegram_user_id = None
+        customer.telegram_phone = None
         await db.execute(
             update(Order)
             .where(Order.customer_id == customer.id)

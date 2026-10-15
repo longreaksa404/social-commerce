@@ -11,6 +11,7 @@ import type {
   ShopProduct,
   ShopProductCard,
   ShopStore,
+  TelegramUpdatesLink,
 } from '../lib/types.ts'
 
 // Public storefront data: no login, so `auth: false`. A minute of
@@ -123,6 +124,34 @@ export function useTrackOrder(slug: string, orderId: string, phone: string | nul
     refetchInterval: (query) => (query.state.data && inProgress(query.state.data) ? TRACK_REFRESH_MS : false),
     refetchOnWindowFocus: true,
   })
+}
+
+// Fetched ahead so "Get updates on Telegram" is a plain link: a phone
+// browser blocks opening a new tab after waiting for a request. The code in
+// it works for 30 minutes.
+const TELEGRAM_LINK_REFRESH_MS = 20 * 60_000
+// While the customer is off in Telegram sharing their number, check often.
+const TELEGRAM_POLL_MS = 3_000
+
+/** The bot's link for this order while `wanted`, and quicker checks of
+ * the order while `waiting` for the customer to finish in Telegram. */
+export function useTelegramUpdates(slug: string, orderId: string, phone: string, wanted: boolean, waiting: boolean) {
+  const link = useQuery({
+    queryKey: ['shop', slug, 'order', orderId, phone, 'telegram'],
+    queryFn: () =>
+      api<TelegramUpdatesLink>(`${shopPath(slug)}/orders/${encodeURIComponent(orderId)}/telegram`, {
+        method: 'POST',
+        body: { phone },
+        auth: false,
+      }),
+    enabled: wanted,
+    staleTime: TELEGRAM_LINK_REFRESH_MS,
+    refetchInterval: TELEGRAM_LINK_REFRESH_MS,
+    retry: false,
+  })
+  // Same data as the page's order query; this one only adds the polling.
+  useQuery({ ...trackOrder(slug, orderId, phone), enabled: waiting, refetchInterval: TELEGRAM_POLL_MS })
+  return link
 }
 
 export type MyOrder = PlacedOrder & {

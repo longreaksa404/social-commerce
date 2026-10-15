@@ -121,6 +121,7 @@ Render's health check.
 | Khmer / English switch | DONE | `frontend/src/i18n/`. The founder hasn't reviewed the Khmer yet; the Telegram bot's messages are Khmer only (2026-10-09) |
 | Light / dark mode | DONE | `src/theme/`, `index.css`, the inline script in `index.html` |
 | Small photo copies | DONE | `-m` / `-s.jpg` naming, `thumbnail_size` on the images endpoint |
+| Wrong or fake customer phones (founder's picks 2026-10-15) | DONE (bot flow tested through the local webhook, not yet in real Telegram) | Checkout reads the number back (`lib/phone.ts`); "Get updates on Telegram" on the order page (`POST /shop/{slug}/orders/{id}/telegram`, `services/customer_updates.py`, `customer.telegram_user_id` / `telegram_phone`); the seller's order shows "Phone confirmed in Telegram" or the other number; migration `c3f8a1d6e2b4`; `tests/test_customer_updates.py`. Seller tools against fake orders: 03 §6 log |
 | Plan and billing part 2, hand collection (founder, 2026-10-14; PayWay parked on the `payway` branch) | DONE | The shop's code (`plan.shop_code`) and Oak's KHQR / bank account on Settings → Plan (`OAK_*`), "I've paid" (`POST /seller/plan/paid`, a Telegram alert to the founder), the admin page (confirm / not found / mark paid), daily Telegram reminders on day 1 and day 5 (`POST /billing/run`); migration `b7e2c4a9d1f3`; `tests/test_billing.py`. App: `settings/PlanPage.tsx`, `dashboard/admin/`, `Reminder.tsx`, `lib/khqrImage.ts` |
 | Plan and billing, part 1 (pricing decided 2026-10-14, 01 §33.1) | DONE | `store.paid_until`, `plan_payment`, `services/plan.py`, `GET /seller/plan`, checkout refuses new orders 7 days after the trial or paid time runs out, `python -m app.admin paid` / `plans`; migration `d450a35183c0`. Frontend: Settings → Plan (`settings/PlanPage.tsx`), the Plan row in the Settings menu, `PlanReminder` on the Orders tab and New order (`dashboard/Reminder.tsx`), the price under Create store (`pages/AgreeLine.tsx`), the Terms' Fees. Part 2 (paying in the app through a gateway) waits for the founder's merchant account |
 | Nightly DB backup to R2 | PARTIAL | `.github/workflows/backup.yml` exists but skips until its five secrets are set (04: not set yet) |
@@ -243,8 +244,9 @@ Backend modules, one line each:
 | `services/export.py` | The orders export: a .xlsx with one row per order (XlsxWriter, write-only), headings and statuses in English or Khmer |
 | `services/customer.py` | Customer list with search, detail with history, "spent" per currency |
 | `services/notifications.py` | Web notification rows, Telegram alert text and sending, the low-stock rule |
-| `services/telegram.py` | Bot API over httpx, webhook registration, signed link codes, `/start` handling, the phone check's share button and shared contact |
-| `services/phone_check.py` | Proving a phone number through the bot: `create`, `get`, `describe` (with `taken`), `use` (once, in the caller's commit); the bot's side `opened` / `shared` |
+| `services/telegram.py` | Bot API over httpx, webhook registration, signed link codes, `/start` handling (a store's code, `phone_…`, or a customer's `o…`), the share button and shared contact |
+| `services/customer_updates.py` | Customers' "Get updates on Telegram": signed `o` + 59-character start codes (store id, order id, 30 min), `opened` (a `phone_check` row with that code holds who opened it), `confirmed` (chat and number onto the shop's `customer` row), `news` (what a seller's tap tells the customer, in the order page's Khmer: never twice for the same thing, nothing for processing / completed / assigned / cash), `notify` (BackgroundTask after the seller's status, payment, delivery and cash-handover endpoints; a blocked bot clears the chat) |
+| `services/phone_check.py` | Proving a phone number through the bot: `create`, `get`, `describe` (with `taken`), `use` (once, in the caller's commit); the bot's side `opened` / `shared` (returns the finished check, a seller's or a customer's) |
 | `services/link.py` | Shareable links, stats, view recording (background), order events |
 | `services/phone.py` | `normalize_phone` (Cambodian → `0XXXXXXXX`), search terms |
 | `services/slugs.py` | `slugify` (random 6-hex for non-Latin names), `unique_slug` |
@@ -672,7 +674,7 @@ Mixins (`app/db/base.py`):
 | `category` | yes | `name`, `slug` String(64), `created_at` | none besides `store_id` | UNIQUE (`store_id`, `slug`) |
 | `product` | yes | `name`, `slug`, `description`, `price` Numeric(12,2), `image_urls` JSONB list, `status` (`active`/`inactive`), `has_variants`, `stock_quantity` int NULL (only when no variants), `created_at`, `updated_at` | `category_id → category` ON DELETE SET NULL | UNIQUE (`store_id`, `slug`); (`store_id`, `status`); (`store_id`, `category_id`); CHECK `price >= 0`; CHECK stock NULL or ≥0 |
 | `product_variant` | yes (store_id copied from product) | `name` (e.g. "Red / L"), `sku`, `price_override` NULL, `stock_quantity` int default 0, `created_at` | `product_id → product` CASCADE | (`store_id`, `product_id`); CHECK price_override NULL or ≥0; CHECK stock ≥0 |
-| `customer` | yes | `name` (latest order's), `phone` (normalized), `address` (latest delivery address), `telegram_user_id` (never written), `created_at` | none | UNIQUE (`store_id`, `phone`) |
+| `customer` | yes | `name` (latest order's), `phone` (normalized), `address` (latest delivery address), `telegram_user_id` (the customer's chat for order updates, set by "Get updates on Telegram", cleared when they block the bot), `telegram_phone` (the number their Telegram shared, normalized; kept after a block), `created_at` | none | UNIQUE (`store_id`, `phone`) |
 | `order` | yes | `number` int (from 1001 per store), `status`, `currency` (copied from store), `subtotal`, `discount`, `delivery_fee`, `total`, `delivery_method`, `delivery_address`, `delivery_lat`/`delivery_lng` Numeric(9,6), `delivery_address_note`, `source` (link's source, or `chat` for an order the seller added; links can't be named "chat"), `notes`, `created_at`, `updated_at` | `customer_id → customer` (no cascade) | UNIQUE (`store_id`, `number`); (`store_id`, `status`); (`store_id`, `created_at`); (`store_id`, `customer_id`); CHECK lat/lng both or neither; CHECK all four money columns ≥0 |
 | `order_item` | yes (store_id copied from order) | `product_name_snapshot`, `variant_name_snapshot`, `unit_price_snapshot`, `quantity`, `line_total` (no timestamps) | `order_id → order` CASCADE; `product_id → product` (no cascade; products are never deleted); `variant_id → product_variant` ON DELETE SET NULL | (`store_id`, `order_id`); (`variant_id`); CHECK quantity >0; CHECK unit price ≥0 |
 | `payment` | yes (store_id copied from order) | `method` (`cod`/`bank_transfer`/`khqr`), `status` (`pending`/`paid`/`failed`/`refunded`, default pending), `amount` (= order total), `reference` (seller's note), `paid_at`, `created_at` | `order_id → order` CASCADE, **unique** (1:1) | CHECK amount ≥0 |
@@ -768,7 +770,8 @@ cleared) → `4520c66e86de` seller_login, password_hash nullable →
 `39a133fd8c02` seller_login.name, facebook and tiktok → `d450a35183c0`
 store.paid_until (existing shops: 30 days from that day) + plan_payment
 (RLS, `app_user` SELECT only) → `b7e2c4a9d1f3` plan_payment status
-(the seller's "I've paid"), failure, dates set when paid (**head**). (On
+(the seller's "I've paid"), failure, dates set when paid → `c3f8a1d6e2b4`
+customer.telegram_phone (**head**). (On
 the `payway` branch the head is `747c15ec63b4` instead.)
 
 ---
@@ -971,7 +974,7 @@ from the schema.
 | GET | `/seller/orders` | seller | `?status=` (repeatable) `&created_from=&created_to=&limit=1..100(50)&offset=` | `OrderListOut` | By number desc; `counts` per status ignore the status filter; each row leads with its biggest line (`first_item_name`, `line_count`, `first_item_image_url`: that product's photo now), also on a customer's and a link's orders |
 | GET | `/seller/orders/export` | seller | `?first=&last=` (dates, Phnom Penh days, both included) `&lang=en\|km` | `.xlsx` file | One row per order, oldest first: number, date, customer, phone (as text), items, the four amounts (number format per currency), payment, delivery, statuses, address, source, note; frozen, filterable heading row. Over a year or ending before it starts → 422 `INVALID_DATE_RANGE`. Declared before `/{order_id}` |
 | GET | `/seller/orders/{order_id}` | seller | — | `OrderOut` | With `next_statuses` on order, payment, delivery; each item carries its product's current first photo (`image_url`, as on the shop's order page; also on the three PATCHes below) |
-| PATCH | `/seller/orders/{order_id}/status` | seller | `OrderStatusUpdate` | `OrderOut` | §6 |
+| PATCH | `/seller/orders/{order_id}/status` | seller | `OrderStatusUpdate` | `OrderOut` | §6. This and the next three tell a customer with Telegram updates after the response (`customer_updates.notify`) |
 | PATCH | `/seller/orders/{order_id}/payment` | seller | `PaymentUpdate` | `OrderOut` | §6 |
 | PATCH | `/seller/orders/{order_id}/delivery` | seller | `DeliveryUpdate` | `OrderOut` | §6 |
 | POST | `/seller/orders/{order_id}/cash-handover` | seller | — | `OrderOut` | Cash on delivery: delivery delivered + payment paid, both or neither (§6) |
@@ -988,11 +991,12 @@ from the schema.
 | GET | `/shop/{store_slug}/products/{product_slug}` | public | — | `ShopProductOut` | Variants with effective price and stock |
 | GET | `/shop/{store_slug}/categories/{category_slug}` | public | — | `ShopCategoryPageOut` | |
 | POST | `/shop/{store_slug}/orders` | public | `OrderCreate` | `ShopOrderOut` (201) | Guest checkout; 409 `ORDERS_PAUSED` while paused; +10/min; Telegram alert in background |
-| GET | `/shop/{store_slug}/orders/{order_id}` | public | `?phone=` (≤32) | `ShopOrderOut` | 404 unless phone matches (any spelling); includes how to pay while pending; each item carries its product's current first photo (`image_url`, not a snapshot) |
+| GET | `/shop/{store_slug}/orders/{order_id}` | public | `?phone=` (≤32) | `ShopOrderOut` | 404 unless phone matches (any spelling); includes how to pay while pending; each item carries its product's current first photo (`image_url`, not a snapshot); `telegram_updates` `unavailable` / `off` / `on` |
 | POST | `/shop/{store_slug}/track-view` | public | `TrackViewIn` (`token`) | 204 | View written in background; unknown token ignored; +60/min |
 | GET | `/shop/{store_slug}/preview/logo` | public | `?v=` (ignored; changes with the photo) | JPEG, or 302 | og:image for a shop link (`frontend/middleware.ts`, founder's pick 5B): the logo with our mark bottom right; no logo, or the photo can't be read: 302 to the app's `/og/oak-mark.png` (`PUBLIC_APP_URL`). `Cache-Control` one day; +30/min |
 | GET | `/shop/{store_slug}/preview/products/{product_slug}` | public | `?v=` | JPEG 1200 × 630, or 302 | og:image for a product (or category) link: the first photo with our mark; 404 for another shop's or a hidden product; no photo: as `/preview/logo`; +30/min |
 | POST | `/shop/{store_slug}/orders/{order_id}/paid` | public | `PaymentClaimIn` (`phone`) | 204 | "I've paid" (founder's pick 6B): the order link + phone like tracking (404 otherwise); 409 `NOTHING_TO_PAY` unless a pending KHQR / bank payment on an order that's on. Saves a web `payment_claimed` row and sends a Telegram alert in the background, not again within 30 min; the payment stays pending. +10/min |
+| POST | `/shop/{store_slug}/orders/{order_id}/telegram` | public | `TelegramUpdatesIn` (`phone`) | `TelegramUpdatesOut` (`telegram_url`, `expires_at`) | "Get updates on Telegram": the order link + phone like tracking (404 otherwise); 503 `TELEGRAM_NOT_CONFIGURED` without the bot. The page asks for it as it opens, so +30/min |
 | POST | `/billing/run` | header `X-Cron-Secret` | — | 202 `{"started": true}` | The daily payment reminders, after the response (cron-job.org); wrong or no secret → 404; hidden |
 | POST | `/telegram/webhook` | header `X-Telegram-Bot-Api-Secret-Token` | Telegram update (raw dict) | Bot API method call as JSON, or `{}` | 404 if the secret is wrong or the bot is off |
 
@@ -1063,7 +1067,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/shop/:storeSlug/product/:productSlug` | `ShopProduct` | |
 | `/shop/:storeSlug/category/:categorySlug` | `ShopCategory` | A tab of the same page as `ShopHome` (`handle: { page: 'products' }`): switching between All and a category doesn't fade the page in |
 | `/shop/:storeSlug/cart` (`/checkout` forwards here) | `ShopCheckout` (with `CartItems` / `EmptyCart` from `ShopCart.tsx`) | The cart and checkout on one page (redesign 2026-10-06). Under the phone field, `PhoneHint` reads the number back ("The seller will call 012 345 678") or warns about an unusual prefix (2026-10-15) |
-| `/shop/:storeSlug/order/:orderId` | `ShopOrderPage` | Confirmation + tracking |
+| `/shop/:storeSlug/order/:orderId` | `ShopOrderPage` | Confirmation + tracking. While in progress, the status card has "Get updates on Telegram" (`TelegramUpdates`: the link fetched ahead with `useTelegramUpdates`, a plain `t.me` link; after the tap the order is checked every 3 s until `on`), then "You'll get updates on Telegram". The seller's order shows `TelegramPhone` under the customer's phone |
 | `/shop/:storeSlug/orders` | `ShopOrders` | Orders placed on this device |
 | `*` | redirect to `/` | |
 

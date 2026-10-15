@@ -231,6 +231,12 @@ export const orders = {
   noteFromCustomer: { en: 'Note from the customer: ', km: 'ចំណាំពីអតិថិជន៖ ' },
   customer: { en: 'Customer', km: 'អតិថិជន' },
   viewCustomer: { en: 'View customer', km: 'មើលអតិថិជន' },
+  // The customer shared their Telegram number for updates (2026-10-15).
+  phoneConfirmed: { en: 'Phone confirmed in Telegram', km: 'លេខនេះបានផ្ទៀងផ្ទាត់ក្នុង Telegram' },
+  telegramPhone: {
+    en: "Their Telegram number, not the order's",
+    km: 'លេខ Telegram របស់គាត់ មិនមែនលេខក្នុងការកុម្ម៉ង់ទេ',
+  },
   deliverTo: { en: 'Deliver to', km: 'ដឹកទៅ' },
   note: { en: 'Note: ', km: 'ចំណាំ៖ ' },
   openMaps: { en: 'Open in Google Maps', km: 'បើកក្នុង Google Maps' },

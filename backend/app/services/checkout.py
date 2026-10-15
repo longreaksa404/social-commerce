@@ -15,6 +15,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.config import get_settings
 from app.core.errors import AppError, NotFound
 from app.models import (
     Customer,
@@ -261,8 +262,13 @@ async def shop_order_out(db: AsyncSession, store: Store, order: Order) -> ShopOr
     )
     payment = payment_service.shop_payment_out(store, order)
     payment.claimed_at = await notifications.last_payment_claim(db, store.id, order.id)
+    if order.customer.telegram_user_id is not None:
+        telegram_updates = "on"
+    else:
+        telegram_updates = "off" if get_settings().telegram_configured else "unavailable"
     return out.model_copy(
         update={
+            "telegram_updates": telegram_updates,
             "items": [
                 item.model_copy(update={"image_url": photos.get(item.product_id)})
                 for item in out.items

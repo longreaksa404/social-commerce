@@ -4,7 +4,7 @@ seller or other customers' details); the rest are for the seller."""
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstraints
 
@@ -120,6 +120,22 @@ class ShopOrderOut(BaseModel):
     items: list[ShopOrderItemOut]
     payment: ShopPaymentOut
     delivery: ShopDeliveryOut
+    # "Get updates on Telegram" (app/services/customer_updates.py): "on"
+    # once the customer shared their Telegram number, "off" before, and
+    # "unavailable" without the bot. Only set for the customer's page.
+    telegram_updates: Literal["unavailable", "off", "on"] = "unavailable"
+
+
+class TelegramUpdatesIn(BaseModel):
+    """ "Get updates on Telegram", from the order page: the phone it was
+    placed with, as for tracking."""
+
+    phone: Annotated[str, StringConstraints(max_length=32)]
+
+
+class TelegramUpdatesOut(BaseModel):
+    telegram_url: str  # t.me/<bot>?start=o<code>
+    expires_at: datetime
 
 
 class CustomerOut(BaseModel):
@@ -128,6 +144,9 @@ class CustomerOut(BaseModel):
     id: uuid.UUID
     name: str
     phone: str
+    # The number the customer's Telegram shared, when they get updates
+    # there: the order's phone (confirmed) or another of theirs.
+    telegram_phone: str | None = None
     address: str | None
 
 

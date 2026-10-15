@@ -61,6 +61,20 @@ export const order = {
   },
   // Under the progress list while the page checks for changes by itself.
   updated: { en: (time: string) => `Updated ${time}`, km: (time: string) => `ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ ${time}` },
+  // "Get updates on Telegram" (2026-10-15). The bot's messages name the
+  // button in Khmer (backend app/services/customer_updates.py).
+  telegram: {
+    get: { en: 'Get updates on Telegram', km: 'ទទួលដំណឹងតាម Telegram' },
+    hint: {
+      en: 'A message when the seller confirms, sends, or delivers your order.',
+      km: 'ទទួលសារ ពេលអ្នកលក់បញ្ជាក់ ផ្ញើ ឬដឹកការកុម្ម៉ង់របស់អ្នកដល់។',
+    },
+    waiting: {
+      en: 'In Telegram, tap Start, then Share my phone number.',
+      km: 'នៅក្នុង Telegram សូមចុច Start រួចចុច “ចែករំលែកលេខទូរស័ព្ទ”។',
+    },
+    on: { en: "You'll get updates on Telegram.", km: 'អ្នកនឹងទទួលដំណឹងតាម Telegram។' },
+  },
   notPaidYet: { en: 'Not paid yet', km: 'មិនទាន់បង់' },
   askAboutOn: {
     en: (app: string) => `Ask about this order: ${app}`,

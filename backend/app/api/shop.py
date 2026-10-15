@@ -9,9 +9,16 @@ from fastapi.responses import RedirectResponse
 
 from app.api.deps import Shop, ShopDb
 from app.core.config import get_settings
+from app.core.errors import AppError
 from app.core.ratelimit import check_limit, limiter
 from app.schemas.link import TrackViewIn
-from app.schemas.order import OrderCreate, PaymentClaimIn, ShopOrderOut
+from app.schemas.order import (
+    OrderCreate,
+    PaymentClaimIn,
+    ShopOrderOut,
+    TelegramUpdatesIn,
+    TelegramUpdatesOut,
+)
 from app.schemas.storefront import (
     ShopCategoryPageOut,
     ShopProductCard,
@@ -19,8 +26,8 @@ from app.schemas.storefront import (
     ShopStoreOut,
 )
 from app.services import checkout as checkout_service
+from app.services import customer_updates, notifications
 from app.services import link as link_service
-from app.services import notifications
 from app.services import preview as preview_service
 from app.services import storefront as storefront_service
 
@@ -33,6 +40,9 @@ SHOP_RATE_LIMIT = "300/minute"
 ORDER_RATE_LIMIT = "10/minute"
 # Per IP, for "I've paid": each one can alert a seller.
 CLAIM_RATE_LIMIT = "10/minute"
+# Per IP, for "Get updates on Telegram": the order page asks for the link
+# as it opens (so the button is a plain link), not on a tap.
+TELEGRAM_RATE_LIMIT = "30/minute"
 # Per IP, for counting link views. The app counts a link once per device
 # per half hour, so this only stops someone inflating a seller's numbers.
 VIEW_RATE_LIMIT = "60/minute"
@@ -60,6 +70,10 @@ async def _view_rate_limit(request: Request) -> None:
 
 async def _claim_rate_limit(request: Request) -> None:
     check_limit(CLAIM_RATE_LIMIT, "payment-claim", request)
+
+
+async def _telegram_rate_limit(request: Request) -> None:
+    check_limit(TELEGRAM_RATE_LIMIT, "telegram-updates", request)
 
 
 async def _preview_rate_limit(request: Request) -> None:
@@ -135,6 +149,24 @@ async def say_paid(
     again within 30 minutes); the payment stays pending until they check."""
     if await checkout_service.claim_payment(db, shop, order_id, data.phone):
         background.add_task(notifications.notify_payment_claimed, shop.id, order_id)
+
+
+@router.post(
+    "/orders/{order_id}/telegram",
+    response_model=TelegramUpdatesOut,
+    dependencies=[Depends(_telegram_rate_limit)],
+)
+async def telegram_updates(
+    order_id: uuid.UUID, data: TelegramUpdatesIn, shop: Shop, db: ShopDb
+) -> TelegramUpdatesOut:
+    """ "Get updates on Telegram" (founder's pick 2026-10-15): with the
+    order's link and phone, like tracking, a link that opens the bot. The
+    customer shares their number there (app/services/customer_updates.py)."""
+    if not get_settings().telegram_configured:
+        raise AppError(503, "TELEGRAM_NOT_CONFIGURED", "Updates on Telegram are off.")
+    order = await checkout_service.track_order(db, shop.id, order_id, data.phone)
+    url, expires_at = customer_updates.link(shop.id, order.id)
+    return TelegramUpdatesOut(telegram_url=url, expires_at=expires_at)
 
 
 @router.post(

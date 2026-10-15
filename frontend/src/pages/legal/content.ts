@@ -13,7 +13,7 @@ export type Block = string | string[]
 export type LegalPage = { title: string; intro: string; sections: { heading: string; body: Block[] }[] }
 
 // Change it with the text.
-export const UPDATED = '2026-10-14'
+export const UPDATED = '2026-10-15'
 
 const en: Record<LegalDoc, LegalPage> = {
   privacy: {
@@ -38,6 +38,7 @@ const en: Record<LegalDoc, LegalPage> = {
         body: [
           [
             "Their name, phone number, delivery address, the map location if they share it, their notes, and what they ordered. The shop sees these to deliver the order. Each shop's customers are kept apart from every other shop's.",
+            "If they ask for updates on Telegram, their chat with our Telegram bot and the phone number their Telegram shares, which the shop sees too. Blocking the bot stops the updates.",
             "On the customer's own phone, not on our servers, the app remembers their name, phone, cart and recent orders, so their next order is quicker.",
             "When someone opens a shop through a shared link, we only count the visit. We don't record who they are.",
           ],
@@ -58,7 +59,7 @@ const en: Record<LegalDoc, LegalPage> = {
             'Neon: our database (Singapore).',
             'Vercel: the website.',
             'Cloudflare: the domain, photo storage and nightly backups.',
-            'Telegram: order alerts and phone number checks.',
+            'Telegram: order alerts, customers\' order updates, and phone number checks.',
             'Sentry: reports when something breaks, so we can fix it.',
             'Google, Facebook and TikTok: only when you choose to log in with them.',
           ],
@@ -218,6 +219,7 @@ const km: Record<LegalDoc, LegalPage> = {
         body: [
           [
             'ឈ្មោះ លេខទូរស័ព្ទ អាសយដ្ឋានដឹកជញ្ជូន ទីតាំងលើផែនទីបើពួកគេចែករំលែក កំណត់ចំណាំ និងអ្វីដែលពួកគេកុម្ម៉ង់។ ហាងឃើញព័ត៌មានទាំងនេះ ដើម្បីដឹកការកុម្ម៉ង់។ អតិថិជនរបស់ហាងនីមួយៗត្រូវបានរក្សាដាច់ដោយឡែកពីហាងផ្សេងទៀត។',
+            'បើពួកគេស្នើទទួលដំណឹងតាម Telegram ការឆាតរបស់ពួកគេជាមួយ bot Telegram របស់យើង និងលេខទូរស័ព្ទដែល Telegram របស់ពួកគេចែករំលែក ដែលហាងក៏ឃើញដែរ។ ការបិទ (block) bot បញ្ឈប់ដំណឹងទាំងនេះ។',
             'នៅលើទូរស័ព្ទរបស់អតិថិជនផ្ទាល់ មិនមែននៅលើម៉ាស៊ីនមេរបស់យើងទេ កម្មវិធីចងចាំឈ្មោះ លេខទូរស័ព្ទ កន្ត្រក និងការកុម្ម៉ង់ថ្មីៗ ដើម្បីឱ្យការកុម្ម៉ង់លើកក្រោយលឿនជាងមុន។',
             'ពេលនរណាម្នាក់បើកហាងតាមតំណដែលបានចែករំលែក យើងគ្រាន់តែរាប់ការចូលមើលប៉ុណ្ណោះ។ យើងមិនកត់ត្រាថាពួកគេជានរណាទេ។',
           ],
@@ -238,7 +240,7 @@ const km: Record<LegalDoc, LegalPage> = {
             'Neon៖ មូលដ្ឋានទិន្នន័យរបស់យើង (សិង្ហបុរី)។',
             'Vercel៖ គេហទំព័រ។',
             'Cloudflare៖ ដែន ទីផ្ទុករូបថត និងការបម្រុងទុករៀងរាល់យប់។',
-            'Telegram៖ ការជូនដំណឹងការកុម្ម៉ង់ និងការផ្ទៀងផ្ទាត់លេខទូរស័ព្ទ។',
+            'Telegram៖ ការជូនដំណឹងការកុម្ម៉ង់ ដំណឹងការកុម្ម៉ង់សម្រាប់អតិថិជន និងការផ្ទៀងផ្ទាត់លេខទូរស័ព្ទ។',
             'Sentry៖ របាយការណ៍ពេលមានអ្វីខូច ដើម្បីឱ្យយើងជួសជុលបាន។',
             'Google, Facebook និង TikTok៖ តែពេលអ្នកជ្រើសចូលគណនីតាមពួកវាប៉ុណ្ណោះ។',
           ],

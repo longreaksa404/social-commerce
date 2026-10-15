@@ -1,4 +1,4 @@
-import { ChevronDown, Copy, MapPin, Package, Truck, XCircle } from 'lucide-react'
+import { ChevronDown, CircleCheck, Copy, MapPin, Package, Send, Truck, XCircle } from 'lucide-react'
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode, type RefObject } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { buzz, confettiFrom } from '../components/effects.ts'
@@ -16,7 +16,7 @@ import { ChannelIcon } from './ContactSeller.tsx'
 import { loadCustomerDetails, orderPhone, rememberOrder } from './device.ts'
 import { orderHeadline, stepLabel } from './orderWords.ts'
 import { PaymentCard } from './PaymentCard.tsx'
-import { inProgress, isNotFound, useShop, useTrackOrder } from './queries.ts'
+import { inProgress, isNotFound, useShop, useTelegramUpdates, useTrackOrder } from './queries.ts'
 
 /**
  * /shop/:storeSlug/order/:orderId: the confirmation right after checkout,
@@ -189,7 +189,7 @@ function OrderView({
       )}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-6">
         {payNow && payWrap(payment)}
-        <StatusCard order={order} shop={shop} closed={closed} updatedAt={updatedAt} titleIsPage={!justPlaced} className={left} />
+        <StatusCard order={order} shop={shop} phone={phone} closed={closed} updatedAt={updatedAt} titleIsPage={!justPlaced} className={left} />
         {contactChannels(shop).length > 0 && <SellerCard shop={shop} order={order} className={left} />}
         {!payNow && payment && payWrap(payment)}
         <ItemsCard order={order} className={left} />
@@ -254,6 +254,7 @@ function ThankYou({
 function StatusCard({
   order,
   shop,
+  phone,
   closed,
   updatedAt,
   titleIsPage,
@@ -261,6 +262,7 @@ function StatusCard({
 }: {
   order: ShopOrder
   shop: ShopStore
+  phone: string
   closed: boolean
   updatedAt: number
   titleIsPage: boolean
@@ -292,7 +294,46 @@ function StatusCard({
       {inProgress(order) && (
         <p className="mt-3 text-xs text-slate-500">{t.order.updated(formatOrderTime(new Date(updatedAt).toISOString()))}</p>
       )}
+      {inProgress(order) && order.telegram_updates !== 'unavailable' && (
+        <TelegramUpdates shop={shop} order={order} phone={phone} />
+      )}
     </Card>
+  )
+}
+
+/** "Get updates on Telegram": the bot sends the order's news, once the
+ * customer shares their Telegram number with it (which also shows the
+ * seller the number is real). */
+function TelegramUpdates({ shop, order, phone }: { shop: ShopStore; order: ShopOrder; phone: string }) {
+  const tg = useT().order.telegram
+  const [opened, setOpened] = useState(false)
+  const on = order.telegram_updates === 'on'
+  const link = useTelegramUpdates(shop.slug, order.id, phone, !on, opened && !on)
+  if (on) {
+    return (
+      <p className="mt-3 flex items-center gap-1.5 border-t border-slate-100 pt-3 text-sm text-slate-600">
+        <CircleCheck aria-hidden className="size-4 text-emerald-600" />
+        {tg.on}
+      </p>
+    )
+  }
+  // Without a link (the bot is off, too many tries) there's nothing to tap.
+  if (link.error) return null
+  return (
+    <div className="mt-3 border-t border-slate-100 pt-3">
+      <a
+        href={link.data?.telegram_url}
+        target="_blank"
+        rel="noreferrer"
+        aria-disabled={!link.data}
+        onClick={() => setOpened(true)}
+        className={`${buttonClass('secondary')} w-full sm:w-auto ${link.data ? '' : 'pointer-events-none opacity-50'}`}
+      >
+        <Send aria-hidden className="size-4" />
+        {tg.get}
+      </a>
+      <p className="mt-2 text-xs leading-5 text-slate-500">{opened ? tg.waiting : tg.hint}</p>
+    </div>
   )
 }
 

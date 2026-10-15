@@ -113,10 +113,12 @@ async def opened(code: str, telegram_user_id: int) -> bool:
         return True
 
 
-async def shared(telegram_user_id: int, raw_phone: str) -> str | None:
+async def shared(telegram_user_id: int, raw_phone: str) -> PhoneCheck | None:
     """The account's own number, shared with the bot: it completes the
-    newest open check that account opened. Returns the number as stored,
-    or None if there's no open check (or the number can't be read)."""
+    newest open check that account opened, a seller's or a customer's
+    (app/services/customer_updates.py; told apart by the code). Returns the
+    check with the number as stored, or None if there's no open check (or
+    the number can't be read)."""
     # Telegram writes numbers in international form, usually without the +.
     raw = raw_phone.strip()
     try:
@@ -140,4 +142,4 @@ async def shared(telegram_user_id: int, raw_phone: str) -> str | None:
         check.phone = phone
         check.verified_at = now
         await db.commit()
-    return phone
+    return check

@@ -1,8 +1,10 @@
 """The platform's Telegram bot (02_TECHNICAL.md section 12): Bot API calls,
 the link that connects a store to a chat, and the webhook.
 
-The bot sends sellers their order alerts (app/services/notifications.py)
-and proves sellers' phone numbers (app/services/phone_check.py). "Ask
+The bot sends sellers their order alerts (app/services/notifications.py),
+proves sellers' phone numbers (app/services/phone_check.py), and sends
+customers who ask for it their orders' news, proving their number too
+(app/services/customer_updates.py). "Ask
 seller" doesn't use it: the shop links straight to the seller's own
 Telegram account (decided 2026-10-03).
 
@@ -25,7 +27,7 @@ import httpx
 from app.core.config import get_settings
 from app.db.session import tenant_session
 from app.models import Store
-from app.services import phone_check
+from app.services import customer_updates, phone_check
 
 logger = logging.getLogger(__name__)
 
@@ -201,6 +203,14 @@ async def handle_update(update: dict[str, Any]) -> dict[str, Any] | None:
         if await phone_check.opened(argument, chat["id"]):
             return _reply(chat["id"], PHONE_ASK_TEXT, _share_keyboard())
         reply = PHONE_EXPIRED_TEXT
+    elif command.split("@")[0] == "/start" and customer_updates.read_code(
+        argument, check_expiry=False
+    ):
+        # A customer's "Get updates on Telegram".
+        ask = await customer_updates.opened(argument, chat["id"])
+        if ask is not None:
+            return _reply(chat["id"], ask, _share_keyboard())
+        reply = customer_updates.EXPIRED_TEXT
     elif command.split("@")[0] == "/start" and argument:
         store_id = read_link_code(argument)
         reply = await _connect(store_id, chat["id"]) if store_id else EXPIRED_TEXT
@@ -222,8 +232,13 @@ async def _phone_shared(chat_id: int, msg: dict[str, Any]) -> dict[str, Any]:
     sender = (msg.get("from") or {}).get("id", chat_id)
     if contact.get("user_id") != sender or not contact.get("phone_number"):
         return _reply(chat_id, PHONE_NOT_OWN_TEXT, _share_keyboard())
-    phone = await phone_check.shared(sender, str(contact["phone_number"]))
-    text = phone_done_text(phone) if phone else PHONE_EXPIRED_TEXT
+    check = await phone_check.shared(sender, str(contact["phone_number"]))
+    if check is None:
+        text = PHONE_EXPIRED_TEXT
+    elif check.code.startswith(phone_check.CODE_PREFIX):
+        text = phone_done_text(check.phone)
+    else:
+        text = await customer_updates.confirmed(check)
     return _reply(chat_id, text, {"remove_keyboard": True})
 
 

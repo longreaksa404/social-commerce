@@ -8,13 +8,13 @@ from fastapi import APIRouter, BackgroundTasks, Query, Response
 
 from app.api.deps import Owner, Seller, TenantDb
 from app.core.errors import AppError
-from app.models import OrderStatus
+from app.models import DeliveryStatus, OrderStatus
 from app.schemas.delivery import DeliveryUpdate
 from app.schemas.order import OrderListOut, OrderOut, OrderStatusUpdate, SellerOrderCreate
 from app.schemas.payment import PaymentUpdate
 from app.services import checkout as checkout_service
+from app.services import customer_updates, notifications
 from app.services import export as export_service
-from app.services import notifications
 from app.services import order as order_service
 
 router = APIRouter(prefix="/seller/orders", tags=["orders"])
@@ -93,38 +93,61 @@ async def get_order(order_id: uuid.UUID, seller: Seller, db: TenantDb) -> OrderO
 
 @router.patch("/{order_id}/status", response_model=OrderOut)
 async def change_status(
-    order_id: uuid.UUID, data: OrderStatusUpdate, seller: Seller, db: TenantDb
+    order_id: uuid.UUID,
+    data: OrderStatusUpdate,
+    seller: Seller,
+    db: TenantDb,
+    background: BackgroundTasks,
 ) -> OrderOut:
-    """Moves the order along the state machine (02 section 7.1)."""
+    """Moves the order along the state machine (02 section 7.1). A
+    customer who gets updates on Telegram hears about it after the
+    response, here and below (app/services/customer_updates.py)."""
     order = await order_service.change_status(db, seller.store_id, order_id, data.status)
+    background.add_task(customer_updates.notify, seller.store_id, order_id, data.status)
     return await order_service.order_out(db, seller.store_id, order)
 
 
 @router.patch("/{order_id}/payment", response_model=OrderOut)
 async def record_payment(
-    order_id: uuid.UUID, data: PaymentUpdate, seller: Seller, db: TenantDb
+    order_id: uuid.UUID,
+    data: PaymentUpdate,
+    seller: Seller,
+    db: TenantDb,
+    background: BackgroundTasks,
 ) -> OrderOut:
     """Marks the payment paid or failed (02 section 7.2). Recording it can
     let the order complete (section 7.4), so the whole order comes back."""
     order = await order_service.record_payment(db, seller.store_id, order_id, data)
+    background.add_task(customer_updates.notify, seller.store_id, order_id, data.status)
     return await order_service.order_out(db, seller.store_id, order)
 
 
 @router.post("/{order_id}/cash-handover", response_model=OrderOut)
-async def cash_handover(order_id: uuid.UUID, seller: Seller, db: TenantDb) -> OrderOut:
+async def cash_handover(
+    order_id: uuid.UUID, seller: Seller, db: TenantDb, background: BackgroundTasks
+) -> OrderOut:
     """Cash on delivery: the delivery delivered (or collected) and the cash
     received, recorded together. Each still follows its own state machine
     (02 sections 7.2 and 7.3); the order's status is left alone."""
     order = await order_service.record_cash_handover(db, seller.store_id, order_id)
+    # Cash paid in person is no news to the customer; the delivery is.
+    background.add_task(
+        customer_updates.notify, seller.store_id, order_id, DeliveryStatus.DELIVERED
+    )
     return await order_service.order_out(db, seller.store_id, order)
 
 
 @router.patch("/{order_id}/delivery", response_model=OrderOut)
 async def record_delivery(
-    order_id: uuid.UUID, data: DeliveryUpdate, seller: Seller, db: TenantDb
+    order_id: uuid.UUID,
+    data: DeliveryUpdate,
+    seller: Seller,
+    db: TenantDb,
+    background: BackgroundTasks,
 ) -> OrderOut:
     """Moves the delivery along its own state machine (02 section 7.3).
     Delivering it can let the order complete (section 7.4), so the whole
     order comes back."""
     order = await order_service.record_delivery(db, seller.store_id, order_id, data)
+    background.add_task(customer_updates.notify, seller.store_id, order_id, data.status)
     return await order_service.order_out(db, seller.store_id, order)

@@ -46,7 +46,12 @@ class Customer(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
     name: Mapped[str] = mapped_column(Text)  # as typed at their latest order
     phone: Mapped[str] = mapped_column(Text)  # normalized, see app/services/phone.py
     address: Mapped[str | None] = mapped_column(Text)  # their latest delivery address
+    # "Get updates on Telegram" (app/services/customer_updates.py): the
+    # chat that gets their orders' news, and the number their Telegram
+    # shared, normalized. The chat goes when they block the bot; the number
+    # stays, as what they proved.
     telegram_user_id: Mapped[str | None] = mapped_column(Text)
+    telegram_phone: Mapped[str | None] = mapped_column(Text)
 
 
 class Order(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):

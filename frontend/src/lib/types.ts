@@ -406,7 +406,13 @@ export type ShopOrder = {
   items: ShopOrderItem[]
   payment: ShopPayment
   delivery: ShopDelivery
+  /** "Get updates on Telegram": "on" once the customer shared their
+   * Telegram number with the bot, "unavailable" without the bot. */
+  telegram_updates: 'unavailable' | 'off' | 'on'
 }
+
+/** POST /shop/{slug}/orders/{id}/telegram */
+export type TelegramUpdatesLink = { telegram_url: string; expires_at: string }
 
 export type Order = Omit<ShopOrder, 'payment' | 'delivery'> & {
   payment: Payment
@@ -421,7 +427,15 @@ export type Order = Omit<ShopOrder, 'payment' | 'delivery'> & {
   notes: string | null
   /** Where the shop link it came through was posted, e.g. "tiktok". */
   source: string | null
-  customer: { id: string; name: string; phone: string; address: string | null }
+  customer: {
+    id: string
+    name: string
+    phone: string
+    address: string | null
+    /** The number the customer's Telegram shared, if they get updates there:
+     * the order's phone (confirmed) or another of theirs. */
+    telegram_phone: string | null
+  }
   /** Where the seller can move the order now; the server applies the rules. */
   next_statuses: OrderStatus[]
 }
