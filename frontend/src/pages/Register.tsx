@@ -6,12 +6,14 @@ import { useAuth } from '../auth/useAuth.ts'
 import { Button, ErrorMessage, Field, Input, PasswordInput, SlowNotice } from '../components/ui.tsx'
 import { ApiError } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
+import { useShopLink } from '../lib/slug.ts'
 import type { PhoneCheck as Check } from '../lib/types.ts'
 import { useT } from '../i18n/useT.ts'
 import { AgreeLine } from './AgreeLine.tsx'
 import { AuthLayout } from './AuthLayout.tsx'
+import { ShopLinkField } from './ShopLinkField.tsx'
 
-const FIELDS = ['store_name', 'full_name', 'phone_check', 'password']
+const FIELDS = ['store_name', 'slug', 'full_name', 'phone_check', 'password']
 
 /** Sign-up with a phone number and password (founder's choice
  * 2026-10-09). The number is the one the seller shares with the Telegram
@@ -21,6 +23,7 @@ export function Register() {
   const { status, register } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ store_name: '', full_name: '', password: '' })
+  const { slug, setSlug } = useShopLink(form.store_name)
   const [phone, setPhone] = useState<Check | null>(null)
   // A new PhoneCheck when the one handed in turned out to be used up.
   const [phoneKey, setPhoneKey] = useState(0)
@@ -49,7 +52,7 @@ export function Register() {
     setPending(true)
     setError(null)
     try {
-      await register({ ...form, phone_check: phone.id })
+      await register({ ...form, slug: slug || undefined, phone_check: phone.id })
       navigate('/dashboard/products', { replace: true })
     } catch (err) {
       setError(err)
@@ -88,6 +91,7 @@ export function Register() {
             onChange={set('store_name')}
           />
         </Field>
+        <ShopLinkField slug={slug} onChange={setSlug} error={error} />
         <Field label={t.auth.register.yourName} error={fieldError(error, 'full_name')}>
           <Input
             required

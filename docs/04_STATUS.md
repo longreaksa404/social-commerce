@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-15 (wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-15 (shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -848,6 +848,31 @@ pushed):**
       the link needs the order's phone and the bot, the same phone in
       two shops (tenant isolation), each tap's message, a blocked bot);
       the suite passes. Lint and build pass.
+
+**Shop links (founder's pick 2026-10-15; not pushed):** the founder
+asked about making a chosen link a paid extra. Not taken: choosing it
+stays free (it's in the Standard plan, and sellers share their link
+during the trial); a custom domain is logged as a later paid extra (03
+§6).
+
+- [x] A changed link keeps working: the old one is kept for that shop
+      (new table `store_old_slug`, RLS, migration `e5a9c2f7b318`), so
+      `/shop/<old>/...` opens the shop and the page moves to the current
+      link (path and `?l=` kept; the link's view is counted once, under
+      the current link). No other shop can take an old link, at sign-up
+      or in Settings (409 `SLUG_TAKEN`); a shop can change back to its
+      own. Settings → Link no longer warns that shared links stop
+      working: no confirm, a hint says they still open the shop.
+- [x] Sign-up (and finishing a Google / Facebook / TikTok sign-up) shows
+      "Shop link" under the store name, filled from the name as it's
+      typed until the seller types their own. A name in Khmer only leaves
+      it empty (left empty, the API still picks a random one). A taken
+      link is a 409 on that field; the phone check isn't used up.
+- [x] Checked in the browser: an old link with a path and `?l=` lands on
+      the new one; the sign-up field fills from "Sokha Fashion", stays
+      empty for "សុខា", and keeps what the seller typed.
+- [x] 8 new pytest tests (`tests/test_store_links.py`, with tenant
+      isolation of old links); 689 in all. Lint and build pass.
 
 ---
 

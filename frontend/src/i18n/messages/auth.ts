@@ -151,6 +151,11 @@ export const auth = {
       en: 'What customers will see. You can change it later.',
       km: 'ឈ្មោះដែលអតិថិជននឹងឃើញ។ អ្នកអាចប្ដូរវានៅពេលក្រោយបាន។',
     },
+    shopLink: { en: 'Shop link', km: 'តំណហាង' },
+    shopLinkHint: {
+      en: 'In English letters, easy for customers to read. You can change it later.',
+      km: 'ជាអក្សរអង់គ្លេស ងាយស្រួលសម្រាប់អតិថិជនអាន។ អ្នកអាចប្ដូរវានៅពេលក្រោយបាន។',
+    },
     yourName: { en: 'Your name', km: 'ឈ្មោះរបស់អ្នក' },
     phoneLabel: { en: 'Phone number (you log in with it)', km: 'លេខទូរស័ព្ទ (អ្នកប្រើវាដើម្បីចូលគណនី)' },
     passwordHint: { en: 'At least 8 characters.', km: 'យ៉ាងតិច 8 តួអក្សរ។' },

@@ -122,6 +122,7 @@ Render's health check.
 | Light / dark mode | DONE | `src/theme/`, `index.css`, the inline script in `index.html` |
 | Small photo copies | DONE | `-m` / `-s.jpg` naming, `thumbnail_size` on the images endpoint |
 | Wrong or fake customer phones (founder's picks 2026-10-15) | DONE (bot flow tested through the local webhook, not yet in real Telegram) | Checkout reads the number back (`lib/phone.ts`); "Get updates on Telegram" on the order page (`POST /shop/{slug}/orders/{id}/telegram`, `services/customer_updates.py`, `customer.telegram_user_id` / `telegram_phone`); the seller's order shows "Phone confirmed in Telegram" or the other number; migration `c3f8a1d6e2b4`; `tests/test_customer_updates.py`. Seller tools against fake orders: 03 §6 log |
+| Shop links (founder's pick 2026-10-15) | DONE | Old links keep opening the shop (`store_old_slug`, `services/slugs.py` `store_slug_taken` / `unique_store_slug`, `store.change_slug`, the fallback in `storefront.get_store`, the move in `ShopLayout`); "Shop link" at sign-up (`pages/ShopLinkField.tsx`, `lib/slug.ts`); migration `e5a9c2f7b318`; `tests/test_store_links.py`. Custom domains: 03 §6 log |
 | Plan and billing part 2, hand collection (founder, 2026-10-14; PayWay parked on the `payway` branch) | DONE | The shop's code (`plan.shop_code`) and Oak's KHQR / bank account on Settings → Plan (`OAK_*`), "I've paid" (`POST /seller/plan/paid`, a Telegram alert to the founder), the admin page (confirm / not found / mark paid), daily Telegram reminders on day 1 and day 5 (`POST /billing/run`); migration `b7e2c4a9d1f3`; `tests/test_billing.py`. App: `settings/PlanPage.tsx`, `dashboard/admin/`, `Reminder.tsx`, `lib/khqrImage.ts` |
 | Plan and billing, part 1 (pricing decided 2026-10-14, 01 §33.1) | DONE | `store.paid_until`, `plan_payment`, `services/plan.py`, `GET /seller/plan`, checkout refuses new orders 7 days after the trial or paid time runs out, `python -m app.admin paid` / `plans`; migration `d450a35183c0`. Frontend: Settings → Plan (`settings/PlanPage.tsx`), the Plan row in the Settings menu, `PlanReminder` on the Orders tab and New order (`dashboard/Reminder.tsx`), the price under Create store (`pages/AgreeLine.tsx`), the Terms' Fees. Part 2 (paying in the app through a gateway) waits for the founder's merchant account |
 | Nightly DB backup to R2 | PARTIAL | `.github/workflows/backup.yml` exists but skips until its five secrets are set (04: not set yet) |
@@ -204,7 +205,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
         ├── auth/              AuthContext.tsx (provider), useAuth.ts (context + hook), PhoneCheck.tsx (verify a phone with the bot)
         ├── lib/               api.ts (fetch client), types.ts (API types), pricing, money, images, errors, ...
         ├── components/        ui.tsx (UI kit), styles.ts, FeedbackProvider (toasts/confirm), effects, RootLayout
-        ├── pages/             Home (landing), Login, Register, FinishSignup, OAuthCallback, ForgotPassword, ResetPassword, Legal (+ legal/content.ts), LoginField, AgreeLine, AuthLayout
+        ├── pages/             Home (landing), Login, Register, FinishSignup, ShopLinkField, OAuthCallback, ForgotPassword, ResetPassword, Legal (+ legal/content.ts), LoginField, AgreeLine, AuthLayout
         ├── dashboard/         Seller app: Layout, queries.ts, orders/, customers/, products/, links/, settings/, Categories, Notifications
         ├── shop/              Customer shop: ShopLayout, pages, queries.ts, cart.ts, device.ts, MapPicker, PaymentCard, ...
         ├── i18n/              core.ts, useT.ts, LanguageProvider, LanguageSwitch, messages/*.ts ({en, km} pairs)
@@ -249,7 +250,7 @@ Backend modules, one line each:
 | `services/phone_check.py` | Proving a phone number through the bot: `create`, `get`, `describe` (with `taken`), `use` (once, in the caller's commit); the bot's side `opened` / `shared` (returns the finished check, a seller's or a customer's) |
 | `services/link.py` | Shareable links, stats, view recording (background), order events |
 | `services/phone.py` | `normalize_phone` (Cambodian → `0XXXXXXXX`), search terms |
-| `services/slugs.py` | `slugify` (random 6-hex for non-Latin names), `unique_slug` |
+| `services/slugs.py` | `slugify` (random 6-hex for non-Latin names), `unique_slug`; for shops `unique_store_slug` and `store_slug_taken` (current and old links, unscoped) |
 
 ---
 
@@ -393,7 +394,7 @@ starts a new transaction.
 
 - **Phone number logins** (founder's choice 2026-10-09). `POST
   /auth/register` takes `full_name`, `store_name`, `password` and
-  `phone_check`: the id of a phone check finished in Telegram
+  `phone_check` (and an optional `slug`): the id of a phone check finished in Telegram
   (`services/phone_check.py`, §9). The number isn't typed. `phone_check.use`
   locks the check, refuses an expired one (422 `PHONE_CHECK_EXPIRED`) or an
   unfinished one (422 `PHONE_NOT_VERIFIED`), and deletes it in the same
@@ -401,8 +402,10 @@ starts a new transaction.
   409 `PHONE_TAKEN` (field `phone_check`; also on the unique index). It
   creates `Seller` (phone, no email) and `Store` together, with
   `store.telegram_chat_id` = the Telegram account that shared the number,
-  so a new shop starts with order alerts on. The slug is generated from the
-  store name (`unique_slug`). It returns a `TokenPair`; the route sets the
+  so a new shop starts with order alerts on. The slug is the one the seller
+  chose (checked first, so a taken one, 409 `SLUG_TAKEN` field `slug`,
+  leaves the phone check unused), else generated from the store name
+  (`unique_store_slug`: skips current and old links). It returns a `TokenPair`; the route sets the
   refresh token as a cookie and answers `AccessOut` (below).
 - `POST /auth/login` takes `login` (or `email`, the field's old name, via
   `AliasChoices`) and `password`. `auth.login_filter`: with an `@` it's an
@@ -521,7 +524,7 @@ starts a new transaction.
 | Request kind | Where `store_id` comes from | Session |
 |---|---|---|
 | Seller (`/seller/*`) | `store_id` claim of the access JWT | `TenantDb` |
-| Storefront (`/shop/{slug}/*`) | `Store` found by slug (joined to `Seller.is_active`) on an unscoped session | `ShopDb` |
+| Storefront (`/shop/{slug}/*`) | `Store` found by slug, or by an old slug (`store_old_slug`, a second query only on a miss), joined to `Seller.is_active`, on an unscoped session | `ShopDb` |
 | Background task | the `store_id` the request already resolved | `tenant_session(store_id)` |
 | Telegram `/start <code>` | store id inside the HMAC-signed, 30-minute code | `tenant_session(store_id)` |
 | Auth | none (seller looked up by phone or email / token id; phone checks by id) | `UnscopedDb`, filters explicitly |
@@ -671,6 +674,7 @@ Mixins (`app/db/base.py`):
 | `seller` | **NO** (an owner owns the tenant, staff belong to one; no RLS, no `app_user` grant) | `phone` (the login, normalized, NULL only for older accounts whose number another account had), `email` (NULL for accounts since 2026-10-09; older ones log in with it; stored lowercased), `password_hash` (NULL for an account made with Google until it adds one), `full_name`, `is_active` (default true), `role` (`owner`/`staff`, default owner), `store_id` (staff only), `created_at` | `store_id → store` CASCADE (`use_alter`: store also points at seller) | `uq_seller_phone`; `uq_seller_email`; `ix_seller_store_id`; CHECK `(role = 'staff') = (store_id IS NOT NULL)` |
 | `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `low_stock_alert` (int, default 5, 1–999 by the schema), `paid_until` (date: the last day covered, by the 30-day free trial from sign-up, then by `plan_payment`s; Python default `account.trial_end()`), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
 | `refresh_token` | **NO** (per seller; no RLS, no `app_user` grant) | `id` (= JWT `jti`), `expires_at`, `revoked_at`, `created_at` | `seller_id → seller` CASCADE | `ix_refresh_token_seller_id` |
+| `store_old_slug` | yes (`app_user` SELECT, INSERT, DELETE) | `slug` String(64) **primary key** (globally unique, like `store.slug`; `slugs.store_slug_taken` checks both tables on an unscoped session, yes/no only), `created_at` | none besides `store_id` (CASCADE) | `store_id`. A link the shop had: `/shop/<it>` still opens the shop. Added by `store.change_slug`, removed when the shop changes back to it; kept for good |
 | `category` | yes | `name`, `slug` String(64), `created_at` | none besides `store_id` | UNIQUE (`store_id`, `slug`) |
 | `product` | yes | `name`, `slug`, `description`, `price` Numeric(12,2), `image_urls` JSONB list, `status` (`active`/`inactive`), `has_variants`, `stock_quantity` int NULL (only when no variants), `created_at`, `updated_at` | `category_id → category` ON DELETE SET NULL | UNIQUE (`store_id`, `slug`); (`store_id`, `status`); (`store_id`, `category_id`); CHECK `price >= 0`; CHECK stock NULL or ≥0 |
 | `product_variant` | yes (store_id copied from product) | `name` (e.g. "Red / L"), `sku`, `price_override` NULL, `stock_quantity` int default 0, `created_at` | `product_id → product` CASCADE | (`store_id`, `product_id`); CHECK price_override NULL or ≥0; CHECK stock ≥0 |
@@ -925,7 +929,7 @@ from the schema.
 | Method | Path | Auth | Request | Response | Notes |
 |---|---|---|---|---|---|
 | GET | `/health` | none | — | `{"status": "ok"}` | Render health check |
-| POST | `/auth/register` | none | `RegisterIn` (`full_name`, `store_name`, `password`, `phone_check`) | `AccessOut` + cookie (201) | Creates seller + store with the checked phone; 422 `PHONE_NOT_VERIFIED` / `PHONE_CHECK_EXPIRED`, 409 `PHONE_TAKEN`; 5/min |
+| POST | `/auth/register` | none | `RegisterIn` (`full_name`, `store_name`, `slug`?, `password`, `phone_check`) | `AccessOut` + cookie (201) | Creates seller + store with the checked phone; 422 `PHONE_NOT_VERIFIED` / `PHONE_CHECK_EXPIRED`, 409 `PHONE_TAKEN` / `SLUG_TAKEN`; 5/min |
 | POST | `/auth/login` | none | `LoginIn` (`login`: phone or older account's email; `email` accepted) | `AccessOut` + cookie | 10/min |
 | POST | `/auth/refresh` | refresh cookie | none | `AccessOut` + cookie | Rotates; a retry within 60 s gets a new pair, later reuse ends all sessions; 30/min |
 | POST | `/auth/logout` | refresh cookie | none | 204 | Deletes that token's session and the cookie; bad tokens ignored |
@@ -933,7 +937,7 @@ from the schema.
 | POST | `/auth/password-reset/confirm` | none | `PasswordResetConfirm` | `AccessOut` + cookie | Bad, expired or used link → 400 `RESET_LINK_INVALID`; 10/min |
 | POST | `/auth/google` | none | `GoogleIn` (`credential`: Google's ID token) | `SocialOut` | Logged in (`access_token` + cookie) or `signup` for someone new; 401 `SOCIAL_SIGN_IN_FAILED`, 503 `SOCIAL_NOT_CONFIGURED`; 10/min |
 | POST | `/auth/oauth/{provider}` | none | `OAuthIn` (`code`, `redirect_uri`); provider `facebook` or `tiktok` | `SocialOut` | Logged in or `signup`; 422 `INVALID_REDIRECT`, 401 `SOCIAL_SIGN_IN_FAILED`, 503 `SOCIAL_NOT_CONFIGURED`; 10/min |
-| POST | `/auth/social/register` | none | `SocialRegisterIn` (`signup_token`, `full_name`, `store_name`, `phone_check`) | `AccessOut` + cookie (201) | No password; 400 `SIGNUP_EXPIRED`, 409 `SOCIAL_TAKEN` / `PHONE_TAKEN`; 5/min |
+| POST | `/auth/social/register` | none | `SocialRegisterIn` (`signup_token`, `full_name`, `store_name`, `slug`?, `phone_check`) | `AccessOut` + cookie (201) | No password; 400 `SIGNUP_EXPIRED`, 409 `SOCIAL_TAKEN` / `PHONE_TAKEN` / `SLUG_TAKEN`; 5/min |
 | POST | `/auth/phone-checks` | none | none | `PhoneCheckOut` (201) | `{id, telegram_url, expires_at, phone: null, taken: false}`; 503 `TELEGRAM_NOT_CONFIGURED` without the bot; 10/min |
 | GET | `/auth/phone-checks/{id}` | the check's id | — | `PhoneCheckOut` | `phone` once shared in Telegram; `taken` when an account already has it; expired or unknown → 404 `PHONE_CHECK_EXPIRED`; 60/min (the page reads it every few seconds) |
 | GET | `/seller/account` | seller | — | `AccountOut` | The person's own phone (login), email (older accounts, else null), name, role, `has_password`, `logins` (`[{provider, label}]`, label = the email or the name) (`UnscopedDb`, filtered by the token's seller id); `is_admin` (the login is in `ADMIN_PHONES`: the app shows the admin page) |
@@ -944,7 +948,7 @@ from the schema.
 | POST | `/seller/account/close-shop` | seller | `CloseShopIn` (`password`, not needed without one) | 204 | `seller.is_active = false` and every session deleted: the shop page is 404, login 403 `ACCOUNT_DISABLED` ("This shop is closed. Message Oak Order to open it again."). Nothing is erased; wrong password → 422 `WRONG_PASSWORD` |
 | POST | `/seller/account/password` | seller | `PasswordChange` | `AccessOut` + cookie | Wrong current password → 422 `WRONG_PASSWORD`; ends every other session (§4 Auth) |
 | GET | `/seller/store` | seller | — | `StoreOut` | Includes the three settings, `payment_set_up` (false until `payment_config` was saved once; the setup checklist), `delivery_set_up` (false until `delivery_config` was saved once: the shop runs on free own delivery), `telegram_connected`, `telegram_bot_available` |
-| PATCH | `/seller/store` | seller | `StoreUpdate` | `StoreOut` | Partial; settings blobs saved whole; null on name/slug/currency/mode = leave; `logo_url` only from this store's logo folder (null removes); slug clash → 409 `SLUG_TAKEN` |
+| PATCH | `/seller/store` | seller | `StoreUpdate` | `StoreOut` | Partial; settings blobs saved whole; null on name/slug/currency/mode = leave; `logo_url` only from this store's logo folder (null removes); a new slug keeps the old one as `store_old_slug`; another shop's slug, current or old → 409 `SLUG_TAKEN` |
 | POST | `/seller/store/logo` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT into `stores/<id>/logo/` |
 | POST | `/seller/store/telegram/link` | seller | — | `TelegramLinkOut` | `t.me/<bot>?start=<code>`, valid 30 min; 503 if bot not configured |
 | DELETE | `/seller/store/telegram` | seller | — | `StoreOut` | Clears `telegram_chat_id` (logic in the router) |
@@ -1047,8 +1051,8 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | Path | Component | Notes |
 |---|---|---|
 | `/` | `pages/Home` | Landing: Register / Log in |
-| `/login`, `/register` | `pages/Login`, `pages/Register` | "Continue with Google / Facebook / TikTok" over the phone form (`auth/SocialButtons.tsx`; each only when its `VITE_` ID is set); Login has "Forgot password?" |
-| `/register/finish` | `pages/FinishSignup` | Someone new from Google, Facebook or TikTok: shop name, name, phone checked in Telegram → `POST /auth/social/register`. The signup comes in the navigation state or `sessionStorage` `sc.signup` (`lib/signup.ts`); without one, back to `/register` |
+| `/login`, `/register` | `pages/Login`, `pages/Register` | "Continue with Google / Facebook / TikTok" over the phone form (`auth/SocialButtons.tsx`; each only when its `VITE_` ID is set); Login has "Forgot password?". Register and FinishSignup have "Shop link" under the store name (`pages/ShopLinkField.tsx`; `useShopLink` in `lib/slug.ts` fills it from the name until the seller types; empty for a Khmer-only name, then the API picks a random one) |
+| `/register/finish` | `pages/FinishSignup` | Someone new from Google, Facebook or TikTok: shop name, shop link, name, phone checked in Telegram → `POST /auth/social/register`. The signup comes in the navigation state or `sessionStorage` `sc.signup` (`lib/signup.ts`); without one, back to `/register` |
 | `/auth/:provider/callback` | `pages/OAuthCallback` | Back from Facebook / TikTok with `code` and `state`. Only the sign-in this tab started (`sessionStorage` `sc.oauth`, 15 min, `lib/oauth.ts`) is finished: log in (`POST /auth/oauth/{provider}`, then like Google, `auth/useSocialResult.ts`) or connect (waits for the session, `POST /seller/account/oauth/{provider}`, back to Your account). Cancelled, refused or someone else's → "Couldn't log you in" with a link back |
 | `/privacy`, `/terms`, `/data-deletion` | `pages/Legal` | Public, no login; English or Khmer with the language switch. The text is in `pages/legal/content.ts` (what's kept, the hosts, cookies, how long, deletion: keep it true to the code), the date in `UPDATED`; Contact links `VITE_SUPPORT_TELEGRAM` (else "Settings → Get help"). The Terms' Fees state the plan (01 §33.1: the trial, $9.99 / $99, the 7 days, no new orders after), as do `legal.trialLine` under Create store and `services/plan.py`'s `PRICES`: change them together. Linked from the start page (`LegalLinks`) and under "Create store" (`pages/AgreeLine.tsx`). Meta and TikTok ask for these URLs (2026-10-09) |
 | `/forgot-password`, `/reset-password#<token>` | `pages/ForgotPassword`, `pages/ResetPassword` | The link goes to the shop's Telegram; without Telegram, "Message Oak Order" (if `VITE_SUPPORT_TELEGRAM`). Saving logs in (`startSession` in `AuthContext`) |
@@ -1063,7 +1067,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `/dashboard/settings`, `/settings/:section` | `SettingsPage` (`SettingsMenu` beside `SettingsSection` on laptops) | Store sections (`SECTION_IDS` in `form.ts`, saved with `PATCH /seller/store`): `shop`, `orders`, `payments`, `delivery`, `discounts`, `contact` (Telegram username, Messenger page, phone), `telegram` (titled Alerts: the low-stock level, and Telegram, which connects at once; the address stays /telegram because the bot's messages name it), `link`. Pages with their own endpoint (`PAGE_IDS`, `PAGES` in `SettingsSection.tsx`): `account`, `plan` (`PlanPage.tsx`, `GET /seller/plan`: the trial or paid-until date with days left, what's included; Monthly / Yearly; the shop's code (copy); Oak's KHQR for that amount drawn with `lib/khqrImage.ts` (Save QR to photos) and/or Oak's bank account; without `OAK_*`, "Pay … on Telegram" (a message to `VITE_SUPPORT_TELEGRAM` with the code); "I've paid" (`POST /seller/plan/paid`), then "Oak Order is checking your …" until the founder answers; the payments, ones not found with the founder's note; its menu row says until when, "Oak Order is checking your payment", or "Pay by …" / "Not taking new orders"), `export` (This month / Last month / Choose days; downloads with `apiBlob` in `lib/api.ts`), `close` (password, confirm, then log out), `staff`. Staff see a note instead of the store rows, then Your account, Get help, language and log out; any other settings address sends them to `account` (`useRole()` from `GET /seller/account`). Laptops open `shop` when none is chosen |
 | `/dashboard/notifications` | `Notifications` | |
 | `/dashboard/admin`, `/admin/:storeId` | `admin/AdminShops.tsx`, `admin/AdminShop.tsx` | Oak Order's admin page (founder's pick 2B), reached from Settings → "Oak Order admin" when `GET /seller/account` says `is_admin` (others are sent to /dashboard; the API answers 403 anyway). The list: search by shop, code, link or phone; All / Said paid / Ends soon / Unpaid / No orders; each shop with its code, stage, trial or paying, closed, no Telegram, paid until (pay by), a waiting "I've paid". A shop: the code, "Says paid … on …" with Found it: mark paid (the amount found if different, a note) or Not found (the note the seller sees), "Mark paid" (a month or a year, the amount or the price, 0 = free time, a note; confirm), and every payment with status, dates and notes. English and Khmer |
-| `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public. While paused, `PausedNotice` (`shop/components.tsx`) tops every shop page and the cart's Place order is disabled; the seller's Orders tab shows a reminder |
+| `/shop/:storeSlug` | `shop/ShopLayout` → `ShopHome` | Public. An old link: the shop answers with its current `slug`, and `ShopLayout` replaces the address with it (rest of the path, `?l=`, hash kept); link views are counted under the current slug. While paused, `PausedNotice` (`shop/components.tsx`) tops every shop page and the cart's Place order is disabled; the seller's Orders tab shows a reminder |
 | `/shop/:storeSlug/product/:productSlug` | `ShopProduct` | |
 | `/shop/:storeSlug/category/:categorySlug` | `ShopCategory` | A tab of the same page as `ShopHome` (`handle: { page: 'products' }`): switching between All and a category doesn't fade the page in |
 | `/shop/:storeSlug/cart` (`/checkout` forwards here) | `ShopCheckout` (with `CartItems` / `EmptyCart` from `ShopCart.tsx`) | The cart and checkout on one page (redesign 2026-10-06). Under the phone field, `PhoneHint` reads the number back ("The seller will call 012 345 678") or warns about an unusual prefix (2026-10-15) |
@@ -1507,6 +1511,8 @@ async def test_store_only_sees_its_own_rows(two_stores):
   the dashboard only uses status.
 - **§5.2 `customer.telegram_user_id`:** the column exists and nothing ever
   writes it.
+- **§5 data model:** `store_old_slug` (a shop's earlier links, 2026-10-15)
+  isn't in 02 yet.
 - **§13 rate limiting** names login and storefront; the code also limits
   register (5/min) and refresh (30/min). Logout is unlimited.
 - **Brand:** 01 §1.1 names the product Oak Order (renamed from Sroul Order

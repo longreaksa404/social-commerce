@@ -5,12 +5,6 @@ export const settings = {
   title: { en: 'Settings', km: 'ការកំណត់' },
   saved: { en: 'Settings saved', km: 'បានរក្សាទុកការកំណត់' },
   save: { en: 'Save settings', km: 'រក្សាទុកការកំណត់' },
-  changeLinkTitle: { en: 'Change your shop link?', km: 'ប្ដូរតំណហាងរបស់អ្នក?' },
-  changeLinkMessage: {
-    en: 'Links you already shared on social media will stop working.',
-    km: 'តំណដែលអ្នកបានចែករំលែករួចនៅលើបណ្ដាញសង្គម នឹងលែងដំណើរការ។',
-  },
-  changeLink: { en: 'Change link', km: 'ប្ដូរតំណ' },
 
   store: { en: 'Store', km: 'ហាង' },
   storeName: { en: 'Store name', km: 'ឈ្មោះហាង' },
@@ -254,6 +248,10 @@ export const settings = {
   shopLink: { en: 'Shop link', km: 'តំណហាង' },
   shopLinkHint: { en: 'The address you share with customers.', km: 'អាសយដ្ឋានដែលអ្នកចែករំលែកជាមួយអតិថិជន។' },
   linkName: { en: 'Link name', km: 'ឈ្មោះក្នុងតំណ' },
+  linkNameHint: {
+    en: 'If you change it, links you already shared still open your shop.',
+    km: 'បើអ្នកប្ដូរវា តំណដែលអ្នកបានចែករំលែករួច នៅតែបើកហាងរបស់អ្នកបាន។',
+  },
   linkNameTitle: {
     en: 'Lowercase letters, numbers, and single hyphens',
     km: 'អក្សរអង់គ្លេសតូច លេខ និងសញ្ញា - មួយៗ',

@@ -18,7 +18,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core import clock
-from app.db.base import Base, CreatedAtMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, CreatedAtMixin, TenantMixin, UUIDPrimaryKeyMixin
 
 
 class Currency(enum.StrEnum):
@@ -208,6 +208,18 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
         then the shop runs on the defaults, free own delivery, which a
         seller who never looked would be giving away by accident."""
         return bool(self.delivery_config)
+
+
+class StoreOldSlug(TenantMixin, CreatedAtMixin, Base):
+    """A link the shop had before (Settings → Link): /shop/<old slug> still
+    opens the shop, whose page then moves to the current link, so posts
+    already shared keep working. Kept for good and kept for this shop: no
+    other shop can take it. Changing back to it removes the row."""
+
+    __tablename__ = "store_old_slug"
+
+    # Globally unique, like store.slug (app/services/slugs.py checks both).
+    slug: Mapped[str] = mapped_column(String(64), primary_key=True)
 
 
 class RefreshToken(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):

@@ -1,6 +1,6 @@
 import { ChevronRight, ShoppingCart } from 'lucide-react'
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { Link, useMatch, useParams, useSearchParams } from 'react-router'
+import { Link, Navigate, useLocation, useMatch, useParams, useSearchParams } from 'react-router'
 import { ErrorState, PageOutlet, Skeleton, SlowNotice } from '../components/ui.tsx'
 import { LanguageToggle } from '../i18n/LanguageSwitch.tsx'
 import { ThemeToggle } from '../theme/ThemeSwitch.tsx'
@@ -22,7 +22,9 @@ export function ShopLayout() {
   const { storeSlug = '' } = useParams()
   const shop = useShop(storeSlug)
   const t = useT()
-  useLinkTracking(storeSlug)
+  const location = useLocation()
+  // Counted under the shop's current link, once it's known.
+  useLinkTracking(shop.data?.slug)
   // Not where the order itself, checkout or the list of orders is showing.
   const orderPage = useMatch('/shop/:storeSlug/order/:orderId') !== null
   const checkout = useMatch('/shop/:storeSlug/cart') !== null
@@ -42,6 +44,13 @@ export function ShopLayout() {
         <NotFound title={t.shop.shopNotFound}>{t.shop.shopNotFoundText}</NotFound>
       </main>
     )
+  }
+
+  // An old link (the seller changed it in Settings → Link): the same page
+  // at the current one, so posts already shared keep working.
+  if (shop.data && shop.data.slug !== storeSlug) {
+    const rest = location.pathname.slice(`/shop/${storeSlug}`.length)
+    return <Navigate to={`/shop/${shop.data.slug}${rest}${location.search}${location.hash}`} replace />
   }
 
   return (
@@ -76,10 +85,10 @@ const LINK_TOKEN = /^[a-z0-9]{8}$/
 /** Opened through one of the seller's links (?l=<token>, 02_TECHNICAL.md
  * section 9.2): count the view, and remember the link so an order placed
  * on this device within 7 days counts for it. */
-function useLinkTracking(slug: string) {
+function useLinkTracking(slug: string | undefined) {
   const token = useSearchParams()[0].get('l')
   useEffect(() => {
-    if (token && LINK_TOKEN.test(token) && openedLink(slug, token)) trackView(slug, token)
+    if (slug && token && LINK_TOKEN.test(token) && openedLink(slug, token)) trackView(slug, token)
   }, [slug, token])
 }
 

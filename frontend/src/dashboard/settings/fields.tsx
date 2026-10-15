@@ -696,7 +696,7 @@ export function LinkFields({ store, form, update, error }: FieldsProps) {
   const s = useT().settings
   return (
     <>
-      <Field label={s.linkName} error={fieldError(error, 'slug')}>
+      <Field label={s.linkName} error={fieldError(error, 'slug')} hint={s.linkNameHint}>
         <Input
           required
           minLength={2}

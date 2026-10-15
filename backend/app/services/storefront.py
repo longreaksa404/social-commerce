@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.errors import NotFound
-from app.models import Category, Product, ProductStatus, Seller, Store
+from app.models import Category, Product, ProductStatus, Seller, Store, StoreOldSlug
 from app.schemas.storefront import (
     ShopCategoryOut,
     ShopCategoryPageOut,
@@ -31,13 +31,18 @@ from app.services.plan import orders_stopped
 
 
 async def get_store(db: AsyncSession, slug: str) -> Store:
-    """The shop at /shop/{slug}; a deactivated seller's shop is gone."""
-    store = await db.scalar(
-        # The owner's account (staff logins link the other way, seller.store_id).
-        select(Store)
-        .join(Seller, Store.seller_id == Seller.id)
-        .where(Store.slug == slug.lower(), Seller.is_active.is_(True))
+    """The shop at /shop/{slug}, or whose link it was (StoreOldSlug: the
+    page then moves to the current link, store.slug); a deactivated
+    seller's shop is gone."""
+    slug = slug.lower()
+    # The owner's account (staff logins link the other way, seller.store_id).
+    shop = (
+        select(Store).join(Seller, Store.seller_id == Seller.id).where(Seller.is_active.is_(True))
     )
+    store = await db.scalar(shop.where(Store.slug == slug))
+    if store is None:  # an old link: one more query, only then
+        old = select(StoreOldSlug.store_id).where(StoreOldSlug.slug == slug).scalar_subquery()
+        store = await db.scalar(shop.where(Store.id == old))
     if store is None:
         raise NotFound("STORE_NOT_FOUND", "This shop doesn't exist.")
     return store

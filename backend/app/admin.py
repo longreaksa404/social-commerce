@@ -47,7 +47,7 @@ from app.services.account import set_shop_logins
 from app.services.auth import login_filter
 from app.services.images import delete_store_files
 from app.services.phone import normalize_phone
-from app.services.slugs import slugify, unique_slug
+from app.services.slugs import slugify, unique_store_slug
 
 # No 0/o, 1/l/i: read out over the phone or typed from a Telegram message.
 _ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789"
@@ -282,7 +282,7 @@ async def make_test_shop(name: str) -> MadeShop:
         )
         db.add(seller)
         await db.flush()
-        slug = await unique_slug(db, Store.slug, slugify(name))
+        slug = await unique_store_slug(db, slugify(name))
         db.add(Store(seller_id=seller.id, name=name, slug=slug))
         await db.commit()
     return MadeShop(email, password, slug)

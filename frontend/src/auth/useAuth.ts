@@ -9,6 +9,8 @@ export type Status = 'loading' | 'authenticated' | 'anonymous' | 'unreachable'
  * bot, handed in as the phone check's id. */
 export type RegisterInput = {
   store_name: string
+  /** The shop's link; made from the name when left out. */
+  slug?: string
   full_name: string
   password: string
   phone_check: string

@@ -10,6 +10,7 @@ from app.models.account import (
     SellerLogin,
     SellerRole,
     Store,
+    StoreOldSlug,
 )
 from app.models.catalog import Category, Product, ProductStatus, ProductVariant
 from app.models.delivery import Delivery, DeliveryMethod, DeliveryStatus
@@ -58,4 +59,5 @@ __all__ = [
     "SellerRole",
     "ShareableLink",
     "Store",
+    "StoreOldSlug",
 ]

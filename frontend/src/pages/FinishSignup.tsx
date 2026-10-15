@@ -6,13 +6,15 @@ import { Button, ErrorMessage, Field, Input, SlowNotice } from '../components/ui
 import { useT } from '../i18n/useT.ts'
 import { api, ApiError, type AccessToken } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
+import { useShopLink } from '../lib/slug.ts'
 import { PROVIDER_NAMES } from '../lib/oauth.ts'
 import { forgetSignup, savedSignup } from '../lib/signup.ts'
 import type { PhoneCheck as Check, SignupStart } from '../lib/types.ts'
 import { AgreeLine } from './AgreeLine.tsx'
 import { AuthLayout } from './AuthLayout.tsx'
+import { ShopLinkField } from './ShopLinkField.tsx'
 
-const FIELDS = ['store_name', 'full_name', 'phone_check']
+const FIELDS = ['store_name', 'slug', 'full_name', 'phone_check']
 
 /** /register/finish: someone new from "Continue with Google / Facebook /
  * TikTok" names their shop and proves a phone number in Telegram, like any
@@ -31,6 +33,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
   const { startSession } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ store_name: '', full_name: signup.full_name })
+  const { slug, setSlug } = useShopLink(form.store_name)
   const [phone, setPhone] = useState<Check | null>(null)
   const [phoneKey, setPhoneKey] = useState(0)
   const [error, setError] = useState<unknown>(null)
@@ -59,7 +62,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
     try {
       const token = await api<AccessToken>('/auth/social/register', {
         method: 'POST',
-        body: { ...form, signup_token: signup.signup_token, phone_check: phone.id },
+        body: { ...form, slug: slug || undefined, signup_token: signup.signup_token, phone_check: phone.id },
         auth: false,
       })
       forgetSignup()
@@ -112,6 +115,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
               onChange={set('store_name')}
             />
           </Field>
+          <ShopLinkField slug={slug} onChange={setSlug} error={error} />
           <Field label={t.auth.register.yourName} error={fieldError(error, 'full_name')}>
             <Input
               required

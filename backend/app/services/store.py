@@ -6,10 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import clock
 from app.core.config import get_settings
 from app.core.errors import AppError, NotFound
-from app.models import Store
+from app.db.session import unscoped_session
+from app.models import Store, StoreOldSlug
 from app.schemas.store import StoreUpdate
 from app.services.delivery import check_delivery_settings, check_discount_settings
 from app.services.payment import check_payment_settings
+from app.services.slugs import store_slug_taken
 
 REQUIRED_FIELDS = {
     "name",
@@ -21,6 +23,24 @@ REQUIRED_FIELDS = {
 }
 # Each saved whole (below), not field by field.
 SETTINGS = {"payment_settings", "delivery_settings", "discount_settings"}
+
+
+def _slug_taken() -> AppError:
+    return AppError(409, "SLUG_TAKEN", "This store link is already taken.", "slug")
+
+
+async def change_slug(db: AsyncSession, store: Store, slug: str) -> None:
+    """A new link for the shop; the one it had keeps working (StoreOldSlug)."""
+    # Other shops' old links aren't visible under RLS: asked on a short
+    # unscoped session, which only answers yes or no.
+    async with unscoped_session() as unscoped:
+        if await store_slug_taken(unscoped, slug, store.id):
+            raise _slug_taken()
+    back = await db.get(StoreOldSlug, slug)
+    if back is not None:  # changing back to one of its own old links
+        await db.delete(back)
+    db.add(StoreOldSlug(slug=store.slug, store_id=store.id))
+    store.slug = slug
 
 
 def logo_prefix(store_id: uuid.UUID) -> str:
@@ -41,7 +61,9 @@ async def update_store(db: AsyncSession, store_id: uuid.UUID, data: StoreUpdate)
     ):
         # Only a logo uploaded for this store (POST /seller/store/logo).
         raise AppError(422, "INVALID_IMAGE", "Invalid logo image.", "logo_url")
-    for field, value in data.model_dump(exclude_unset=True, exclude=SETTINGS).items():
+    if data.slug is not None and data.slug != store.slug:
+        await change_slug(db, store, data.slug)
+    for field, value in data.model_dump(exclude_unset=True, exclude=SETTINGS | {"slug"}).items():
         if value is None and field in REQUIRED_FIELDS:
             continue  # null on a required field means "leave it"
         setattr(store, field, value)
@@ -67,5 +89,5 @@ async def update_store(db: AsyncSession, store_id: uuid.UUID, data: StoreUpdate)
     except IntegrityError as exc:
         # Other stores are invisible under RLS, so the unique index is the check.
         await db.rollback()
-        raise AppError(409, "SLUG_TAKEN", "This store link is already taken.", "slug") from exc
+        raise _slug_taken() from exc
     return store

@@ -99,7 +99,7 @@ function SectionForm({ id, store }: { id: SectionId; store: Store }) {
   const section = SECTIONS[id]
   const Fields = FIELDS[id]
   const queryClient = useQueryClient()
-  const { toast, confirm } = useFeedback()
+  const { toast } = useFeedback()
   const [form, setForm] = useState(() => toForm(store))
   const t = useT()
   const s = t.settings
@@ -116,16 +116,8 @@ function SectionForm({ id, store }: { id: SectionId; store: Store }) {
     },
   })
 
-  async function submit(event: FormEvent) {
+  function submit(event: FormEvent) {
     event.preventDefault()
-    if (id === 'link' && form.slug !== store.slug) {
-      const ok = await confirm({
-        title: s.changeLinkTitle,
-        message: s.changeLinkMessage,
-        confirmLabel: s.changeLink,
-      })
-      if (!ok) return
-    }
     save.mutate()
   }
 
