@@ -47,6 +47,12 @@ async def _set_logo(store_id, url):
         await db.commit()
 
 
+async def _set_cover(store_id, url):
+    async with unscoped_session() as db:
+        await db.execute(update(Store).where(Store.id == store_id).values(cover_url=url))
+        await db.commit()
+
+
 async def _set_photos(product_id, urls):
     async with unscoped_session() as db:
         await db.execute(update(Product).where(Product.id == product_id).values(image_urls=urls))
@@ -85,6 +91,35 @@ async def test_no_logo_or_unreadable_photo_gets_the_plain_mark(
     await _set_logo(store.store_id, f"{PUBLIC}/stores/a/gone.jpg")
     response = await client.get(f"/api/v1/shop/{slug}/preview/logo")
     assert response.status_code == 302
+
+
+async def test_cover_card_has_the_logo_and_our_mark(client, make_store, photos, monkeypatch):
+    store = await make_store()
+    url = f"/api/v1/shop/{await shop_slug(store.store_id)}/preview/cover"
+    await _set_logo(store.store_id, f"{PUBLIC}/stores/a/logo.jpg")
+
+    # No cover yet: the logo's own picture.
+    no_cover = await client.get(url)
+    assert Image.open(BytesIO(no_cover.content)).size == (256, 256)
+
+    async def fetch(url: str) -> bytes:
+        photos.append(url)
+        colour = (40, 90, 200) if "logo" in url else (230, 120, 40)
+        out = BytesIO()
+        Image.new("RGB", (1800, 600), colour).save(out, "JPEG")
+        return out.getvalue()
+
+    monkeypatch.setattr(preview, "fetch_image", fetch)
+    await _set_cover(store.store_id, f"{PUBLIC}/stores/a/cover.jpg")
+    response = await client.get(url)
+
+    assert response.status_code == 200
+    picture = Image.open(BytesIO(response.content))
+    assert picture.size == (1200, 630)
+    assert _near(picture.getpixel((600, 120)), (230, 120, 40))  # the cover
+    assert _near(picture.getpixel((111, 519)), (40, 90, 200))  # the logo, bottom left
+    assert _near(picture.getpixel((1112, 585)), NAVY)  # our mark, bottom right
+    assert photos[-2:] == [f"{PUBLIC}/stores/a/cover.jpg", f"{PUBLIC}/stores/a/logo.jpg"]
 
 
 async def test_product_card_only_for_the_shops_own_products_on_sale(client, two_stores, photos):

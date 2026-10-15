@@ -9,6 +9,7 @@ from app.models.account import (
     Seller,
     SellerLogin,
     SellerRole,
+    ShopColor,
     Store,
     StoreOldSlug,
 )
@@ -57,6 +58,7 @@ __all__ = [
     "Seller",
     "SellerLogin",
     "SellerRole",
+    "ShopColor",
     "ShareableLink",
     "Store",
     "StoreOldSlug",

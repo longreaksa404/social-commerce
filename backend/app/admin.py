@@ -346,6 +346,7 @@ async def forget_customer(slug: str, phone: str) -> int:
 class MovedPhotos:
     products: int
     logos: int
+    covers: int
 
 
 def _moved(url: str, old: str, new: str) -> str:
@@ -353,7 +354,7 @@ def _moved(url: str, old: str, new: str) -> str:
 
 
 async def move_photos(old: str, new: str) -> MovedPhotos:
-    """Point every saved product photo and shop logo at a new address for
+    """Point every saved product photo, shop logo and cover at a new address for
     the same R2 bucket (e.g. its r2.dev address → images.oaksolve.com).
     The files don't move; only the addresses saved with them change.
     Products and shops only accept photos under R2_PUBLIC_URL, so run it
@@ -373,8 +374,12 @@ async def move_photos(old: str, new: str) -> MovedPhotos:
         for store in await db.scalars(select(Store).where(Store.logo_url.startswith(f"{old}/"))):
             store.logo_url = _moved(store.logo_url, old, new)
             logos += 1
+        covers = 0
+        for store in await db.scalars(select(Store).where(Store.cover_url.startswith(f"{old}/"))):
+            store.cover_url = _moved(store.cover_url, old, new)
+            covers += 1
         await db.commit()
-    return MovedPhotos(products, logos)
+    return MovedPhotos(products, logos, covers)
 
 
 async def _run(args: argparse.Namespace) -> str:
@@ -427,7 +432,10 @@ async def _run(args: argparse.Namespace) -> str:
         )
     if args.command == "move-photos":
         moved = await move_photos(args.old, args.new)
-        return f"Moved the photo addresses of {moved.products} products and {moved.logos} logos."
+        return (
+            f"Moved the photo addresses of {moved.products} products, {moved.logos} logos "
+            f"and {moved.covers} covers."
+        )
     raise AdminError(f"Unknown command {args.command}.")
 
 

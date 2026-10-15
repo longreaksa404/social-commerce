@@ -18,7 +18,7 @@ from app.core.errors import AppError
 from app.schemas.product import MAX_IMAGES
 from app.schemas.upload import EXTENSIONS, ImageUploadIn, ImageUploadOut
 from app.services.product import get_product, image_prefix
-from app.services.store import logo_prefix
+from app.services.store import cover_prefix, logo_prefix
 
 UPLOAD_URL_SECONDS = 600
 
@@ -86,9 +86,18 @@ async def create_upload(
 
 def create_logo_upload(store_id: uuid.UUID, data: ImageUploadIn) -> ImageUploadOut:
     """The shop's logo: one small image (the app shrinks it first), no copy."""
+    return _store_picture_upload(logo_prefix(store_id), data)
+
+
+def create_cover_upload(store_id: uuid.UUID, data: ImageUploadIn) -> ImageUploadOut:
+    """The shop's cover photo: one wide image (the app crops it), no copy."""
+    return _store_picture_upload(cover_prefix(store_id), data)
+
+
+def _store_picture_upload(prefix: str, data: ImageUploadIn) -> ImageUploadOut:
     settings = get_settings()
     _check_configured()
-    folder = logo_prefix(store_id).removeprefix(f"{settings.r2_public_url}/")
+    folder = prefix.removeprefix(f"{settings.r2_public_url}/")
     key = f"{folder}{uuid.uuid4().hex}.{EXTENSIONS[data.content_type]}"
     return ImageUploadOut(
         upload_url=_signed_put(key, data.content_type, data.size),

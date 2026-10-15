@@ -178,3 +178,57 @@ async def test_logo_must_be_this_stores_upload(client, auth_headers, r2):
         assert response.json()["error"]["code"] == "INVALID_IMAGE"
     store = (await client.get("/api/v1/seller/store", headers=headers)).json()
     assert store["logo_url"] is None
+
+
+async def test_cover_upload_goes_in_the_stores_own_folder(client, auth_headers, r2):
+    headers = await auth_headers()
+    store = (await client.get("/api/v1/seller/store", headers=headers)).json()
+
+    response = await client.post(
+        "/api/v1/seller/store/cover",
+        headers=headers,
+        json={"content_type": "image/jpeg", "size": 200_000},
+    )
+    upload = response.json()
+    attach = await client.patch(
+        "/api/v1/seller/store", headers=headers, json={"cover_url": upload["public_url"]}
+    )
+    shop = await client.get(f"/api/v1/shop/{store['slug']}")
+    remove = await client.patch("/api/v1/seller/store", headers=headers, json={"cover_url": None})
+
+    assert response.status_code == 200, upload
+    assert store["cover_url"] is None
+    assert upload["public_url"].startswith(f"https://pub-test.r2.dev/stores/{store['id']}/cover/")
+    assert attach.json()["cover_url"] == upload["public_url"]
+    assert shop.json()["cover_url"] == upload["public_url"]
+    assert remove.json()["cover_url"] is None
+
+
+async def test_cover_must_be_this_stores_upload(client, auth_headers, r2):
+    other = await auth_headers()
+    other_cover = (
+        await client.post(
+            "/api/v1/seller/store/cover",
+            headers=other,
+            json={"content_type": "image/jpeg", "size": 10},
+        )
+    ).json()
+    headers = await auth_headers()
+    own_logo = (
+        await client.post(
+            "/api/v1/seller/store/logo",
+            headers=headers,
+            json={"content_type": "image/jpeg", "size": 10},
+        )
+    ).json()
+
+    others = [other_cover["public_url"], own_logo["public_url"], "https://x.example/c.jpg"]
+    for url in others:
+        response = await client.patch(
+            "/api/v1/seller/store", headers=headers, json={"cover_url": url}
+        )
+        assert response.status_code == 422, url
+        assert response.json()["error"]["code"] == "INVALID_IMAGE"
+        assert response.json()["error"]["field"] == "cover_url"
+    store = (await client.get("/api/v1/seller/store", headers=headers)).json()
+    assert store["cover_url"] is None

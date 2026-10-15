@@ -30,6 +30,12 @@ async def create_logo_upload(data: ImageUploadIn, seller: Owner) -> ImageUploadO
     return image_service.create_logo_upload(seller.store_id, data)
 
 
+@router.post("/cover", response_model=ImageUploadOut)
+async def create_cover_upload(data: ImageUploadIn, seller: Owner) -> ImageUploadOut:
+    """Step 1 of a cover photo upload: PUT the file, then PATCH cover_url."""
+    return image_service.create_cover_upload(seller.store_id, data)
+
+
 @router.post("/telegram/link", response_model=TelegramLinkOut)
 async def telegram_link(seller: Owner) -> TelegramLinkOut:
     """The link that connects a Telegram chat to this store's order alerts."""

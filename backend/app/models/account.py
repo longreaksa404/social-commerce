@@ -48,6 +48,21 @@ class OrderConfirmationMode(enum.StrEnum):
     MANUAL = "manual"
 
 
+class ShopColor(enum.StrEnum):
+    """The shop's colour for customers, one of a few made for light and
+    dark mode (Settings → the shop; founder's pick 1A, 2026-10-15). The
+    seller's dashboard stays navy."""
+
+    NAVY = "navy"
+    TEAL = "teal"
+    FOREST = "forest"
+    OLIVE = "olive"
+    COFFEE = "coffee"
+    WINE = "wine"
+    PLUM = "plum"
+    CHARCOAL = "charcoal"
+
+
 # Every new shop's free trial (01_PRODUCT.md §33.1): 30 days, the day it
 # signs up included.
 TRIAL_DAYS = 30
@@ -142,6 +157,12 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     slug: Mapped[str] = mapped_column(String(64), unique=True)
     description: Mapped[str | None] = mapped_column(Text)
     logo_url: Mapped[str | None] = mapped_column(Text)
+    # The wide photo at the top of the shop, like a Facebook page's cover,
+    # and the picture of the shop's link card when it's shared.
+    cover_url: Mapped[str | None] = mapped_column(Text)
+    color: Mapped[ShopColor] = mapped_column(
+        str_enum(ShopColor, "shop_color"), default=ShopColor.NAVY, server_default="navy"
+    )
     currency: Mapped[Currency] = mapped_column(
         str_enum(Currency, "currency"), default=Currency.USD, server_default="USD"
     )

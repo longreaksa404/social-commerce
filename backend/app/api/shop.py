@@ -2,6 +2,7 @@
 
 import uuid
 from collections.abc import Awaitable, Callable
+from functools import partial
 from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, Response, status
@@ -188,6 +189,17 @@ async def logo_preview(shop: Shop) -> Response:
     if not shop.logo_url:
         return _plain_mark()
     return await _preview(preview_service.logo_picture, shop.logo_url)
+
+
+@router.get("/preview/cover", dependencies=[Depends(_preview_rate_limit)])
+async def cover_preview(shop: Shop) -> Response:
+    """og:image for a shop link once it has a cover: a 1200 × 630 card made
+    from it, with the logo and our mark; the logo's picture without one."""
+    if not shop.cover_url:
+        return await logo_preview(shop)
+    return await _preview(
+        partial(preview_service.cover_picture, logo_url=shop.logo_url), shop.cover_url
+    )
 
 
 @router.get("/preview/products/{product_slug}", dependencies=[Depends(_preview_rate_limit)])

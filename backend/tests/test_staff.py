@@ -63,6 +63,7 @@ async def test_staff_work_in_the_owners_shop(client, auth_headers):
     [
         ("PATCH", "/api/v1/seller/store", {"name": "Mine now"}),
         ("POST", "/api/v1/seller/store/logo", {"content_type": "image/png", "size": 100}),
+        ("POST", "/api/v1/seller/store/cover", {"content_type": "image/png", "size": 100}),
         ("POST", "/api/v1/seller/store/telegram/link", None),
         ("DELETE", "/api/v1/seller/store/telegram", None),
         ("GET", "/api/v1/seller/orders/export?first=2026-10-01&last=2026-10-08", None),

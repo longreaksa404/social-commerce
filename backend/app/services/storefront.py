@@ -67,6 +67,8 @@ async def store_page(db: AsyncSession, store: Store) -> ShopStoreOut:
         slug=store.slug,
         description=store.description,
         logo_url=store.logo_url,
+        cover_url=store.cover_url,
+        color=store.color,
         currency=store.currency,
         categories=[
             ShopCategoryOut(name=name, slug=slug, product_count=count) for name, slug, count in rows

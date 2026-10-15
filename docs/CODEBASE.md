@@ -228,11 +228,11 @@ Backend modules, one line each:
 | `services/social.py` | "Continue with Google / Facebook / TikTok": sign in or start a sign-up (`sign_in`), finish it (`register`), connect an account in Settings (`connect`), list them (`logins`) |
 | `services/account.py` | The logged-in seller's own details and password change, closing a shop (unscoped session, filtered by the token's seller id) |
 | `services/staff.py` | The owner's staff: list, add, set a password, remove (unscoped session, filtered by the token's store id and role staff) |
-| `services/store.py` | Get/update the store; validates the three settings blobs and logo URLs |
+| `services/store.py` | Get/update the store; validates the three settings blobs and logo and cover URLs |
 | `services/category.py`, `product.py` | Catalog CRUD; variant merge; image URL prefix check |
-| `services/images.py` | Presigned R2 PUT URLs (product photo, thumbnail, logo) |
+| `services/images.py` | Presigned R2 PUT URLs (product photo, thumbnail, logo, cover) |
 | `services/storefront.py` | Public reads: shop by slug, cards, product, category page, a product's first photo |
-| `services/preview.py`, `oak_mark.py` | Link-preview pictures (Pillow): the shop's logo (256 px) or a product's photo (a 1200 × 630 card, the whole photo over a blurred copy) with our mark small in the corner (drawn from `oak_mark_shape.png` / `oak_mark_outline.png`, masks of the SVG); fetched only from `R2_PUBLIC_URL`, drawn in a thread, the last 64 kept in memory |
+| `services/preview.py`, `oak_mark.py` | Link-preview pictures (Pillow): the shop's logo (256 px) or a product's photo (a 1200 × 630 card, the whole photo over a blurred copy) with our mark small in the corner, or the shop's cover (a 1200 × 630 card, the cover's middle with the logo round in the bottom left; 2026-10-15) (drawn from `oak_mark_shape.png` / `oak_mark_outline.png`, masks of the SVG); fetched only from `R2_PUBLIC_URL`, drawn in a thread, the last 64 kept in memory |
 | `services/checkout.py` | Guest checkout (`place_order`), tracking lookup (`track_order`), `shop_order_out` |
 | `services/pricing.py` | Line totals, discount, delivery fee, order totals (mirrored in `frontend/src/lib/pricing.ts`) |
 | `services/order.py` | Order state machine, completion rule, seller list/detail, the payment/delivery record wrappers |
@@ -276,7 +276,7 @@ cd frontend && npm install
 | API dev server | `uvicorn app.main:app --reload`: http://localhost:8000, OpenAPI at `/docs` |
 | Backend tests | `pytest` (backend). Needs Postgres running; uses its own `<db>_test` database, created, migrated and emptied automatically |
 | Backend lint | `ruff check . && ruff format --check .` (`ruff format .` fixes) |
-| Founder's commands | `python -m app.admin <command> <login>` (a phone number typed any way, or an older account's email; `auth.login_filter`), commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend), `test-shop [--name]` (a shop with an email login and no phone, for the load test: sign-up needs a phone checked in Telegram, one shop per number), `forget-customer <shop link name> <phone>` (a customer's name becomes "(removed)"; phone, addresses, map pins and notes go from that shop's customer, orders and alert payloads; the orders' items and money stay; the Data deletion page promises it), and `move-photos <old> <new>` (rewrites the R2 address saved in `product.image_urls` and `store.logo_url`, for `images.oaksolve.com`); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
+| Founder's commands | `python -m app.admin <command> <login>` (a phone number typed any way, or an older account's email; `auth.login_filter`), commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend), `test-shop [--name]` (a shop with an email login and no phone, for the load test: sign-up needs a phone checked in Telegram, one shop per number), `forget-customer <shop link name> <phone>` (a customer's name becomes "(removed)"; phone, addresses, map pins and notes go from that shop's customer, orders and alert payloads; the orders' items and money stay; the Data deletion page promises it), and `move-photos <old> <new>` (rewrites the R2 address saved in `product.image_urls`, `store.logo_url` and `store.cover_url`, for `images.oaksolve.com`); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
 | Bot on a laptop | `python -m app.telegram_poll` (backend, beside uvicorn): answers your **test** bot by polling, since Telegram's webhook can't reach localhost. Needs the three `TELEGRAM_*` values in `.env` and `PUBLIC_API_URL` empty; refuses a bot that has a webhook (the live one) |
 | Performance audit tools | `backend/loadtest/seed_perf.py` (a local `social_commerce_perf` database with a 500-product shop; refuses anything but a local `*_perf` database) and `measure.py` (every endpoint's time, SQL statements and Postgres round trips), run from `backend/` with its venv; `backend/loadtest/README.md`, results in `docs/PERF_AUDIT.md` |
 | Frontend dev server | `npm run dev`: http://localhost:5173 |
@@ -363,7 +363,7 @@ ShopDb     = Annotated[AsyncSession, Depends(get_shop_db)]      # RLS-scoped to 
 ```
 
 Every seller route takes `seller: Seller, db: TenantDb`; Settings routes
-take `seller: Owner` instead (store PATCH, logo, Telegram link/disconnect,
+take `seller: Owner` instead (store PATCH, logo, cover, Telegram link/disconnect,
 orders export, close shop, staff). Every storefront
 route takes `shop: Shop, db: ShopDb`. `get_shop` closes its unscoped session
 before `ShopDb` opens, so a request holds one connection at a time.
@@ -533,8 +533,8 @@ starts a new transaction.
 `Model.store_id == store_id` explicitly, even on a tenant session. Foreign
 key checks bypass RLS, so ownership of referenced rows is checked in code:
 `product._check_category` (a category id from another store gets 422) and
-image or logo URLs must start with
-`{R2_PUBLIC_URL}/stores/{store_id}/products/{product_id}/` or `.../logo/`.
+image, logo or cover URLs must start with
+`{R2_PUBLIC_URL}/stores/{store_id}/products/{product_id}/`, `.../logo/` or `.../cover/`.
 
 **Layer 2 (Postgres RLS).** From migration `ccd7d9bce820` (the same policy
 is repeated in each later table's migration):
@@ -672,7 +672,7 @@ Mixins (`app/db/base.py`):
 | `seller_login` | **NO** (no `app_user` grant) | `seller_id`, `provider` (`google`, `facebook`, `tiktok`), `provider_user_id` (Google's `sub`, Facebook's id, TikTok's `open_id`), `email` (the provider's, when verified), `name` (the provider's; TikTok's display name), both shown in Settings, `created_at` | `seller_id → seller` CASCADE | `uq_seller_login_provider` (`provider`, `provider_user_id`), `uq_seller_login_seller_id` (`seller_id`, `provider`: one account of each kind per seller) |
 | `phone_check` | **NO** (no `app_user` grant) | `code` (`phone_` + 22 random characters, in the `t.me` link), `telegram_user_id` (bigint, who opened the link), `phone` (normalized, once shared), `verified_at`, `expires_at` (30 min), `created_at` | none | `uq_phone_check_code`; `ix_phone_check_telegram_user_id`. Expired rows are deleted when a new check starts |
 | `seller` | **NO** (an owner owns the tenant, staff belong to one; no RLS, no `app_user` grant) | `phone` (the login, normalized, NULL only for older accounts whose number another account had), `email` (NULL for accounts since 2026-10-09; older ones log in with it; stored lowercased), `password_hash` (NULL for an account made with Google until it adds one), `full_name`, `is_active` (default true), `role` (`owner`/`staff`, default owner), `store_id` (staff only), `created_at` | `store_id → store` CASCADE (`use_alter`: store also points at seller) | `uq_seller_phone`; `uq_seller_email`; `ix_seller_store_id`; CHECK `(role = 'staff') = (store_id IS NOT NULL)` |
-| `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `low_stock_alert` (int, default 5, 1–999 by the schema), `paid_until` (date: the last day covered, by the 30-day free trial from sign-up, then by `plan_payment`s; Python default `account.trial_end()`), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
+| `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `cover_url` (the shop's 3:1 cover photo, 2026-10-15), `color` (`ShopColor`: `navy`/`teal`/`forest`/`olive`/`coffee`/`wine`/`plum`/`charcoal`, default navy, CHECK `ck_store_shop_color`; the shop's colour for customers), `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `low_stock_alert` (int, default 5, 1–999 by the schema), `paid_until` (date: the last day covered, by the 30-day free trial from sign-up, then by `plan_payment`s; Python default `account.trial_end()`), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
 | `refresh_token` | **NO** (per seller; no RLS, no `app_user` grant) | `id` (= JWT `jti`), `expires_at`, `revoked_at`, `created_at` | `seller_id → seller` CASCADE | `ix_refresh_token_seller_id` |
 | `store_old_slug` | yes (`app_user` SELECT, INSERT, DELETE) | `slug` String(64) **primary key** (globally unique, like `store.slug`; `slugs.store_slug_taken` checks both tables on an unscoped session, yes/no only), `created_at` | none besides `store_id` (CASCADE) | `store_id`. A link the shop had: `/shop/<it>` still opens the shop. Added by `store.change_slug`, removed when the shop changes back to it; kept for good |
 | `category` | yes | `name`, `slug` String(64), `created_at` | none besides `store_id` | UNIQUE (`store_id`, `slug`) |
@@ -948,8 +948,9 @@ from the schema.
 | POST | `/seller/account/close-shop` | seller | `CloseShopIn` (`password`, not needed without one) | 204 | `seller.is_active = false` and every session deleted: the shop page is 404, login 403 `ACCOUNT_DISABLED` ("This shop is closed. Message Oak Order to open it again."). Nothing is erased; wrong password → 422 `WRONG_PASSWORD` |
 | POST | `/seller/account/password` | seller | `PasswordChange` | `AccessOut` + cookie | Wrong current password → 422 `WRONG_PASSWORD`; ends every other session (§4 Auth) |
 | GET | `/seller/store` | seller | — | `StoreOut` | Includes the three settings, `payment_set_up` (false until `payment_config` was saved once; the setup checklist), `delivery_set_up` (false until `delivery_config` was saved once: the shop runs on free own delivery), `telegram_connected`, `telegram_bot_available` |
-| PATCH | `/seller/store` | seller | `StoreUpdate` | `StoreOut` | Partial; settings blobs saved whole; null on name/slug/currency/mode = leave; `logo_url` only from this store's logo folder (null removes); a new slug keeps the old one as `store_old_slug`; another shop's slug, current or old → 409 `SLUG_TAKEN` |
+| PATCH | `/seller/store` | seller | `StoreUpdate` | `StoreOut` | Partial; settings blobs saved whole; null on name/slug/currency/mode = leave; `logo_url` / `cover_url` only from this store's logo / cover folder (null removes); `color` one of the eight (null = leave); a new slug keeps the old one as `store_old_slug`; another shop's slug, current or old → 409 `SLUG_TAKEN` |
 | POST | `/seller/store/logo` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT into `stores/<id>/logo/` |
+| POST | `/seller/store/cover` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT into `stores/<id>/cover/` (owner; 2026-10-15) |
 | POST | `/seller/store/telegram/link` | seller | — | `TelegramLinkOut` | `t.me/<bot>?start=<code>`, valid 30 min; 503 if bot not configured |
 | DELETE | `/seller/store/telegram` | seller | — | `StoreOut` | Clears `telegram_chat_id` (logic in the router) |
 | GET | `/seller/staff` | owner | — | `list[StaffOut]` | The shop's staff, oldest first |
@@ -990,7 +991,7 @@ from the schema.
 | GET | `/seller/links` | seller | — | `list[LinkOut]` | Newest 200, with view/order counts |
 | POST | `/seller/links` | seller | `LinkCreate` | `LinkOut` (201) | Same target + source + campaign returns the existing link; hidden product → 409 `PRODUCT_HIDDEN` |
 | GET | `/seller/links/{link_id}/stats` | seller | — | `LinkStatsOut` | + its orders (≤100) |
-| GET | `/shop/{store_slug}` | public | — | `ShopStoreOut` | Categories with active products, payment method names, delivery options, discounts, `telegram_username` / `messenger_username` / `contact_phone`, `orders_paused` / `orders_resume_on` |
+| GET | `/shop/{store_slug}` | public | — | `ShopStoreOut` | Categories with active products, `cover_url` and `color`, payment method names, delivery options, discounts, `telegram_username` / `messenger_username` / `contact_phone`, `orders_paused` / `orders_resume_on` |
 | GET | `/shop/{store_slug}/products` | public | — | `list[ShopProductCard]` | Active only; **no paging**; `has_variants` and `stock_quantity` (null with variants) let the grid's + add to the cart |
 | GET | `/shop/{store_slug}/products/{product_slug}` | public | — | `ShopProductOut` | Variants with effective price and stock |
 | GET | `/shop/{store_slug}/categories/{category_slug}` | public | — | `ShopCategoryPageOut` | |
@@ -998,6 +999,7 @@ from the schema.
 | GET | `/shop/{store_slug}/orders/{order_id}` | public | `?phone=` (≤32) | `ShopOrderOut` | 404 unless phone matches (any spelling); includes how to pay while pending; each item carries its product's current first photo (`image_url`, not a snapshot); `telegram_updates` `unavailable` / `off` / `on` |
 | POST | `/shop/{store_slug}/track-view` | public | `TrackViewIn` (`token`) | 204 | View written in background; unknown token ignored; +60/min |
 | GET | `/shop/{store_slug}/preview/logo` | public | `?v=` (ignored; changes with the photo) | JPEG, or 302 | og:image for a shop link (`frontend/middleware.ts`, founder's pick 5B): the logo with our mark bottom right; no logo, or the photo can't be read: 302 to the app's `/og/oak-mark.png` (`PUBLIC_APP_URL`). `Cache-Control` one day; +30/min |
+| GET | `/shop/{store_slug}/preview/cover` | public | `?v=` (changes with the cover and the logo) | JPEG 1200 × 630, or as `/preview/logo` | og:image for a shop link once it has a cover (founder's pick 4A, 2026-10-15): the cover's middle filling the card, the logo round in the bottom left (left out if it can't be read), our mark bottom right; no cover: as `/preview/logo`; cover unreadable: the plain mark; +30/min |
 | GET | `/shop/{store_slug}/preview/products/{product_slug}` | public | `?v=` | JPEG 1200 × 630, or 302 | og:image for a product (or category) link: the first photo with our mark; 404 for another shop's or a hidden product; no photo: as `/preview/logo`; +30/min |
 | POST | `/shop/{store_slug}/orders/{order_id}/paid` | public | `PaymentClaimIn` (`phone`) | 204 | "I've paid" (founder's pick 6B): the order link + phone like tracking (404 otherwise); 409 `NOTHING_TO_PAY` unless a pending KHQR / bank payment on an order that's on. Saves a web `payment_claimed` row and sends a Telegram alert in the background, not again within 30 min; the payment stays pending. +10/min |
 | POST | `/shop/{store_slug}/orders/{order_id}/telegram` | public | `TelegramUpdatesIn` (`phone`) | `TelegramUpdatesOut` (`telegram_url`, `expires_at`) | "Get updates on Telegram": the order link + phone like tracking (404 otherwise); 503 `TELEGRAM_NOT_CONFIGURED` without the bot. The page asks for it as it opens, so +30/min |
@@ -1363,7 +1365,7 @@ don't take the SVG favicon). The three PNGs were drawn from the mark's SVG
 | **ABA PayWay** (sellers paying Oak Order) | PARKED on the `payway` branch (2026-10-14) | Pay now, the monthly auto-charge and callbacks, built with a fake PayWay, never tried against PayWay. Waits for Oak Solutions' MOC registration and 6 months of business (ABA's conditions). Main collects by hand (above). |
 | **Payments: KHQR** | WIRED, manual confirmation | `services/khqr.py` builds an individual KHQR (EMVCo TLV + CRC16) for the exact total, bill number `#<order number>`, 24 h expiry, made fresh on every order-page load; none for riel totals with cents. Tests pin it to strings from NBC's `bakong-khqr` 1.0.20 SDK. Drawn in the browser with `uqr`. |
 | **Bakong Open API** (auto-confirm) | NOT BUILT | Post-MVP (02 §10.3). |
-| **Cloudflare R2** (images) | WIRED, env-gated | `services/images.py`: boto3 S3 client against `https://<account>.r2.cloudflarestorage.com`, presigned `put_object` URLs (10 min) signed with exact `ContentType` + `ContentLength`. Keys: `stores/<store>/products/<product>/<hex>[-m].<ext>`, thumbnail `<hex>-s.jpg`, logo `stores/<store>/logo/<hex>.<ext>`. Public URL = `R2_PUBLIC_URL/<key>`, stored **absolute** in `product.image_urls` / `store.logo_url`. The browser PUTs directly. Removing a photo only unlinks it; the object stays. |
+| **Cloudflare R2** (images) | WIRED, env-gated | `services/images.py`: boto3 S3 client against `https://<account>.r2.cloudflarestorage.com`, presigned `put_object` URLs (10 min) signed with exact `ContentType` + `ContentLength`. Keys: `stores/<store>/products/<product>/<hex>[-m].<ext>`, thumbnail `<hex>-s.jpg`, logo `stores/<store>/logo/<hex>.<ext>`, cover `stores/<store>/cover/<hex>.<ext>`. Public URL = `R2_PUBLIC_URL/<key>`, stored **absolute** in `product.image_urls` / `store.logo_url` / `store.cover_url`. The browser PUTs directly. Removing a photo only unlinks it; the object stays. |
 | **R2 backup bucket** | PARTIAL | `.github/workflows/backup.yml` (02:00 Phnom Penh, `pg_dump` 17, custom format, `--no-owner`, grants kept) uploads with the AWS CLI. It skips until its secrets exist (`docs/BACKUPS.md`). |
 | **Sentry** | WIRED, env-gated | Backend `sentry_sdk.init` (errors only); frontend `@sentry/react`. |
 | **Maps** | WIRED (frontend only) | Leaflet + OpenStreetMap tiles in `MapPicker.tsx` (no key). The seller opens the pin in Google Maps by URL. |
@@ -1510,7 +1512,7 @@ async def test_store_only_sees_its_own_rows(two_stores):
   `order_id`, which is how they are read.
 - **§11 upload flow** says "frontend confirms completion → backend stores
   URL". There is no confirm endpoint: the frontend PATCHes the product's
-  `image_urls` (or the store's `logo_url`) and the backend only checks the
+  `image_urls` (or the store's `logo_url` / `cover_url`) and the backend only checks the
   URL prefix. It doesn't check the object exists in R2.
 - **§6.2 orders "filter by status, date range":** the API supports both;
   the dashboard only uses status.
@@ -1546,7 +1548,7 @@ and policy, endpoint list, JSONB shapes, link and tracking flows) matches
 - A COD order can complete with its payment marked failed (02 §7.4 read
   literally). Payments can't be undone once paid or failed.
 - When the R2 public domain changes (planned `images.oaksolve.com`, domain bought 2026-10-09), existing
-  absolute URLs in `product.image_urls` / `store.logo_url` must be
+  absolute URLs in `product.image_urls` / `store.logo_url` / `store.cover_url` must be
   rewritten in the DB (`python -m app.admin move-photos <old> <new>`,
   docs/ADMIN.md). Otherwise saving a product with old photos fails the
   prefix check (`INVALID_IMAGE`).

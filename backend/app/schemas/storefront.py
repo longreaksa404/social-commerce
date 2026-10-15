@@ -10,7 +10,7 @@ from decimal import Decimal
 from pydantic import BaseModel
 
 from app.models import PaymentMethod
-from app.models.account import Currency
+from app.models.account import Currency, ShopColor
 from app.schemas.delivery import DiscountRule, ShopDeliveryOptions
 
 
@@ -28,6 +28,10 @@ class ShopStoreOut(BaseModel):
     slug: str
     description: str | None
     logo_url: str | None
+    # The wide photo at the top of the shop; null: none.
+    cover_url: str | None
+    # The colour of the shop's buttons, tabs and links.
+    color: ShopColor
     currency: Currency
     # Only categories with at least one product on sale.
     categories: list[ShopCategoryOut]

@@ -20,6 +20,7 @@ REQUIRED_FIELDS = {
     "order_confirmation_mode",
     "orders_paused",
     "low_stock_alert",
+    "color",
 }
 # Each saved whole (below), not field by field.
 SETTINGS = {"payment_settings", "delivery_settings", "discount_settings"}
@@ -47,6 +48,15 @@ def logo_prefix(store_id: uuid.UUID) -> str:
     return f"{get_settings().r2_public_url}/stores/{store_id}/logo/"
 
 
+def cover_prefix(store_id: uuid.UUID) -> str:
+    return f"{get_settings().r2_public_url}/stores/{store_id}/cover/"
+
+
+def _own_upload(url: str | None, prefix: str) -> bool:
+    """Null (removing it), or a picture uploaded for this store."""
+    return url is None or bool(get_settings().r2_public_url and url.startswith(prefix))
+
+
 async def get_store(db: AsyncSession, store_id: uuid.UUID) -> Store:
     store = await db.get(Store, store_id)
     if store is None:
@@ -56,11 +66,11 @@ async def get_store(db: AsyncSession, store_id: uuid.UUID) -> Store:
 
 async def update_store(db: AsyncSession, store_id: uuid.UUID, data: StoreUpdate) -> Store:
     store = await get_store(db, store_id)
-    if data.logo_url is not None and not (
-        get_settings().r2_public_url and data.logo_url.startswith(logo_prefix(store_id))
-    ):
-        # Only a logo uploaded for this store (POST /seller/store/logo).
+    # Only a logo or cover uploaded for this store (POST /seller/store/logo, /cover).
+    if not _own_upload(data.logo_url, logo_prefix(store_id)):
         raise AppError(422, "INVALID_IMAGE", "Invalid logo image.", "logo_url")
+    if not _own_upload(data.cover_url, cover_prefix(store_id)):
+        raise AppError(422, "INVALID_IMAGE", "Invalid cover photo.", "cover_url")
     if data.slug is not None and data.slug != store.slug:
         await change_slug(db, store, data.slug)
     for field, value in data.model_dump(exclude_unset=True, exclude=SETTINGS | {"slug"}).items():

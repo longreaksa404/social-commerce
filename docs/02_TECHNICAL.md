@@ -181,6 +181,8 @@ seller (owner)
 | slug | text, unique | used in shareable URLs, e.g. `/shop/{slug}` |
 | description | text, nullable | |
 | logo_url | text, nullable | the shop's logo, uploaded with `POST /seller/store/logo` (Phase 9); shown in the shop and dashboard headers |
+| cover_url | text, nullable | the shop's cover photo, 3:1, uploaded with `POST /seller/store/cover`: across the top of the shop's grid pages with the logo over its bottom edge, and the shop's large link card (founder's picks 3A, 4A; 2026-10-15) |
+| color | enum(`navy`,`teal`,`forest`,`olive`,`coffee`,`wine`,`plum`,`charcoal`) | default `navy`; the shop's colour for customers: everything navy in the shop takes it (buttons, the chosen tab, links, the wash at the top). Each has a light and a dark scale; the dashboard stays navy (founder's picks 1A, 2A; 2026-10-15) |
 | telegram_chat_id | text, nullable | for seller notifications; private, never shown on the shop |
 | telegram_username | text, nullable | the seller's own Telegram username (without @), public on the shop page for "Ask seller" |
 | contact_phone | text, nullable | a number customers can call, stored like customers' phones (`012345678`); public (2026-10-08) |
@@ -383,8 +385,9 @@ DELETE /api/v1/seller/staff/{id}
 ### Seller — Store
 ```
 GET    /api/v1/seller/store
-PATCH  /api/v1/seller/store                   # owner only; takes logo_url only from a logo upload below; null removes it
+PATCH  /api/v1/seller/store                   # owner only; takes logo_url / cover_url only from the uploads below; null removes each
 POST   /api/v1/seller/store/logo              # presigned logo upload, see §11
+POST   /api/v1/seller/store/cover             # presigned cover photo upload, see §11 (2026-10-15)
 POST   /api/v1/seller/store/telegram/link     # signed t.me/<bot>?start=<code> link, 30 min
 DELETE /api/v1/seller/store/telegram          # disconnect the seller's chat
 ```
@@ -606,7 +609,7 @@ This is intentionally simple — no attribution modeling, no multi-touch trackin
 
 Facebook, Messenger, Telegram, TikTok and similar apps build a link's preview card from the HTML without running JavaScript. Code on `/shop/*` (`frontend/linkPreview.ts`, decided 2026-10-03; run by a Cloudflare Pages Function, `frontend/functions/shop/[[path]].ts`, and by Vercel Routing Middleware, `frontend/middleware.ts`, until the move to Cloudflare Pages, 2026-10-14) gives those preview bots `index.html` with `og:` title, description and photo from the storefront API; people pass through untouched, so a slow API never slows a customer. If the API doesn't answer in 6 s (e.g. Render asleep), the bot gets the generic card. The card's own words (e.g. "Order online", a category's product count) are in Khmer, the default language. Preview bots don't run JavaScript, so they never count as views.
 
-**Oak in every card (decided 2026-10-10):** titles end in "· Oak Order" (a product's title also carries its price), and the picture is the shop's logo or the product's photo with Oak's mark (the oak leaf) small in the corner. The API draws those pictures (`GET /api/v1/shop/{slug}/preview/logo` and `/preview/products/{slug}`, Pillow, photos fetched only from our R2 address, 30/min per IP); a shop without a logo gets Oak's plain mark. Every other page, and a shop link while the API is asleep, shows the generic card in `index.html`: Oak's own picture with the leaf, "Oak Order" and the start page's line.
+**Oak in every card (decided 2026-10-10):** titles end in "· Oak Order" (a product's title also carries its price), and the picture is the shop's logo or the product's photo with Oak's mark (the oak leaf) small in the corner. The API draws those pictures (`GET /api/v1/shop/{slug}/preview/logo` and `/preview/products/{slug}`, Pillow, photos fetched only from our R2 address, 30/min per IP); a shop without a logo gets Oak's plain mark. **A shop with a cover photo (2026-10-15, founder's pick 4A)** gets a large 1200 × 630 card instead: the cover's middle filling it, the logo round in the bottom left, Oak's mark in the bottom right (`/preview/cover`). Every other page, and a shop link while the API is asleep, shows the generic card in `index.html`: Oak's own picture with the leaf, "Oak Order" and the start page's line.
 
 ---
 
@@ -650,6 +653,7 @@ This mirrors `01_PRODUCT.md` §38.4's guidance: "start with the simplest validat
 - This keeps large file bytes off the FastAPI service entirely (no multipart handling on the app server), which matters for keeping the backend lightweight and cheap to run.
 - Basic constraints enforced client-side and re-validated server-side: max 5 images per product, max 5MB per image, JPEG/PNG/WebP only.
 - **Shop logo (Phase 9, 2026-10-04):** `POST /seller/store/logo` signs one PUT into `stores/<store_id>/logo/`; the seller's phone first crops the picture to a 256 px square JPEG. `PATCH /seller/store` accepts a `logo_url` only from that store's folder (null removes the logo). Uses the existing `store.logo_url`; no data model change.
+- **Shop cover photo (2026-10-15):** `POST /seller/store/cover` signs one PUT into `stores/<store_id>/cover/`; the seller's phone first crops the middle of the picture to 3:1 (1800 × 600 JPEG). `PATCH /seller/store` accepts a `cover_url` only from that store's folder (null removes it). Erasing a shop empties `stores/<store_id>/`, cover included.
 - **Small copies (Phase 9, decided 2026-10-04):** the seller's phone also makes a small JPEG copy of each new photo (short side ~480 px, max 512 KB) and uploads it first, next to the photo: the photo is named `<name>-m.<ext>`, the copy `<name>-s.jpg` (the images endpoint takes `thumbnail_size` and signs a second PUT). Product grids, the cart and the seller's lists use the copy when the photo's name ends in `-m`; older photos, and a copy that fails to load, fall back to the photo itself. No data model change.
 
 ---

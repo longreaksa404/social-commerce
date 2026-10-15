@@ -31,6 +31,8 @@ async def test_store_page_shows_only_categories_with_active_products(client, mak
         "slug",
         "description",
         "logo_url",
+        "cover_url",  # the wide photo at the top of the shop
+        "color",  # the shop's colour for customers
         "currency",
         "categories",
         "payment_methods",  # names only; bank details come with an order

@@ -144,8 +144,8 @@ done: `python -m app.admin close-shop test-xxxx@example.com`.
 ## Photos moved to a new address
 
 When the R2 bucket gets a new public address (its `r2.dev` address →
-`images.oaksolve.com`, at the switch-over to oaksolve.com), the photos
-and logos already saved still point at the old one, and saving such a
+`images.oaksolve.com`, at the switch-over to oaksolve.com), the photos,
+logos and shop covers already saved still point at the old one, and saving such a
 product is refused as "Invalid product image". Right after changing
 `R2_PUBLIC_URL` in Render:
 
@@ -154,6 +154,6 @@ python -m app.admin move-photos https://pub-xxxx.r2.dev https://images.oaksolve.
 ```
 
 The old address first, then the new one (both `https://`). The files
-don't move; only the saved addresses change. It says how many products
-and logos it changed. Running it again changes nothing; swapping the two
+don't move; only the saved addresses change. It says how many products,
+logos and covers it changed. Running it again changes nothing; swapping the two
 addresses undoes it.

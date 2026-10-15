@@ -107,13 +107,14 @@ async def test_move_photos_points_saved_photos_and_logos_at_the_new_address(two_
         hat_photo = f"{old}/stores/{b.store_id}/products/{hat}/1.jpg"
         (await db.get(Product, hat)).image_urls = [hat_photo]
         (await db.get(Store, a.store_id)).logo_url = f"{old}/stores/{a.store_id}/logo/l.png"
+        (await db.get(Store, b.store_id)).cover_url = f"{old}/stores/{b.store_id}/cover/c.jpg"
         await db.commit()
 
     moved = await admin.move_photos(old + "/", new)
     again = await admin.move_photos(old, new)
 
-    assert (moved.products, moved.logos) == (2, 1)
-    assert (again.products, again.logos) == (0, 0)
+    assert (moved.products, moved.logos, moved.covers) == (2, 1, 1)
+    assert (again.products, again.logos, again.covers) == (0, 0, 0)
     async with unscoped_session() as db:
         assert (await db.get(Product, shirt)).image_urls == [
             f"{new}/stores/{a.store_id}/products/{shirt}/1.jpg",
@@ -125,6 +126,10 @@ async def test_move_photos_points_saved_photos_and_logos_at_the_new_address(two_
         assert (await db.get(Product, bare)).image_urls == []
         assert (await db.get(Store, a.store_id)).logo_url == f"{new}/stores/{a.store_id}/logo/l.png"
         assert (await db.get(Store, b.store_id)).logo_url is None
+        assert (
+            await db.get(Store, b.store_id)
+        ).cover_url == f"{new}/stores/{b.store_id}/cover/c.jpg"
+        assert (await db.get(Store, a.store_id)).cover_url is None
 
 
 async def test_move_photos_needs_two_different_https_addresses():

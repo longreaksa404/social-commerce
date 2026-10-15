@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validat
 from pydantic_core import PydanticCustomError
 
 from app.core.config import get_settings
-from app.models.account import Currency, OrderConfirmationMode
+from app.models.account import Currency, OrderConfirmationMode, ShopColor
 from app.schemas.common import Description, Name, Slug
 from app.schemas.delivery import DeliverySettings, DiscountSettings
 from app.schemas.payment import PaymentSettings
@@ -21,6 +21,10 @@ class StoreOut(BaseModel):
     slug: str
     description: str | None
     logo_url: str | None
+    # The wide photo at the top of the shop, and its link card.
+    cover_url: str | None
+    # The shop's colour for customers; the dashboard stays navy.
+    color: ShopColor
     currency: Currency
     # automatic: new orders are accepted at once; manual: they wait as pending.
     order_confirmation_mode: OrderConfirmationMode
@@ -103,6 +107,9 @@ class StoreUpdate(BaseModel):
     messenger_username: str | None = Field(default=None, max_length=200)
     # A public_url from POST /seller/store/logo; null removes the logo.
     logo_url: str | None = Field(default=None, max_length=500)
+    # A public_url from POST /seller/store/cover; null removes the cover.
+    cover_url: str | None = Field(default=None, max_length=500)
+    color: ShopColor | None = None
 
     @field_validator("telegram_username")
     @classmethod

@@ -19,6 +19,26 @@ async def test_seller_sees_and_edits_only_their_store(client, register):
     assert again["description"] is None
 
 
+async def test_shop_colour_starts_navy_and_shows_in_the_shop(client, register):
+    a, b = await register(), await register()
+    a_headers = {"Authorization": f"Bearer {a['access_token']}"}
+    b_headers = {"Authorization": f"Bearer {b['access_token']}"}
+
+    new = (await client.get("/api/v1/seller/store", headers=a_headers)).json()
+    picked = await client.patch("/api/v1/seller/store", headers=a_headers, json={"color": "forest"})
+    kept = await client.patch("/api/v1/seller/store", headers=a_headers, json={"color": None})
+    wrong = await client.patch("/api/v1/seller/store", headers=a_headers, json={"color": "pink"})
+    shop = (await client.get(f"/api/v1/shop/{new['slug']}")).json()
+    other = (await client.get("/api/v1/seller/store", headers=b_headers)).json()
+
+    assert new["color"] == "navy"
+    assert picked.json()["color"] == "forest"
+    assert kept.json()["color"] == "forest"  # null leaves it
+    assert wrong.status_code == 422
+    assert shop["color"] == "forest"
+    assert other["color"] == "navy"  # another shop's pick doesn't touch this one
+
+
 async def test_taking_another_stores_slug_is_a_conflict(client, register):
     a, b = await register(), await register()
     a_slug = (
