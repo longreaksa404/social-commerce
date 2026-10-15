@@ -1,21 +1,20 @@
 import { ShoppingBag } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
-import { OakMark } from '../components/OakMark.tsx'
+import { OakOrderName } from '../components/OakMark.tsx'
 import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
 
-/** The product's name, Oak Order (01_PRODUCT.md section 1.1), with its
- * mark (components/OakMark.tsx): navy, or white with `onDark` for the
- * navy panel. */
+/** The product's name, Oak Order (01_PRODUCT.md section 1.1), with the
+ * acorn as its O (components/OakMark.tsx): a navy O beside dark letters,
+ * or all white with `onDark` for the navy panel. */
 export function BrandMark({ className = '', onDark = false }: { className?: string; onDark?: boolean }) {
   return (
     <Link
       to="/"
-      className={`inline-flex items-center gap-2.5 font-bold tracking-tight ${onDark ? 'text-white' : 'text-slate-900'} ${className}`}
+      className={`inline-flex min-h-11 items-center text-2xl ${onDark ? 'text-white' : 'text-slate-900'} ${className}`}
     >
-      <OakMark className={`h-9 w-auto ${onDark ? 'text-white' : 'text-accent'}`} />
-      <span>Oak Order</span>
+      <OakOrderName oClassName={onDark ? '' : 'text-accent'} />
     </Link>
   )
 }

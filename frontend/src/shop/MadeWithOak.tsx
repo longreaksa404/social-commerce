@@ -1,11 +1,11 @@
-import { OakMark } from '../components/OakMark.tsx'
+import { OakOrderName } from '../components/OakMark.tsx'
 import { useT } from '../i18n/useT.ts'
 
 const legalLink =
   'inline-flex min-h-8 items-center rounded px-1 underline underline-offset-2 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-navy-600'
 
 /** At the very bottom of the shop's grid pages and the order page, under a
- * thin line: our mark and "Made with Oak Order" (to the start page, where
+ * thin line: "Made with Oak Order", the acorn as its O (to the start page, where
  * a customer who sells too can open a shop), then Privacy · Terms, since
  * customers give the shop their name, phone and address. Each opens in a
  * new tab so the shop stays open. Never on the cart and checkout page. */
@@ -20,9 +20,8 @@ export function MadeWithOak() {
           rel="noopener"
           className="inline-flex min-h-10 items-center gap-2 rounded-lg px-2.5 text-sm hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
         >
-          <OakMark className="h-5 w-auto shrink-0 text-oak" />
           <span>
-            {c.madeWith} <span className="font-semibold text-slate-700">Oak Order</span>
+            {c.madeWith} <OakOrderName className="text-slate-700" oClassName="text-oak" />
           </span>
         </a>
         <p className="flex items-center gap-1.5 text-xs">

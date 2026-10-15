@@ -1,9 +1,9 @@
-"""Oak's mark, the oak leaf cut out of a hexagon, for link-preview pictures.
+"""Oak's mark, the acorn, as a badge for link-preview pictures.
 
-Pillow can't draw the SVG's curves, so the shape comes as two masks drawn
-from it (frontend/src/components/OakMark.tsx, public/favicon.svg): the mark
-itself (oak_mark_shape.png) and the hexagon without the leaf cut out
-(oak_mark_outline.png), 255 inside. Both have room around the shape for the
+Pillow can't draw the SVG's curves, so the badge comes as two masks drawn
+from it (frontend/src/components/OakMark.tsx, public/favicon.svg): a navy
+rounded tile with the acorn cut out (oak_mark_shape.png) and the tile alone
+(oak_mark_outline.png), 255 inside. Both have room around the tile for the
 badge's ring. Redraw them if the mark changes.
 """
 
@@ -31,8 +31,8 @@ def _mask(name: str, height: int) -> Image.Image:
 
 @lru_cache(maxsize=8)
 def badge(size: int) -> Image.Image:
-    """Our mark as a badge for a corner, `size` px tall: the navy hexagon
-    with its white leaf, in a thin white ring, transparent around."""
+    """Our mark as a badge for a corner, `size` px tall: the navy tile
+    with its white acorn, in a thin white ring, transparent around."""
     shape = _mask("shape", size)
     ring = max(1, round(size * 0.035))
     outline = _mask("outline", size).filter(ImageFilter.MaxFilter(2 * ring + 1))

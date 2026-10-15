@@ -964,6 +964,28 @@ page (artifact "Shop Colour and Cover").
       names (ខៀវចាស់, ខៀវបៃតង, បៃតងចាស់, បៃតងអូលីវ, ពណ៌កាហ្វេ,
       ក្រហមចាស់, ស្វាយចាស់, ប្រផេះចាស់).
 
+- [x] **The acorn: Oak Solutions' logo and Oak Order's name**
+      (2026-10-15, founder's picks over five rounds; the hexagon leaf was
+      a stand-in). Oak Solutions: the acorn, tilted, with no shape around
+      it; "**Oak** Solutions" on one line for wide spaces, stacked (Oak /
+      SOLUTIONS) for square ones. Oak Order: the name, with the acorn's
+      cap pressed onto the O (drawn from Kantumruy Pro Bold's own O);
+      where the name doesn't fit, the acorn alone. Chat bubble, bag and
+      other shapes were tried and dropped (a bubble reads as a chat app).
+      Swapped in: `OakOrderName` in the sign-in, start and legal pages'
+      header and the shop's "Made with Oak Order" line; the acorn in
+      `favicon.svg` (navy, light blue on a dark tab),
+      `apple-touch-icon.png`, `og/oak-mark.png`; `og/oak-order.png`
+      redrawn with the new name; the link-picture corner badge is now a
+      navy tile with the white acorn (`oak_mark_*.png`). Preview tests
+      pass; lint passes. (The build currently stops on
+      `dashboard/settings/fields.tsx`, the shop-colour work in progress,
+      not this change.)
+- [ ] Founder: check the name on the sign-in page (phone and laptop), the
+      start page, the bottom of a shop, the browser tab and a shop link's
+      picture. Oak Solutions files for Facebook and print are in `brand/`
+      (the acorn as SVG and PNG, both name layouts).
+
 ## In Progress
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
@@ -2273,8 +2295,8 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
         Facebook and TikTok; Settings → Your account → Other ways to log
         in; `docs/REGRESSION_CHECKLIST.md` has the steps. Tell Claude
         what each one did.
-00a. Founder: check the new mark (your hexagon oak-leaf logo, traced to
-     SVG, 2026-10-13) after the push: the browser tab, the start page and
+00a. Founder: check the new mark (the acorn, and "Oak Order" with the
+     acorn's cap on the O, 2026-10-15) after the push: the browser tab, the start page and
      login header (white on navy, navy on white), the shop's "Made with
      Oak Order" line, a shop link's preview picture (logo with our mark in
      the corner; a shop without a logo gets `og/oak-mark.png`), and the
