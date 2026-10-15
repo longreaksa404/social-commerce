@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CircleCheck, ExternalLink, ImagePlus, Plus, QrCode, Send, Share2, Store as StoreIcon, Trash2 } from 'lucide-react'
+import { Check, CircleCheck, ExternalLink, ImagePlus, Plus, QrCode, Send, Share2, Store as StoreIcon, Trash2 } from 'lucide-react'
 import { useRef, useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
@@ -22,7 +22,8 @@ import { errorText, fieldError } from '../../lib/errors.ts'
 import { prepareLogo, uploadStoreLogo } from '../../lib/images.ts'
 import { phnomPenhDate } from '../../lib/orders.ts'
 import { parseKhqr, readQrImage } from '../../lib/readKhqr.ts'
-import type { Currency, PaymentSettings, Store, TelegramLink } from '../../lib/types.ts'
+import type { Currency, PaymentSettings, ShopColor, Store, TelegramLink } from '../../lib/types.ts'
+import { SHOP_COLORS } from '../../shop/colors.ts'
 import { keys } from '../queries.ts'
 import type { DeliveryForm, Form, RuleRow } from './form.ts'
 
@@ -39,6 +40,7 @@ export function ShopFields({ store, form, update, error }: FieldsProps) {
   return (
     <>
       <LogoField store={store} />
+      <ColorField store={store} />
       <Field label={s.storeName} error={fieldError(error, 'name')}>
         <Input
           required
@@ -125,6 +127,76 @@ function LogoField({ store }: { store: Store }) {
         </p>
       )}
     </div>
+  )
+}
+
+/** The shop's colour for customers (founder's picks 1A 5A, 2026-10-15),
+ * saved as soon as it's tapped, like the logo. Each swatch carries its own
+ * colour (shop/colors.css), so it shows as customers see it, light or dark. */
+function ColorField({ store }: { store: Store }) {
+  const queryClient = useQueryClient()
+  const { toast } = useFeedback()
+  const s = useT().settings
+  const save = useMutation({
+    mutationFn: (color: ShopColor) => api<Store>('/seller/store', { method: 'PATCH', body: { color } }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(keys.store, updated)
+      toast(s.colorSaved)
+    },
+  })
+  const shown = save.isPending ? save.variables : store.color
+
+  return (
+    <fieldset aria-describedby="color-desc">
+      <legend className="mb-1.5 text-sm font-medium text-slate-700">{s.shopColor}</legend>
+      {/* One row on any phone: the cells shrink a little on narrow ones. */}
+      <div className="-mx-1 grid max-w-sm grid-cols-8">
+        {SHOP_COLORS.map((color) => {
+          const on = color === shown
+          return (
+            <label
+              key={color}
+              data-shop-color={color}
+              className="flex aspect-square cursor-pointer items-center justify-center rounded-full has-focus-visible:outline-2 has-focus-visible:outline-navy-600"
+            >
+              <input
+                type="radio"
+                name="shop-color"
+                value={color}
+                checked={on}
+                onChange={() => save.mutate(color)}
+                aria-label={s.colors[color]}
+                className="sr-only"
+              />
+              <span
+                className={`flex size-9 items-center justify-center rounded-full bg-accent text-white transition-shadow ${
+                  on ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface' : 'ring-1 ring-slate-900/10'
+                }`}
+              >
+                {on && <Check aria-hidden className="size-5" />}
+              </span>
+            </label>
+          )
+        })}
+      </div>
+      {save.error ? (
+        <p id="color-desc" role="alert" className="mt-1.5 text-sm text-red-600">
+          {errorText(save.error)}
+        </p>
+      ) : (
+        <p id="color-desc" className="mt-1.5 text-xs leading-5 text-slate-500">
+          <span className="font-medium text-slate-700">{s.colors[shown]}</span> · {s.colorHint}
+        </p>
+      )}
+      <Link
+        to={`/shop/${store.slug}`}
+        target="_blank"
+        className="-mx-1 mt-1 inline-flex min-h-10 items-center gap-1.5 rounded-lg px-1 text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
+      >
+        <ExternalLink aria-hidden className="size-4" />
+        {s.seeShop}
+      </Link>
+    </fieldset>
   )
 }
 

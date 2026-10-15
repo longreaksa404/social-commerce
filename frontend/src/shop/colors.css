@@ -1,0 +1,240 @@
+/* A shop's own colour (founder's picks 1A 2A, 2026-10-15): the shop's pages
+   set data-shop-color on <html> (shop/ShopLayout.tsx), and Settings sets it
+   on each swatch. Each colour replaces the navy scale and the solid fills
+   (accent, brand) in light and dark mode, so everything navy in the shop
+   takes it. Navy itself is index.css's default. Made from navy's own
+   lightness and chroma steps at another hue (charcoal: almost no colour),
+   so each reads like navy does: white on accent at least 12:1 light and
+   6:1 dark. Dark selectors carry :root to outrank index.css's dark block. */
+
+[data-shop-color='teal'] {
+  --color-navy-50: #ecf3f4;
+  --color-navy-100: #dfeaea;
+  --color-navy-200: #c0d6d7;
+  --color-navy-300: #93b8ba;
+  --color-navy-400: #598d90;
+  --color-navy-500: #2e696d;
+  --color-navy-600: #005054;
+  --color-navy-700: #003b3d;
+  --color-navy-800: #002f31;
+  --color-navy-900: #002325;
+  --color-navy-950: #001718;
+  --color-accent: #003b3d;
+  --color-accent-hover: #002f31;
+  --color-brand: #005054;
+}
+:root[data-theme='dark'][data-shop-color='teal'],
+:root[data-theme='dark'] [data-shop-color='teal'] {
+  --color-navy-50: #0d2b2c;
+  --color-navy-100: #07383b;
+  --color-navy-200: #0d4346;
+  --color-navy-300: #175659;
+  --color-navy-400: #397b7f;
+  --color-navy-500: #64a1a4;
+  --color-navy-600: #89c1c4;
+  --color-navy-700: #a8d3d5;
+  --color-navy-800: #cae4e5;
+  --color-navy-900: #e2f1f2;
+  --color-navy-950: #f1f8f9;
+  --color-accent: #016d72;
+  --color-accent-hover: #03797e;
+  --color-brand: #148b91;
+}
+[data-shop-color='forest'] {
+  --color-navy-50: #eef3ef;
+  --color-navy-100: #e2eae4;
+  --color-navy-200: #c6d6c9;
+  --color-navy-300: #9db8a3;
+  --color-navy-400: #688d71;
+  --color-navy-500: #426a4d;
+  --color-navy-600: #235132;
+  --color-navy-700: #153c22;
+  --color-navy-800: #0e301a;
+  --color-navy-900: #0b2413;
+  --color-navy-950: #07170c;
+  --color-accent: #153c22;
+  --color-accent-hover: #0e301a;
+  --color-brand: #235132;
+}
+:root[data-theme='dark'][data-shop-color='forest'],
+:root[data-theme='dark'] [data-shop-color='forest'] {
+  --color-navy-50: #172b1d;
+  --color-navy-100: #1b3924;
+  --color-navy-200: #22432c;
+  --color-navy-300: #2f563a;
+  --color-navy-400: #4f7b5b;
+  --color-navy-500: #76a181;
+  --color-navy-600: #99c1a2;
+  --color-navy-700: #b3d3ba;
+  --color-navy-800: #d0e4d5;
+  --color-navy-900: #e6f1e8;
+  --color-navy-950: #f3f8f4;
+  --color-accent: #2c6f42;
+  --color-accent-hover: #377a4c;
+  --color-brand: #488b5d;
+}
+[data-shop-color='olive'] {
+  --color-navy-50: #f1f3eb;
+  --color-navy-100: #e7e9df;
+  --color-navy-200: #cfd4c0;
+  --color-navy-300: #adb494;
+  --color-navy-400: #7f885c;
+  --color-navy-500: #5b6435;
+  --color-navy-600: #424b11;
+  --color-navy-700: #303705;
+  --color-navy-800: #252c02;
+  --color-navy-900: #1c2103;
+  --color-navy-950: #121503;
+  --color-accent: #303705;
+  --color-accent-hover: #252c02;
+  --color-brand: #424b11;
+}
+:root[data-theme='dark'][data-shop-color='olive'],
+:root[data-theme='dark'] [data-shop-color='olive'] {
+  --color-navy-50: #242811;
+  --color-navy-100: #2f3511;
+  --color-navy-200: #383f17;
+  --color-navy-300: #485122;
+  --color-navy-400: #6b7640;
+  --color-navy-500: #909b68;
+  --color-navy-600: #b1bb8b;
+  --color-navy-700: #c6cfa9;
+  --color-navy-800: #dce1ca;
+  --color-navy-900: #ecefe2;
+  --color-navy-950: #f6f8f0;
+  --color-accent: #5a670d;
+  --color-accent-hover: #65721c;
+  --color-brand: #758330;
+}
+[data-shop-color='coffee'] {
+  --color-navy-50: #f7f0ec;
+  --color-navy-100: #efe6e0;
+  --color-navy-200: #dfcdc2;
+  --color-navy-300: #c6a996;
+  --color-navy-400: #a0795f;
+  --color-navy-500: #7c5539;
+  --color-navy-600: #643919;
+  --color-navy-700: #4c280c;
+  --color-navy-800: #3e1f07;
+  --color-navy-900: #2e1706;
+  --color-navy-950: #1e0e04;
+  --color-accent: #4c280c;
+  --color-accent-hover: #3e1f07;
+  --color-brand: #643919;
+}
+:root[data-theme='dark'][data-shop-color='coffee'],
+:root[data-theme='dark'] [data-shop-color='coffee'] {
+  --color-navy-50: #342113;
+  --color-navy-100: #462915;
+  --color-navy-200: #53321b;
+  --color-navy-300: #684126;
+  --color-navy-400: #916445;
+  --color-navy-500: #b68a6c;
+  --color-navy-600: #d6ab8f;
+  --color-navy-700: #e4c2ab;
+  --color-navy-800: #efd9cb;
+  --color-navy-900: #f7ebe2;
+  --color-navy-950: #fcf5f1;
+  --color-accent: #8b4d1c;
+  --color-accent-hover: #975827;
+  --color-brand: #a96839;
+}
+[data-shop-color='wine'] {
+  --color-navy-50: #f9efef;
+  --color-navy-100: #f1e4e4;
+  --color-navy-200: #e4cacb;
+  --color-navy-300: #cea3a5;
+  --color-navy-400: #a97175;
+  --color-navy-500: #864b50;
+  --color-navy-600: #6d2e36;
+  --color-navy-700: #531f25;
+  --color-navy-800: #44171d;
+  --color-navy-900: #331115;
+  --color-navy-950: #220b0d;
+  --color-accent: #531f25;
+  --color-accent-hover: #44171d;
+  --color-brand: #6d2e36;
+}
+:root[data-theme='dark'][data-shop-color='wine'],
+:root[data-theme='dark'] [data-shop-color='wine'] {
+  --color-navy-50: #391c1f;
+  --color-navy-100: #4c2227;
+  --color-navy-200: #5a2a2f;
+  --color-navy-300: #70383e;
+  --color-navy-400: #9b5a5f;
+  --color-navy-500: #c18085;
+  --color-navy-600: #e1a2a6;
+  --color-navy-700: #edbbbd;
+  --color-navy-800: #f5d5d6;
+  --color-navy-900: #fbe8e9;
+  --color-navy-950: #fef4f4;
+  --color-accent: #973d49;
+  --color-accent-hover: #a44853;
+  --color-brand: #b75963;
+}
+[data-shop-color='plum'] {
+  --color-navy-50: #f5eff5;
+  --color-navy-100: #ede5ec;
+  --color-navy-200: #dbcbd9;
+  --color-navy-300: #c0a6bd;
+  --color-navy-400: #987694;
+  --color-navy-500: #755171;
+  --color-navy-600: #5c3659;
+  --color-navy-700: #452543;
+  --color-navy-800: #381c36;
+  --color-navy-900: #2a1528;
+  --color-navy-950: #1b0d1a;
+  --color-accent: #452543;
+  --color-accent-hover: #381c36;
+  --color-brand: #5c3659;
+}
+:root[data-theme='dark'][data-shop-color='plum'],
+:root[data-theme='dark'] [data-shop-color='plum'] {
+  --color-navy-50: #301f2f;
+  --color-navy-100: #40273e;
+  --color-navy-200: #4c2f4a;
+  --color-navy-300: #613e5d;
+  --color-navy-400: #886084;
+  --color-navy-500: #ad86a9;
+  --color-navy-600: #cda7c9;
+  --color-navy-700: #ddbed9;
+  --color-navy-800: #ead7e8;
+  --color-navy-900: #f5e9f3;
+  --color-navy-950: #faf4fa;
+  --color-accent: #7f487b;
+  --color-accent-hover: #8b5286;
+  --color-brand: #9d6398;
+}
+[data-shop-color='charcoal'] {
+  --color-navy-50: #f1f2f2;
+  --color-navy-100: #e7e7e8;
+  --color-navy-200: #d0d1d3;
+  --color-navy-300: #aeb0b2;
+  --color-navy-400: #808387;
+  --color-navy-500: #5c5f63;
+  --color-navy-600: #43464a;
+  --color-navy-700: #303336;
+  --color-navy-800: #26282b;
+  --color-navy-900: #1c1e20;
+  --color-navy-950: #121314;
+  --color-accent: #303336;
+  --color-accent-hover: #26282b;
+  --color-brand: #43464a;
+}
+:root[data-theme='dark'][data-shop-color='charcoal'],
+:root[data-theme='dark'] [data-shop-color='charcoal'] {
+  --color-navy-50: #242628;
+  --color-navy-100: #2f3134;
+  --color-navy-200: #393b3e;
+  --color-navy-300: #4a4c50;
+  --color-navy-400: #6d7074;
+  --color-navy-500: #929599;
+  --color-navy-600: #b2b5b9;
+  --color-navy-700: #c7c9cd;
+  --color-navy-800: #dcdee0;
+  --color-navy-900: #ecedef;
+  --color-navy-950: #f6f7f7;
+  --color-accent: #5c6066;
+  --color-accent-hover: #666a70;
+  --color-brand: #767b81;
+}

@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+/* Each shop's own colour, over the navy below (founder's picks 2026-10-15). */
+@import './shop/colors.css';
 
 /* Kantumruy Pro for all text (Khmer 2026-10-04; Latin letters and numbers
    too since the 2026-10-06 redesign, so English and prices match the
@@ -44,6 +46,8 @@
   --color-accent: #1f3350;
   --color-accent-hover: #182841;
   --color-brand: #2f4669;
+  /* Oak's own navy, kept where a shop's colour replaces the others (shop/colors.css). */
+  --color-oak: #1f3350;
 
   --color-navy-50: #eef2f7;
   --color-navy-100: #e3e8ef;
@@ -241,6 +245,7 @@
   --color-accent: #415f92;
   --color-accent-hover: #4a6a9e;
   --color-brand: #5a7bb0;
+  --color-oak: #415f92;
   /* Navy: tints turn deep, text turns light */
   --color-navy-50: #1c2636;
   --color-navy-100: #243149;

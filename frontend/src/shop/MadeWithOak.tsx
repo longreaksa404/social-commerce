@@ -20,7 +20,7 @@ export function MadeWithOak() {
           rel="noopener"
           className="inline-flex min-h-10 items-center gap-2 rounded-lg px-2.5 text-sm hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
         >
-          <OakMark className="h-5 w-auto shrink-0 text-accent" />
+          <OakMark className="h-5 w-auto shrink-0 text-oak" />
           <span>
             {c.madeWith} <span className="font-semibold text-slate-700">Oak Order</span>
           </span>

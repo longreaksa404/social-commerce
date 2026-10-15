@@ -30,6 +30,23 @@ export const settings = {
   removeLogo: { en: 'Remove logo', km: 'ដកឡូហ្គោចេញ' },
   logoSaved: { en: 'Logo saved', km: 'បានរក្សាទុកឡូហ្គោ' },
   logoRemoved: { en: 'Logo removed', km: 'បានដកឡូហ្គោចេញ' },
+  shopColor: { en: 'Shop color', km: 'ពណ៌ហាង' },
+  colorHint: {
+    en: "Customers see it on your shop's buttons. Saved at once.",
+    km: 'អតិថិជនឃើញពណ៌នេះលើប៊ូតុងក្នុងហាងរបស់អ្នក។ រក្សាទុកភ្លាមៗ។',
+  },
+  colorSaved: { en: 'Shop color saved', km: 'បានរក្សាទុកពណ៌ហាង' },
+  seeShop: { en: 'See your shop', km: 'មើលហាងរបស់អ្នក' },
+  colors: {
+    navy: { en: 'Navy', km: 'ខៀវចាស់' },
+    teal: { en: 'Teal', km: 'ខៀវបៃតង' },
+    forest: { en: 'Forest', km: 'បៃតងចាស់' },
+    olive: { en: 'Olive', km: 'បៃតងអូលីវ' },
+    coffee: { en: 'Coffee', km: 'ពណ៌កាហ្វេ' },
+    wine: { en: 'Wine', km: 'ក្រហមចាស់' },
+    plum: { en: 'Plum', km: 'ស្វាយចាស់' },
+    charcoal: { en: 'Charcoal', km: 'ប្រផេះចាស់' },
+  },
 
   orders: { en: 'Orders', km: 'ការកុម្ម៉ង់' },
   takeOrders: { en: 'Take orders', km: 'ទទួលការកុម្ម៉ង់' },

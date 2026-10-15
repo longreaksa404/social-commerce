@@ -2,6 +2,8 @@
 // decimal string (e.g. "12.50") to avoid float rounding.
 
 export type Currency = 'USD' | 'KHR'
+/** The shop's colour for customers (shop/colors.ts); the dashboard stays navy. */
+export type ShopColor = 'navy' | 'teal' | 'forest' | 'olive' | 'coffee' | 'wine' | 'plum' | 'charcoal'
 export type ProductStatus = 'active' | 'inactive'
 export type OrderConfirmationMode = 'automatic' | 'manual'
 export type PaymentMethod = 'cod' | 'bank_transfer' | 'khqr'
@@ -50,6 +52,9 @@ export type Store = {
   slug: string
   description: string | null
   logo_url: string | null
+  /** The wide photo at the top of the shop, and its link card. */
+  cover_url: string | null
+  color: ShopColor
   currency: Currency
   /** automatic: new orders are accepted at once; manual: they wait as pending. */
   order_confirmation_mode: OrderConfirmationMode
@@ -260,6 +265,8 @@ export type ShopStore = {
   slug: string
   description: string | null
   logo_url: string | null
+  cover_url: string | null
+  color: ShopColor
   currency: Currency
   /** Only categories with at least one product on sale. */
   categories: (ShopCategoryRef & { product_count: number })[]

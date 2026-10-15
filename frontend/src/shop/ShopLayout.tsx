@@ -9,6 +9,7 @@ import { formatMoney, toCents } from '../lib/money.ts'
 import type { Currency, ShopStore } from '../lib/types.ts'
 import { useCart } from './cart.ts'
 import { NotFound, PausedNotice, ShopLogo } from './components.tsx'
+import { useShopColor } from './colors.ts'
 import { CurrentOrderButton } from './CurrentOrder.tsx'
 import { MadeWithOak } from './MadeWithOak.tsx'
 import { openedLink } from './device.ts'
@@ -25,6 +26,7 @@ export function ShopLayout() {
   const location = useLocation()
   // Counted under the shop's current link, once it's known.
   useLinkTracking(shop.data?.slug)
+  useShopColor(shop.data?.color)
   // Not where the order itself, checkout or the list of orders is showing.
   const orderPage = useMatch('/shop/:storeSlug/order/:orderId') !== null
   const checkout = useMatch('/shop/:storeSlug/cart') !== null
