@@ -18,6 +18,13 @@ async def get_plan(seller: Seller, db: TenantDb) -> PlanOut:
     return await plan_service.get_plan(db, seller.store_id)
 
 
+@router.post("/open", response_model=PlanOut)
+async def open_shop(seller: Owner, db: TenantDb) -> PlanOut:
+    """Open the shop: its 30-day free trial starts today and customers can
+    order (the dashboard asks first). Opening is the owner's."""
+    return await plan_service.open_shop(db, seller.store_id)
+
+
 def _claim_rate_limit(request: Request) -> None:
     # Each one can alert the founder.
     check_limit("10/minute", "plan-paid", request)

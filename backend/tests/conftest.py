@@ -66,6 +66,7 @@ asyncio.run(_empty_tables())
 # Imported only now, so the engine is built for the test database.
 from app.db.session import unscoped_session  # noqa: E402
 from app.models import Seller, Store  # noqa: E402
+from app.models.account import trial_end  # noqa: E402
 from tests.helpers import session_of, verified_phone_check  # noqa: E402
 
 
@@ -77,15 +78,21 @@ class StoreRef:
 
 @pytest.fixture
 async def make_store():
-    """Create a seller + store directly in the database (bypasses the API)."""
+    """Create a seller + store directly in the database (bypasses the API).
+    Open (its trial running) unless `opened=False`: in setup."""
 
-    async def _make() -> StoreRef:
+    async def _make(opened: bool = True) -> StoreRef:
         tag = uuid.uuid4().hex[:10]
         async with unscoped_session() as db:
             seller = Seller(email=f"{tag}@example.com", password_hash="x", full_name="Test Seller")
             db.add(seller)
             await db.flush()
-            store = Store(seller_id=seller.id, name=f"Store {tag}", slug=f"store-{tag}")
+            store = Store(
+                seller_id=seller.id,
+                name=f"Store {tag}",
+                slug=f"store-{tag}",
+                paid_until=trial_end() if opened else None,
+            )
             db.add(store)
             await db.commit()
             return StoreRef(seller_id=seller.id, store_id=store.id)
@@ -111,9 +118,11 @@ async def client():
 @pytest.fixture
 async def register(client):
     """Register a seller through the API, with a phone number already
-    shared with the bot; returns its tokens and phone number (its login)."""
+    shared with the bot; returns its tokens and phone number (its login).
+    The shop is opened (its trial started) unless `opened=False`: a new
+    shop is in setup until then."""
 
-    async def _register(phone: str | None = None, **overrides) -> dict:
+    async def _register(phone: str | None = None, opened: bool = True, **overrides) -> dict:
         check_id, phone = await verified_phone_check(phone)
         body = {
             "password": "correct-horse",
@@ -124,7 +133,12 @@ async def register(client):
         }
         response = await client.post("/api/v1/auth/register", json=body)
         assert response.status_code == 201, response.text
-        return {**session_of(response), "phone": phone}
+        session = session_of(response)
+        if opened:
+            headers = {"Authorization": f"Bearer {session['access_token']}"}
+            opening = await client.post("/api/v1/seller/plan/open", headers=headers)
+            assert opening.status_code == 200, opening.text
+        return {**session, "phone": phone}
 
     return _register
 

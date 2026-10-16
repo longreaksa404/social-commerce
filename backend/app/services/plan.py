@@ -3,7 +3,11 @@ trial, then $9.99 a month or $99 a year.
 
 Everything follows from one date, store.paid_until, the last day the shop
 is covered, worked out whenever it's read (like a paused shop reopening by
-itself; there's no scheduled job). With paid_until = 30 Nov:
+itself; there's no scheduled job). A new shop has none: it's in setup, with
+no time limit, until the owner opens it (open_shop), which starts the
+30-day trial (founder, 2026-10-16). Customers see "Opening soon" and can't
+order; the seller can't add orders from a chat either. With paid_until =
+30 Nov:
 
     25–30 Nov   ending soon: the dashboard reminds the seller
     1–7 Dec     overdue: orders still come; the seller has 7 days to pay
@@ -29,6 +33,7 @@ from app.models import (
     PlanPeriod,
     Store,
 )
+from app.models.account import trial_end
 from app.schemas.plan import (
     BankOut,
     PayToOut,
@@ -46,7 +51,9 @@ PRICES = {PlanPeriod.MONTH: Decimal("9.99"), PlanPeriod.YEAR: Decimal("99.00")}
 MONTHS = {PlanPeriod.MONTH: 1, PlanPeriod.YEAR: 12}
 
 
-def stage(paid_until: date, today: date) -> PlanStage:
+def stage(paid_until: date | None, today: date) -> PlanStage:
+    if paid_until is None:
+        return PlanStage.SETUP
     if today > paid_until + timedelta(days=GRACE_DAYS):
         return PlanStage.STOPPED
     if today > paid_until:
@@ -61,9 +68,14 @@ def orders_stopped(store: Store) -> bool:
     return stage(store.paid_until, clock.today()) is PlanStage.STOPPED
 
 
-def pay_by(paid_until: date) -> date:
-    """The last day to pay before new orders stop."""
-    return paid_until + timedelta(days=GRACE_DAYS)
+def in_setup(store: Store) -> bool:
+    """Not opened yet: no orders, the trial hasn't started."""
+    return store.paid_until is None
+
+
+def pay_by(paid_until: date | None) -> date | None:
+    """The last day to pay before new orders stop (none in setup)."""
+    return None if paid_until is None else paid_until + timedelta(days=GRACE_DAYS)
 
 
 def add_months(day: date, months: int) -> date:
@@ -77,15 +89,27 @@ def add_months(day: date, months: int) -> date:
         return date(day.year + index // 12, index % 12 + 1, 1)
 
 
-def next_period(paid_until: date, today: date, period: PlanPeriod) -> tuple[date, date]:
+def next_period(paid_until: date | None, today: date, period: PlanPeriod) -> tuple[date, date]:
     """The days a payment made today pays for, both included. It carries on
     from the time already covered, so the 7 days to pay aren't free extra
-    days; once orders have stopped, it starts today."""
-    if stage(paid_until, today) is PlanStage.STOPPED:
+    days; once orders have stopped, or for a shop paying before it opens
+    (which opens it, with no trial), it starts today."""
+    if paid_until is None or stage(paid_until, today) is PlanStage.STOPPED:
         start = today
     else:
         start = paid_until + timedelta(days=1)
     return start, add_months(start, MONTHS[period]) - timedelta(days=1)
+
+
+async def open_shop(db: AsyncSession, store_id: uuid.UUID) -> PlanOut:
+    """The owner opens the shop: its 30-day trial starts today and it takes
+    orders. Again once open: nothing changes."""
+    store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
+    assert store is not None  # the signed-in seller's own shop
+    if store.paid_until is None:
+        store.paid_until = trial_end()
+        await db.commit()
+    return await get_plan(db, store_id)
 
 
 def mark_paid(payment: PlanPayment, store: Store) -> None:
@@ -208,12 +232,14 @@ async def get_plan(db: AsyncSession, store_id: uuid.UUID) -> PlanOut:
     today = clock.today()
     claim = open_claim(payments)
     code = shop_code(store_id)
+    paid_until = store.paid_until
     return PlanOut(
-        stage=stage(store.paid_until, today),
+        stage=stage(paid_until, today),
         on_trial=not any(p.status is PlanPaymentStatus.PAID for p in payments),
-        paid_until=store.paid_until,
-        pay_by=pay_by(store.paid_until),
-        days_left=max((store.paid_until - today).days + 1, 0),
+        paid_until=paid_until,
+        pay_by=pay_by(paid_until),
+        days_left=None if paid_until is None else max((paid_until - today).days + 1, 0),
+        trial_until=trial_end() if paid_until is None else None,
         prices=PlanPricesOut(month=PRICES[PlanPeriod.MONTH], year=PRICES[PlanPeriod.YEAR]),
         code=code,
         pay_to=pay_to(code),

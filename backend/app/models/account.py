@@ -70,8 +70,8 @@ class ShopColor(enum.StrEnum):
     SAND = "sand"
 
 
-# Every new shop's free trial (01_PRODUCT.md §33.1): 30 days, the day it
-# signs up included.
+# Every new shop's free trial (01_PRODUCT.md §33.1): 30 days, the day the
+# owner opens the shop included.
 TRIAL_DAYS = 30
 
 
@@ -208,7 +208,9 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     # The last day the shop is covered: by its free trial, then by what it
     # pays Oak Order (plan_payment). A week after it the shop stops taking
     # new orders until it pays (app/services/plan.py, 01_PRODUCT.md §33.1).
-    paid_until: Mapped[date] = mapped_column(Date, default=trial_end)
+    # Null while the shop is in setup: no orders yet, and the trial starts
+    # when the owner opens the shop (founder, 2026-10-16).
+    paid_until: Mapped[date | None] = mapped_column(Date)
 
     seller: Mapped[Seller] = relationship(back_populates="store", foreign_keys=[seller_id])
 

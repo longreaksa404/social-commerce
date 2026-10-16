@@ -51,6 +51,9 @@ class ShopStoreOut(BaseModel):
     # it opens again, if the seller set one.
     orders_paused: bool
     orders_resume_on: date | None
+    # The owner hasn't opened the shop yet: "Opening soon" instead of the
+    # paused notice (orders_paused is true too).
+    opening_soon: bool
 
 
 class ShopProductCard(BaseModel):

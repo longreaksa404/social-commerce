@@ -90,17 +90,23 @@ async def place_order(
     while the shop is paused, starts accepted (the seller agreed to it in
     the chat), is marked as from a chat, and puts no "new order" on the
     bell (the seller did it; low stock still does). Neither is taken once
-    the shop has stopped taking orders for its plan (services/plan.py)."""
+    the shop has stopped taking orders for its plan, or before the owner
+    has opened it (services/plan.py)."""
     # Locks the store row until commit, so checkouts in one store run one
     # at a time: order numbers stay unique, and one phone can't become two
     # customers. Fine at MVP volume.
     store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
     assert store is not None  # the shop was found by slug moments ago
     stopped = plan_service.orders_stopped(store)
-    if not by_seller and (store.orders_paused_now or stopped):
+    setup = plan_service.in_setup(store)
+    if not by_seller and (store.orders_paused_now or stopped or setup):
         # Customers only hear that orders are off, never about the shop's
         # plan (01_PRODUCT.md §33.1).
         raise AppError(409, "ORDERS_PAUSED", "This shop isn't taking orders right now.")
+    if setup:
+        raise AppError(
+            409, "SHOP_NOT_OPEN", "Open your shop to start taking orders (Settings → Plan)."
+        )
     if stopped:
         raise AppError(
             409,

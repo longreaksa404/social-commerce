@@ -68,6 +68,7 @@ async def test_staff_work_in_the_owners_shop(client, auth_headers):
         ("DELETE", "/api/v1/seller/store/telegram", None),
         ("GET", "/api/v1/seller/orders/export?first=2026-10-01&last=2026-10-08", None),
         ("POST", "/api/v1/seller/account/close-shop", {"password": "first-password"}),
+        ("POST", "/api/v1/seller/plan/open", None),
         ("GET", STAFF, None),
         ("POST", STAFF, {"full_name": "X", "phone": "012345678", "password": "12345678"}),
     ],

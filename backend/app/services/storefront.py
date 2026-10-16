@@ -27,7 +27,7 @@ from app.schemas.storefront import (
 )
 from app.services.delivery import discount_settings, shop_delivery_options
 from app.services.payment import payment_settings
-from app.services.plan import orders_stopped
+from app.services.plan import in_setup, orders_stopped
 
 
 async def get_store(db: AsyncSession, slug: str) -> Store:
@@ -62,6 +62,7 @@ async def store_page(db: AsyncSession, store: Store) -> ShopStoreOut:
         .order_by(Category.name)
     )
     stopped = orders_stopped(store)
+    setup = in_setup(store)
     return ShopStoreOut(
         name=store.name,
         slug=store.slug,
@@ -81,8 +82,10 @@ async def store_page(db: AsyncSession, store: Store) -> ShopStoreOut:
         messenger_username=store.messenger_username,
         # A shop that stopped taking orders for its plan shows the same
         # notice as a paused one, with no reopening day (01_PRODUCT.md §33.1).
-        orders_paused=store.orders_paused_now or stopped,
-        orders_resume_on=None if stopped else store.orders_resume_on_now,
+        # One the owner hasn't opened yet says "Opening soon" instead.
+        orders_paused=store.orders_paused_now or stopped or setup,
+        orders_resume_on=None if stopped or setup else store.orders_resume_on_now,
+        opening_soon=setup,
     )
 
 

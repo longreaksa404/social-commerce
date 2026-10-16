@@ -241,7 +241,7 @@ Backend modules, one line each:
 | `services/khqr.py` | Builds KHQR (EMVCo) strings with CRC16, no network |
 | `services/billing.py` | Sellers paying Oak Order by hand: `claim` ("I've paid") and `notify_claim` (Telegram to the founder's own shop chat), `run_daily` / `remind` (payment reminders on day 1 and day 5, once each per paid-until date), the Khmer texts. Writes on its own unscoped session |
 | `services/admin.py` | The founder's admin page: `is_admin` (`ADMIN_PHONES`), every shop's plan and code, a shop's payments, mark paid, confirm or reject an "I've paid" |
-| `services/plan.py` | The shop's plan with Oak Order: prices, the stage from `store.paid_until` (`stage`, `orders_stopped`), the days a payment covers (`next_period`, `add_months`), `record_payment` (the founder's command), `get_plan`, `shop_code` (the code for paying Oak), `pay_to` (Oak's KHQR and bank account), `open_claim` |
+| `services/plan.py` | The shop's plan with Oak Order: prices, the stage from `store.paid_until` (`stage`, `orders_stopped`, `in_setup`), `open_shop` (starts the trial), the days a payment covers (`next_period`, `add_months`), `record_payment` (the founder's command), `get_plan`, `shop_code` (the code for paying Oak), `pay_to` (Oak's KHQR and bank account), `open_claim` |
 | `services/export.py` | The orders export: a .xlsx with one row per order (XlsxWriter, write-only), headings and statuses in English or Khmer |
 | `services/customer.py` | Customer list with search, detail with history, "spent" per currency |
 | `services/notifications.py` | Web notification rows, Telegram alert text and sending, the low-stock rule |
@@ -592,7 +592,7 @@ Codes in use: `ACCOUNT_DISABLED`, `ACCOUNT_NOT_FOUND`, `CATEGORY_NOT_FOUND`,
 `INVALID_DATE_RANGE`, `INVALID_DELIVERY_TRANSITION`, `INVALID_IMAGE`,
 `INVALID_PAYMENT_TRANSITION`, `INVALID_RESUME_DATE`, `INVALID_STATUS_TRANSITION`,
 `INVALID_TOKEN`, `LINK_NOT_FOUND`, `NOT_AUTHENTICATED`, `NOT_FOUND`,
-`ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`, `ORDERS_PAUSED`, `PLAN_UNPAID`, `PAYMENT_NOT_FOUND`, `PAYMENT_NOT_WAITING`, `ADMIN_ONLY`,
+`ORDER_NOT_DELIVERED`, `ORDER_NOT_FOUND`, `ORDER_NOT_PAID`, `ORDERS_PAUSED`, `PLAN_UNPAID`, `SHOP_NOT_OPEN`, `PAYMENT_NOT_FOUND`, `PAYMENT_NOT_WAITING`, `ADMIN_ONLY`,
 `PHONE_CHECK_EXPIRED`, `PHONE_NOT_VERIFIED`, `PHONE_TAKEN`, `TELEGRAM_NOT_CONFIGURED`,
 `SOCIAL_SIGN_IN_FAILED`, `SOCIAL_NOT_CONFIGURED`, `SOCIAL_TAKEN`, `SIGNUP_EXPIRED`, `INVALID_REDIRECT`,
 `ORDER_TOTAL_CHANGED`, `PAYMENT_METHOD_UNAVAILABLE`, `PRODUCT_HIDDEN`,
@@ -672,7 +672,7 @@ Mixins (`app/db/base.py`):
 | `seller_login` | **NO** (no `app_user` grant) | `seller_id`, `provider` (`google`, `facebook`, `tiktok`), `provider_user_id` (Google's `sub`, Facebook's id, TikTok's `open_id`), `email` (the provider's, when verified), `name` (the provider's; TikTok's display name), both shown in Settings, `created_at` | `seller_id → seller` CASCADE | `uq_seller_login_provider` (`provider`, `provider_user_id`), `uq_seller_login_seller_id` (`seller_id`, `provider`: one account of each kind per seller) |
 | `phone_check` | **NO** (no `app_user` grant) | `code` (`phone_` + 22 random characters, in the `t.me` link), `telegram_user_id` (bigint, who opened the link), `phone` (normalized, once shared), `verified_at`, `expires_at` (30 min), `created_at` | none | `uq_phone_check_code`; `ix_phone_check_telegram_user_id`. Expired rows are deleted when a new check starts |
 | `seller` | **NO** (an owner owns the tenant, staff belong to one; no RLS, no `app_user` grant) | `phone` (the login, normalized, NULL only for older accounts whose number another account had), `email` (NULL for accounts since 2026-10-09; older ones log in with it; stored lowercased), `password_hash` (NULL for an account made with Google until it adds one), `full_name`, `is_active` (default true), `role` (`owner`/`staff`, default owner), `store_id` (staff only), `created_at` | `store_id → store` CASCADE (`use_alter`: store also points at seller) | `uq_seller_phone`; `uq_seller_email`; `ix_seller_store_id`; CHECK `(role = 'staff') = (store_id IS NOT NULL)` |
-| `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `cover_url` (the shop's 3:1 cover photo, 2026-10-15), `color` (`ShopColor`: deep `navy`/`teal`/`forest`/`olive`/`coffee`/`wine`/`plum`/`charcoal` and light `pink`/`sky`/`mint`/`peach`/`lilac`/`sand`, default navy, CHECK `ck_store_shop_color`; the shop's colour for customers), `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `low_stock_alert` (int, default 5, 1–999 by the schema), `paid_until` (date: the last day covered, by the 30-day free trial from sign-up, then by `plan_payment`s; Python default `account.trial_end()`), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
+| `store` | tenant **root** (RLS on `id`; `app_user` SELECT, UPDATE only) | `name`, `slug` (String(64), **globally** unique), `description`, `logo_url`, `cover_url` (the shop's 3:1 cover photo, 2026-10-15), `color` (`ShopColor`: deep `navy`/`teal`/`forest`/`olive`/`coffee`/`wine`/`plum`/`charcoal` and light `pink`/`sky`/`mint`/`peach`/`lilac`/`sand`, default navy, CHECK `ck_store_shop_color`; the shop's colour for customers), `currency` (`USD`/`KHR`, default USD), `telegram_chat_id` (private), `telegram_username`, `contact_phone` (normalized like customers' phones), `messenger_username` (a Facebook page's username or number) (all three public), `payment_config` JSONB, `delivery_config` JSONB, `discount_config` JSONB (all default `{}`), `order_confirmation_mode` (`automatic`/`manual`, default manual), `orders_paused` (bool, default false), `orders_resume_on` (date NULL: the first day orders open again), `low_stock_alert` (int, default 5, 1–999 by the schema), `paid_until` (date NULL: the last day covered, by the 30-day free trial from the day the owner opens the shop, then by `plan_payment`s; null while the shop is in setup, set by `plan.open_shop`; migration `ffa0fb97ae00`), `created_at` | `seller_id → seller` CASCADE, **unique** (1:1) | `uq_store_seller_id`, `uq_store_slug` |
 | `refresh_token` | **NO** (per seller; no RLS, no `app_user` grant) | `id` (= JWT `jti`), `expires_at`, `revoked_at`, `created_at` | `seller_id → seller` CASCADE | `ix_refresh_token_seller_id` |
 | `store_old_slug` | yes (`app_user` SELECT, INSERT, DELETE) | `slug` String(64) **primary key** (globally unique, like `store.slug`; `slugs.store_slug_taken` checks both tables on an unscoped session, yes/no only), `created_at` | none besides `store_id` (CASCADE) | `store_id`. A link the shop had: `/shop/<it>` still opens the shop. Added by `store.change_slug`, removed when the shop changes back to it; kept for good |
 | `category` | yes | `name`, `slug` String(64), `created_at` | none besides `store_id` | UNIQUE (`store_id`, `slug`) |
@@ -717,17 +717,22 @@ effective values (`orders_paused_now`, `orders_resume_on_now`). Saving
 
 **The plan** (01 §33.1, 2026-10-14; `services/plan.py`): the stage comes
 from `store.paid_until` and `clock.today()` the same way, with no job:
-`active`, `ending_soon` (its last 6 days), `overdue` (1–7 days after),
+`setup` (no `paid_until`: a new shop until the owner opens it, no time
+limit, 2026-10-16; `plan.in_setup(store)`), `active`, `ending_soon` (its last 6 days), `overdue` (1–7 days after),
 `stopped` (from the 8th day; `plan.orders_stopped(store)`). A stopped shop
 is shown as paused to customers (`ShopStoreOut.orders_paused` true,
 `orders_resume_on` null) and its checkout answers 409 `ORDERS_PAUSED`, the
 same as paused: customers never hear about the plan. An order from a chat
-gets 409 `PLAN_UNPAID` instead (paused shops still take those). Everything
+gets 409 `PLAN_UNPAID` instead (paused shops still take those). A shop in
+setup is shown the same way plus `ShopStoreOut.opening_soon` ("Opening
+soon"), checkout answers `ORDERS_PAUSED` and an order from a chat 409
+`SHOP_NOT_OPEN`. `POST /seller/plan/open` (owner) sets `paid_until` to
+`account.trial_end()` (day 30 from today); again once open, nothing. Everything
 else, orders already placed included, carries on. The seller's own
 `StoreOut.orders_paused` is only their switch. A payment, once paid
 (`plan.mark_paid`), covers a month or a year from the day after
-`paid_until`, or from the day it's paid once the shop has stopped
-(`next_period`); `add_months` rolls a missing day (31 Jan + 1 month) to the
+`paid_until`, or from the day it's paid once the shop has stopped or
+while it's still in setup (which opens it, no trial) (`next_period`); `add_months` rolls a missing day (31 Jan + 1 month) to the
 1st after.
 
 **Paying Oak Order by hand** (01 §33.1, founder 2026-10-14, until Oak
@@ -969,7 +974,8 @@ from the schema.
 | POST | `/seller/products/{product_id}/images` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT (+ thumbnail PUT if `thumbnail_size`); max 5 images, 5 MB, JPEG/PNG/WebP |
 | POST | `/seller/orders` | seller | `SellerOrderCreate` | `OrderOut` (201) | An order from a chat (founder's pick 3A): `checkout.place_order(by_seller=True)`, so checkout's prices, stock, totals and `expected_total` check; taken while paused; starts `accepted`; `source = "chat"`; no "new order" on the bell or Telegram, low stock only |
 | GET | `/seller/stats` | **owner** | `?period=today\|week\|month` | `StatsOut` | **Not shown in the app yet**: kept for the seller dashboard (founder, 2026-10-09: the numbers and chart wait for it; picks 8B, 9B; `services/stats.py`): orders placed in the period except rejected / cancelled, their totals and their pending payments per currency, Phnom Penh days; `days` = sales per day in the shop's currency, the last 7 days for today and the week, this month's days so far for the month. 403 `OWNER_ONLY` for staff |
-| GET | `/seller/plan` | seller (staff too) | — | `PlanOut` | The shop's plan with Oak Order (01 §33.1): `stage` (`active`/`ending_soon`/`overdue`/`stopped`), `on_trial` (no payment yet), `paid_until`, `pay_by` (paid_until + 7: the last day before new orders stop), `days_left` (today included, 0 once run out), `prices` (`month` "9.99", `year` "99.00", USD), `code` (the shop's code), `pay_to` (`khqr_month`, `khqr_year`, `khqr_name`, `bank`; all empty without `OAK_*`), `claim` (an "I've paid" waiting for the founder), `payments` newest first: paid ones and ones not found |
+| GET | `/seller/plan` | seller (staff too) | — | `PlanOut` | The shop's plan with Oak Order (01 §33.1): `stage` (`setup`/`active`/`ending_soon`/`overdue`/`stopped`), `on_trial` (no payment yet), `paid_until`, `pay_by` (paid_until + 7: the last day before new orders stop), `days_left` (today included, 0 once run out) (these three null in setup), `trial_until` (in setup: the trial's last day if opened today), `prices` (`month` "9.99", `year` "99.00", USD), `code` (the shop's code), `pay_to` (`khqr_month`, `khqr_year`, `khqr_name`, `bank`; all empty without `OAK_*`), `claim` (an "I've paid" waiting for the founder), `payments` newest first: paid ones and ones not found |
+| POST | `/seller/plan/open` | owner | — | `PlanOut` | Open the shop: the 30-day free trial starts today and it takes orders (the dashboard asks first). Again once open: nothing changes |
 | POST | `/seller/plan/paid` | owner | `PaidClaimIn` (`period`) | `PlanOut` | "I've paid": a pending payment and a Telegram alert to the founder (after the response); while one waits, nothing new. 10/min |
 | GET | `/admin/shops` | **admin** (`ADMIN_PHONES`) | — | `list[AdminShopOut]` | Every shop, the soonest to run out first: code, login, open or closed, Telegram or not, stage, trial or paying, paid until, pay by, last paid, a waiting "I've paid". Others 403 `ADMIN_ONLY` |
 | GET | `/admin/shops/{store_id}` | admin | — | `AdminShopDetailOut` | The same, with every payment (with the founder's notes) |
@@ -991,7 +997,7 @@ from the schema.
 | GET | `/seller/links` | seller | — | `list[LinkOut]` | Newest 200, with view/order counts |
 | POST | `/seller/links` | seller | `LinkCreate` | `LinkOut` (201) | Same target + source + campaign returns the existing link; hidden product → 409 `PRODUCT_HIDDEN` |
 | GET | `/seller/links/{link_id}/stats` | seller | — | `LinkStatsOut` | + its orders (≤100) |
-| GET | `/shop/{store_slug}` | public | — | `ShopStoreOut` | Categories with active products, `cover_url` and `color`, payment method names, delivery options, discounts, `telegram_username` / `messenger_username` / `contact_phone`, `orders_paused` / `orders_resume_on` |
+| GET | `/shop/{store_slug}` | public | — | `ShopStoreOut` | Categories with active products, `cover_url` and `color`, payment method names, delivery options, discounts, `telegram_username` / `messenger_username` / `contact_phone`, `orders_paused` / `orders_resume_on`, `opening_soon` (in setup: not opened by its owner yet) |
 | GET | `/shop/{store_slug}/products` | public | — | `list[ShopProductCard]` | Active only; **no paging**; `has_variants` and `stock_quantity` (null with variants) let the grid's + add to the cart |
 | GET | `/shop/{store_slug}/products/{product_slug}` | public | — | `ShopProductOut` | Variants with effective price and stock |
 | GET | `/shop/{store_slug}/categories/{category_slug}` | public | — | `ShopCategoryPageOut` | |

@@ -11,6 +11,7 @@ from app.models import PlanPaymentMethod, PlanPaymentStatus, PlanPeriod
 class PlanStage(enum.StrEnum):
     """Where the shop is with its paid-until date (app/services/plan.py)."""
 
+    SETUP = "setup"  # not opened yet: no orders, the trial hasn't started
     ACTIVE = "active"
     ENDING_SOON = "ending_soon"  # its last 6 days: the dashboard reminds the seller
     OVERDUE = "overdue"  # ran out up to 7 days ago: still takes orders, pay now
@@ -63,9 +64,12 @@ class PlanOut(BaseModel):
     stage: PlanStage
     # No payment yet: the free trial (or only its end, once it has run out).
     on_trial: bool
-    paid_until: date  # the last day covered, Phnom Penh
-    pay_by: date  # the last day to pay before new orders stop
-    days_left: int  # covered days left, today included; 0 once it has run out
+    # The three below are null in setup.
+    paid_until: date | None  # the last day covered, Phnom Penh
+    pay_by: date | None  # the last day to pay before new orders stop
+    days_left: int | None  # covered days left, today included; 0 once it has run out
+    # In setup: the trial's last day if the shop opens today (the pop-up).
+    trial_until: date | None
     prices: PlanPricesOut
     # The shop's code ("OAK-K7Q2MX"): in the transfer's note, so Oak Order
     # can tell whose money it is; the KHQR's bill number.
@@ -118,8 +122,8 @@ class AdminShopOut(BaseModel):
     created_at: datetime
     stage: PlanStage
     on_trial: bool
-    paid_until: date
-    pay_by: date
+    paid_until: date | None  # null in setup
+    pay_by: date | None
     last_paid_on: date | None
     claim: PlanPaymentOut | None  # an "I've paid" waiting for the founder
 

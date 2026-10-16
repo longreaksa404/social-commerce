@@ -41,6 +41,7 @@ from app.models import (
     Seller,
     Store,
 )
+from app.models.account import trial_end
 from app.schemas.plan import PlanStage
 from app.services import plan
 from app.services.account import set_shop_logins
@@ -110,7 +111,7 @@ class PaymentPreview:
     amount: Decimal
     covers_from: date
     covers_until: date
-    reopens: bool  # it had stopped taking orders
+    reopens: bool  # it had stopped taking orders, or wasn't open yet
 
 
 async def preview_payment(login: str, period: PlanPeriod, amount: Decimal | None) -> PaymentPreview:
@@ -125,7 +126,7 @@ async def preview_payment(login: str, period: PlanPeriod, amount: Decimal | None
             plan.PRICES[period] if amount is None else amount,
             covers_from,
             covers_until,
-            plan.stage(store.paid_until, today) is PlanStage.STOPPED,
+            plan.stage(store.paid_until, today) in (PlanStage.STOPPED, PlanStage.SETUP),
         )
 
 
@@ -144,7 +145,7 @@ async def record_payment(
 
 @dataclass(frozen=True)
 class PlanRow:
-    paid_until: date
+    paid_until: date | None  # null in setup
     stage: PlanStage
     paying: bool  # has paid at least once; else still on the free trial
     login: str
@@ -193,6 +194,7 @@ def _amount(text: str) -> Decimal:
 
 
 _STAGE = {
+    PlanStage.SETUP: "not open",
     PlanStage.ACTIVE: "ok",
     PlanStage.ENDING_SOON: "ends soon",
     PlanStage.OVERDUE: "unpaid",
@@ -206,10 +208,12 @@ def _plans_table(rows: list[PlanRow]) -> str:
     lines = ["Paid until   Status     Plan    Login         Shop"]
     for row in rows:
         status = _STAGE[row.stage]
-        if row.stage is PlanStage.OVERDUE:
-            status = f"pay by {_day(plan.pay_by(row.paid_until))}"
+        pay_by = plan.pay_by(row.paid_until)
+        if row.stage is PlanStage.OVERDUE and pay_by:
+            status = f"pay by {_day(pay_by)}"
+        until = _day(row.paid_until) if row.paid_until else "-"
         lines.append(
-            f"{_day(row.paid_until):<11}  {status:<9}  {'paying' if row.paying else 'trial':<6}  "
+            f"{until:<11}  {status:<9}  {'paying' if row.paying else 'trial':<6}  "
             f"{row.login:<12}  /shop/{row.slug}  {row.name}"
         )
     return "\n".join(lines)
@@ -283,7 +287,8 @@ async def make_test_shop(name: str) -> MadeShop:
         db.add(seller)
         await db.flush()
         slug = await unique_store_slug(db, slugify(name))
-        db.add(Store(seller_id=seller.id, name=name, slug=slug))
+        # Open at once: the load test places orders.
+        db.add(Store(seller_id=seller.id, name=name, slug=slug, paid_until=trial_end()))
         await db.commit()
     return MadeShop(email, password, slug)
 

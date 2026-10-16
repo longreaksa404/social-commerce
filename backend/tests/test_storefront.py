@@ -43,6 +43,7 @@ async def test_store_page_shows_only_categories_with_active_products(client, mak
         "messenger_username",
         "orders_paused",  # not taking orders for a while
         "orders_resume_on",
+        "opening_soon",  # not opened by its owner yet
     }
     assert body["telegram_username"] is None
     assert body["currency"] == "USD"
