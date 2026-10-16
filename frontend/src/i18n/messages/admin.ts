@@ -15,6 +15,7 @@ export const admin = {
   count: { en: (n: number) => (n === 1 ? '1 shop' : `${n} shops`), km: (n: number) => `${n} ហាង` },
   none: { en: 'No shops here.', km: 'គ្មានហាងនៅទីនេះទេ។' },
   stage: {
+    setup: { en: 'Not open', km: 'មិនទាន់បើក' },
     active: { en: 'OK', km: 'ធម្មតា' },
     ending_soon: { en: 'Ends soon', km: 'ជិតផុត' },
     overdue: { en: 'Unpaid', km: 'មិនទាន់បង់' },
@@ -23,6 +24,8 @@ export const admin = {
   trial: { en: 'Trial', km: 'សាកល្បង' },
   paying: { en: 'Paying', km: 'កំពុងបង់' },
   closed: { en: 'Closed', km: 'បានបិទ' },
+  // In setup: the trial starts when the seller opens the shop.
+  notOpened: { en: 'Not opened yet: no trial started', km: 'មិនទាន់បើក៖ មិនទាន់ចាប់ផ្ដើមការសាកល្បង' },
   paidUntil: { en: (day: string) => `Paid until ${day}`, km: (day: string) => `បានបង់រហូតដល់ ${day}` },
   payBy: { en: (day: string) => `pay by ${day}`, km: (day: string) => `បង់ត្រឹម ${day}` },
   noTelegram: { en: 'No Telegram', km: 'គ្មាន Telegram' },
@@ -43,7 +46,7 @@ export const admin = {
   checked: { en: 'Done', km: 'រួចរាល់' },
   lastPaid: { en: (day: string) => `Last paid ${day}`, km: (day: string) => `បង់ចុងក្រោយ ${day}` },
   signedUp: { en: (day: string) => `Signed up ${day}`, km: (day: string) => `ចុះឈ្មោះ ${day}` },
-  openShop: { en: 'Open shop', km: 'បើកហាង' },
+  viewShop: { en: 'View shop', km: 'មើលហាង' },
   payments: { en: 'Payments', km: 'ការបង់ប្រាក់' },
   noPayments: { en: 'No payments yet.', km: 'មិនទាន់មានការបង់ប្រាក់ទេ។' },
   status: {

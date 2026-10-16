@@ -13,7 +13,7 @@ export type Block = string | string[]
 export type LegalPage = { title: string; intro: string; sections: { heading: string; body: Block[] }[] }
 
 // Change it with the text.
-export const UPDATED = '2026-10-15'
+export const UPDATED = '2026-10-16'
 
 const en: Record<LegalDoc, LegalPage> = {
   privacy: {
@@ -130,7 +130,7 @@ const en: Record<LegalDoc, LegalPage> = {
       {
         heading: 'Fees',
         body: [
-          'Every new shop gets a free trial of 1 month (30 days). After that, Oak Order Standard costs $9.99 a month or $99 a year for each shop, in US dollars, hosting included.',
+          "Every new shop gets a free trial of 1 month (30 days), starting the day you open your shop in the app, not the day you sign up. Until then customers can see your shop but can't order. After the trial, Oak Order Standard costs $9.99 a month or $99 a year for each shop, in US dollars, hosting included.",
           'Until the app takes payments, you pay Oak Order by bank transfer or KHQR: message us on Telegram (Settings → Plan). A new month or year starts where your trial or your last payment ends.',
           "If your trial or your paid time runs out, you have 7 more days to pay, and your shop keeps taking orders. After that it stops taking new orders until you pay: customers can still see it, and you can still finish and download the orders you have. Nothing is deleted.",
           'You will see the price before you pay, and nothing is charged without your agreement.',
@@ -311,7 +311,7 @@ const km: Record<LegalDoc, LegalPage> = {
       {
         heading: 'ថ្លៃសេវា',
         body: [
-          'ហាងថ្មីនីមួយៗទទួលបានការសាកល្បងឥតគិតថ្លៃ 1 ខែ (30 ថ្ងៃ)។ បន្ទាប់មក Oak Order Standard មានតម្លៃ $9.99 ក្នុងមួយខែ ឬ $99 ក្នុងមួយឆ្នាំ សម្រាប់ហាងនីមួយៗ ជាដុល្លារអាមេរិក រួមទាំងសេវាបង្ហោះ។',
+          'ហាងថ្មីនីមួយៗទទួលបានការសាកល្បងឥតគិតថ្លៃ 1 ខែ (30 ថ្ងៃ) ចាប់ពីថ្ងៃដែលអ្នកបើកហាងក្នុងកម្មវិធី មិនមែនថ្ងៃចុះឈ្មោះទេ។ រហូតដល់ពេលនោះ អតិថិជនអាចមើលហាងរបស់អ្នកបាន ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។ បន្ទាប់ពីការសាកល្បង Oak Order Standard មានតម្លៃ $9.99 ក្នុងមួយខែ ឬ $99 ក្នុងមួយឆ្នាំ សម្រាប់ហាងនីមួយៗ ជាដុល្លារអាមេរិក រួមទាំងសេវាបង្ហោះ។',
           'រហូតដល់កម្មវិធីអាចទទួលការបង់ប្រាក់ អ្នកបង់ឱ្យ Oak Order តាមការផ្ទេរប្រាក់តាមធនាគារ ឬ KHQR៖ ផ្ញើសារមកយើងតាម Telegram (ការកំណត់ → គម្រោង)។ ខែ ឬឆ្នាំថ្មីចាប់ផ្ដើមនៅពេលការសាកល្បង ឬការបង់ប្រាក់ចុងក្រោយរបស់អ្នកបញ្ចប់។',
           'បើការសាកល្បង ឬពេលវេលាដែលអ្នកបានបង់អស់ អ្នកនៅមាន 7 ថ្ងៃទៀតដើម្បីបង់ ហើយហាងរបស់អ្នកនៅតែទទួលការកុម្ម៉ង់។ បន្ទាប់ពីនោះ ហាងឈប់ទទួលការកុម្ម៉ង់ថ្មី រហូតដល់អ្នកបង់៖ អតិថិជននៅតែអាចមើលហាងបាន ហើយអ្នកនៅតែអាចបញ្ចប់ និងទាញយកការកុម្ម៉ង់ដែលមានស្រាប់បាន។ គ្មានអ្វីត្រូវបានលុបទេ។',
           'អ្នកនឹងឃើញតម្លៃមុនពេលបង់ ហើយគ្មានការគិតប្រាក់ណាមួយដោយគ្មានការយល់ព្រមពីអ្នកឡើយ។',

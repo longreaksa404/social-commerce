@@ -330,8 +330,9 @@ function AccountRows({ selected, store, owner }: { selected?: Selected; store?: 
 function planSummary(plan: Plan | undefined, p: Messages['settings']['plan']): string {
   if (!plan) return ''
   if (plan.claim) return p.menuClaimed
+  if (plan.stage === 'setup') return p.menuSetup
   if (plan.stage === 'stopped') return p.menuStopped
-  if (plan.stage === 'overdue') return p.menuOverdue(formatCalendarDay(plan.pay_by))
+  if (plan.stage === 'overdue') return p.menuOverdue(formatCalendarDay(plan.pay_by ?? ''))
   return (plan.on_trial ? p.menuTrial : p.menuPaid)(formatDate(`${plan.paid_until}T00:00`))
 }
 

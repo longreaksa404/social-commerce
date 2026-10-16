@@ -9,12 +9,14 @@ import { formatMoney } from '../../lib/money.ts'
 import { formatDate } from '../../lib/orders.ts'
 import { SUPPORT_TELEGRAM, supportLink } from '../../lib/support.ts'
 import type { Plan, PlanPeriod, Store } from '../../lib/types.ts'
+import { OpenShopButton } from '../OpenShop.tsx'
 import { usePlan, useSayPaid, useStore } from '../queries.ts'
 
 /** "9.99" → "$9.99", "99.00" → "$99": prices read better without ".00". */
 const usd = (amount: string | number) => formatMoney(amount, 'USD').replace(/\.00$/, '')
-/** A calendar day from the API with its year: "Nov 30, 2026". */
-const day = (ymd: string) => formatDate(`${ymd}T00:00`)
+/** A calendar day from the API with its year: "Nov 30, 2026" ("" for none:
+ * in setup). */
+const day = (ymd: string | null) => (ymd ? formatDate(`${ymd}T00:00`) : '')
 
 /** Settings → Plan: the shop's plan with Oak Order (01_PRODUCT.md §33.1):
  * the free trial or the paid-until date, what it includes, and paying Oak
@@ -39,7 +41,8 @@ export function PlanPage() {
   return (
     <div className="space-y-6">
       <Status plan={plan.data} />
-      <Pay plan={plan.data} store={store.data} />
+      {/* Nothing to pay before the shop opens: its trial comes first. */}
+      {plan.data.stage !== 'setup' && <Pay plan={plan.data} store={store.data} />}
       {plan.data.payments.length > 0 && <Payments plan={plan.data} />}
     </div>
   )
@@ -50,13 +53,21 @@ function Status({ plan }: { plan: Plan }) {
   const running = plan.stage === 'active' || plan.stage === 'ending_soon'
   return (
     <Section title={plan.on_trial ? p.freeTrial : p.standard}>
-      {running ? (
+      {plan.stage === 'setup' ? (
+        <div className="space-y-3">
+          <div>
+            <p className="text-lg font-semibold text-slate-900">{p.notOpen}</p>
+            <p className="mt-1 text-sm text-slate-600">{p.notOpenText(usd(plan.prices.month), usd(plan.prices.year))}</p>
+          </div>
+          <OpenShopButton />
+        </div>
+      ) : running ? (
         <div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <p className="text-lg font-semibold text-slate-900">
               {(plan.on_trial ? p.freeUntil : p.paidUntil)(day(plan.paid_until))}
             </p>
-            <Badge tone={plan.stage === 'ending_soon' ? 'amber' : 'neutral'}>{p.daysLeft(plan.days_left)}</Badge>
+            <Badge tone={plan.stage === 'ending_soon' ? 'amber' : 'neutral'}>{p.daysLeft(plan.days_left ?? 0)}</Badge>
           </div>
           {plan.on_trial && <p className="mt-1 text-sm text-slate-600">{p.afterTrial(usd(plan.prices.month), usd(plan.prices.year))}</p>}
         </div>

@@ -22,7 +22,8 @@ import { PAYMENT_METHOD_ORDER } from '../../lib/payments.ts'
 import { deliveryFeeCents, discountCents } from '../../lib/pricing.ts'
 import type { PaymentMethod, Product, ShopStore, Store, Variant } from '../../lib/types.ts'
 import { ProductImage } from '../../shop/components.tsx'
-import { useAddOrder, useCustomer, useCustomers, useProducts, useStore } from '../queries.ts'
+import { useAddOrder, useCustomer, useCustomers, useInSetup, useProducts, useStore } from '../queries.ts'
+import { NotOpenYet } from '../OpenShop.tsx'
 import { PlanReminder } from '../Reminder.tsx'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
 
@@ -43,7 +44,18 @@ const FIELDS = ['name', 'phone', 'items', 'delivery_method', 'courier', 'deliver
 export function NewOrder() {
   const store = useStore()
   const products = useProducts()
+  const inSetup = useInSetup()
   const t = useT()
+  if (inSetup) {
+    // Saving would get SHOP_NOT_OPEN: open the shop first (OpenShop.tsx).
+    return (
+      <>
+        <PageHeader title={t.orders.newOrder.title} back="/dashboard/orders" />
+        <title>{t.orders.newOrder.title}</title>
+        <NotOpenYet title={t.orders.opening.newOrderTitle} text={t.orders.opening.newOrderText} />
+      </>
+    )
+  }
   if (store.error || products.error) {
     return (
       <>

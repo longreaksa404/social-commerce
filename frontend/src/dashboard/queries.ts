@@ -74,6 +74,20 @@ export function usePlan() {
   return useQuery({ queryKey: keys.plan, queryFn: () => api<Plan>('/seller/plan'), staleTime: SETTLED_MS })
 }
 
+/** A new shop not opened by its owner yet: no orders (dashboard/OpenShop.tsx). */
+export function useInSetup(): boolean {
+  return usePlan().data?.stage === 'setup'
+}
+
+/** Open the shop: its 30-day free trial starts today. */
+export function useOpenShop() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => api<Plan>('/seller/plan/open', { method: 'POST' }),
+    onSuccess: (plan) => queryClient.setQueryData(keys.plan, plan),
+  })
+}
+
 /** "I've paid": Oak Order hears on Telegram and checks its bank. */
 export function useSayPaid() {
   const queryClient = useQueryClient()

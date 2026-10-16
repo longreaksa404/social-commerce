@@ -104,9 +104,10 @@ export type Store = {
 export type TelegramLink = { url: string; expires_at: string }
 
 /** The shop's plan with Oak Order (Settings → Plan, 01_PRODUCT.md §33.1).
- * ending_soon: its last 6 days; overdue: ran out up to 7 days ago, orders
+ * setup: not opened yet, no orders, the trial starts when the owner opens
+ * it; ending_soon: its last 6 days; overdue: ran out up to 7 days ago, orders
  * still come; stopped: no new orders until paid. */
-export type PlanStage = 'active' | 'ending_soon' | 'overdue' | 'stopped'
+export type PlanStage = 'setup' | 'active' | 'ending_soon' | 'overdue' | 'stopped'
 export type PlanPeriod = 'month' | 'year'
 
 /** Paid to Oak Order by hand (KHQR or transfer) until ABA PayWay. */
@@ -134,12 +135,14 @@ export type Plan = {
   stage: PlanStage
   /** No payment yet: the free trial. */
   on_trial: boolean
-  /** The last day covered, Phnom Penh ("2026-11-30"). */
-  paid_until: string
-  /** The last day to pay before new orders stop. */
-  pay_by: string
-  /** Covered days left, today included; 0 once it has run out. */
-  days_left: number
+  /** The last day covered, Phnom Penh ("2026-11-30"); null in setup. */
+  paid_until: string | null
+  /** The last day to pay before new orders stop; null in setup. */
+  pay_by: string | null
+  /** Covered days left, today included; 0 once it has run out; null in setup. */
+  days_left: number | null
+  /** In setup: the trial's last day if the shop opens today. */
+  trial_until: string | null
   /** Oak Order Standard, US dollars. */
   prices: { month: string; year: string }
   /** The shop's code ("OAK-K7Q2MX"): in the transfer's note, so Oak
@@ -173,8 +176,9 @@ export type AdminShop = {
   created_at: string
   stage: PlanStage
   on_trial: boolean
-  paid_until: string
-  pay_by: string
+  /** Both null in setup. */
+  paid_until: string | null
+  pay_by: string | null
   last_paid_on: string | null
   /** An "I've paid" waiting to be checked. */
   claim: PlanPayment | null
@@ -302,6 +306,8 @@ export type ShopStore = {
   orders_paused: boolean
   /** The day it opens again, if the seller set one. */
   orders_resume_on: string | null
+  /** Not opened by its owner yet: "Opening soon" (orders_paused is true too). */
+  opening_soon: boolean
 }
 
 export type ShopProductCard = {

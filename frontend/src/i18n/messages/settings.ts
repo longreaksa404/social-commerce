@@ -309,8 +309,8 @@ export const settings = {
       km: (done: number, total: number) => `រួចរាល់ ${done} ក្នុងចំណោម ${total}`,
     },
     hint: {
-      en: 'The first three get your shop ready to take orders. The others help customers trust and reach you.',
-      km: 'បីជំហានដំបូងធ្វើឱ្យហាងរបស់អ្នករួចរាល់សម្រាប់ទទួលការកុម្ម៉ង់។ ជំហានផ្សេងទៀតជួយឱ្យអតិថិជនទុកចិត្ត និងទាក់ទងអ្នកបាន។',
+      en: 'The first three get your shop ready to take orders, and opening it (the last step) starts your 30-day free trial. The others help customers trust and reach you.',
+      km: 'បីជំហានដំបូងធ្វើឱ្យហាងរបស់អ្នករួចរាល់សម្រាប់ទទួលការកុម្ម៉ង់ ហើយការបើកហាង (ជំហានចុងក្រោយ) ចាប់ផ្ដើមការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃរបស់អ្នក។ ជំហានផ្សេងទៀតជួយឱ្យអតិថិជនទុកចិត្ត និងទាក់ទងអ្នកបាន។',
     },
     steps: {
       product: { en: 'Add a product', km: 'បន្ថែមទំនិញ' },
@@ -319,6 +319,7 @@ export const settings = {
       telegram: { en: 'Telegram alerts for new orders', km: 'ការជូនដំណឹងតាម Telegram ពេលមានការកុម្ម៉ង់ថ្មី' },
       contact: { en: 'Contact buttons for customers', km: 'ប៊ូតុងទំនាក់ទំនងសម្រាប់អតិថិជន' },
       logo: { en: 'Shop logo', km: 'ឡូហ្គោហាង' },
+      open: { en: 'Open your shop (starts your free trial)', km: 'បើកហាងរបស់អ្នក (ចាប់ផ្ដើមការសាកល្បងឥតគិតថ្លៃ)' },
     },
     optional: { en: 'Optional', km: 'មិនចាំបាច់' },
     doneLabel: { en: ' (done)', km: ' (រួចរាល់)' },
@@ -364,6 +365,14 @@ export const settings = {
       km: 'អ្វីដែលអ្នកបង់ឱ្យ Oak Order សម្រាប់ហាងរបស់អ្នក និងរហូតដល់ពេលណា។',
     },
     freeTrial: { en: 'Free trial', km: 'សាកល្បងឥតគិតថ្លៃ' },
+    // In setup: the trial starts when the shop opens.
+    notOpen: { en: 'Your shop isn’t open yet', km: 'ហាងរបស់អ្នកមិនទាន់បើកនៅឡើយទេ' },
+    notOpenText: {
+      en: (month: string, year: string) =>
+        `Your 30-day free trial starts when you open your shop, then it's ${month} a month or ${year} a year. Until then customers can look around but can't order.`,
+      km: (month: string, year: string) =>
+        `ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃរបស់អ្នកចាប់ផ្ដើមនៅពេលអ្នកបើកហាង បន្ទាប់មក ${month} ក្នុងមួយខែ ឬ ${year} ក្នុងមួយឆ្នាំ។ រហូតដល់ពេលនោះ អតិថិជនអាចមើលហាងបាន ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។`,
+    },
     standard: { en: 'Oak Order Standard', km: 'Oak Order Standard' },
     freeUntil: { en: (day: string) => `Free until ${day}`, km: (day: string) => `ឥតគិតថ្លៃរហូតដល់ ${day}` },
     paidUntil: { en: (day: string) => `Paid until ${day}`, km: (day: string) => `បានបង់រហូតដល់ ${day}` },
@@ -470,6 +479,7 @@ export const settings = {
     menuTrial: { en: (day: string) => `Free trial until ${day}`, km: (day: string) => `សាកល្បងឥតគិតថ្លៃរហូតដល់ ${day}` },
     menuPaid: { en: (day: string) => `Standard, paid until ${day}`, km: (day: string) => `Standard បានបង់រហូតដល់ ${day}` },
     menuOverdue: { en: (day: string) => `Ended: pay by ${day}`, km: (day: string) => `បានបញ្ចប់៖ សូមបង់ត្រឹម ${day}` },
+    menuSetup: { en: 'Not open yet: free trial not started', km: 'មិនទាន់បើក៖ មិនទាន់ចាប់ផ្ដើមការសាកល្បង' },
     menuStopped: { en: 'Not taking new orders: pay to reopen', km: 'មិនទទួលការកុម្ម៉ង់ថ្មី៖ សូមបង់ដើម្បីបើកវិញ' },
   },
 

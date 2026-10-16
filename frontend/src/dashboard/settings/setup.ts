@@ -1,12 +1,13 @@
 import { useSyncExternalStore } from 'react'
-import { useHasProduct, useRole, useStore } from '../queries.ts'
+import { useHasProduct, usePlan, useRole, useStore } from '../queries.ts'
 
 /** The steps to get a new shop ready (founder's pick 7C, 2026-10-09), in
- * order. The first three are what taking orders needs; the rest help
- * customers trust and reach the shop. */
-export type SetupStep = 'product' | 'delivery' | 'payments' | 'telegram' | 'contact' | 'logo'
+ * order. The first three are what taking orders needs; the others help
+ * customers trust and reach the shop; opening it comes last and starts its
+ * free trial (2026-10-16). */
+export type SetupStep = 'product' | 'delivery' | 'payments' | 'telegram' | 'contact' | 'logo' | 'open'
 
-export const ESSENTIAL: ReadonlySet<SetupStep> = new Set(['product', 'delivery', 'payments'])
+export const ESSENTIAL: ReadonlySet<SetupStep> = new Set(['product', 'delivery', 'payments', 'open'])
 
 export const STEP_TARGETS: Record<SetupStep, string> = {
   product: '/dashboard/products/new',
@@ -15,6 +16,7 @@ export const STEP_TARGETS: Record<SetupStep, string> = {
   telegram: '/dashboard/settings/telegram',
   contact: '/dashboard/settings/contact',
   logo: '/dashboard/settings/shop',
+  open: '/dashboard/settings/plan',
 }
 
 // "Hide this list", per device and shop.
@@ -57,10 +59,11 @@ export type Setup = {
 export function useSetup(): Setup | null {
   const store = useStore()
   const hasProduct = useHasProduct()
+  const plan = usePlan()
   const role = useRole()
   const storeId = store.data?.id ?? ''
   const hidden = useSyncExternalStore(subscribe, () => (storeId ? isHidden(storeId) : false))
-  if (role !== 'owner' || !store.data || hasProduct.data === undefined) return null
+  if (role !== 'owner' || !store.data || hasProduct.data === undefined || !plan.data) return null
   const s = store.data
   const steps: { step: SetupStep; done: boolean }[] = [
     { step: 'product', done: hasProduct.data },
@@ -70,6 +73,7 @@ export function useSetup(): Setup | null {
     ...(s.telegram_bot_available ? [{ step: 'telegram' as const, done: s.telegram_connected }] : []),
     { step: 'contact', done: Boolean(s.telegram_username || s.messenger_username || s.contact_phone) },
     { step: 'logo', done: s.logo_url !== null },
+    { step: 'open', done: plan.data.stage !== 'setup' },
   ]
   const done = steps.filter((x) => x.done).length
   return {

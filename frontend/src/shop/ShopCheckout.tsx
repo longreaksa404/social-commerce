@@ -393,7 +393,7 @@ export function ShopCheckout() {
               {shop.data.orders_paused ? (
                 // Paused by the seller (the notice at the top says until when).
                 <Button type="button" size="lg" disabled className="w-full">
-                  {c.notTakingOrders}
+                  {shop.data.opening_soon ? c.openingSoon : c.notTakingOrders}
                 </Button>
               ) : (
                 <Button type="submit" size="lg" loading={place.isPending} disabled={!checked.ready} className="w-full justify-between!">

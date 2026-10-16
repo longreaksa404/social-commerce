@@ -39,7 +39,8 @@ export function PlanReminder({ stoppedOnly = false }: { stoppedOnly?: boolean })
   const plan = usePlan()
   const role = useRole()
   const o = useT().orders
-  if (!plan.data || !role || plan.data.stage === 'active') return null
+  // Setup has its own place: the Orders tab's empty state (OpenShop.tsx).
+  if (!plan.data || !role || plan.data.stage === 'active' || plan.data.stage === 'setup') return null
   const { stage, on_trial: trial, paid_until, pay_by, claim } = plan.data
   if (stage !== 'stopped' && (stoppedOnly || role !== 'owner')) return null
   const text =
@@ -50,8 +51,8 @@ export function PlanReminder({ stoppedOnly = false }: { stoppedOnly?: boolean })
       : claim
         ? o.planClaimed // said "I've paid": nothing more for the seller to do
         : stage === 'overdue'
-          ? (trial ? o.planOverdueTrial : o.planOverdue)(formatCalendarDay(pay_by))
-          : (trial ? o.planEndingTrial : o.planEnding)(formatCalendarDay(paid_until))
+          ? (trial ? o.planOverdueTrial : o.planOverdue)(formatCalendarDay(pay_by ?? ''))
+          : (trial ? o.planEndingTrial : o.planEnding)(formatCalendarDay(paid_until ?? ''))
   return (
     <Reminder icon={CalendarClock} setting="plan">
       {text}

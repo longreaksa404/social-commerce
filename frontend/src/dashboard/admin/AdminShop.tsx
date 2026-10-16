@@ -50,7 +50,7 @@ function Summary({ shop }: { shop: AdminShopDetail }) {
       action={
         <a href={`/shop/${shop.slug}`} target="_blank" rel="noreferrer" className={buttonClass('secondary')}>
           <ExternalLink aria-hidden className="size-4" />
-          {a.openShop}
+          {a.viewShop}
         </a>
       }
     >
@@ -65,7 +65,7 @@ function Summary({ shop }: { shop: AdminShopDetail }) {
           /shop/{shop.slug} · {formatPhone(shop.login)}
         </li>
         <li>
-          {a.paidUntil(day(shop.paid_until))}
+          {shop.paid_until ? a.paidUntil(day(shop.paid_until)) : a.notOpened}
           {shop.stage === 'overdue' && ` · ${a.payBy(day(shop.pay_by))}`}
         </li>
         {shop.last_paid_on && <li>{a.lastPaid(day(shop.last_paid_on))}</li>}

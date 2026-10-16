@@ -7,8 +7,9 @@ import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { formatCalendarDay, formatDay } from '../../lib/orders.ts'
 import type { OrderStatus, OrderSummary } from '../../lib/types.ts'
-import { useOrders, useProducts, useRole, useStore } from '../queries.ts'
+import { useInSetup, useOrders, useProducts, useRole, useStore } from '../queries.ts'
 import { OrderDetail } from './OrderDetail.tsx'
+import { NotOpenYet } from '../OpenShop.tsx'
 import { PlanReminder, Reminder } from '../Reminder.tsx'
 import { EAGER_PHOTOS } from '../../shop/components.tsx'
 import { OrderRow } from './OrderRow.tsx'
@@ -236,10 +237,12 @@ function OrderList({ selectedId }: { selectedId: string | undefined }) {
 }
 
 /** A shop's first days. With no products yet, sharing the link would
- * bring customers to an empty shop: adding one comes first. */
+ * bring customers to an empty shop: adding one comes first. Then, while
+ * the shop is in setup, opening it. */
 function NoOrdersYet() {
   const store = useStore()
   const products = useProducts()
+  const inSetup = useInSetup()
   const t = useT()
   if (products.isPending) return <ListSkeleton />
   if (products.data?.length === 0) {
@@ -258,19 +261,15 @@ function NoOrdersYet() {
       </EmptyState>
     )
   }
+  const viewShop = store.data && (
+    <Link to={`/shop/${store.data.slug}`} target="_blank" className={buttonClass('secondary')}>
+      <ExternalLink aria-hidden className="size-4" />
+      {t.orders.viewShop}
+    </Link>
+  )
+  if (inSetup) return <NotOpenYet extra={viewShop} />
   return (
-    <EmptyState
-      icon={Inbox}
-      title={t.orders.emptyTitle}
-      action={
-        store.data && (
-          <Link to={`/shop/${store.data.slug}`} target="_blank" className={buttonClass('secondary')}>
-            <ExternalLink aria-hidden className="size-4" />
-            {t.orders.openShop}
-          </Link>
-        )
-      }
-    >
+    <EmptyState icon={Inbox} title={t.orders.emptyTitle} action={viewShop}>
       {t.orders.emptyText}
     </EmptyState>
   )

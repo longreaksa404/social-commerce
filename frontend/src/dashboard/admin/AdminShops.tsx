@@ -117,7 +117,7 @@ function ShopRow({ shop, a }: { shop: AdminShop; a: Messages['admin'] }) {
           {!shop.telegram && ` · ${a.noTelegram}`}
         </span>
         <span className="block text-sm text-slate-600">
-          {a.paidUntil(day(shop.paid_until))}
+          {shop.paid_until ? a.paidUntil(day(shop.paid_until)) : a.notOpened}
           {shop.stage === 'overdue' && ` · ${a.payBy(day(shop.pay_by))}`}
         </span>
         {shop.claim && (

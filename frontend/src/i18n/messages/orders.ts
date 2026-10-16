@@ -15,6 +15,37 @@ export const orders = {
     en: (day: string) => `Your shop isn't taking orders until ${day}.`,
     km: (day: string) => `ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់រហូតដល់ ${day}។`,
   },
+  // A new shop in setup: nothing can be ordered until the owner opens it,
+  // which starts the 30-day free trial (dashboard/OpenShop.tsx).
+  opening: {
+    button: { en: 'Open shop', km: 'បើកហាង' },
+    title: { en: "Your shop isn't open yet", km: 'ហាងរបស់អ្នកមិនទាន់បើកនៅឡើយទេ' },
+    text: {
+      en: "Customers can look around but can't order yet. Open it when you're ready: your 30-day free trial starts then.",
+      km: 'អតិថិជនអាចមើលហាងបាន ប៉ុន្តែមិនទាន់អាចកុម្ម៉ង់បានទេ។ បើកវានៅពេលអ្នករួចរាល់៖ ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃរបស់អ្នកចាប់ផ្ដើមនៅពេលនោះ។',
+    },
+    staff: {
+      en: "The owner hasn't opened the shop yet. Orders can come in once they do.",
+      km: 'ម្ចាស់ហាងមិនទាន់បើកហាងនៅឡើយទេ។ ការកុម្ម៉ង់អាចចូលមកបាន នៅពេលគាត់បើក។',
+    },
+    // New order while in setup.
+    newOrderTitle: { en: 'Open your shop first', km: 'សូមបើកហាងរបស់អ្នកជាមុនសិន' },
+    newOrderText: {
+      en: 'Orders from customers and from your chats start once your shop is open. Your 30-day free trial starts then.',
+      km: 'ការកុម្ម៉ង់ពីអតិថិជន និងពីការជជែករបស់អ្នក ចាប់ផ្ដើមនៅពេលហាងរបស់អ្នកបើក។ ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃរបស់អ្នកចាប់ផ្ដើមនៅពេលនោះ។',
+    },
+    // The pop-up.
+    confirmTitle: { en: 'Start your 30-day free trial', km: 'ចាប់ផ្ដើមការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃ' },
+    confirmMessage: {
+      en: (day: string, month: string, year: string) =>
+        `Customers can order from today. Free until ${day}, then ${month} a month or ${year} a year. No card needed: nothing is charged automatically.`,
+      km: (day: string, month: string, year: string) =>
+        `អតិថិជនអាចកុម្ម៉ង់បានចាប់ពីថ្ងៃនេះ។ ឥតគិតថ្លៃរហូតដល់ ${day} បន្ទាប់មក ${month} ក្នុងមួយខែ ឬ ${year} ក្នុងមួយឆ្នាំ។ មិនត្រូវការកាតទេ៖ គ្មានការកាត់ប្រាក់ដោយស្វ័យប្រវត្តិឡើយ។`,
+    },
+    confirm: { en: 'Start free trial and open shop', km: 'ចាប់ផ្ដើមសាកល្បង ហើយបើកហាង' },
+    opened: { en: 'Your shop is open. Customers can order now.', km: 'ហាងរបស់អ្នកបានបើកហើយ។ អតិថិជនអាចកុម្ម៉ង់បានឥឡូវនេះ។' },
+    failed: { en: "Couldn't open your shop. Try again.", km: 'មិនអាចបើកហាងរបស់អ្នកបានទេ។ សូមព្យាយាមម្ដងទៀត។' },
+  },
   // The shop's plan with Oak Order running out (Settings → Plan).
   planEndingTrial: {
     en: (day: string) => `Your free trial ends on ${day}. Tap to see how to pay.`,
@@ -197,7 +228,7 @@ export const orders = {
     en: 'Share your shop link on Facebook, TikTok, or Telegram. Orders customers place show up here.',
     km: 'ចែករំលែកតំណហាងរបស់អ្នកនៅលើ Facebook, TikTok ឬ Telegram។ ការកុម្ម៉ង់ពីអតិថិជននឹងបង្ហាញនៅទីនេះ។',
   },
-  openShop: { en: 'Open your shop', km: 'បើកហាងរបស់អ្នក' },
+  viewShop: { en: 'View your shop', km: 'មើលហាងរបស់អ្នក' },
   // No orders and no products yet: products come first.
   noProductsTitle: { en: 'Add your first product', km: 'បន្ថែមទំនិញដំបូងរបស់អ្នក' },
   noProductsText: {

@@ -22,6 +22,14 @@ export const shop = {
       km: 'អ្នកនៅតែអាចមើលទំនិញ ហើយសួរហាងថាពេលណាបើកវិញ។',
     },
   },
+  // The seller hasn't opened the shop yet (in setup: no orders).
+  openingSoon: {
+    title: { en: 'Opening soon', km: 'នឹងបើកឆាប់ៗនេះ' },
+    text: {
+      en: "This shop isn't taking orders yet. You can look around, and message the shop to ask about anything.",
+      km: 'ហាងនេះមិនទាន់ទទួលការកុម្ម៉ង់នៅឡើយទេ។ អ្នកអាចមើលទំនិញ ហើយផ្ញើសារសួរហាងអំពីអ្វីក៏បាន។',
+    },
+  },
   // Asking the seller: Telegram, Messenger, a call (Settings → Contact).
   contact: {
     askTheSeller: { en: 'Ask the seller', km: 'សួរអ្នកលក់' },
