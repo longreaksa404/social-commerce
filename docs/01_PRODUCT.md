@@ -1317,9 +1317,15 @@ the founder brought; no early-seller offer):
   shop, in US dollars. It includes every feature built, up to 10 staff
   logins, and hosting (§33.3). "Made with Oak Order" shows on every
   Standard shop.
-- **A 1-month free trial** (30 days) for every new shop. There is no
-  free plan and no early-seller discount.
-- **When the trial ends** (day 1 is the day the shop signs up):
+- **A 1-month free trial** (30 days) for every new shop, starting when
+  the seller opens the shop, not at sign-up (founder, 2026-10-16). Until
+  then the shop is in setup, with no time limit: the seller can add
+  products and settings and preview the shop; customers see "Opening
+  soon" and can't order, and the seller can't add orders from a chat.
+  Tapping Open shop (on the Orders tab, New order, Settings → Plan or the
+  setup checklist) shows the trial (its end date and the price after it)
+  and starts it. There is no free plan and no early-seller discount.
+- **When the trial ends** (day 1 is the day the seller opens the shop):
   - Day 25: the seller sees a reminder in the dashboard with the price
     (monthly and yearly) and the day the trial ends. The founder also
     messages the first sellers on Telegram.
@@ -1905,7 +1911,7 @@ Decided so far (details in §24, §25 and `02_TECHNICAL.md`):
 - Company Oak Solutions, domain oaksolve.com, this product at `order.oaksolve.com` (2026-10-09; Oak Shop considered and not picked)
 - Oak's mark: the oak leaf from the Oak Solutions logo (2026-10-10; replaces a stock tree icon)
 - Every shop credits Oak: "Made with Oak Order" with Privacy · Terms at the bottom of the shop's pages and the order page, and shared links end in "· Oak Order" with Oak's mark small on the picture (2026-10-10). The line stays on the Standard plan (2026-10-14); hiding it may come with a later plan.
-- Pricing (2026-10-14, §33): one plan, Standard, $9.99 a month or $99 a year per shop, hosting included; a 1-month free trial, no free plan, no early-seller discount; unpaid 7 days after the trial (or a paid period), the shop takes no new orders and nothing is deleted; sellers pay by hand (KHQR or transfer with the shop's code, "I've paid", the founder confirms on an admin page; Telegram reminders on day 1 and day 5) until Oak Solutions qualifies for ABA PayWay; setup free for the first 3–5 sellers. Growth and Business plans are for later.
+- Pricing (2026-10-14, §33): one plan, Standard, $9.99 a month or $99 a year per shop, hosting included; a 1-month free trial from the day the seller opens the shop (setup before that has no time limit and takes no orders, 2026-10-16), no free plan, no early-seller discount; unpaid 7 days after the trial (or a paid period), the shop takes no new orders and nothing is deleted; sellers pay by hand (KHQR or transfer with the shop's code, "I've paid", the founder confirms on an admin page; Telegram reminders on day 1 and day 5) until Oak Solutions qualifies for ABA PayWay; setup free for the first 3–5 sellers. Growth and Business plans are for later.
 
 # 47. Relationship With Other Project Documents
 

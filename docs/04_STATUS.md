@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-15 (shop colour and cover photo, not pushed: eight colours a seller can pick, the shop takes it; a cover photo across the top like a Facebook page, and the shop's large link card made from it; before that the same day, seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only across the app; less motion on the order page; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-16 (Open shop starts the free trial, not pushed: a new shop is in setup, with no time limit and no orders, until the owner taps Open shop, which asks first and starts the 30-day trial; customers see "Opening soon"). 2026-10-15 (shop colour and cover photo, not pushed: eight colours a seller can pick, the shop takes it; a cover photo across the top like a Facebook page, and the shop's large link card made from it; before that the same day, seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only across the app; less motion on the order page; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -1471,6 +1471,38 @@ Hand collection checked the same way with test settings: Plan with the
 code, Oak's KHQR and bank account, "I've paid" then "Oak Order is
 checking", the admin list and a shop with "Says paid $9.99".
 
+**Plan and billing, part 3: the trial starts when the shop opens**
+(founder, 2026-10-16; not pushed):
+
+1. [x] **Backend** (`3df458b`): `store.paid_until` may be null: a shop
+   in setup (migration `ffa0fb97ae00`; shops that exist keep their
+   dates). Setup has no time limit; customers see the shop with
+   `opening_soon` and checkout answers `ORDERS_PAUSED`; an order from a
+   chat gets `SHOP_NOT_OPEN`. `POST /seller/plan/open` (owner) starts the
+   30-day trial that day; again, nothing changes. A payment recorded
+   before opening opens the shop from that day, with no trial. `plans`
+   lists shops in setup last as "not open". 6 new tests (setup, opening,
+   tenant isolation, paying in setup, the `plans` list, staff can't
+   open); the test fixtures open their shops unless told not to.
+2. [x] **App** (`f2a99af`): Open shop on the Orders tab's empty state
+   ("Your shop isn't open yet", with View your shop), in place of New
+   order's form ("Open your shop first"), on Settings → Plan (no Pay
+   section before opening) and as the setup checklist's last step. It
+   asks first: "Start your 30-day free trial", free until the day,
+   then $9.99 a month or $99 a year, no card. Staff only get the news.
+   The shop says "Opening soon" (plain words, not amber) and so does
+   checkout's button. The admin page says "Not open". The Orders tab's
+   old "Open your shop" button (it only viewed the shop) is now "View
+   your shop". The Terms' Fees (dated 2026-10-16) and the line under
+   Create store say the trial starts when the shop opens. English and
+   Khmer.
+
+Checked: 700 backend tests, ruff, oxlint and the build pass; the
+migration down and up again. In headless Chromium at 390 px on a local
+test shop in setup: the shop with "Opening soon", the Orders tab, New
+order, Settings → Plan and the checklist, the pop-up, opening (toast,
+"No orders yet"), Plan with 30 days left, and the shop taking orders.
+
 Phase 9, waiting on the founder:
 
 - **Live load test**, once, before the first real seller, from home
@@ -1741,6 +1773,16 @@ Resolved:
 ---
 
 ## Decisions Made This Session (not yet reflected in 01/02/03)
+
+The free trial starts when the shop opens (2026-10-16, founder: "do
+it"): no trial at sign-up; a new shop is in setup, with no time limit,
+until the owner taps Open shop, which shows the trial's end and the
+price, then starts the 30 days. In setup customers can look but not
+order, and the seller can't add chat orders (a customer order is never
+held waiting for the seller to start a trial). Applied the same day to
+01 §33.1 (the trial bullet, "day 1 is the day the seller opens the
+shop", §46's pricing line) and 02 §5 (`store.paid_until` nullable),
+§6.2 (`POST /seller/plan/open`, the `setup` stage).
 
 Shop colour and cover photo (2026-10-15, founder's picks 1A 2A 3A 4A
 5A, data OK): eight calm colours a seller can pick (navy by default);
@@ -2143,6 +2185,12 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
+000000000000. **Open shop starts the trial** (built, not pushed). Founder:
+        push (the migration only lets `paid_until` be empty; shops that
+        exist now keep their trial or paid dates). After that, a new
+        sign-up is in setup until its owner taps Open shop. Try it with
+        a new shop: the Orders tab, the shop link ("Opening soon"), then
+        Open shop.
 00000000000. **Shop colour and cover photo** (built, not pushed).
         Founder: push (the migration adds two columns at start), then in
         Settings → your shop pick a colour and add a cover, open the shop

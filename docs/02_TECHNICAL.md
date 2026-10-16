@@ -195,7 +195,7 @@ seller (owner)
 | orders_paused | bool | default false; not taking orders for a while: the shop can be browsed, checkout is refused (2026-10-08) |
 | orders_resume_on | date, nullable | the first day orders open again (Phnom Penh), by themselves; null: until the seller turns them back on (2026-10-08) |
 | low_stock_alert | int | default 5; an order leaving this many or fewer alerts the seller (bell, Telegram). Customers' "Only N left" stays at 5 (2026-10-08) |
-| paid_until | date | the last day the shop is covered (Phnom Penh): sign-up sets the end of the 30-day free trial, each `plan_payment` moves it on. From it: reminders in its last 6 days, 7 days to pay after it, then no new orders (§6.2 Plan; 01 §33.1; 2026-10-14). Shops that existed when it shipped got 30 days from that day |
+| paid_until | date NULL | the last day the shop is covered (Phnom Penh): null while the shop is in setup (no orders); opening the shop sets the end of the 30-day free trial (2026-10-16; before that, sign-up did), each `plan_payment` moves it on (one made in setup opens the shop from that day, with no trial). From it: reminders in its last 6 days, 7 days to pay after it, then no new orders (§6.2 Plan; 01 §33.1; 2026-10-14). Shops that existed when it shipped got 30 days from that day |
 | created_at | timestamptz | |
 
 ### `category`
@@ -395,9 +395,10 @@ DELETE /api/v1/seller/store/telegram          # disconnect the seller's chat
 ### Seller — Plan (2026-10-14)
 ```
 GET    /api/v1/seller/plan                    # the shop's plan with Oak Order: stage, free trial or not, paid-until date, prices, payments; staff may read it
+POST   /api/v1/seller/plan/open               # owner; opens a shop in setup: its 30-day free trial starts today
 ```
 
-Stages from `store.paid_until` (01 §33.1): `active`; `ending_soon` (its last 6 days; the dashboard reminds the seller); `overdue` (1–7 days after; orders still come); `stopped` (from the 8th day). A stopped shop shows customers the paused notice with no reopening day, checkout answers 409 `ORDERS_PAUSED` (nothing about payment) and an order from a chat 409 `PLAN_UNPAID`; orders already placed carry on. Paying Oak Order by hand (founder, 2026-10-14; ABA PayWay later, parked on the `payway` branch):
+Stages from `store.paid_until` (01 §33.1): `setup` (none yet: until the owner opens the shop; customers see "Opening soon" (`opening_soon`), checkout answers 409 `ORDERS_PAUSED` and an order from a chat 409 `SHOP_NOT_OPEN`; 2026-10-16); `active`; `ending_soon` (its last 6 days; the dashboard reminds the seller); `overdue` (1–7 days after; orders still come); `stopped` (from the 8th day). A stopped shop shows customers the paused notice with no reopening day, checkout answers 409 `ORDERS_PAUSED` (nothing about payment) and an order from a chat 409 `PLAN_UNPAID`; orders already placed carry on. Paying Oak Order by hand (founder, 2026-10-14; ABA PayWay later, parked on the `payway` branch):
 
 ```
 POST   /api/v1/seller/plan/paid                # owner; {period}: "I've paid": a pending payment, a Telegram alert to the founder
