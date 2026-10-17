@@ -1053,6 +1053,10 @@ for a pick).
   browser's own, which dark mode drew as grey discs.
 - [x] 14. "+ New order" on Orders is the dark button, like "+ Add",
   "+ New link" and "+ New category" on their pages (pick 14B).
+- [x] 15. "Oak Order" is one colour: navy, and light navy in dark mode
+  (pick 15B), at the bottom of every shop page and in the log-in and
+  sign-up header. In dark mode its acorn O was a dim blue beside white
+  "ak Order".
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,

@@ -1350,7 +1350,9 @@ message needs a Khmer entry there.** What sellers type is shown as typed.
   `bg-accent` as usual and they follow the shop's colour. Words on
   `bg-accent` are `text-on-accent`, never `text-white`: white for the deep
   colours, the colour's own deep shade on the light ones (pastel buttons). Oak's own things
-  that must stay navy (the leaf in "Made with Oak Order") use `text-oak`.
+  that must stay navy use `text-oak`; the name "Oak Order" on a page (the
+  shop's "Made with Oak Order", the log-in header) is all `text-oak-ink`,
+  navy, light navy in dark mode (UI check #15).
   The seller's dashboard sets it too (`dashboard/Layout.tsx`, founder
   2026-10-15), so the dashboard is in the shop's colour as well; a
   `navy` block lets the Navy swatch show navy inside another colour.

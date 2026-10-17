@@ -50,6 +50,9 @@
   --color-brand: #2f4669;
   /* Oak's own navy, kept where a shop's colour replaces the others (shop/colors.css). */
   --color-oak: #1f3350;
+  /* The name "Oak Order" on a page: one colour, navy; light navy in dark
+     mode (UI check #15, founder's pick 15B). */
+  --color-oak-ink: #1f3350;
   /* Words on bg-accent: white, dark on a shop's light colour (colors.css). */
   --color-on-accent: #fff;
 
@@ -249,6 +252,7 @@
   --color-accent-hover: #4a6a9e;
   --color-brand: #5a7bb0;
   --color-oak: #415f92;
+  --color-oak-ink: #9fb7d9;
   /* Navy: tints turn deep, text turns light */
   --color-navy-50: #1c2636;
   --color-navy-100: #243149;

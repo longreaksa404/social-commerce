@@ -21,7 +21,7 @@ export function MadeWithOak() {
           className="inline-flex min-h-10 items-center gap-2 rounded-lg px-2.5 text-sm hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
         >
           <span>
-            {c.madeWith} <OakOrderName className="text-slate-700" oClassName="text-oak" />
+            {c.madeWith} <OakOrderName className="text-oak-ink" />
           </span>
         </a>
         <p className="flex items-center gap-1.5 text-xs">
