@@ -1020,6 +1020,9 @@ for a pick).
   again + "Delivered, cash received" in Khmer) go one under the other,
   full width, instead of squeezing a label onto two lines. Short pairs
   (Reject / Accept, Send / Delivered) stay side by side.
+- [x] 6. Done steps in the setup list (Settings and the Orders tab) keep
+  the green tick and grey words but lose the line through them, which
+  ran through the middle of the Khmer letters.
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,

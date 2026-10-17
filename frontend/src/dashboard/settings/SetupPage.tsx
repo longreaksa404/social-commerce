@@ -85,7 +85,7 @@ function SetupSteps({ setup, next }: { setup: Setup; next?: SetupStep }) {
             </span>
             <span className="min-w-0 flex-1">
               <span
-                className={`block ${done ? 'font-medium text-slate-500 line-through' : step === next ? 'font-semibold text-slate-900' : 'font-medium text-slate-900'}`}
+                className={`block ${done ? 'font-medium text-slate-500' : step === next ? 'font-semibold text-slate-900' : 'font-medium text-slate-900'}`}
               >
                 {s.steps[step]}
               </span>
