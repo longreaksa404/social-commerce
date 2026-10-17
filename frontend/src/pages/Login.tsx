@@ -42,7 +42,7 @@ export function Login() {
       footer={
         <>
           {t.auth.login.newHere}{' '}
-          <Link to="/register" className="font-semibold text-navy-700 hover:underline">
+          <Link to="/register" className="font-semibold text-navy-700 link">
             {t.auth.createYourStore}
           </Link>
         </>
@@ -64,7 +64,7 @@ export function Login() {
           <Link
             to="/forgot-password"
             state={{ login, byEmail }}
-            className="inline-flex min-h-11 items-center text-sm font-medium text-navy-700 hover:underline"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-navy-700 link"
           >
             {t.auth.forgot.link}
           </Link>

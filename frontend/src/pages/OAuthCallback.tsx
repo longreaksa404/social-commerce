@@ -54,11 +54,11 @@ export function OAuthCallback() {
 
   const back =
     pending?.intent === 'connect' ? (
-      <Link to="/dashboard/settings/account" className="font-semibold text-navy-700 hover:underline">
+      <Link to="/dashboard/settings/account" className="font-semibold text-navy-700 link">
         {c.backToAccount}
       </Link>
     ) : (
-      <Link to="/login" className="font-semibold text-navy-700 hover:underline">
+      <Link to="/login" className="font-semibold text-navy-700 link">
         {c.tryAgain}
       </Link>
     )

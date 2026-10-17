@@ -72,7 +72,7 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
         {product.category && (
           <Link
             to={`/shop/${shop.slug}/category/${product.category.slug}`}
-            className="-mx-1 inline-flex min-h-8 items-center rounded px-1 text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
+            className="-mx-1 inline-flex min-h-8 items-center rounded px-1 text-sm font-medium text-navy-700 link focus-visible:outline-2 focus-visible:outline-navy-600"
           >
             {product.category.name}
           </Link>

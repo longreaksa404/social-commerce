@@ -1003,6 +1003,11 @@ for a pick).
 - [x] 1. Small Khmer text is 13px instead of 12px (hints under fields,
   the labels over each status, the tab bar, stock tags); English keeps
   12px. One rule on `<html lang="km">` in `index.css`.
+- [x] 2. Text links and text-only buttons are underlined (Log in with
+  email instead, Forgot password?, Edit the details, Hide this list,
+  Remove logo, View customer, All your orders, Privacy · Terms): a thin
+  light line set low enough to pass under Khmer subscripts instead of
+  through them. Navy links no longer read as labels.
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,

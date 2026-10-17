@@ -209,7 +209,7 @@ export function ShopCheckout() {
             action={
               <Link
                 to={`/shop/${storeSlug}`}
-                className="-my-2 -mr-2 inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline"
+                className="-my-2 -mr-2 inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-medium text-navy-700 link"
               >
                 <Plus aria-hidden className="size-4" />
                 {c.addMore}
@@ -234,7 +234,7 @@ export function ShopCheckout() {
                 <button
                   type="button"
                   onClick={() => setEditDetails(true)}
-                  className="-my-2 -mr-2 min-h-11 shrink-0 rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline"
+                  className="-my-2 -mr-2 min-h-11 shrink-0 rounded-lg px-2 text-sm font-medium text-navy-700 link"
                 >
                   {c.change}
                 </button>
@@ -551,14 +551,14 @@ function LocationField({
           <Check aria-hidden className="size-4 shrink-0" />
           <span className="min-w-0 flex-1">
             {t.checkout.locationPinned}{' '}
-            <button type="button" onClick={() => setOpen(true)} className="font-medium underline">
+            <button type="button" onClick={() => setOpen(true)} className="font-medium link">
               {t.checkout.change}
             </button>
           </span>
           <button
             type="button"
             onClick={() => onChange(null)}
-            className="-my-2 -mr-2 min-h-11 rounded-lg px-2 font-medium hover:underline"
+            className="-my-2 -mr-2 min-h-11 rounded-lg px-2 font-medium link"
           >
             {t.common.remove}
           </button>
@@ -715,7 +715,7 @@ function AddNote({ label, onClick }: { label: string; onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="-my-2 -ml-1 flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
+      className="-my-2 -ml-1 flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-sm font-medium text-navy-700 link focus-visible:outline-2 focus-visible:outline-navy-600"
     >
       <Plus aria-hidden className="size-4" />
       {label}

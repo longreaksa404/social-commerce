@@ -41,7 +41,7 @@ export function LoginField({
           onByEmailChange(!byEmail)
           onChange('')
         }}
-        className="inline-flex min-h-11 items-center text-sm font-medium text-navy-700 hover:underline"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-navy-700 link"
       >
         {byEmail ? t.auth.usePhone : t.auth.useEmail}
       </button>

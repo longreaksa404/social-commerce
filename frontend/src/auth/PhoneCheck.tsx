@@ -87,7 +87,7 @@ export function PhoneCheck({
             <button
               type="button"
               onClick={startOver}
-              className="min-h-11 text-sm font-medium text-navy-700 hover:underline"
+              className="min-h-11 text-sm font-medium text-navy-700 link"
             >
               {p.another}
             </button>

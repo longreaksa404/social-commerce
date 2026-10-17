@@ -212,7 +212,7 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
         {count > 0 ? (
           <Link
             to={`/dashboard/products?category=${category.id}`}
-            className="text-sm text-navy-700 hover:underline"
+            className="text-sm text-navy-700 link"
           >
             {c.productCount(count)}
           </Link>

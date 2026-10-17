@@ -326,8 +326,21 @@
   --text-xs--line-height: 1.25rem;
 }
 
+/* A text link or text-only button (UI check #2, founder 2026-10-17):
+   always underlined, so it doesn't read as a label, with a thin light line
+   set low enough to pass under Khmer subscripts (ក្ខ, ប្រ) instead of
+   through them. */
+@utility link {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.42em;
+  text-decoration-color: color-mix(in oklab, currentColor 45%, transparent);
+}
+
 @layer base {
   html {
+    /* Inherited: any other underline clears Khmer letters too. */
+    text-underline-offset: 0.42em;
     color-scheme: light;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;

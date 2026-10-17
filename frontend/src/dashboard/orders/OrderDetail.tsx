@@ -289,7 +289,7 @@ function TelegramPhone({ customer }: { customer: Order['customer'] }) {
     <div>
       <a
         href={`tel:${customer.telegram_phone}`}
-        className="-mx-2 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
+        className="-mx-2 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium text-navy-700 link focus-visible:outline-2 focus-visible:outline-navy-600"
       >
         <Send aria-hidden className="size-4" />
         {formatPhone(customer.telegram_phone)}
@@ -325,7 +325,7 @@ function CustomerCard({ order }: { order: Order }) {
         <Link
           to={`/dashboard/customers/${customer.id}`}
           state={{ back: `/dashboard/orders/${order.id}` }}
-          className="-my-2 -mr-2 inline-flex min-h-11 shrink-0 items-center gap-0.5 rounded-lg px-2 text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
+          className="-my-2 -mr-2 inline-flex min-h-11 shrink-0 items-center gap-0.5 rounded-lg px-2 text-sm font-medium text-navy-700 link focus-visible:outline-2 focus-visible:outline-navy-600"
         >
           {o.viewCustomer}
           <ChevronRight aria-hidden className="size-4" />

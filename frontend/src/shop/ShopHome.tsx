@@ -139,7 +139,7 @@ function Description({ text }: { text: string }) {
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="-mx-1 mt-0.5 min-h-8 rounded px-1 font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
+          className="-mx-1 mt-0.5 min-h-8 rounded px-1 font-medium text-navy-700 link focus-visible:outline-2 focus-visible:outline-navy-600"
         >
           {open ? t.shop.home.showLess : t.shop.home.showMore}
         </button>

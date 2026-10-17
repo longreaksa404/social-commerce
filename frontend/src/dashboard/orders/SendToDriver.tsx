@@ -206,7 +206,7 @@ export function SendAgain({ order }: { order: Order }) {
     <button
       type="button"
       onClick={() => share(driverMessage(t, order, store.data))}
-      className="-my-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600 sm:min-h-9"
+      className="-my-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-sm font-medium text-navy-700 link focus-visible:outline-2 focus-visible:outline-navy-600 sm:min-h-9"
     >
       <Send aria-hidden className="size-3.5" />
       {t.orders.sendAgain}

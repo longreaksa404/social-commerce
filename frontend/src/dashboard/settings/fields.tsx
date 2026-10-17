@@ -252,7 +252,7 @@ function ColorField({ store, form, update }: Pick<FieldsProps, 'store' | 'form' 
       <Link
         to={`/shop/${store.slug}`}
         target="_blank"
-        className="-mx-1 mt-1 inline-flex min-h-10 items-center gap-1.5 rounded-lg px-1 text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
+        className="-mx-1 mt-1 inline-flex min-h-10 items-center gap-1.5 rounded-lg px-1 text-sm font-medium text-navy-700 link focus-visible:outline-2 focus-visible:outline-navy-600"
       >
         <ExternalLink aria-hidden className="size-4" />
         {s.seeShop}
@@ -436,7 +436,7 @@ export function PaymentsFields({ form, update, error }: FieldsProps) {
           <button
             type="button"
             onClick={() => setTyping(!showKhqrFields)}
-            className="inline-flex min-h-11 items-center text-sm font-medium text-navy-700 hover:underline"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-navy-700 link"
           >
             {showKhqrFields ? s.uploadInstead : khqr.bakong_account_id ? s.editKhqr : s.typeInstead}
           </button>
@@ -874,14 +874,14 @@ function ShopLinkButtons({ slug }: { slug: string }) {
         <Link
           to={`/shop/${slug}`}
           target="_blank"
-          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-navy-700 hover:underline"
+          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-navy-700 link"
         >
           <ExternalLink aria-hidden className="size-4" />
           {s.viewShop}
         </Link>
         <Link
           to="/dashboard/links/new"
-          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-navy-700 hover:underline"
+          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-navy-700 link"
         >
           <Share2 aria-hidden className="size-4" />
           {s.shareTracked}

@@ -92,7 +92,7 @@ function HowToPay({ shop, order, phone, total }: { shop: ShopStore; order: ShopO
         type="button"
         aria-expanded={again}
         onClick={() => setAgain((open) => !open)}
-        className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-navy-700 hover:underline"
+        className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-navy-700 link"
       >
         {payment.khqr ? p.showQrAgain : p.showBankAgain}
         <ChevronDown aria-hidden className={`size-4 transition-transform ${again ? 'rotate-180' : ''}`} />
@@ -168,7 +168,7 @@ function IvePaid({
           <CircleCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-emerald-600" />
           {p.told(shop.name, formatOrderTime(toldAt))}
         </p>
-        {open(p.sendAgain, 'inline-flex min-h-11 items-center gap-2 text-sm font-medium text-navy-700 hover:underline')}
+        {open(p.sendAgain, 'inline-flex min-h-11 items-center gap-2 text-sm font-medium text-navy-700 link')}
       </div>
     )
   }

@@ -42,7 +42,7 @@ export function ForgotPassword() {
       title={sentTo ? f.sentTitle : f.title}
       subtitle={sentTo ? undefined : f.subtitle}
       footer={
-        <Link to="/login" className="font-semibold text-navy-700 hover:underline">
+        <Link to="/login" className="font-semibold text-navy-700 link">
           {f.backToLogin}
         </Link>
       }

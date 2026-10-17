@@ -2,7 +2,7 @@ import { OakOrderName } from '../components/OakMark.tsx'
 import { useT } from '../i18n/useT.ts'
 
 const legalLink =
-  'inline-flex min-h-8 items-center rounded px-1 underline underline-offset-2 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-navy-600'
+  'inline-flex min-h-8 items-center rounded px-1 link hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-navy-600'
 
 /** At the very bottom of the shop's grid pages and the order page, under a
  * thin line: "Made with Oak Order", the acorn as its O (to the start page, where

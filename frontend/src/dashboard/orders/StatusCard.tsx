@@ -179,7 +179,7 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
       <button
         type="button"
         onClick={() => setShowSteps(true)}
-        className="-my-1 mt-1 inline-flex min-h-11 items-center gap-1.5 rounded-lg text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600 sm:min-h-9"
+        className="-my-1 mt-1 inline-flex min-h-11 items-center gap-1.5 rounded-lg text-sm font-medium text-navy-700 link focus-visible:outline-2 focus-visible:outline-navy-600 sm:min-h-9"
       >
         <Plus aria-hidden className="size-4" />
         {o.tellStep}

@@ -286,7 +286,7 @@ function ProductForm({ product }: { product?: Product }) {
               categories.data?.length === 0 ? (
                 <>
                   {p.noCategoriesYet}{' '}
-                  <Link to="/dashboard/categories" className="font-medium text-navy-700 underline">
+                  <Link to="/dashboard/categories" className="font-medium text-navy-700 link">
                     {p.createOne}
                   </Link>
                 </>

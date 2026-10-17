@@ -44,7 +44,7 @@ export function ResetPassword() {
       title={r.title}
       subtitle={token ? r.subtitle : undefined}
       footer={
-        <Link to="/login" className="font-semibold text-navy-700 hover:underline">
+        <Link to="/login" className="font-semibold text-navy-700 link">
           {t.auth.forgot.backToLogin}
         </Link>
       }

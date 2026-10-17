@@ -6,7 +6,7 @@ import { useT } from '../i18n/useT.ts'
  * privacy policy (Meta and TikTok ask for both to be shown). */
 export function AgreeLine() {
   const l = useT().legal
-  const link = 'font-medium text-slate-700 underline underline-offset-2 hover:text-slate-900'
+  const link = 'font-medium text-slate-700 link hover:text-slate-900'
   return (
     <div className="space-y-1 text-center">
       <p className="text-sm font-medium text-slate-700">{l.trialLine}</p>

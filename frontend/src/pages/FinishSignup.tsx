@@ -88,7 +88,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
       footer={
         <>
           {t.auth.register.haveAccount}{' '}
-          <Link to="/login" onClick={forgetSignup} className="font-semibold text-navy-700 hover:underline">
+          <Link to="/login" onClick={forgetSignup} className="font-semibold text-navy-700 link">
             {t.auth.logIn}
           </Link>
         </>
@@ -98,7 +98,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
       {expired ? (
         <div className="space-y-4">
           <p className="text-sm leading-6 text-slate-700">{g.expired}</p>
-          <Link to="/register" onClick={forgetSignup} className="font-semibold text-navy-700 hover:underline">
+          <Link to="/register" onClick={forgetSignup} className="font-semibold text-navy-700 link">
             {t.auth.createYourStore}
           </Link>
         </div>

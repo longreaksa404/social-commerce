@@ -1357,6 +1357,11 @@ message needs a Khmer entry there.** What sellers type is shown as typed.
   redefines `--text-xs` / `--text-xs--line-height` on `:root[lang='km']`
   (13px on 20px), so every `text-xs` grows in Khmer and stays 12px in
   English. Use `text-xs` for small text, not `text-[11px]`-style sizes.
+- **Text links: the `link` utility** (`index.css`, UI check #2): every
+  text link and text-only button (and the `ghost` button variant) is
+  underlined with a thin, light line at `text-underline-offset: 0.42em`,
+  which clears Khmer subscripts; `html` sets the same offset so any other
+  underline does too. Don't use `hover:underline` or `underline-offset-2`.
 
 ### Link previews (`frontend/linkPreview.ts`)
 

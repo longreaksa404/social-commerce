@@ -72,7 +72,7 @@ export function Register() {
       footer={
         <>
           {t.auth.register.haveAccount}{' '}
-          <Link to="/login" className="font-semibold text-navy-700 hover:underline">
+          <Link to="/login" className="font-semibold text-navy-700 link">
             {t.auth.logIn}
           </Link>
         </>
@@ -111,7 +111,7 @@ export function Register() {
           taken={
             <p className="text-sm text-slate-700">
               {t.auth.phoneCheck.taken}{' '}
-              <Link to="/login" className="font-semibold text-navy-700 hover:underline">
+              <Link to="/login" className="font-semibold text-navy-700 link">
                 {t.auth.logIn}
               </Link>
             </p>
