@@ -11,6 +11,8 @@ import { useInSetup, useOrders, useProducts, useRole, useStore } from '../querie
 import { OrderDetail } from './OrderDetail.tsx'
 import { NotOpenYet } from '../OpenShop.tsx'
 import { PlanReminder, Reminder } from '../Reminder.tsx'
+import { SetupCard } from '../settings/SetupPage.tsx'
+import { useSetupOnOrders } from '../settings/setup.ts'
 import { EAGER_PHOTOS } from '../../shop/components.tsx'
 import { OrderRow } from './OrderRow.tsx'
 
@@ -31,6 +33,7 @@ export function OrdersPage() {
   const navigate = useNavigate()
   const { search, state } = useLocation()
   const { orders } = useFiltered()
+  const setup = useSetupOnOrders()
   // Going through new orders: once the open one is accepted or rejected,
   // the next new one opens (founder's pick 1B, 2026-10-08). Not when it
   // was opened from a customer's or a link's page: back goes there.
@@ -47,7 +50,8 @@ export function OrdersPage() {
         <OrdersHeader />
         <PlanReminder />
         <PausedReminder />
-        <DeliveryReminder />
+        {/* The setup list covers the delivery fee (its step 2). */}
+        {setup ? <SetupCard setup={setup} /> : <DeliveryReminder />}
       </div>
       <div className="lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,30rem)_minmax(0,1fr)]">
         <div className={orderId ? 'max-lg:hidden' : ''}>
@@ -243,8 +247,17 @@ function NoOrdersYet() {
   const store = useStore()
   const products = useProducts()
   const inSetup = useInSetup()
+  const setup = useSetupOnOrders()
   const t = useT()
   if (products.isPending) return <ListSkeleton />
+  // The setup list above says what to do; here only where orders will be.
+  if (setup) {
+    return (
+      <EmptyState icon={Inbox} title={t.orders.emptyTitle}>
+        {inSetup ? t.orders.emptyInSetup : t.orders.emptyText}
+      </EmptyState>
+    )
+  }
   if (products.data?.length === 0) {
     return (
       <EmptyState

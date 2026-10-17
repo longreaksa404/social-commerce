@@ -325,6 +325,22 @@ export const settings = {
     doneLabel: { en: ' (done)', km: ' (រួចរាល់)' },
     todoLabel: { en: ' (not yet)', km: ' (មិនទាន់)' },
     hide: { en: 'Hide this list', km: 'លាក់បញ្ជីនេះ' },
+    // The same list on Orders while the shop isn't ready (UX check #3,
+    // 2026-10-17).
+    readyTitle: { en: 'Get your shop ready', km: 'រៀបចំហាងរបស់អ្នកឱ្យរួចរាល់' },
+    readyHint: {
+      en: 'Do these to start taking orders. Opening the shop starts your 30-day free trial.',
+      km: 'ធ្វើជំហានទាំងនេះ ដើម្បីចាប់ផ្ដើមទទួលការកុម្ម៉ង់។ ការបើកហាងចាប់ផ្ដើមការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃរបស់អ្នក។',
+    },
+    // The button on the next step's row.
+    action: {
+      product: { en: 'Add', km: 'បន្ថែម' },
+      delivery: { en: 'Set fee', km: 'កំណត់ថ្លៃ' },
+      payments: { en: 'Set up', km: 'រៀបចំ' },
+      telegram: { en: 'Connect', km: 'ភ្ជាប់' },
+      contact: { en: 'Add', km: 'បន្ថែម' },
+      logo: { en: 'Add', km: 'បន្ថែម' },
+    },
   },
   menu: {
     shopHint: { en: 'Cover, logo, color, name, currency', km: 'រូបក្រប ឡូហ្គោ ពណ៌ ឈ្មោះ រូបិយប័ណ្ណ' },

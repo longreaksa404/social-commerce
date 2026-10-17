@@ -1006,6 +1006,11 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   moves when it goes out with a driver. The header truck and the order's
   30-second check stop once it's delivered. No status changes (founder
   agreed to change the 6-step pick of 2026-10-07).
+- [x] 3. A new shop's Orders tab starts with "Get your shop ready · 0 of
+  6": the setup list from Settings (pick 7C), the next step with its own
+  button in its row (Add, Set fee, Set up, Open shop), until the first
+  three steps are done and the shop is open (or the list is hidden). The
+  delivery-fee reminder waits until then, since it's step 2.
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

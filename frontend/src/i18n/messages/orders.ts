@@ -17,6 +17,11 @@ export const orders = {
   },
   // A new shop in setup: nothing can be ordered until the owner opens it,
   // which starts the 30-day free trial (dashboard/OpenShop.tsx).
+  // No orders yet, with the setup list above (UX check #3).
+  emptyInSetup: {
+    en: 'Orders will show up here once your shop is open.',
+    km: 'ការកុម្ម៉ង់នឹងបង្ហាញនៅទីនេះ នៅពេលហាងរបស់អ្នកបើក។',
+  },
   opening: {
     button: { en: 'Open shop', km: 'បើកហាង' },
     title: { en: "Your shop isn't open yet", km: 'ហាងរបស់អ្នកមិនទាន់បើកនៅឡើយទេ' },

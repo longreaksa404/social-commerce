@@ -54,6 +54,14 @@ export type Setup = {
   needsAttention: boolean
 }
 
+/** The setup list for the Orders tab (UX check #3, 2026-10-17): while
+ * something taking orders needs is missing, or the shop isn't open, and
+ * the owner hasn't hidden it. Null otherwise; it stays in Settings. */
+export function useSetupOnOrders(): Setup | null {
+  const setup = useSetup()
+  return setup?.show && setup.needsAttention ? setup : null
+}
+
 /** Where the shop's setup stands, for its owner; null for staff or while
  * loading. */
 export function useSetup(): Setup | null {
