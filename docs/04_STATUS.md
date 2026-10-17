@@ -1064,6 +1064,9 @@ for a pick).
   over form fields (dark, medium): the product page's "Choose an option"
   and "Ask the seller", an order's "Deliver to" and "Note from the
   customer", Settings' "Couriers", "Telegram" and Plan's "What's included".
+- [x] 18. Faint small words are readable: the counts in Products' All /
+  Active / Hidden tabs are darker grey, and "+ delivery" after the total
+  on checkout's Place order button is plain white.
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,

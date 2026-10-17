@@ -114,7 +114,7 @@ export function ProductList() {
                 status === value ? 'bg-raised text-slate-900 shadow-sm' : 'text-slate-600'
               }`}
             >
-              {p.status[value]} <span className="text-slate-400">{count(value)}</span>
+              {p.status[value]} <span className="text-slate-500">{count(value)}</span>
             </button>
           ))}
         </div>

@@ -415,7 +415,7 @@ export function ShopCheckout() {
                   <span>{c.placeOrder}</span>
                   <span className="tabular-nums">
                     {checked.loading ? '…' : formatMoney(price.total / 100, currency)}
-                    {price.fee === null && <span className="ml-1 text-sm font-normal opacity-80">{c.plusDelivery}</span>}
+                    {price.fee === null && <span className="ml-1 text-sm font-normal">{c.plusDelivery}</span>}
                   </span>
                 </Button>
               )}
