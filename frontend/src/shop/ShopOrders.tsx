@@ -1,6 +1,7 @@
 import { ChevronRight, ReceiptText } from 'lucide-react'
 import { Link, useParams } from 'react-router'
-import { Card, EmptyState, Skeleton } from '../components/ui.tsx'
+import type { ReactNode } from 'react'
+import { Card, DotList, EmptyState, Skeleton } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
 import { useT } from '../i18n/useT.ts'
 import { formatMoney } from '../lib/money.ts'
@@ -69,9 +70,16 @@ function OrderRow({ item, slug }: { item: MyOrder; slug: string }) {
   const closed = order?.status === 'rejected' || order?.status === 'cancelled'
   const first = order?.items[0]
   const more = order ? order.items.length - 1 : 0
-  const tag = 'rounded-full px-2 py-0.5 text-xs font-semibold'
-  // Red and amber as words only, no pill (founder, 2026-10-15).
-  const word = 'py-0.5 text-xs font-semibold'
+  // Plain words joined by dots, like the seller's order list (UI check #8,
+  // founder 2026-10-17); red and amber on the words only (2026-10-15).
+  const words: ReactNode[] = []
+  if (!order) words.push(<span key="cant" className="text-slate-500">{t.shop.myOrders.cantOpen}</span>)
+  else {
+    words.push(<span key="status" className={closed ? 'text-red-700' : 'text-slate-800'}>{orderHeadline(t, order)}</span>)
+    if (!closed && order.payment.status === 'paid')
+      words.push(<span key="paid" className="text-emerald-700">{t.status.paymentBadge.paid}</span>)
+    if (inProgress(order) && awaitsPayment(order)) words.push(<span key="unpaid" className="text-amber-700">{t.order.notPaidYet}</span>)
+  }
   return (
     <Link
       to={`/shop/${slug}/order/${item.id}`}
@@ -95,23 +103,7 @@ function OrderRow({ item, slug }: { item: MyOrder; slug: string }) {
         {item.loading ? (
           <Skeleton className="mt-1.5 h-5 w-40" />
         ) : (
-          <span className="mt-1.5 flex flex-wrap gap-1.5">
-            {order ? (
-              <>
-                <span className={closed ? `${word} text-red-700` : `${tag} bg-navy-50 text-navy-800`}>
-                  {orderHeadline(t, order)}
-                </span>
-                {!closed && order.payment.status === 'paid' && (
-                  <span className={`${tag} bg-emerald-50 text-emerald-800`}>{t.status.paymentBadge.paid}</span>
-                )}
-                {inProgress(order) && awaitsPayment(order) && (
-                  <span className={`${word} text-amber-700`}>{t.order.notPaidYet}</span>
-                )}
-              </>
-            ) : (
-              <span className={`${tag} bg-slate-100 text-slate-600`}>{t.shop.myOrders.cantOpen}</span>
-            )}
-          </span>
+          <DotList className="mt-1 text-xs font-semibold">{words}</DotList>
         )}
       </span>
       <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-300" />

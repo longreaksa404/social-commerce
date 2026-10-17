@@ -1206,7 +1206,7 @@ is wrapped in try/catch (private mode).
   danger items, no red hover), `PageOutlet` (outlet that
   fades a page in when another route opens; routes with the same
   `handle.page` count as one page and don't fade: the shop's All and
-  category tabs), `Badge`, `LiveBadge`, `Skeleton`, `EmptyState`, `ErrorMessage`,
+  category tabs), `Badge` (coloured words in every tone, no pill; UI check #8), `LiveBadge`, `DotList` (short words with a grey dot between, for status and stock lines), `Skeleton`, `EmptyState`, `ErrorMessage`,
   `ErrorState` (with retry), `Spinner`, `SlowNotice` (after 4 s: "the
   first visit can take a minute"), `SuccessTick`, `SavedNote`.
   `Field` puts a red * on the label of a `required` control (CSS
@@ -1313,7 +1313,7 @@ message needs a Khmer entry there.** What sellers type is shown as typed.
   fills, tints, pills, borders or icon circles, anywhere (dashboard and
   shop). A status, a warning or a problem is coloured text (`text-red-700`,
   `text-amber-700`/`800`) on a plain card or the page; its icon in a grey
-  circle; `Badge` tone red / amber renders the words without a pill;
+  circle; `Badge` renders words without a pill in every tone (UI check #8);
   `ErrorMessage` is red words; a field with a problem keeps its grey border
   (the red words under it say why); danger buttons and menu items are red
   words with a grey outline or hover. The bell's count and the setup dot

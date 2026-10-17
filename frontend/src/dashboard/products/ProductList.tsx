@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, ImageIcon, LayoutGrid, List, Package, Plus, SearchX, Tags } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { Badge, Card, EmptyState, ErrorState, PageHeader, Select, Skeleton } from '../../components/ui.tsx'
+import { Badge, Card, DotList, EmptyState, ErrorState, PageHeader, Select, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
 import { useT } from '../../i18n/useT.ts'
 import { thumbnailUrl } from '../../lib/images.ts'
@@ -436,12 +436,12 @@ function ProductRow({
       <span className="min-w-0 flex-1">
         <span className="line-clamp-2 leading-normal font-medium text-slate-900">{product.name}</span>
         <span className="mt-0.5 block font-semibold text-slate-900 tabular-nums">{priceLabel(product, currency)}</span>
-        <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+        <DotList className="mt-1 text-xs text-slate-500">
           {product.status === 'inactive' && <Badge>{p.hiddenFromShop}</Badge>}
           <StockTag product={product} />
           {product.has_variants && <span>{p.variantCount(product.variants.length)}</span>}
           {category && <span>{category}</span>}
-        </span>
+        </DotList>
       </span>
       <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-300" />
     </Link>

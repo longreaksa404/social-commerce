@@ -1,6 +1,8 @@
 import { AlertCircle, ChevronLeft, CircleCheck, Ellipsis, Eye, EyeOff, LoaderCircle, RotateCw } from 'lucide-react'
 import {
+  Children,
   createContext,
+  Fragment,
   use,
   useEffect,
   useId,
@@ -527,24 +529,37 @@ export function MenuButton({ label, items, disabled }: { label: string; items: M
 
 type BadgeTone = 'neutral' | 'red' | 'green' | 'amber' | 'blue'
 
-/** A short status tag. Red and amber ones are the coloured words alone, no
- * pill (founder, 2026-10-15: red and amber go on text only). */
+const BADGE_WORDS: Record<BadgeTone, string> = {
+  neutral: 'text-slate-600',
+  red: 'text-red-700',
+  green: 'text-emerald-700',
+  amber: 'text-amber-700',
+  blue: 'text-sky-700',
+}
+
+/** A short status tag: coloured words, no pill, in every tone (red and
+ * amber since 2026-10-15; all of them since UI check #8, 2026-10-17), so a
+ * stock or status line sits on one height like the order list. */
 export function Badge({ tone = 'neutral', children }: { tone?: BadgeTone; children: ReactNode }) {
-  if (tone === 'red' || tone === 'amber') {
-    return (
-      <span className={`inline-flex shrink-0 items-center py-0.5 text-xs font-semibold ${tone === 'red' ? 'text-red-700' : 'text-amber-700'}`}>
-        {children}
-      </span>
-    )
-  }
-  const colors = {
-    neutral: 'bg-slate-100 text-slate-700 ring-slate-200',
-    green: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-    blue: 'bg-sky-50 text-sky-800 ring-sky-200',
-  }[tone]
+  return <span className={`inline-flex shrink-0 items-center py-0.5 text-xs font-semibold ${BADGE_WORDS[tone]}`}>{children}</span>
+}
+
+/** Short words on one line with a grey dot between each: a status or stock
+ * line (UI check #8). Leaves out empty children (`cond && <x/>`). */
+export function DotList({ className = '', children }: { className?: string; children: ReactNode }) {
+  const items = Children.toArray(children)
   return (
-    <span className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${colors}`}>
-      {children}
+    <span className={`flex flex-wrap items-baseline gap-x-1.5 ${className}`}>
+      {items.map((item, i) => (
+        <Fragment key={i}>
+          {i > 0 && (
+            <span aria-hidden className="font-normal text-slate-400">
+              ·
+            </span>
+          )}
+          {item}
+        </Fragment>
+      ))}
     </span>
   )
 }

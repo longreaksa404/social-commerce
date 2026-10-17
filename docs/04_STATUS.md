@@ -1028,6 +1028,11 @@ for a pick).
   round-ended pills, the order's Call / Copy beside the phone are
   square icon buttons, and Call on a customer's page is outlined (the
   dark button stays for the next step).
+- [x] 8. Status and stock tags are plain coloured words, no pills,
+  joined by a grey dot like the seller's order list: the customer's
+  Your orders ("Waiting for the seller to confirm · Not paid yet",
+  "Paid" in green words), Products ("Stock 10 · 3 options"), Settings →
+  Plan ("29 days left").
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,
