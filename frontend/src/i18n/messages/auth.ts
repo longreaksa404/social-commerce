@@ -96,7 +96,6 @@ export const auth = {
   },
   login: {
     title: { en: 'Welcome back', km: 'សូមស្វាគមន៍ការត្រឡប់មកវិញ' },
-    subtitle: { en: 'Log in to manage your shop.', km: 'ចូលគណនី ដើម្បីគ្រប់គ្រងហាងរបស់អ្នក។' },
     newHere: { en: 'New here?', km: 'ទើបមកលើកដំបូង?' },
   },
   // Forgot password? A link to the shop's Telegram; else Oak Order resets it.
@@ -144,12 +143,11 @@ export const auth = {
     askAgain: { en: 'Ask for a new link', km: 'ស្នើតំណថ្មី' },
   },
   register: {
-    subtitle: { en: 'It takes about a minute.', km: 'ចំណាយពេលប្រហែលមួយនាទី។' },
     haveAccount: { en: 'Already have an account?', km: 'មានគណនីរួចហើយ?' },
     storeName: { en: 'Shop name', km: 'ឈ្មោះហាង' },
     storeNameHint: {
-      en: 'What customers will see. You can change it later.',
-      km: 'ឈ្មោះដែលអតិថិជននឹងឃើញ។ អ្នកអាចប្ដូរវានៅពេលក្រោយបាន។',
+      en: 'You can change it later.',
+      km: 'អ្នកអាចប្ដូរវានៅពេលក្រោយបាន។',
     },
     shopLink: { en: 'Shop link', km: 'តំណហាង' },
     shopLinkHint: {

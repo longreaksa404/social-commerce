@@ -1072,6 +1072,27 @@ for a pick).
   in red, as everywhere else; it was an amber triangle).
 - [x] 20. The start page's big "Oak Order" has the acorn's cap on its O,
   as the logo does (it was plain letters under the logo).
+- [x] Less explaining text (founder, 2026-10-17: "reduce or remove if not
+  necessary explain text everywhere"). Only whole sentences were removed;
+  no Khmer was rewritten. Gone: the intro under each Settings page title
+  (Payments, Delivery, Discounts, Contact, Alerts, Shop link, Your
+  account, Plan, Export, Staff, Set up your shop), New order's intro, the
+  log-in and sign-up subtitles, the link page's "how views count", the
+  customer page's note on rejected orders, "Optional. Customers see it…"
+  under Tell the customer a step, and hints that repeated their label
+  (shop description, free delivery from, pickup address, Telegram
+  username, couriers, KHQR / bank / cash / own delivery / pickup
+  switches, product photos, Shown / Hidden, stock, a chat order's address
+  and note, other logins, add password, add staff). Cut to their one
+  useful sentence: currency ("Existing prices are not converted."),
+  orders paused, resume on, auto-accept, Bakong ID, merchant name,
+  account number, delivery fee ("Leave empty for free delivery."), low
+  stock, Messenger, contact phone, a staff password, display ("For this
+  phone."), cover, logo, product description and link name, shop name at
+  sign-up ("You can change it later."), checkout's directions and notes
+  (no "Optional."), and the customer's order page ("On another phone,
+  open this link…"). Kept: formats, rules and warnings (password length,
+  English letters for the link, changing a link, Leave empty, …).
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,

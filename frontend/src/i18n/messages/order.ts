@@ -64,10 +64,8 @@ export const order = {
   },
   items: { en: 'Items', km: 'ទំនិញ' },
   comeBack: {
-    en: (shop: string) =>
-      `On this phone, your order shows at the top of ${shop}'s pages until it arrives. On another phone, open this link and enter your phone number.`,
-    km: (shop: string) =>
-      `នៅលើទូរស័ព្ទនេះ ការកុម្ម៉ង់របស់អ្នកបង្ហាញនៅខាងលើទំព័ររបស់ ${shop} រហូតដល់វាមកដល់។ លើទូរស័ព្ទផ្សេង សូមបើកតំណនេះ ហើយបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក។`,
+    en: 'On another phone, open this link and enter your phone number.',
+    km: 'លើទូរស័ព្ទផ្សេង សូមបើកតំណនេះ ហើយបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក។',
   },
   // Under the progress list while the page checks for changes by itself.
   updated: { en: (time: string) => `Updated ${time}`, km: (time: string) => `ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ ${time}` },

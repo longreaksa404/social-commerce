@@ -45,7 +45,6 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
       toast(c.copyFailed, 'error')
     }
   }
-  const leftOut = customer.orders.some((o) => o.status === 'rejected' || o.status === 'cancelled')
   return (
     <>
       <PageHeader title={customer.name} back={back} />
@@ -81,7 +80,6 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
               <dd className="text-xl font-bold break-words text-slate-900 tabular-nums">{formatSpent(customer.spent, currency)}</dd>
             </div>
           </dl>
-          {leftOut && <p className="mt-2 text-xs text-slate-500">{c.leftOut}</p>}
 
           {customer.address && (
             <div className="mt-4 flex gap-2 border-t border-slate-100 pt-4">

@@ -17,7 +17,6 @@ export function SetupPage() {
   if (!setup) return null
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">{s.hint}</p>
       <Card>
         <SetupSteps setup={setup} />
       </Card>

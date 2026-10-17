@@ -128,7 +128,6 @@ export const SECTIONS: Record<SectionId, Section> = {
   },
   payments: {
     title: (s) => s.payments,
-    hint: (s) => s.paymentsHint,
     body: (form) => ({ payment_settings: form.payment_settings }),
     fields: () => [
       'payment_settings',
@@ -141,7 +140,6 @@ export const SECTIONS: Record<SectionId, Section> = {
   },
   delivery: {
     title: (s) => s.delivery,
-    hint: (s) => s.deliveryHint,
     body: ({ delivery }) => ({
       delivery_settings: {
         fee: delivery.fee || '0',
@@ -163,7 +161,6 @@ export const SECTIONS: Record<SectionId, Section> = {
   },
   discounts: {
     title: (s) => s.discounts,
-    hint: (s) => s.discountsHint,
     body: (form) => ({
       discount_settings: {
         rules: form.discounts.map(({ min_subtotal, amount_off }) => ({ min_subtotal, amount_off })),
@@ -177,7 +174,6 @@ export const SECTIONS: Record<SectionId, Section> = {
   },
   contact: {
     title: (s) => s.contact,
-    hint: (s) => s.contactHint,
     body: (form) => ({
       telegram_username: form.telegram_username.trim() || null,
       messenger_username: form.messenger_username.trim() || null,
@@ -188,14 +184,12 @@ export const SECTIONS: Record<SectionId, Section> = {
   // Its address stays /settings/telegram: the bot's messages point here.
   telegram: {
     title: (s) => s.alerts,
-    hint: (s) => s.alertsHint,
     // Connecting and disconnecting Telegram save at once; Save is for the level.
     body: (form) => ({ low_stock_alert: Number(form.low_stock_alert) }),
     fields: () => ['low_stock_alert'],
   },
   link: {
     title: (s) => s.shopLink,
-    hint: (s) => s.shopLinkHint,
     body: (form) => ({ slug: form.slug }),
     fields: () => ['slug'],
   },

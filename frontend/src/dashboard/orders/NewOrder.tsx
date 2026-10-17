@@ -208,7 +208,6 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
     <>
       <PageHeader title={n.title} back="/dashboard/orders" />
       <title>{n.title}</title>
-      <p className="mb-4 text-sm text-slate-600">{n.intro}</p>
       {/* Saving is refused while the shop's plan is unpaid (PLAN_UNPAID). */}
       <PlanReminder stoppedOnly />
       <form onSubmit={submit} className="space-y-4">
@@ -283,7 +282,7 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
           )}
           {!pickup && (
             <>
-              <Field label={n.address} hint={n.addressHint} error={fieldError(add.error, 'delivery_address')}>
+              <Field label={n.address} error={fieldError(add.error, 'delivery_address')}>
                 <TextArea required rows={2} maxLength={500} value={address} onChange={(e) => setAddress(e.target.value)} />
               </Field>
               <Field label={n.addressNote} error={fieldError(add.error, 'delivery_address_note')}>
@@ -305,7 +304,7 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
           ) : (
             <p className="text-slate-900">{payment && t.status.paymentMethod[payment]}</p>
           )}
-          <Field label={n.note} hint={n.noteHint} error={fieldError(add.error, 'notes')}>
+          <Field label={n.note} error={fieldError(add.error, 'notes')}>
             <TextArea rows={2} maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} />
           </Field>
         </Section>

@@ -10,29 +10,25 @@ export const settings = {
   store: { en: 'Shop', km: 'ហាង' },
   storeName: { en: 'Shop name', km: 'ឈ្មោះហាង' },
   description: { en: 'Description', km: 'ការពិពណ៌នា' },
-  descriptionHint: {
-    en: 'Optional. A line about what you sell, shown on your shop page.',
-    km: 'មិនចាំបាច់។ មួយឃ្លាអំពីអ្វីដែលអ្នកលក់ បង្ហាញនៅលើទំព័រហាងរបស់អ្នក។',
-  },
   currency: { en: 'Currency', km: 'រូបិយប័ណ្ណ' },
   currencyHint: {
-    en: 'Prices are shown in this currency. Existing prices are not converted.',
-    km: 'តម្លៃបង្ហាញជារូបិយប័ណ្ណនេះ។ តម្លៃដែលមានស្រាប់មិនត្រូវបានប្ដូរទេ។',
+    en: 'Existing prices are not converted.',
+    km: 'តម្លៃដែលមានស្រាប់មិនត្រូវបានប្ដូរទេ។',
   },
   usd: { en: 'US dollar ($)', km: 'ដុល្លារអាមេរិក ($)' },
   khr: { en: 'Cambodian riel (៛)', km: 'ប្រាក់រៀល (៛)' },
   logo: { en: 'Shop logo', km: 'ឡូហ្គោហាង' },
   logoHint: {
-    en: 'Shown at the top of your shop. A square picture works best.',
-    km: 'បង្ហាញនៅខាងលើហាងរបស់អ្នក។ រូបការ៉េល្អបំផុត។',
+    en: 'A square picture works best.',
+    km: 'រូបការ៉េល្អបំផុត។',
   },
   addLogo: { en: 'Add logo', km: 'បន្ថែមឡូហ្គោ' },
   changeLogo: { en: 'Change logo', km: 'ប្ដូរឡូហ្គោ' },
   removeLogo: { en: 'Remove logo', km: 'ដកឡូហ្គោចេញ' },
   cover: { en: 'Cover photo', km: 'រូបក្រប' },
   coverHint: {
-    en: 'A wide picture across the top of your shop, also shown when you share its link. Your Facebook cover works well.',
-    km: 'រូបធំទទឹងនៅខាងលើហាងរបស់អ្នក ហើយក៏បង្ហាញពេលអ្នកចែករំលែកតំណហាងដែរ។ រូបក្រប Facebook របស់អ្នកប្រើបានល្អ។',
+    en: 'Your Facebook cover works well.',
+    km: 'រូបក្រប Facebook របស់អ្នកប្រើបានល្អ។',
   },
   addCover: { en: 'Add cover photo', km: 'បន្ថែមរូបក្រប' },
   changeCover: { en: 'Change cover', km: 'ប្ដូររូបក្រប' },
@@ -64,20 +60,19 @@ export const settings = {
 
   orders: { en: 'Orders', km: 'ការកុម្ម៉ង់' },
   takeOrders: { en: 'Take orders', km: 'ទទួលការកុម្ម៉ង់' },
-  takeOrdersOn: { en: 'Customers can order from your shop.', km: 'អតិថិជនអាចកុម្ម៉ង់ពីហាងរបស់អ្នក។' },
   takeOrdersOff: {
-    en: "Customers can look around and message you, but can't order. For a holiday, a trip, or while you wait for stock.",
-    km: 'អតិថិជនអាចមើលទំនិញ និងផ្ញើសារមកអ្នក ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។ សម្រាប់ថ្ងៃឈប់សម្រាក ការធ្វើដំណើរ ឬពេលរង់ចាំស្តុក។',
+    en: "Customers can look around and message you, but can't order.",
+    km: 'អតិថិជនអាចមើលទំនិញ និងផ្ញើសារមកអ្នក ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។',
   },
   resumeOn: { en: 'Take orders again on', km: 'ទទួលការកុម្ម៉ង់វិញនៅថ្ងៃ' },
   resumeOnHint: {
-    en: 'Optional. Orders open again by themselves that morning. Leave empty to turn them back on yourself.',
-    km: 'មិនចាំបាច់។ ការកុម្ម៉ង់បើកវិញដោយខ្លួនឯងនៅព្រឹកថ្ងៃនោះ។ ទុកទទេ ដើម្បីបើកវិញដោយខ្លួនអ្នក។',
+    en: 'Orders open again by themselves that morning.',
+    km: 'ការកុម្ម៉ង់បើកវិញដោយខ្លួនឯងនៅព្រឹកថ្ងៃនោះ។',
   },
   autoAccept: { en: 'Accept new orders automatically', km: 'ទទួលការកុម្ម៉ង់ថ្មីដោយស្វ័យប្រវត្តិ' },
   autoAcceptOn: {
-    en: 'New orders are accepted right away. You can still cancel one later.',
-    km: 'ការកុម្ម៉ង់ថ្មីត្រូវបានទទួលភ្លាមៗ។ អ្នកនៅតែអាចលុបចោលវាពេលក្រោយបាន។',
+    en: 'New orders are accepted right away.',
+    km: 'ការកុម្ម៉ង់ថ្មីត្រូវបានទទួលភ្លាមៗ។',
   },
   autoAcceptOff: {
     en: 'New orders wait for you to accept or reject them.',
@@ -85,18 +80,10 @@ export const settings = {
   },
 
   payments: { en: 'Payments', km: 'ការបង់ប្រាក់' },
-  paymentsHint: {
-    en: 'How customers can pay. You confirm each payment yourself on the order, after checking your bank app.',
-    km: 'វិធីដែលអតិថិជនអាចបង់ប្រាក់។ អ្នកបញ្ជាក់ការបង់ប្រាក់នីមួយៗដោយខ្លួនឯងលើការកុម្ម៉ង់ ក្រោយពីពិនិត្យកម្មវិធីធនាគាររបស់អ្នក។',
-  },
-  khqrHint: {
-    en: 'Customers get a QR code for their exact total, to scan with any Cambodian bank app.',
-    km: 'អតិថិជនទទួលបាន QR សម្រាប់ចំនួនទឹកប្រាក់ត្រឹមត្រូវ ដើម្បីស្កេនជាមួយកម្មវិធីធនាគារណាមួយនៅកម្ពុជា។',
-  },
   bakongId: { en: 'Bakong ID', km: 'Bakong ID' },
   bakongIdHint: {
-    en: 'In your bank app, with your Bakong or KHQR details. It looks like name@aclb.',
-    km: 'មាននៅក្នុងកម្មវិធីធនាគាររបស់អ្នក ជាមួយព័ត៌មាន Bakong ឬ KHQR។ វាមានទម្រង់ដូចជា name@aclb។',
+    en: 'It looks like name@aclb.',
+    km: 'វាមានទម្រង់ដូចជា name@aclb។',
   },
   // Read the details from the seller's own bank QR (2026-10-14).
   uploadQr: { en: "Upload your bank's QR", km: 'បញ្ចូល QR ធនាគាររបស់អ្នក' },
@@ -130,69 +117,39 @@ export const settings = {
   },
   accountInfo: { en: 'Account number (if your bank needs it)', km: 'លេខគណនី (បើធនាគាររបស់អ្នកត្រូវការ)' },
   accountInfoHint: {
-    en: 'ABA and some banks give one Bakong ID to all their customers; the account number says which is yours. Filled in from your QR.',
-    km: 'ABA និងធនាគារខ្លះផ្ដល់ Bakong ID តែមួយដល់អតិថិជនទាំងអស់ លេខគណនីប្រាប់ថាមួយណាជារបស់អ្នក។ បំពេញពី QR របស់អ្នក។',
+    en: 'ABA and some banks give one Bakong ID to all their customers; the account number says which is yours.',
+    km: 'ABA និងធនាគារខ្លះផ្ដល់ Bakong ID តែមួយដល់អតិថិជនទាំងអស់ លេខគណនីប្រាប់ថាមួយណាជារបស់អ្នក។',
   },
   acquiringBank: { en: 'Bank (if your bank needs it)', km: 'ធនាគារ (បើធនាគាររបស់អ្នកត្រូវការ)' },
   merchantName: { en: 'Name customers see', km: 'ឈ្មោះដែលអតិថិជនឃើញ' },
   merchantNameHint: {
-    en: "Shown in the customer's bank app when they scan. Use the name on your account, in English letters.",
-    km: 'បង្ហាញក្នុងកម្មវិធីធនាគាររបស់អតិថិជនពេលគេស្កេន។ សូមប្រើឈ្មោះលើគណនីរបស់អ្នក ជាអក្សរអង់គ្លេស។',
+    en: "Use the name on your account, in English letters.",
+    km: 'សូមប្រើឈ្មោះលើគណនីរបស់អ្នក ជាអក្សរអង់គ្លេស។',
   },
   merchantNameTitle: { en: 'English letters, numbers, and spaces', km: 'អក្សរអង់គ្លេស លេខ និងដកឃ្លា' },
-  bankHint: {
-    en: 'Customers see this account after they order, and transfer the total.',
-    km: 'អតិថិជនឃើញគណនីនេះក្រោយពេលកុម្ម៉ង់ ហើយផ្ទេរប្រាក់សរុប។',
-  },
   bank: { en: 'Bank', km: 'ធនាគារ' },
   accountName: { en: 'Name on the account', km: 'ឈ្មោះលើគណនី' },
   accountNumber: { en: 'Account number', km: 'លេខគណនី' },
-  codHint: { en: 'Customers pay in cash when they get their order.', km: 'អតិថិជនបង់ជាសាច់ប្រាក់ ពេលទទួលបានទំនិញ។' },
   noPayment: { en: 'Turn on at least one way to pay.', km: 'សូមបើកវិធីបង់ប្រាក់យ៉ាងតិចមួយ។' },
 
   delivery: { en: 'Delivery', km: 'ការដឹកជញ្ជូន' },
-  deliveryHint: {
-    en: 'How customers get their orders. You update each delivery on the order.',
-    km: 'របៀបដែលអតិថិជនទទួលការកុម្ម៉ង់។ អ្នកកែស្ថានភាពការដឹកនីមួយៗលើការកុម្ម៉ង់។',
-  },
   fee: { en: 'Delivery fee', km: 'ថ្លៃដឹក' },
   feeHint: {
-    en: 'One price wherever the customer lives, for your own delivery or a courier. Leave empty for free delivery.',
-    km: 'តម្លៃតែមួយ មិនថាអតិថិជននៅទីណា សម្រាប់ការដឹកផ្ទាល់ ឬក្រុមហ៊ុនដឹក។ ទុកទទេ បើដឹកឥតគិតថ្លៃ។',
+    en: 'Leave empty for free delivery.',
+    km: 'ទុកទទេ បើដឹកឥតគិតថ្លៃ។',
   },
   free: { en: 'Free', km: 'ឥតគិតថ្លៃ' },
   off: { en: 'Off', km: 'បិទ' },
   freeFrom: { en: 'Free delivery from', km: 'ដឹកឥតគិតថ្លៃ ចាប់ពី' },
-  freeFromHint: {
-    en: 'Optional. Free when the items come to this much or more.',
-    km: 'មិនចាំបាច់។ ដឹកឥតគិតថ្លៃ នៅពេលទំនិញសរុបដល់ចំនួននេះ ឬលើសពីនេះ។',
-  },
   freeFromItems: { en: 'Free delivery from (items)', km: 'ដឹកឥតគិតថ្លៃ ចាប់ពី (ចំនួនទំនិញ)' },
-  freeFromItemsHint: {
-    en: 'Optional. Free when the customer buys this many items or more, e.g. 3.',
-    km: 'មិនចាំបាច់។ ដឹកឥតគិតថ្លៃ នៅពេលអតិថិជនទិញទំនិញចំនួននេះ ឬច្រើនជាងនេះ ឧ. 3។',
-  },
   ownDelivery: { en: 'Own delivery', km: 'ដឹកផ្ទាល់' },
-  ownDeliveryHint: {
-    en: 'You, or someone you send, bring the order to the customer.',
-    km: 'អ្នក ឬអ្នកដែលអ្នកចាត់ឱ្យទៅ ដឹកការកុម្ម៉ង់ទៅដល់អតិថិជន។',
-  },
   couriers: { en: 'Couriers', km: 'ក្រុមហ៊ុនដឹកជញ្ជូន' },
-  couriersHint: {
-    en: 'Delivery companies you send with. The customer chooses one at checkout, and you see their location to pick the branch.',
-    km: 'ក្រុមហ៊ុនដឹកជញ្ជូនដែលអ្នកផ្ញើតាម។ អតិថិជនជ្រើសមួយពេលកុម្ម៉ង់ ហើយអ្នកឃើញទីតាំងរបស់គេ ដើម្បីជ្រើសសាខា។',
-  },
   courier: { en: 'Courier', km: 'ក្រុមហ៊ុនដឹក' },
   removeCourier: { en: (name: string) => `Remove ${name}`, km: (name: string) => `ដក ${name} ចេញ` },
   thisCourier: { en: 'courier', km: 'ក្រុមហ៊ុនដឹកនេះ' },
   otherCourier: { en: 'Other courier', km: 'ក្រុមហ៊ុនដឹកផ្សេង' },
   pickup: { en: 'Pickup', km: 'មកយកផ្ទាល់' },
-  pickupHint: {
-    en: 'Customers collect their order from you, for free.',
-    km: 'អតិថិជនមកយកការកុម្ម៉ង់ពីអ្នកដោយខ្លួនឯង ដោយឥតគិតថ្លៃ។',
-  },
   pickupAddress: { en: 'Pickup address', km: 'អាសយដ្ឋានមកយក' },
-  pickupAddressHint: { en: 'Shown at checkout and on the order page.', km: 'បង្ហាញពេលកុម្ម៉ង់ និងនៅលើទំព័រការកុម្ម៉ង់។' },
   pickupPlaceholder: { en: 'Shop 12, Orussey Market, Phnom Penh', km: 'តូបលេខ 12 ផ្សារអូរឫស្សី ភ្នំពេញ' },
   noDelivery: {
     en: 'Turn on your own delivery, add a courier, or turn on pickup.',
@@ -200,10 +157,6 @@ export const settings = {
   },
 
   discounts: { en: 'Discounts', km: 'ការបញ្ចុះតម្លៃ' },
-  discountsHint: {
-    en: 'Money off when the items in an order come to an amount. If an order reaches more than one, the biggest applies.',
-    km: 'បញ្ចុះទឹកប្រាក់ នៅពេលទំនិញក្នុងការកុម្ម៉ង់សរុបដល់ចំនួនមួយ។ បើការកុម្ម៉ង់ដល់លើសពីមួយ ការបញ្ចុះធំជាងគេត្រូវបានប្រើ។',
-  },
   noDiscounts: { en: 'No discounts.', km: 'គ្មានការបញ្ចុះតម្លៃ។' },
   whenItemsReach: { en: 'When items reach', km: 'នៅពេលទំនិញដល់' },
   takeOff: { en: 'Take off', km: 'បញ្ចុះ' },
@@ -212,14 +165,10 @@ export const settings = {
 
   telegram: { en: 'Telegram', km: 'Telegram' },
   alerts: { en: 'Alerts', km: 'ការជូនដំណឹង' },
-  alertsHint: {
-    en: 'New orders and products running low, on the bell and on Telegram.',
-    km: 'ការកុម្ម៉ង់ថ្មី និងទំនិញជិតអស់ នៅលើកណ្ដឹង និងតាម Telegram។',
-  },
   lowStockAlert: { en: 'Warn me when this many are left', km: 'ជូនដំណឹងខ្ញុំ នៅពេលនៅសល់ប៉ុណ្ណេះ' },
   lowStockAlertHint: {
-    en: 'When an order leaves this many of a product or fewer, and again when it sells out. Your product list marks them too.',
-    km: 'នៅពេលការកុម្ម៉ង់ធ្វើឱ្យទំនិញនៅសល់ប៉ុណ្ណេះ ឬតិចជាងនេះ ហើយម្ដងទៀតនៅពេលអស់ស្តុក។ បញ្ជីទំនិញរបស់អ្នកក៏សម្គាល់វាដែរ។',
+    en: 'When an order leaves this many of a product or fewer, and again when it sells out.',
+    km: 'នៅពេលការកុម្ម៉ង់ធ្វើឱ្យទំនិញនៅសល់ប៉ុណ្ណេះ ឬតិចជាងនេះ ហើយម្ដងទៀតនៅពេលអស់ស្តុក។',
   },
   telegramHint: {
     en: 'Hear about new orders, and products running low, on your phone.',
@@ -255,29 +204,20 @@ export const settings = {
     km: 'Telegram នឹងបើក bot របស់យើង។ ចុច Start រួចត្រឡប់មកទីនេះវិញ។',
   },
   username: { en: 'Your Telegram username', km: 'ឈ្មោះអ្នកប្រើ Telegram របស់អ្នក' },
-  usernameHint: {
-    en: 'Customers tap Telegram to message you, with the product or order already typed in.',
-    km: 'អតិថិជនចុច Telegram ដើម្បីផ្ញើសារមកអ្នក ដោយមានឈ្មោះទំនិញ ឬការកុម្ម៉ង់សរសេររួចជាស្រេច។',
-  },
 
   contact: { en: 'Contact', km: 'ទំនាក់ទំនង' },
-  contactHint: {
-    en: 'Buttons on your products and orders, for customers with a question. Fill in the ones you answer on; empty ones are hidden.',
-    km: 'ប៊ូតុងលើទំនិញ និងការកុម្ម៉ង់របស់អ្នក សម្រាប់អតិថិជនដែលមានសំណួរ។ បំពេញតែមួយណាដែលអ្នកឆ្លើយ។ មួយណាទទេនឹងត្រូវលាក់។',
-  },
   messenger: { en: 'Facebook page for Messenger', km: 'ទំព័រ Facebook សម្រាប់ Messenger' },
   messengerHint: {
-    en: "Your page's name from its link, e.g. facebook.com/sokhafashion. Customers tap Messenger to message your page.",
-    km: 'ឈ្មោះទំព័ររបស់អ្នកពីតំណរបស់វា ឧ. facebook.com/sokhafashion។ អតិថិជនចុច Messenger ដើម្បីផ្ញើសារទៅទំព័ររបស់អ្នក។',
+    en: "Your page's name from its link, e.g. facebook.com/sokhafashion.",
+    km: 'ឈ្មោះទំព័ររបស់អ្នកពីតំណរបស់វា ឧ. facebook.com/sokhafashion។',
   },
   contactPhone: { en: 'Phone customers can call', km: 'លេខទូរស័ព្ទដែលអតិថិជនអាចហៅ' },
   contactPhoneHint: {
-    en: 'Customers tap Call. Shown in your shop, so use a number you are happy to share.',
-    km: 'អតិថិជនចុច ហៅទូរស័ព្ទ។ បង្ហាញក្នុងហាងរបស់អ្នក ដូច្នេះសូមប្រើលេខដែលអ្នកព្រមចែករំលែក។',
+    en: 'Shown in your shop, so use a number you are happy to share.',
+    km: 'បង្ហាញក្នុងហាងរបស់អ្នក ដូច្នេះសូមប្រើលេខដែលអ្នកព្រមចែករំលែក។',
   },
 
   shopLink: { en: 'Shop link', km: 'តំណហាង' },
-  shopLinkHint: { en: 'The address you share with customers.', km: 'អាសយដ្ឋានដែលអ្នកចែករំលែកជាមួយអតិថិជន។' },
   linkName: { en: 'Link name', km: 'ឈ្មោះក្នុងតំណ' },
   linkNameHint: {
     en: 'If you change it, links you already shared still open your shop.',
@@ -292,8 +232,8 @@ export const settings = {
 
   display: { en: 'Language and theme', km: 'ភាសា និងរូបរាង' },
   displayHint: {
-    en: 'For this phone. Customers see light or dark as their phone is set, and can switch it and the language in your shop.',
-    km: 'សម្រាប់ទូរស័ព្ទនេះ។ អតិថិជនឃើញពណ៌ភ្លឺ ឬងងឹតតាមការកំណត់ទូរស័ព្ទរបស់គេ ហើយអាចប្ដូរវា និងភាសា នៅក្នុងហាងរបស់អ្នក។',
+    en: 'For this phone.',
+    km: 'សម្រាប់ទូរស័ព្ទនេះ។',
   },
   language: { en: 'Language', km: 'ភាសា' },
   theme: { en: 'Theme', km: 'រូបរាង' },
@@ -310,10 +250,6 @@ export const settings = {
     progress: {
       en: (done: number, total: number) => `${done} of ${total} done`,
       km: (done: number, total: number) => `រួចរាល់ ${done} ក្នុងចំណោម ${total}`,
-    },
-    hint: {
-      en: 'The first three get your shop ready to take orders, and opening it (the last step) starts your 30-day free trial. The others help customers trust and reach you.',
-      km: 'បីជំហានដំបូងធ្វើឱ្យហាងរបស់អ្នករួចរាល់សម្រាប់ទទួលការកុម្ម៉ង់ ហើយការបើកហាង (ជំហានចុងក្រោយ) ចាប់ផ្ដើមការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃរបស់អ្នក។ ជំហានផ្សេងទៀតជួយឱ្យអតិថិជនទុកចិត្ត និងទាក់ទងអ្នកបាន។',
     },
     steps: {
       product: { en: 'Add a product', km: 'បន្ថែមទំនិញ' },
@@ -379,10 +315,6 @@ export const settings = {
   // Settings → Plan: the shop's plan with Oak Order (01_PRODUCT.md §33.1).
   plan: {
     title: { en: 'Plan', km: 'គម្រោង' },
-    hint: {
-      en: 'What you pay Oak Order for your shop, and until when.',
-      km: 'អ្វីដែលអ្នកបង់ឱ្យ Oak Order សម្រាប់ហាងរបស់អ្នក និងរហូតដល់ពេលណា។',
-    },
     freeTrial: { en: 'Free trial', km: 'សាកល្បងឥតគិតថ្លៃ' },
     // In setup: the trial starts when the shop opens.
     notOpen: { en: 'Your shop isn’t open yet', km: 'ហាងរបស់អ្នកមិនទាន់បើកនៅឡើយទេ' },
@@ -513,10 +445,6 @@ export const settings = {
   logOutConfirmTitle: { en: 'Log out?', km: 'ចាកចេញ?' },
 
   yourAccount: { en: 'Your account', km: 'គណនីរបស់អ្នក' },
-  yourAccountHint: {
-    en: 'Who you are and how you log in. Customers never see these.',
-    km: 'អ្នកជានរណា និងរបៀបដែលអ្នកចូលគណនី។ អតិថិជនមិនឃើញព័ត៌មានទាំងនេះទេ។',
-  },
   yourDetails: { en: 'Your details', km: 'ព័ត៌មានរបស់អ្នក' },
   yourName: { en: 'Your name', km: 'ឈ្មោះរបស់អ្នក' },
   yourPhone: { en: 'Your phone number', km: 'លេខទូរស័ព្ទរបស់អ្នក' },
@@ -535,10 +463,6 @@ export const settings = {
   },
   loginEmail: { en: 'Email you log in with', km: 'អ៊ីមែលដែលអ្នកប្រើចូលគណនី' },
   otherLogins: { en: 'Other ways to log in', km: 'វិធីផ្សេងទៀតដើម្បីចូលគណនី' },
-  otherLoginsHint: {
-    en: 'Log in with one tap using your Google, Facebook or TikTok account, as well as your phone number.',
-    km: 'ចូលគណនីដោយចុចតែម្ដង ជាមួយគណនី Google, Facebook ឬ TikTok របស់អ្នក ក្រៅពីលេខទូរស័ព្ទ។',
-  },
   connectedAccount: { en: 'Connected', km: 'បានភ្ជាប់' },
   useAnotherAccount: { en: 'Use another account', km: 'ប្រើគណនីផ្សេង' },
   loginConnected: {
@@ -546,10 +470,6 @@ export const settings = {
     km: (provider: string) => `បានភ្ជាប់ ${provider}`,
   },
   addPassword: { en: 'Add a password', km: 'បន្ថែមពាក្យសម្ងាត់' },
-  addPasswordHint: {
-    en: 'To log in with your phone number and a password too.',
-    km: 'ដើម្បីចូលគណនីដោយលេខទូរស័ព្ទ និងពាក្យសម្ងាត់បានផងដែរ។',
-  },
   passwordAdded: { en: 'Password added', km: 'បានបន្ថែមពាក្យសម្ងាត់' },
   detailsSaved: { en: 'Details saved', km: 'បានរក្សាទុកព័ត៌មាន' },
   changePassword: { en: 'Change password', km: 'ប្ដូរពាក្យសម្ងាត់' },
@@ -560,10 +480,6 @@ export const settings = {
   currentPassword: { en: 'Current password', km: 'ពាក្យសម្ងាត់បច្ចុប្បន្ន' },
   newPassword: { en: 'New password', km: 'ពាក្យសម្ងាត់ថ្មី' },
   exportOrders: { en: 'Export orders', km: 'ទាញយកការកុម្ម៉ង់' },
-  exportHint: {
-    en: 'A spreadsheet for your accounts: one row per order, with the customer, items, totals, payment and delivery. Opens in Excel or Google Sheets.',
-    km: 'តារាងសម្រាប់គណនេយ្យរបស់អ្នក៖ មួយជួរក្នុងមួយការកុម្ម៉ង់ មានអតិថិជន ទំនិញ សរុប ការបង់ប្រាក់ និងការដឹកជញ្ជូន។ បើកបានក្នុង Excel ឬ Google Sheets។',
-  },
   exportWhich: { en: 'Which orders', km: 'ការកុម្ម៉ង់មួយណា' },
   exportRange: {
     thisMonth: { en: 'This month', km: 'ខែនេះ' },
@@ -579,20 +495,12 @@ export const settings = {
   exportDownload: { en: 'Download Excel file', km: 'ទាញយកឯកសារ Excel' },
   help: { en: 'Get help', km: 'សុំជំនួយ' },
   staff: { en: 'Staff', km: 'បុគ្គលិក' },
-  staffHint: {
-    en: 'People who help you: each logs in with their own phone number and can do everything except Settings.',
-    km: 'អ្នកដែលជួយអ្នក៖ ម្នាក់ៗចូលគណនីដោយលេខទូរស័ព្ទផ្ទាល់ខ្លួន ហើយអាចធ្វើអ្វីៗបានទាំងអស់ លើកលែងតែការកំណត់។',
-  },
   staffNoSettings: {
     en: (shop: string) => `Only the owner of ${shop} can change the shop's settings. Your own account is below.`,
     km: (shop: string) => `មានតែម្ចាស់ ${shop} ទេដែលអាចប្ដូរការកំណត់ហាងបាន។ គណនីរបស់អ្នកនៅខាងក្រោម។`,
   },
   noStaff: { en: 'No staff yet.', km: 'មិនទាន់មានបុគ្គលិកទេ។' },
   addStaff: { en: 'Add staff', km: 'បន្ថែមបុគ្គលិក' },
-  addStaffHint: {
-    en: 'They log in with their phone number and the first password you give them; they can change the password in Settings → Your account.',
-    km: 'គេចូលគណនីដោយលេខទូរស័ព្ទរបស់គេ និងពាក្យសម្ងាត់ដំបូងដែលអ្នកផ្ដល់ឱ្យ។ គេអាចប្ដូរពាក្យសម្ងាត់ក្នុង ការកំណត់ → គណនីរបស់អ្នក។',
-  },
   staffName: { en: 'Their name', km: 'ឈ្មោះរបស់គេ' },
   staffPhone: { en: 'Phone number they log in with', km: 'លេខទូរស័ព្ទដែលគេប្រើចូលគណនី' },
   firstPassword: { en: 'First password', km: 'ពាក្យសម្ងាត់ដំបូង' },
@@ -606,8 +514,8 @@ export const settings = {
     km: (name: string) => `ពាក្យសម្ងាត់ថ្មីសម្រាប់ ${name}`,
   },
   newPasswordForHint: {
-    en: "For when they forget theirs. They're logged out on their phones and log in with this.",
-    km: 'សម្រាប់ពេលគេភ្លេចពាក្យសម្ងាត់។ គេនឹងចាកចេញពីទូរស័ព្ទ ហើយចូលវិញដោយពាក្យសម្ងាត់នេះ។',
+    en: "They're logged out on their phones and log in with this.",
+    km: 'គេនឹងចាកចេញពីទូរស័ព្ទ ហើយចូលវិញដោយពាក្យសម្ងាត់នេះ។',
   },
   saveNewPassword: { en: 'Save new password', km: 'រក្សាទុកពាក្យសម្ងាត់ថ្មី' },
   staffPasswordSet: {

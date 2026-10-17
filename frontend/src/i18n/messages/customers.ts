@@ -46,10 +46,6 @@ export const customers = {
   copyPhone: { en: 'Copy phone', km: 'ចម្លងលេខ' },
   phoneCopied: { en: 'Phone number copied', km: 'បានចម្លងលេខទូរស័ព្ទ' },
   copyFailed: { en: "Couldn't copy. Select the number and copy it.", km: 'ចម្លងមិនបាន។ សូមជ្រើសលេខ ហើយចម្លងវា។' },
-  leftOut: {
-    en: "Rejected and cancelled orders don't count toward what they ordered.",
-    km: 'ការកុម្ម៉ង់ដែលបានបដិសេធ ឬលុបចោល មិនរាប់បញ្ចូលក្នុងចំនួនដែលបានកុម្ម៉ង់ទេ។',
-  },
   latestOrders: {
     en: (shown: number, total: number) => `Their latest ${shown} of ${total} orders. The older ones are in Orders.`,
     km: (shown: number, total: number) =>

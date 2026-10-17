@@ -64,7 +64,7 @@ export function ShopFields({ store, form, update, error }: FieldsProps) {
           onChange={(e) => update({ name: e.target.value })}
         />
       </Field>
-      <Field label={s.description} error={fieldError(error, 'description')} hint={s.descriptionHint}>
+      <Field label={s.description} error={fieldError(error, 'description')}>
         <TextArea
           maxLength={2000}
           autoCapitalize="sentences"
@@ -271,7 +271,7 @@ export function OrdersFields({ form, update, error }: FieldsProps) {
         checked={!form.orders_paused}
         onChange={(on) => update({ orders_paused: !on, orders_resume_on: '' })}
         label={s.takeOrders}
-        description={form.orders_paused ? s.takeOrdersOff : s.takeOrdersOn}
+        description={form.orders_paused ? s.takeOrdersOff : undefined}
       />
       {form.orders_paused && (
         <Field label={s.resumeOn} error={fieldError(error, 'orders_resume_on')} hint={s.resumeOnHint}>
@@ -364,7 +364,6 @@ export function PaymentsFields({ form, update, error }: FieldsProps) {
         checked={khqr.enabled}
         onChange={(enabled) => set('khqr', { enabled })}
         label={t.status.paymentMethod.khqr}
-        description={s.khqrHint}
       />
       {khqr.enabled && (
         <div className="space-y-4 border-l-2 border-slate-100 pl-4">
@@ -447,7 +446,6 @@ export function PaymentsFields({ form, update, error }: FieldsProps) {
         checked={bank.enabled}
         onChange={(enabled) => set('bank_transfer', { enabled })}
         label={t.status.paymentMethod.bank_transfer}
-        description={s.bankHint}
       />
       {bank.enabled && (
         <div className="space-y-4 border-l-2 border-slate-100 pl-4">
@@ -485,7 +483,6 @@ export function PaymentsFields({ form, update, error }: FieldsProps) {
         checked={cod.enabled}
         onChange={(enabled) => set('cod', { enabled })}
         label={t.status.paymentMethod.cod}
-        description={s.codHint}
       />
 
       {(noneOn || fieldError(error, 'payment_settings')) && (
@@ -521,7 +518,7 @@ export function DeliveryFields({ form, update, error }: FieldsProps) {
       <Field label={s.fee} error={fieldErr('fee')} hint={s.feeHint}>
         <MoneyInput currency={currency} placeholder={s.free} value={delivery.fee} onChange={(fee) => onChange({ fee })} />
       </Field>
-      <Field label={s.freeFrom} error={fieldErr('free_from_amount')} hint={s.freeFromHint}>
+      <Field label={s.freeFrom} error={fieldErr('free_from_amount')}>
         <MoneyInput
           currency={currency}
           placeholder={s.off}
@@ -529,7 +526,7 @@ export function DeliveryFields({ form, update, error }: FieldsProps) {
           onChange={(free_from_amount) => onChange({ free_from_amount })}
         />
       </Field>
-      <Field label={s.freeFromItems} error={fieldErr('free_from_items')} hint={s.freeFromItemsHint}>
+      <Field label={s.freeFromItems} error={fieldErr('free_from_items')}>
         <Input
           type="number"
           inputMode="numeric"
@@ -543,11 +540,10 @@ export function DeliveryFields({ form, update, error }: FieldsProps) {
         />
       </Field>
 
-      <Switch checked={delivery.own} onChange={(own) => onChange({ own })} label={s.ownDelivery} description={s.ownDeliveryHint} />
+      <Switch checked={delivery.own} onChange={(own) => onChange({ own })} label={s.ownDelivery} />
 
       <div>
         <h3 className="text-sm font-medium text-slate-700">{s.couriers}</h3>
-        <p className="mt-0.5 text-xs leading-5 text-slate-500">{s.couriersHint}</p>
       </div>
       {couriers.map((courier, index) => (
         <div key={courier.key} className="flex items-start gap-2">
@@ -588,11 +584,10 @@ export function DeliveryFields({ form, update, error }: FieldsProps) {
         checked={pickup.enabled}
         onChange={(enabled) => onChange({ pickup: { ...pickup, enabled } })}
         label={s.pickup}
-        description={s.pickupHint}
       />
       {pickup.enabled && (
         <div className="border-l-2 border-slate-100 pl-4">
-          <Field label={s.pickupAddress} error={fieldErr('pickup.address')} hint={s.pickupAddressHint}>
+          <Field label={s.pickupAddress} error={fieldErr('pickup.address')}>
             <TextArea
               required
               maxLength={500}
@@ -787,7 +782,7 @@ export function ContactFields({ form, update, error }: FieldsProps) {
   const s = useT().settings
   return (
     <>
-      <Field label={s.username} error={fieldError(error, 'telegram_username')} hint={s.usernameHint}>
+      <Field label={s.username} error={fieldError(error, 'telegram_username')}>
         <Input
           maxLength={60}
           autoCapitalize="none"

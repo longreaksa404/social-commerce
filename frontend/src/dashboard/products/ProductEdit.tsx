@@ -214,7 +214,6 @@ function ProductForm({ product }: { product?: Product }) {
       <form onSubmit={submit} className="space-y-4">
         <Section
           title={p.photos}
-          description={isNew ? p.photosHintNew : p.photosHintSaved}
         >
           {isNew ? (
             <NewProductPhotos photos={newPhotos} onChange={setNewPhotos} />
@@ -253,9 +252,7 @@ function ProductForm({ product }: { product?: Product }) {
                 hint={
                   draft.stock_quantity !== '' && Number(draft.stock_quantity) === 0 ? (
                     <span className="font-medium text-amber-700">{p.stockZero}</span>
-                  ) : (
-                    p.stockHint
-                  )
+                  ) : undefined
                 }
               >
                 <StockStepper value={draft.stock_quantity} onChange={(v) => set('stock_quantity', v)} />
@@ -318,7 +315,6 @@ function ProductForm({ product }: { product?: Product }) {
             checked={draft.status === 'active'}
             onChange={(on) => set('status', on ? 'active' : 'inactive')}
             label={p.showInShop}
-            description={draft.status === 'active' ? p.shownHint : p.hiddenHint}
           />
         </Section>
 

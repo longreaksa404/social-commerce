@@ -68,7 +68,6 @@ export function Register() {
   return (
     <AuthLayout
       title={t.auth.createYourStore}
-      subtitle={t.auth.register.subtitle}
       footer={
         <>
           {t.auth.register.haveAccount}{' '}

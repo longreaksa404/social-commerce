@@ -59,18 +59,13 @@ export const products = {
     km: (reason: string) => `បានរក្សាទុកទំនិញ ប៉ុន្តែរូបថតមិនបានបង្ហោះទេ។ ${reason}`,
   },
   photos: { en: 'Photos', km: 'រូបថត' },
-  photosHintNew: { en: 'The first photo is the main one customers see.', km: 'រូបទីមួយជារូបចម្បងដែលអតិថិជនឃើញ។' },
-  photosHintSaved: {
-    en: 'The first photo is the main one. Changes show in the shop after you press Save.',
-    km: 'រូបទីមួយជារូបចម្បង។ ការផ្លាស់ប្ដូរបង្ហាញក្នុងហាង បន្ទាប់ពីអ្នកចុច រក្សាទុក។',
-  },
   details: { en: 'Details', km: 'ព័ត៌មាន' },
   name: { en: 'Product name', km: 'ឈ្មោះទំនិញ' },
   namePlaceholder: { en: 'e.g. Leather sandal', km: 'ឧ. អាវយឺតកប្បាស' },
   description: { en: 'Description', km: 'ការពិពណ៌នា' },
   descriptionHint: {
-    en: 'Optional. Size, material, how to care for it…',
-    km: 'មិនចាំបាច់។ ទំហំ សាច់ក្រណាត់ របៀបថែទាំ…',
+    en: 'Size, material, how to care for it…',
+    km: 'ទំហំ សាច់ក្រណាត់ របៀបថែទាំ…',
   },
   category: { en: 'Category', km: 'ប្រភេទ' },
   noCategoriesYet: { en: 'No categories yet.', km: 'មិនទាន់មានប្រភេទនៅឡើយ។' },
@@ -96,7 +91,6 @@ export const products = {
     km: 'ទុកតម្លៃជម្រើសឱ្យនៅទទេ ដើម្បីប្រើតម្លៃទំនិញ។',
   },
   addVariant: { en: 'Add variant', km: 'បន្ថែមជម្រើស' },
-  stockHint: { en: 'How many you have to sell.', km: 'ចំនួនដែលអ្នកមានសម្រាប់លក់។' },
   // A new product's stock starts empty and must be filled in, so nothing
   // goes into the shop as sold out by accident (UX check, 2026-10-17).
   stockQuestion: { en: 'How many do you have?', km: 'តើអ្នកមានប៉ុន្មាន?' },
@@ -110,16 +104,11 @@ export const products = {
   increaseStock: { en: 'Increase stock', km: 'បន្ថែមស្តុក' },
   visibility: { en: 'Visibility', km: 'ការបង្ហាញ' },
   showInShop: { en: 'Show in shop', km: 'បង្ហាញក្នុងហាង' },
-  shownHint: { en: 'Customers can see and order this product.', km: 'អតិថិជនអាចមើល និងកុម្ម៉ង់ទំនិញនេះបាន។' },
-  hiddenHint: {
-    en: 'Hidden from customers. You can show it again any time.',
-    km: 'លាក់ពីអតិថិជន។ អ្នកអាចបង្ហាញវាវិញនៅពេលណាក៏បាន។',
-  },
   advanced: { en: 'Advanced', km: 'កម្រិតខ្ពស់' },
   linkName: { en: 'Link name', km: 'ឈ្មោះក្នុងតំណ' },
   linkNameHint: {
-    en: "Part of this product's link. Changing it breaks links you already shared.",
-    km: 'ជាផ្នែកមួយនៃតំណទំនិញនេះ។ ការប្ដូរវានឹងធ្វើឱ្យតំណដែលអ្នកបានចែករំលែករួច លែងដំណើរការ។',
+    en: "Changing it breaks links you already shared.",
+    km: 'ការប្ដូរវានឹងធ្វើឱ្យតំណដែលអ្នកបានចែករំលែករួច លែងដំណើរការ។',
   },
 
   photo: {

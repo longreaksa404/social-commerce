@@ -41,10 +41,6 @@ export const links = {
   made: { en: (date: string) => `Made ${date}`, km: (date: string) => `បង្កើតនៅ ${date}` },
   viewsLabel: { en: 'Views', km: 'អ្នកមើល' },
   ordersLabel: { en: 'Orders', km: 'ការកុម្ម៉ង់' },
-  howCounted: {
-    en: "A view counts once per phone every 30 minutes. An order counts if it's placed on the same phone within 7 days of opening this link.",
-    km: 'ការមើលរាប់ម្ដងក្នុងមួយទូរស័ព្ទ រៀងរាល់ 30 នាទី។ ការកុម្ម៉ង់ត្រូវបានរាប់ ប្រសិនបើកុម្ម៉ង់លើទូរស័ព្ទដដែល ក្នុងរយៈពេល 7 ថ្ងៃក្រោយបើកតំណនេះ។',
-  },
   noOrders: { en: 'No orders from this link yet.', km: 'មិនទាន់មានការកុម្ម៉ង់ពីតំណនេះនៅឡើយ។' },
   latestOrders: {
     en: (shown: number, total: number) => `The latest ${shown} of ${total} orders.`,

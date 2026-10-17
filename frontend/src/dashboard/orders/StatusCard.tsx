@@ -162,7 +162,6 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
     // quiet link until wanted (UX check #14, 2026-10-17).
     body = showSteps ? (
       <>
-        <p className="mt-2 text-xs text-slate-500">{o.tellStepHint}</p>
         <div className="flex flex-wrap gap-x-2">
           <StepChips
             steps={optional}

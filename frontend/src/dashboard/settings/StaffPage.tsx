@@ -154,7 +154,7 @@ function AddStaff() {
   }
 
   return (
-    <Section title={s.addStaff} description={s.addStaffHint}>
+    <Section title={s.addStaff}>
       <form onSubmit={submit} className="space-y-4">
         <Field label={s.staffName} error={fieldError(add.error, 'full_name')}>
           <Input required maxLength={100} autoComplete="off" autoCapitalize="words" value={form.full_name} onChange={set('full_name')} />

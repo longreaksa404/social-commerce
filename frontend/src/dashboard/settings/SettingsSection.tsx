@@ -42,11 +42,11 @@ const FIELDS: Record<SectionId, ComponentType<FieldsProps>> = {
 
 /** Pages with their own form and endpoint, not the store's PATCH. */
 const PAGES: Record<PageId, { title: (s: Messages['settings']) => string; hint?: (s: Messages['settings']) => string; Page: ComponentType }> = {
-  account: { title: (s) => s.yourAccount, hint: (s) => s.yourAccountHint, Page: AccountPage },
-  plan: { title: (s) => s.plan.title, hint: (s) => s.plan.hint, Page: PlanPage },
-  export: { title: (s) => s.exportOrders, hint: (s) => s.exportHint, Page: ExportPage },
+  account: { title: (s) => s.yourAccount, Page: AccountPage },
+  plan: { title: (s) => s.plan.title, Page: PlanPage },
+  export: { title: (s) => s.exportOrders, Page: ExportPage },
   close: { title: (s) => s.closeShop, Page: CloseShopPage },
-  staff: { title: (s) => s.staff, hint: (s) => s.staffHint, Page: StaffPage },
+  staff: { title: (s) => s.staff, Page: StaffPage },
   setup: { title: (s) => s.setup.title, Page: SetupPage },
 }
 

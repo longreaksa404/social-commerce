@@ -160,7 +160,7 @@ function OtherLogins({ account }: { account: Account }) {
   )
   if (providers.length === 0) return null
   return (
-    <Section title={s.otherLogins} description={s.otherLoginsHint}>
+    <Section title={s.otherLogins}>
       <ul className="-my-2 divide-y divide-slate-100">
         {providers.map((provider) => {
           const login = account.logins.find((l) => l.provider === provider)
@@ -234,7 +234,7 @@ function PasswordForm({ login, hasPassword }: { login: string; hasPassword: bool
   return (
     <Section
       title={hasPassword ? s.changePassword : s.addPassword}
-      description={hasPassword ? s.changePasswordHint : s.addPasswordHint}
+      description={hasPassword ? s.changePasswordHint : undefined}
     >
       <form onSubmit={submit} className="space-y-4">
         {/* For password managers: whose password this is. */}

@@ -194,7 +194,7 @@ function OrderView({
         {!payNow && payment && payWrap(payment)}
         <ItemsCard order={order} className={left} />
         <Card className={`p-4 sm:p-6 ${left}`}>
-          <p className="text-sm text-slate-600">{t.order.comeBack(shop.name)}</p>
+          <p className="text-sm text-slate-600">{t.order.comeBack}</p>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             <Button variant="secondary" icon={Copy} onClick={copyLink} className="sm:flex-1">
               {t.order.copyLink}

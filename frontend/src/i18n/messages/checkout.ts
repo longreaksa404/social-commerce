@@ -35,20 +35,20 @@ export const checkout = {
   // Behind a link until tapped, like the note for the seller (UX check #11).
   addressNote: { en: 'Directions for the driver', km: 'ការណែនាំផ្លូវសម្រាប់អ្នកដឹក' },
   addressNoteHint: {
-    en: 'Optional. Helps the driver find you, e.g. blue gate, next to the pagoda.',
-    km: 'មិនចាំបាច់។ ជួយឱ្យអ្នកដឹករកអ្នកឃើញ ឧ. ទ្វាររបងពណ៌ខៀវ ក្បែរវត្ត។',
+    en: 'Helps the driver find you, e.g. blue gate, next to the pagoda.',
+    km: 'ជួយឱ្យអ្នកដឹករកអ្នកឃើញ ឧ. ទ្វាររបងពណ៌ខៀវ ក្បែរវត្ត។',
   },
   noteForSeller: { en: 'Note for the seller', km: 'ចំណាំសម្រាប់អ្នកលក់' },
   // Placing the order with nothing chosen, in the app's words (UX check #22).
   chooseDelivery: { en: 'Choose how to get your order.', km: 'សូមជ្រើសរើសរបៀបទទួលទំនិញ។' },
   choosePayment: { en: 'Choose how to pay.', km: 'សូមជ្រើសរើសរបៀបបង់ប្រាក់។' },
   noteHintPickup: {
-    en: 'Optional. For example, when you will come.',
-    km: 'មិនចាំបាច់។ ឧទាហរណ៍ ពេលដែលអ្នកនឹងមកយក។',
+    en: 'For example, when you will come.',
+    km: 'ឧទាហរណ៍ ពេលដែលអ្នកនឹងមកយក។',
   },
   noteHintDelivery: {
-    en: 'Optional. For example, the best time to deliver.',
-    km: 'មិនចាំបាច់។ ឧទាហរណ៍ ម៉ោងដែលស្រួលទទួលទំនិញ។',
+    en: 'For example, the best time to deliver.',
+    km: 'ឧទាហរណ៍ ម៉ោងដែលស្រួលទទួលទំនិញ។',
   },
   payment: { en: 'Payment', km: 'ការបង់ប្រាក់' },
   howPay: { en: 'How will you pay?', km: 'តើអ្នកនឹងបង់ប្រាក់តាមរបៀបណា?' },

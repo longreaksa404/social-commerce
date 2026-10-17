@@ -72,9 +72,6 @@ function LinkView({ link, back }: { link: LinkStats; back: string }) {
               <dd className="text-lg font-bold text-slate-900">{link.order_count}</dd>
             </div>
           </dl>
-          <p className="mt-2 text-xs leading-5 text-slate-500">
-            {l.howCounted}
-          </p>
         </Card>
 
         <section aria-labelledby="link-orders">

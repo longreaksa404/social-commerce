@@ -115,10 +115,6 @@ export const orders = {
   // The order's own steps between Accept and Complete.
   // The optional steps, folded behind one link (UX check #14, 2026-10-17).
   tellStep: { en: 'Tell the customer a step', km: 'ប្រាប់អតិថិជនពីជំហាន' },
-  tellStepHint: {
-    en: 'Optional. Customers see it on their order page.',
-    km: 'មិនចាំបាច់។ អតិថិជនឃើញវានៅលើទំព័រការកុម្ម៉ង់របស់គេ។',
-  },
   // The ⋯ menu at the top: cancel, failed, not paid after all.
   more: { en: (n: number) => `More for order #${n}`, km: (n: number) => `ផ្សេងទៀតសម្រាប់ការកុម្ម៉ង់ #${n}` },
   // One tap on a cash-on-delivery order: delivered (or collected) and the
@@ -129,10 +125,6 @@ export const orders = {
   newOrder: {
     button: { en: 'New order', km: 'ការកុម្ម៉ង់ថ្មី' },
     title: { en: 'New order from a chat', km: 'ការកុម្ម៉ង់ថ្មីពីឆាត' },
-    intro: {
-      en: 'For an order a customer sent by Messenger, Telegram or a call. The shop’s prices and delivery fee apply, and it starts accepted.',
-      km: 'សម្រាប់ការកុម្ម៉ង់ដែលអតិថិជនផ្ញើតាម Messenger, Telegram ឬការហៅទូរស័ព្ទ។ ប្រើតម្លៃ និងថ្លៃដឹករបស់ហាង ហើយវាចាប់ផ្ដើមជាបានទទួល។',
-    },
     customer: { en: 'Customer', km: 'អតិថិជន' },
     phone: { en: 'Phone number', km: 'លេខទូរស័ព្ទ' },
     name: { en: 'Name', km: 'ឈ្មោះ' },
@@ -152,14 +144,9 @@ export const orders = {
     more: { en: 'One more', km: 'ច្រើនមួយ' },
     delivery: { en: 'Delivery', km: 'ការដឹកជញ្ជូន' },
     address: { en: 'Address', km: 'អាសយដ្ឋាន' },
-    addressHint: { en: 'As the customer wrote it.', km: 'ដូចដែលអតិថិជនបានសរសេរ។' },
     addressNote: { en: 'Note for the driver (optional)', km: 'ចំណាំសម្រាប់អ្នកដឹក (មិនចាំបាច់)' },
     payment: { en: 'Payment', km: 'ការបង់ប្រាក់' },
     note: { en: 'Note (optional)', km: 'ចំណាំ (មិនចាំបាច់)' },
-    noteHint: {
-      en: 'Shown on the order, for example what the customer asked in the chat.',
-      km: 'បង្ហាញនៅលើការកុម្ម៉ង់ ឧទាហរណ៍ អ្វីដែលអតិថិជនបានសួរក្នុងឆាត។',
-    },
     save: { en: 'Save order', km: 'រក្សាទុកការកុម្ម៉ង់' },
     saved: { en: (n: number) => `Order #${n} saved`, km: (n: number) => `បានរក្សាទុកការកុម្ម៉ង់ #${n}` },
   },
