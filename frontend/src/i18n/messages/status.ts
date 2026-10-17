@@ -27,8 +27,9 @@ export const status = {
     unpaid: { en: 'Unpaid', km: 'មិនទាន់បង់' },
     // The customer tapped "I've paid"; the seller still checks (UX check #5).
     saysPaid: { en: 'Says paid', km: 'អតិថិជនថាបានបង់' },
-    // Cash on delivery before it arrives: sellers call it COD.
-    cod: { en: 'COD', km: 'COD' },
+    // Cash on delivery not received yet: a status like Unpaid, not the
+    // method's English letters (UX check #24, 2026-10-17).
+    cod: { en: 'Cash due', km: 'រង់ចាំសាច់ប្រាក់' },
   },
   // In the seller's words, not the system's (UX check #13, 2026-10-17).
   delivery: {

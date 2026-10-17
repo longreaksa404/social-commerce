@@ -1099,6 +1099,9 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   "I've paid" yet): Pay is folded behind "Pay early" with "Nothing to pay
   until Nov 15, 2026". Save QR to photos is now the dark button and "I've
   paid" the plain one, as on a customer's order page.
+- [x] 24. A cash order's payment reads "Cash due" (រង់ចាំសាច់ប្រាក់;
+  founder to check the Khmer) until the cash is recorded, instead of
+  "COD" in English letters, in the list and on the order.
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:
