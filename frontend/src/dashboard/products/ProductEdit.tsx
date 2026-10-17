@@ -40,6 +40,8 @@ type Draft = {
   has_variants: boolean
   stock_quantity: string
   variants: VariantDraft[]
+  // An existing product's photos, saved with the rest (UX check #16).
+  image_urls: string[]
 }
 
 const blankVariant = (): VariantDraft => ({
@@ -73,6 +75,7 @@ function toDraft(product?: Product): Draft {
           stock_quantity: String(v.stock_quantity),
         }))
       : [blankVariant()],
+    image_urls: product?.image_urls ?? [],
   }
 }
 
@@ -102,6 +105,8 @@ function toBody(draft: Draft, isNew: boolean, saved?: Draft) {
             : { stock_quantity: Number(v.stock_quantity || 0) }),
         }))
       : [],
+    // A new product's photos upload once it exists (NewProductPhotos).
+    ...(isNew ? {} : { image_urls: draft.image_urls }),
   }
 }
 
@@ -137,6 +142,7 @@ function ProductForm({ product }: { product?: Product }) {
   const [draft, setDraft] = useState(baseline)
   const [newPhotos, setNewPhotos] = useState<LocalPhoto[]>([])
   const [progress, setProgress] = useState<string | null>(null)
+  const [photoUploads, setPhotoUploads] = useState(0)
   const t = useT()
   const p = t.products
 
@@ -184,7 +190,7 @@ function ProductForm({ product }: { product?: Product }) {
     }
   }
 
-  const busy = progress !== null
+  const busy = progress !== null || photoUploads > 0
   const fields = ['name', 'slug', 'description', 'category_id', 'price', 'stock_quantity']
   const slugError = fieldError(save.error, 'slug')
 
@@ -210,7 +216,16 @@ function ProductForm({ product }: { product?: Product }) {
           title={p.photos}
           description={isNew ? p.photosHintNew : p.photosHintSaved}
         >
-          {isNew ? <NewProductPhotos photos={newPhotos} onChange={setNewPhotos} /> : <ProductPhotos product={product} />}
+          {isNew ? (
+            <NewProductPhotos photos={newPhotos} onChange={setNewPhotos} />
+          ) : (
+            <ProductPhotos
+              product={product}
+              urls={draft.image_urls}
+              onChange={(urls) => set('image_urls', urls)}
+              onUploading={setPhotoUploads}
+            />
+          )}
         </Section>
 
         {/* One card for the product (founder's pick, 2026-10-08): name,

@@ -5,7 +5,6 @@ import { useT } from '../../i18n/useT.ts'
 import { errorText } from '../../lib/errors.ts'
 import { prepareImage, thumbnailUrl, uploadProductImage, type PreparedPhoto } from '../../lib/images.ts'
 import type { Product } from '../../lib/types.ts'
-import { useSaveProduct } from '../queries.ts'
 
 // Also in the API (MAX_IMAGES) and the message t.products.photo.tooMany.
 const MAX_PHOTOS = 5
@@ -106,50 +105,57 @@ function PhotoGrid({
   )
 }
 
-/** Photos of a product that already exists: each change is saved at once. */
-export function ProductPhotos({ product }: { product: Product }) {
-  const save = useSaveProduct()
-  const { toast, confirm } = useFeedback()
+/** Photos of a product that already exists, as part of its form: a
+ * picked photo uploads to storage at once, but adding, removing and the
+ * main photo reach the shop only on Save, like the rest of the form
+ * (founder, 2026-10-15; UX check #16, 2026-10-17). `onUploading` tells the
+ * form how many are still uploading, so Save waits for them. */
+export function ProductPhotos({
+  product,
+  urls,
+  onChange,
+  onUploading,
+}: {
+  product: Product
+  urls: string[]
+  onChange: (urls: string[]) => void
+  onUploading: (count: number) => void
+}) {
+  const { toast } = useFeedback()
   const [uploading, setUploading] = useState(0)
-  const t = useT()
-  const words = t.products.photo
-  const urls = product.image_urls
-
-  const setUrls = async (image_urls: string[]) =>
-    (await save.mutateAsync({ id: product.id, body: { image_urls } })).image_urls
+  const words = useT().products.photo
+  const busy = (n: number) => {
+    setUploading(n)
+    onUploading(n)
+  }
 
   async function add(files: File[]) {
     const accepted = files.slice(0, MAX_PHOTOS - urls.length)
     if (accepted.length < files.length) toast(words.tooMany, 'error')
-    setUploading(accepted.length)
+    busy(accepted.length)
     let current = urls
     try {
-      for (const file of accepted) {
+      for (const [i, file] of accepted.entries()) {
         const url = await uploadProductImage(product.id, await prepareImage(file))
-        current = await setUrls([...current, url])
-        setUploading((n) => n - 1)
+        current = [...current, url]
+        onChange(current)
+        busy(accepted.length - i - 1)
       }
     } catch (err) {
       toast(errorText(err, words.uploadFailed), 'error')
     } finally {
-      setUploading(0)
+      busy(0)
     }
-  }
-
-  async function remove(url: string) {
-    const ok = await confirm({ title: words.removeTitle, confirmLabel: t.common.remove, danger: true })
-    if (!ok) return
-    await setUrls(urls.filter((u) => u !== url)).catch((err) => toast(errorText(err), 'error'))
   }
 
   return (
     <PhotoGrid
       photos={urls.map((url) => ({ key: url, src: thumbnailUrl(url), fallback: url }))}
       uploading={uploading}
-      disabled={uploading > 0 || save.isPending}
+      disabled={uploading > 0}
       onAdd={add}
-      onRemove={remove}
-      onMakeMain={(url) => setUrls([url, ...urls.filter((u) => u !== url)]).catch((err) => toast(errorText(err), 'error'))}
+      onRemove={(url) => onChange(urls.filter((u) => u !== url))}
+      onMakeMain={(url) => onChange([url, ...urls.filter((u) => u !== url)])}
     />
   )
 }

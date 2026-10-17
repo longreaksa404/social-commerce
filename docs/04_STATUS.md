@@ -1067,6 +1067,10 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
 - [x] 15. A paid order's Delivered reads "Delivered, complete"
   ("Collected, complete" for pickup) and does both in one tap. Unpaid
   orders keep the two steps (02 §7.4).
+- [x] 16. An existing product's photos are part of its form: a picked
+  photo uploads at once, but adding, removing and the main photo reach
+  the shop only on Save (Save waits for uploads; leaving asks first),
+  like the shop's cover and logo (founder, 2026-10-15).
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:
