@@ -226,6 +226,9 @@ export const order = {
       km: (shop: string, time: string) => `អ្នកបានប្រាប់ ${shop} ថាបានបង់ (${time})។ ហាងនឹងពិនិត្យ ហើយបញ្ជាក់នៅទីនេះ។`,
     },
     sendAgain: { en: 'Send the receipt again', km: 'ផ្ញើបង្កាន់ដៃម្ដងទៀត' },
+    // After "I've paid" the QR or account folds away (UX check #9).
+    showQrAgain: { en: 'Show the QR again', km: 'បង្ហាញ QR ម្ដងទៀត' },
+    showBankAgain: { en: 'Show the bank details again', km: 'បង្ហាញព័ត៌មានធនាគារម្ដងទៀត' },
     bankNote: {
       en: (n: number) =>
         `Write “#${n}” in the transfer's note so the seller can find your payment. They check it and confirm it here.`,

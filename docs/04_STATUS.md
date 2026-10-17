@@ -1034,6 +1034,10 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   completes); "Complete without the cash" is in the ⋯ menu. The
   customer's page stops saying "Pay $X in cash when you get your order"
   once it's delivered ("$X in cash, on delivery."). 02 §7.4 unchanged.
+- [x] 9. After "I've paid", the customer's payment card leads with "You
+  told Srey Mom Fashion you paid (7:09 AM)" and Send the receipt again;
+  the QR or bank account folds behind "Show the QR again" / "Show the
+  bank details again".
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

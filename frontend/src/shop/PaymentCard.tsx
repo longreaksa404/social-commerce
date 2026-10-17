@@ -50,16 +50,8 @@ export function PaymentCard({ shop, order, phone }: { shop: ShopStore; order: Sh
             {p.codBefore} <span className="font-semibold text-slate-900">{total}</span> {p.codAfter}
           </p>
         )
-      ) : payment.khqr ? (
-        <>
-          <KhqrPayment shop={shop} order={order} code={payment.khqr.code} name={payment.khqr.merchant_name} />
-          <IvePaid shop={shop} order={order} phone={phone} />
-        </>
-      ) : payment.bank_account ? (
-        <>
-          <BankPayment account={payment.bank_account} total={total} orderNumber={order.number} />
-          <IvePaid shop={shop} order={order} phone={phone} />
-        </>
+      ) : payment.khqr || payment.bank_account ? (
+        <HowToPay shop={shop} order={order} phone={phone} total={total} />
       ) : (
         // The seller turned this way to pay off after the order was placed.
         <p className="mt-2 text-sm text-slate-600">
@@ -70,14 +62,65 @@ export function PaymentCard({ shop, order, phone }: { shop: ShopStore; order: Sh
   )
 }
 
+/** The KHQR or the bank account, then "I've paid". Once the customer has
+ * said they paid, that leads, and the QR or account folds behind "Show
+ * ... again" so nobody thinks they still have to pay (UX check #9,
+ * 2026-10-17). */
+function HowToPay({ shop, order, phone, total }: { shop: ShopStore; order: ShopOrder; phone: string; total: string }) {
+  const p = useT().order.pay
+  const { payment } = order
+  const [toldAt, setToldAt] = useState(payment.claimed_at)
+  const [again, setAgain] = useState(false)
+  const how = payment.khqr ? (
+    <KhqrPayment shop={shop} order={order} code={payment.khqr.code} name={payment.khqr.merchant_name} />
+  ) : (
+    payment.bank_account && <BankPayment account={payment.bank_account} total={total} orderNumber={order.number} />
+  )
+  if (!toldAt) {
+    return (
+      <>
+        {how}
+        <IvePaid shop={shop} order={order} phone={phone} toldAt={null} onTold={setToldAt} />
+      </>
+    )
+  }
+  return (
+    <>
+      <IvePaid shop={shop} order={order} phone={phone} toldAt={toldAt} onTold={setToldAt} />
+      <button
+        type="button"
+        aria-expanded={again}
+        onClick={() => setAgain((open) => !open)}
+        className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-navy-700 hover:underline"
+      >
+        {payment.khqr ? p.showQrAgain : p.showBankAgain}
+        <ChevronDown aria-hidden className={`size-4 transition-transform ${again ? 'rotate-180' : ''}`} />
+      </button>
+      {again && how}
+    </>
+  )
+}
+
 /** "I've paid" (founder's pick 6B): tells the shop (the bell and
  * Telegram; the seller still checks their bank), and opens the shop's
  * chat with a line typed in, for the receipt screenshot. The payment stays
- * "not paid" until the seller confirms it. */
-function IvePaid({ shop, order, phone }: { shop: ShopStore; order: ShopOrder; phone: string }) {
+ * "not paid" until the seller confirms it. Once told: when, and sending
+ * the receipt again. */
+function IvePaid({
+  shop,
+  order,
+  phone,
+  toldAt,
+  onTold,
+}: {
+  shop: ShopStore
+  order: ShopOrder
+  phone: string
+  toldAt: string | null
+  onTold: (at: string) => void
+}) {
   const p = useT().order.pay
   const queryClient = useQueryClient()
-  const [toldAt, setToldAt] = useState(order.payment.claimed_at)
   const total = formatMoney(order.payment.amount, order.currency)
   const contact = useContactLink(shop, p.iPaidText(order.number, total))
   const channel = shop.telegram_username ? 'telegram' : shop.messenger_username ? 'messenger' : null
@@ -92,7 +135,7 @@ function IvePaid({ shop, order, phone }: { shop: ShopStore; order: ShopOrder; ph
       keepalive: true,
     }).then(
       () => {
-        setToldAt(new Date().toISOString())
+        onTold(new Date().toISOString())
         queryClient.invalidateQueries({ queryKey: ['shop', shop.slug, 'order', order.id] })
       },
       () => {},
@@ -119,7 +162,7 @@ function IvePaid({ shop, order, phone }: { shop: ShopStore; order: ShopOrder; ph
 
   if (toldAt) {
     return (
-      <div className="mt-4 space-y-2 border-t border-slate-100 pt-3">
+      <div className="mt-2 space-y-1">
         <p className="flex items-start gap-1.5 text-sm text-slate-700">
           <CircleCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-emerald-600" />
           {p.told(shop.name, formatOrderTime(toldAt))}
