@@ -344,6 +344,14 @@
   text-decoration-color: color-mix(in oklab, currentColor 45%, transparent);
 }
 
+/* A sideways-scrolling row (category chips, Orders tabs) fades at both
+   ends, so a chip past the edge reads as "more this way" instead of cut
+   (UI check #12). The rows keep 16px of padding at each end, so nothing
+   fades while they rest at either end. */
+@utility fade-x {
+  mask-image: linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+}
+
 @layer base {
   html {
     /* Inherited: any other underline clears Khmer letters too. */

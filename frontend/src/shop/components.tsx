@@ -1,6 +1,7 @@
 import { CalendarClock, ImageIcon, Minus, Plus, SearchX, Store } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
+import { revealChosen } from '../components/revealChosen.ts'
 import { Badge, Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { thumbnailUrl } from '../lib/images.ts'
 import { formatPriceRange } from '../lib/money.ts'
@@ -110,13 +111,11 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
   const t = useT()
 
   // Someone landing on a category link should see which chip is theirs,
-  // even when it starts off-screen. Sideways only: the page doesn't move.
+  // even when it starts off-screen, with the chip before it in full.
   // Before it's drawn: between All and a category the row is new (another
   // page component) and nothing fades over it.
   useLayoutEffect(() => {
-    const el = nav.current
-    const active = el?.querySelector<HTMLElement>('[aria-current="page"]')
-    if (el && active) el.scrollLeft = active.offsetLeft - (el.clientWidth - active.offsetWidth) / 2
+    revealChosen(nav.current, nav.current?.querySelector<HTMLElement>('[aria-current="page"]') ?? null)
   }, [pathname])
 
   if (shop.categories.length === 0) return null
@@ -127,7 +126,7 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
         : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50 active:bg-slate-100'
     }`
   return (
-    <nav ref={nav} aria-label={t.shop.categories} className="relative -mx-4 mb-5 overflow-x-auto [scrollbar-width:none]">
+    <nav ref={nav} aria-label={t.shop.categories} className="relative -mx-4 mb-5 overflow-x-auto fade-x [scrollbar-width:none]">
       {/* Padding on the list, not the nav, so the last chip keeps its gap
           from the screen edge when scrolled all the way. */}
       <ul className="flex w-max gap-2 px-4">

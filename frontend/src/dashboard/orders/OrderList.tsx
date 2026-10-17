@@ -1,6 +1,7 @@
 import { CalendarClock, ExternalLink, Inbox, MousePointerClick, Package, Plus, SearchX, Truck } from 'lucide-react'
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
+import { revealChosen } from '../../components/revealChosen.ts'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card, EmptyState, ErrorState, Skeleton } from '../../components/ui.tsx'
 import type { Messages } from '../../i18n/core.ts'
@@ -130,6 +131,11 @@ function useFiltered() {
 function OrdersHeader() {
   const { filter, orders, countOf, choose } = useFiltered()
   const t = useT()
+  // Phones: the chosen tab shows with the one before it (UI check #12).
+  const tabs = useRef<HTMLElement>(null)
+  useLayoutEffect(() => {
+    revealChosen(tabs.current, tabs.current?.querySelector<HTMLElement>('[aria-pressed="true"]') ?? null)
+  }, [filter.key, orders.isPending])
   return (
     <div className="mb-2 lg:mb-5 lg:flex lg:items-center lg:gap-8">
       {/* "New order" beside the title (founder's pick 4A): an order that
@@ -147,8 +153,9 @@ function OrdersHeader() {
         countOf([]) !== 0 &&
         !orders.error && (
           <nav
+            ref={tabs}
             aria-label={t.orders.filterLabel}
-            className="-mx-4 min-w-0 overflow-x-auto [scrollbar-width:none] lg:mx-0 lg:flex-1"
+            className="-mx-4 min-w-0 overflow-x-auto [scrollbar-width:none] max-lg:fade-x lg:mx-0 lg:flex-1"
           >
             <ul className="flex w-max min-w-full gap-1 border-b border-slate-200 px-4 lg:px-0">
               {FILTERS.map((f) => {

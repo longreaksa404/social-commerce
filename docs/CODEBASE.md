@@ -1232,6 +1232,9 @@ is wrapped in try/catch (private mode).
   place shows (link cards, New link picker, link page, an order's "Came
   through" line). Shapes in `lib/sourceLogos.ts` (Simple Icons, CC0);
   `hasLogo(source)` is false for a place the seller typed in.
+- `components/revealChosen.ts`: scrolls a sideways row (category chips,
+  Orders tabs) so the chosen item shows with the one before it; with the
+  `fade-x` utility (`index.css`) such rows fade at both ends (UI check #12).
 - `components/effects.ts` (confetti, vibration, `reducedMotion()`),
   `components/useBump.ts` (re-run an animation when a value changes),
   `shop/fly.ts` (photo flies into the cart).
