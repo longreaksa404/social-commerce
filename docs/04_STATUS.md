@@ -1048,6 +1048,9 @@ for a pick).
 - [x] 12. Rows that scroll sideways (the shop's categories, the Orders
   tabs on phones) fade softly at both ends instead of slicing a chip in
   half, and open scrolled so the chosen one shows with the one before it.
+- [x] 13. Checkout's delivery choices use drawn radio rings like the
+  seller's New order (empty ring, navy dot when picked), instead of the
+  browser's own, which dark mode drew as grey discs.
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,

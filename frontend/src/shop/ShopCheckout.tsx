@@ -642,7 +642,9 @@ function ChoiceCard({
         required
         checked={checked}
         onChange={onChange}
-        className="mt-0.5 size-5 shrink-0 accent-navy-700"
+        // Drawn like the seller's New order, not the browser's own radio,
+        // which dark mode paints as a grey disc (UI check #13).
+        className="mt-0.5 grid size-5 shrink-0 appearance-none place-content-center rounded-full border-2 border-slate-300 bg-surface before:size-2.5 before:rounded-full before:bg-brand before:opacity-0 checked:border-brand checked:before:opacity-100 focus-visible:outline-none"
       />
       <span className="min-w-0 flex-1">
         <span className="block break-words font-medium text-slate-900">{label}</span>
