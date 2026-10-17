@@ -848,7 +848,7 @@ export function LinkFields({ store, form, update, error }: FieldsProps) {
         {/* The saved link: an unsaved new slug doesn't work yet. */}
         <Link to={`/shop/${store.slug}`} target="_blank" className={`${buttonClass('secondary')} w-full sm:w-auto`}>
           <ExternalLink aria-hidden className="size-4" />
-          {s.openShop}
+          {s.viewShop}
         </Link>
         <Link to="/dashboard/links/new" className={`${buttonClass('secondary')} w-full sm:w-auto`}>
           <Share2 aria-hidden className="size-4" />

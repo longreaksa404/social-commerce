@@ -41,7 +41,9 @@ export const settings = {
     en: 'For your shop and this app, once you save.',
     km: 'សម្រាប់ហាងរបស់អ្នក និងកម្មវិធីនេះ ពេលអ្នករក្សាទុក។',
   },
-  seeShop: { en: 'See your shop', km: 'មើលហាងរបស់អ្នក' },
+  // Every button that only shows the shop says this; "Open shop" means
+  // starting to take orders (UX check #4, 2026-10-17).
+  seeShop: { en: 'View your shop', km: 'មើលហាងរបស់អ្នក' },
   colors: {
     navy: { en: 'Navy', km: 'ខៀវចាស់' },
     teal: { en: 'Teal', km: 'ខៀវបៃតង' },
@@ -284,7 +286,7 @@ export const settings = {
     en: 'Lowercase letters, numbers, and single hyphens',
     km: 'អក្សរអង់គ្លេសតូច លេខ និងសញ្ញា - មួយៗ',
   },
-  openShop: { en: 'Open shop', km: 'បើកហាង' },
+  viewShop: { en: 'View your shop', km: 'មើលហាងរបស់អ្នក' },
   shareTracked: { en: 'Share with a tracked link', km: 'ចែករំលែកជាមួយតំណតាមដាន' },
 
   display: { en: 'Language and theme', km: 'ភាសា និងរូបរាង' },

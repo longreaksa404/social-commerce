@@ -1011,6 +1011,9 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   button in its row (Add, Set fee, Set up, Open shop), until the first
   three steps are done and the shop is open (or the list is hidden). The
   delivery-fee reminder waits until then, since it's step 2.
+- [x] 4. "Open shop" now only means starting to take orders. Buttons that
+  just show the shop say "View your shop" (មើលហាងរបស់អ្នក): Settings →
+  Shop link and Settings → your shop.
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:
