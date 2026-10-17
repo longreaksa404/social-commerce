@@ -275,6 +275,13 @@ export const orders = {
   rejectConfirm: { en: 'Reject order', km: 'បដិសេធការកុម្ម៉ង់' },
   cancelConfirm: { en: 'Cancel order', km: 'លុបចោលការកុម្ម៉ង់' },
   // Toast after a change: "Order #1001: Accepted".
+  // After Accept the order stays open, with a way on to the next new one
+  // (UX check #6, 2026-10-17).
+  acceptedMore: {
+    en: (n: number) => (n === 1 ? 'Accepted. 1 more new order' : `Accepted. ${n} more new orders`),
+    km: (n: number) => `បានទទួល។ នៅមានការកុម្ម៉ង់ថ្មី ${n} ទៀត`,
+  },
+  nextOrder: { en: 'Next', km: 'បន្ទាប់' },
   changed: {
     en: (n: number, what: string) => `Order #${n}: ${what}`,
     km: (n: number, what: string) => `ការកុម្ម៉ង់ #${n}៖ ${what}`,

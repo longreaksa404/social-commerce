@@ -21,9 +21,14 @@ import { SendToDriverSheet } from './SendToDriver.tsx'
 import { StatusCard } from './StatusCard.tsx'
 import { useOrderActions, type OrderActions } from './useOrderActions.ts'
 
-/** /dashboard/orders/:orderId. `onDecided` runs once a new order is
- * accepted or rejected here (OrdersPage opens the next new one). */
-export function OrderDetail({ onDecided }: { onDecided?: () => void }) {
+/** The next new order in the list, and how many new ones are left. */
+export type NextNew = { id: string; count: number }
+
+/** /dashboard/orders/:orderId. A new order rejected here opens the next
+ * new one; accepted, it stays open, where its next step is (sending it to
+ * a driver), with "Next ›" to the following new order (UX check #6,
+ * 2026-10-17; before, it opened the next at once: founder's pick 1B). */
+export function OrderDetail({ nextNew, onNext }: { nextNew?: NextNew; onNext?: () => void }) {
   const { orderId = '' } = useParams()
   const order = useOrder(orderId)
   // Back to the tab it was opened from (the list keeps it in ?show=).
@@ -46,7 +51,8 @@ export function OrderDetail({ onDecided }: { onDecided?: () => void }) {
       order={order.data}
       back={back}
       onStale={() => order.refetch()}
-      onDecided={onDecided}
+      nextNew={nextNew}
+      onNext={onNext}
     />
   )
 }
@@ -60,15 +66,21 @@ function OrderView({
   order,
   back,
   onStale,
-  onDecided,
+  nextNew,
+  onNext,
 }: {
   order: Order
   back: string
   onStale: () => void
-  onDecided?: () => void
+  nextNew?: NextNew
+  onNext?: () => void
 }) {
   const t = useT()
-  const actions = useOrderActions(order, onStale, onDecided)
+  const [accepted, setAccepted] = useState(false)
+  const actions = useOrderActions(order, onStale, (status) => {
+    if (status === 'accepted') setAccepted(true)
+    else onNext?.()
+  })
   const [paying, setPaying] = useState(false)
   const [sending, setSending] = useState(false)
   const card = useRef<HTMLElement>(null)
@@ -101,6 +113,16 @@ function OrderView({
       />
       <title>{t.shop.orderNumber(order.number)}</title>
       <div className="space-y-4">
+        {accepted && nextNew && onNext && (
+          <div className="flex items-center gap-3 rounded-2xl bg-navy-50 px-4 py-2.5 text-sm text-slate-700">
+            <CircleCheck aria-hidden className="size-4.5 shrink-0 text-emerald-700" />
+            <span className="min-w-0 flex-1">{t.orders.acceptedMore(nextNew.count)}</span>
+            <Button variant="secondary" onClick={onNext} className="shrink-0">
+              {t.orders.nextOrder}
+              <ChevronRight aria-hidden className="size-4" />
+            </Button>
+          </div>
+        )}
         {CLOSED.has(order.status) && <ClosedNote status={order.status} />}
         <StatusCard
           ref={card}

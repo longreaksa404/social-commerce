@@ -13,9 +13,8 @@ import { useMoveOrder } from './useMoveOrder.ts'
  * other (02 section 7): each action records only what it says, except the
  * cash handover, which is both on purpose. Each resolves to whether it
  * worked; `onStale` runs when the order changed on another device, and
- * `onDecided` once a new order is accepted or rejected (the list opens the
- * next new one). */
-export function useOrderActions(order: Order, onStale: () => void, onDecided?: () => void) {
+ * `onDecided` once a new order is accepted or rejected. */
+export function useOrderActions(order: Order, onStale: () => void, onDecided?: (status: OrderStatus) => void) {
   const t = useT()
   const o = t.orders
   const { toast, confirm } = useFeedback()
@@ -43,7 +42,7 @@ export function useOrderActions(order: Order, onStale: () => void, onDecided?: (
 
   async function move(status: OrderStatus) {
     // `order` as it was when tapped: a new one accepted or rejected.
-    if ((await moveOrder(status)) && order.status === 'pending') onDecided?.()
+    if ((await moveOrder(status)) && order.status === 'pending') onDecided?.(status)
   }
 
   const recordDelivery = (status: DeliveryStatus, note: string | null, what: string | null) =>

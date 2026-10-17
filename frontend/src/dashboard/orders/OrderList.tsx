@@ -34,14 +34,14 @@ export function OrdersPage() {
   const { search, state } = useLocation()
   const { orders } = useFiltered()
   const setup = useSetupOnOrders()
-  // Going through new orders: once the open one is accepted or rejected,
-  // the next new one opens (founder's pick 1B, 2026-10-08). Not when it
-  // was opened from a customer's or a link's page: back goes there.
+  // Going through new orders (founder's pick 1B, 2026-10-08): rejecting
+  // the open one opens the next new one; accepting it keeps it open with
+  // "Next ›" (UX check #6, 2026-10-17). Not when it was opened from a
+  // customer's or a link's page: back goes there.
   const fromElsewhere = typeof (state as { back?: unknown } | null)?.back === 'string'
-  const next =
-    orderId && !fromElsewhere
-      ? nextNewOrder(orders.data?.pages.flatMap((page) => page.orders) ?? [], orderId)
-      : undefined
+  const loaded = orders.data?.pages.flatMap((page) => page.orders) ?? []
+  const next = orderId && !fromElsewhere ? nextNewOrder(loaded, orderId) : undefined
+  const newLeft = loaded.filter((o) => o.status === 'pending' && o.id !== orderId).length
   // The title and tabs run across the top on laptops, above both columns,
   // so all the tabs fit on one line.
   return (
@@ -61,7 +61,8 @@ export function OrdersPage() {
           <div className="lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto lg:rounded-2xl lg:pb-2">
             <OrderDetail
               key={orderId}
-              onDecided={next ? () => navigate(`/dashboard/orders/${next}${search}`, { replace: true }) : undefined}
+              nextNew={next ? { id: next, count: newLeft } : undefined}
+              onNext={next ? () => navigate(`/dashboard/orders/${next}${search}`, { replace: true }) : undefined}
             />
           </div>
         ) : (

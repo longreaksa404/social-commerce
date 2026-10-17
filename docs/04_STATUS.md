@@ -1019,6 +1019,10 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   payment line reads "Says paid at 7:09 AM" instead of "Unpaid", with
   "Check your bank app for $28.50". API: order rows carry
   `payment_claimed_at` (no data model change; test in test_telegram.py).
+- [x] 6. Accepting an order keeps it open, where Send to driver is now
+  the next step, with "Accepted. 3 more new orders · Next ›" on top.
+  Rejecting still opens the next new order (founder agreed to change the
+  pick of 2026-10-08).
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:
