@@ -83,9 +83,12 @@ function uniqueById(notifications: SellerNotification[]): SellerNotification[] {
   })
 }
 
+// Icons grey in a grey circle, the colour on the title's words, as on an
+// order's status card; sold out is red like everywhere else (UI check #19,
+// founder 2026-10-17).
 type Shown = {
   icon: LucideIcon
-  iconClass: string
+  titleClass: string
   title: string
   body: string
   to: string
@@ -99,7 +102,7 @@ function describe(t: Messages, n: SellerNotification): Shown | null {
     if (order.accepted_automatically) parts.push(words.acceptedAutomatically)
     return {
       icon: ShoppingBag,
-      iconClass: 'bg-navy-50 text-navy-700',
+      titleClass: 'text-slate-900',
       title: words.newOrder(order.number),
       body: parts.join(' · '),
       to: `/dashboard/orders/${order.id}`,
@@ -109,7 +112,7 @@ function describe(t: Messages, n: SellerNotification): Shown | null {
     const { order } = n
     return {
       icon: Wallet,
-      iconClass: 'bg-slate-100 text-amber-700',
+      titleClass: 'text-amber-700',
       title: words.paymentClaimed(order.customer_name, order.number),
       body: `${formatMoney(order.total, order.currency)} · ${words.checkBank}`,
       to: `/dashboard/orders/${order.id}`,
@@ -117,10 +120,11 @@ function describe(t: Messages, n: SellerNotification): Shown | null {
   }
   if (n.event_type === 'low_stock' && n.items.length > 0) {
     const products = new Set(n.items.map((item) => item.product_id))
+    const soldOut = n.items.every((item) => item.left === 0)
     return {
       icon: TriangleAlert,
-      iconClass: 'bg-slate-100 text-amber-700',
-      title: n.items.every((item) => item.left === 0) ? words.soldOut : words.runningLow,
+      titleClass: soldOut ? 'text-red-700' : 'text-amber-700',
+      title: soldOut ? words.soldOut : words.runningLow,
       body: n.items
         .map((item) => (item.left === 0 ? words.itemSoldOut(item.name) : words.itemLeft(item.name, item.left)))
         .join(' · '),
@@ -145,12 +149,12 @@ function NotificationRow({ notification, unread }: { notification: SellerNotific
         unread ? 'bg-navy-50/50' : ''
       }`}
     >
-      <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${shown.iconClass}`}>
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
         <Icon aria-hidden className="size-5" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
-          <span className={`truncate text-slate-900 ${unread ? 'font-semibold' : 'font-medium'}`}>
+          <span className={`truncate ${shown.titleClass} ${unread ? 'font-semibold' : 'font-medium'}`}>
             {unread && <span className="sr-only">{t.customers.notifications.unread}</span>}
             {shown.title}
           </span>
