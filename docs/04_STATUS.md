@@ -1023,6 +1023,11 @@ for a pick).
 - [x] 6. Done steps in the setup list (Settings and the Orders tab) keep
   the green tick and grey words but lose the line through them, which
   ran through the middle of the Khmer letters.
+- [x] 7. Call, Telegram and Copy buttons have one look: the app's
+  outlined rounded-square button. The customer's order page lost its
+  round-ended pills, the order's Call / Copy beside the phone are
+  square icon buttons, and Call on a customer's page is outlined (the
+  dark button stays for the next step).
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,

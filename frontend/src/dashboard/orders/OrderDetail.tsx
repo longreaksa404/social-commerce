@@ -299,8 +299,10 @@ function TelegramPhone({ customer }: { customer: Order['customer'] }) {
   )
 }
 
+// Call and Copy beside the phone: the app's own outlined button shape, icon
+// only (UI check #7, founder 2026-10-17).
 const ROUND_BUTTON =
-  'inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-surface text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-95'
+  'inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-surface text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-95'
 
 /** Who and where in one card (founder's pick 3A): the name, the phone with
  * Call and Copy beside it, then the address and the map. */

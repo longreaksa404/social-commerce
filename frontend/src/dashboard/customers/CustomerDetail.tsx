@@ -62,7 +62,7 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
             {c.since(formatDate(customer.created_at))}
           </p>
           <div className="mt-4 flex gap-3">
-            <a href={`tel:${customer.phone}`} className={`${buttonClass('primary')} flex-1`}>
+            <a href={`tel:${customer.phone}`} className={`${buttonClass('secondary')} flex-1`}>
               <Phone aria-hidden className="size-4" />
               {c.call}
             </a>

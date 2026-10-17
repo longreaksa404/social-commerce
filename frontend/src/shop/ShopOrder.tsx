@@ -350,13 +350,13 @@ function SellerCard({ shop, order, className }: { shop: ShopStore; order: ShopOr
   const t = useT()
   const link = useContactLink(shop, t.order.askAboutText(order.number, window.location.href))
   const channels = contactChannels(shop)
-  const pill = (channel: Channel) => (
+  const contact = (channel: Channel) => (
     <a
       key={channel}
       {...link(channel)}
       rel="noreferrer"
       aria-label={t.order.askAboutOn(t.shop.contact.short[channel])}
-      className="inline-flex min-h-11 min-w-0 shrink-0 items-center justify-center gap-2 rounded-full border border-slate-300 bg-surface px-4 text-sm font-semibold text-slate-800 shadow-xs transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600"
+      className={`${buttonClass('secondary')} min-w-0 shrink-0`}
     >
       <ChannelIcon channel={channel} />
       <span className="truncate">{t.shop.contact.short[channel]}</span>
@@ -370,10 +370,10 @@ function SellerCard({ shop, order, className }: { shop: ShopStore; order: ShopOr
           <p className="truncate font-semibold text-slate-900">{shop.name}</p>
           <p className="text-sm text-slate-500">{t.order.questions}</p>
         </div>
-        {channels.length === 1 && pill(channels[0])}
+        {channels.length === 1 && contact(channels[0])}
       </div>
       {channels.length > 1 && (
-        <div className="mt-3 flex flex-wrap gap-2 [&>a]:grow [&>a]:basis-28">{channels.map(pill)}</div>
+        <div className="mt-3 flex flex-wrap gap-2 [&>a]:grow [&>a]:basis-28">{channels.map(contact)}</div>
       )}
     </Card>
   )
