@@ -1016,6 +1016,10 @@ for a pick).
   no longer faded to half strength (their text was 2:1); they show at
   full strength with the status words in grey, since nothing is left
   to do.
+- [x] 5. On an order, two buttons that don't fit side by side (e.g. Try
+  again + "Delivered, cash received" in Khmer) go one under the other,
+  full width, instead of squeezing a label onto two lines. Short pairs
+  (Reject / Accept, Send / Delivered) stay side by side.
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,

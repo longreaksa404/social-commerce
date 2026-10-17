@@ -100,7 +100,12 @@ const NEXT = { 'data-next-step': true }
 const nextIf = (on: boolean) => (on ? NEXT : {})
 
 const Sub = ({ children }: { children: ReactNode }) => <p className="mt-0.5 text-sm break-words text-slate-500">{children}</p>
-const Buttons = ({ children }: { children: ReactNode }) => <div className="mt-3 flex flex-wrap gap-2.5">{children}</div>
+// Each button starts at its whole label's width, so a pair that doesn't
+// fit side by side goes one under the other, full width, instead of
+// squeezing a long label (Khmer above all) onto two lines (UI check #5).
+const Buttons = ({ children }: { children: ReactNode }) => (
+  <div className="mt-3 flex flex-wrap gap-2.5 *:min-w-0 *:basis-[max-content]">{children}</div>
+)
 
 function OrderRow({ order, actions, step }: { order: Order; actions: OrderActions; step: ReturnType<typeof nextStep> }) {
   const t = useT()
