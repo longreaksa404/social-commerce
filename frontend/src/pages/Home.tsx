@@ -1,6 +1,7 @@
 import { Link, Navigate } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { Spinner } from '../components/ui.tsx'
+import { AcornO } from '../components/OakMark.tsx'
 import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 import { useT } from '../i18n/useT.ts'
 import { BrandMark } from './AuthLayout.tsx'
@@ -27,10 +28,16 @@ export function Home() {
       </div>
 
       <div className="my-auto py-12">
+        {/* The name as the logo draws it: the acorn's cap on the O (UI
+            check #20, founder 2026-10-17). */}
         <h1 lang="en" className="animate-rise text-[clamp(5.5rem,24vw,13rem)] leading-[0.95] font-bold tracking-tight">
-          Oak
+          <span className="sr-only">Oak Order</span>
+          <span aria-hidden className="inline-flex items-baseline">
+            <AcornO />
+            ak
+          </span>
           <br />
-          Order
+          <span aria-hidden>Order</span>
         </h1>
         <p className="mt-6 max-w-xl text-xl leading-relaxed text-white/85 sm:text-2xl">{home.tagline}</p>
         <div className="mt-10 hidden gap-3 sm:flex">

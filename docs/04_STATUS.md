@@ -1070,6 +1070,8 @@ for a pick).
 - [x] 19. Notifications: every icon is grey in a grey circle, the colour
   is on the title's words (Says paid and Running low in amber, Sold out
   in red, as everywhere else; it was an amber triangle).
+- [x] 20. The start page's big "Oak Order" has the acorn's cap on its O,
+  as the logo does (it was plain letters under the logo).
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,
