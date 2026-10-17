@@ -1033,6 +1033,10 @@ for a pick).
   Your orders ("Waiting for the seller to confirm · Not paid yet",
   "Paid" in green words), Products ("Stock 10 · 3 options"), Settings →
   Plan ("29 days left").
+- [x] 9. Laptops: every dashboard page starts at the same left edge
+  beside the sidebar. Forms and detail pages (a customer, a product,
+  Categories, Notifications) stay a narrow column but no longer float in
+  the middle, so the title doesn't jump when you open something.
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,

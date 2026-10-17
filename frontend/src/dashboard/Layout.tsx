@@ -54,6 +54,8 @@ function Shell() {
   const focused = productScreen || orderScreen || settingsScreen
   // How wide the page may get on laptops: lists that sit beside what's
   // open, grids and tables use the width; forms stay a readable column.
+  // Every page starts at the same left edge beside the sidebar, so the
+  // title doesn't jump between pages (UI check #9, founder 2026-10-17).
   const ordersList = useMatch('/dashboard/orders') !== null
   const productsList = useMatch('/dashboard/products') !== null
   const customersList = useMatch('/dashboard/customers') !== null
@@ -73,7 +75,7 @@ function Shell() {
       <Sidebar />
       {!focused && <MobileTopBar />}
       <main
-        className={`mx-auto w-full px-4 lg:px-8 lg:py-8 ${width} ${
+        className={`mx-auto w-full px-4 lg:mx-0 lg:px-8 lg:py-8 ${width} ${
           focused ? 'pt-2 pb-28 lg:pb-8' : 'pt-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] lg:pb-8'
         }`}
       >
