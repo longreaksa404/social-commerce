@@ -81,7 +81,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
             <h2 id="confirm-title" className="text-lg font-semibold text-slate-900">
               {pending.title}
             </h2>
-            {pending.message && <p className="mt-2 text-sm leading-6 text-slate-600">{pending.message}</p>}
+            {pending.message && <p className="mt-2 text-sm leading-6 whitespace-pre-line text-slate-600">{pending.message}</p>}
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button type="button" className={buttonClass('secondary')} onClick={() => close(false)}>
                 {t.common.cancel}

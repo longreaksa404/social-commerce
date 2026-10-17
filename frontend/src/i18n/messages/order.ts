@@ -52,6 +52,11 @@ export const order = {
     en: (shop: string) => `Contact ${shop} if you have questions about it.`,
     km: (shop: string) => `សូមទាក់ទង ${shop} ប្រសិនបើអ្នកមានសំណួរ។`,
   },
+  // A closed order the customer had paid, or said they paid (UX check #21).
+  moneyBack: {
+    en: (shop: string, total: string) => `If you paid ${total}, message ${shop} to get your money back.`,
+    km: (shop: string, total: string) => `ប្រសិនបើអ្នកបានបង់ ${total} សូមផ្ញើសារទៅ ${shop} ដើម្បីទទួលប្រាក់វិញ។`,
+  },
   items: { en: 'Items', km: 'ទំនិញ' },
   comeBack: {
     en: (shop: string) =>

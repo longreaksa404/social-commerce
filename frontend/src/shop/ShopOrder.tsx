@@ -281,7 +281,13 @@ function StatusCard({
         {orderHeadline(t, order)}
       </p>
       {closed ? (
-        <p className="mt-2 text-sm text-slate-600">{t.order.contactShop(shop.name)}</p>
+        <p className="mt-2 text-sm text-slate-600">
+          {/* Customers pay before the seller accepts (01, 2026-10-02): say
+              how to get money back (UX check #21). */}
+          {order.payment.status === 'paid' || order.payment.claimed_at
+            ? t.order.moneyBack(shop.name, formatMoney(order.payment.amount, order.currency))
+            : t.order.contactShop(shop.name)}
+        </p>
       ) : (
         <>
           <Progress order={order} />

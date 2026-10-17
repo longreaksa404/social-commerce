@@ -1085,6 +1085,12 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   but are counted on the New tab (and come by Telegram), so working from
   Orders no longer leaves the bell at 13. API: the unread count leaves
   out new orders (tests updated, one added).
+- [x] 21. Money on a rejected or cancelled order: the customer's page
+  says "If you paid $28.50, message Srey Mom Fashion to get your money
+  back" when it was paid or they said so; the seller's Reject / Cancel
+  question adds "Sokha Chan says they paid $28.50: check your bank app,
+  and send it back if it came" (or "It's paid ($X): send the money
+  back").
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

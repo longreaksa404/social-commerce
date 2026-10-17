@@ -4,6 +4,7 @@ import { useT } from '../../i18n/useT.ts'
 import { ApiError } from '../../lib/api.ts'
 import { deliveryBadge } from '../../lib/delivery.ts'
 import { errorText } from '../../lib/errors.ts'
+import { formatMoney } from '../../lib/money.ts'
 import type { DeliveryStatus, Order, OrderStatus } from '../../lib/types.ts'
 import { useCashHandover, useRecordDelivery, useRecordPayment } from '../queries.ts'
 import { useMoveOrder } from './useMoveOrder.ts'
@@ -18,7 +19,14 @@ export function useOrderActions(order: Order, onStale: () => void, onDecided?: (
   const t = useT()
   const o = t.orders
   const { toast, confirm } = useFeedback()
-  const { move: moveOrder, change } = useMoveOrder(order.id, order.number, onStale)
+  const amount = formatMoney(order.payment.amount, order.currency)
+  const moneyNote =
+    order.payment.status === 'paid'
+      ? o.sendMoneyBack(amount)
+      : order.payment.status === 'pending' && order.payment.claimed_at
+        ? o.saysPaidMoneyBack(order.customer.name, amount)
+        : null
+  const { move: moveOrder, change } = useMoveOrder(order.id, order.number, onStale, moneyNote)
   const delivery = useRecordDelivery(order.id)
   const payment = useRecordPayment(order.id)
   const handover = useCashHandover(order.id)

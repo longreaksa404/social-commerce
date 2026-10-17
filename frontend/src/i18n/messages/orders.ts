@@ -269,6 +269,16 @@ export const orders = {
     en: "Its items go back into stock, and the customer sees it was not accepted on their order page. This can't be undone.",
     km: 'ទំនិញនឹងត្រឡប់ចូលស្តុកវិញ ហើយអតិថិជននឹងឃើញថាការកុម្ម៉ង់មិនត្រូវបានទទួល នៅលើទំព័រការកុម្ម៉ង់របស់គេ។ មិនអាចត្រឡប់វិញបានទេ។',
   },
+  // Added to the Reject / Cancel question when money came in (UX check #21).
+  sendMoneyBack: {
+    en: (amount: string) => `It's paid (${amount}): send the money back to the customer.`,
+    km: (amount: string) => `បានបង់រួចហើយ (${amount})៖ សូមផ្ញើប្រាក់ត្រឡប់ទៅអតិថិជនវិញ។`,
+  },
+  saysPaidMoneyBack: {
+    en: (name: string, amount: string) => `${name} says they paid ${amount}: check your bank app, and send it back if it came.`,
+    km: (name: string, amount: string) =>
+      `${name} ថាបានបង់ ${amount}៖ សូមពិនិត្យកម្មវិធីធនាគារ ហើយផ្ញើប្រាក់ត្រឡប់វិញ ប្រសិនបើបានទទួល។`,
+  },
   cancelMessage: {
     en: "Its items go back into stock, and the customer sees it was cancelled on their order page. This can't be undone.",
     km: 'ទំនិញនឹងត្រឡប់ចូលស្តុកវិញ ហើយអតិថិជននឹងឃើញថាការកុម្ម៉ង់ត្រូវបានលុបចោល នៅលើទំព័រការកុម្ម៉ង់របស់គេ។ មិនអាចត្រឡប់វិញបានទេ។',

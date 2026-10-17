@@ -14,7 +14,7 @@ export const ENDS_ORDER = new Set<OrderStatus>(['rejected', 'cancelled'])
  * celebration there, founder 2026-10-15), says what changed. `move`
  * resolves to whether it moved. `onStale` runs when it changed on another
  * device. */
-export function useMoveOrder(id: string, number: number, onStale: () => void) {
+export function useMoveOrder(id: string, number: number, onStale: () => void, moneyNote: string | null = null) {
   const { toast, confirm } = useFeedback()
   const t = useT()
   const o = t.orders
@@ -25,7 +25,8 @@ export function useMoveOrder(id: string, number: number, onStale: () => void) {
       const reject = status === 'rejected'
       const ok = await confirm({
         title: reject ? o.rejectTitle(number) : o.cancelTitle(number),
-        message: reject ? o.rejectMessage : o.cancelMessage,
+        // Money in, or the customer says so: a reminder to send it back.
+        message: [reject ? o.rejectMessage : o.cancelMessage, moneyNote].filter(Boolean).join('\n\n'),
         confirmLabel: reject ? o.rejectConfirm : o.cancelConfirm,
         danger: true,
       })
