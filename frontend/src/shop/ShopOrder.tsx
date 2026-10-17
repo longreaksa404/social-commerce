@@ -9,12 +9,12 @@ import type { Messages } from '../i18n/core.ts'
 import { useT } from '../i18n/useT.ts'
 import { formatMoney } from '../lib/money.ts'
 import { formatDate, formatOrderTime } from '../lib/orders.ts'
-import type { DeliveryMethod, DeliveryStatus, OrderStatus, ShopOrder, ShopStore } from '../lib/types.ts'
+import type { DeliveryMethod, DeliveryStatus, ShopOrder, ShopStore } from '../lib/types.ts'
 import { ProductImage, ShopLogo } from './components.tsx'
 import { contactChannels, useContactLink, type Channel } from './contact.ts'
 import { ChannelIcon } from './ContactSeller.tsx'
 import { loadCustomerDetails, orderPhone, rememberOrder } from './device.ts'
-import { orderHeadline, stepLabel } from './orderWords.ts'
+import { orderHeadline, trackLabel, trackStep, TRACK_STEPS } from './orderWords.ts'
 import { PaymentCard } from './PaymentCard.tsx'
 import { inProgress, isNotFound, useShop, useTelegramUpdates, useTrackOrder } from './queries.ts'
 
@@ -102,9 +102,6 @@ function PhoneGate({
     </div>
   )
 }
-
-// The order statuses the progress list shows, in order.
-const STEPS = ['pending', 'accepted', 'processing', 'ready', 'shipped', 'delivered'] as const
 
 // The delivery's own status (02 section 7.3), in the customer's words.
 function deliveryWords(t: Messages, method: DeliveryMethod, status: DeliveryStatus): string {
@@ -287,7 +284,7 @@ function StatusCard({
         <p className="mt-2 text-sm text-slate-600">{t.order.contactShop(shop.name)}</p>
       ) : (
         <>
-          <Progress status={order.status} method={order.delivery_method} />
+          <Progress order={order} />
           <DeliveryLine order={order} />
         </>
       )}
@@ -497,13 +494,14 @@ function DeliveryLine({ order }: { order: ShopOrder }) {
 // How long each part of the bar takes to fill, one after another.
 const FILL_MS = 260
 
-/** Six parts that fill in turn up to where the order is, with a truck (a
- * parcel for pickup) driving along to it; it moves on by itself when the
- * seller updates the order (the page checks every 30 seconds). */
-function Progress({ status, method }: { status: OrderStatus; method: DeliveryMethod }) {
+/** Four parts that fill in turn up to where the order is (ordered,
+ * confirmed, on the way, delivered: trackStep), with a truck (a parcel for
+ * pickup) driving along to it; it moves on by itself when the seller
+ * updates the order or its delivery (the page checks every 30 seconds). */
+function Progress({ order }: { order: ShopOrder }) {
   const t = useT()
-  // The last step reached; a completed order has reached them all.
-  const reached = status === 'completed' ? STEPS.length - 1 : STEPS.findIndex((step) => step === status)
+  const method = order.delivery_method
+  const reached = TRACK_STEPS.indexOf(trackStep(order))
   // How far the bar has filled so far: from nothing on opening, then one
   // part at a time up to `reached`.
   const [shown, setShown] = useState(-1)
@@ -513,9 +511,9 @@ function Progress({ status, method }: { status: OrderStatus; method: DeliveryMet
     return () => clearTimeout(timer)
   }, [shown, reached])
   const Icon = method === 'pickup' ? Package : Truck
-  const moving = reached < STEPS.length - 1
+  const moving = reached < TRACK_STEPS.length - 1
   const at = Math.max(0, shown)
-  const labels = STEPS.map((step) => stepLabel(t, step, t.order.step[step], method))
+  const labels = TRACK_STEPS.map((step) => trackLabel(t, step, method))
 
   return (
     <div className="mt-4">
@@ -532,13 +530,13 @@ function Progress({ status, method }: { status: OrderStatus; method: DeliveryMet
         <div className="relative h-7">
           <span
             className="absolute bottom-1 -translate-x-1/2 text-brand transition-[left] duration-300 ease-out"
-            style={{ left: `${((at + 0.5) / STEPS.length) * 100}%` }}
+            style={{ left: `${((at + 0.5) / TRACK_STEPS.length) * 100}%` }}
           >
             <Icon className={`size-5 ${moving && shown === reached ? 'animate-drive' : ''}`} />
           </span>
         </div>
-        <div className="grid grid-cols-6 gap-1">
-          {STEPS.map((step, i) => (
+        <div className="grid grid-cols-4 gap-1">
+          {TRACK_STEPS.map((step, i) => (
             <span key={step} className="h-1.5 overflow-hidden rounded-full bg-slate-200">
               <span
                 className={`block h-full rounded-full bg-brand transition-[width] duration-300 ease-out ${i <= shown ? 'w-full' : 'w-0'}`}
@@ -548,7 +546,7 @@ function Progress({ status, method }: { status: OrderStatus; method: DeliveryMet
         </div>
         {/* The step names fit from a small tablet up; phones read the
             step in words above the bar. */}
-        <div className="mt-1.5 hidden grid-cols-6 gap-1 text-center text-xs leading-4 sm:grid">
+        <div className="mt-1.5 hidden grid-cols-4 gap-1 text-center text-xs leading-4 sm:grid">
           {labels.map((label, i) => (
             <span key={label} className={i === reached ? 'font-semibold text-slate-900' : 'text-slate-500'}>
               {label}

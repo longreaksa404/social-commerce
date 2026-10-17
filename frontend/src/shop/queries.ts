@@ -96,8 +96,9 @@ export function usePlaceOrder(slug: string) {
 // Finished, from the customer's side: nothing more is coming.
 const DONE = new Set<OrderStatus>(['delivered', 'completed', 'rejected', 'cancelled'])
 
-/** Still on its way to the customer. */
-export const inProgress = (order: ShopOrder) => !DONE.has(order.status)
+/** Still on its way to the customer: not closed, and not delivered (the
+ * order's own status, or its delivery's before the seller completes it). */
+export const inProgress = (order: ShopOrder) => !DONE.has(order.status) && order.delivery.status !== 'delivered'
 
 // While a tracking page is open on an order in progress, check this often.
 const TRACK_REFRESH_MS = 30_000

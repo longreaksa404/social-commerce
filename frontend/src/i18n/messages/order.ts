@@ -100,14 +100,17 @@ export const order = {
   stepDone: { en: ' (done)', km: ' (រួចរាល់)' },
   stepNotYet: { en: ' (not yet)', km: ' (មិនទាន់)' },
 
-  // The progress list.
-  step: {
-    pending: { en: 'Order placed', km: 'បានកុម្ម៉ង់' },
-    accepted: { en: 'Confirmed by the seller', km: 'អ្នកលក់បានបញ្ជាក់' },
-    processing: { en: 'Being prepared', km: 'កំពុងរៀបចំ' },
-    ready: { en: 'Packed and ready', km: 'វេចខ្ចប់រួចរាល់' },
-    shipped: { en: 'On the way', km: 'កំពុងដឹកមក' },
+  // The progress bar's four steps: the order's, then its delivery's (UX
+  // check #2, 2026-10-17).
+  track: {
+    placed: { en: 'Ordered', km: 'បានកុម្ម៉ង់' },
+    confirmed: { en: 'Confirmed', km: 'បានបញ្ជាក់' },
+    onTheWay: { en: 'On the way', km: 'កំពុងដឹកមក' },
     delivered: { en: 'Delivered', km: 'បានដល់ដៃ' },
+    pickup: {
+      onTheWay: { en: 'Ready to collect', km: 'រួចរាល់ សូមមកយក' },
+      delivered: { en: 'Collected', km: 'បានមកយកហើយ' },
+    },
   },
   // The line under the order number.
   headline: {
@@ -120,6 +123,7 @@ export const order = {
     completed: { en: 'Completed', km: 'បានបញ្ចប់' },
     rejected: { en: "The seller couldn't take this order", km: 'អ្នកលក់មិនអាចទទួលការកុម្ម៉ង់នេះបានទេ' },
     cancelled: { en: 'This order was cancelled', km: 'ការកុម្ម៉ង់នេះត្រូវបានលុបចោល' },
+    deliveryFailed: { en: "The delivery didn't work out", km: 'ការដឹកជញ្ជូនមិនបានសម្រេច' },
   },
   // A pickup order goes through the same statuses; its customer reads
   // these instead.

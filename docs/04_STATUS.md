@@ -999,6 +999,13 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
 - [x] 1. New products: the stock box starts empty and must be filled in
   ("How many do you have?"); 0 says "Customers will see Sold out" in
   amber words. New size or colour rows too.
+- [x] 2. The customer's order page: four steps (Ordered, Confirmed, On
+  the way, Delivered; Ready to collect / Collected for pickup) instead of
+  six, the last two read from the delivery. A parcel the seller marked
+  delivered now reads Delivered before they tap Complete, and the bar
+  moves when it goes out with a driver. The header truck and the order's
+  30-second check stop once it's delivered. No status changes (founder
+  agreed to change the 6-step pick of 2026-10-07).
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:
