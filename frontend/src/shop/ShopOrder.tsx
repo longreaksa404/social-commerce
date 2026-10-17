@@ -179,7 +179,10 @@ function OrderView({
             payNow
               ? { text: t.order.nextPay(total, t.status.paymentMethod[order.payment.method]), urgent: true }
               : showPayment && order.payment.method === 'cod' && order.payment.status === 'pending'
-                ? { text: t.order.nextCod(total), urgent: false }
+                ? {
+                    text: (order.delivery_method === 'pickup' ? t.order.nextCodPickup : t.order.nextCod)(total),
+                    urgent: false,
+                  }
                 : null
           }
         />

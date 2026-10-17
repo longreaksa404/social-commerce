@@ -29,6 +29,11 @@ export const order = {
     en: (total: string) => `Pay ${total} in cash when it arrives`,
     km: (total: string) => `បង់ ${total} ជាសាច់ប្រាក់ ពេលទទួលទំនិញ`,
   },
+  // Pickup: nothing arrives; the customer collects it (UX check #27).
+  nextCodPickup: {
+    en: (total: string) => `Pay ${total} in cash when you collect it`,
+    km: (total: string) => `បង់ ${total} ជាសាច់ប្រាក់ ពេលអ្នកមកយក`,
+  },
   questions: { en: 'Questions about this order?', km: 'មានសំណួរអំពីការកុម្ម៉ង់នេះ?' },
   showItems: { en: 'Show items', km: 'មើលទំនិញ' },
   // An order in the list, by what was bought.
@@ -164,6 +169,7 @@ export const order = {
     // "Pay $12.00 in cash when you get your order." (the amount in bold)
     codBefore: { en: 'Pay', km: 'សូមបង់' },
     codAfter: { en: 'in cash when you get your order.', km: 'ជាសាច់ប្រាក់ ពេលទទួលបានទំនិញ។' },
+    codAfterPickup: { en: 'in cash when you collect it.', km: 'ជាសាច់ប្រាក់ ពេលអ្នកមកយក។' },
     // Delivered, the cash not recorded yet: no more asking to pay.
     codDone: {
       en: (total: string) => `${total} in cash, on delivery.`,

@@ -47,7 +47,8 @@ export function PaymentCard({ shop, order, phone }: { shop: ShopStore; order: Sh
           <p className="mt-2 text-sm text-slate-600">{p.codDone(total)}</p>
         ) : (
           <p className="mt-2 text-sm text-slate-600">
-            {p.codBefore} <span className="font-semibold text-slate-900">{total}</span> {p.codAfter}
+            {p.codBefore} <span className="font-semibold text-slate-900">{total}</span>{' '}
+            {order.delivery_method === 'pickup' ? p.codAfterPickup : p.codAfter}
           </p>
         )
       ) : payment.khqr || payment.bank_account ? (
