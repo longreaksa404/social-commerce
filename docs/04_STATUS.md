@@ -1102,6 +1102,8 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
 - [x] 24. A cash order's payment reads "Cash due" (រង់ចាំសាច់ប្រាក់;
   founder to check the Khmer) until the cash is recorded, instead of
   "COD" in English letters, in the list and on the order.
+- [x] 25. Order tabs: "Done" (delivered and completed; was Delivered)
+  and "Closed" (rejected and cancelled; was Cancelled).
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

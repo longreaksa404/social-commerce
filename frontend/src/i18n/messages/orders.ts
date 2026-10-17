@@ -226,8 +226,10 @@ export const orders = {
     all: { en: 'All', km: 'ទាំងអស់' },
     new: { en: 'New', km: 'ថ្មី' },
     active: { en: 'In progress', km: 'កំពុងដំណើរការ' },
-    done: { en: 'Delivered', km: 'បានដល់ដៃ' },
-    closed: { en: 'Cancelled', km: 'បានលុបចោល' },
+    // Names that fit what's inside: delivered and completed; rejected and
+    // cancelled (UX check #25, 2026-10-17).
+    done: { en: 'Done', km: 'រួចរាល់' },
+    closed: { en: 'Closed', km: 'បានបិទ' },
   },
   emptyTitle: { en: 'No orders yet', km: 'មិនទាន់មានការកុម្ម៉ង់នៅឡើយ' },
   emptyText: {
