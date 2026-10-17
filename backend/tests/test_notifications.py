@@ -48,8 +48,9 @@ async def test_an_order_is_a_notification_without_telegram(client, auth_headers,
         "accepted_automatically": mode == "automatic",
     }
     assert notification["items"] == []
-    assert body["unread"] == 1
-    assert await unread(client, headers) == 1
+    # Listed unread, but not on the bell's number: the New tab counts it.
+    assert body["unread"] == 0
+    assert await unread(client, headers) == 0
 
 
 async def test_low_stock_comes_after_its_order_and_names_the_products(client, auth_headers):
@@ -70,7 +71,7 @@ async def test_low_stock_comes_after_its_order_and_names_the_products(client, au
         ("Shirt (XL)", 5),
     ]
     assert {i["product_id"] for i in stock["items"]} == {str(shirt)}
-    assert await unread(client, headers) == 2
+    assert await unread(client, headers) == 1  # the low stock; not the order
 
 
 async def test_newest_first_a_page_at_a_time(client, auth_headers):
@@ -100,21 +101,38 @@ async def test_reading_marks_only_what_was_shown(client, auth_headers):
         f"{URL}/read", headers=headers, json={"up_to": shown[0]["created_at"]}
     )
     assert response.status_code == 200, response.text
-    assert response.json() == {"unread": 1}
+    assert response.json() == {"unread": 0}  # new orders aren't on the bell's number
     after = (await listed(client, headers))["notifications"]
     assert [(n["order"]["number"], n["read"]) for n in after] == [
         (1003, False),
         (1002, True),
         (1001, True),
     ]
-    # On another device too: the count is the server's.
+    # On another device too: what's read is the server's.
+    again = (await listed(client, headers))["notifications"]
+    assert [n["read"] for n in again] == [False, True, True]
+
+
+async def test_the_bell_counts_what_the_orders_tab_cant_show(client, auth_headers):
+    """New orders are on the New tab; the bell's number is the rest: low
+    stock, sold out, "says paid" (UX check #20)."""
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    cap = await add_product(store_id, "cap", stock=6)
+    hat = await add_product(store_id, "hat", stock=20)
+
+    await place_order(client, slug, [(hat, None, 1)], total="10.00")
+    assert await unread(client, headers) == 0
+    await place_order(client, slug, [(cap, None, 1)], total="10.00")  # 5 left: running low
+    events = [n["event_type"] for n in (await listed(client, headers))["notifications"]]
+    assert sorted(events) == ["low_stock", "new_order", "new_order"]
     assert await unread(client, headers) == 1
 
 
 async def test_notifications_stay_in_their_store(client, auth_headers):
     a_headers, a_store, a_slug = await registered_seller(client, auth_headers)
     b_headers, b_store, _ = await registered_seller(client, auth_headers)
-    cap = await add_product(a_store, "cap", stock=20)
+    # 5 left after the order: a low-stock alert, which the bell counts.
+    cap = await add_product(a_store, "cap", stock=6)
     await place_order(client, a_slug, [(cap, None, 1)], total="10.00")
     shown = (await listed(client, a_headers))["notifications"]
 

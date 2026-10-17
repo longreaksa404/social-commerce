@@ -127,7 +127,8 @@ function StoreHome() {
   )
 }
 
-/** New orders and low stock since the seller last looked, on any device.
+/** Low stock, sold out and "says paid" since the seller last looked, on
+ * any device (new orders are counted on the New tab, UX check #20).
  * Tapped again on the notifications page, it closes them. */
 function NotificationBell() {
   const unread = useUnreadNotifications().data ?? 0

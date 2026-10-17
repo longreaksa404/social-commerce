@@ -119,6 +119,7 @@ def web_notifications(
 # 2026-10-09): a bell row, a Telegram alert, and "Customer says paid" on
 # the order until the seller checks. The payment's status doesn't change.
 PAYMENT_CLAIMED = "payment_claimed"
+NEW_ORDER = "new_order"
 
 
 def payment_claimed_notification(order: Order) -> NotificationLog:
@@ -198,11 +199,18 @@ async def list_web(
 
 
 async def unread_count(db: AsyncSession, store_id: uuid.UUID) -> int:
-    """What the bell shows."""
+    """The number on the bell: what the Orders tab can't show ("says
+    paid", running low, sold out). New orders stay in the bell's list but
+    aren't counted: the New tab counts them, so handling orders there no
+    longer leaves the bell high (UX check #20, 2026-10-17)."""
     count = await db.scalar(
         select(func.count())
         .select_from(NotificationLog)
-        .where(*_web(store_id), NotificationLog.read_at.is_(None))
+        .where(
+            *_web(store_id),
+            NotificationLog.read_at.is_(None),
+            NotificationLog.event_type != NEW_ORDER,
+        )
     )
     return count or 0
 

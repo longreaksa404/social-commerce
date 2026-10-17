@@ -992,7 +992,7 @@ from the schema.
 | GET | `/seller/customers` | seller | `?q=(≤100)&limit=1..100(50)&offset=` | `CustomerListOut` | Last ordered first; `q` matches name (case-insensitive) or phone typed any way |
 | GET | `/seller/customers/{customer_id}` | seller | — | `CustomerDetailOut` | Latest 100 orders |
 | GET | `/seller/notifications` | seller | `?limit=1..50(20)&offset=` | `NotificationListOut` | Web rows, newest first (`new_order`, `low_stock`, `payment_claimed`); listing doesn't mark read |
-| GET | `/seller/notifications/unread` | seller | — | `UnreadOut` | The bell |
+| GET | `/seller/notifications/unread` | seller | — | `UnreadOut` | The bell; counts only what the Orders tab can't show (says paid, low stock, sold out): new orders stay in the list but aren't counted (UX check #20, 2026-10-17) |
 | POST | `/seller/notifications/read` | seller | `MarkReadIn` (`up_to`) | `UnreadOut` | Marks read where `sent_at <= up_to` |
 | GET | `/seller/links` | seller | — | `list[LinkOut]` | Newest 200, with view/order counts |
 | POST | `/seller/links` | seller | `LinkCreate` | `LinkOut` (201) | Same target + source + campaign returns the existing link; hidden product → 409 `PRODUCT_HIDDEN` |

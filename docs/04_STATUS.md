@@ -1080,6 +1080,11 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
 - [x] 19. A product with options keeps Add to cart and Buy now dark (no
   grey "Choose an option" bar); tapping one before choosing scrolls to
   the options with "Pick one first." in amber words.
+- [x] 20. The bell's number counts only what the Orders tab can't show:
+  "says paid", running low, sold out. New orders stay in the bell's list
+  but are counted on the New tab (and come by Telegram), so working from
+  Orders no longer leaves the bell at 13. API: the unread count leaves
+  out new orders (tests updated, one added).
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:
