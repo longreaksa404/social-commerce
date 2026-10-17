@@ -1029,6 +1029,11 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   is the next step itself: "Ask the customer to pay again, or cancel the
   order", with Back to not paid and Cancel order (no longer in the ⋯
   menu meanwhile). Founder agreed to change the step order of 2026-10-15.
+- [x] 8. A delivered cash order whose cash isn't recorded: the dark
+  button is "Cash received, complete" (records the payment, then
+  completes); "Complete without the cash" is in the ⋯ menu. The
+  customer's page stops saying "Pay $X in cash when you get your order"
+  once it's delivered ("$X in cash, on delivery."). 02 §7.4 unchanged.
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

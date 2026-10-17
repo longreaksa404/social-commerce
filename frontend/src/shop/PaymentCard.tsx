@@ -11,6 +11,7 @@ import { formatOrderTime } from '../lib/orders.ts'
 import { useT } from '../i18n/useT.ts'
 import type { BankAccount, ShopOrder, ShopStore } from '../lib/types.ts'
 import { useContactLink } from './contact.ts'
+import { trackStep } from './orderWords.ts'
 
 /** How to pay for the order, and whether the seller has received it.
  * `phone`: the one it was placed with, for "I've paid". */
@@ -41,9 +42,14 @@ export function PaymentCard({ shop, order, phone }: { shop: ShopStore; order: Sh
       ) : payment.status === 'refunded' ? (
         <p className="mt-2 text-sm text-slate-600">{p.refunded}</p>
       ) : payment.method === 'cod' ? (
-        <p className="mt-2 text-sm text-slate-600">
-          {p.codBefore} <span className="font-semibold text-slate-900">{total}</span> {p.codAfter}
-        </p>
+        // Once it's delivered, no more asking to pay (UX check #8).
+        trackStep(order) === 'delivered' ? (
+          <p className="mt-2 text-sm text-slate-600">{p.codDone(total)}</p>
+        ) : (
+          <p className="mt-2 text-sm text-slate-600">
+            {p.codBefore} <span className="font-semibold text-slate-900">{total}</span> {p.codAfter}
+          </p>
+        )
       ) : payment.khqr ? (
         <>
           <KhqrPayment shop={shop} order={order} code={payment.khqr.code} name={payment.khqr.merchant_name} />

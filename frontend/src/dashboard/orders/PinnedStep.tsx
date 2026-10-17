@@ -119,7 +119,11 @@ export function PinnedStep({
       )
       break
     case 'complete':
-      buttons = (
+      buttons = cashDue(order) ? (
+        <Button loading={actions.payment.isPending} disabled={busy} onClick={actions.cashAndComplete} className="flex-1">
+          {o.cashAndComplete}
+        </Button>
+      ) : (
         <Button
           loading={change.isPending && change.variables === 'completed'}
           disabled={busy}

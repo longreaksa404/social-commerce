@@ -130,16 +130,19 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
       </Buttons>
     )
   } else if (canComplete) {
+    // Cash still to record: both in one tap (UX check #8); "Complete
+    // without the cash" is in the ⋯ menu.
+    const cash = cashDue(order)
     body = (
       <Buttons>
         <Button
           {...nextIf(step === 'complete')}
-          loading={change.isPending && change.variables === 'completed'}
+          loading={(change.isPending && change.variables === 'completed') || (cash && actions.payment.isPending)}
           disabled={busy}
-          onClick={() => move('completed')}
+          onClick={cash ? actions.cashAndComplete : () => move('completed')}
           className="flex-1"
         >
-          {o.action.completed}
+          {cash ? o.cashAndComplete : o.action.completed}
         </Button>
       </Buttons>
     )
@@ -363,7 +366,7 @@ function PaymentRow({
         </Button>
       </Buttons>
     )
-  } else if (canPay && order.delivery.status === 'delivered') {
+  } else if (canPay && order.delivery.status === 'delivered' && !order.next_statuses.includes('completed')) {
     buttons = (
       <Buttons>
         <Button

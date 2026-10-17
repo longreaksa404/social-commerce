@@ -15,7 +15,7 @@ import type { Order, OrderStatus } from '../../lib/types.ts'
 import { ProductImage } from '../../shop/components.tsx'
 import { useOrder, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
-import { CLOSED } from './orderSteps.ts'
+import { cashDue, CLOSED } from './orderSteps.ts'
 import { PinnedStep } from './PinnedStep.tsx'
 import { SendToDriverSheet } from './SendToDriver.tsx'
 import { StatusCard } from './StatusCard.tsx'
@@ -160,6 +160,10 @@ function useMenuItems(order: Order, actions: OrderActions): MenuItem[] {
   const items: MenuItem[] = []
   if (on && !onCard && order.next_statuses.includes('cancelled')) {
     items.push({ label: o.action.cancelled, icon: CircleX, danger: true, onSelect: () => actions.move('cancelled') })
+  }
+  // The card's button records the cash too; rarely the cash comes later.
+  if (on && order.next_statuses.includes('completed') && cashDue(order)) {
+    items.push({ label: o.completeWithoutCash, icon: CircleCheck, onSelect: () => actions.move('completed') })
   }
   if (on && delivery.next_statuses.includes('failed')) {
     items.push({ label: t.status.deliveryAction.failed, icon: PackageX, danger: true, onSelect: actions.deliveryFailed })

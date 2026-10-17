@@ -351,6 +351,10 @@ export const orders = {
   },
   confirmPaid: { en: 'Confirm paid', km: 'បញ្ជាក់ថាបានបង់' },
   cashReceived: { en: 'Cash received', km: 'បានទទួលសាច់ប្រាក់' },
+  // A delivered cash order: record the cash and complete in one tap (UX
+  // check #8, 2026-10-17); without the cash is in the ⋯ menu.
+  cashAndComplete: { en: 'Cash received, complete', km: 'បានទទួលសាច់ប្រាក់ ហើយបញ្ចប់' },
+  completeWithoutCash: { en: 'Complete without the cash', km: 'បញ្ចប់ ដោយមិនទាន់ទទួលសាច់ប្រាក់' },
   markPaid: { en: 'Mark paid', km: 'កត់ថាបានបង់' },
 
   delivery: { en: 'Delivery', km: 'ការដឹកជញ្ជូន' },

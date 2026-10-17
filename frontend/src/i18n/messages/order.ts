@@ -159,6 +159,11 @@ export const order = {
     // "Pay $12.00 in cash when you get your order." (the amount in bold)
     codBefore: { en: 'Pay', km: 'សូមបង់' },
     codAfter: { en: 'in cash when you get your order.', km: 'ជាសាច់ប្រាក់ ពេលទទួលបានទំនិញ។' },
+    // Delivered, the cash not recorded yet: no more asking to pay.
+    codDone: {
+      en: (total: string) => `${total} in cash, on delivery.`,
+      km: (total: string) => `${total} ជាសាច់ប្រាក់ ពេលទទួលទំនិញ។`,
+    },
     askHow: {
       en: (shop: string, total: string) => `Not paid yet. Contact ${shop} to ask how to pay ${total}.`,
       km: (shop: string, total: string) => `មិនទាន់បង់។ សូមទាក់ទង ${shop} ដើម្បីសួររបៀបបង់ ${total}។`,
