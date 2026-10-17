@@ -1,4 +1,4 @@
-import { BanknoteX, ChevronRight, CircleCheck, CircleX, Copy, Link2, MapPinned, MessagesSquare, PackageX, Phone, Send, ShoppingBag, Undo2 } from 'lucide-react'
+import { BanknoteX, ChevronRight, CircleCheck, CircleX, Copy, Link2, MapPinned, MessagesSquare, PackageX, Phone, Send, Undo2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { reducedMotion } from '../../components/effects.ts'
@@ -12,7 +12,7 @@ import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, formatPhone } from '../../lib/orders.ts'
 import { hasLogo } from '../../lib/sourceLogos.ts'
 import type { Order, OrderStatus } from '../../lib/types.ts'
-import { ProductImage } from '../../shop/components.tsx'
+import { NoPhoto, ProductImage } from '../../shop/components.tsx'
 import { useOrder, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
 import { cashDue, CLOSED } from './orderSteps.ts'
@@ -212,10 +212,7 @@ function ItemsCard({ order }: { order: Order }) {
             {item.image_url ? (
               <ProductImage small src={item.image_url} alt="" className="size-12 shrink-0 rounded-xl" />
             ) : (
-              // No photo: the same soft bag as the order list.
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-navy-100 text-navy-500">
-                <ShoppingBag aria-hidden className="size-5.5" />
-              </span>
+              <NoPhoto className="size-12 shrink-0 rounded-xl" iconClassName="size-5" />
             )}
             <span className="min-w-0 flex-1">
               <span className="block break-words text-slate-900">

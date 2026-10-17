@@ -43,6 +43,8 @@
 @theme {
   --color-surface: #fff;
   --color-raised: #fff;
+  /* A product without a photo (NoPhoto): a soft grey tile. */
+  --color-tile: #f1f5f9;
   --color-accent: #1f3350;
   --color-accent-hover: #182841;
   --color-brand: #2f4669;
@@ -240,6 +242,7 @@
   color-scheme: dark;
   --color-surface: #181d25;
   --color-raised: #2c3442;
+  --color-tile: #232a36;
   /* Solid buttons stay white-on-blue: a lighter navy that shows on the
      dark page. */
   --color-accent: #415f92;

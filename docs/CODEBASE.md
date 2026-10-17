@@ -1245,7 +1245,9 @@ is wrapped in try/catch (private mode).
   product pages, the cart or Your orders: "Made with Oak Order", the
   acorn as its O (`OakOrderName`, to `/`), then Privacy · Terms, each in a
   new tab (founder's picks 1A 2A, 2026-10-10).
-- `shop/components.tsx`: `ProductImage` (thumbnail with fallback;
+- `shop/components.tsx`: `NoPhoto` (a product without a photo: a picture
+  icon on `bg-tile`, a grey token that stays grey in dark mode; used by
+  every thumbnail, UI check #11), `ProductImage` (thumbnail with fallback;
   `eager` loads it at once at high priority, `later` asks for it at low
   priority (a gallery's 2nd photo on); otherwise lazy. Lists pass `eager`
   to their first `EAGER_PHOTOS` (4) photos: the shop grid by product

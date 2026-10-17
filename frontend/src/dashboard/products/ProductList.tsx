@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, ImageIcon, LayoutGrid, List, Package, Plus, SearchX, Tags } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, LayoutGrid, List, Package, Plus, SearchX, Tags } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Badge, Card, DotList, EmptyState, ErrorState, PageHeader, Select, Skeleton } from '../../components/ui.tsx'
@@ -6,7 +6,7 @@ import { buttonClass } from '../../components/styles.ts'
 import { useT } from '../../i18n/useT.ts'
 import { thumbnailUrl } from '../../lib/images.ts'
 import { deal, useColumnCount } from '../../components/columns.ts'
-import { EAGER_PHOTOS } from '../../shop/components.tsx'
+import { EAGER_PHOTOS, NoPhoto } from '../../shop/components.tsx'
 import { priceLabel, totalStock } from '../../lib/products.ts'
 import type { Currency, Product } from '../../lib/types.ts'
 import { useCategories, useProducts, useStore } from '../queries.ts'
@@ -264,9 +264,7 @@ function ProductGrid({ products, currency }: { products: Product[]; currency: Cu
                         className={`block h-auto w-full ${hidden ? 'opacity-50' : ''}`}
                       />
                     ) : (
-                      <span className="flex aspect-square w-full items-center justify-center bg-slate-100 text-slate-400">
-                        <ImageIcon aria-hidden className="size-8" />
-                      </span>
+                      <NoPhoto className="aspect-square w-full" />
                     )}
                     {hidden && (
                       <span className="absolute top-2 left-2 rounded-full bg-black/70 px-2.5 py-0.5 text-xs font-semibold text-white">
@@ -408,9 +406,7 @@ function Thumb({ product, eager = false, className }: { product: Product; eager?
       className={`max-w-none shrink-0 rounded-xl object-cover ${hidden ? 'opacity-50' : ''} ${className}`}
     />
   ) : (
-    <span className={`flex shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400 ${className}`}>
-      <ImageIcon aria-hidden className="size-5" />
-    </span>
+    <NoPhoto className={`shrink-0 rounded-xl ${className}`} iconClassName="size-5" />
   )
 }
 

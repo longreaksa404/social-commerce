@@ -1040,6 +1040,11 @@ for a pick).
 - [x] 10. Laptops: the sidebar's first row is the shop's logo and name
   alone ("Dara Phone Shop" no longer cut to "Dara / Phone…"); share and
   the bell sit at the top right of the page. Phones unchanged.
+- [x] 11. A product without a photo shows one stand-in everywhere: a
+  picture icon on a soft grey tile (was a bag in the order list and an
+  order's items, a picture in Products, a crossed-out picture in the
+  shop). In the dark shop it's a grey tile, not a navy hole. Replaces the
+  bag of the earlier pick 4A.
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,

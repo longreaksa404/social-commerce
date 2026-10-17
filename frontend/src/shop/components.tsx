@@ -1,4 +1,4 @@
-import { CalendarClock, ImageOff, Minus, Plus, SearchX, Store } from 'lucide-react'
+import { CalendarClock, ImageIcon, Minus, Plus, SearchX, Store } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { Badge, Card, IconButton, Skeleton } from '../components/ui.tsx'
@@ -21,6 +21,17 @@ const shownPhotos = new Map<string, number>()
 // are on screen as the page opens, and the biggest one is what phones count
 // as the page having loaded (perf audit F5).
 export const EAGER_PHOTOS = 4
+
+/** A product without a photo (or one that won't load): one picture icon on
+ * a soft grey tile, the same on every screen, and a grey tile in dark mode
+ * too, not a dark hole between photos (UI check #11, founder 2026-10-17). */
+export function NoPhoto({ className = '', iconClassName = 'size-8' }: { className?: string; iconClassName?: string }) {
+  return (
+    <span className={`flex items-center justify-center bg-tile text-slate-400 ${className}`}>
+      <ImageIcon aria-hidden className={iconClassName} />
+    </span>
+  )
+}
 
 /** A product photo, or a grey placeholder when the seller has none (or it
  * won't load). It fades in once loaded, over the grey. `className` sizes
@@ -57,11 +68,7 @@ export function ProductImage({
   }
   const square = natural && state !== 'loaded' ? 'aspect-square' : ''
   if (!src || state === 'failed') {
-    return (
-      <div className={`flex items-center justify-center bg-slate-100 text-slate-300 ${square} ${className}`}>
-        <ImageOff aria-hidden className="size-8" />
-      </div>
-    )
+    return <NoPhoto className={`${square} ${className}`} iconClassName={small ? 'size-5' : 'size-8'} />
   }
   return (
     // A photo shown before keeps its place at its size even if the phone

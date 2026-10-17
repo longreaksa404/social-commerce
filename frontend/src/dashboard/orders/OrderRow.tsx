@@ -1,4 +1,3 @@
-import { ShoppingBag } from 'lucide-react'
 import { Fragment } from 'react'
 import { Link, useLocation } from 'react-router'
 import { useT } from '../../i18n/useT.ts'
@@ -7,7 +6,7 @@ import { formatMoney } from '../../lib/money.ts'
 import { formatClock, formatOrderTime, ORDER_STATUS_TONES, type StatusTone } from '../../lib/orders.ts'
 import { paymentBadge } from '../../lib/payments.ts'
 import type { OrderSummary } from '../../lib/types.ts'
-import { ProductImage } from '../../shop/components.tsx'
+import { NoPhoto, ProductImage } from '../../shop/components.tsx'
 
 /** A row in an order list (the Orders tab, a customer's page, a link's
  * page), led by who ordered (founder's pick 2B, 2026-10-08): the customer
@@ -77,10 +76,7 @@ export function OrderRow({
         {order.first_item_image_url ? (
           <ProductImage small eager={eager} src={order.first_item_image_url} alt="" className="size-16 shrink-0 rounded-xl" />
         ) : (
-          // No photo yet: a soft bag, not a broken picture (founder's pick 4A).
-          <span className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-navy-100 text-navy-500">
-            <ShoppingBag aria-hidden className="size-7" />
-          </span>
+          <NoPhoto className="size-16 shrink-0 rounded-xl" iconClassName="size-6" />
         )}
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline justify-between gap-3">
