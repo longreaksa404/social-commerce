@@ -64,6 +64,11 @@ export function useOrderActions(order: Order, onStale: () => void, onDecided?: (
     /** Cash on delivery: delivered (or collected) and the cash in hand. */
     handOver: () => run(() => handover.mutateAsync(), method === 'pickup' ? o.collectedCash : o.cashHandover),
     markPaid: (reference: string | null) => recordPayment('paid', reference, o.paidToast),
+    /** Paid already: delivered (or collected), then complete (UX check
+     * #15). Two records, as the button says. */
+    async deliverAndComplete() {
+      if (await recordDelivery('delivered', null, null)) await moveOrder('completed')
+    },
     /** A delivered cash order: the cash in hand, then complete (UX check
      * #8). Two records, as the button says; each stays if the other fails. */
     async cashAndComplete() {

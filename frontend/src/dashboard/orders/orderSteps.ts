@@ -35,3 +35,7 @@ export function nextStep(order: Order): NextStep | null {
 export function cashDue(order: Order): boolean {
   return order.payment.method === 'cod' && order.payment.next_statuses.includes('paid')
 }
+
+/** Paid already and not completed: delivering it can complete it too
+ * ("Delivered, complete", UX check #15). */
+export const paidAhead = (order: Order) => order.payment.status === 'paid' && order.status !== 'completed'

@@ -355,6 +355,10 @@ export const orders = {
   // A delivered cash order: record the cash and complete in one tap (UX
   // check #8, 2026-10-17); without the cash is in the ⋯ menu.
   cashAndComplete: { en: 'Cash received, complete', km: 'បានទទួលសាច់ប្រាក់ ហើយបញ្ចប់' },
+  // A paid order: delivered (or collected) and complete in one tap (UX
+  // check #15, 2026-10-17).
+  deliveredComplete: { en: 'Delivered, complete', km: 'បានដល់ដៃ ហើយបញ្ចប់' },
+  collectedComplete: { en: 'Collected, complete', km: 'បានមកយក ហើយបញ្ចប់' },
   completeWithoutCash: { en: 'Complete without the cash', km: 'បញ្ចប់ ដោយមិនទាន់ទទួលសាច់ប្រាក់' },
   markPaid: { en: 'Mark paid', km: 'កត់ថាបានបង់' },
 

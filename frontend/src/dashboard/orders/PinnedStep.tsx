@@ -4,7 +4,7 @@ import { Button } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { deliveryAction } from '../../lib/delivery.ts'
 import type { Order } from '../../lib/types.ts'
-import { cashDue, nextStep } from './orderSteps.ts'
+import { cashDue, nextStep, paidAhead } from './orderSteps.ts'
 import type { OrderActions } from './useOrderActions.ts'
 
 /** Phones (founder's pick 6A, 2026-10-15): while the shaded row's dark
@@ -112,6 +112,10 @@ export function PinnedStep({
             {deliveryAction(t, order.delivery, 'delivered')}
           </Button>
         </>
+      ) : paidAhead(order) ? (
+        <Button loading={actions.delivery.isPending} disabled={busy} onClick={actions.deliverAndComplete} className="flex-1">
+          {pickup ? o.collectedComplete : o.deliveredComplete}
+        </Button>
       ) : (
         <Button loading={actions.delivery.isPending} disabled={busy} onClick={() => actions.deliver()} className="flex-1">
           {deliveryAction(t, order.delivery, 'delivered')}

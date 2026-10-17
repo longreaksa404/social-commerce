@@ -7,7 +7,7 @@ import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, ORDER_STATUS_TONES, type StatusTone } from '../../lib/orders.ts'
 import { paymentBadge } from '../../lib/payments.ts'
 import type { Order, OrderStatus } from '../../lib/types.ts'
-import { cashDue, CLOSED, nextStep, unpaidTransfer } from './orderSteps.ts'
+import { cashDue, CLOSED, nextStep, paidAhead, unpaidTransfer } from './orderSteps.ts'
 import { SendAgain } from './SendToDriver.tsx'
 import type { OrderActions } from './useOrderActions.ts'
 
@@ -238,16 +238,18 @@ function DeliveryRow({
       {pickup ? o.collectedCash : o.cashHandover}
     </Button>
   )
+  // Paid already: one tap delivers and completes (UX check #15).
+  const andComplete = paidAhead(order)
   const delivered = (primary: boolean) => (
     <Button
       {...nextIf(primary)}
       variant={primary ? 'primary' : 'secondary'}
-      loading={pending('delivered')}
+      loading={pending('delivered') || (andComplete && actions.change.isPending)}
       disabled={busy}
-      onClick={() => actions.deliver()}
+      onClick={andComplete ? actions.deliverAndComplete : () => actions.deliver()}
       className={primary ? 'flex-1' : ''}
     >
-      {deliveryAction(t, delivery, 'delivered')}
+      {andComplete ? (pickup ? o.collectedComplete : o.deliveredComplete) : deliveryAction(t, delivery, 'delivered')}
     </Button>
   )
 

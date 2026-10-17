@@ -1064,6 +1064,9 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
 - [x] 14. The five optional step buttons (Preparing, Ready, Shipped,
   Picked up, On the way) sit behind one link on the order, "+ Tell the
   customer a step"; the order shows only the buttons that move it on.
+- [x] 15. A paid order's Delivered reads "Delivered, complete"
+  ("Collected, complete" for pickup) and does both in one tap. Unpaid
+  orders keep the two steps (02 §7.4).
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:
