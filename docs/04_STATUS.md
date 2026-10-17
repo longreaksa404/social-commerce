@@ -1051,6 +1051,8 @@ for a pick).
 - [x] 13. Checkout's delivery choices use drawn radio rings like the
   seller's New order (empty ring, navy dot when picked), instead of the
   browser's own, which dark mode drew as grey discs.
+- [x] 14. "+ New order" on Orders is the dark button, like "+ Add",
+  "+ New link" and "+ New category" on their pages (pick 14B).
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,
