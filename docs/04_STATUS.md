@@ -1091,6 +1091,10 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   question adds "Sokha Chan says they paid $28.50: check your bank app,
   and send it back if it came" (or "It's paid ($X): send the money
   back").
+- [x] 22. Checkout: placing an order without a delivery or a way to pay
+  shows the app's own red words under it ("Choose how to get your
+  order.", "Choose how to pay.") and goes there, instead of the
+  browser's popup in the phone's language.
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

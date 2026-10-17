@@ -39,6 +39,9 @@ export const checkout = {
     km: 'មិនចាំបាច់។ ជួយឱ្យអ្នកដឹករកអ្នកឃើញ ឧ. ទ្វាររបងពណ៌ខៀវ ក្បែរវត្ត។',
   },
   noteForSeller: { en: 'Note for the seller', km: 'ចំណាំសម្រាប់អ្នកលក់' },
+  // Placing the order with nothing chosen, in the app's words (UX check #22).
+  chooseDelivery: { en: 'Choose how to get your order.', km: 'សូមជ្រើសរើសរបៀបទទួលទំនិញ។' },
+  choosePayment: { en: 'Choose how to pay.', km: 'សូមជ្រើសរើសរបៀបបង់ប្រាក់។' },
   noteHintPickup: {
     en: 'Optional. For example, when you will come.',
     km: 'មិនចាំបាច់។ ឧទាហរណ៍ ពេលដែលអ្នកនឹងមកយក។',

@@ -1,4 +1,4 @@
-import { Banknote, Check, Landmark, LoaderCircle, MapPin, Plus, QrCode, UserRound, type LucideIcon } from 'lucide-react'
+import { AlertCircle, Banknote, Check, Landmark, LoaderCircle, MapPin, Plus, QrCode, UserRound, type LucideIcon } from 'lucide-react'
 import { lazy, Suspense, useCallback, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import {
@@ -103,6 +103,7 @@ export function ShopCheckout() {
   })
   // The two notes show once tapped (or when they already have words).
   const [openNotes, setOpenNotes] = useState({ address: false, seller: false })
+  const payCheck = useChoiceCheck(c.choosePayment)
   const set = (key: 'name' | 'phone' | 'address' | 'notes' | 'addressNote', value: string) =>
     setForm((f) => ({ ...f, [key]: value }))
   // Someone who ordered on this phone before sees their name and phone as
@@ -343,7 +344,11 @@ export function ShopCheckout() {
           </DeliverySection>
 
           <Section step={4} title={c.payment}>
-            <fieldset aria-describedby={fieldError(place.error, 'payment_method') ? 'payment-error' : undefined}>
+            <fieldset
+              aria-describedby={fieldError(place.error, 'payment_method') || payCheck.problem ? 'payment-error' : undefined}
+              onInvalid={payCheck.onInvalid}
+              onChange={payCheck.clear}
+            >
               <legend className="sr-only">{c.howPay}</legend>
               {/* One way to pay: nothing to choose, so it's said, not offered. */}
               {methods.length === 1 && (
@@ -384,11 +389,7 @@ export function ShopCheckout() {
                 })}
               </div>
               {payment && methods.length > 1 && <p className="mt-2.5 text-sm text-slate-600">{c.paymentHint[payment]}</p>}
-              {fieldError(place.error, 'payment_method') && (
-                <p id="payment-error" className="mt-2 text-sm text-red-600">
-                  {fieldError(place.error, 'payment_method')}
-                </p>
-              )}
+              <ChoiceProblem id="payment-error" text={fieldError(place.error, 'payment_method') ?? payCheck.problem} />
             </fieldset>
           </Section>
         </div>
@@ -470,11 +471,16 @@ function DeliverySection({
   const freeNow = delivering && price.fee === 0 && Number(options.fee) > 0
   const label = (choice: string) => (choice === OWN ? c.deliveryByShop : choice === PICKUP ? c.pickup : choice)
   const hint = (choice: string) => (choice === OWN ? c.hintOwn : choice === PICKUP ? c.hintPickup : c.hintCourier)
-  const choiceError = fieldError(error, 'delivery_method') ?? fieldError(error, 'courier')
+  const check = useChoiceCheck(c.chooseDelivery)
+  const choiceError = fieldError(error, 'delivery_method') ?? fieldError(error, 'courier') ?? check.problem
   return (
     <Section step={3} title={choices.length === 1 && choices[0] === PICKUP ? c.pickup : c.delivery}>
       {choices.length > 1 ? (
-        <fieldset aria-describedby={choiceError ? 'delivery-choice-error' : undefined}>
+        <fieldset
+          aria-describedby={choiceError ? 'delivery-choice-error' : undefined}
+          onInvalid={check.onInvalid}
+          onChange={check.clear}
+        >
           <legend className="mb-1.5 block text-sm font-medium text-slate-700">{c.howGet}</legend>
           <div className="space-y-2">
             {choices.map((choice) => (
@@ -489,11 +495,7 @@ function DeliverySection({
               />
             ))}
           </div>
-          {choiceError && (
-            <p id="delivery-choice-error" className="mt-2 text-sm text-red-600">
-              {choiceError}
-            </p>
-          )}
+          <ChoiceProblem id="delivery-choice-error" text={choiceError} />
         </fieldset>
       ) : (
         <p className="text-sm text-slate-700">
@@ -718,5 +720,34 @@ function AddNote({ label, onClick }: { label: string; onClick: () => void }) {
       <Plus aria-hidden className="size-4" />
       {label}
     </button>
+  )
+}
+
+/** Radio cards sent with none chosen: the app's own red words under them,
+ * like every field, instead of the browser's bubble in the phone's
+ * language (UX check #22, 2026-10-17); the page goes there when it's the
+ * first thing missing. */
+function useChoiceCheck(message: string) {
+  const [problem, setProblem] = useState<string | null>(null)
+  function onInvalid(event: FormEvent<HTMLFieldSetElement>) {
+    const control = event.target as HTMLInputElement
+    event.preventDefault()
+    setProblem(message)
+    const first = Array.from(control.form?.elements ?? []).find((el) => !(el as HTMLInputElement).validity?.valid)
+    if (first === control) {
+      control.focus({ preventScroll: true })
+      ;(control.closest('fieldset') ?? control).scrollIntoView({ block: 'center' })
+    }
+  }
+  return { problem, onInvalid, clear: () => setProblem(null) }
+}
+
+function ChoiceProblem({ id, text }: { id: string; text: string | null | undefined }) {
+  if (!text) return null
+  return (
+    <p id={id} className="mt-2 flex items-start gap-1 text-sm text-red-600">
+      <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
+      {text}
+    </p>
   )
 }
