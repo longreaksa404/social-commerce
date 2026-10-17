@@ -1008,6 +1008,10 @@ for a pick).
   Remove logo, View customer, All your orders, Privacy · Terms): a thin
   light line set low enough to pass under Khmer subscripts instead of
   through them. Navy links no longer read as labels.
+- [x] 3. Dark mode: softer status colours. Amber words (Unpaid, Says
+  paid, Only 1 left) are a warm sand instead of bright yellow (#ffd230 →
+  #ebbb6e), and red, green (Paid, the free-delivery bar) and blue (New,
+  With the driver) are calmer too. Light mode unchanged.
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,

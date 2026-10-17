@@ -271,15 +271,19 @@
   --color-slate-800: oklch(92.9% 0.013 255.508);
   --color-slate-900: oklch(96.8% 0.007 247.896);
   --color-slate-950: oklch(98.4% 0.003 247.858);
+  /* Status colours (UI check #3, founder 2026-10-17): the text and dot
+     shades (600-800) are softer than Tailwind's, so amber, red, green and
+     blue words keep their meaning without being the brightest thing on a
+     dark screen (amber was #ffd230). All still read at 8:1 or more on cards. */
   /* Emerald: tints turn deep, text turns light */
   --color-emerald-50: oklch(26.2% 0.051 172.552);
-  --color-emerald-100: oklch(37.8% 0.077 168.94);
+  --color-emerald-100: oklch(30% 0.045 168);
   --color-emerald-200: oklch(43.2% 0.095 166.913);
   --color-emerald-300: oklch(50.8% 0.118 165.612);
   --color-emerald-400: oklch(59.6% 0.145 163.225);
-  --color-emerald-600: oklch(76.5% 0.177 163.223);
-  --color-emerald-700: oklch(84.5% 0.143 164.978);
-  --color-emerald-800: oklch(90.5% 0.093 164.15);
+  --color-emerald-600: oklch(66% 0.11 164);
+  --color-emerald-700: oklch(80% 0.1 165);
+  --color-emerald-800: oklch(86% 0.08 165);
   --color-emerald-900: oklch(95% 0.052 163.051);
   --color-emerald-950: oklch(97.9% 0.021 166.113);
   /* Red: tints turn deep, text turns light */
@@ -288,9 +292,9 @@
   --color-red-200: oklch(44.4% 0.177 26.899);
   --color-red-300: oklch(50.5% 0.213 27.518);
   --color-red-400: oklch(57.7% 0.245 27.325);
-  --color-red-600: oklch(70.4% 0.191 22.216);
-  --color-red-700: oklch(80.8% 0.114 19.571);
-  --color-red-800: oklch(88.5% 0.062 18.334);
+  --color-red-600: oklch(72% 0.12 22);
+  --color-red-700: oklch(78% 0.1 22);
+  --color-red-800: oklch(85% 0.07 20);
   --color-red-900: oklch(93.6% 0.032 17.717);
   --color-red-950: oklch(97.1% 0.013 17.38);
   /* Amber: tints turn deep, text turns light */
@@ -299,9 +303,9 @@
   --color-amber-200: oklch(47.3% 0.137 46.201);
   --color-amber-300: oklch(55.5% 0.163 48.998);
   --color-amber-400: oklch(66.6% 0.179 58.318);
-  --color-amber-600: oklch(82.8% 0.189 84.429);
-  --color-amber-700: oklch(87.9% 0.169 91.605);
-  --color-amber-800: oklch(92.4% 0.12 95.746);
+  --color-amber-600: oklch(76% 0.12 72);
+  --color-amber-700: oklch(82% 0.11 78);
+  --color-amber-800: oklch(86% 0.09 82);
   --color-amber-900: oklch(96.2% 0.059 95.617);
   --color-amber-950: oklch(98.7% 0.022 95.277);
   /* Sky: tints turn deep, text turns light */
@@ -310,9 +314,9 @@
   --color-sky-200: oklch(44.3% 0.11 240.79);
   --color-sky-300: oklch(50% 0.134 242.749);
   --color-sky-400: oklch(58.8% 0.158 241.966);
-  --color-sky-600: oklch(74.6% 0.16 232.661);
-  --color-sky-700: oklch(82.8% 0.111 230.318);
-  --color-sky-800: oklch(90.1% 0.058 230.902);
+  --color-sky-600: oklch(72% 0.08 235);
+  --color-sky-700: oklch(80% 0.075 235);
+  --color-sky-800: oklch(87% 0.05 235);
   --color-sky-900: oklch(95.1% 0.026 236.824);
   --color-sky-950: oklch(97.7% 0.013 236.62);
 }
