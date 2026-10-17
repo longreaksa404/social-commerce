@@ -1104,6 +1104,9 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   "COD" in English letters, in the list and on the order.
 - [x] 25. Order tabs: "Done" (delivered and completed; was Delivered)
   and "Closed" (rejected and cancelled; was Cancelled).
+- [x] 26. A customer's money total reads "Ordered" (បានកុម្ម៉ង់សរុប)
+  instead of "Spent": it counts orders not paid yet (which orders count
+  stays as decided 2026-10-03).
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

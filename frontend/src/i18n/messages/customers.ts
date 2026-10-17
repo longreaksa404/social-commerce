@@ -29,7 +29,9 @@ export const customers = {
   latestAddress: { en: 'Latest address', km: 'អាសយដ្ឋានចុងក្រោយ' },
   since: { en: (date: string) => `Customer since ${date}`, km: (date: string) => `ជាអតិថិជនតាំងពី ${date}` },
   orders: { en: 'Orders', km: 'ការកុម្ម៉ង់' },
-  spent: { en: 'Spent', km: 'ចំណាយសរុប' },
+  // What they ordered, not only what they paid (UX check #26, 2026-10-17;
+  // which orders count was decided 2026-10-03).
+  spent: { en: 'Ordered', km: 'បានកុម្ម៉ង់សរុប' },
   // The table's headings (laptops).
   column: {
     name: { en: 'Name', km: 'ឈ្មោះ' },
@@ -45,8 +47,8 @@ export const customers = {
   phoneCopied: { en: 'Phone number copied', km: 'បានចម្លងលេខទូរស័ព្ទ' },
   copyFailed: { en: "Couldn't copy. Select the number and copy it.", km: 'ចម្លងមិនបាន។ សូមជ្រើសលេខ ហើយចម្លងវា។' },
   leftOut: {
-    en: "Rejected and cancelled orders don't count toward what they spent.",
-    km: 'ការកុម្ម៉ង់ដែលបានបដិសេធ ឬលុបចោល មិនត្រូវបានរាប់ក្នុងចំណាយសរុបទេ។',
+    en: "Rejected and cancelled orders don't count toward what they ordered.",
+    km: 'ការកុម្ម៉ង់ដែលបានបដិសេធ ឬលុបចោល មិនរាប់បញ្ចូលក្នុងចំនួនដែលបានកុម្ម៉ង់ទេ។',
   },
   latestOrders: {
     en: (shown: number, total: number) => `Their latest ${shown} of ${total} orders. The older ones are in Orders.`,
