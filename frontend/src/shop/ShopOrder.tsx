@@ -473,12 +473,20 @@ function DeliveryLine({ order }: { order: ShopOrder }) {
         <span className="min-w-0 flex-1 text-slate-700">
           {pickup ? t.checkout.pickup : delivery.courier ? t.order.deliveryBy(delivery.courier) : t.checkout.deliveryByShop}
         </span>
-        <span
-          className={`shrink-0 font-medium ${delivery.status === 'failed' ? 'text-red-700' : delivery.status === 'delivered' ? 'text-emerald-700' : 'text-slate-900'}`}
-        >
-          {deliveryWords(t, delivery.method, delivery.status)}
-        </span>
+        {/* Short words beside it, wrapping if they must; a failed
+            delivery's sentence gets its own line below (UX check #17:
+            it ran off a phone's screen in English). */}
+        {delivery.status !== 'failed' && (
+          <span
+            className={`max-w-[60%] text-right font-medium ${delivery.status === 'delivered' ? 'text-emerald-700' : 'text-slate-900'}`}
+          >
+            {deliveryWords(t, delivery.method, delivery.status)}
+          </span>
+        )}
       </p>
+      {delivery.status === 'failed' && (
+        <p className="mt-1.5 text-sm font-medium text-red-700">{deliveryWords(t, delivery.method, delivery.status)}</p>
+      )}
       {pickup && delivery.status !== 'delivered' && (
         <div className="mt-3 rounded-xl bg-slate-50 px-3.5 py-2.5">
           <p className="text-xs font-medium text-slate-500">{t.checkout.pickUpAt}</p>

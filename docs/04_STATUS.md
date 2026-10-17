@@ -1071,6 +1071,9 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   photo uploads at once, but adding, removing and the main photo reach
   the shop only on Save (Save waits for uploads; leaving asks first),
   like the shop's cover and logo (founder, 2026-10-15).
+- [x] 17. Fix: a failed delivery's message on the customer's order page
+  has its own line; in English it ran off the side and the page scrolled
+  sideways on a phone (421 px on a 390 px screen).
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:
