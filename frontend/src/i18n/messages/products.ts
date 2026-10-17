@@ -88,8 +88,9 @@ export const products = {
   variantNamePlaceholder: { en: 'e.g. Red / M', km: 'ឧ. ក្រហម / M' },
   stock: { en: 'Stock', km: 'ស្តុក' },
   samePrice: { en: 'Same', km: 'ដូចគ្នា' },
-  sku: { en: 'SKU (optional)', km: 'SKU (មិនចាំបាច់)' },
-  addSkus: { en: 'Add SKU codes (optional)', km: 'បន្ថែមលេខកូដ SKU (មិនចាំបាច់)' },
+  // "SKU" is a word few small sellers know (UX check #28, 2026-10-17).
+  sku: { en: 'Product code (optional)', km: 'លេខកូដទំនិញ (មិនចាំបាច់)' },
+  addSkus: { en: 'Your own product codes (optional)', km: 'លេខកូដទំនិញផ្ទាល់ខ្លួន (មិនចាំបាច់)' },
   variantPriceHint: {
     en: "Leave a variant's price empty to use the product price.",
     km: 'ទុកតម្លៃជម្រើសឱ្យនៅទទេ ដើម្បីប្រើតម្លៃទំនិញ។',

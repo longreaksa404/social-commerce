@@ -1109,6 +1109,8 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   stays as decided 2026-10-03).
 - [x] 27. A pickup order paid in cash says "Pay $24.00 in cash when you
   collect it" (was "when it arrives" / "when you get your order").
+- [x] 28. "SKU" on the product page became "Your own product codes
+  (optional)" and "Product code (optional)" (លេខកូដទំនិញ).
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:
