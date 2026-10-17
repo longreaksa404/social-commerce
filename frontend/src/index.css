@@ -317,6 +317,15 @@
   --color-sky-950: oklch(97.7% 0.013 236.62);
 }
 
+/* Small Khmer text (UI check #1, founder 2026-10-17): at 12px the
+   subscripts are about 4px tall, so in Khmer the small size (text-xs: hints,
+   labels over statuses, the tab bar, stock tags) is 13px on a 20px line.
+   English keeps 12px. index.html and i18n/core.ts set <html lang>. */
+:root[lang='km'] {
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+}
+
 @layer base {
   html {
     color-scheme: light;

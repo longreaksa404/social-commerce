@@ -51,7 +51,7 @@ function PhotoGrid({
             className="size-full rounded-xl object-cover ring-1 ring-slate-200"
           />
           {index === 0 ? (
-            <span className="absolute bottom-1.5 left-1.5 rounded-md bg-black/70 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+            <span className="absolute bottom-1.5 left-1.5 rounded-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white">
               {words.main}
             </span>
           ) : (
@@ -59,7 +59,7 @@ function PhotoGrid({
               type="button"
               disabled={disabled}
               onClick={() => onMakeMain(photo.key)}
-              className="absolute bottom-1.5 left-1.5 rounded-md bg-surface/90 px-1.5 py-0.5 text-[11px] font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 after:absolute after:-inset-2 disabled:opacity-50"
+              className="absolute bottom-1.5 left-1.5 rounded-md bg-surface/90 px-1.5 py-0.5 text-xs font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 after:absolute after:-inset-2 disabled:opacity-50"
             >
               {words.setMain}
             </button>

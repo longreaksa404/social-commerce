@@ -1353,6 +1353,10 @@ message needs a Khmer entry there.** What sellers type is shown as typed.
 - Font: Kantumruy Pro for everything (2026-10-06): two self-hosted
   variable files picked by `unicode-range`, Khmer (~57 KB) and Latin
   (~33 KB), each downloaded once; the system fonts are the fallback.
+- **Small Khmer text is 13px** (UI check #1, 2026-10-17): `index.css`
+  redefines `--text-xs` / `--text-xs--line-height` on `:root[lang='km']`
+  (13px on 20px), so every `text-xs` grows in Khmer and stays 12px in
+  English. Use `text-xs` for small text, not `text-[11px]`-style sizes.
 
 ### Link previews (`frontend/linkPreview.ts`)
 
