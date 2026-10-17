@@ -1074,6 +1074,9 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
 - [x] 17. Fix: a failed delivery's message on the customer's order page
   has its own line; in English it ran off the side and the page scrolled
   sideways on a phone (421 px on a 390 px screen).
+- [x] 18. New order from a chat starts with a delivery and a way to pay
+  picked: what the seller chose on their last chat order (this device),
+  else the shop's own delivery and cash on delivery.
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

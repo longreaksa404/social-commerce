@@ -1192,7 +1192,8 @@ routes.
 `sc.cart.<slug>` (cart per shop), `sc.customer` (checkout details),
 `sc.orders` (last 20 orders with their phone, for tracking), `sc.links`
 (last link per shop and view timestamps: 30-minute view gap, 7-day order
-window). `sessionStorage`: "confetti already shown" per order. Every access
+window), `sc.chatOrder.<store id>` (the delivery and payment picked on the
+last chat order, picked again on the next). `sessionStorage`: "confetti already shown" per order. Every access
 is wrapped in try/catch (private mode).
 
 ### Shared components and helpers

@@ -128,9 +128,17 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
   const [notes, setNotes] = useState('')
   const [lines, setLines] = useState<Line[]>([])
   const choices = [...(delivery.own_delivery ? [OWN] : []), ...delivery.couriers, ...(delivery.pickup ? [PICKUP] : [])]
-  const [how, setHow] = useState<string | null>(choices.length === 1 ? choices[0] : null)
   const methods = PAYMENT_METHOD_ORDER.filter((m) => store.payment_settings[m].enabled)
-  const [payment, setPayment] = useState<PaymentMethod | null>(methods.length === 1 ? methods[0] : null)
+  // Picked to start with (UX check #18, 2026-10-17): what the seller chose
+  // on their last chat order, else the shop's own delivery (the first
+  // choice) and cash on delivery, the usual chat order.
+  const last = lastChatChoice(store.id)
+  const [how, setHow] = useState<string | null>(
+    last && choices.includes(last.how) ? last.how : (choices[0] ?? null),
+  )
+  const [payment, setPayment] = useState<PaymentMethod | null>(
+    last && methods.includes(last.payment) ? last.payment : methods.includes('cod') ? 'cod' : (methods[0] ?? null),
+  )
   const dirty = phone !== '' || name !== '' || lines.length > 0 || address !== '' || notes !== ''
   const { allowLeave } = useUnsavedChanges(dirty && !add.isSuccess)
 
@@ -187,6 +195,7 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
         expected_total: fromCents(total),
       })
       allowLeave()
+      if (how && payment) rememberChatChoice(store.id, { how, payment })
       toast(n.saved(order.number))
       navigate(`/dashboard/orders/${order.id}`, { replace: true })
     } catch {
@@ -459,4 +468,25 @@ function ProductPicker({
       )}
     </div>
   )
+}
+
+// The delivery and payment picked on this device's last chat order.
+type ChatChoice = { how: string; payment: PaymentMethod }
+const CHOICE_KEY = (storeId: string) => `sc.chatOrder.${storeId}`
+
+function lastChatChoice(storeId: string): ChatChoice | null {
+  try {
+    const value = JSON.parse(localStorage.getItem(CHOICE_KEY(storeId)) ?? 'null') as ChatChoice | null
+    return value && typeof value.how === 'string' && typeof value.payment === 'string' ? value : null
+  } catch {
+    return null
+  }
+}
+
+function rememberChatChoice(storeId: string, choice: ChatChoice) {
+  try {
+    localStorage.setItem(CHOICE_KEY(storeId), JSON.stringify(choice))
+  } catch {
+    // Private mode: the defaults next time.
+  }
 }
