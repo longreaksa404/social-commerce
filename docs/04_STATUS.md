@@ -1095,6 +1095,10 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   shows the app's own red words under it ("Choose how to get your
   order.", "Choose how to pay.") and goes there, instead of the
   browser's popup in the phone's language.
+- [x] 23. Settings → Plan during the trial (more than a week left, no
+  "I've paid" yet): Pay is folded behind "Pay early" with "Nothing to pay
+  until Nov 15, 2026". Save QR to photos is now the dark button and "I've
+  paid" the plain one, as on a customer's order page.
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

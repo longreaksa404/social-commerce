@@ -42,7 +42,7 @@ export function PlanPage() {
     <div className="space-y-6">
       <Status plan={plan.data} />
       {/* Nothing to pay before the shop opens: its trial comes first. */}
-      {plan.data.stage !== 'setup' && <Pay plan={plan.data} store={store.data} />}
+      {plan.data.stage !== 'setup' && <PaySection plan={plan.data} store={store.data} />}
       {plan.data.payments.length > 0 && <Payments plan={plan.data} />}
     </div>
   )
@@ -133,6 +133,24 @@ function PeriodChoice({ plan, period, onChange }: { plan: Plan; period: PlanPeri
 
 /** Paying Oak by hand: the shop's code, Oak's KHQR or bank account (or a
  * message to Oak Order when neither is set), and "I've paid". */
+/** During the trial, with more than a week left and nothing sent yet,
+ * paying is folded behind "Pay early": a new seller shouldn't think they
+ * have to pay on day one (UX check #23, 2026-10-17). */
+function PaySection({ plan, store }: { plan: Plan; store: Store }) {
+  const p = useT().settings.plan
+  const [early, setEarly] = useState(false)
+  const folded = plan.on_trial && plan.stage === 'active' && !plan.claim && !early
+  if (!folded) return <Pay plan={plan} store={store} />
+  return (
+    <Section title={p.pay}>
+      <p className="text-sm leading-6 text-slate-600">{p.payEarlyHint(day(plan.paid_until))}</p>
+      <Button variant="secondary" onClick={() => setEarly(true)} className="w-full sm:w-auto">
+        {p.payEarly}
+      </Button>
+    </Section>
+  )
+}
+
 function Pay({ plan, store }: { plan: Plan; store: Store }) {
   const t = useT()
   const p = t.settings.plan
@@ -209,7 +227,15 @@ function Pay({ plan, store }: { plan: Plan; store: Store }) {
       ) : (
         <div className="space-y-2">
           <ErrorMessage error={sayPaid.error} />
-          <Button size="lg" loading={sayPaid.isPending} onClick={() => sayPaid.mutate(period)} className="w-full sm:w-auto">
+          {/* Plain, as on a customer's order page: saving the QR is the
+              main step, "I've paid" comes after paying (UX check #23). */}
+          <Button
+            size="lg"
+            variant="secondary"
+            loading={sayPaid.isPending}
+            onClick={() => sayPaid.mutate(period)}
+            className="w-full sm:w-auto"
+          >
             {p.iPaid}
           </Button>
           <p className="text-xs leading-5 text-slate-500">{p.iPaidHint}</p>
@@ -249,7 +275,7 @@ function OakKhqr({ khqr, name, amount, code }: { khqr: string; name: string; amo
     <div>
       <img src={image.url} alt={`KHQR ${amount} ${name}`} className="mx-auto w-full max-w-60 rounded-xl border border-slate-200 shadow-sm" />
       <p className="mt-2 text-center text-xs text-slate-500">{p.scanToPay}</p>
-      <Button variant="secondary" icon={Download} onClick={save} className="mt-2 w-full">
+      <Button icon={Download} onClick={save} className="mt-2 w-full">
         {p.saveQr}
       </Button>
     </div>

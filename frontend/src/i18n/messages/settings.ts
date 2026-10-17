@@ -446,6 +446,12 @@ export const settings = {
       km: 'សូមទាក់ទង Oak Order ដើម្បីដឹងពីកន្លែងបង់ ហើយប្រាប់លេខកូដហាងរបស់អ្នក។',
     },
     payOnTelegram: { en: (price: string) => `Pay ${price} on Telegram`, km: (price: string) => `បង់ ${price} តាម Telegram` },
+    // During the trial, more than a week left: Pay folded (UX check #23).
+    payEarly: { en: 'Pay early', km: 'បង់មុន' },
+    payEarlyHint: {
+      en: (day: string) => `Nothing to pay until ${day}. If you like to pay early, you lose no days.`,
+      km: (day: string) => `មិនចាំបាច់បង់អ្វីទេ រហូតដល់ ${day}។ ប្រសិនបើអ្នកចង់បង់មុន អ្នកមិនបាត់បង់ថ្ងៃណាមួយទេ។`,
+    },
     carriesOn: {
       en: 'Paying early loses no days: the new month or year starts when your time now ends.',
       km: 'ការបង់មុនមិនបាត់បង់ថ្ងៃណាមួយទេ៖ ខែ ឬឆ្នាំថ្មីចាប់ផ្ដើមនៅពេលដែលពេលវេលាបច្ចុប្បន្នរបស់អ្នកបញ្ចប់។',
