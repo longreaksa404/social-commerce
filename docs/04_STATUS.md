@@ -1061,6 +1061,9 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   "Send with J&T Express": Tracking number, "Save: sent with J&T
   Express" first, "Share the details" second. Who has it reads "Driver:"
   or "Tracking:".
+- [x] 14. The five optional step buttons (Preparing, Ready, Shipped,
+  Picked up, On the way) sit behind one link on the order, "+ Tell the
+  customer a step"; the order shows only the buttons that move it on.
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

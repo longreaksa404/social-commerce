@@ -113,9 +113,11 @@ export const orders = {
   // buttons (founder's pick 1A, 2026-10-15).
   statuses: { en: 'Where the order stands', km: 'ស្ថានភាពការកុម្ម៉ង់' },
   // The order's own steps between Accept and Complete.
-  optionalSteps: {
-    en: 'Steps customers can follow (optional)',
-    km: 'ជំហានដែលអតិថិជនអាចតាមដាន (មិនចាំបាច់)',
+  // The optional steps, folded behind one link (UX check #14, 2026-10-17).
+  tellStep: { en: 'Tell the customer a step', km: 'ប្រាប់អតិថិជនពីជំហាន' },
+  tellStepHint: {
+    en: 'Optional. Customers see it on their order page.',
+    km: 'មិនចាំបាច់។ អតិថិជនឃើញវានៅលើទំព័រការកុម្ម៉ង់របស់គេ។',
   },
   // The ⋯ menu at the top: cancel, failed, not paid after all.
   more: { en: (n: number) => `More for order #${n}`, km: (n: number) => `ផ្សេងទៀតសម្រាប់ការកុម្ម៉ង់ #${n}` },
@@ -219,7 +221,6 @@ export const orders = {
     },
   },
   // Delivery card: the steps in between, for those who use them.
-  moreSteps: { en: 'More steps (optional)', km: 'ជំហានបន្ថែម (មិនចាំបាច់)' },
   filterLabel: { en: 'Filter orders', km: 'ច្រោះការកុម្ម៉ង់' },
   filter: {
     all: { en: 'All', km: 'ទាំងអស់' },

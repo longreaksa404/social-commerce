@@ -106,8 +106,14 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
   const t = useT()
   const o = t.orders
   const { busy, change, move } = actions
+  const [showSteps, setShowSteps] = useState(false)
   const ends = order.next_statuses.filter((s) => s === 'rejected')
   const optional = order.next_statuses.filter((s) => OPTIONAL_STEPS.has(s))
+  // The delivery's own optional steps, once someone has it.
+  const { delivery } = order
+  const out = delivery.status === 'assigned' || delivery.status === 'picked_up' || delivery.status === 'in_transit'
+  const deliverySteps =
+    out && !CLOSED.has(order.status) ? delivery.next_statuses.filter((s) => s === 'picked_up' || s === 'in_transit') : []
   const canComplete = order.next_statuses.includes('completed')
   let body: ReactNode = null
   if (order.status === 'pending') {
@@ -146,18 +152,38 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
         </Button>
       </Buttons>
     )
-  } else if (optional.length > 0) {
-    body = (
+  } else if (optional.length > 0 || deliverySteps.length > 0) {
+    // Preparing, Ready, Shipped, Picked up, On the way: optional, so one
+    // quiet link until wanted (UX check #14, 2026-10-17).
+    body = showSteps ? (
       <>
-        <p className="mt-2 text-xs text-slate-500">{o.optionalSteps}</p>
-        <StepChips
-          steps={optional}
-          label={(s) => t.status.order[s]}
-          busy={busy}
-          pending={change.isPending ? change.variables : undefined}
-          onPick={(s) => move(s)}
-        />
+        <p className="mt-2 text-xs text-slate-500">{o.tellStepHint}</p>
+        <div className="flex flex-wrap gap-x-2">
+          <StepChips
+            steps={optional}
+            label={(s) => t.status.order[s]}
+            busy={busy}
+            pending={change.isPending ? change.variables : undefined}
+            onPick={(s) => move(s)}
+          />
+          <StepChips
+            steps={deliverySteps}
+            label={(s) => deliveryAction(t, order.delivery, s)}
+            busy={busy}
+            pending={actions.delivery.isPending ? actions.delivery.variables?.status : undefined}
+            onPick={(s) => actions.deliver(s)}
+          />
+        </div>
       </>
+    ) : (
+      <button
+        type="button"
+        onClick={() => setShowSteps(true)}
+        className="-my-1 mt-1 inline-flex min-h-11 items-center gap-1.5 rounded-lg text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600 sm:min-h-9"
+      >
+        <Plus aria-hidden className="size-4" />
+        {o.tellStep}
+      </button>
     )
   }
   return (
@@ -197,7 +223,6 @@ function DeliveryRow({
   const canSend = !pickup && next.includes('assigned')
   const canDeliver = next.includes('delivered')
   const out = delivery.status === 'assigned' || delivery.status === 'picked_up' || delivery.status === 'in_transit'
-  const steps = out ? next.filter((s) => s === 'picked_up' || s === 'in_transit') : []
   const cash = cashDue(order)
   const pending = (status: string) => actions.delivery.isPending && actions.delivery.variables?.status === status
 
@@ -288,18 +313,6 @@ function DeliveryRow({
       {buttons}
       {/* Sending is still possible, but the payment comes first (UX check #7). */}
       {buttons && unpaidTransfer(order) && <p className="mt-2 text-xs font-semibold text-amber-700">{o.notPaidYet}</p>}
-      {steps.length > 0 && (
-        <>
-          <p className="mt-3 text-xs text-slate-500">{o.moreSteps}</p>
-          <StepChips
-            steps={steps}
-            label={(s) => deliveryAction(t, delivery, s)}
-            busy={busy}
-            pending={actions.delivery.isPending ? actions.delivery.variables?.status : undefined}
-            onPick={(s) => actions.deliver(s)}
-          />
-        </>
-      )}
     </Row>
   )
 }
