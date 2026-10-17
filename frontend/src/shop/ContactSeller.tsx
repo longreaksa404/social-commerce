@@ -37,7 +37,7 @@ export function ContactButtons({ shop, text, className = '' }: { shop: ShopStore
   }
   return (
     <div className={className}>
-      <p className="mb-2 text-sm font-medium text-slate-600">{c.askTheSeller}</p>
+      <p className="mb-2 text-sm font-medium text-slate-700">{c.askTheSeller}</p>
       {/* Side by side when they fit; on a narrow phone the last one wraps
           to a row of its own rather than cutting "Messenger" short. */}
       <div className="flex flex-wrap gap-2">

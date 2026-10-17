@@ -546,7 +546,7 @@ export function DeliveryFields({ form, update, error }: FieldsProps) {
       <Switch checked={delivery.own} onChange={(own) => onChange({ own })} label={s.ownDelivery} description={s.ownDeliveryHint} />
 
       <div>
-        <h3 className="text-sm font-medium text-slate-900">{s.couriers}</h3>
+        <h3 className="text-sm font-medium text-slate-700">{s.couriers}</h3>
         <p className="mt-0.5 text-xs leading-5 text-slate-500">{s.couriersHint}</p>
       </div>
       {couriers.map((courier, index) => (
@@ -737,7 +737,7 @@ export function AlertsFields({ store, form, update, error }: FieldsProps) {
       <hr className="border-slate-100" />
       <div>
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-sm font-medium text-slate-900">{s.telegram}</h3>
+          <h3 className="text-sm font-medium text-slate-700">{s.telegram}</h3>
           {connected && (
             <Badge tone="green">
               <CircleCheck aria-hidden className="mr-1 size-3.5" />

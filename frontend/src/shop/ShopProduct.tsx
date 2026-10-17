@@ -302,7 +302,7 @@ function VariantPicker({
   const t = useT()
   return (
     <fieldset ref={ref} className="mt-5 scroll-mt-24">
-      <legend className="mb-2 text-sm font-semibold text-slate-900">{t.shop.product.chooseOption}</legend>
+      <legend className="mb-2 text-sm font-medium text-slate-700">{t.shop.product.chooseOption}</legend>
       {prompt && (
         <p role="alert" className="-mt-1 mb-2 text-sm font-semibold text-amber-700">
           {t.shop.product.chooseOptionFirst}

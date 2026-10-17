@@ -261,7 +261,7 @@ function CustomerNote({ order }: { order: Order }) {
   if (!order.notes) return null
   return (
     <div className="mt-2 mb-3">
-      <p className="text-xs text-slate-500">{order.source === 'chat' ? o.yourNote : o.customerNote}</p>
+      <p className="text-sm font-medium text-slate-700">{order.source === 'chat' ? o.yourNote : o.customerNote}</p>
       <p className="mt-1 inline-block max-w-full rounded-[4px_18px_18px_18px] bg-slate-100 px-3.5 py-2 whitespace-pre-line break-words text-slate-900">
         {order.notes}
       </p>
@@ -348,7 +348,7 @@ function CustomerCard({ order }: { order: Order }) {
       <Source order={order} />
       {order.delivery_method === 'seller_delivery' && (
         <div className="mt-4 border-t border-slate-100 pt-4">
-          <h3 className="text-sm text-slate-500">{o.deliverTo}</h3>
+          <h3 className="text-sm font-medium text-slate-700">{o.deliverTo}</h3>
           {order.delivery_address && (
             <p className="mt-0.5 whitespace-pre-line break-words text-slate-900">{order.delivery_address}</p>
           )}

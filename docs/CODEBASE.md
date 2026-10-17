@@ -1373,6 +1373,8 @@ message needs a Khmer entry there.** What sellers type is shown as typed.
   underlined with a thin, light line at `text-underline-offset: 0.42em`,
   which clears Khmer subscripts; `html` sets the same offset so any other
   underline does too. Don't use `hover:underline` or `underline-offset-2`.
+- **A label over a group** (options, contact buttons, "Deliver to") uses
+  the field label's style, `text-sm font-medium text-slate-700` (UI check #17).
 - **Dark status colours are softer than Tailwind's** (UI check #3): the
   dark block in `index.css` sets the emerald, red, amber and sky 600-800
   shades (text and dots) to lower-chroma values, so status words stay

@@ -87,7 +87,7 @@ function Status({ plan }: { plan: Plan }) {
         </div>
       )}
       <div>
-        <h3 className="mb-2 text-sm font-semibold text-slate-900">{p.includes}</h3>
+        <h3 className="mb-2 text-sm font-medium text-slate-700">{p.includes}</h3>
         <ul className="space-y-1.5 text-sm leading-6 text-slate-600">
           {[p.includesEverything, p.includesStaff, p.includesHosting].map((line) => (
             <li key={line} className="flex gap-2">

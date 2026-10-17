@@ -1060,6 +1060,10 @@ for a pick).
 - [x] 16. A shop without a cover photo: its name sits level with the
   middle of the logo (it lined up with the logo's top), the description
   under the name. Shops with a cover unchanged.
+- [x] 17. Labels over a group look the same everywhere, like the labels
+  over form fields (dark, medium): the product page's "Choose an option"
+  and "Ask the seller", an order's "Deliver to" and "Note from the
+  customer", Settings' "Couriers", "Telegram" and Plan's "What's included".
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,
