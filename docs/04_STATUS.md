@@ -1037,6 +1037,9 @@ for a pick).
   beside the sidebar. Forms and detail pages (a customer, a product,
   Categories, Notifications) stay a narrow column but no longer float in
   the middle, so the title doesn't jump when you open something.
+- [x] 10. Laptops: the sidebar's first row is the shop's logo and name
+  alone ("Dara Phone Shop" no longer cut to "Dara / Phone…"); share and
+  the bell sit at the top right of the page. Phones unchanged.
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,

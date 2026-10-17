@@ -1084,7 +1084,9 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `*` | redirect to `/` | |
 
 The dashboard shell has a bottom tab bar on phones (Orders, Customers,
-Products, Links, Settings) and a sidebar from `lg`. Beside the bell, a
+Products, Links, Settings) and a sidebar from `lg`, whose first row is the
+shop's logo and name alone; on laptops the bell and share sit in a slim
+sticky bar at the page's top right (`LaptopTopBar`, UI check #10). Beside the bell, a
 share button (`ShareShopButton`, `dashboard/ShareShop.tsx`, UX check #10,
 2026-10-17) opens the phone's share list with the shop's link, or copies
 it on a laptop; Settings → Shop link has Copy link and Share first
