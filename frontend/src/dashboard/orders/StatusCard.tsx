@@ -54,23 +54,22 @@ export function StatusCard({
     <section ref={ref} aria-label={o.statuses} className="scroll-mt-4">
       <Card className="divide-y divide-slate-100 overflow-hidden">
         <OrderRow order={order} actions={actions} step={step} />
-        <div className={closed ? 'opacity-50' : ''}>
-          <DeliveryRow order={order} actions={actions} step={step} onSend={onSend} />
-        </div>
-        <div className={closed ? 'opacity-50' : ''}>
-          <PaymentRow order={order} actions={actions} step={step} paying={paying} setPaying={setPaying} />
-        </div>
+        <DeliveryRow order={order} actions={actions} step={step} onSend={onSend} muted={closed} />
+        <PaymentRow order={order} actions={actions} step={step} paying={paying} setPaying={setPaying} muted={closed} />
       </Card>
     </section>
   )
 }
 
+/** `muted`: a closed order's delivery and payment (UI check #4, founder
+ * 2026-10-17): full strength but grey words, since nothing is left to do. */
 function Row({
   icon: Icon,
   label,
   value,
   tone,
   shaded,
+  muted = false,
   children,
 }: {
   icon: LucideIcon
@@ -78,6 +77,7 @@ function Row({
   value: string
   tone: StatusTone
   shaded: boolean
+  muted?: boolean
   children?: ReactNode
 }) {
   return (
@@ -87,7 +87,7 @@ function Row({
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-xs text-slate-500">{label}</p>
-        <p className={`font-semibold break-words ${TONE_TEXT[tone]}`}>{value}</p>
+        <p className={`font-semibold break-words ${muted ? 'text-slate-600' : TONE_TEXT[tone]}`}>{value}</p>
         {children}
       </div>
     </div>
@@ -204,11 +204,13 @@ function DeliveryRow({
   actions,
   step,
   onSend,
+  muted,
 }: {
   order: Order
   actions: OrderActions
   step: ReturnType<typeof nextStep>
   onSend: () => void
+  muted: boolean
 }) {
   const t = useT()
   const o = t.orders
@@ -295,6 +297,7 @@ function DeliveryRow({
       value={badge.label}
       tone={badge.tone}
       shaded={step === 'send' || step === 'deliver'}
+      muted={muted}
     >
       <Sub>
         {pickup ? o.customerCollects : delivery.courier ? o.sendWith(delivery.courier) : o.ownDelivery}
@@ -330,12 +333,14 @@ function PaymentRow({
   step,
   paying,
   setPaying,
+  muted,
 }: {
   order: Order
   actions: OrderActions
   step: ReturnType<typeof nextStep>
   paying: boolean
   setPaying: (open: boolean) => void
+  muted: boolean
 }) {
   const t = useT()
   const o = t.orders
@@ -405,6 +410,7 @@ function PaymentRow({
       value={badge.label}
       tone={badge.tone}
       shaded={step === 'markPaid' || step === 'retryPayment'}
+      muted={muted}
     >
       <Sub>
         {t.status.paymentMethod[payment.method]} · {formatMoney(payment.amount, order.currency)}

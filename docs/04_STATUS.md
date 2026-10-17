@@ -1012,6 +1012,10 @@ for a pick).
   paid, Only 1 left) are a warm sand instead of bright yellow (#ffd230 →
   #ebbb6e), and red, green (Paid, the free-delivery bar) and blue (New,
   With the driver) are calmer too. Light mode unchanged.
+- [x] 4. A rejected or cancelled order's delivery and payment rows are
+  no longer faded to half strength (their text was 2:1); they show at
+  full strength with the status words in grey, since nothing is left
+  to do.
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,
