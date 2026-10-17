@@ -91,7 +91,7 @@ async def shop_detail(db: AsyncSession, store_id: uuid.UUID) -> AdminShopDetailO
         )
     ).first()
     if row is None:
-        raise NotFound("STORE_NOT_FOUND", "Store not found.")
+        raise NotFound("STORE_NOT_FOUND", "Shop not found.")
     store, owner = row
     payments = await plan_service.payments_of(db, store_id)
     shop = _shop(store, owner, payments, clock.today())
@@ -104,7 +104,7 @@ async def shop_detail(db: AsyncSession, store_id: uuid.UUID) -> AdminShopDetailO
 async def _locked(db: AsyncSession, store_id: uuid.UUID) -> Store:
     store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
     if store is None:
-        raise NotFound("STORE_NOT_FOUND", "Store not found.")
+        raise NotFound("STORE_NOT_FOUND", "Shop not found.")
     return store
 
 

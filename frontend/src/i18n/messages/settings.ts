@@ -6,8 +6,9 @@ export const settings = {
   saved: { en: 'Settings saved', km: 'បានរក្សាទុកការកំណត់' },
   save: { en: 'Save settings', km: 'រក្សាទុកការកំណត់' },
 
-  store: { en: 'Store', km: 'ហាង' },
-  storeName: { en: 'Store name', km: 'ឈ្មោះហាង' },
+  // "Shop" everywhere in English, as ហាង in Khmer (UX check #29).
+  store: { en: 'Shop', km: 'ហាង' },
+  storeName: { en: 'Shop name', km: 'ឈ្មោះហាង' },
   description: { en: 'Description', km: 'ការពិពណ៌នា' },
   descriptionHint: {
     en: 'Optional. A line about what you sell, shown on your shop page.',

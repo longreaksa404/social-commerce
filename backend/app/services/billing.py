@@ -57,7 +57,7 @@ async def claim(store_id: uuid.UUID, period: PlanPeriod) -> uuid.UUID | None:
     async with unscoped_session() as db:
         store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
         if store is None:
-            raise NotFound("STORE_NOT_FOUND", "Store not found.")
+            raise NotFound("STORE_NOT_FOUND", "Shop not found.")
         waiting = await db.scalar(
             select(PlanPayment.id).where(
                 PlanPayment.store_id == store_id,

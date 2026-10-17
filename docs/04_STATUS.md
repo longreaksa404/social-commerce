@@ -1111,6 +1111,10 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   collect it" (was "when it arrives" / "when you get your order").
 - [x] 28. "SKU" on the product page became "Your own product codes
   (optional)" and "Product code (optional)" (លេខកូដទំនិញ).
+- [x] 29. "Shop" everywhere in English: Create your shop, Shop name,
+  Create shop, the Settings page title, "By creating a shop", and three
+  API messages ("This shop link is already taken.", "Shop not found.",
+  "This account has no shop."; codes unchanged). Khmer already said ហាង.
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

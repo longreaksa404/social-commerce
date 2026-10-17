@@ -288,7 +288,7 @@ async def shop_of(db: AsyncSession, seller: Seller) -> uuid.UUID:
         return seller.store_id
     store_id = await db.scalar(select(Store.id).where(Store.seller_id == seller.id))
     if store_id is None:  # every owner gets a store at registration
-        raise AppError(409, "STORE_MISSING", "This account has no store.")
+        raise AppError(409, "STORE_MISSING", "This account has no shop.")
     return store_id
 
 

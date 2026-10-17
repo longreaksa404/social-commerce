@@ -27,7 +27,7 @@ SETTINGS = {"payment_settings", "delivery_settings", "discount_settings"}
 
 
 def _slug_taken() -> AppError:
-    return AppError(409, "SLUG_TAKEN", "This store link is already taken.", "slug")
+    return AppError(409, "SLUG_TAKEN", "This shop link is already taken.", "slug")
 
 
 async def change_slug(db: AsyncSession, store: Store, slug: str) -> None:
@@ -60,7 +60,7 @@ def _own_upload(url: str | None, prefix: str) -> bool:
 async def get_store(db: AsyncSession, store_id: uuid.UUID) -> Store:
     store = await db.get(Store, store_id)
     if store is None:
-        raise NotFound("STORE_NOT_FOUND", "Store not found.")
+        raise NotFound("STORE_NOT_FOUND", "Shop not found.")
     return store
 
 

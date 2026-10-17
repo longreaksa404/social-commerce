@@ -25,7 +25,7 @@ export const legal = {
     en: 'Free for 1 month from the day you open your shop, then $9.99 a month or $99 a year.',
     km: 'ឥតគិតថ្លៃ 1 ខែ ចាប់ពីថ្ងៃដែលអ្នកបើកហាង បន្ទាប់មក $9.99 ក្នុងមួយខែ ឬ $99 ក្នុងមួយឆ្នាំ។',
   },
-  agreeStart: { en: 'By creating a store, you accept our', km: 'ការបង្កើតហាង មានន័យថាអ្នកយល់ព្រមនឹង' },
+  agreeStart: { en: 'By creating a shop, you accept our', km: 'ការបង្កើតហាង មានន័យថាអ្នកយល់ព្រមនឹង' },
   agreeAnd: { en: 'and', km: 'និង' },
   // Khmer puts “our” after the links, so its ending starts with a space.
   agreeEnd: { en: '.', km: ' របស់យើង។' },

@@ -24,7 +24,7 @@ export const auth = {
     sampleText: { en: 'Sokunthea, 2 items, $17.00', km: 'Sokunthea, ទំនិញ 2, $17.00' },
     sampleTag: { en: 'New', km: 'ថ្មី' },
   },
-  createYourStore: { en: 'Create your store', km: 'បង្កើតហាងរបស់អ្នក' },
+  createYourStore: { en: 'Create your shop', km: 'បង្កើតហាងរបស់អ្នក' },
   logIn: { en: 'Log in', km: 'ចូលគណនី' },
   email: { en: 'Email', km: 'អ៊ីមែល' },
   phone: { en: 'Phone number', km: 'លេខទូរស័ព្ទ' },
@@ -146,7 +146,7 @@ export const auth = {
   register: {
     subtitle: { en: 'It takes about a minute.', km: 'ចំណាយពេលប្រហែលមួយនាទី។' },
     haveAccount: { en: 'Already have an account?', km: 'មានគណនីរួចហើយ?' },
-    storeName: { en: 'Store name', km: 'ឈ្មោះហាង' },
+    storeName: { en: 'Shop name', km: 'ឈ្មោះហាង' },
     storeNameHint: {
       en: 'What customers will see. You can change it later.',
       km: 'ឈ្មោះដែលអតិថិជននឹងឃើញ។ អ្នកអាចប្ដូរវានៅពេលក្រោយបាន។',
@@ -159,6 +159,6 @@ export const auth = {
     yourName: { en: 'Your name', km: 'ឈ្មោះរបស់អ្នក' },
     phoneLabel: { en: 'Phone number (you log in with it)', km: 'លេខទូរស័ព្ទ (អ្នកប្រើវាដើម្បីចូលគណនី)' },
     passwordHint: { en: 'At least 8 characters.', km: 'យ៉ាងតិច 8 តួអក្សរ។' },
-    submit: { en: 'Create store', km: 'បង្កើតហាង' },
+    submit: { en: 'Create shop', km: 'បង្កើតហាង' },
   },
 } satisfies Tree

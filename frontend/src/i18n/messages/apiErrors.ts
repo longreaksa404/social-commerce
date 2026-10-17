@@ -32,7 +32,7 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   'Your session has expired.': 'វគ្គរបស់អ្នកផុតកំណត់ហើយ។',
   'Please log in.': 'សូមចូលគណនី។',
   'Password is too long (max 72 bytes).': 'ពាក្យសម្ងាត់វែងពេក។',
-  'This account has no store.': 'គណនីនេះមិនមានហាងទេ។',
+  'This account has no shop.': 'គណនីនេះមិនមានហាងទេ។',
   'Your current password is wrong.': 'ពាក្យសម្ងាត់បច្ចុប្បន្នមិនត្រឹមត្រូវទេ។',
   'Account not found.': 'រកមិនឃើញគណនី។',
   "Only the shop's owner can do this.": 'មានតែម្ចាស់ហាងទេដែលអាចធ្វើការនេះបាន។',
@@ -94,10 +94,10 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   'Record the payment before completing this order.': 'សូមកត់ត្រាការបង់ប្រាក់ មុននឹងបញ្ចប់ការកុម្ម៉ង់នេះ។',
 
   // Settings
-  'This store link is already taken.': 'តំណហាងនេះមានគេប្រើរួចហើយ។',
+  'This shop link is already taken.': 'តំណហាងនេះមានគេប្រើរួចហើយ។',
   'Choose a day after today.': 'សូមជ្រើសថ្ងៃក្រោយថ្ងៃនេះ។',
   'Choose up to a year, ending after it starts.': 'សូមជ្រើសរយៈពេលមិនលើសមួយឆ្នាំ ដែលថ្ងៃបញ្ចប់នៅក្រោយថ្ងៃចាប់ផ្ដើម។',
-  'Store not found.': 'រកមិនឃើញហាង។',
+  'Shop not found.': 'រកមិនឃើញហាង។',
   'Turn on at least one way to pay.': 'សូមបើកវិធីបង់ប្រាក់យ៉ាងតិចមួយ។',
   'A Bakong ID has no spaces.': 'Bakong ID មិនមានដកឃ្លាទេ។',
   'A Bakong ID looks like name@bank.': 'Bakong ID មានទម្រង់ដូចជា name@bank។',
