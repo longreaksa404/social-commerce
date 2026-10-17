@@ -1077,6 +1077,9 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
 - [x] 18. New order from a chat starts with a delivery and a way to pay
   picked: what the seller chose on their last chat order (this device),
   else the shop's own delivery and cash on delivery.
+- [x] 19. A product with options keeps Add to cart and Buy now dark (no
+  grey "Choose an option" bar); tapping one before choosing scrolls to
+  the options with "Pick one first." in amber words.
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

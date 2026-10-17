@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
 import { useRef, useState, type Ref, type RefObject } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { buzz } from '../components/effects.ts'
+import { buzz, reducedMotion } from '../components/effects.ts'
 import { useFeedback } from '../components/feedback.ts'
 import { Button, ErrorState, Skeleton } from '../components/ui.tsx'
 import { buttonClass, cardClass } from '../components/styles.ts'
@@ -56,6 +56,11 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
   const variant = product.variants.find((v) => v.id === variantId) ?? null
   // Where Add to cart flies the photo from, while it's on screen.
   const photos = useRef<HTMLDivElement>(null)
+  // Tapped Add to cart or Buy now before choosing: point at the options
+  // (UX check #19, 2026-10-17; a grey "Choose an option" button read as
+  // broken).
+  const picker = useRef<HTMLFieldSetElement>(null)
+  const [needOption, setNeedOption] = useState(false)
   const t = useT()
 
   return (
@@ -79,9 +84,27 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
         <StockLine product={product} variant={variant} />
 
         {product.has_variants && (
-          <VariantPicker variants={product.variants} value={variantId} onChange={setVariantId} />
+          <VariantPicker
+            ref={picker}
+            variants={product.variants}
+            value={variantId}
+            onChange={(id) => {
+              setVariantId(id)
+              setNeedOption(false)
+            }}
+            prompt={needOption && !variant}
+          />
         )}
-        <AddToCart shop={shop} product={product} variant={variant} photos={photos} />
+        <AddToCart
+          shop={shop}
+          product={product}
+          variant={variant}
+          photos={photos}
+          onNeedOption={() => {
+            setNeedOption(true)
+            picker.current?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'center' })
+          }}
+        />
         <AskSeller shop={shop} product={product} variant={variant} />
 
         {/* The product's own details next, not after the shop's delivery
@@ -111,11 +134,13 @@ function AddToCart({
   product,
   variant,
   photos,
+  onNeedOption,
 }: {
   shop: ShopStore
   product: Product
   variant: ShopVariant | null
   photos: RefObject<HTMLDivElement | null>
+  onNeedOption: () => void
 }) {
   const cart = useCart(shop.slug)
   const navigate = useNavigate()
@@ -135,8 +160,9 @@ function AddToCart({
 
   let blocked: string | null = null
   if (stock <= 0) blocked = t.shop.soldOut
-  else if (product.has_variants && !variant) blocked = t.shop.product.chooseOptionFirst
-  const full = blocked === null && room <= 0
+  // No option yet: the buttons stay dark and point at the options.
+  const needsOption = blocked === null && product.has_variants && !variant
+  const full = blocked === null && !needsOption && room <= 0
 
   function add(button: HTMLElement) {
     flyToCart(...flightStart(photos.current, button))
@@ -159,7 +185,7 @@ function AddToCart({
     <>
       {/* How many: beside the price, not in the bar, so the bar's two
           buttons get the whole width. */}
-      {blocked === null && !full && (
+      {blocked === null && !needsOption && !full && (
         <div className="mt-5 flex items-center justify-between gap-3">
           <span className="text-sm font-semibold text-slate-900">{t.shop.quantity}</span>
           <QuantityStepper value={amount} max={Math.max(1, room)} onChange={setQuantity} />
@@ -185,6 +211,7 @@ function AddToCart({
                 variant="secondary"
                 icon={ShoppingCart}
                 onClick={(event) => {
+                  if (needsOption) return onNeedOption()
                   add(event.currentTarget)
                   toast(t.shop.product.added)
                 }}
@@ -197,6 +224,7 @@ function AddToCart({
               <Button
                 size="lg"
                 onClick={(event) => {
+                  if (needsOption) return onNeedOption()
                   add(event.currentTarget)
                   navigate(cartPath)
                 }}
@@ -261,15 +289,25 @@ function VariantPicker({
   variants,
   value,
   onChange,
+  prompt,
+  ref,
 }: {
   variants: ShopVariant[]
   value: string | null
   onChange: (id: string) => void
+  /** Add to cart was tapped first: say so, in amber words. */
+  prompt: boolean
+  ref?: Ref<HTMLFieldSetElement>
 }) {
   const t = useT()
   return (
-    <fieldset className="mt-5">
+    <fieldset ref={ref} className="mt-5 scroll-mt-24">
       <legend className="mb-2 text-sm font-semibold text-slate-900">{t.shop.product.chooseOption}</legend>
+      {prompt && (
+        <p role="alert" className="-mt-1 mb-2 text-sm font-semibold text-amber-700">
+          {t.shop.product.chooseOptionFirst}
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         {variants.map((v) => {
           const soldOut = v.stock_quantity <= 0

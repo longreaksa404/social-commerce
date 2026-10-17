@@ -105,7 +105,7 @@ export const shop = {
     // The heading over the option buttons (size, colour, ...).
     chooseOption: { en: 'Choose an option', km: 'ជ្រើសរើស' },
     // On the Add to cart button until an option is chosen.
-    chooseOptionFirst: { en: 'Choose an option', km: 'សូមជ្រើសរើសជាមុនសិន' },
+    chooseOptionFirst: { en: 'Pick one first.', km: 'សូមជ្រើសរើសមួយជាមុនសិន។' },
     optionSoldOut: { en: ' (sold out)', km: ' (អស់ស្តុក)' },
     allInCart: { en: 'All in your cart', km: 'មានក្នុងកន្ត្រកអស់ហើយ' },
     addToCart: { en: 'Add to cart', km: 'ដាក់កន្ត្រក' },
