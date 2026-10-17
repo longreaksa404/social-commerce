@@ -328,6 +328,13 @@ export const orders = {
     km: (amount: string) => `សូមពិនិត្យកម្មវិធីធនាគាររបស់អ្នក រក ${amount}។`,
   },
   backToNotPaid: { en: 'Back to not paid', km: 'ប្ដូរទៅមិនទាន់បង់វិញ' },
+  // A failed payment is the order's next step (UX check #7, 2026-10-17).
+  paymentFailedHint: {
+    en: 'Ask the customer to pay again, or cancel the order.',
+    km: 'សុំឱ្យអតិថិជនបង់ម្ដងទៀត ឬលុបចោលការកុម្ម៉ង់។',
+  },
+  // Under the delivery's buttons while a KHQR or bank payment is still due.
+  notPaidYet: { en: 'Not paid yet', km: 'មិនទាន់បង់' },
   unpayTitle: { en: (n: number) => `Mark order #${n} as not paid?`, km: (n: number) => `កត់ការកុម្ម៉ង់ #${n} ថាមិនទាន់បង់?` },
   unpayMessage: {
     en: 'Use this if you marked it by mistake, or the money never arrived. The customer is shown how to pay again; the order and its delivery stay as they are.',

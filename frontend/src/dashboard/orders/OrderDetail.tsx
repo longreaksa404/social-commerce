@@ -155,8 +155,10 @@ function useMenuItems(order: Order, actions: OrderActions): MenuItem[] {
   const o = t.orders
   const { payment, delivery } = order
   const on = order.status !== 'pending' && !CLOSED.has(order.status)
+  // A failed payment shows Cancel order and Back to not paid on the card.
+  const onCard = on && payment.status === 'failed'
   const items: MenuItem[] = []
-  if (on && order.next_statuses.includes('cancelled')) {
+  if (on && !onCard && order.next_statuses.includes('cancelled')) {
     items.push({ label: o.action.cancelled, icon: CircleX, danger: true, onSelect: () => actions.move('cancelled') })
   }
   if (on && delivery.next_statuses.includes('failed')) {
@@ -165,7 +167,7 @@ function useMenuItems(order: Order, actions: OrderActions): MenuItem[] {
   if (on && payment.next_statuses.includes('failed')) {
     items.push({ label: o.paymentFailed, icon: BanknoteX, danger: true, onSelect: actions.paymentFailed })
   }
-  if (payment.next_statuses.includes('pending')) {
+  if (!onCard && payment.next_statuses.includes('pending')) {
     items.push({
       label: payment.status === 'paid' ? o.notPaidAfterAll : o.backToNotPaid,
       icon: Undo2,

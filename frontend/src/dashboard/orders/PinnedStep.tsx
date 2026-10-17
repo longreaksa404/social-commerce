@@ -70,6 +70,20 @@ export function PinnedStep({
         </>
       )
       break
+    case 'retryPayment':
+      buttons = (
+        <>
+          {order.next_statuses.includes('cancelled') && (
+            <Button variant="danger" disabled={busy} onClick={() => move('cancelled')}>
+              {o.action.cancelled}
+            </Button>
+          )}
+          <Button loading={actions.payment.isPending} disabled={busy} onClick={actions.notPaid} className="flex-1">
+            {o.backToNotPaid}
+          </Button>
+        </>
+      )
+      break
     case 'markPaid':
       buttons = (
         <Button disabled={busy} onClick={onPay} className="flex-1">

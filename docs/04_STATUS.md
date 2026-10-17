@@ -1023,6 +1023,12 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   the next step, with "Accepted. 3 more new orders · Next ›" on top.
   Rejecting still opens the next new order (founder agreed to change the
   pick of 2026-10-08).
+- [x] 7. KHQR and bank orders: Mark paid is the shaded next step before
+  sending; the delivery keeps its buttons with "Not paid yet" in amber
+  words, so a trusted customer's parcel can still go. A failed payment
+  is the next step itself: "Ask the customer to pay again, or cancel the
+  order", with Back to not paid and Cancel order (no longer in the ⋯
+  menu meanwhile). Founder agreed to change the step order of 2026-10-15.
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

@@ -7,7 +7,7 @@ import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, ORDER_STATUS_TONES, type StatusTone } from '../../lib/orders.ts'
 import { paymentBadge } from '../../lib/payments.ts'
 import type { Order, OrderStatus } from '../../lib/types.ts'
-import { cashDue, CLOSED, nextStep } from './orderSteps.ts'
+import { cashDue, CLOSED, nextStep, unpaidTransfer } from './orderSteps.ts'
 import { SendAgain } from './SendToDriver.tsx'
 import type { OrderActions } from './useOrderActions.ts'
 
@@ -282,6 +282,8 @@ function DeliveryRow({
         </div>
       )}
       {buttons}
+      {/* Sending is still possible, but the payment comes first (UX check #7). */}
+      {buttons && unpaidTransfer(order) && <p className="mt-2 text-xs font-semibold text-amber-700">{o.notPaidYet}</p>}
       {steps.length > 0 && (
         <>
           <p className="mt-3 text-xs text-slate-500">{o.moreSteps}</p>
@@ -330,7 +332,22 @@ function PaymentRow({
   const cod = payment.method === 'cod'
 
   let buttons: ReactNode = null
-  if (canPay && !cod) {
+  if (step === 'retryPayment') {
+    // A failed payment: ask the customer to pay again, or cancel (UX
+    // check #7). The ⋯ menu leaves these out meanwhile.
+    buttons = (
+      <Buttons>
+        {order.next_statuses.includes('cancelled') && (
+          <Button variant="danger" disabled={actions.busy} onClick={() => actions.move('cancelled')}>
+            {o.action.cancelled}
+          </Button>
+        )}
+        <Button {...NEXT} loading={actions.payment.isPending} disabled={actions.busy} onClick={actions.notPaid} className="flex-1">
+          {o.backToNotPaid}
+        </Button>
+      </Buttons>
+    )
+  } else if (canPay && !cod) {
     buttons = paying ? (
       <PaidForm onBack={() => setPaying(false)} actions={actions} onDone={() => setPaying(false)} />
     ) : (
@@ -363,10 +380,17 @@ function PaymentRow({
   }
 
   return (
-    <Row icon={Wallet} label={o.payment} value={badge.label} tone={badge.tone} shaded={step === 'markPaid'}>
+    <Row
+      icon={Wallet}
+      label={o.payment}
+      value={badge.label}
+      tone={badge.tone}
+      shaded={step === 'markPaid' || step === 'retryPayment'}
+    >
       <Sub>
         {t.status.paymentMethod[payment.method]} · {formatMoney(payment.amount, order.currency)}
       </Sub>
+      {step === 'retryPayment' && <Sub>{o.paymentFailedHint}</Sub>}
       {payment.paid_at && payment.status === 'paid' && <Sub>{o.markedPaid(formatOrderTime(payment.paid_at))}</Sub>}
       {payment.reference && (
         <Sub>
