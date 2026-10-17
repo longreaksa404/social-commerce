@@ -47,7 +47,8 @@ const blankVariant = (): VariantDraft => ({
   name: '',
   sku: '',
   price_override: '',
-  stock_quantity: '0',
+  // Empty and required: the seller says how many they have.
+  stock_quantity: '',
 })
 
 function toDraft(product?: Product): Draft {
@@ -59,7 +60,9 @@ function toDraft(product?: Product): Draft {
     price: product?.price ?? '',
     status: product?.status ?? 'active',
     has_variants: product?.has_variants ?? false,
-    stock_quantity: String(product?.stock_quantity ?? 0),
+    // A new product starts empty and required, so it never goes into the
+    // shop as sold out because the seller skipped the box.
+    stock_quantity: product ? String(product.stock_quantity ?? 0) : '',
     variants: product?.variants.length
       ? product.variants.map((v) => ({
           key: v.id,
@@ -229,7 +232,17 @@ function ProductForm({ product }: { product?: Product }) {
               <MoneyInput required currency={currency} value={draft.price} onChange={(v) => set('price', v)} />
             </Field>
             {!draft.has_variants && (
-              <Field label={p.stock} error={fieldError(save.error, 'stock_quantity')} hint={p.stockHint}>
+              <Field
+                label={p.stockQuestion}
+                error={fieldError(save.error, 'stock_quantity')}
+                hint={
+                  draft.stock_quantity !== '' && Number(draft.stock_quantity) === 0 ? (
+                    <span className="font-medium text-amber-700">{p.stockZero}</span>
+                  ) : (
+                    p.stockHint
+                  )
+                }
+              >
                 <StockStepper value={draft.stock_quantity} onChange={(v) => set('stock_quantity', v)} />
               </Field>
             )}
@@ -350,8 +363,10 @@ function StockStepper({ value, onChange }: { value: string; onChange: (value: st
       <Input
         type="number"
         inputMode="numeric"
+        required
         min="0"
         step="1"
+        placeholder={p.stockPlaceholder}
         value={value}
         onWheel={(e) => e.currentTarget.blur()}
         onChange={(e) => onChange(e.target.value)}

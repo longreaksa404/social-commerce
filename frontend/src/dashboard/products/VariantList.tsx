@@ -46,7 +46,10 @@ export function VariantList({
           {p.variantName}
           <span className="ml-0.5 text-red-600">*</span>
         </span>
-        <span>{p.stock}</span>
+        <span>
+          {p.stock}
+          <span className="ml-0.5 text-red-600">*</span>
+        </span>
         <span>{p.price}</span>
       </div>
       <ul className={skus ? 'space-y-5' : 'space-y-4 @min-[18rem]:space-y-2'}>
@@ -82,8 +85,10 @@ export function VariantList({
                 <Input
                   type="number"
                   inputMode="numeric"
+                  required
                   min="0"
                   step="1"
+                  placeholder="0"
                   value={variant.stock_quantity}
                   onWheel={(e) => e.currentTarget.blur()}
                   onChange={(e) => set(variant.key, { stock_quantity: e.target.value })}
@@ -113,6 +118,9 @@ export function VariantList({
           </li>
         ))}
       </ul>
+      {variants.some((v) => v.stock_quantity !== '' && Number(v.stock_quantity) === 0) && (
+        <p className="text-xs font-medium text-amber-700">{p.variantStockZero}</p>
+      )}
       <p className="text-xs text-slate-500">{p.variantPriceHint}</p>
       <div className="flex flex-col gap-2">
         <button type="button" onClick={onAdd} className={`${buttonClass('secondary')} w-full border-dashed`}>

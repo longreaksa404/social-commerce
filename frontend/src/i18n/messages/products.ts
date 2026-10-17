@@ -93,6 +93,15 @@ export const products = {
   },
   addVariant: { en: 'Add variant', km: 'បន្ថែមជម្រើស' },
   stockHint: { en: 'How many you have to sell.', km: 'ចំនួនដែលអ្នកមានសម្រាប់លក់។' },
+  // A new product's stock starts empty and must be filled in, so nothing
+  // goes into the shop as sold out by accident (UX check, 2026-10-17).
+  stockQuestion: { en: 'How many do you have?', km: 'តើអ្នកមានប៉ុន្មាន?' },
+  stockPlaceholder: { en: 'e.g. 10', km: 'ឧ. 10' },
+  stockZero: { en: 'Customers will see “Sold out”.', km: 'អតិថិជននឹងឃើញថា “អស់ស្តុក”។' },
+  variantStockZero: {
+    en: 'Options with 0 show as “Sold out” to customers.',
+    km: 'ជម្រើសដែលមាន 0 នឹងបង្ហាញថា “អស់ស្តុក” ដល់អតិថិជន។',
+  },
   decreaseStock: { en: 'Decrease stock', km: 'បន្ថយស្តុក' },
   increaseStock: { en: 'Increase stock', km: 'បន្ថែមស្តុក' },
   visibility: { en: 'Visibility', km: 'ការបង្ហាញ' },
