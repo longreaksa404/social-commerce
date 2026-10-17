@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-17 (UX check fixes, not pushed: the 30 problems from the UX check, one commit each; see In Progress, "UX check fixes"). 2026-10-16 (Open shop starts the free trial, not pushed: a new shop is in setup, with no time limit and no orders, until the owner taps Open shop, which asks first and starts the 30-day trial; customers see "Opening soon"). 2026-10-15 (shop colour and cover photo, not pushed: eight colours a seller can pick, the shop takes it; a cover photo across the top like a Facebook page, and the shop's large link card made from it; before that the same day, seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only across the app; less motion on the order page; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-17 (UX check fixes, all 30 built, not pushed: one commit each, see In Progress, "UX check fixes"; the biggest: new products no longer start sold out, the customer's order reads Delivered once delivered, a new shop's Orders tab starts with its setup list, "Says paid" in the order list, Accept keeps the order open, payment before shipping for KHQR and bank, one-tap "Cash received, complete" and "Delivered, complete", a share button beside the bell; two API changes, no migrations). 2026-10-16 (Open shop starts the free trial, not pushed: a new shop is in setup, with no time limit and no orders, until the owner taps Open shop, which asks first and starts the 30-day trial; customers see "Opening soon"). 2026-10-15 (shop colour and cover photo, not pushed: eight colours a seller can pick, the shop takes it; a cover photo across the top like a Facebook page, and the shop's large link card made from it; before that the same day, seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only across the app; less motion on the order page; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -994,7 +994,11 @@ page (artifact "Shop Colour and Cover").
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,
-30 problems ranked). Numbers are the page's; each is its own commit:
+30 problems ranked). Numbers are the page's; each is its own commit.
+All 30 built 2026-10-17, not pushed (founder: see Next Up). Checks: ruff,
+pytest (702 passed), oxlint, build; each screen looked at on a 390 px
+phone, and 32 dashboard and 14 shop screens swept in Khmer and English
+for text cut off or pages wider than the phone (none).
 
 - [x] 1. New products: the stock box starts empty and must be filled in
   ("How many do you have?"); 0 says "Customers will see Sold out" in
@@ -2309,6 +2313,26 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
+0000000000000. **UX check fixes** (all 30 built, not pushed; In Progress,
+        "UX check fixes"). No migrations, no new variables. Founder:
+        push, then on your phone (Khmer):
+        1. Products → Add: the stock box starts empty and asks "How many
+           do you have?"; 0 says "Customers will see Sold out".
+        2. Place an order as a customer, accept it, Send to driver,
+           Delivered: the customer's page reads Delivered (four steps).
+        3. KHQR order: "I've paid" → the list says "Says paid"; Accept
+           stays on the order with "Next ›"; Mark paid is the dark step.
+        4. A cash order with a driver: "Delivered, cash received", then
+           on a delivered one "Cash received, complete".
+        5. The share button beside the bell; Settings → Shop link: Copy
+           link first.
+        6. A new test shop: Orders starts with "Get your shop ready".
+        7. Read the new Khmer words and change any that sellers wouldn't
+           say: "Cash due" រង់ចាំសាច់ប្រាក់, "Not sent yet" មិនទាន់ផ្ញើចេញ,
+           "With the driver" នៅជាមួយអ្នកដឹក, tabs "Done" រួចរាល់ /
+           "Closed" បានបិទ, "Ordered" បានកុម្ម៉ង់សរុប, "Tell the customer
+           a step" ប្រាប់អតិថិជនពីជំហាន, "Pay early" បង់មុន.
+        8. `docs/REGRESSION_CHECKLIST.md` Part A is updated for these.
 000000000000. **Open shop starts the trial** (built, not pushed). Founder:
         push (the migration only lets `paid_until` be empty; shops that
         exist now keep their trial or paid dates). After that, a new

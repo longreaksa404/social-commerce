@@ -17,37 +17,37 @@ phone or laptop) before going on.
 
 **Seller: product and link**
 
-- [ ] Products → New product with two options (e.g. S and M), a price, stock 3, and a photo. Save. The photo shows in the list.
+- [ ] Products → New product: the stock box starts empty ("How many do you have?"); 0 says "Customers will see Sold out". Then two options (e.g. S and M), a price, stock 3, and a photo. Save. The photo shows in the list.
 - [ ] On the product, tap Share → TikTok → name "Regression test". The link's page opens with Copy / Share / Open.
 - [ ] Paste the link in a Telegram or Messenger chat. The preview shows the product's name and photo (if Render was asleep, wait a minute and paste again).
 
 **Customer: order**
 
 - [ ] Open the link on the customer screen. The product page shows the photo, both options, the price.
-- [ ] Choose M, Buy now: the cart opens with the items at the top and the order form below (one page).
+- [ ] Buy now before choosing: the page goes to the options with "Pick one first." Choose M, Buy now: the cart opens with the items at the top and the order form below (one page).
 - [ ] On the shop, + on a product without options adds one (the number shows on the photo); the bar at the bottom shows the count and total and opens the cart. A product with options has no +.
 - [ ] Order a second time on the same phone: name and phone show as one line with Change. Place order shows the total.
 - [ ] Name, phone, delivery by the shop, "Pin my location on the map" → move the map → Confirm. Choose KHQR. The breakdown shows items, delivery, total.
 - [ ] Place order. The order page shows the KHQR code with the exact total; "Save QR code" works.
-- [ ] Tap "I've paid: send receipt": the shop's Telegram opens with "I've paid order #…" typed in, and the order page says "You told <shop> you paid".
+- [ ] Tap "I've paid: send receipt": the shop's Telegram opens with "I've paid order #…" typed in, and the order page says "You told <shop> you paid", with the QR folded behind "Show the QR again".
 
 **Seller: alerts and the order**
 
 - [ ] A Telegram alert (in Khmer) arrives with the order number, items, total, customer and the Open order button; then "<name> says they paid #…".
-- [ ] The bell shows a red count; the notification opens the order.
+- [ ] The bell's list has the order (its number counts only "says paid", low stock and sold out); the notification opens the order.
 - [ ] On Products, tap the bell: notifications open; tap the bell again (or the back arrow) and you're back on Products.
 - [ ] The order says "Came through your TikTok link". "Open in Google Maps" shows the pinned spot.
-- [ ] The Payment card shows "Customer says paid · <time>"; the bell has "<name> says they paid".
-- [ ] Accept → the customer's order page (reload) shows it accepted.
+- [ ] The order list says "Says paid"; the Payment row reads "Says paid at <time>" with "Check your bank app for $X"; the bell has "<name> says they paid".
+- [ ] Accept: the order stays open with "Accepted. N more new orders · Next ›". The customer's order page (reload) shows it confirmed.
 - [ ] Payment: Mark paid with a note. The customer's page no longer shows the QR.
 - [ ] Delivery card: Send to driver opens the share list (copies on a laptop) with the shop name, labelled customer/address/map lines, bulleted items, "COLLECT $X CASH" with how it adds up (or "Paid already"), and the shop's phone.
-- [ ] To do card: "Next: deliver it" → Delivered. The customer's page shows it delivered.
-- [ ] To do card: Complete. It moves to the Delivered filter.
+- [ ] Delivery: "Delivered, complete" (it's paid). The customer's page reads Delivered, the bar full.
+- [ ] The order is Completed and in the Done tab.
 
 **Seller: the numbers**
 
 - [ ] Links → "Regression test" shows 1 view and 1 order.
-- [ ] Customers → the customer shows 1 order and the total spent; their page lists the order.
+- [ ] Customers → the customer shows 1 order and the total ordered; their page lists the order.
 - [ ] The product's M option has 2 left.
 
 ---
