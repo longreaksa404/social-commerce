@@ -1055,6 +1055,12 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   A product page shows its Details right after the options and Ask the
   seller, without the shop's lines. Founder agreed to change the tags of
   2026-10-07.
+- [x] 13. Delivery words: "Not sent yet" and "With the driver" (a
+  courier's: "Sent with J&T Express") instead of Not assigned / Assigned;
+  "Book courier" is gone (the app books nothing). A courier's sheet is
+  "Send with J&T Express": Tracking number, "Save: sent with J&T
+  Express" first, "Share the details" second. Who has it reads "Driver:"
+  or "Tracking:".
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

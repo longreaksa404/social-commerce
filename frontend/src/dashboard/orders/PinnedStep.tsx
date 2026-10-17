@@ -97,7 +97,7 @@ export function PinnedStep({
           {order.delivery.status === 'failed'
             ? t.status.deliveryAction.tryAgain
             : order.delivery.courier
-              ? t.status.deliveryAction.bookCourier
+              ? t.status.deliveryAction.sendWith(order.delivery.courier)
               : o.sendToDriver}
         </Button>
       )

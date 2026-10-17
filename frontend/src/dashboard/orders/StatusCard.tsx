@@ -189,7 +189,7 @@ function DeliveryRow({
   const { delivery } = order
   const { busy } = actions
   const pickup = delivery.method === 'pickup'
-  const badge = deliveryBadge(t, delivery.method, delivery.status)
+  const badge = deliveryBadge(t, delivery.method, delivery.status, delivery.courier)
   // Nothing to deliver before it's accepted, after it's off or once it's
   // completed (the server would still allow it: the two never set each other).
   const live = order.status !== 'pending' && order.status !== 'completed' && !CLOSED.has(order.status)
@@ -243,7 +243,8 @@ function DeliveryRow({
           {delivery.status === 'failed'
             ? t.status.deliveryAction.tryAgain
             : delivery.courier
-              ? t.status.deliveryAction.bookCourier
+              ? // The line above names the courier ("Send with J&T Express").
+                o.send
               : o.sendToDriver}
         </Button>
         {canDeliver && (cash ? handover(false) : delivered(false))}
@@ -275,7 +276,7 @@ function DeliveryRow({
       </Sub>
       {delivery.assignee_note && (
         <Sub>
-          {delivery.courier ? o.note : o.delivering}
+          {delivery.courier ? o.tracking : o.delivering}
           {delivery.assignee_note}
         </Sub>
       )}

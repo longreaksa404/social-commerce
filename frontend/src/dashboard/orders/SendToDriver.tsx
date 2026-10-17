@@ -102,7 +102,7 @@ export function SendToDriverSheet({
   const [saving, setSaving] = useState<'send' | 'save' | null>(null)
   const { courier } = order.delivery
   const failed = order.delivery.status === 'failed'
-  const title = failed ? t.status.deliveryAction.tryAgain : courier ? t.status.deliveryAction.bookCourier : o.sendToDriver
+  const title = failed ? t.status.deliveryAction.tryAgain : courier ? t.status.deliveryAction.sendWith(courier) : o.sendToDriver
 
   useEffect(() => {
     const el = dialog.current
@@ -150,24 +150,46 @@ export function SendToDriverSheet({
             {driverMessage(t, order, store.data)}
           </p>
           <Field
-            label={courier ? o.courierNote : o.driverNote}
-            hint={courier ? o.courierNoteHint(courier) : o.driverNoteHint}
+            label={courier ? o.trackingNumber : o.driverNote}
+            hint={courier ? o.trackingHint(courier) : o.driverNoteHint}
             className="mt-4"
           >
             <Input maxLength={200} autoComplete="off" value={note} onChange={(e) => setNote(e.target.value)} />
           </Field>
-          <Button type="submit" icon={Send} loading={saving === 'send'} disabled={saving !== null} className="mt-5 w-full">
-            {o.send}
-          </Button>
-          <Button
-            variant="ghost"
-            loading={saving === 'save'}
-            disabled={saving !== null}
-            onClick={() => finish('save')}
-            className="mt-2 w-full"
-          >
-            {o.saveWithoutSending}
-          </Button>
+          {courier ? (
+            // A courier's parcel goes to a branch: what to keep is the
+            // tracking number; sharing the details is the extra (UX check #13).
+            <>
+              <Button loading={saving === 'save'} disabled={saving !== null} onClick={() => finish('save')} className="mt-5 w-full">
+                {o.saveSentWith(courier)}
+              </Button>
+              <Button
+                type="submit"
+                variant="secondary"
+                icon={Send}
+                loading={saving === 'send'}
+                disabled={saving !== null}
+                className="mt-2 w-full"
+              >
+                {o.shareDetails}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button type="submit" icon={Send} loading={saving === 'send'} disabled={saving !== null} className="mt-5 w-full">
+                {o.send}
+              </Button>
+              <Button
+                variant="ghost"
+                loading={saving === 'save'}
+                disabled={saving !== null}
+                onClick={() => finish('save')}
+                className="mt-2 w-full"
+              >
+                {o.saveWithoutSending}
+              </Button>
+            </>
+          )}
         </form>
       )}
     </dialog>

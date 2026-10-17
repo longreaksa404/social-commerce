@@ -361,19 +361,23 @@ export const orders = {
   customerCollects: { en: 'The customer collects it', km: 'អតិថិជនមកយកដោយខ្លួនឯង' },
   sendWith: { en: (courier: string) => `Send with ${courier}`, km: (courier: string) => `ផ្ញើតាម ${courier}` },
   ownDelivery: { en: 'Your own delivery', km: 'ដឹកដោយខ្លួនឯង' },
-  delivering: { en: 'Delivering: ', km: 'អ្នកដឹក៖ ' },
-  courierNote: {
-    en: 'Courier branch or tracking number (optional)',
-    km: 'សាខាក្រុមហ៊ុនដឹក ឬលេខតាមដាន (មិនចាំបាច់)',
+  // Before who has it: one label each (UX check #13).
+  delivering: { en: 'Driver: ', km: 'អ្នកដឹក៖ ' },
+  tracking: { en: 'Tracking: ', km: 'លេខតាមដាន៖ ' },
+  // A courier's sheet: the tracking number, Save first, sharing second.
+  trackingNumber: { en: 'Tracking number (optional)', km: 'លេខតាមដាន (មិនចាំបាច់)' },
+  trackingHint: {
+    en: (courier: string) => `From ${courier}'s receipt, or the branch. Only you see this.`,
+    km: (courier: string) => `ពីបង្កាន់ដៃ ឬសាខារបស់ ${courier}។ មានតែអ្នកទេដែលឃើញ។`,
   },
-  // Asked by Send to driver (founder's wording, 2026-10-15).
+  saveSentWith: {
+    en: (courier: string) => `Save: sent with ${courier}`,
+    km: (courier: string) => `រក្សាទុក៖ បានផ្ញើតាម ${courier}`,
+  },
+  shareDetails: { en: 'Share the details', km: 'ចែករំលែកព័ត៌មាន' },
   driverNote: {
     en: "Driver's name and phone number (optional)",
     km: 'ឈ្មោះ និងលេខទូរស័ព្ទអ្នកដឹក (មិនចាំបាច់)',
-  },
-  courierNoteHint: {
-    en: (courier: string) => `For example: ${courier} Takeo branch, no. 123456. Only you see this.`,
-    km: (courier: string) => `ឧទាហរណ៍៖ ${courier} សាខាតាកែវ លេខ 123456។ មានតែអ្នកទេដែលឃើញ។`,
   },
   driverNoteHint: {
     en: 'For example: Sokha, 012 999 888. Only you see this.',

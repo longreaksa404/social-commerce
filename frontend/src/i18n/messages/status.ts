@@ -30,9 +30,10 @@ export const status = {
     // Cash on delivery before it arrives: sellers call it COD.
     cod: { en: 'COD', km: 'COD' },
   },
+  // In the seller's words, not the system's (UX check #13, 2026-10-17).
   delivery: {
-    not_assigned: { en: 'Not assigned', km: 'មិនទាន់ចាត់អ្នកដឹក' },
-    assigned: { en: 'Assigned', km: 'បានចាត់អ្នកដឹក' },
+    not_assigned: { en: 'Not sent yet', km: 'មិនទាន់ផ្ញើចេញ' },
+    assigned: { en: 'With the driver', km: 'នៅជាមួយអ្នកដឹក' },
     picked_up: { en: 'Picked up', km: 'អ្នកដឹកបានយក' },
     in_transit: { en: 'On the way', km: 'កំពុងដឹក' },
     delivered: { en: 'Delivered', km: 'បានដល់ដៃ' },
@@ -42,11 +43,14 @@ export const status = {
     not_assigned: { en: 'Not collected', km: 'មិនទាន់មកយក' },
     delivered: { en: 'Collected', km: 'បានមកយកហើយ' },
   },
+  // A courier's parcel once handed over.
+  sentWith: { en: (courier: string) => `Sent with ${courier}`, km: (courier: string) => `បានផ្ញើតាម ${courier}` },
   // The seller's buttons for moving a delivery on.
   deliveryAction: {
     customerCollected: { en: 'Customer collected', km: 'អតិថិជនបានមកយក' },
     tryAgain: { en: 'Try again', km: 'ដឹកម្ដងទៀត' },
-    bookCourier: { en: 'Book courier', km: 'កក់ក្រុមហ៊ុនដឹក' },
+    // Not "Book courier": the app doesn't book anything (UX check #13).
+    sendWith: { en: (courier: string) => `Send with ${courier}`, km: (courier: string) => `ផ្ញើតាម ${courier}` },
     assign: { en: 'Assign', km: 'ចាត់អ្នកដឹក' },
     picked_up: { en: 'Picked up', km: 'អ្នកដឹកបានយក' },
     in_transit: { en: 'On the way', km: 'កំពុងដឹក' },

@@ -12,14 +12,21 @@ const TONES: Record<DeliveryStatus, StatusTone> = {
 }
 
 /** The seller's words for a delivery's status (02 section 7.3); pickup
- * has its own for the two it uses. */
+ * has its own for the two it uses, and a courier's parcel once handed
+ * over says who has it ("Sent with J&T Express"). */
 export function deliveryBadge(
   t: Messages,
   method: DeliveryMethod,
   status: DeliveryStatus,
+  courier: string | null = null,
 ): { label: string; tone: StatusTone } {
   const pickup = method === 'pickup' && (status === 'not_assigned' || status === 'delivered')
-  return { label: pickup ? t.status.pickup[status] : t.status.delivery[status], tone: TONES[status] }
+  const label = pickup
+    ? t.status.pickup[status as 'not_assigned' | 'delivered']
+    : courier && status === 'assigned'
+      ? t.status.sentWith(courier)
+      : t.status.delivery[status]
+  return { label, tone: TONES[status] }
 }
 
 /** The button for moving a delivery to each status. */
@@ -27,7 +34,11 @@ export function deliveryAction(t: Messages, delivery: Delivery, to: DeliveryStat
   const actions = t.status.deliveryAction
   if (delivery.method === 'pickup') return actions.customerCollected
   if (to === 'assigned') {
-    return delivery.status === 'failed' ? actions.tryAgain : delivery.courier ? actions.bookCourier : actions.assign
+    return delivery.status === 'failed'
+      ? actions.tryAgain
+      : delivery.courier
+        ? actions.sendWith(delivery.courier)
+        : actions.assign
   }
   return actions[to as 'picked_up' | 'in_transit' | 'delivered' | 'failed']
 }
