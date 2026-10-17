@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-17 (UI check fixes, not pushed: the founder's 20 picks from the UI check page, one commit each, see In Progress, "UI check fixes"; the biggest: small Khmer text 13px, underlined links that clear Khmer letters, calmer dark-mode colours, status tags as words, one stand-in for missing photos, laptop pages at one left edge with the bell and share at the top right; and less explaining text everywhere; a better font waits for the founder's pick; before that the same day, UX check fixes, all 30 built and pushed (`8a836bd`): one commit each, see In Progress, "UX check fixes"; the biggest: new products no longer start sold out, the customer's order reads Delivered once delivered, a new shop's Orders tab starts with its setup list, "Says paid" in the order list, Accept keeps the order open, payment before shipping for KHQR and bank, one-tap "Cash received, complete" and "Delivered, complete", a share button beside the bell; two API changes, no migrations). 2026-10-16 (Open shop starts the free trial, not pushed: a new shop is in setup, with no time limit and no orders, until the owner taps Open shop, which asks first and starts the 30-day trial; customers see "Opening soon"). 2026-10-15 (shop colour and cover photo, not pushed: eight colours a seller can pick, the shop takes it; a cover photo across the top like a Facebook page, and the shop's large link card made from it; before that the same day, seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only across the app; less motion on the order page; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-17 (UI check fixes, not pushed: the founder's 20 picks from the UI check page, one commit each, see In Progress, "UI check fixes"; the biggest: small Khmer text 13px, underlined links that clear Khmer letters, calmer dark-mode colours, status tags as words, one stand-in for missing photos, laptop pages at one left edge with the bell and share at the top right; less explaining text everywhere; the font is Noto Sans Khmer + Inter (pick A); before that the same day, UX check fixes, all 30 built and pushed (`8a836bd`): one commit each, see In Progress, "UX check fixes"; the biggest: new products no longer start sold out, the customer's order reads Delivered once delivered, a new shop's Orders tab starts with its setup list, "Says paid" in the order list, Accept keeps the order open, payment before shipping for KHQR and bank, one-tap "Cash received, complete" and "Delivered, complete", a share button beside the bell; two API changes, no migrations). 2026-10-16 (Open shop starts the free trial, not pushed: a new shop is in setup, with no time limit and no orders, until the owner taps Open shop, which asks first and starts the 30-day trial; customers see "Opening soon"). 2026-10-15 (shop colour and cover photo, not pushed: eight colours a seller can pick, the shop takes it; a cover photo across the top like a Facebook page, and the shop's large link card made from it; before that the same day, seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only across the app; less motion on the order page; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -1093,6 +1093,12 @@ for a pick).
   (no "Optional."), and the customer's order page ("On another phone,
   open this link…"). Kept: formats, rules and warnings (password length,
   English letters for the link, changing a link, Leave empty, …).
+- [x] A better font (founder's pick A, 2026-10-17, from
+  https://claude.ai/artifact/8d2Cknax5L8DD8qmPGPDw8): Noto Sans Khmer for
+  Khmer (its letters keep their loops, easier to read small) and Inter
+  for English and prices, instead of Kantumruy Pro. The name "Oak Order"
+  keeps the logo's letters (a 2 KB piece of Kantumruy Pro). Khmer 59 KB +
+  English 48 KB, each loaded once (was 57 + 33 KB).
 
 **UX check fixes** (founder, 2026-10-17: "fix all now", after the
 two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rwrL6Z,
@@ -2416,10 +2422,10 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 ## Next Up
 
 00000000000000. **UI check fixes** (all 20 picks and the text cut built,
-        not pushed; In Progress, "UI check fixes"). Frontend only, no
-        migrations, no new variables. Waiting: the founder's font pick
-        (https://claude.ai/artifact/8d2Cknax5L8DD8qmPGPDw8). After a push,
-        on your phone in Khmer, light and dark:
+        and the new font, not pushed; In Progress, "UI check fixes").
+        Frontend only, no migrations, no new variables. After a push, on
+        your phone in Khmer, light and dark (the first visit downloads
+        the new fonts once):
         1. Hints and the tab bar read bigger (13px); text links are
            underlined, below the letters (log in, Settings → Payments,
            the bottom of a shop).
@@ -2433,6 +2439,10 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
            bell are at the top right; pages start at one left edge.
         7. Read the Settings pages: tell Claude if a removed hint is
            missed anywhere.
+        8. The new font: Khmer with loops (Noto Sans Khmer), English and
+           prices in Inter; "Oak Order" looks as before. Then update 02
+           §2 Tech Stack, the Fonts row (text in Claude's message of
+           2026-10-17).
 0000000000000. **UX check fixes** (all 30 built, pushed 2026-10-17 as
         `8a836bd`; In Progress, "UX check fixes"). No migrations, no new
         variables. Founder: check CI (GitHub → Actions) and that Render

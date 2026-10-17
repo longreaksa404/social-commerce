@@ -1052,7 +1052,7 @@ router via `createBrowserRouter`), TanStack Query 5, Tailwind CSS 4 (via
 `src/index.css`), Vite 8, TypeScript 6, oxlint. Other libraries:
 lucide-react (icons), leaflet (checkout map, lazy-loaded), uqr (draws
 KHQR), @sentry/react, @vercel/functions (middleware),
-@fontsource-variable/kantumruy-pro. No automated frontend tests.
+@fontsource-variable/noto-sans-khmer and inter. No automated frontend tests.
 
 ### Routes (`src/router.tsx`)
 
@@ -1361,9 +1361,16 @@ message needs a Khmer entry there.** What sellers type is shown as typed.
   `animate-drive`, `animate-arrive`, ...); a `prefers-reduced-motion` rule turns them off.
   Entrance animations use `backwards` fill so no transform lingers (it
   would pin fixed bars inside cards).
-- Font: Kantumruy Pro for everything (2026-10-06): two self-hosted
-  variable files picked by `unicode-range`, Khmer (~57 KB) and Latin
-  (~33 KB), each downloaded once; the system fonts are the fallback.
+- Fonts (founder's pick A, 2026-10-17; Kantumruy Pro before): **Noto Sans
+  Khmer** for Khmer (~59 KB) and **Inter** for Latin letters and numbers
+  (~48 KB), self-hosted variable files picked by `unicode-range` in
+  `index.css`, each downloaded once; `--font-sans` puts Inter first (it
+  has no Khmer, so Khmer falls to Noto Sans Khmer before any system font).
+  The name "Oak Order" (`OakOrderName`, the start page's big name) uses
+  `font-wordmark`: a 2 KB Kantumruy Pro subset holding only "Oak Order"
+  (`src/assets/fonts/oak-wordmark.woff2`, inlined into the CSS), because
+  the acorn O is drawn from Kantumruy Pro Bold's O. The command that made
+  it is in `index.css`.
 - **Small Khmer text is 13px** (UI check #1, 2026-10-17): `index.css`
   redefines `--text-xs` / `--text-xs--line-height` on `:root[lang='km']`
   (13px on 20px), so every `text-xs` grows in Khmer and stays 12px in

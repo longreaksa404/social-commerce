@@ -37,7 +37,7 @@ export function AcornO({ className = '' }: { className?: string }) {
  * Screen readers hear "Oak Order". */
 export function OakOrderName({ className = '', oClassName = '' }: { className?: string; oClassName?: string }) {
   return (
-    <span className={`inline-flex items-baseline whitespace-nowrap tracking-tight ${className}`}>
+    <span className={`inline-flex items-baseline font-wordmark whitespace-nowrap tracking-tight ${className}`}>
       <span className="sr-only">Oak Order</span>
       <AcornO className={oClassName} />
       <span aria-hidden className="font-bold">

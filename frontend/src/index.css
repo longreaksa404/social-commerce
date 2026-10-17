@@ -2,30 +2,42 @@
 /* Each shop's own colour, over the navy below (founder's picks 2026-10-15). */
 @import './shop/colors.css';
 
-/* Kantumruy Pro for all text (Khmer 2026-10-04; Latin letters and numbers
-   too since the 2026-10-06 redesign, so English and prices match the
-   Khmer beside them). Two variable files (every weight) from
-   @fontsource-variable: Khmer ~57 KB, Latin ~33 KB. A phone downloads each
-   once, the first time it shows those letters. */
+/* Fonts (founder's pick A, 2026-10-17, replacing Kantumruy Pro): Noto Sans
+   Khmer for Khmer (its letters keep their loops, easiest to read small;
+   ~59 KB) and Inter for Latin letters and numbers (~48 KB). Variable files
+   (every weight) from @fontsource-variable, picked by unicode-range, so a
+   phone downloads each once, the first time it shows those letters. */
 @font-face {
-  font-family: 'Kantumruy Pro';
+  font-family: 'Noto Sans Khmer';
   font-style: normal;
   font-display: swap;
-  font-weight: 100 700;
-  src: url('../node_modules/@fontsource-variable/kantumruy-pro/files/kantumruy-pro-khmer-wght-normal.woff2')
+  font-weight: 100 900;
+  src: url('../node_modules/@fontsource-variable/noto-sans-khmer/files/noto-sans-khmer-khmer-wght-normal.woff2')
     format('woff2');
   unicode-range: U+1780-17FF, U+19E0-19FF, U+200C-200D, U+25CC;
 }
 @font-face {
-  font-family: 'Kantumruy Pro';
+  font-family: 'Inter';
   font-style: normal;
   font-display: swap;
-  font-weight: 100 700;
-  src: url('../node_modules/@fontsource-variable/kantumruy-pro/files/kantumruy-pro-latin-wght-normal.woff2')
-    format('woff2');
+  font-weight: 100 900;
+  src: url('../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2');
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
     U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* The name "Oak Order" keeps the logo's letters: Kantumruy Pro, whose bold O
+   the acorn O is drawn from (components/OakMark.tsx). A 2 KB subset holding
+   only "Oak Order" (SIL Open Font License 1.1), made with fonttools from
+   @fontsource-variable/kantumruy-pro 5.3.0's latin file:
+   pyftsubset kantumruy-pro-latin-wght-normal.woff2 --text="Oak Order"
+     --layout-features='*' --flavor=woff2 --output-file=oak-wordmark.woff2 */
+@font-face {
+  font-family: 'Oak Wordmark';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 700;
+  src: url('./assets/fonts/oak-wordmark.woff2') format('woff2');
 }
 
 /* Brand: Navy (founder's choice 2026-10-06, a calm look: one quiet colour
@@ -72,14 +84,14 @@
      dark mode turns into a faint light line) instead of a grey border. */
   --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px -4px rgb(15 23 42 / 0.08);
 
-  /* Khmer letters in Kantumruy Pro (the face below holds only those, so
-     it must come first: Apple's system font would otherwise draw Khmer in
-     its own older-style font). Latin letters and numbers in the phone's
-     own font (fast, native feel); the phone's Khmer font until Kantumruy
-     has loaded. */
+  /* Inter first: it holds only Latin letters and numbers, so Khmer falls to
+     Noto Sans Khmer (before the system fonts, or Apple's would draw Khmer
+     in its own older style). The system fonts while those load. */
   --font-sans:
-    'Kantumruy Pro', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Khmer',
-    'Khmer UI', 'Khmer Sangam MN', 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    'Inter', 'Noto Sans Khmer', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Khmer UI',
+    'Khmer Sangam MN', 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  /* The name "Oak Order" in the logo's letters (font-wordmark). */
+  --font-wordmark: 'Oak Wordmark', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
 
   /* Motion: short and soft, so a tap gets an answer without anyone
      waiting on it. Keyframes are below; the reduced-motion rule at the end

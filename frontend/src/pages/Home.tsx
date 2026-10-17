@@ -30,7 +30,7 @@ export function Home() {
       <div className="my-auto py-12">
         {/* The name as the logo draws it: the acorn's cap on the O (UI
             check #20, founder 2026-10-17). */}
-        <h1 lang="en" className="animate-rise text-[clamp(5.5rem,24vw,13rem)] leading-[0.95] font-bold tracking-tight">
+        <h1 lang="en" className="animate-rise font-wordmark text-[clamp(5.5rem,24vw,13rem)] leading-[0.95] font-bold tracking-tight">
           <span className="sr-only">Oak Order</span>
           <span aria-hidden className="inline-flex items-baseline">
             <AcornO />

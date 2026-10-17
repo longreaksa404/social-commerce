@@ -15,4 +15,5 @@ Picked by the founder on 2026-10-15. Navy is #1f3350.
 - `oak-order-name.png`: Oak Order's name, the acorn's cap pressed onto the
   O. In the app it is `OakOrderName` (live text, so it stays sharp).
 
-The text is Kantumruy Pro, the app's font.
+The text is Kantumruy Pro, the logo's letters (the app's own text is Noto
+Sans Khmer and Inter since 2026-10-17; the name keeps Kantumruy Pro).
