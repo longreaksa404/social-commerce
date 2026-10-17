@@ -1043,6 +1043,8 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   and Settings → Shop link has Copy link and Share first, with View your
   shop and Share with a tracked link as links under them. The header
   button is new (founder said yes, 2026-10-17).
+- [x] 30. The shop's name in the dashboard header and laptop sidebar
+  wraps onto a second line instead of being cut to "Srey Mom Fas…".
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

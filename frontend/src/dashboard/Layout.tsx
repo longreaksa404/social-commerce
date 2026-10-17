@@ -99,13 +99,14 @@ function StoreMark() {
   )
 }
 
-/** Takes the room left in its bar, cut short with "…" if it needs more. */
+/** Takes the room left in its bar: up to two lines, so a long (or Khmer)
+ * name isn't cut to a few letters (UX check #30, 2026-10-17). */
 function StoreName() {
   const store = useStore()
   return (
     <div className="min-w-0 flex-1">
       {store.data ? (
-        <span className="block truncate font-semibold text-slate-900">{store.data.name}</span>
+        <span className="line-clamp-2 leading-5 font-semibold break-words text-slate-900">{store.data.name}</span>
       ) : (
         <Skeleton className="h-5 w-32" />
       )}
