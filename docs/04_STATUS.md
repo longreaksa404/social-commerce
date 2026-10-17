@@ -1048,6 +1048,13 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
 - [x] 11. Checkout shows one Address box; "+ Directions for the driver"
   (was "Address note") and "+ Note for the seller" open their boxes when
   tapped (open already when they have words, e.g. a saved address note).
+- [x] 12. The shop's delivery, payment and discount tags became up to
+  three short lines under the name ("Delivery $1.50 · free on orders from
+  $40.00 · free pickup", "Pay by KHQR, bank transfer or cash on
+  delivery", "$3.00 off orders from $30.00"), so products start higher.
+  A product page shows its Details right after the options and Ask the
+  seller, without the shop's lines. Founder agreed to change the tags of
+  2026-10-07.
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

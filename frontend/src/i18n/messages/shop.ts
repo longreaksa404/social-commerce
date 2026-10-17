@@ -140,6 +140,20 @@ export const shop = {
       km: (rules: string[]) => `ដឹកឥតគិតថ្លៃ សម្រាប់${rules.join(' ឬ ')}`,
     },
     pickup: { en: 'Free pickup', km: 'មកយកផ្ទាល់ ឥតគិតថ្លៃ' },
+    // The delivery line's rules, after "Delivery $1.50 · " (UX check #12).
+    freeOnShort: {
+      en: (rules: string[]) => `free on ${rules.join(' or ')}`,
+      km: (rules: string[]) => `ឥតគិតថ្លៃ សម្រាប់${rules.join(' ឬ ')}`,
+    },
+    pickupShort: { en: 'free pickup', km: 'មកយកផ្ទាល់ ឥតគិតថ្លៃ' },
+    payBy: {
+      en: (names: string[]) => {
+        // "Bank transfer" reads "bank transfer" mid-sentence; KHQR stays.
+        const ways = names.map((w) => (w === w.toUpperCase() ? w : w.toLowerCase()))
+        return `Pay by ${ways.length > 1 ? `${ways.slice(0, -1).join(', ')} or ${ways[ways.length - 1]}` : ways[0]}`
+      },
+      km: (ways: string[]) => `បង់តាម ${ways.join(' ឬ ')}`,
+    },
     discount: {
       en: (off: string, from: string) => `${off} off orders from ${from}`,
       km: (off: string, from: string) => `បញ្ចុះ ${off} សម្រាប់ការកុម្ម៉ង់ចាប់ពី ${from}`,

@@ -12,7 +12,6 @@ import { MAX_QUANTITY, useCart } from './cart.ts'
 import { LOW_STOCK, NotFound, ProductImage, QuantityStepper } from './components.tsx'
 import { flyToCart } from './fly.ts'
 import { isNotFound, useShop, useShopProduct } from './queries.ts'
-import { ShopInfo } from './ShopInfo.tsx'
 import { ContactButtons } from './ContactSeller.tsx'
 
 /** /shop/:storeSlug/product/:productSlug: the product link a seller shares. */
@@ -84,8 +83,9 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
         )}
         <AddToCart shop={shop} product={product} variant={variant} photos={photos} />
         <AskSeller shop={shop} product={product} variant={variant} />
-        <ShopInfo shop={shop} className="mt-6" />
 
+        {/* The product's own details next, not after the shop's delivery
+            and payment lines (the cart shows those; UX check #12). */}
         {product.description && (
           <div className={`mt-4 p-4 ${cardClass}`}>
             <h2 className="text-sm font-semibold text-slate-900">{t.shop.product.details}</h2>
