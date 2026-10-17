@@ -9,6 +9,7 @@ import { useT } from '../i18n/useT.ts'
 import { useShopColor } from '../shop/colors.ts'
 import { useStore, useUnreadNotifications } from './queries.ts'
 import { useSetup } from './settings/setup.ts'
+import { ShareShopButton } from './ShareShop.tsx'
 import { notificationsLink } from './useBackTo.ts'
 
 // Five tabs fit a 320px phone. Categories is a button on Products there,
@@ -175,8 +176,9 @@ function SetupDot({ className }: { className: string }) {
 function MobileTopBar() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
-      <div className="flex h-14 items-center gap-2.5 pr-2 pl-4">
+      <div className="flex h-14 items-center gap-1 pr-2 pl-4">
         <StoreHome />
+        <ShareShopButton />
         <NotificationBell />
       </div>
     </header>
@@ -233,8 +235,9 @@ function Sidebar() {
   const t = useT()
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-slate-200 bg-surface lg:flex">
-      <div className="flex h-16 items-center gap-2.5 border-b border-slate-100 pr-3 pl-5">
+      <div className="flex h-16 items-center gap-1 border-b border-slate-100 pr-3 pl-5">
         <StoreHome />
+        <ShareShopButton />
         <NotificationBell />
       </div>
       <nav aria-label={t.dashboard.mainNav} className="flex flex-col gap-1 p-3">

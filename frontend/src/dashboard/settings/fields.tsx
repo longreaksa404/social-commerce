@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Check,
   CircleCheck,
+  Copy,
   ExternalLink,
   ImagePlus,
   Plus,
@@ -36,6 +37,7 @@ import { parseKhqr, readQrImage } from '../../lib/readKhqr.ts'
 import type { Currency, PaymentSettings, ShopColor, Store, TelegramLink } from '../../lib/types.ts'
 import { DEEP_COLORS, LIGHT_COLORS } from '../../shop/colors.ts'
 import { keys } from '../queries.ts'
+import { useShareShop } from '../ShareShop.tsx'
 import type { DeliveryForm, Form, RuleRow } from './form.ts'
 
 /** What every settings page's fields get from the page. */
@@ -844,17 +846,47 @@ export function LinkFields({ store, form, update, error }: FieldsProps) {
       <p className="break-all rounded-xl bg-slate-50 px-3.5 py-2.5 font-mono text-sm text-slate-700">
         {window.location.host}/shop/<span className="font-semibold text-slate-900">{form.slug || '…'}</span>
       </p>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        {/* The saved link: an unsaved new slug doesn't work yet. */}
-        <Link to={`/shop/${store.slug}`} target="_blank" className={`${buttonClass('secondary')} w-full sm:w-auto`}>
+      {/* The saved link (an unsaved new slug doesn't work yet): Copy and
+          Share first, the most common job (UX check #10, 2026-10-17). */}
+      <ShopLinkButtons slug={store.slug} />
+    </>
+  )
+}
+
+function ShopLinkButtons({ slug }: { slug: string }) {
+  const t = useT()
+  const s = t.settings
+  const { copy, share } = useShareShop()
+  const canShare = typeof navigator.share === 'function'
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <Button icon={Copy} onClick={copy} className="flex-1 sm:flex-none">
+          {t.links.copyLink}
+        </Button>
+        {canShare && (
+          <Button variant="secondary" icon={Share2} onClick={share} className="flex-1 sm:flex-none">
+            {t.common.share}
+          </Button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-x-5">
+        <Link
+          to={`/shop/${slug}`}
+          target="_blank"
+          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-navy-700 hover:underline"
+        >
           <ExternalLink aria-hidden className="size-4" />
           {s.viewShop}
         </Link>
-        <Link to="/dashboard/links/new" className={`${buttonClass('secondary')} w-full sm:w-auto`}>
+        <Link
+          to="/dashboard/links/new"
+          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-navy-700 hover:underline"
+        >
           <Share2 aria-hidden className="size-4" />
           {s.shareTracked}
         </Link>
       </div>
-    </>
+    </div>
   )
 }

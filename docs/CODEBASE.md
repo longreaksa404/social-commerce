@@ -1084,7 +1084,11 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | `*` | redirect to `/` | |
 
 The dashboard shell has a bottom tab bar on phones (Orders, Customers,
-Products, Links, Settings) and a sidebar from `lg`. The product edit, order
+Products, Links, Settings) and a sidebar from `lg`. Beside the bell, a
+share button (`ShareShopButton`, `dashboard/ShareShop.tsx`, UX check #10,
+2026-10-17) opens the phone's share list with the shop's link, or copies
+it on a laptop; Settings → Shop link has Copy link and Share first
+(`useShareShop`). The product edit, order
 detail and settings section pages are "focused" screens with no app or tab
 bar, their own back button, and a pinned action bar.
 

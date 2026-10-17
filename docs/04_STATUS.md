@@ -1038,6 +1038,11 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   told Srey Mom Fashion you paid (7:09 AM)" and Send the receipt again;
   the QR or bank account folds behind "Show the QR again" / "Show the
   bank details again".
+- [x] 10. Sharing the shop: a share button beside the bell (phones: the
+  share list with the shop's link; laptops: copied, "Shop link copied"),
+  and Settings → Shop link has Copy link and Share first, with View your
+  shop and Share with a tracked link as links under them. The header
+  button is new (founder said yes, 2026-10-17).
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:
