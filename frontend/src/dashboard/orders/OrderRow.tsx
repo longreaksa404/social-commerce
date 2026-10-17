@@ -40,7 +40,12 @@ export function OrderRow({
 }) {
   const t = useT()
   const { search } = useLocation()
-  const payment = paymentBadge(t, order.payment_method, order.payment_status)
+  // "Says paid" once the customer tapped "I've paid" (UX check #5): the
+  // seller sees which payments to look for in the bank app.
+  const payment =
+    order.payment_status === 'pending' && order.payment_claimed_at
+      ? { label: t.status.paymentBadge.saysPaid, tone: 'amber' as const }
+      : paymentBadge(t, order.payment_method, order.payment_status)
   // Only what needs the seller's eye: a pickup, or a delivery that failed.
   const delivery =
     order.delivery_status === 'failed'

@@ -319,7 +319,12 @@ function PaymentRow({
   const t = useT()
   const o = t.orders
   const { payment } = order
-  const badge = paymentBadge(t, payment.method, payment.status)
+  // Once the customer tapped "I've paid", that is the status line (UX
+  // check #5); the payment stays pending until the seller marks it paid.
+  const claimedAt = payment.status === 'pending' ? payment.claimed_at : null
+  const badge = claimedAt
+    ? { label: o.saysPaidAt(formatOrderTime(claimedAt)), tone: 'amber' as const }
+    : paymentBadge(t, payment.method, payment.status)
   const live = order.status !== 'pending' && !CLOSED.has(order.status)
   const canPay = live && payment.next_statuses.includes('paid')
   const cod = payment.method === 'cod'
@@ -370,9 +375,7 @@ function PaymentRow({
         </Sub>
       )}
       {/* "I've paid" from the customer (founder's pick 6B): still to check. */}
-      {payment.status === 'pending' && payment.claimed_at && (
-        <p className="mt-0.5 text-sm font-semibold text-amber-700">{o.customerSaysPaid(formatOrderTime(payment.claimed_at))}</p>
-      )}
+      {claimedAt && <Sub>{o.checkBankFor(formatMoney(payment.amount, order.currency))}</Sub>}
       {buttons}
     </Row>
   )

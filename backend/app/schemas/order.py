@@ -184,6 +184,9 @@ class OrderSummaryOut(BaseModel):
     first_item_image_url: str | None = None
     payment_method: PaymentMethod
     payment_status: PaymentStatus
+    # When the customer last tapped "I've paid" while the payment is still
+    # pending, so the row can say "Says paid" (UX check #5, 2026-10-17).
+    payment_claimed_at: datetime | None = None
     delivery_method: DeliveryMethod
     delivery_status: DeliveryStatus
 

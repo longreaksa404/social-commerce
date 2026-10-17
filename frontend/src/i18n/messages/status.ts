@@ -25,6 +25,8 @@ export const status = {
     failed: { en: 'Payment failed', km: 'បង់ប្រាក់មិនបាន' },
     refunded: { en: 'Refunded', km: 'បានសងប្រាក់វិញ' },
     unpaid: { en: 'Unpaid', km: 'មិនទាន់បង់' },
+    // The customer tapped "I've paid"; the seller still checks (UX check #5).
+    saysPaid: { en: 'Says paid', km: 'អតិថិជនថាបានបង់' },
     // Cash on delivery before it arrives: sellers call it COD.
     cod: { en: 'COD', km: 'COD' },
   },

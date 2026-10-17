@@ -1014,6 +1014,11 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
 - [x] 4. "Open shop" now only means starting to take orders. Buttons that
   just show the shop say "View your shop" (មើលហាងរបស់អ្នក): Settings →
   Shop link and Settings → your shop.
+- [x] 5. "Says paid" in the order list (amber words) once the customer
+  taps "I've paid", until the seller marks it paid; on the order, the
+  payment line reads "Says paid at 7:09 AM" instead of "Unpaid", with
+  "Check your bank app for $28.50". API: order rows carry
+  `payment_claimed_at` (no data model change; test in test_telegram.py).
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

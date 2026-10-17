@@ -310,9 +310,15 @@ export const orders = {
   paymentFailed: { en: 'Payment failed', km: 'បង់ប្រាក់មិនបាន' },
   // A recorded payment back to not paid, at any time (founder's pick 2C).
   notPaidAfterAll: { en: 'Not paid after all', km: 'តាមពិតមិនទាន់បង់ទេ' },
-  customerSaysPaid: {
-    en: (time: string) => `Customer says paid · ${time}`,
-    km: (time: string) => `អតិថិជនថាបានបង់ · ${time}`,
+  // The payment's status line once the customer tapped "I've paid", in
+  // place of "Unpaid" (UX check #5, 2026-10-17).
+  saysPaidAt: {
+    en: (time: string) => `Says paid at ${time}`,
+    km: (time: string) => `អតិថិជនថាបានបង់នៅ ${time}`,
+  },
+  checkBankFor: {
+    en: (amount: string) => `Check your bank app for ${amount}.`,
+    km: (amount: string) => `សូមពិនិត្យកម្មវិធីធនាគាររបស់អ្នក រក ${amount}។`,
   },
   backToNotPaid: { en: 'Back to not paid', km: 'ប្ដូរទៅមិនទាន់បង់វិញ' },
   unpayTitle: { en: (n: number) => `Mark order #${n} as not paid?`, km: (n: number) => `កត់ការកុម្ម៉ង់ #${n} ថាមិនទាន់បង់?` },

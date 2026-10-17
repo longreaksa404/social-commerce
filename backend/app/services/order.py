@@ -246,9 +246,14 @@ def _main_item(order: Order) -> OrderItem:
     return min(order.items, key=lambda item: (-item.line_total, item.product_name_snapshot))
 
 
-def order_summary(order: Order, photos: dict[uuid.UUID, str] | None = None) -> OrderSummaryOut:
+def order_summary(
+    order: Order,
+    photos: dict[uuid.UUID, str] | None = None,
+    claims: dict[uuid.UUID, datetime] | None = None,
+) -> OrderSummaryOut:
     """A row in an order list (the Orders tab, a customer's orders).
-    `photos`: each product's first photo, from order_summaries."""
+    `photos`: each product's first photo, and `claims`: when the customer
+    said they paid, both from order_summaries."""
     main = _main_item(order)
     return OrderSummaryOut(
         id=order.id,
@@ -264,6 +269,9 @@ def order_summary(order: Order, photos: dict[uuid.UUID, str] | None = None) -> O
         first_item_image_url=(photos or {}).get(main.product_id),
         payment_method=order.payment.method,
         payment_status=order.payment.status,
+        payment_claimed_at=(claims or {}).get(order.id)
+        if order.payment.status == PaymentStatus.PENDING
+        else None,
         delivery_method=order.delivery.method,
         delivery_status=order.delivery.status,
     )
@@ -273,9 +281,11 @@ async def order_summaries(
     db: AsyncSession, store_id: uuid.UUID, orders: list[Order]
 ) -> list[OrderSummaryOut]:
     """Rows for `orders` (loaded with SUMMARY_LOADS), each with its main
-    item's photo, in one query for the whole list."""
+    item's photo and any "I've paid", in one query each for the whole list."""
     photos = await product_photos(db, store_id, {_main_item(order).product_id for order in orders})
-    return [order_summary(order, photos) for order in orders]
+    pending = [order.id for order in orders if order.payment.status == PaymentStatus.PENDING]
+    claims = await notifications.last_payment_claims(db, store_id, pending)
+    return [order_summary(order, photos, claims) for order in orders]
 
 
 async def list_orders(

@@ -138,6 +138,25 @@ async def last_payment_claim(
     )
 
 
+async def last_payment_claims(
+    db: AsyncSession, store_id: uuid.UUID, order_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, datetime]:
+    """last_payment_claim for many orders in one query (the order list)."""
+    if not order_ids:
+        return {}
+    order_id = NotificationLog.payload["order"]["id"].astext
+    rows = await db.execute(
+        select(order_id, func.max(NotificationLog.sent_at))
+        .where(
+            *_web(store_id),
+            NotificationLog.event_type == PAYMENT_CLAIMED,
+            order_id.in_([str(i) for i in order_ids]),
+        )
+        .group_by(order_id)
+    )
+    return {uuid.UUID(oid): at for oid, at in rows.all()}
+
+
 def _web(store_id: uuid.UUID) -> tuple[ColumnElement[bool], ...]:
     """The store's dashboard notifications (not its Telegram log)."""
     return NotificationLog.store_id == store_id, NotificationLog.channel == NotificationChannel.WEB

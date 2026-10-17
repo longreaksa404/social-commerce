@@ -483,6 +483,8 @@ export type OrderSummary = {
   first_item_image_url: string | null
   payment_method: PaymentMethod
   payment_status: PaymentStatus
+  /** The customer tapped "I've paid" (still pending): the row says so. */
+  payment_claimed_at: string | null
   delivery_method: DeliveryMethod
   delivery_status: DeliveryStatus
 }

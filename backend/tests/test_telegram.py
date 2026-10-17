@@ -425,6 +425,48 @@ async def test_ive_paid_alerts_the_seller_once_and_shows_on_the_order(client, bo
     assert claimed[0]["order"]["number"] == 1001
 
 
+async def test_ive_paid_shows_in_that_shops_order_list_only(client, bot, auth_headers):
+    """The order list says when the customer said they paid (UX check #5),
+    for that shop's own orders, while the payment is still pending."""
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    other_headers, other_id, other_slug = await registered_seller(client, auth_headers)
+    for h in (headers, other_headers):
+        await set_payments(client, h, bank_transfer=BANK)
+    cap = await add_product(store_id, "cap", stock=5)
+    hat = await add_product(other_id, "hat", stock=5)
+    claimed, quiet = [
+        (
+            await place_order(
+                client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
+            )
+        ).json()
+        for _ in range(2)
+    ]
+    theirs = (
+        await place_order(
+            client, other_slug, [(hat, None, 1)], total="10.00", payment_method="bank_transfer"
+        )
+    ).json()
+    await _say_paid(client, slug, claimed["id"])
+
+    def rows(response):
+        return {o["id"]: o["payment_claimed_at"] for o in response.json()["orders"]}
+
+    mine = rows(await client.get("/api/v1/seller/orders", headers=headers))
+    other = rows(await client.get("/api/v1/seller/orders", headers=other_headers))
+    assert mine[claimed["id"]] is not None
+    assert mine[quiet["id"]] is None
+    assert set(other) == {theirs["id"]}
+    assert other[theirs["id"]] is None
+
+    # Once the seller marks it paid, the row stops saying so.
+    await client.patch(
+        f"/api/v1/seller/orders/{claimed['id']}/payment", headers=headers, json={"status": "paid"}
+    )
+    mine = rows(await client.get("/api/v1/seller/orders", headers=headers))
+    assert mine[claimed["id"]] is None
+
+
 async def test_ive_paid_needs_something_to_pay_and_the_right_phone(client, bot, auth_headers):
     headers, store_id, slug = await registered_seller(client, auth_headers)
     await set_payments(client, headers, bank_transfer=BANK)
