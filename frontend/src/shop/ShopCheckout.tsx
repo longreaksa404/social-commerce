@@ -101,6 +101,8 @@ export function ShopCheckout() {
       location: null,
     }
   })
+  // The two notes show once tapped (or when they already have words).
+  const [openNotes, setOpenNotes] = useState({ address: false, seller: false })
   const set = (key: 'name' | 'phone' | 'address' | 'notes' | 'addressNote', value: string) =>
     setForm((f) => ({ ...f, [key]: value }))
   // Someone who ordered on this phone before sees their name and phone as
@@ -299,33 +301,45 @@ export function ShopCheckout() {
                     onChange={(e) => set('address', e.target.value)}
                   />
                 </Field>
-                <Field
-                  label={c.addressNote}
-                  hint={c.addressNoteHint}
-                  error={fieldError(place.error, 'delivery_address_note')}
-                >
-                  <Input
-                    maxLength={500}
-                    autoCapitalize="sentences"
-                    value={form.addressNote}
-                    onChange={(e) => set('addressNote', e.target.value)}
-                  />
-                </Field>
+                {/* One address box; the notes behind links until wanted (UX
+                    check #11, 2026-10-17). */}
+                {form.addressNote || openNotes.address || fieldError(place.error, 'delivery_address_note') ? (
+                  <Field
+                    label={c.addressNote}
+                    hint={c.addressNoteHint}
+                    error={fieldError(place.error, 'delivery_address_note')}
+                  >
+                    <Input
+                      maxLength={500}
+                      autoCapitalize="sentences"
+                      autoFocus={openNotes.address}
+                      value={form.addressNote}
+                      onChange={(e) => set('addressNote', e.target.value)}
+                    />
+                  </Field>
+                ) : (
+                  <AddNote label={c.addressNote} onClick={() => setOpenNotes((o) => ({ ...o, address: true }))} />
+                )}
               </>
             )}
-            <Field
-              label={c.noteForSeller}
-              hint={pickup ? c.noteHintPickup : c.noteHintDelivery}
-              error={fieldError(place.error, 'notes')}
-            >
-              <TextArea
-                rows={2}
-                maxLength={500}
-                autoCapitalize="sentences"
-                value={form.notes}
-                onChange={(e) => set('notes', e.target.value)}
-              />
-            </Field>
+            {form.notes || openNotes.seller || fieldError(place.error, 'notes') ? (
+              <Field
+                label={c.noteForSeller}
+                hint={pickup ? c.noteHintPickup : c.noteHintDelivery}
+                error={fieldError(place.error, 'notes')}
+              >
+                <TextArea
+                  rows={2}
+                  maxLength={500}
+                  autoCapitalize="sentences"
+                  autoFocus={openNotes.seller}
+                  value={form.notes}
+                  onChange={(e) => set('notes', e.target.value)}
+                />
+              </Field>
+            ) : (
+              <AddNote label={c.noteForSeller} onClick={() => setOpenNotes((o) => ({ ...o, seller: true }))} />
+            )}
           </DeliverySection>
 
           <Section step={4} title={c.payment}>
@@ -689,5 +703,20 @@ function CheckoutSkeleton() {
       <Skeleton className="h-52 w-full rounded-2xl" />
       <Skeleton className="h-52 w-full rounded-2xl" />
     </div>
+  )
+}
+
+/** "+ Directions for the driver", "+ Note for the seller": a note box
+ * that opens when wanted, so the form looks as short as it is. */
+function AddNote({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="-my-2 -ml-1 flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-sm font-medium text-navy-700 hover:underline focus-visible:outline-2 focus-visible:outline-navy-600"
+    >
+      <Plus aria-hidden className="size-4" />
+      {label}
+    </button>
   )
 }

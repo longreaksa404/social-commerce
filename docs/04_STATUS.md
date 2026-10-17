@@ -1045,6 +1045,9 @@ two-pass UX check of every screen, https://claude.ai/artifact/Nyex4Sn8MAZipTB2rw
   button is new (founder said yes, 2026-10-17).
 - [x] 30. The shop's name in the dashboard header and laptop sidebar
   wraps onto a second line instead of being cut to "Srey Mom Fas…".
+- [x] 11. Checkout shows one Address box; "+ Directions for the driver"
+  (was "Address note") and "+ Note for the seller" open their boxes when
+  tapped (open already when they have words, e.g. a saved address note).
 
 **Redesign of the whole frontend** (founder asked 2026-10-06; a full
 redesign, calm look). Steps, each committed on its own:

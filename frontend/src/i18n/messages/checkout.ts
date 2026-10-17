@@ -32,7 +32,8 @@ export const checkout = {
     en: 'House and street number, village, district, and province. Or pin your location above.',
     km: 'លេខផ្ទះ ផ្លូវ ភូមិ ខណ្ឌ/ស្រុក និងខេត្ត/រាជធានី។ ឬដៅទីតាំងរបស់អ្នកនៅខាងលើ។',
   },
-  addressNote: { en: 'Address note', km: 'ចំណាំអំពីអាសយដ្ឋាន' },
+  // Behind a link until tapped, like the note for the seller (UX check #11).
+  addressNote: { en: 'Directions for the driver', km: 'ការណែនាំផ្លូវសម្រាប់អ្នកដឹក' },
   addressNoteHint: {
     en: 'Optional. Helps the driver find you, e.g. blue gate, next to the pagoda.',
     km: 'មិនចាំបាច់។ ជួយឱ្យអ្នកដឹករកអ្នកឃើញ ឧ. ទ្វាររបងពណ៌ខៀវ ក្បែរវត្ត។',
