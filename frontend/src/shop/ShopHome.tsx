@@ -10,7 +10,7 @@ import { useShop, useShopProducts } from './queries.ts'
 
 // The shop's name and logo, over the wash ShopLayout draws behind the
 // top of the page.
-const band = 'mb-5 flex items-start gap-4 pt-1 sm:pt-2 lg:mb-4 lg:pt-0'
+const band = 'mb-5 pt-1 sm:pt-2 lg:mb-4 lg:pt-0'
 
 /** /shop/:storeSlug: the store link a seller shares. */
 export function ShopHome() {
@@ -51,12 +51,16 @@ export function ShopIntro({ shop }: { shop: ShopStore }) {
       {shop.cover_url ? (
         <CoverBand shop={shop} cover={shop.cover_url} />
       ) : (
-        <div className={band}>
+        // No cover: the name sits level with the middle of the logo, the
+        // description under the name (UI check #16, founder 2026-10-17).
+        <div className={`${band} grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4`}>
           <ShopLogo shop={shop} className="size-16 shadow-md ring-4 ring-surface lg:hidden" />
-          <div className="min-w-0 flex-1 pt-1 lg:pt-0">
-            <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900 lg:sr-only">{shop.name}</h1>
-            {shop.description && <Description text={shop.description} />}
-          </div>
+          <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900 lg:sr-only">{shop.name}</h1>
+          {shop.description && (
+            <div className="col-start-2 lg:col-span-2 lg:col-start-1">
+              <Description text={shop.description} />
+            </div>
+          )}
         </div>
       )}
       <ShopInfo shop={shop} className="mb-5" />
@@ -98,7 +102,7 @@ function CoverBand({ shop, cover }: { shop: ShopStore; cover: string }) {
 export function ShopIntroSkeleton() {
   return (
     <>
-      <div className={band}>
+      <div className={`${band} flex items-start gap-4`}>
         <Skeleton className="size-16 shrink-0 rounded-full lg:hidden" />
         <div className="flex-1 pt-2 lg:pt-0">
           <Skeleton className="h-7 w-48 lg:hidden" />
