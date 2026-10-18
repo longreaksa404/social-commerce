@@ -6,8 +6,8 @@ export const customers = {
   customer: { en: 'Customer', km: 'អតិថិជន' },
   emptyTitle: { en: 'No customers yet', km: 'មិនទាន់មានអតិថិជននៅឡើយ' },
   emptyText: {
-    en: 'Everyone who orders from your shop shows up here, with their phone number and orders.',
-    km: 'អ្នកដែលកុម្ម៉ង់ពីហាងរបស់អ្នក នឹងបង្ហាញនៅទីនេះ ជាមួយលេខទូរស័ព្ទ និងការកុម្ម៉ង់របស់គេ។',
+    en: 'People who order from you show up here.',
+    km: 'អ្នកដែលកុម្ម៉ង់ពីហាងរបស់អ្នក នឹងបង្ហាញនៅទីនេះ។',
   },
   search: { en: 'Search customers', km: 'ស្វែងរកអតិថិជន' },
   searchPlaceholder: { en: 'Name or phone number', km: 'ឈ្មោះ ឬលេខទូរស័ព្ទ' },
@@ -45,18 +45,18 @@ export const customers = {
   call: { en: 'Call', km: 'ហៅទូរស័ព្ទ' },
   copyPhone: { en: 'Copy phone', km: 'ចម្លងលេខ' },
   phoneCopied: { en: 'Phone number copied', km: 'បានចម្លងលេខទូរស័ព្ទ' },
-  copyFailed: { en: "Couldn't copy. Select the number and copy it.", km: 'ចម្លងមិនបាន។ សូមជ្រើសលេខ ហើយចម្លងវា។' },
+  copyFailed: { en: "Couldn't copy. Select the number instead.", km: 'ចម្លងមិនបាន។ សូមជ្រើសលេខជំនួសវិញ។' },
   latestOrders: {
-    en: (shown: number, total: number) => `Their latest ${shown} of ${total} orders. The older ones are in Orders.`,
+    en: (shown: number, total: number) => `Latest ${shown} of ${total} orders. See all in Orders.`,
     km: (shown: number, total: number) =>
-      `ការកុម្ម៉ង់ចុងក្រោយ ${shown} ក្នុងចំណោម ${total}។ ការកុម្ម៉ង់ចាស់ៗមាននៅក្នុងផ្ទាំងកុម្ម៉ង់។`,
+      `ការកុម្ម៉ង់ចុងក្រោយ ${shown} ក្នុងចំណោម ${total}។ មើលទាំងអស់ក្នុងផ្ទាំងកុម្ម៉ង់។`,
   },
 
   notifications: {
     emptyTitle: { en: 'No notifications yet', km: 'មិនទាន់មានការជូនដំណឹងនៅឡើយ' },
     emptyText: {
-      en: 'New orders show up here, and products running low or sold out.',
-      km: 'ការកុម្ម៉ង់ថ្មី និងទំនិញដែលជិតអស់ ឬអស់ស្តុក នឹងបង្ហាញនៅទីនេះ។',
+      en: 'New orders and low stock show up here.',
+      km: 'ការកុម្ម៉ង់ថ្មី និងស្តុកជិតអស់ នឹងបង្ហាញនៅទីនេះ។',
     },
     newOrder: { en: (n: number) => `New order #${n}`, km: (n: number) => `ការកុម្ម៉ង់ថ្មី #${n}` },
     // The customer tapped "I've paid" (founder's pick 6B).

@@ -5,12 +5,12 @@ export const order = {
   tab: { en: (shop: string) => `Your order · ${shop}`, km: (shop: string) => `ការកុម្ម៉ង់របស់អ្នក · ${shop}` },
   checkTitle: { en: 'Check your order', km: 'ពិនិត្យការកុម្ម៉ង់របស់អ្នក' },
   checkText: {
-    en: 'Enter the phone number you used when you placed this order.',
+    en: 'Enter the phone number you ordered with.',
     km: 'សូមបញ្ចូលលេខទូរស័ព្ទដែលអ្នកបានប្រើពេលកុម្ម៉ង់។',
   },
   wrongPhone: {
-    en: "This number doesn't match the order. Check it and try again.",
-    km: 'លេខនេះមិនត្រូវនឹងការកុម្ម៉ង់ទេ។ សូមពិនិត្យ ហើយព្យាយាមម្ដងទៀត។',
+    en: "This number doesn't match the order.",
+    km: 'លេខនេះមិនត្រូវនឹងការកុម្ម៉ង់ទេ។',
   },
   showOrder: { en: 'Show my order', km: 'បង្ហាញការកុម្ម៉ង់របស់ខ្ញុំ' },
   thanks: { en: 'Thank you! Your order is placed.', km: 'អរគុណ! យើងបានទទួលការកុម្ម៉ង់របស់អ្នកហើយ។' },
@@ -54,18 +54,18 @@ export const order = {
     km: (shop: string) => `${shop} នឹងទាក់ទងអ្នកអំពីការដឹកជញ្ជូន។`,
   },
   contactShop: {
-    en: (shop: string) => `Contact ${shop} if you have questions about it.`,
-    km: (shop: string) => `សូមទាក់ទង ${shop} ប្រសិនបើអ្នកមានសំណួរ។`,
+    en: (shop: string) => `Questions? Contact ${shop}.`,
+    km: (shop: string) => `មានសំណួរ? សូមទាក់ទង ${shop}។`,
   },
   // A closed order the customer had paid, or said they paid (UX check #21).
   moneyBack: {
-    en: (shop: string, total: string) => `If you paid ${total}, message ${shop} to get your money back.`,
-    km: (shop: string, total: string) => `ប្រសិនបើអ្នកបានបង់ ${total} សូមផ្ញើសារទៅ ${shop} ដើម្បីទទួលប្រាក់វិញ។`,
+    en: (shop: string, total: string) => `Paid ${total}? Message ${shop} to get it back.`,
+    km: (shop: string, total: string) => `បានបង់ ${total}? សូមផ្ញើសារទៅ ${shop} ដើម្បីទទួលប្រាក់វិញ។`,
   },
   items: { en: 'Items', km: 'ទំនិញ' },
   comeBack: {
-    en: 'On another phone, open this link and enter your phone number.',
-    km: 'លើទូរស័ព្ទផ្សេង សូមបើកតំណនេះ ហើយបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក។',
+    en: 'On another phone, open this link and enter your number.',
+    km: 'លើទូរស័ព្ទផ្សេង បើកតំណនេះ ហើយបញ្ចូលលេខរបស់អ្នក។',
   },
   // Under the progress list while the page checks for changes by itself.
   updated: { en: (time: string) => `Updated ${time}`, km: (time: string) => `ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ ${time}` },
@@ -74,8 +74,8 @@ export const order = {
   telegram: {
     get: { en: 'Get updates on Telegram', km: 'ទទួលដំណឹងតាម Telegram' },
     hint: {
-      en: 'A message when the seller confirms, sends, or delivers your order.',
-      km: 'ទទួលសារ ពេលអ្នកលក់បញ្ជាក់ ផ្ញើ ឬដឹកការកុម្ម៉ង់របស់អ្នកដល់។',
+      en: 'A message when your order is confirmed, sent or delivered.',
+      km: 'ទទួលសារ ពេលការកុម្ម៉ង់ត្រូវបានបញ្ជាក់ ផ្ញើ ឬដឹកដល់។',
     },
     waiting: {
       en: 'In Telegram, tap Start, then Share my phone number.',
@@ -97,8 +97,8 @@ export const order = {
   copyLink: { en: 'Copy link', km: 'ចម្លងតំណ' },
   linkCopied: { en: 'Link copied', km: 'បានចម្លងតំណ' },
   copyLinkFailed: {
-    en: "Couldn't copy. Copy the address from your browser instead.",
-    km: 'ចម្លងមិនបាន។ សូមចម្លងអាសយដ្ឋានពីកម្មវិធីរុករករបស់អ្នកជំនួសវិញ។',
+    en: "Couldn't copy. Copy it from the address bar.",
+    km: 'ចម្លងមិនបាន។ សូមចម្លងពីរបារអាសយដ្ឋាន។',
   },
   deliveryBy: { en: (courier: string) => `Delivery by ${courier}`, km: (courier: string) => `ដឹកដោយ ${courier}` },
   askWhereCollect: {
@@ -147,8 +147,8 @@ export const order = {
     in_transit: { en: 'On the way', km: 'កំពុងដឹកមក' },
     delivered: { en: 'Delivered', km: 'បានដល់ដៃ' },
     failed: {
-      en: "Couldn't deliver. The seller will contact you to try again.",
-      km: 'ដឹកមិនបានសម្រេច។ អ្នកលក់នឹងទាក់ទងអ្នក ដើម្បីដឹកម្ដងទៀត។',
+      en: "Couldn't deliver. The seller will contact you.",
+      km: 'ដឹកមិនបានសម្រេច។ អ្នកលក់នឹងទាក់ទងអ្នក។',
     },
   },
   pickupDelivery: {
@@ -174,8 +174,8 @@ export const order = {
       km: (total: string) => `${total} ជាសាច់ប្រាក់ ពេលទទួលទំនិញ។`,
     },
     askHow: {
-      en: (shop: string, total: string) => `Not paid yet. Contact ${shop} to ask how to pay ${total}.`,
-      km: (shop: string, total: string) => `មិនទាន់បង់។ សូមទាក់ទង ${shop} ដើម្បីសួររបៀបបង់ ${total}។`,
+      en: (shop: string, total: string) => `Not paid yet. Ask ${shop} how to pay ${total}.`,
+      km: (shop: string, total: string) => `មិនទាន់បង់។ សូមសួរ ${shop} ពីរបៀបបង់ ${total}។`,
     },
     // "Not paid yet. Pay $12.00 with your bank app:"
     khqrAlt: {
@@ -187,25 +187,25 @@ export const order = {
     howToPay: { en: 'How to pay with the saved QR', km: 'របៀបបង់ជាមួយ QR ដែលបានរក្សាទុក' },
     // On a laptop: the customer scans the screen with their phone.
     scanThis: {
-      en: 'Open your bank app on your phone, tap Scan, and scan this code.',
-      km: 'បើកកម្មវិធីធនាគារលើទូរស័ព្ទរបស់អ្នក ចុច Scan ហើយស្កេនកូដនេះ។',
+      en: 'Scan this code with your bank app.',
+      km: 'ស្កេនកូដនេះជាមួយកម្មវិធីធនាគារ។',
     },
     payTitle: { en: (total: string) => `Pay ${total}`, km: (total: string) => `បង់ ${total}` },
     qrSaved: { en: 'QR code saved', km: 'បានរក្សាទុក QR' },
     khqrStep1: { en: 'Save the QR code, or take a screenshot.', km: 'រក្សាទុក QR ឬថតអេក្រង់។' },
     khqrStep2: {
-      en: 'Open your bank app (ABA, ACLEDA, Wing, or another) and tap Scan.',
-      km: 'បើកកម្មវិធីធនាគាររបស់អ្នក (ABA, ACLEDA, Wing ឬផ្សេងទៀត) ហើយចុច Scan។',
+      en: 'Open your bank app (ABA, ACLEDA, Wing…) and tap Scan.',
+      km: 'បើកកម្មវិធីធនាគារ (ABA, ACLEDA, Wing…) ហើយចុច Scan។',
     },
     khqrStep3: {
-      en: 'Choose the saved image from your photos, check the amount, and pay.',
-      km: 'ជ្រើសរូបដែលបានរក្សាទុកពីរូបថតរបស់អ្នក ពិនិត្យចំនួនទឹកប្រាក់ ហើយបង់។',
+      en: 'Pick the saved QR from your photos, check the amount, and pay.',
+      km: 'ជ្រើស QR ពីរូបថត ពិនិត្យចំនួនទឹកប្រាក់ ហើយបង់។',
     },
     khqrNote: {
       en: (shop: string) =>
-        `Paying from another phone? Scan the code on this screen. The code works for 24 hours; open this page again for a new one. ${shop} checks the payment and confirms it here.`,
+        `Paying from another phone? Scan this screen. The QR works for 24 hours; reopen the page for a new one. ${shop} confirms it here.`,
       km: (shop: string) =>
-        `បង់ពីទូរស័ព្ទផ្សេង? ស្កេន QR នៅលើអេក្រង់នេះ។ QR នេះប្រើបាន 24 ម៉ោង; បើកទំព័រនេះម្ដងទៀត ដើម្បីបាន QR ថ្មី។ ${shop} នឹងពិនិត្យការបង់ប្រាក់ ហើយបញ្ជាក់នៅទីនេះ។`,
+        `បង់ពីទូរស័ព្ទផ្សេង? ស្កេនអេក្រង់នេះ។ QR ប្រើបាន 24 ម៉ោង; បើកទំព័រម្ដងទៀតដើម្បីបាន QR ថ្មី។ ${shop} នឹងបញ្ជាក់នៅទីនេះ។`,
     },
     // "Not paid yet. Transfer $12.00 to:"
     bankBefore: { en: 'Not paid yet. Transfer', km: 'មិនទាន់បង់។ សូមផ្ទេរ' },
@@ -231,8 +231,8 @@ export const order = {
       km: (n: number, total: string) => `សួស្តី! ខ្ញុំបានបង់ការកុម្ម៉ង់ #${n} ចំនួន ${total} ហើយ។ នេះជាបង្កាន់ដៃរបស់ខ្ញុំ៖`,
     },
     told: {
-      en: (shop: string, time: string) => `You told ${shop} you paid (${time}). They'll check and confirm it here.`,
-      km: (shop: string, time: string) => `អ្នកបានប្រាប់ ${shop} ថាបានបង់ (${time})។ ហាងនឹងពិនិត្យ ហើយបញ្ជាក់នៅទីនេះ។`,
+      en: (shop: string, time: string) => `You told ${shop} you paid (${time}). They'll confirm it here.`,
+      km: (shop: string, time: string) => `អ្នកបានប្រាប់ ${shop} ថាបានបង់ (${time})។ ហាងនឹងបញ្ជាក់នៅទីនេះ។`,
     },
     sendAgain: { en: 'Send the receipt again', km: 'ផ្ញើបង្កាន់ដៃម្ដងទៀត' },
     // After "I've paid" the QR or account folds away (UX check #9).
@@ -240,9 +240,9 @@ export const order = {
     showBankAgain: { en: 'Show the bank details again', km: 'បង្ហាញព័ត៌មានធនាគារម្ដងទៀត' },
     bankNote: {
       en: (n: number) =>
-        `Write “#${n}” in the transfer's note so the seller can find your payment. They check it and confirm it here.`,
+        `Write “#${n}” in the transfer note. The seller confirms it here.`,
       km: (n: number) =>
-        `សូមសរសេរ “#${n}” ក្នុងចំណាំនៃការផ្ទេរ ដើម្បីឱ្យអ្នកលក់រកឃើញការបង់ប្រាក់របស់អ្នក។ អ្នកលក់នឹងពិនិត្យ ហើយបញ្ជាក់នៅទីនេះ។`,
+        `សូមសរសេរ “#${n}” ក្នុងចំណាំនៃការផ្ទេរ។ អ្នកលក់នឹងបញ្ជាក់នៅទីនេះ។`,
     },
   },
 } satisfies Tree

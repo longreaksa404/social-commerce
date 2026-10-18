@@ -8,47 +8,47 @@ export const checkout = {
   name: { en: 'Name', km: 'ឈ្មោះ' },
   phone: { en: 'Phone number', km: 'លេខទូរស័ព្ទ' },
   phoneHint: {
-    en: "The seller will contact you on this number. You'll also need it to check your order.",
-    km: 'អ្នកលក់នឹងទាក់ទងអ្នកតាមលេខនេះ។ អ្នកក៏ត្រូវការវា ដើម្បីពិនិត្យមើលការកុម្ម៉ង់របស់អ្នកដែរ។',
+    en: 'For the seller to reach you, and to check your order.',
+    km: 'សម្រាប់អ្នកលក់ទាក់ទងអ្នក និងសម្រាប់ពិនិត្យការកុម្ម៉ង់។',
   },
   // Once the number is whole, read back as the seller will see it, so a
   // swapped digit gets noticed before ordering.
   phoneWillCall: {
-    en: (phone: string) => `The seller will call ${phone}. Check it's right: you'll also need it to check your order.`,
+    en: (phone: string) => `The seller will call ${phone}. Check it's right.`,
     km: (phone: string) =>
-      `អ្នកលក់នឹងហៅមកលេខ ${phone}។ សូមពិនិត្យថាត្រឹមត្រូវ ព្រោះអ្នកក៏ត្រូវការវា ដើម្បីពិនិត្យមើលការកុម្ម៉ង់ដែរ។`,
+      `អ្នកលក់នឹងហៅមកលេខ ${phone}។ សូមពិនិត្យថាត្រឹមត្រូវ។`,
   },
   phoneUnusual: {
-    en: (phone: string) => `${phone} doesn't look like a Cambodian phone number. Check it before you order.`,
-    km: (phone: string) => `លេខ ${phone} មិនដូចលេខទូរស័ព្ទនៅកម្ពុជាទេ។ សូមពិនិត្យវាម្ដងទៀត មុនពេលកុម្ម៉ង់។`,
+    en: (phone: string) => `${phone} doesn't look like a Cambodian number. Please check it.`,
+    km: (phone: string) => `លេខ ${phone} មិនដូចលេខនៅកម្ពុជាទេ។ សូមពិនិត្យម្ដងទៀត។`,
   },
   address: { en: 'Address', km: 'អាសយដ្ឋាន' },
   addressOptional: { en: 'Address (optional)', km: 'អាសយដ្ឋាន (មិនចាំបាច់)' },
   addressHintPinned: {
-    en: 'Your location is pinned. Add the address too if you can.',
-    km: 'បានដៅទីតាំងរបស់អ្នករួចហើយ។ សូមបញ្ចូលអាសយដ្ឋានផងដែរ បើអាច។',
+    en: 'Location pinned. Add the address too if you can.',
+    km: 'បានដៅទីតាំងហើយ។ បញ្ចូលអាសយដ្ឋានផង បើអាច។',
   },
   addressHint: {
-    en: 'House and street number, village, district, and province. Or pin your location above.',
-    km: 'លេខផ្ទះ ផ្លូវ ភូមិ ខណ្ឌ/ស្រុក និងខេត្ត/រាជធានី។ ឬដៅទីតាំងរបស់អ្នកនៅខាងលើ។',
+    en: 'House no., street, village, district, province. Or pin it on the map.',
+    km: 'លេខផ្ទះ ផ្លូវ ភូមិ ខណ្ឌ/ស្រុក ខេត្ត/រាជធានី។ ឬដៅលើផែនទី។',
   },
   // Behind a link until tapped, like the note for the seller (UX check #11).
   addressNote: { en: 'Directions for the driver', km: 'ការណែនាំផ្លូវសម្រាប់អ្នកដឹក' },
   addressNoteHint: {
-    en: 'Helps the driver find you, e.g. blue gate, next to the pagoda.',
-    km: 'ជួយឱ្យអ្នកដឹករកអ្នកឃើញ ឧ. ទ្វាររបងពណ៌ខៀវ ក្បែរវត្ត។',
+    en: 'E.g. blue gate, next to the pagoda.',
+    km: 'ឧ. ទ្វាររបងពណ៌ខៀវ ក្បែរវត្ត។',
   },
   noteForSeller: { en: 'Note for the seller', km: 'ចំណាំសម្រាប់អ្នកលក់' },
   // Placing the order with nothing chosen, in the app's words (UX check #22).
   chooseDelivery: { en: 'Choose how to get your order.', km: 'សូមជ្រើសរើសរបៀបទទួលទំនិញ។' },
   choosePayment: { en: 'Choose how to pay.', km: 'សូមជ្រើសរើសរបៀបបង់ប្រាក់។' },
   noteHintPickup: {
-    en: 'For example, when you will come.',
-    km: 'ឧទាហរណ៍ ពេលដែលអ្នកនឹងមកយក។',
+    en: 'E.g. when you will come.',
+    km: 'ឧ. ពេលដែលអ្នកនឹងមកយក។',
   },
   noteHintDelivery: {
-    en: 'For example, the best time to deliver.',
-    km: 'ឧទាហរណ៍ ម៉ោងដែលស្រួលទទួលទំនិញ។',
+    en: 'E.g. the best time to deliver.',
+    km: 'ឧ. ម៉ោងដែលស្រួលទទួលទំនិញ។',
   },
   payment: { en: 'Payment', km: 'ការបង់ប្រាក់' },
   howPay: { en: 'How will you pay?', km: 'តើអ្នកនឹងបង់ប្រាក់តាមរបៀបណា?' },
@@ -61,14 +61,14 @@ export const checkout = {
   },
   paymentHint: {
     khqr: {
-      en: "Scan a QR code with your bank app. You'll get it after placing the order.",
-      km: 'ស្កេន QR ជាមួយកម្មវិធីធនាគាររបស់អ្នក។ អ្នកនឹងទទួលបាន QR ក្រោយពេលកុម្ម៉ង់។',
+      en: 'Scan with your bank app. You get the QR after ordering.',
+      km: 'ស្កេនជាមួយកម្មវិធីធនាគារ។ អ្នកនឹងបាន QR ក្រោយពេលកុម្ម៉ង់។',
     },
     bank_transfer: {
-      en: "Transfer to the seller's account. You'll see it after placing the order.",
-      km: 'ផ្ទេរប្រាក់ទៅគណនីរបស់អ្នកលក់។ អ្នកនឹងឃើញលេខគណនីក្រោយពេលកុម្ម៉ង់។',
+      en: 'Transfer to the seller. You see the account after ordering.',
+      km: 'ផ្ទេរប្រាក់ទៅអ្នកលក់។ អ្នកនឹងឃើញលេខគណនីក្រោយពេលកុម្ម៉ង់។',
     },
-    cod: { en: 'Pay in cash when you get your order.', km: 'បង់ជាសាច់ប្រាក់ ពេលទទួលបានទំនិញ។' },
+    cod: { en: 'Pay cash when you get it.', km: 'បង់សាច់ប្រាក់ ពេលទទួលទំនិញ។' },
   },
   yourOrder: { en: 'Your order', km: 'ការកុម្ម៉ង់របស់អ្នក' },
   placeOrder: { en: 'Place order', km: 'បញ្ជាក់ការកុម្ម៉ង់' },
@@ -100,8 +100,8 @@ export const checkout = {
   pinLocation: { en: 'Pin my location on the map', km: 'ដៅទីតាំងរបស់ខ្ញុំលើផែនទី' },
   openingMap: { en: 'Opening the map…', km: 'កំពុងបើកផែនទី…' },
   mapUnavailable: {
-    en: "Couldn't open the map. Check your connection, or just type your address.",
-    km: 'មិនអាចបើកផែនទីបានទេ។ សូមពិនិត្យអ៊ីនធឺណិត ឬគ្រាន់តែវាយអាសយដ្ឋានរបស់អ្នក។',
+    en: "Couldn't open the map. Type your address instead.",
+    km: 'មិនអាចបើកផែនទីបានទេ។ សូមវាយអាសយដ្ឋានជំនួសវិញ។',
   },
   backToCheckout: { en: 'Back to checkout', km: 'ត្រឡប់ទៅការកុម្ម៉ង់' },
 
@@ -112,22 +112,22 @@ export const checkout = {
     locate: { en: 'Go to my location', km: 'ទៅទីតាំងរបស់ខ្ញុំ' },
     confirm: { en: 'Confirm location', km: 'បញ្ជាក់ទីតាំង' },
     noGeolocation: {
-      en: "This phone can't share its location. Move the map to your house instead.",
-      km: 'ទូរស័ព្ទនេះមិនអាចចែករំលែកទីតាំងបានទេ។ សូមរំកិលផែនទីទៅផ្ទះរបស់អ្នកជំនួសវិញ។',
+      en: "Can't get your location. Move the map to your house.",
+      km: 'មិនអាចរកទីតាំងបានទេ។ សូមរំកិលផែនទីទៅផ្ទះរបស់អ្នក។',
     },
     denied: {
-      en: 'Location is off on this phone. Move the map to your house instead.',
-      km: 'ទីតាំងត្រូវបានបិទនៅលើទូរស័ព្ទនេះ។ សូមរំកិលផែនទីទៅផ្ទះរបស់អ្នកជំនួសវិញ។',
+      en: 'Location is off. Move the map to your house.',
+      km: 'ទីតាំងត្រូវបានបិទ។ សូមរំកិលផែនទីទៅផ្ទះរបស់អ្នក។',
     },
     notFound: {
-      en: "Couldn't find you. Move the map to your house instead.",
-      km: 'រកទីតាំងរបស់អ្នកមិនឃើញ។ សូមរំកិលផែនទីទៅផ្ទះរបស់អ្នកជំនួសវិញ។',
+      en: "Couldn't find you. Move the map to your house.",
+      km: 'រកទីតាំងមិនឃើញ។ សូមរំកិលផែនទីទៅផ្ទះរបស់អ្នក។',
     },
-    hintMove: { en: 'Move the map until the pin is on your house.', km: 'រំកិលផែនទី រហូតដល់ម្ជុលស្ថិតនៅលើផ្ទះរបស់អ្នក។' },
+    hintMove: { en: 'Move the map so the pin is on your house.', km: 'រំកិលផែនទី ឱ្យម្ជុលនៅលើផ្ទះរបស់អ្នក។' },
     hintZoom: {
-      en: 'Zoom in closer so the pin is on your house.',
-      km: 'ពង្រីកផែនទីឱ្យជិតជាងនេះ ដើម្បីឱ្យម្ជុលស្ថិតនៅលើផ្ទះរបស់អ្នក។',
+      en: 'Zoom in closer.',
+      km: 'ពង្រីកផែនទីឱ្យជិតជាងនេះ។',
     },
-    hintReady: { en: 'The pin is where the driver will come.', km: 'អ្នកដឹកនឹងមកដល់កន្លែងម្ជុលនេះ។' },
+    hintReady: { en: 'The driver comes to the pin.', km: 'អ្នកដឹកនឹងមកដល់កន្លែងម្ជុលនេះ។' },
   },
 } satisfies Tree

@@ -6,8 +6,8 @@ export const orders = {
   order: { en: 'Order', km: 'ការកុម្ម៉ង់' },
   // The shop isn't taking orders (Settings → Orders).
   paused: {
-    en: "Your shop isn't taking orders. Tap to turn them back on.",
-    km: 'ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ទេ។ ចុចដើម្បីបើកវិញ។',
+    en: 'Not taking orders. Tap to turn them back on.',
+    km: 'មិនទទួលការកុម្ម៉ង់ទេ។ ចុចដើម្បីបើកវិញ។',
   },
   // Staff can't turn it back on (Settings is the owner's).
   pausedStaff: { en: "The shop isn't taking orders right now.", km: 'ហាងមិនទទួលការកុម្ម៉ង់នៅពេលនេះទេ។' },
@@ -19,33 +19,33 @@ export const orders = {
   // which starts the 30-day free trial (dashboard/OpenShop.tsx).
   // No orders yet, with the setup list above (UX check #3).
   emptyInSetup: {
-    en: 'Orders will show up here once your shop is open.',
-    km: 'ការកុម្ម៉ង់នឹងបង្ហាញនៅទីនេះ នៅពេលហាងរបស់អ្នកបើក។',
+    en: 'Orders show up here once your shop is open.',
+    km: 'ការកុម្ម៉ង់នឹងបង្ហាញនៅទីនេះ ពេលហាងបើក។',
   },
   opening: {
     button: { en: 'Open shop', km: 'បើកហាង' },
     title: { en: "Your shop isn't open yet", km: 'ហាងរបស់អ្នកមិនទាន់បើកនៅឡើយទេ' },
     text: {
-      en: "Customers can look around but can't order yet. Open it when you're ready: your 30-day free trial starts then.",
-      km: 'អតិថិជនអាចមើលហាងបាន ប៉ុន្តែមិនទាន់អាចកុម្ម៉ង់បានទេ។ បើកវានៅពេលអ្នករួចរាល់៖ ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃរបស់អ្នកចាប់ផ្ដើមនៅពេលនោះ។',
+      en: "Customers can look but can't order yet. Your 30-day free trial starts when you open.",
+      km: 'អតិថិជនអាចមើលបាន ប៉ុន្តែមិនទាន់អាចកុម្ម៉ង់ទេ។ ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃចាប់ផ្ដើមពេលអ្នកបើក។',
     },
     staff: {
-      en: "The owner hasn't opened the shop yet. Orders can come in once they do.",
-      km: 'ម្ចាស់ហាងមិនទាន់បើកហាងនៅឡើយទេ។ ការកុម្ម៉ង់អាចចូលមកបាន នៅពេលគាត់បើក។',
+      en: "The owner hasn't opened the shop yet.",
+      km: 'ម្ចាស់ហាងមិនទាន់បើកហាងនៅឡើយទេ។',
     },
     // New order while in setup.
     newOrderTitle: { en: 'Open your shop first', km: 'សូមបើកហាងរបស់អ្នកជាមុនសិន' },
     newOrderText: {
-      en: 'Orders from customers and from your chats start once your shop is open. Your 30-day free trial starts then.',
-      km: 'ការកុម្ម៉ង់ពីអតិថិជន និងពីការជជែករបស់អ្នក ចាប់ផ្ដើមនៅពេលហាងរបស់អ្នកបើក។ ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃរបស់អ្នកចាប់ផ្ដើមនៅពេលនោះ។',
+      en: 'Orders start once your shop is open. Your 30-day free trial starts then.',
+      km: 'ការកុម្ម៉ង់ចាប់ផ្ដើមពេលហាងបើក។ ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃចាប់ផ្ដើមពេលនោះ។',
     },
     // The pop-up.
     confirmTitle: { en: 'Start your 30-day free trial', km: 'ចាប់ផ្ដើមការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃ' },
     confirmMessage: {
       en: (day: string, month: string, year: string) =>
-        `Customers can order from today. Free until ${day}, then ${month} a month or ${year} a year. No card needed: nothing is charged automatically.`,
+        `Customers can order from today. Free until ${day}, then ${month} a month or ${year} a year. No card, no automatic charges.`,
       km: (day: string, month: string, year: string) =>
-        `អតិថិជនអាចកុម្ម៉ង់បានចាប់ពីថ្ងៃនេះ។ ឥតគិតថ្លៃរហូតដល់ ${day} បន្ទាប់មក ${month} ក្នុងមួយខែ ឬ ${year} ក្នុងមួយឆ្នាំ។ មិនត្រូវការកាតទេ៖ គ្មានការកាត់ប្រាក់ដោយស្វ័យប្រវត្តិឡើយ។`,
+        `អតិថិជនអាចកុម្ម៉ង់បានចាប់ពីថ្ងៃនេះ។ ឥតគិតថ្លៃរហូតដល់ ${day} បន្ទាប់មក ${month} ក្នុងមួយខែ ឬ ${year} ក្នុងមួយឆ្នាំ។ មិនត្រូវការកាត មិនកាត់ប្រាក់ដោយស្វ័យប្រវត្តិ។`,
     },
     confirm: { en: 'Start free trial and open shop', km: 'ចាប់ផ្ដើមសាកល្បង ហើយបើកហាង' },
     opened: { en: 'Your shop is open. Customers can order now.', km: 'ហាងរបស់អ្នកបានបើកហើយ។ អតិថិជនអាចកុម្ម៉ង់បានឥឡូវនេះ។' },
@@ -69,27 +69,27 @@ export const orders = {
     km: (day: string) => `គម្រោងរបស់អ្នកបានបញ្ចប់។ សូមបង់ត្រឹម ${day} ដើម្បីបន្តទទួលការកុម្ម៉ង់។`,
   },
   planStopped: {
-    en: "Your shop isn't taking new orders. Tap to pay and open it again.",
-    km: 'ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ថ្មីទេ។ ចុចដើម្បីបង់ ហើយបើកវាវិញ។',
+    en: 'Not taking new orders. Tap to pay and reopen.',
+    km: 'មិនទទួលការកុម្ម៉ង់ថ្មីទេ។ ចុចដើម្បីបង់ ហើយបើកវិញ។',
   },
   // The seller said "I've paid": Oak Order checks.
   planClaimed: {
-    en: 'Oak Order is checking your payment. Your shop is extended once it’s found.',
-    km: 'Oak Order កំពុងពិនិត្យការបង់ប្រាក់របស់អ្នក។ ហាងរបស់អ្នកនឹងត្រូវបានបន្ត នៅពេលរកឃើញ។',
+    en: 'Oak Order is checking your payment.',
+    km: 'Oak Order កំពុងពិនិត្យការបង់ប្រាក់របស់អ្នក។',
   },
   // Paying is the owner's.
   planStoppedStaff: {
-    en: "The shop isn't taking new orders until the owner pays for Oak Order.",
-    km: 'ហាងមិនទទួលការកុម្ម៉ង់ថ្មីទេ រហូតដល់ម្ចាស់ហាងបង់ប្រាក់ឱ្យ Oak Order។',
+    en: 'No new orders until the owner pays for Oak Order.',
+    km: 'មិនទទួលការកុម្ម៉ង់ថ្មី រហូតដល់ម្ចាស់ហាងបង់ឱ្យ Oak Order។',
   },
   // Settings → Delivery never saved: the shop delivers for free.
   deliveryNotSet: {
-    en: 'Delivery is free for customers until you set your delivery fee. Tap to set it.',
-    km: 'ការដឹកគឺឥតគិតថ្លៃសម្រាប់អតិថិជន រហូតដល់អ្នកកំណត់ថ្លៃដឹក។ ចុចដើម្បីកំណត់។',
+    en: 'Delivery is free until you set a fee. Tap to set it.',
+    km: 'ការដឹកឥតគិតថ្លៃ រហូតដល់អ្នកកំណត់ថ្លៃដឹក។ ចុចដើម្បីកំណត់។',
   },
   deliveryNotSetStaff: {
-    en: "Delivery is free for customers: the shop's owner hasn't set a delivery fee yet.",
-    km: 'ការដឹកគឺឥតគិតថ្លៃសម្រាប់អតិថិជន៖ ម្ចាស់ហាងមិនទាន់កំណត់ថ្លៃដឹកនៅឡើយ។',
+    en: "Delivery is free: the owner hasn't set a fee yet.",
+    km: 'ការដឹកឥតគិតថ្លៃ៖ ម្ចាស់ហាងមិនទាន់កំណត់ថ្លៃដឹក។',
   },
   // The list's days.
   today: { en: 'Today', km: 'ថ្ងៃនេះ' },
@@ -101,11 +101,11 @@ export const orders = {
   // At the top of a closed order, in place of the To do card.
   closedNote: {
     rejected: {
-      en: 'You rejected this order. Its items went back into stock.',
+      en: 'You rejected this order. Items went back to stock.',
       km: 'អ្នកបានបដិសេធការកុម្ម៉ង់នេះ។ ទំនិញបានត្រឡប់ចូលស្តុកវិញ។',
     },
     cancelled: {
-      en: 'This order was cancelled. Its items went back into stock.',
+      en: 'Order cancelled. Items went back to stock.',
       km: 'ការកុម្ម៉ង់នេះត្រូវបានលុបចោល។ ទំនិញបានត្រឡប់ចូលស្តុកវិញ។',
     },
   },
@@ -154,8 +154,8 @@ export const orders = {
   fromChat: { en: 'Added by you from a chat', km: 'អ្នកបានបន្ថែមពីឆាត' },
   copyOrderLink: { en: 'Copy link for the customer', km: 'ចម្លងតំណសម្រាប់អតិថិជន' },
   orderLinkCopied: {
-    en: 'Link copied. Send it in the chat: the customer opens it with their phone number to follow the order and pay.',
-    km: 'បានចម្លងតំណ។ ផ្ញើវាក្នុងឆាត៖ អតិថិជនបើកវាជាមួយលេខទូរស័ព្ទរបស់គេ ដើម្បីតាមដានការកុម្ម៉ង់ និងបង់ប្រាក់។',
+    en: 'Link copied. Send it to the customer to follow and pay.',
+    km: 'បានចម្លងតំណ។ ផ្ញើវាទៅអតិថិជន ដើម្បីតាមដាន និងបង់ប្រាក់។',
   },
   // Delivery card: the order typed out for the driver (founder's pick 5B).
   sendToDriver: { en: 'Send to driver', km: 'ផ្ញើទៅអ្នកដឹក' },
@@ -220,19 +220,19 @@ export const orders = {
   },
   emptyTitle: { en: 'No orders yet', km: 'មិនទាន់មានការកុម្ម៉ង់នៅឡើយ' },
   emptyText: {
-    en: 'Share your shop link on Facebook, TikTok, or Telegram. Orders customers place show up here.',
-    km: 'ចែករំលែកតំណហាងរបស់អ្នកនៅលើ Facebook, TikTok ឬ Telegram។ ការកុម្ម៉ង់ពីអតិថិជននឹងបង្ហាញនៅទីនេះ។',
+    en: 'Share your shop link. New orders show up here.',
+    km: 'ចែករំលែកតំណហាងរបស់អ្នក។ ការកុម្ម៉ង់ថ្មីនឹងបង្ហាញនៅទីនេះ។',
   },
   viewShop: { en: 'View your shop', km: 'មើលហាងរបស់អ្នក' },
   // No orders and no products yet: products come first.
   noProductsTitle: { en: 'Add your first product', km: 'បន្ថែមទំនិញដំបូងរបស់អ្នក' },
   noProductsText: {
-    en: 'Customers can order once your shop has products. Then share your shop link on Facebook, TikTok, or Telegram, and orders show up here.',
-    km: 'អតិថិជនអាចកុម្ម៉ង់បាន នៅពេលហាងរបស់អ្នកមានទំនិញ។ បន្ទាប់មក ចែករំលែកតំណហាងរបស់អ្នកនៅលើ Facebook, TikTok ឬ Telegram ហើយការកុម្ម៉ង់នឹងបង្ហាញនៅទីនេះ។',
+    en: 'Add products, then share your shop link.',
+    km: 'បន្ថែមទំនិញ រួចចែករំលែកតំណហាងរបស់អ្នក។',
   },
   noneHereTitle: { en: 'No orders here', km: 'គ្មានការកុម្ម៉ង់នៅទីនេះទេ' },
   noneHereText: {
-    en: 'Orders move between these lists as you update them.',
+    en: 'Orders move between lists as you update them.',
     km: 'ការកុម្ម៉ង់ផ្លាស់ពីបញ្ជីមួយទៅបញ្ជីមួយ នៅពេលអ្នកប្ដូរស្ថានភាពវា។',
   },
   showMore: { en: 'Show more', km: 'បង្ហាញបន្ថែម' },
@@ -255,22 +255,22 @@ export const orders = {
   rejectTitle: { en: (n: number) => `Reject order #${n}?`, km: (n: number) => `បដិសេធការកុម្ម៉ង់ #${n}?` },
   cancelTitle: { en: (n: number) => `Cancel order #${n}?`, km: (n: number) => `លុបចោលការកុម្ម៉ង់ #${n}?` },
   rejectMessage: {
-    en: "Its items go back into stock, and the customer sees it was not accepted on their order page. This can't be undone.",
-    km: 'ទំនិញនឹងត្រឡប់ចូលស្តុកវិញ ហើយអតិថិជននឹងឃើញថាការកុម្ម៉ង់មិនត្រូវបានទទួល នៅលើទំព័រការកុម្ម៉ង់របស់គេ។ មិនអាចត្រឡប់វិញបានទេ។',
+    en: "Items go back to stock. The customer sees it wasn't accepted. Can't be undone.",
+    km: 'ទំនិញត្រឡប់ចូលស្តុកវិញ។ អតិថិជននឹងឃើញថាមិនត្រូវបានទទួល។ មិនអាចត្រឡប់វិញបានទេ។',
   },
   // Added to the Reject / Cancel question when money came in (UX check #21).
   sendMoneyBack: {
-    en: (amount: string) => `It's paid (${amount}): send the money back to the customer.`,
-    km: (amount: string) => `បានបង់រួចហើយ (${amount})៖ សូមផ្ញើប្រាក់ត្រឡប់ទៅអតិថិជនវិញ។`,
+    en: (amount: string) => `It's paid (${amount}): send the money back.`,
+    km: (amount: string) => `បានបង់រួចហើយ (${amount})៖ សូមផ្ញើប្រាក់ត្រឡប់វិញ។`,
   },
   saysPaidMoneyBack: {
-    en: (name: string, amount: string) => `${name} says they paid ${amount}: check your bank app, and send it back if it came.`,
+    en: (name: string, amount: string) => `${name} says they paid ${amount}: if it came, send it back.`,
     km: (name: string, amount: string) =>
-      `${name} ថាបានបង់ ${amount}៖ សូមពិនិត្យកម្មវិធីធនាគារ ហើយផ្ញើប្រាក់ត្រឡប់វិញ ប្រសិនបើបានទទួល។`,
+      `${name} ថាបានបង់ ${amount}៖ បើបានទទួល សូមផ្ញើប្រាក់ត្រឡប់វិញ។`,
   },
   cancelMessage: {
-    en: "Its items go back into stock, and the customer sees it was cancelled on their order page. This can't be undone.",
-    km: 'ទំនិញនឹងត្រឡប់ចូលស្តុកវិញ ហើយអតិថិជននឹងឃើញថាការកុម្ម៉ង់ត្រូវបានលុបចោល នៅលើទំព័រការកុម្ម៉ង់របស់គេ។ មិនអាចត្រឡប់វិញបានទេ។',
+    en: "Items go back to stock. The customer sees it was cancelled. Can't be undone.",
+    km: 'ទំនិញត្រឡប់ចូលស្តុកវិញ។ អតិថិជននឹងឃើញថាត្រូវបានលុបចោល។ មិនអាចត្រឡប់វិញបានទេ។',
   },
   rejectConfirm: { en: 'Reject order', km: 'បដិសេធការកុម្ម៉ង់' },
   cancelConfirm: { en: 'Cancel order', km: 'លុបចោលការកុម្ម៉ង់' },
@@ -311,8 +311,8 @@ export const orders = {
   markedPaid: { en: (time: string) => `Marked paid ${time}`, km: (time: string) => `បានកត់ថាបង់ ${time}` },
   failTitle: { en: 'Mark the payment as failed?', km: 'កត់ថាការបង់ប្រាក់មិនបានសម្រេច?' },
   failMessage: {
-    en: "Use this when the customer didn't pay, or the transfer never arrived. You can put it back to not paid later.",
-    km: 'ប្រើវានៅពេលអតិថិជនមិនបានបង់ ឬប្រាក់ផ្ទេរមិនដែលមកដល់។ អ្នកអាចប្ដូរវាទៅជាមិនទាន់បង់វិញនៅពេលក្រោយ។',
+    en: "If the customer didn't pay or the money never came. You can undo this later.",
+    km: 'បើអតិថិជនមិនបានបង់ ឬប្រាក់មិនបានមកដល់។ អ្នកអាចប្ដូរវាវិញនៅពេលក្រោយ។',
   },
   paymentFailed: { en: 'Payment failed', km: 'បង់ប្រាក់មិនបាន' },
   // A recorded payment back to not paid, at any time (founder's pick 2C).
@@ -337,8 +337,8 @@ export const orders = {
   notPaidYet: { en: 'Not paid yet', km: 'មិនទាន់បង់' },
   unpayTitle: { en: (n: number) => `Mark order #${n} as not paid?`, km: (n: number) => `កត់ការកុម្ម៉ង់ #${n} ថាមិនទាន់បង់?` },
   unpayMessage: {
-    en: 'Use this if you marked it by mistake, or the money never arrived. The customer is shown how to pay again; the order and its delivery stay as they are.',
-    km: 'ប្រើវាប្រសិនបើអ្នកកត់ខុស ឬប្រាក់មិនដែលមកដល់។ អតិថិជននឹងឃើញរបៀបបង់ម្ដងទៀត ហើយការកុម្ម៉ង់ និងការដឹកជញ្ជូននៅដដែល។',
+    en: 'If you marked it by mistake or the money never came. The customer is asked to pay again.',
+    km: 'បើអ្នកកត់ខុស ឬប្រាក់មិនបានមកដល់។ អតិថិជននឹងត្រូវបង់ម្ដងទៀត។',
   },
   unpayConfirm: { en: 'Mark not paid', km: 'កត់ថាមិនទាន់បង់' },
   unpaidToast: { en: 'not paid', km: 'មិនទាន់បង់' },
@@ -346,8 +346,8 @@ export const orders = {
   failedToast: { en: 'payment failed', km: 'បង់ប្រាក់មិនបាន' },
   noteOptional: { en: 'Note (optional)', km: 'ចំណាំ (មិនចាំបាច់)' },
   noteHintTransfer: {
-    en: 'For example: ABA, 2:05 PM, last digits 123.',
-    km: 'ឧទាហរណ៍៖ ABA, ម៉ោង 2:05 PM, លេខខាងចុង 123។',
+    en: 'E.g. ABA, 2:05 PM, last digits 123.',
+    km: 'ឧ. ABA, ម៉ោង 2:05 PM, លេខខាងចុង 123។',
   },
   confirmPaid: { en: 'Confirm paid', km: 'បញ្ជាក់ថាបានបង់' },
   cashReceived: { en: 'Cash received', km: 'បានទទួលសាច់ប្រាក់' },
@@ -371,8 +371,8 @@ export const orders = {
   // A courier's sheet: the tracking number, Save first, sharing second.
   trackingNumber: { en: 'Tracking number (optional)', km: 'លេខតាមដាន (មិនចាំបាច់)' },
   trackingHint: {
-    en: (courier: string) => `From ${courier}'s receipt, or the branch. Only you see this.`,
-    km: (courier: string) => `ពីបង្កាន់ដៃ ឬសាខារបស់ ${courier}។ មានតែអ្នកទេដែលឃើញ។`,
+    en: (courier: string) => `From ${courier}'s receipt. Only you see this.`,
+    km: (courier: string) => `ពីបង្កាន់ដៃរបស់ ${courier}។ មានតែអ្នកទេដែលឃើញ។`,
   },
   saveSentWith: {
     en: (courier: string) => `Save: sent with ${courier}`,
@@ -384,7 +384,7 @@ export const orders = {
     km: 'ឈ្មោះ និងលេខទូរស័ព្ទអ្នកដឹក (មិនចាំបាច់)',
   },
   driverNoteHint: {
-    en: 'For example: Sokha, 012 999 888. Only you see this.',
-    km: 'ឧទាហរណ៍៖ សុខា, 012 999 888។ មានតែអ្នកទេដែលឃើញ។',
+    en: 'E.g. Sokha, 012 999 888. Only you see this.',
+    km: 'ឧ. សុខា, 012 999 888។ មានតែអ្នកទេដែលឃើញ។',
   },
 } satisfies Tree

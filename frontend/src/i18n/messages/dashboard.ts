@@ -22,7 +22,7 @@ export const dashboard = {
   shareShop: { en: 'Share your shop link', km: 'ចែករំលែកតំណហាងរបស់អ្នក' },
   shopLinkCopied: { en: 'Shop link copied', km: 'បានចម្លងតំណហាង' },
   shopLinkCopyFailed: {
-    en: "Couldn't copy. Press and hold the link to copy it.",
-    km: 'មិនអាចចម្លងបានទេ។ សូមចុចឱ្យជាប់លើតំណ ដើម្បីចម្លង។',
+    en: "Couldn't copy. Press and hold the link instead.",
+    km: 'ចម្លងមិនបាន។ សូមចុចឱ្យជាប់លើតំណជំនួសវិញ។',
   },
 } satisfies Tree

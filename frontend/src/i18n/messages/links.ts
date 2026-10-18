@@ -7,8 +7,8 @@ export const links = {
   newLink: { en: 'New link', km: 'តំណថ្មី' },
   emptyTitle: { en: 'See which posts bring orders', km: 'មើលថាប៉ុស្តិ៍ណាខ្លះនាំមកការកុម្ម៉ង់' },
   emptyText: {
-    en: 'Make a link for each place you post, like your TikTok video or a Facebook group. Each one counts its own views and orders.',
-    km: 'បង្កើតតំណមួយសម្រាប់កន្លែងនីមួយៗដែលអ្នកប៉ុស្តិ៍ ដូចជាវីដេអូ TikTok ឬក្រុម Facebook។ តំណនីមួយៗរាប់ចំនួនអ្នកមើល និងការកុម្ម៉ង់ដាច់ដោយឡែក។',
+    en: 'Make a link for each post to count its views and orders.',
+    km: 'បង្កើតតំណមួយសម្រាប់ប៉ុស្តិ៍នីមួយៗ ដើម្បីរាប់អ្នកមើល និងការកុម្ម៉ង់។',
   },
   views: {
     en: (n: number) => `${n} ${n === 1 ? 'view' : 'views'}`,
@@ -33,8 +33,8 @@ export const links = {
   wherePlaceholder: { en: 'e.g. YouTube, my Facebook group', km: 'ឧ. YouTube, ក្រុម Facebook របស់ខ្ញុំ' },
   name: { en: 'Name (optional)', km: 'ឈ្មោះ (មិនចាំបាច់)' },
   nameHint: {
-    en: 'To tell your links apart, like “Video 3 Oct” or “September sale”.',
-    km: 'ដើម្បីងាយស្គាល់តំណរបស់អ្នក ដូចជា “វីដេអូ 3 តុលា” ឬ “បញ្ចុះតម្លៃខែកញ្ញា”។',
+    en: 'E.g. “Video 3 Oct” or “September sale”.',
+    km: 'ឧ. “វីដេអូ 3 តុលា” ឬ “បញ្ចុះតម្លៃខែកញ្ញា”។',
   },
   make: { en: 'Make link', km: 'បង្កើតតំណ' },
 
@@ -52,15 +52,15 @@ export const links = {
   ordered: { en: (pct: number) => `${pct}% ordered`, km: (pct: number) => `${pct}% បានកុម្ម៉ង់` },
   linkCopied: { en: 'Link copied', km: 'បានចម្លងតំណ' },
   copyFailed: {
-    en: "Couldn't copy. Press and hold the link to copy it.",
-    km: 'ចម្លងមិនបាន។ សូមចុចឱ្យជាប់លើតំណ ដើម្បីចម្លងវា។',
+    en: "Couldn't copy. Press and hold the link instead.",
+    km: 'ចម្លងមិនបាន។ សូមចុចឱ្យជាប់លើតំណជំនួសវិញ។',
   },
   categoryDeleted: {
-    en: 'This category was deleted, so the link shows “not found”.',
-    km: 'ប្រភេទនេះត្រូវបានលុប ដូច្នេះតំណបង្ហាញថា “រកមិនឃើញ”។',
+    en: 'The category was deleted, so this link shows “not found”.',
+    km: 'ប្រភេទត្រូវបានលុប ដូច្នេះតំណបង្ហាញ “រកមិនឃើញ”។',
   },
   productHidden: {
-    en: 'This product is hidden from your shop, so the link shows “not found”. Show the product again and the link works again.',
-    km: 'ទំនិញនេះត្រូវបានលាក់ពីហាងរបស់អ្នក ដូច្នេះតំណបង្ហាញថា “រកមិនឃើញ”។ បង្ហាញទំនិញវិញ នោះតំណនឹងដំណើរការវិញ។',
+    en: 'The product is hidden, so this link shows “not found”. Show it to fix the link.',
+    km: 'ទំនិញត្រូវបានលាក់ ដូច្នេះតំណបង្ហាញ “រកមិនឃើញ”។ បង្ហាញទំនិញវិញ ដើម្បីឱ្យតំណដំណើរការ។',
   },
 } satisfies Tree

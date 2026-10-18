@@ -35,8 +35,8 @@ export const settings = {
   removeCover: { en: 'Remove cover', km: 'ដករូបក្របចេញ' },
   shopColor: { en: 'Shop color', km: 'ពណ៌ហាង' },
   colorHint: {
-    en: 'For your shop and this app, once you save.',
-    km: 'សម្រាប់ហាងរបស់អ្នក និងកម្មវិធីនេះ ពេលអ្នករក្សាទុក។',
+    en: 'Used in your shop and this app.',
+    km: 'ប្រើក្នុងហាងរបស់អ្នក និងកម្មវិធីនេះ។',
   },
   // Every button that only shows the shop says this; "Open shop" means
   // starting to take orders (UX check #4, 2026-10-17).
@@ -61,12 +61,12 @@ export const settings = {
   orders: { en: 'Orders', km: 'ការកុម្ម៉ង់' },
   takeOrders: { en: 'Take orders', km: 'ទទួលការកុម្ម៉ង់' },
   takeOrdersOff: {
-    en: "Customers can look around and message you, but can't order.",
-    km: 'អតិថិជនអាចមើលទំនិញ និងផ្ញើសារមកអ្នក ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។',
+    en: 'Customers can look and message you, but not order.',
+    km: 'អតិថិជនអាចមើល និងផ្ញើសារ ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។',
   },
   resumeOn: { en: 'Take orders again on', km: 'ទទួលការកុម្ម៉ង់វិញនៅថ្ងៃ' },
   resumeOnHint: {
-    en: 'Orders open again by themselves that morning.',
+    en: 'Orders reopen by themselves that morning.',
     km: 'ការកុម្ម៉ង់បើកវិញដោយខ្លួនឯងនៅព្រឹកថ្ងៃនោះ។',
   },
   autoAccept: { en: 'Accept new orders automatically', km: 'ទទួលការកុម្ម៉ង់ថ្មីដោយស្វ័យប្រវត្តិ' },
@@ -75,8 +75,8 @@ export const settings = {
     km: 'ការកុម្ម៉ង់ថ្មីត្រូវបានទទួលភ្លាមៗ។',
   },
   autoAcceptOff: {
-    en: 'New orders wait for you to accept or reject them.',
-    km: 'ការកុម្ម៉ង់ថ្មីរង់ចាំអ្នកទទួល ឬបដិសេធ។',
+    en: 'You accept or reject each new order.',
+    km: 'អ្នកទទួល ឬបដិសេធការកុម្ម៉ង់ថ្មីនីមួយៗ។',
   },
 
   payments: { en: 'Payments', km: 'ការបង់ប្រាក់' },
@@ -93,38 +93,38 @@ export const settings = {
   editKhqr: { en: 'Edit the details', km: 'កែព័ត៌មាន' },
   uploadInstead: { en: 'Upload a QR instead', km: 'បញ្ចូល QR ជំនួសវិញ' },
   uploadQrHint: {
-    en: 'In your bank app, open your QR for receiving money and save it to photos, then pick it here. We fill in the rest.',
-    km: 'ក្នុងកម្មវិធីធនាគាររបស់អ្នក បើក QR សម្រាប់ទទួលប្រាក់ ហើយរក្សាទុកក្នុងរូបថត រួចជ្រើសវានៅទីនេះ។ យើងនឹងបំពេញអ្វីដែលនៅសល់។',
+    en: 'Save your Receive QR from your bank app, then pick it here.',
+    km: 'រក្សាទុក QR ទទួលប្រាក់ពីកម្មវិធីធនាគារ រួចជ្រើសវានៅទីនេះ។',
   },
   qrRead: { en: 'Filled in from your QR. Check and save.', km: 'បានបំពេញពី QR របស់អ្នក។ សូមពិនិត្យ ហើយរក្សាទុក។' },
   qrNone: {
-    en: "No QR code found in that picture. Try a screenshot of the QR, or a clearer photo.",
-    km: 'រកមិនឃើញ QR ក្នុងរូបនោះទេ។ សូមសាកល្បងរូបថតអេក្រង់នៃ QR ឬរូបដែលច្បាស់ជាងនេះ។',
+    en: 'No QR found. Try a screenshot or a clearer photo.',
+    km: 'រកមិនឃើញ QR ទេ។ សូមសាកល្បងរូបថតអេក្រង់ ឬរូបច្បាស់ជាងនេះ។',
   },
   qrNotKhqr: {
-    en: "That's not a bank KHQR for receiving money. Use the QR from your bank app's Receive screen.",
-    km: 'នោះមិនមែនជា KHQR ធនាគារសម្រាប់ទទួលប្រាក់ទេ។ សូមប្រើ QR ពីផ្ទាំងទទួលប្រាក់ក្នុងកម្មវិធីធនាគាររបស់អ្នក។',
+    en: "Not a KHQR for receiving money. Use your bank app's Receive QR.",
+    km: 'នោះមិនមែនជា KHQR ទទួលប្រាក់ទេ។ សូមប្រើ QR ទទួលប្រាក់ពីកម្មវិធីធនាគារ។',
   },
   qrBusiness: {
-    en: "That's a business (merchant) QR, which this can't use. Use your personal account's QR, or fill in the fields.",
-    km: 'នោះជា QR អាជីវកម្ម (merchant) ដែលមិនអាចប្រើបាន។ សូមប្រើ QR គណនីផ្ទាល់ខ្លួន ឬបំពេញវាលដោយខ្លួនឯង។',
+    en: "Business (merchant) QRs don't work here. Use your personal QR, or type the details.",
+    km: 'QR អាជីវកម្ម (merchant) មិនអាចប្រើបានទេ។ សូមប្រើ QR ផ្ទាល់ខ្លួន ឬវាយព័ត៌មានដោយខ្លួនឯង។',
   },
   qrCurrency: {
     en: (qr: string, shop: string) =>
-      `This QR is for your ${qr} account, but your shop's prices are in ${shop}: the bank will change the money. If you have a ${shop} account, set it as default in your bank app and upload its QR.`,
+      `This QR is for your ${qr} account, but your prices are in ${shop}, so the bank converts the money. Have a ${shop} account? Upload its QR instead.`,
     km: (qr: string, shop: string) =>
-      `QR នេះសម្រាប់គណនី ${qr} របស់អ្នក ប៉ុន្តែតម្លៃក្នុងហាងគឺជា ${shop}៖ ធនាគារនឹងប្ដូរប្រាក់។ បើអ្នកមានគណនី ${shop} សូមកំណត់វាជាគណនីលំនាំដើមក្នុងកម្មវិធីធនាគារ ហើយបញ្ចូល QR របស់វា។`,
+      `QR នេះសម្រាប់គណនី ${qr} របស់អ្នក ប៉ុន្តែតម្លៃហាងជា ${shop} ដូច្នេះធនាគារនឹងប្ដូរប្រាក់។ មានគណនី ${shop}? សូមបញ្ចូល QR របស់វាជំនួសវិញ។`,
   },
   accountInfo: { en: 'Account number (if your bank needs it)', km: 'លេខគណនី (បើធនាគាររបស់អ្នកត្រូវការ)' },
   accountInfoHint: {
-    en: 'ABA and some banks give one Bakong ID to all their customers; the account number says which is yours.',
-    km: 'ABA និងធនាគារខ្លះផ្ដល់ Bakong ID តែមួយដល់អតិថិជនទាំងអស់ លេខគណនីប្រាប់ថាមួយណាជារបស់អ្នក។',
+    en: 'Needed for ABA and some other banks.',
+    km: 'ត្រូវការសម្រាប់ ABA និងធនាគារខ្លះទៀត។',
   },
   acquiringBank: { en: 'Bank (if your bank needs it)', km: 'ធនាគារ (បើធនាគាររបស់អ្នកត្រូវការ)' },
   merchantName: { en: 'Name customers see', km: 'ឈ្មោះដែលអតិថិជនឃើញ' },
   merchantNameHint: {
-    en: "Use the name on your account, in English letters.",
-    km: 'សូមប្រើឈ្មោះលើគណនីរបស់អ្នក ជាអក្សរអង់គ្លេស។',
+    en: 'The name on your account, in English letters.',
+    km: 'ឈ្មោះលើគណនីរបស់អ្នក ជាអក្សរអង់គ្លេស។',
   },
   merchantNameTitle: { en: 'English letters, numbers, and spaces', km: 'អក្សរអង់គ្លេស លេខ និងដកឃ្លា' },
   bank: { en: 'Bank', km: 'ធនាគារ' },
@@ -152,8 +152,8 @@ export const settings = {
   pickupAddress: { en: 'Pickup address', km: 'អាសយដ្ឋានមកយក' },
   pickupPlaceholder: { en: 'Shop 12, Orussey Market, Phnom Penh', km: 'តូបលេខ 12 ផ្សារអូរឫស្សី ភ្នំពេញ' },
   noDelivery: {
-    en: 'Turn on your own delivery, add a courier, or turn on pickup.',
-    km: 'សូមបើកការដឹកផ្ទាល់ បន្ថែមក្រុមហ៊ុនដឹក ឬបើកការមកយកផ្ទាល់។',
+    en: 'Turn on at least one way to deliver.',
+    km: 'សូមបើកវិធីដឹកជញ្ជូនយ៉ាងតិចមួយ។',
   },
 
   discounts: { en: 'Discounts', km: 'ការបញ្ចុះតម្លៃ' },
@@ -167,61 +167,61 @@ export const settings = {
   alerts: { en: 'Alerts', km: 'ការជូនដំណឹង' },
   lowStockAlert: { en: 'Warn me when this many are left', km: 'ជូនដំណឹងខ្ញុំ នៅពេលនៅសល់ប៉ុណ្ណេះ' },
   lowStockAlertHint: {
-    en: 'When an order leaves this many of a product or fewer, and again when it sells out.',
-    km: 'នៅពេលការកុម្ម៉ង់ធ្វើឱ្យទំនិញនៅសល់ប៉ុណ្ណេះ ឬតិចជាងនេះ ហើយម្ដងទៀតនៅពេលអស់ស្តុក។',
+    en: 'Alert when stock falls to this number, and when sold out.',
+    km: 'ជូនដំណឹងពេលស្តុកនៅសល់ចំនួននេះ និងពេលអស់ស្តុក។',
   },
   telegramHint: {
-    en: 'Hear about new orders, and products running low, on your phone.',
-    km: 'ទទួលដំណឹងអំពីការកុម្ម៉ង់ថ្មី និងទំនិញជិតអស់ នៅលើទូរស័ព្ទរបស់អ្នក។',
+    en: 'New orders and low stock, on your phone.',
+    km: 'ការកុម្ម៉ង់ថ្មី និងស្តុកជិតអស់ នៅលើទូរស័ព្ទរបស់អ្នក។',
   },
   connected: { en: 'Connected', km: 'បានភ្ជាប់' },
   alertsUnavailable: {
-    en: "Order alerts on Telegram aren't available yet.",
-    km: 'ការជូនដំណឹងតាម Telegram មិនទាន់មាននៅឡើយ។',
+    en: "Telegram alerts aren't available yet.",
+    km: 'ការជូនដំណឹង Telegram មិនទាន់មានទេ។',
   },
   alertsOn: {
-    en: 'A message for every new order, and when a product is running low or sold out.',
-    km: 'មានសារសម្រាប់រាល់ការកុម្ម៉ង់ថ្មី និងនៅពេលទំនិញជិតអស់ ឬអស់ស្តុក។',
+    en: 'A message for new orders and low stock.',
+    km: 'មានសារពេលមានការកុម្ម៉ង់ថ្មី និងពេលស្តុកជិតអស់។',
   },
   alertsOff: {
-    en: 'Get a Telegram message for every new order, and when a product is running low or sold out.',
-    km: 'ទទួលសារ Telegram សម្រាប់រាល់ការកុម្ម៉ង់ថ្មី និងនៅពេលទំនិញជិតអស់ ឬអស់ស្តុក។',
+    en: 'Get a message for new orders and low stock.',
+    km: 'ទទួលសារពេលមានការកុម្ម៉ង់ថ្មី និងពេលស្តុកជិតអស់។',
   },
   disconnect: { en: 'Disconnect', km: 'ផ្ដាច់' },
   disconnectTitle: { en: 'Disconnect Telegram?', km: 'ផ្ដាច់ Telegram?' },
   disconnectMessage: {
-    en: "You won't get Telegram messages about new orders until you connect again.",
-    km: 'អ្នកនឹងមិនទទួលសារ Telegram អំពីការកុម្ម៉ង់ថ្មីទេ រហូតដល់អ្នកភ្ជាប់ម្ដងទៀត។',
+    en: "You'll stop getting messages about new orders.",
+    km: 'អ្នកនឹងឈប់ទទួលសារអំពីការកុម្ម៉ង់ថ្មី។',
   },
   disconnected: { en: 'Telegram disconnected', km: 'បានផ្ដាច់ Telegram' },
   connect: { en: 'Connect Telegram', km: 'ភ្ជាប់ Telegram' },
   connectWaiting: {
-    en: 'In Telegram, tap Start. This page updates once you have.',
-    km: 'នៅក្នុង Telegram សូមចុច Start។ ទំព័រនេះនឹងប្ដូរភ្លាមៗក្រោយអ្នកចុច។',
+    en: 'In Telegram, tap Start. This page updates by itself.',
+    km: 'នៅក្នុង Telegram សូមចុច Start។ ទំព័រនេះនឹងប្ដូរដោយខ្លួនឯង។',
   },
   connectHint: {
-    en: 'Telegram opens our bot. Tap Start, then come back here.',
-    km: 'Telegram នឹងបើក bot របស់យើង។ ចុច Start រួចត្រឡប់មកទីនេះវិញ។',
+    en: 'In Telegram, tap Start, then come back.',
+    km: 'នៅក្នុង Telegram ចុច Start រួចត្រឡប់មកវិញ។',
   },
   username: { en: 'Your Telegram username', km: 'ឈ្មោះអ្នកប្រើ Telegram របស់អ្នក' },
 
   contact: { en: 'Contact', km: 'ទំនាក់ទំនង' },
   messenger: { en: 'Facebook page for Messenger', km: 'ទំព័រ Facebook សម្រាប់ Messenger' },
   messengerHint: {
-    en: "Your page's name from its link, e.g. facebook.com/sokhafashion.",
-    km: 'ឈ្មោះទំព័ររបស់អ្នកពីតំណរបស់វា ឧ. facebook.com/sokhafashion។',
+    en: 'From your page link, e.g. facebook.com/sokhafashion.',
+    km: 'ពីតំណទំព័ររបស់អ្នក ឧ. facebook.com/sokhafashion។',
   },
   contactPhone: { en: 'Phone customers can call', km: 'លេខទូរស័ព្ទដែលអតិថិជនអាចហៅ' },
   contactPhoneHint: {
-    en: 'Shown in your shop, so use a number you are happy to share.',
-    km: 'បង្ហាញក្នុងហាងរបស់អ្នក ដូច្នេះសូមប្រើលេខដែលអ្នកព្រមចែករំលែក។',
+    en: 'Shown in your shop.',
+    km: 'បង្ហាញក្នុងហាងរបស់អ្នក។',
   },
 
   shopLink: { en: 'Shop link', km: 'តំណហាង' },
   linkName: { en: 'Link name', km: 'ឈ្មោះក្នុងតំណ' },
   linkNameHint: {
-    en: 'If you change it, links you already shared still open your shop.',
-    km: 'បើអ្នកប្ដូរវា តំណដែលអ្នកបានចែករំលែករួច នៅតែបើកហាងរបស់អ្នកបាន។',
+    en: 'If you change it, old links still work.',
+    km: 'បើអ្នកប្ដូរវា តំណចាស់នៅតែដំណើរការ។',
   },
   linkNameTitle: {
     en: 'Lowercase letters, numbers, and single hyphens',
@@ -268,8 +268,8 @@ export const settings = {
     // 2026-10-17).
     readyTitle: { en: 'Get your shop ready', km: 'រៀបចំហាងរបស់អ្នកឱ្យរួចរាល់' },
     readyHint: {
-      en: 'Do these to start taking orders. Opening the shop starts your 30-day free trial.',
-      km: 'ធ្វើជំហានទាំងនេះ ដើម្បីចាប់ផ្ដើមទទួលការកុម្ម៉ង់។ ការបើកហាងចាប់ផ្ដើមការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃរបស់អ្នក។',
+      en: 'Do these to start taking orders. Opening starts your 30-day free trial.',
+      km: 'ធ្វើជំហានទាំងនេះ ដើម្បីទទួលការកុម្ម៉ង់។ ការបើកហាងចាប់ផ្ដើមការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃ។',
     },
     // The button on the next step's row.
     action: {
@@ -320,9 +320,9 @@ export const settings = {
     notOpen: { en: 'Your shop isn’t open yet', km: 'ហាងរបស់អ្នកមិនទាន់បើកនៅឡើយទេ' },
     notOpenText: {
       en: (month: string, year: string) =>
-        `Your 30-day free trial starts when you open your shop, then it's ${month} a month or ${year} a year. Until then customers can look around but can't order.`,
+        `Your 30-day free trial starts when you open your shop, then it's ${month} a month or ${year} a year.`,
       km: (month: string, year: string) =>
-        `ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃរបស់អ្នកចាប់ផ្ដើមនៅពេលអ្នកបើកហាង បន្ទាប់មក ${month} ក្នុងមួយខែ ឬ ${year} ក្នុងមួយឆ្នាំ។ រហូតដល់ពេលនោះ អតិថិជនអាចមើលហាងបាន ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។`,
+        `ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃចាប់ផ្ដើមពេលអ្នកបើកហាង បន្ទាប់មក ${month} ក្នុងមួយខែ ឬ ${year} ក្នុងមួយឆ្នាំ។`,
     },
     standard: { en: 'Oak Order Standard', km: 'Oak Order Standard' },
     freeUntil: { en: (day: string) => `Free until ${day}`, km: (day: string) => `ឥតគិតថ្លៃរហូតដល់ ${day}` },
@@ -345,21 +345,21 @@ export const settings = {
     },
     // pay_by: the last day orders still come.
     payBy: {
-      en: (day: string) => `Your shop takes orders until ${day}. Pay by then to keep it open.`,
-      km: (day: string) => `ហាងរបស់អ្នកទទួលការកុម្ម៉ង់រហូតដល់ ${day}។ សូមបង់ត្រឹមថ្ងៃនោះ ដើម្បីរក្សាហាងឱ្យបើក។`,
+      en: (day: string) => `Orders come in until ${day}. Pay by then to stay open.`,
+      km: (day: string) => `ហាងទទួលការកុម្ម៉ង់រហូតដល់ ${day}។ សូមបង់ត្រឹមថ្ងៃនោះ ដើម្បីបន្តបើក។`,
     },
     stopped: {
-      en: "Your shop isn't taking new orders. Pay to open it again at once.",
-      km: 'ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ថ្មីទេ។ សូមបង់ ដើម្បីបើកវាវិញភ្លាមៗ។',
+      en: 'Not taking new orders. Pay to reopen at once.',
+      km: 'មិនទទួលការកុម្ម៉ង់ថ្មីទេ។ សូមបង់ ដើម្បីបើកវិញភ្លាមៗ។',
     },
     stoppedNote: {
-      en: 'Customers can still see your shop, and you can finish the orders you have. Nothing is deleted.',
-      km: 'អតិថិជននៅតែអាចមើលហាងរបស់អ្នកបាន ហើយអ្នកអាចបញ្ចប់ការកុម្ម៉ង់ដែលមានស្រាប់បាន។ គ្មានអ្វីត្រូវបានលុបទេ។',
+      en: 'Customers still see your shop, and you can finish open orders. Nothing is deleted.',
+      km: 'អតិថិជននៅតែមើលហាងបាន ហើយអ្នកអាចបញ្ចប់ការកុម្ម៉ង់ដែលមាន។ គ្មានអ្វីត្រូវបានលុបទេ។',
     },
     includes: { en: "What's included", km: 'អ្វីដែលមានក្នុងគម្រោង' },
     includesEverything: {
-      en: 'Everything in Oak Order: your shop, orders, payments, delivery, customers, links and alerts',
-      km: 'អ្វីៗទាំងអស់ក្នុង Oak Order៖ ហាង ការកុម្ម៉ង់ ការបង់ប្រាក់ ការដឹកជញ្ជូន អតិថិជន តំណ និងការជូនដំណឹង',
+      en: 'Shop, orders, payments, delivery, customers, links and alerts',
+      km: 'ហាង ការកុម្ម៉ង់ ការបង់ប្រាក់ ការដឹកជញ្ជូន អតិថិជន តំណ និងការជូនដំណឹង',
     },
     includesStaff: { en: 'Up to 10 staff logins', km: 'គណនីបុគ្គលិករហូតដល់ 10 នាក់' },
     includesHosting: { en: 'Hosting and updates', km: 'សេវាបង្ហោះ និងការធ្វើបច្ចុប្បន្នភាព' },
@@ -371,23 +371,23 @@ export const settings = {
     save: { en: (amount: string) => `Save ${amount}`, km: (amount: string) => `សន្សំ ${amount}` },
     // Without Oak's KHQR or bank account set (OAK_* settings).
     howToPay: {
-      en: "Message Oak Order on Telegram and we'll send you where to pay. Give your shop's code.",
-      km: 'ផ្ញើសារមក Oak Order តាម Telegram ហើយយើងនឹងប្រាប់អ្នកពីកន្លែងបង់។ សូមប្រាប់លេខកូដហាងរបស់អ្នក។',
+      en: "Message Oak Order on Telegram with your shop's code to pay.",
+      km: 'ផ្ញើសារមក Oak Order តាម Telegram ជាមួយលេខកូដហាង ដើម្បីបង់។',
     },
     howToPayContact: {
-      en: "Contact Oak Order for where to pay, and give your shop's code.",
-      km: 'សូមទាក់ទង Oak Order ដើម្បីដឹងពីកន្លែងបង់ ហើយប្រាប់លេខកូដហាងរបស់អ្នក។',
+      en: "Contact Oak Order with your shop's code to pay.",
+      km: 'សូមទាក់ទង Oak Order ជាមួយលេខកូដហាង ដើម្បីបង់។',
     },
     payOnTelegram: { en: (price: string) => `Pay ${price} on Telegram`, km: (price: string) => `បង់ ${price} តាម Telegram` },
     // During the trial, more than a week left: Pay folded (UX check #23).
     payEarly: { en: 'Pay early', km: 'បង់មុន' },
     payEarlyHint: {
-      en: (day: string) => `Nothing to pay until ${day}. If you like to pay early, you lose no days.`,
-      km: (day: string) => `មិនចាំបាច់បង់អ្វីទេ រហូតដល់ ${day}។ ប្រសិនបើអ្នកចង់បង់មុន អ្នកមិនបាត់បង់ថ្ងៃណាមួយទេ។`,
+      en: (day: string) => `Nothing to pay until ${day}. Paying early loses no days.`,
+      km: (day: string) => `មិនចាំបាច់បង់ទេ រហូតដល់ ${day}។ ការបង់មុនមិនបាត់បង់ថ្ងៃទេ។`,
     },
     carriesOn: {
-      en: 'Paying early loses no days: the new month or year starts when your time now ends.',
-      km: 'ការបង់មុនមិនបាត់បង់ថ្ងៃណាមួយទេ៖ ខែ ឬឆ្នាំថ្មីចាប់ផ្ដើមនៅពេលដែលពេលវេលាបច្ចុប្បន្នរបស់អ្នកបញ្ចប់។',
+      en: 'Paying early loses no days: it adds to the time you have.',
+      km: 'ការបង់មុនមិនបាត់បង់ថ្ងៃទេ៖ វាបន្ថែមលើពេលដែលអ្នកនៅសល់។',
     },
     aMonth: { en: 'a month', km: 'មួយខែ' },
     aYear: { en: 'a year', km: 'មួយឆ្នាំ' },
@@ -405,12 +405,12 @@ export const settings = {
     // Paying Oak Order by hand (KHQR or transfer), with the shop's code.
     yourCode: { en: "Your shop's code", km: 'លេខកូដហាងរបស់អ្នក' },
     codeHint: {
-      en: 'Put it in the transfer’s note, so Oak Order knows the money is yours. The KHQR puts it in for you.',
-      km: 'ដាក់វាក្នុងកំណត់ចំណាំនៃការផ្ទេរប្រាក់ ដើម្បីឱ្យ Oak Order ដឹងថាប្រាក់នោះជារបស់អ្នក។ KHQR ដាក់វាឱ្យអ្នកស្រាប់។',
+      en: 'Put it in the transfer note. The KHQR adds it for you.',
+      km: 'ដាក់វាក្នុងកំណត់ចំណាំនៃការផ្ទេរប្រាក់។ KHQR ដាក់វាឱ្យអ្នកស្រាប់។',
     },
     scanToPay: {
-      en: 'Scan it with your bank app, or save it and pick it in your bank app.',
-      km: 'ស្កេនវាដោយកម្មវិធីធនាគាររបស់អ្នក ឬរក្សាទុក ហើយជ្រើសវាក្នុងកម្មវិធីធនាគារ។',
+      en: 'Scan it with your bank app, or save it and pick it there.',
+      km: 'ស្កេនវាដោយកម្មវិធីធនាគារ ឬរក្សាទុក ហើយជ្រើសវានៅទីនោះ។',
     },
     saveQr: { en: 'Save QR to photos', km: 'រក្សាទុក QR ក្នុងរូបថត' },
     khqrCaption: { en: (code: string) => `Oak Order · ${code}`, km: (code: string) => `Oak Order · ${code}` },
@@ -421,14 +421,14 @@ export const settings = {
     accountNumber: { en: 'Account number', km: 'លេខគណនី' },
     iPaid: { en: "I've paid", km: 'ខ្ញុំបានបង់' },
     iPaidHint: {
-      en: 'Tap after paying. Oak Order checks its account and extends your shop, usually within a day.',
-      km: 'ចុចបន្ទាប់ពីបង់។ Oak Order ពិនិត្យគណនីរបស់ខ្លួន ហើយបន្តហាងរបស់អ្នក ជាធម្មតាក្នុងរយៈពេលមួយថ្ងៃ។',
+      en: 'Tap after paying. Usually checked within a day.',
+      km: 'ចុចបន្ទាប់ពីបង់។ ជាធម្មតាពិនិត្យរួចក្នុងមួយថ្ងៃ។',
     },
     waiting: {
       en: (amount: string, period: string, when: string) =>
-        `Oak Order is checking your ${amount} for ${period} (you said you paid on ${when}). Your shop is extended once it’s found.`,
+        `Oak Order is checking your ${amount} for ${period} (paid ${when}).`,
       km: (amount: string, period: string, when: string) =>
-        `Oak Order កំពុងពិនិត្យ ${amount} សម្រាប់${period}របស់អ្នក (អ្នកបានប្រាប់ថាបានបង់នៅ ${when})។ ហាងរបស់អ្នកនឹងត្រូវបានបន្ត នៅពេលរកឃើញ។`,
+        `Oak Order កំពុងពិនិត្យ ${amount} សម្រាប់${period}របស់អ្នក (បានបង់ ${when})។`,
     },
     notFound: { en: (note: string) => `Oak Order didn't find it: ${note}`, km: (note: string) => `Oak Order រកមិនឃើញ៖ ${note}` },
     menuClaimed: { en: 'Oak Order is checking your payment', km: 'Oak Order កំពុងពិនិត្យការបង់ប្រាក់របស់អ្នក' },
@@ -450,8 +450,8 @@ export const settings = {
   yourPhone: { en: 'Your phone number', km: 'លេខទូរស័ព្ទរបស់អ្នក' },
   loginPhone: { en: 'Phone number you log in with', km: 'លេខទូរស័ព្ទដែលអ្នកប្រើចូលគណនី' },
   noLoginPhone: {
-    en: 'None yet: you log in with your email. Add your number to log in with it.',
-    km: 'មិនទាន់មាន៖ អ្នកចូលគណនីដោយអ៊ីមែល។ បន្ថែមលេខរបស់អ្នក ដើម្បីចូលគណនីដោយលេខនោះ។',
+    en: 'None yet. Add one to log in with it.',
+    km: 'មិនទាន់មាន។ បន្ថែមលេខ ដើម្បីចូលគណនីដោយលេខនោះ។',
   },
   changePhone: { en: 'Change number', km: 'ប្ដូរលេខ' },
   addPhone: { en: 'Add phone number', km: 'បន្ថែមលេខទូរស័ព្ទ' },
@@ -474,8 +474,8 @@ export const settings = {
   detailsSaved: { en: 'Details saved', km: 'បានរក្សាទុកព័ត៌មាន' },
   changePassword: { en: 'Change password', km: 'ប្ដូរពាក្យសម្ងាត់' },
   changePasswordHint: {
-    en: 'Other phones and computers logged in to your shop will be logged out.',
-    km: 'ទូរស័ព្ទ និងកុំព្យូទ័រផ្សេងទៀត ដែលបានចូលហាងរបស់អ្នក នឹងត្រូវចាកចេញ។',
+    en: 'Other phones and computers will be logged out.',
+    km: 'ទូរស័ព្ទ និងកុំព្យូទ័រផ្សេងទៀត នឹងត្រូវចាកចេញ។',
   },
   currentPassword: { en: 'Current password', km: 'ពាក្យសម្ងាត់បច្ចុប្បន្ន' },
   newPassword: { en: 'New password', km: 'ពាក្យសម្ងាត់ថ្មី' },
@@ -496,8 +496,8 @@ export const settings = {
   help: { en: 'Get help', km: 'សុំជំនួយ' },
   staff: { en: 'Staff', km: 'បុគ្គលិក' },
   staffNoSettings: {
-    en: (shop: string) => `Only the owner of ${shop} can change the shop's settings. Your own account is below.`,
-    km: (shop: string) => `មានតែម្ចាស់ ${shop} ទេដែលអាចប្ដូរការកំណត់ហាងបាន។ គណនីរបស់អ្នកនៅខាងក្រោម។`,
+    en: (shop: string) => `Only the owner of ${shop} can change shop settings.`,
+    km: (shop: string) => `មានតែម្ចាស់ ${shop} ទេដែលអាចប្ដូរការកំណត់ហាងបាន។`,
   },
   noStaff: { en: 'No staff yet.', km: 'មិនទាន់មានបុគ្គលិកទេ។' },
   addStaff: { en: 'Add staff', km: 'បន្ថែមបុគ្គលិក' },
@@ -514,8 +514,8 @@ export const settings = {
     km: (name: string) => `ពាក្យសម្ងាត់ថ្មីសម្រាប់ ${name}`,
   },
   newPasswordForHint: {
-    en: "They're logged out on their phones and log in with this.",
-    km: 'គេនឹងចាកចេញពីទូរស័ព្ទ ហើយចូលវិញដោយពាក្យសម្ងាត់នេះ។',
+    en: "They're logged out and log in with this.",
+    km: 'គេនឹងចាកចេញ ហើយចូលវិញដោយពាក្យសម្ងាត់នេះ។',
   },
   saveNewPassword: { en: 'Save new password', km: 'រក្សាទុកពាក្យសម្ងាត់ថ្មី' },
   staffPasswordSet: {
@@ -525,30 +525,30 @@ export const settings = {
   removeStaff: { en: 'Remove', km: 'ដកចេញ' },
   removeStaffTitle: { en: (name: string) => `Remove ${name}?`, km: (name: string) => `ដក ${name} ចេញ?` },
   removeStaffMessage: {
-    en: "They can't log in any more. What they did to orders stays.",
-    km: 'គេនឹងមិនអាចចូលគណនីបានទៀតទេ។ អ្វីដែលគេបានធ្វើលើការកុម្ម៉ង់នៅដដែល។',
+    en: "They can't log in any more. Their order changes stay.",
+    km: 'គេនឹងមិនអាចចូលគណនីបានទៀតទេ។ ការកែប្រែលើការកុម្ម៉ង់នៅដដែល។',
   },
   staffRemoved: { en: (name: string) => `${name} removed`, km: (name: string) => `បានដក ${name} ចេញ` },
   closeShop: { en: 'Close shop', km: 'បិទហាង' },
   closeShopWhat: { en: 'What closing does', km: 'អ្វីដែលកើតឡើងពេលបិទហាង' },
   closeShopLink: {
-    en: 'Your shop link stops working at once, for every customer.',
-    km: 'តំណហាងរបស់អ្នកឈប់ដំណើរការភ្លាមៗ សម្រាប់អតិថិជនទាំងអស់។',
+    en: 'Your shop link stops working at once.',
+    km: 'តំណហាងរបស់អ្នកឈប់ដំណើរការភ្លាមៗ។',
   },
   closeShopLogout: {
     en: "You're logged out on every phone and can't log in.",
     km: 'អ្នកនឹងចាកចេញពីទូរស័ព្ទទាំងអស់ ហើយមិនអាចចូលគណនីបានទេ។',
   },
   closeShopKept: {
-    en: 'Nothing is deleted. To open it again, or to have everything erased for good, message Oak Order.',
-    km: 'គ្មានអ្វីត្រូវបានលុបទេ។ ដើម្បីបើកវាវិញ ឬលុបអ្វីៗទាំងអស់ជាស្ថាពរ សូមផ្ញើសារទៅ Oak Order។',
+    en: 'Nothing is deleted. Message Oak Order to reopen it or erase everything.',
+    km: 'គ្មានអ្វីត្រូវបានលុបទេ។ ផ្ញើសារទៅ Oak Order ដើម្បីបើកវិញ ឬលុបទាំងអស់។',
   },
   closeShopPassword: { en: 'Your password', km: 'ពាក្យសម្ងាត់របស់អ្នក' },
   closeShopButton: { en: 'Close my shop', km: 'បិទហាងរបស់ខ្ញុំ' },
   closeShopConfirmTitle: { en: 'Close your shop?', km: 'បិទហាងរបស់អ្នក?' },
   closeShopConfirm: {
-    en: 'Customers can no longer open it or order, and you are logged out.',
-    km: 'អតិថិជននឹងមិនអាចបើក ឬកុម្ម៉ង់បានទៀតទេ ហើយអ្នកនឹងចាកចេញ។',
+    en: "Customers can't open it or order, and you're logged out.",
+    km: 'អតិថិជនមិនអាចបើក ឬកុម្ម៉ង់បានទេ ហើយអ្នកនឹងចាកចេញ។',
   },
   shopClosed: { en: 'Your shop is closed', km: 'ហាងរបស់អ្នកត្រូវបានបិទ' },
   supportText: {

@@ -8,8 +8,8 @@ export const categories = {
   added: { en: (name: string) => `Added “${name}”`, km: (name: string) => `បានបន្ថែម “${name}”` },
   emptyTitle: { en: 'No categories yet', km: 'មិនទាន់មានប្រភេទនៅឡើយ' },
   emptyText: {
-    en: 'Group your products, like “Shoes” or “Bags”, so customers can browse them.',
-    km: 'ដាក់ទំនិញរបស់អ្នកជាក្រុម ដូចជា “ស្បែកជើង” ឬ “កាបូប” ដើម្បីឱ្យអតិថិជនងាយមើល។',
+    en: 'Group products, like “Shoes” or “Bags”.',
+    km: 'ដាក់ទំនិញជាក្រុម ដូចជា “ស្បែកជើង” ឬ “កាបូប”។',
   },
   renamed: { en: 'Category renamed', km: 'បានប្ដូរឈ្មោះប្រភេទ' },
   deleted: { en: (name: string) => `Deleted “${name}”`, km: (name: string) => `បានលុប “${name}”` },

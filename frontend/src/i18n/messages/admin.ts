@@ -34,8 +34,8 @@ export const admin = {
     km: (amount: string, period: string, when: string) => `និយាយថាបានបង់ ${amount} សម្រាប់${period} នៅ ${when}`,
   },
   checkClaim: {
-    en: 'Find the transfer with this code in your bank app, then:',
-    km: 'រកការផ្ទេរប្រាក់ដែលមានលេខកូដនេះក្នុងកម្មវិធីធនាគាររបស់អ្នក រួច៖',
+    en: 'Find a transfer with this code in your bank app:',
+    km: 'រកការផ្ទេរប្រាក់ដែលមានលេខកូដនេះ ក្នុងកម្មវិធីធនាគារ៖',
   },
   found: { en: 'Found it: mark paid', km: 'រកឃើញ៖ កត់ថាបានបង់' },
   notFound: { en: 'Not found', km: 'រកមិនឃើញ' },
@@ -60,8 +60,8 @@ export const admin = {
   },
   markPaid: { en: 'Mark paid', km: 'កត់ថាបានបង់' },
   markPaidHint: {
-    en: 'A payment made to you by hand. It covers the next month or year at once. 0 gives free time.',
-    km: 'ការបង់ប្រាក់ដែលបានបង់ឱ្យអ្នកដោយដៃ។ វាគ្របដណ្ដប់ខែ ឬឆ្នាំបន្ទាប់ភ្លាមៗ។ 0 ផ្ដល់ពេលឥតគិតថ្លៃ។',
+    en: 'A payment made by hand. It covers the next month or year. 0 gives free time.',
+    km: 'ការបង់ដោយដៃ។ វាគ្របដណ្ដប់ខែ ឬឆ្នាំបន្ទាប់។ 0 ផ្ដល់ពេលឥតគិតថ្លៃ។',
   },
   period: { en: 'For', km: 'សម្រាប់' },
   month: { en: 'A month', km: 'មួយខែ' },

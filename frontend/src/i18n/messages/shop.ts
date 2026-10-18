@@ -18,16 +18,16 @@ export const shop = {
       km: (day: string) => `នឹងទទួលការកុម្ម៉ង់វិញនៅថ្ងៃ ${day}។ អ្នកនៅតែអាចមើលទំនិញបាន។`,
     },
     noDate: {
-      en: 'You can still look around, and ask the shop when it opens again.',
-      km: 'អ្នកនៅតែអាចមើលទំនិញ ហើយសួរហាងថាពេលណាបើកវិញ។',
+      en: 'You can still look, and ask the shop when it reopens.',
+      km: 'អ្នកនៅតែមើលបាន ហើយអាចសួរហាងថាពេលណាបើកវិញ។',
     },
   },
   // The seller hasn't opened the shop yet (in setup: no orders).
   openingSoon: {
     title: { en: 'Opening soon', km: 'នឹងបើកឆាប់ៗនេះ' },
     text: {
-      en: "This shop isn't taking orders yet. You can look around, and message the shop to ask about anything.",
-      km: 'ហាងនេះមិនទាន់ទទួលការកុម្ម៉ង់នៅឡើយទេ។ អ្នកអាចមើលទំនិញ ហើយផ្ញើសារសួរហាងអំពីអ្វីក៏បាន។',
+      en: 'Not taking orders yet. You can look and message the shop.',
+      km: 'មិនទាន់ទទួលការកុម្ម៉ង់ទេ។ អ្នកអាចមើល និងផ្ញើសារទៅហាង។',
     },
   },
   // Asking the seller: Telegram, Messenger, a call (Settings → Contact).
@@ -41,8 +41,8 @@ export const shop = {
       phone: { en: 'Call', km: 'ហៅទូរស័ព្ទ' },
     },
     copied: {
-      en: 'Your question is copied. Paste it in the chat.',
-      km: 'បានចម្លងសំណួររបស់អ្នក។ សូមបិទភ្ជាប់វាក្នុងការជជែក។',
+      en: 'Question copied. Paste it in the chat.',
+      km: 'បានចម្លងសំណួរ។ សូមបិទភ្ជាប់ក្នុងការជជែក។',
     },
   },
   cart: { en: 'Cart', km: 'កន្ត្រក' },
@@ -76,8 +76,8 @@ export const shop = {
   home: {
     emptyTitle: { en: 'No products yet', km: 'មិនទាន់មានទំនិញនៅឡើយ' },
     emptyText: {
-      en: "This shop hasn't added any products. Check back soon.",
-      km: 'ហាងនេះមិនទាន់បានដាក់ទំនិញនៅឡើយទេ។ សូមត្រឡប់មកមើលម្ដងទៀតនៅពេលក្រោយ។',
+      en: 'Check back soon.',
+      km: 'សូមត្រឡប់មកមើលនៅពេលក្រោយ។',
     },
     showMore: { en: 'Show more', km: 'មើលបន្ថែម' },
     showLess: { en: 'Show less', km: 'បង្រួមវិញ' },
@@ -89,8 +89,8 @@ export const shop = {
     notFoundText: { en: 'The shop may have renamed or removed it.', km: 'ហាងប្រហែលជាបានប្ដូរឈ្មោះ ឬលុបវាចោល។' },
     emptyTitle: { en: 'Nothing here right now', km: 'ពេលនេះមិនទាន់មានអ្វីនៅទីនេះទេ' },
     emptyText: {
-      en: 'There are no products in this category at the moment.',
-      km: 'ពេលនេះមិនមានទំនិញនៅក្នុងប្រភេទនេះទេ។',
+      en: 'No products in this category.',
+      km: 'គ្មានទំនិញក្នុងប្រភេទនេះទេ។',
     },
   },
 
@@ -98,8 +98,8 @@ export const shop = {
     notFoundTab: { en: (shop: string) => `Product not available · ${shop}`, km: (shop: string) => `ទំនិញមិនមាន · ${shop}` },
     notFoundTitle: { en: "This product isn't available", km: 'ទំនិញនេះមិនមានទៀតទេ' },
     notFoundText: {
-      en: 'It may have been sold or removed. The shop may have something similar.',
-      km: 'វាប្រហែលជាលក់អស់ ឬត្រូវបានដកចេញ។ ហាងប្រហែលជាមានទំនិញស្រដៀងគ្នា។',
+      en: 'It may be sold out or removed.',
+      km: 'វាប្រហែលជាលក់អស់ ឬត្រូវបានដកចេញ។',
     },
     details: { en: 'Details', km: 'ព័ត៌មានលម្អិត' },
     // The heading over the option buttons (size, colour, ...).
@@ -164,8 +164,8 @@ export const shop = {
     tab: { en: (shop: string) => `Your cart · ${shop}`, km: (shop: string) => `កន្ត្រករបស់អ្នក · ${shop}` },
     emptyTitle: { en: 'Your cart is empty', km: 'កន្ត្រករបស់អ្នកនៅទទេ' },
     emptyText: {
-      en: 'Add products from the shop, then come back here to order.',
-      km: 'សូមដាក់ទំនិញពីហាងចូលកន្ត្រក រួចត្រឡប់មកទីនេះដើម្បីកុម្ម៉ង់។',
+      en: 'Add products from the shop to order.',
+      km: 'សូមដាក់ទំនិញពីហាង ដើម្បីកុម្ម៉ង់។',
     },
     browse: { en: 'Browse products', km: 'មើលទំនិញ' },
     addMoreForDiscount: {
@@ -204,12 +204,12 @@ export const shop = {
     past: { en: 'Past orders', km: 'ការកុម្ម៉ង់មុនៗ' },
     emptyTitle: { en: 'No orders on this phone yet', km: 'មិនទាន់មានការកុម្ម៉ង់នៅលើទូរស័ព្ទនេះទេ' },
     emptyText: {
-      en: 'Orders you place in this shop on this phone show here.',
-      km: 'ការកុម្ម៉ង់ដែលអ្នកធ្វើនៅហាងនេះ លើទូរស័ព្ទនេះ នឹងបង្ហាញនៅទីនេះ។',
+      en: 'Orders you place on this phone show here.',
+      km: 'ការកុម្ម៉ង់ដែលអ្នកធ្វើលើទូរស័ព្ទនេះ នឹងបង្ហាញនៅទីនេះ។',
     },
     otherPhone: {
-      en: 'Ordered on another phone? Open the order link here and enter the phone number you ordered with.',
-      km: 'បានកុម្ម៉ង់លើទូរស័ព្ទផ្សេង? សូមបើកតំណការកុម្ម៉ង់នៅទីនេះ ហើយបញ្ចូលលេខទូរស័ព្ទដែលអ្នកបានប្រើពេលកុម្ម៉ង់។',
+      en: 'Ordered on another phone? Open the order link and enter your number.',
+      km: 'កុម្ម៉ង់លើទូរស័ព្ទផ្សេង? បើកតំណការកុម្ម៉ង់ ហើយបញ្ចូលលេខរបស់អ្នក។',
     },
     cantOpen: { en: "Can't show this order", km: 'មិនអាចបង្ហាញការកុម្ម៉ង់នេះបានទេ' },
   },

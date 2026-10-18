@@ -7,8 +7,8 @@ export const products = {
   addProduct: { en: 'Add product', km: 'បន្ថែមទំនិញ' },
   emptyTitle: { en: 'Add your first product', km: 'បន្ថែមទំនិញដំបូងរបស់អ្នក' },
   emptyText: {
-    en: 'Products you add here will appear in your shop for customers to order.',
-    km: 'ទំនិញដែលអ្នកបន្ថែមនៅទីនេះ នឹងបង្ហាញក្នុងហាងរបស់អ្នក សម្រាប់អតិថិជនកុម្ម៉ង់។',
+    en: 'Products you add show in your shop.',
+    km: 'ទំនិញដែលអ្នកបន្ថែម នឹងបង្ហាញក្នុងហាងរបស់អ្នក។',
   },
   status: {
     all: { en: 'All', km: 'ទាំងអស់' },
@@ -74,8 +74,8 @@ export const products = {
   price: { en: 'Price', km: 'តម្លៃ' },
   hasVariants: { en: 'This product has variants', km: 'ទំនិញនេះមានជម្រើស' },
   hasVariantsHint: {
-    en: 'Different sizes or colors, each with its own stock.',
-    km: 'ទំហំ ឬពណ៌ផ្សេងៗ ដែលនីមួយៗមានស្តុករៀងខ្លួន។',
+    en: 'Sizes or colors, each with its own stock.',
+    km: 'ទំហំ ឬពណ៌ ដែលនីមួយៗមានស្តុករៀងខ្លួន។',
   },
   variant: { en: (i: number) => `Variant ${i}`, km: (i: number) => `ជម្រើសទី ${i}` },
   removeVariant: { en: (i: number) => `Remove variant ${i}`, km: (i: number) => `ដកជម្រើសទី ${i} ចេញ` },
@@ -87,8 +87,8 @@ export const products = {
   sku: { en: 'Product code (optional)', km: 'លេខកូដទំនិញ (មិនចាំបាច់)' },
   addSkus: { en: 'Your own product codes (optional)', km: 'លេខកូដទំនិញផ្ទាល់ខ្លួន (មិនចាំបាច់)' },
   variantPriceHint: {
-    en: "Leave a variant's price empty to use the product price.",
-    km: 'ទុកតម្លៃជម្រើសឱ្យនៅទទេ ដើម្បីប្រើតម្លៃទំនិញ។',
+    en: 'Leave empty to use the product price.',
+    km: 'ទុកទទេ ដើម្បីប្រើតម្លៃទំនិញ។',
   },
   addVariant: { en: 'Add variant', km: 'បន្ថែមជម្រើស' },
   // A new product's stock starts empty and must be filled in, so nothing
@@ -97,8 +97,8 @@ export const products = {
   stockPlaceholder: { en: 'e.g. 10', km: 'ឧ. 10' },
   stockZero: { en: 'Customers will see “Sold out”.', km: 'អតិថិជននឹងឃើញថា “អស់ស្តុក”។' },
   variantStockZero: {
-    en: 'Options with 0 show as “Sold out” to customers.',
-    km: 'ជម្រើសដែលមាន 0 នឹងបង្ហាញថា “អស់ស្តុក” ដល់អតិថិជន។',
+    en: 'Options with 0 show “Sold out”.',
+    km: 'ជម្រើសដែលមាន 0 បង្ហាញថា “អស់ស្តុក”។',
   },
   decreaseStock: { en: 'Decrease stock', km: 'បន្ថយស្តុក' },
   increaseStock: { en: 'Increase stock', km: 'បន្ថែមស្តុក' },

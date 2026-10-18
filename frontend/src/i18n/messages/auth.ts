@@ -41,8 +41,8 @@ export const auth = {
     },
     or: { en: 'or with your phone number', km: 'ឬដោយលេខទូរស័ព្ទរបស់អ្នក' },
     unavailable: {
-      en: "Google sign-in didn't load. Check your connection, or use your phone number.",
-      km: 'ការចូលដោយ Google មិនបានដំណើរការ។ សូមពិនិត្យការតភ្ជាប់ ឬប្រើលេខទូរស័ព្ទរបស់អ្នក។',
+      en: "Google sign-in didn't load. Use your phone number instead.",
+      km: 'ការចូលដោយ Google មិនដំណើរការ។ សូមប្រើលេខទូរស័ព្ទជំនួសវិញ។',
     },
     finishTitle: { en: 'Set up your shop', km: 'រៀបចំហាងរបស់អ្នក' },
     signedInAs: {
@@ -50,8 +50,8 @@ export const auth = {
       km: (provider: string, who: string) => `បានចូលដោយ ${provider} ជា ${who}។`,
     },
     phoneWhy: {
-      en: 'Every shop has a real phone number: customers and Oak Order can reach you, and you can log in with it too.',
-      km: 'ហាងនីមួយៗមានលេខទូរស័ព្ទពិត៖ អតិថិជន និង Oak Order អាចទាក់ទងអ្នកបាន ហើយអ្នកក៏អាចប្រើវាចូលគណនីបានដែរ។',
+      en: 'For customers to reach you, and to log in.',
+      km: 'សម្រាប់អតិថិជនទាក់ទងអ្នក និងសម្រាប់ចូលគណនី។',
     },
     phoneHasShop: {
       en: (provider: string) =>
@@ -71,8 +71,8 @@ export const auth = {
       km: (provider: string) => `${provider} មិនបានឱ្យអ្នកចូលទេ (បានបោះបង់ ឬត្រូវបានបដិសេធ)។`,
     },
     stale: {
-      en: 'This sign-in expired or was started in another browser. Please try again.',
-      km: 'ការចូលនេះផុតកំណត់ ឬត្រូវបានចាប់ផ្ដើមក្នុងកម្មវិធីរុករកផ្សេង។ សូមព្យាយាមម្ដងទៀត។',
+      en: 'This sign-in expired. Please try again.',
+      km: 'ការចូលនេះផុតកំណត់។ សូមព្យាយាមម្ដងទៀត។',
     },
     tryAgain: { en: 'Back to log in', km: 'ត្រឡប់ទៅចូលគណនី' },
     backToAccount: { en: 'Back to Your account', km: 'ត្រឡប់ទៅគណនីរបស់អ្នក' },
@@ -82,12 +82,12 @@ export const auth = {
   phoneCheck: {
     verify: { en: 'Verify with Telegram', km: 'ផ្ទៀងផ្ទាត់ជាមួយ Telegram' },
     hint: {
-      en: 'Tap the button, then “Share my phone number” in our Telegram bot. It shows us the number is yours.',
-      km: 'ចុចប៊ូតុងនេះ រួចចុច “ចែករំលែកលេខទូរស័ព្ទ” ក្នុង bot Telegram របស់យើង។ វាបញ្ជាក់ថាលេខនេះជារបស់អ្នក។',
+      en: 'Tap it, then “Share my phone number” in our Telegram bot.',
+      km: 'ចុចប៊ូតុងនេះ រួចចុច “ចែករំលែកលេខទូរស័ព្ទ” ក្នុង bot Telegram របស់យើង។',
     },
     waiting: {
-      en: 'Waiting for Telegram… Tap “Share my phone number” in the bot, then come back here.',
-      km: 'កំពុងរង់ចាំ Telegram… ចុច “ចែករំលែកលេខទូរស័ព្ទ” ក្នុង bot រួចត្រឡប់មកទីនេះវិញ។',
+      en: 'Waiting… Tap “Share my phone number” in Telegram, then come back.',
+      km: 'កំពុងរង់ចាំ… ចុច “ចែករំលែកលេខទូរស័ព្ទ” ក្នុង Telegram រួចត្រឡប់មកវិញ។',
     },
     verified: { en: 'Verified with Telegram', km: 'បានផ្ទៀងផ្ទាត់ជាមួយ Telegram' },
     another: { en: 'Use another number', km: 'ប្រើលេខផ្សេង' },
@@ -103,20 +103,20 @@ export const auth = {
     link: { en: 'Forgot password?', km: 'ភ្លេចពាក្យសម្ងាត់?' },
     title: { en: 'Forgot your password?', km: 'ភ្លេចពាក្យសម្ងាត់?' },
     subtitle: {
-      en: "We'll send a link to your shop's Telegram, where your order alerts go.",
-      km: 'យើងនឹងផ្ញើតំណមួយទៅ Telegram របស់ហាងអ្នក ជាកន្លែងដែលអ្នកទទួលការជូនដំណឹងការកុម្ម៉ង់។',
+      en: "We'll send a link to your shop's Telegram.",
+      km: 'យើងនឹងផ្ញើតំណទៅ Telegram របស់ហាងអ្នក។',
     },
     send: { en: 'Send link', km: 'ផ្ញើតំណ' },
     sentTitle: { en: 'Check Telegram', km: 'សូមពិនិត្យ Telegram' },
     sent: {
       en: (login: string) =>
-        `If ${login} has a shop with Telegram connected, a message from our bot is on its way. Open the link in it within 30 minutes.`,
+        `If ${login} has Telegram connected, our message is on its way. The link works for 30 minutes.`,
       km: (login: string) =>
-        `បើ ${login} មានហាងដែលបានភ្ជាប់ Telegram សារពី bot របស់យើងកំពុងផ្ញើទៅ។ សូមបើកតំណក្នុងសារនោះក្នុងរយៈពេល 30 នាទី។`,
+        `បើ ${login} បានភ្ជាប់ Telegram សាររបស់យើងកំពុងផ្ញើទៅ។ តំណប្រើបាន 30 នាទី។`,
     },
     noTelegram: {
-      en: 'No message, or Telegram not connected? Oak Order can reset your password for you.',
-      km: 'មិនទទួលបានសារ ឬមិនបានភ្ជាប់ Telegram? Oak Order អាចកំណត់ពាក្យសម្ងាត់ឡើងវិញឱ្យអ្នកបាន។',
+      en: 'No message? Oak Order can reset it for you.',
+      km: 'មិនទទួលបានសារ? Oak Order អាចកំណត់វាឡើងវិញឱ្យអ្នក។',
     },
     askSupport: { en: 'Message Oak Order', km: 'ផ្ញើសារទៅ Oak Order' },
     supportText: {
@@ -124,21 +124,21 @@ export const auth = {
       km: (login: string) => `សួស្ដី Oak Order ខ្ញុំភ្លេចពាក្យសម្ងាត់សម្រាប់ ${login}។`,
     },
     staff: {
-      en: "Staff: ask the shop's owner to set a new password for you in Settings → Staff.",
-      km: 'បុគ្គលិក៖ សូមឱ្យម្ចាស់ហាងកំណត់ពាក្យសម្ងាត់ថ្មីឱ្យអ្នក ក្នុង ការកំណត់ → បុគ្គលិក។',
+      en: 'Staff: ask the owner to reset it in Settings → Staff.',
+      km: 'បុគ្គលិក៖ សូមឱ្យម្ចាស់ហាងកំណត់ឡើងវិញ ក្នុង ការកំណត់ → បុគ្គលិក។',
     },
     backToLogin: { en: 'Back to log in', km: 'ត្រឡប់ទៅចូលគណនី' },
   },
   reset: {
     title: { en: 'Choose a new password', km: 'ជ្រើសពាក្យសម្ងាត់ថ្មី' },
     subtitle: {
-      en: "You'll be logged in, and logged out on every other phone.",
-      km: 'អ្នកនឹងបានចូលគណនី ហើយចាកចេញពីទូរស័ព្ទផ្សេងទៀតទាំងអស់។',
+      en: 'Other phones will be logged out.',
+      km: 'ទូរស័ព្ទផ្សេងទៀតនឹងត្រូវចាកចេញ។',
     },
     save: { en: 'Save and log in', km: 'រក្សាទុក ហើយចូលគណនី' },
     noLink: {
-      en: 'This page needs the link from Telegram. Ask for a new one.',
-      km: 'ទំព័រនេះត្រូវការតំណពី Telegram។ សូមស្នើតំណថ្មី។',
+      en: 'This page needs the link from Telegram.',
+      km: 'ទំព័រនេះត្រូវការតំណពី Telegram។',
     },
     askAgain: { en: 'Ask for a new link', km: 'ស្នើតំណថ្មី' },
   },
@@ -151,8 +151,8 @@ export const auth = {
     },
     shopLink: { en: 'Shop link', km: 'តំណហាង' },
     shopLinkHint: {
-      en: 'In English letters, easy for customers to read. You can change it later.',
-      km: 'ជាអក្សរអង់គ្លេស ងាយស្រួលសម្រាប់អតិថិជនអាន។ អ្នកអាចប្ដូរវានៅពេលក្រោយបាន។',
+      en: 'English letters. You can change it later.',
+      km: 'ជាអក្សរអង់គ្លេស។ អ្នកអាចប្ដូរវានៅពេលក្រោយបាន។',
     },
     yourName: { en: 'Your name', km: 'ឈ្មោះរបស់អ្នក' },
     phoneLabel: { en: 'Phone number (you log in with it)', km: 'លេខទូរស័ព្ទ (អ្នកប្រើវាដើម្បីចូលគណនី)' },

@@ -21,8 +21,8 @@ export const common = {
   // After a few seconds of loading: the free server sleeps when nobody has
   // visited for a while, and waking it takes up to a minute.
   slow: {
-    en: 'Still loading. The first visit in a while can take up to a minute.',
-    km: 'កំពុងផ្ទុក… ការចូលលើកដំបូងក្រោយពេលយូរ អាចចំណាយពេលរហូតដល់មួយនាទី។',
+    en: 'Still loading. The first visit can take up to a minute.',
+    km: 'កំពុងផ្ទុក… ការចូលលើកដំបូងអាចយូររហូតដល់មួយនាទី។',
   },
   // Under a field the browser won't send, when the form is sent.
   required: { en: 'Please fill this in.', km: 'សូមបំពេញព័ត៌មាននេះ។' },
