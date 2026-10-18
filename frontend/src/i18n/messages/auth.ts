@@ -156,6 +156,11 @@ export const auth = {
       en: 'English letters. You can change it later.',
       km: 'ជាអក្សរអង់គ្លេស។ អ្នកអាចប្ដូរវានៅពេលក្រោយបាន។',
     },
+    // While the link is empty after a shop name with no English letters.
+    shopLinkAsk: {
+      en: 'Type it in English letters, or we pick a random one.',
+      km: 'សូមវាយជាអក្សរអង់គ្លេស បើមិនវាយ យើងនឹងដាក់តំណចៃដន្យឱ្យ។',
+    },
     yourName: { en: 'Your name', km: 'ឈ្មោះរបស់អ្នក' },
     phoneLabel: { en: 'Phone number (you log in with it)', km: 'លេខទូរស័ព្ទ (អ្នកប្រើវាដើម្បីចូលគណនី)' },
     passwordHint: { en: 'At least 8 characters.', km: 'យ៉ាងតិច 8 តួអក្សរ។' },

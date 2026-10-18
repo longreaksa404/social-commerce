@@ -126,7 +126,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
               onChange={set('store_name')}
             />
           </Field>
-          <ShopLinkField slug={slug} onChange={setSlug} error={error} />
+          <ShopLinkField slug={slug} storeName={form.store_name} onChange={setSlug} error={error} />
           <Field label={t.auth.register.yourName} error={fieldError(error, 'full_name')}>
             <Input
               required

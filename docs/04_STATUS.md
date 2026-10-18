@@ -1027,6 +1027,12 @@ each is its own commit. Frontend only.
 - [x] 3. The phone number's label has the red * like the other required
   fields, on Create your shop and Set up your shop (pick C: the * only;
   Verify with Telegram stays a navy button).
+- [x] 4. Shop link: after a shop name with no English letters (e.g.
+  ហាងសុខា), the empty link box says in amber words "Type it in English
+  letters, or we pick a random one." (សូមវាយជាអក្សរអង់គ្លេស បើមិនវាយ
+  យើងនឹងដាក់តំណចៃដន្យឱ្យ។) instead of looking filled in; the grey
+  example now reads "e.g. sokha-fashion", and the link under the box is
+  in the normal font. Still optional. Same on Set up your shop.
 
 **UI check fixes** (founder, 2026-10-17: "1A 2A 3A 4A 5A 6A 7A 8A 9A 10A
 11A 12A 13A 14B 15B 16A 17A 18A 19A 20A … fix all now", after the
