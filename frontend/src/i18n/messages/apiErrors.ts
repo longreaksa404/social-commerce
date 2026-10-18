@@ -102,8 +102,7 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   'A Bakong ID has no spaces.': 'Bakong ID មិនមានដកឃ្លាទេ។',
   'A Bakong ID looks like name@bank.': 'Bakong ID មានទម្រង់ដូចជា name@bank។',
   'Use English letters, as on your bank account.': 'សូមប្រើអក្សរអង់គ្លេស ដូចនៅលើគណនីធនាគាររបស់អ្នក។',
-  'Turn on your own delivery, add a courier, or turn on pickup.':
-    'សូមបើកការដឹកផ្ទាល់ បន្ថែមក្រុមហ៊ុនដឹកជញ្ជូន ឬបើកការមកយកផ្ទាល់។',
+  'Turn on delivery or pickup.': 'សូមបើកការដឹកជញ្ជូន ឬការមកយកផ្ទាល់។',
   'Enter where customers pick up their orders.': 'សូមបញ្ចូលកន្លែងដែលអតិថិជនមកយកការកុម្ម៉ង់។',
   'This courier is already on the list.': 'ក្រុមហ៊ុនដឹកជញ្ជូននេះមាននៅក្នុងបញ្ជីរួចហើយ។',
   'Enter how much to take off.': 'សូមបញ្ចូលចំនួនទឹកប្រាក់ដែលត្រូវបញ្ចុះ។',

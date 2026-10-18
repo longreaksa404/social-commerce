@@ -30,9 +30,10 @@ import { useUnsavedChanges } from '../useUnsavedChanges.ts'
 /** One line of the order: a product, or one of its options. */
 type Line = { product: Product; variant: Variant | null; quantity: number }
 
-// Delivery choices besides the shop's couriers (whose names can't clash
-// with these: they're typed by people). As in the shop's checkout.
-const OWN = '\u0000own'
+// Delivery or pickup, as in the shop's checkout; the seller picks their
+// driver or a courier when sending (founder, 2026-10-18). DELIVERY keeps
+// the old own-delivery value, so a remembered choice still matches.
+const DELIVERY = '\u0000own'
 const PICKUP = '\u0000pickup'
 
 const FIELDS = ['name', 'phone', 'items', 'delivery_method', 'courier', 'delivery_address', 'delivery_address_note', 'notes', 'payment_method']
@@ -127,11 +128,12 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
   const [addressNote, setAddressNote] = useState('')
   const [notes, setNotes] = useState('')
   const [lines, setLines] = useState<Line[]>([])
-  const choices = [...(delivery.own_delivery ? [OWN] : []), ...delivery.couriers, ...(delivery.pickup ? [PICKUP] : [])]
+  const delivers = delivery.own_delivery || delivery.couriers.length > 0
+  const choices = [...(delivers ? [DELIVERY] : []), ...(delivery.pickup ? [PICKUP] : [])]
   const methods = PAYMENT_METHOD_ORDER.filter((m) => store.payment_settings[m].enabled)
   // Picked to start with (UX check #18, 2026-10-17): what the seller chose
-  // on their last chat order, else the shop's own delivery (the first
-  // choice) and cash on delivery, the usual chat order.
+  // on their last chat order, else delivery (the first choice) and cash
+  // on delivery, the usual chat order.
   const last = lastChatChoice(store.id)
   const [how, setHow] = useState<string | null>(
     last && choices.includes(last.how) ? last.how : (choices[0] ?? null),
@@ -189,7 +191,7 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
         items: lines.map((l) => ({ product_id: l.product.id, variant_id: l.variant?.id ?? null, quantity: l.quantity })),
         payment_method: payment,
         delivery_method: pickup ? 'pickup' : 'seller_delivery',
-        courier: how && how !== OWN && how !== PICKUP ? how : null,
+        courier: null,
         delivery_address: pickup ? null : address.trim() || null,
         delivery_address_note: pickup ? null : addressNote.trim() || null,
         expected_total: fromCents(total),
@@ -270,14 +272,14 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
             <div role="radiogroup" aria-label={n.delivery} className="grid gap-2">
               {choices.map((choice) => (
                 <ChoiceRow key={choice} checked={how === choice} onChoose={() => setHow(choice)}>
-                  {choice === OWN ? t.orders.ownDelivery : choice === PICKUP ? t.checkout.pickup : choice}
+                  {choice === PICKUP ? t.checkout.pickup : t.checkout.delivery}
                 </ChoiceRow>
               ))}
             </div>
           )}
           {choices.length === 1 && (
             <p className="text-slate-900">
-              {how === OWN ? t.orders.ownDelivery : how === PICKUP ? t.checkout.pickup : how}
+              {how === PICKUP ? t.checkout.pickup : t.checkout.delivery}
             </p>
           )}
           {!pickup && (

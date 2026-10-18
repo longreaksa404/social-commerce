@@ -17,7 +17,9 @@ export type DeliveryForm = {
   fee: string
   free_from_amount: string
   free_from_items: string
-  own: boolean
+  /** Delivery on: the shop's own driver, plus any couriers (founder,
+   * 2026-10-18: one Delivery switch, not own delivery and couriers). */
+  delivers: boolean
   couriers: CourierRow[]
   pickup: DeliverySettings['pickup']
 }
@@ -65,7 +67,7 @@ export const toForm = (store: Store): Form => {
       fee: Number(delivery.fee) === 0 ? '' : amount(delivery.fee),
       free_from_amount: amount(delivery.free_from_amount),
       free_from_items: delivery.free_from_items === null ? '' : String(delivery.free_from_items),
-      own: delivery.own_delivery.enabled,
+      delivers: delivery.own_delivery.enabled || delivery.couriers.length > 0,
       couriers: delivery.couriers.map((name, i) => ({ key: `courier-${i}`, name })),
       pickup: delivery.pickup,
     },
@@ -145,8 +147,8 @@ export const SECTIONS: Record<SectionId, Section> = {
         fee: delivery.fee || '0',
         free_from_amount: delivery.free_from_amount || null,
         free_from_items: delivery.free_from_items ? Number(delivery.free_from_items) : null,
-        own_delivery: { enabled: delivery.own },
-        couriers: delivery.couriers.map(({ name }) => name.trim()),
+        own_delivery: { enabled: delivery.delivers },
+        couriers: delivery.delivers ? delivery.couriers.map(({ name }) => name.trim()) : [],
         pickup: { ...delivery.pickup, address: delivery.pickup.address.trim() },
       },
     }),

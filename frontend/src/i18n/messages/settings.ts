@@ -142,8 +142,7 @@ export const settings = {
   off: { en: 'Off', km: 'បិទ' },
   freeFrom: { en: 'Free delivery from', km: 'ដឹកឥតគិតថ្លៃ ចាប់ពី' },
   freeFromItems: { en: 'Free delivery from (items)', km: 'ដឹកឥតគិតថ្លៃ ចាប់ពី (ចំនួនទំនិញ)' },
-  ownDelivery: { en: 'Own delivery', km: 'ដឹកផ្ទាល់' },
-  couriers: { en: 'Couriers', km: 'ក្រុមហ៊ុនដឹកជញ្ជូន' },
+  couriers: { en: 'Couriers (optional)', km: 'ក្រុមហ៊ុនដឹកជញ្ជូន (មិនចាំបាច់)' },
   couriersHint: {
     en: 'Customers can pick one, or leave it to you.',
     km: 'អតិថិជនអាចជ្រើសមួយ ឬទុកឲ្យអ្នកជ្រើស។',
@@ -156,8 +155,8 @@ export const settings = {
   pickupAddress: { en: 'Pickup address', km: 'អាសយដ្ឋានមកយក' },
   pickupPlaceholder: { en: 'Shop 12, Orussey Market, Phnom Penh', km: 'តូបលេខ 12 ផ្សារអូរឫស្សី ភ្នំពេញ' },
   noDelivery: {
-    en: 'Turn on at least one way to deliver.',
-    km: 'សូមបើកវិធីដឹកជញ្ជូនយ៉ាងតិចមួយ។',
+    en: 'Turn on delivery or pickup.',
+    km: 'សូមបើកការដឹកជញ្ជូន ឬការមកយកផ្ទាល់។',
   },
 
   discounts: { en: 'Discounts', km: 'ការបញ្ចុះតម្លៃ' },

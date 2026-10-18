@@ -146,7 +146,7 @@ def check_delivery_settings(settings: DeliverySettings) -> None:
         raise AppError(
             422,
             "VALIDATION_ERROR",
-            "Turn on your own delivery, add a courier, or turn on pickup.",
+            "Turn on delivery or pickup.",
             "delivery_settings",
         )
 
