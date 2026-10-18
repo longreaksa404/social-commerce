@@ -825,29 +825,15 @@ export function ContactFields({ form, update, error }: FieldsProps) {
   )
 }
 
-export function LinkFields({ store, form, update, error }: FieldsProps) {
-  const s = useT().settings
+/** The shop's link: a code made at sign-up that the seller can't change
+ * (founder, 2026-10-18); shops from before keep the one they had. Copy
+ * and Share first, the most common job (UX check #10, 2026-10-17). */
+export function LinkFields({ store }: FieldsProps) {
   return (
     <>
-      <Field label={s.linkName} error={fieldError(error, 'slug')} hint={s.linkNameHint}>
-        <Input
-          required
-          minLength={2}
-          maxLength={50}
-          pattern="[a-z0-9]+(-[a-z0-9]+)*"
-          title={s.linkNameTitle}
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck={false}
-          value={form.slug}
-          onChange={(e) => update({ slug: e.target.value.toLowerCase() })}
-        />
-      </Field>
-      <p className="break-all rounded-xl bg-slate-50 px-3.5 py-2.5 font-mono text-sm text-slate-700">
-        {window.location.host}/shop/<span className="font-semibold text-slate-900">{form.slug || '…'}</span>
+      <p className="break-all rounded-xl bg-slate-50 px-3.5 py-2.5 text-slate-700">
+        {window.location.host}/shop/<span className="font-semibold text-slate-900">{store.slug}</span>
       </p>
-      {/* The saved link (an unsaved new slug doesn't work yet): Copy and
-          Share first, the most common job (UX check #10, 2026-10-17). */}
       <ShopLinkButtons slug={store.slug} />
     </>
   )

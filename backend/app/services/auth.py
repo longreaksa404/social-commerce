@@ -18,7 +18,7 @@ from app.models import Currency, RefreshToken, Seller, Store
 from app.schemas.auth import LoginIn, PasswordResetConfirm, RegisterIn, TokenPair
 from app.services import delivery, phone_check, telegram
 from app.services.phone import normalize_phone
-from app.services.slugs import slugify, store_slug_taken, unique_store_slug
+from app.services.slugs import new_store_slug
 
 logger = logging.getLogger(__name__)
 
@@ -75,18 +75,15 @@ async def create_shop(
     phone_check_id: uuid.UUID,
     full_name: str | None,
     store_name: str,
-    slug: str | None,
     password_hash: str | None,
 ) -> tuple[Seller, Store]:
     """A new seller and their store together (1:1 in the MVP), with the
     phone number the seller shared with the bot. That chat with the bot
     also gets the shop's order alerts from now on (Settings → Alerts can
-    change it), so a new shop starts with them on. The shop's link is the
-    one the seller chose, else made from the name. Without `full_name`,
+    change it), so a new shop starts with them on. The shop's link is a
+    short code (`slugs.new_store_slug`). Without `full_name`,
     the seller's name is their Telegram name (else the shop's). Flushed,
     not committed."""
-    if slug is not None and await store_slug_taken(db, slug):
-        raise _slug_taken()
     check = await phone_check.use(db, phone_check_id)
     if await phone_check.phone_taken(db, check.phone):
         raise _phone_taken()
@@ -98,12 +95,10 @@ async def create_shop(
         await db.flush()
     except IntegrityError as exc:  # the same number signed up meanwhile
         raise _phone_taken() from exc
-    if slug is None:
-        slug = await unique_store_slug(db, slugify(store_name))
     store = Store(
         seller_id=seller.id,
         name=store_name,
-        slug=slug,
+        slug=await new_store_slug(db),
         telegram_chat_id=str(check.telegram_user_id),
         currency=Currency.USD,
         delivery_config=delivery.new_shop_delivery(Currency.USD),
@@ -122,7 +117,6 @@ async def register(db: AsyncSession, data: RegisterIn) -> TokenPair:
         phone_check_id=data.phone_check,
         full_name=data.full_name,
         store_name=data.store_name,
-        slug=data.slug,
         password_hash=await security.hash_password(data.password),
     )
     tokens = await _issue_tokens(db, seller, store.id)

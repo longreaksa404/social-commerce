@@ -135,16 +135,18 @@ function SectionForm({ id, store }: { id: SectionId; store: Store }) {
 
       {/* Pinned to the bottom so Save is always in reach (floating at the
           bottom of the column on wide screens). */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
-          <span className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
-            {dirty ? t.common.unsaved : <SavedNote key={save.submittedAt} justSaved={save.isSuccess} />}
-          </span>
-          <Button type="submit" loading={save.isPending} disabled={!dirty} className="min-w-32">
-            {t.common.save}
-          </Button>
+      {!section.view && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
+          <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
+            <span className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
+              {dirty ? t.common.unsaved : <SavedNote key={save.submittedAt} justSaved={save.isSuccess} />}
+            </span>
+            <Button type="submit" loading={save.isPending} disabled={!dirty} className="min-w-32">
+              {t.common.save}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </form>
   )
 }

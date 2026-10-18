@@ -78,7 +78,6 @@ async def register(db: AsyncSession, data: SocialRegisterIn) -> TokenPair:
         phone_check_id=data.phone_check,
         full_name=data.full_name,
         store_name=data.store_name,
-        slug=data.slug,
         password_hash=None,
     )
     db.add(

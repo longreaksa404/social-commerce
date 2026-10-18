@@ -7,15 +7,13 @@ import { Button, ErrorMessage, Field, Input, SlowNotice } from '../components/ui
 import { useT } from '../i18n/useT.ts'
 import { api, ApiError, type AccessToken } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
-import { useShopLink } from '../lib/slug.ts'
 import { PROVIDER_NAMES } from '../lib/oauth.ts'
 import { forgetDraft, forgetSignup, savedSignup, useKeepDraft, useSavedDraft } from '../lib/signup.ts'
 import type { PhoneCheck as Check, SignupStart } from '../lib/types.ts'
 import { AgreeLine } from './AgreeLine.tsx'
 import { AuthLayout } from './AuthLayout.tsx'
-import { ShopLinkField } from './ShopLinkField.tsx'
 
-const FIELDS = ['store_name', 'slug', 'phone_check']
+const FIELDS = ['store_name', 'phone_check']
 // What they type, kept like on Create your shop (pages/Register.tsx).
 const DRAFT_KEY = 'sc.register.social'
 
@@ -37,7 +35,6 @@ function FinishForm({ signup }: { signup: SignupStart }) {
   const navigate = useNavigate()
   const draft = useSavedDraft(DRAFT_KEY, signup.signup_token)
   const [form, setForm] = useState({ store_name: draft?.store_name ?? '' })
-  const { slug, typed, setSlug } = useShopLink(form.store_name, draft?.slug)
   const [phone, setPhone] = useState<Check | null>(null)
   const [opened, setOpened] = useState<Check | null>(draft?.check ?? null)
   const [phoneKey, setPhoneKey] = useState(0)
@@ -46,7 +43,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
   const t = useT()
   const g = t.auth.social
   const provider = PROVIDER_NAMES[signup.provider]
-  useKeepDraft(DRAFT_KEY, { ...form, slug: typed, check: opened, token: signup.signup_token })
+  useKeepDraft(DRAFT_KEY, { ...form, check: opened, token: signup.signup_token })
 
   const onPhone = useCallback((check: Check | null) => {
     setPhone(check)
@@ -73,7 +70,6 @@ function FinishForm({ signup }: { signup: SignupStart }) {
           ...form,
           // Their Google / Facebook / TikTok name (else the Telegram one).
           full_name: signup.full_name || undefined,
-          slug: slug || undefined,
           signup_token: signup.signup_token,
           phone_check: phone.id,
         },
@@ -131,7 +127,6 @@ function FinishForm({ signup }: { signup: SignupStart }) {
               onChange={set('store_name')}
             />
           </Field>
-          <ShopLinkField slug={slug} storeName={form.store_name} onChange={setSlug} error={error} />
           <div>
             <PhoneCheck
               key={phoneKey}

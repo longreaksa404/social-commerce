@@ -11,6 +11,13 @@ from app.models import Store, StoreOldSlug
 MAX_SLUG_LENGTH = 50
 SLUG_PATTERN = r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
 
+# A new shop's link: a short code, the same kind for every shop whatever
+# its name, made once at sign-up; the seller can't change it (founder,
+# 2026-10-18: "it should a random", picked "Code only"). No 0/o or
+# 1/l/i, so it can be read out over the phone: 31^6, about 887 million.
+SHOP_CODE_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz"
+SHOP_CODE_LENGTH = 6
+
 
 def slugify(text: str) -> str:
     """Lowercase ASCII words joined by hyphens.
@@ -64,3 +71,16 @@ def _first_free(base: str, taken: set[str]) -> str:
     while (candidate := f"{prefix}-{n}") in taken:
         n += 1
     return candidate
+
+
+def _shop_code() -> str:
+    return "".join(secrets.choice(SHOP_CODE_ALPHABET) for _ in range(SHOP_CODE_LENGTH))
+
+
+async def new_store_slug(db: AsyncSession) -> str:
+    """A new shop's link: a code no shop has, now or before (old links
+    keep opening their shop). On an unscoped session, so every shop counts."""
+    while True:
+        slug = _shop_code()
+        if not await store_slug_taken(db, slug):
+            return slug

@@ -11,7 +11,7 @@ async def test_seller_sees_and_edits_only_their_store(client, register):
     )
 
     assert a_store["name"] == "Sokha Shop"
-    assert a_store["slug"].startswith("sokha-shop")
+    assert len(a_store["slug"]) == 6  # a code, not the name (test_store_links.py)
     assert a_store["currency"] == "USD"
     assert updated.json()["currency"] == "KHR"
     # B's edit did not touch A's store.
@@ -39,24 +39,6 @@ async def test_shop_colour_starts_navy_and_shows_in_the_shop(client, register):
     assert wrong.status_code == 422
     assert shop["color"] == "forest"
     assert other["color"] == "navy"  # another shop's pick doesn't touch this one
-
-
-async def test_taking_another_stores_slug_is_a_conflict(client, register):
-    a, b = await register(), await register()
-    a_slug = (
-        await client.get(
-            "/api/v1/seller/store", headers={"Authorization": f"Bearer {a['access_token']}"}
-        )
-    ).json()["slug"]
-
-    response = await client.patch(
-        "/api/v1/seller/store",
-        headers={"Authorization": f"Bearer {b['access_token']}"},
-        json={"slug": a_slug},
-    )
-
-    assert response.status_code == 409
-    assert response.json()["error"]["code"] == "SLUG_TAKEN"
 
 
 async def test_store_requires_login(client):

@@ -31,7 +31,7 @@ export function saveSignup(signup: SignupStart) {
 }
 
 // What a seller typed on Create your shop (or Set up your shop after
-// Google, Facebook or TikTok), kept on this phone so coming back from
+// Google, Facebook or TikTok), the shop's name, kept on this phone so coming back from
 // Telegram to a reloaded page doesn't lose it (founder's pick 2A,
 // 2026-10-18). localStorage, not sessionStorage: an in-app browser can
 // drop the tab's storage while the seller is in Telegram. Never the
@@ -40,8 +40,6 @@ const DRAFT_MS = 30 * 60_000
 
 export type SignupDraft = {
   store_name: string
-  /** The link the seller typed; null while it follows the shop name. */
-  slug: string | null
   /** The phone check opened in Telegram, to pick up again. */
   check: PhoneCheck | null
   /** Set up your shop: the sign-up it belongs to. */
@@ -88,7 +86,7 @@ export function useKeepDraft(key: string, draft: SignupDraft) {
   const json = JSON.stringify(draft)
   useEffect(() => {
     const value = JSON.parse(json) as SignupDraft
-    if (!value.store_name && !value.slug && !value.check) {
+    if (!value.store_name && !value.check) {
       forgetDraft(key)
       return
     }

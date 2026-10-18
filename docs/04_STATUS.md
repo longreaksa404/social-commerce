@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-18 (sign-up check fixes, not pushed: the founder's 7 picks from the sign-up check page, one commit each, see In Progress, "Sign-up check fixes": the phone number comes first on Sign up, and Google, Facebook and TikTok are a small row of logos under the Sign up and Log in forms; what the seller typed survives a reload while they're in Telegram; a Khmer shop name gets an amber "type a link in English letters"; "this number already has a shop" shows in the box with a Log in button; on laptops the price shows without scrolling; the Verified box is plain; before that the same day, delivery and couriers combined, not pushed: checkout offers Delivery or Pickup, with the shop's couriers as an optional pick under Delivery, "Shop chooses" first; the seller picks their driver or a courier in the Send sheet; Settings → Delivery is one Delivery switch with the fee and couriers under it, and chat orders are Delivery or Pickup; new shops start at $2 delivery (8,000៛ for riel); before that the same day, address from the map pin, not pushed: after pinning, checkout shows a small map of the pin and fills in the address box from it, in English or Khmer; before that the same day, shorter texts, not pushed: about 140 hints, empty pages, banners, popups and help steps cut to one short sentence in English and Khmer, see In Progress, "Shorter texts"). 2026-10-17 (UI check fixes, not pushed: the founder's 20 picks from the UI check page, one commit each, see In Progress, "UI check fixes"; the biggest: small Khmer text 13px, underlined links that clear Khmer letters, calmer dark-mode colours, status tags as words, one stand-in for missing photos, laptop pages at one left edge with the bell and share at the top right; less explaining text everywhere; the font is Noto Sans Khmer + Inter (pick A); before that the same day, UX check fixes, all 30 built and pushed (`8a836bd`): one commit each, see In Progress, "UX check fixes"; the biggest: new products no longer start sold out, the customer's order reads Delivered once delivered, a new shop's Orders tab starts with its setup list, "Says paid" in the order list, Accept keeps the order open, payment before shipping for KHQR and bank, one-tap "Cash received, complete" and "Delivered, complete", a share button beside the bell; two API changes, no migrations). 2026-10-16 (Open shop starts the free trial, not pushed: a new shop is in setup, with no time limit and no orders, until the owner taps Open shop, which asks first and starts the 30-day trial; customers see "Opening soon"). 2026-10-15 (shop colour and cover photo, not pushed: eight colours a seller can pick, the shop takes it; a cover photo across the top like a Facebook page, and the shop's large link card made from it; before that the same day, seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only across the app; less motion on the order page; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-18 (sign-up check fixes, not pushed: the founder's 7 picks from the sign-up check page, one commit each, see In Progress, "Sign-up check fixes": the phone number comes first on Sign up, and Google, Facebook and TikTok are a small row of logos under the Sign up and Log in forms; what the seller typed survives a reload while they're in Telegram; then a shorter form: no name (it's the Telegram name, new column phone_check.telegram_name) and no shop link (a new shop's link is a 6-character code the seller can't change); "this number already has a shop" shows in the box with a Log in button; on laptops the price shows without scrolling; the Verified box is plain; before that the same day, delivery and couriers combined, not pushed: checkout offers Delivery or Pickup, with the shop's couriers as an optional pick under Delivery, "Shop chooses" first; the seller picks their driver or a courier in the Send sheet; Settings → Delivery is one Delivery switch with the fee and couriers under it, and chat orders are Delivery or Pickup; new shops start at $2 delivery (8,000៛ for riel); before that the same day, address from the map pin, not pushed: after pinning, checkout shows a small map of the pin and fills in the address box from it, in English or Khmer; before that the same day, shorter texts, not pushed: about 140 hints, empty pages, banners, popups and help steps cut to one short sentence in English and Khmer, see In Progress, "Shorter texts"). 2026-10-17 (UI check fixes, not pushed: the founder's 20 picks from the UI check page, one commit each, see In Progress, "UI check fixes"; the biggest: small Khmer text 13px, underlined links that clear Khmer letters, calmer dark-mode colours, status tags as words, one stand-in for missing photos, laptop pages at one left edge with the bell and share at the top right; less explaining text everywhere; the font is Noto Sans Khmer + Inter (pick A); before that the same day, UX check fixes, all 30 built and pushed (`8a836bd`): one commit each, see In Progress, "UX check fixes"; the biggest: new products no longer start sold out, the customer's order reads Delivered once delivered, a new shop's Orders tab starts with its setup list, "Says paid" in the order list, Accept keeps the order open, payment before shipping for KHQR and bank, one-tap "Cash received, complete" and "Delivered, complete", a share button beside the bell; two API changes, no migrations). 2026-10-16 (Open shop starts the free trial, not pushed: a new shop is in setup, with no time limit and no orders, until the owner taps Open shop, which asks first and starts the 30-day trial; customers see "Opening soon"). 2026-10-15 (shop colour and cover photo, not pushed: eight colours a seller can pick, the shop takes it; a cover photo across the top like a Facebook page, and the shop's large link card made from it; before that the same day, seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only across the app; less motion on the order page; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -998,7 +998,8 @@ https://claude.ai/artifact/11wRCCK465YBpEEfoSnx3R, 7 problems ranked;
 number 1 came from the founder's question: "phone number is the main
 identification right? if so should show it first. and the social media
 or google login is just small or optional"). Numbers are the page's;
-each is its own commit. Frontend only.
+each is its own commit. Frontend only, except the shorter form after
+them (one migration).
 
 - [x] 1. The phone number comes first on Sign up (Verify with Telegram
   above the shop name): every shop has one and logs in with it, and a
@@ -1067,6 +1068,21 @@ later"; then on the link: "it should a random", picked "Code only"):
   `full_name` is optional. Checked: 709 backend tests (2 new), and in
   the browser a sign-up with a check saved as "Sokha Chan" shows that
   name in Settings → Your account.
+- [x] No "Shop link" at sign-up, and no changing it: a new shop's link
+  is a 6-character code, e.g. order.oaksolve.com/shop/k7m2qx, whatever
+  its name (letters and numbers without 0/o/1/l/i, so it can be read
+  out). Settings → Link shows it with Copy link, Share, View your shop
+  and the tracked link, no Save. Shops that already exist keep their
+  link, and links they had before still open them. The API ignores a
+  `slug` at sign-up and in `PATCH /seller/store`. This replaces item 4
+  above (the amber "type a link in English letters") and the sign-up
+  link field from 2026-10-15. The founder's `test-shop` command still
+  makes name links. The form is now: phone number, shop name, password.
+  Checked: 706 backend tests (link tests rewritten: codes for English
+  and Khmer names, a chosen link ignored, Settings can't change it, a
+  code skips links in use and old links, old links still open their
+  shop, only their shop sees them); in the browser a sign-up got
+  /shop/j6sh79 and Settings → Link shows it without Save.
 
 **UI check fixes** (founder, 2026-10-17: "1A 2A 3A 4A 5A 6A 7A 8A 9A 10A
 11A 12A 13A 14B 15B 16A 17A 18A 19A 20A … fix all now", after the
@@ -2542,17 +2558,19 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
-000000000000000. **Sign-up check fixes** (all 7 picks built, not pushed;
-        In Progress, "Sign-up check fixes"). Frontend only, no
-        migrations, no new variables. After a push, on your phone in
+000000000000000. **Sign-up check fixes** (all 7 picks and the shorter
+        form built, not pushed; In Progress, "Sign-up check fixes"). One
+        migration (`5e89ca8ba3c8`), no new variables. After a push, on your phone in
         Khmer, light and dark:
         1. Create your shop starts with Verify with Telegram; Google,
            Facebook and TikTok are a row of logos at the bottom (and
            under Log in's button). Check Google's square shows its "G"
            on the live site: here it could only be tried with a stand-in
            key, which never draws it. If it's blank, tell me.
-        2. Type a shop name in Khmer: the empty link box says in amber
-           to type one in English letters.
+        2. The form asks only the phone number, shop name and password.
+           After creating the shop, Settings → Your account shows your
+           Telegram name, and Settings → Link a code like
+           order.oaksolve.com/shop/k7m2qx (no Save there).
         3. Fill in the shop name, tap Verify with Telegram, share your
            number, come back: everything is still there, even if the
            page reloaded (try closing and reopening the tab within 30
@@ -2561,9 +2579,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
            says so in amber, with a Log in button.
         5. On a laptop at 1366 × 768, the price shows under Create shop.
         New Khmer to check: ឬចុះឈ្មោះជាមួយ (or sign up with),
-        ឬចូលគណនីជាមួយ (or log in with), សូមវាយជាអក្សរអង់គ្លេស
-        បើមិនវាយ យើងនឹងដាក់តំណចៃដន្យឱ្យ។ (type it in English letters,
-        or we pick a random one). Logo-only Facebook and TikTok buttons
+        ឬចូលគណនីជាមួយ (or log in with). Logo-only Facebook and TikTok buttons
         may need to become named buttons if Meta or TikTok asks
         (In Progress, item 1).
 00000000000000. **UI check fixes** (all 20 picks and the text cut built,

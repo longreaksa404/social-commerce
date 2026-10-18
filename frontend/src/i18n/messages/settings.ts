@@ -221,15 +221,6 @@ export const settings = {
   },
 
   shopLink: { en: 'Shop link', km: 'តំណហាង' },
-  linkName: { en: 'Link name', km: 'ឈ្មោះក្នុងតំណ' },
-  linkNameHint: {
-    en: 'If you change it, old links still work.',
-    km: 'បើអ្នកប្ដូរវា តំណចាស់នៅតែដំណើរការ។',
-  },
-  linkNameTitle: {
-    en: 'Lowercase letters, numbers, and single hyphens',
-    km: 'អក្សរអង់គ្លេសតូច លេខ និងសញ្ញា - មួយៗ',
-  },
   viewShop: { en: 'View your shop', km: 'មើលហាងរបស់អ្នក' },
   shareTracked: { en: 'Share with a tracked link', km: 'ចែករំលែកជាមួយតំណតាមដាន' },
 

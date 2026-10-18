@@ -26,7 +26,6 @@ export type DeliveryForm = {
 
 export type Form = {
   name: string
-  slug: string
   description: string
   /** Uploaded as soon as picked, but the shop's only once saved. */
   logo_url: string | null
@@ -53,7 +52,6 @@ export const toForm = (store: Store): Form => {
   const delivery = store.delivery_settings
   return {
     name: store.name,
-    slug: store.slug,
     description: store.description ?? '',
     logo_url: store.logo_url,
     cover_url: store.cover_url,
@@ -104,6 +102,8 @@ type Section = {
   body: (form: Form) => Record<string, unknown>
   /** Fields the server may name in an error; their message shows by the input. */
   fields: (form: Form) => string[]
+  /** Nothing to save: shown without the Save bar. */
+  view?: true
 }
 
 export const SECTIONS: Record<SectionId, Section> = {
@@ -190,9 +190,11 @@ export const SECTIONS: Record<SectionId, Section> = {
     body: (form) => ({ low_stock_alert: Number(form.low_stock_alert) }),
     fields: () => ['low_stock_alert'],
   },
+  // The link is made at sign-up and can't be changed (2026-10-18).
   link: {
     title: (s) => s.shopLink,
-    body: (form) => ({ slug: form.slug }),
-    fields: () => ['slug'],
+    body: () => ({}),
+    fields: () => [],
+    view: true,
   },
 }

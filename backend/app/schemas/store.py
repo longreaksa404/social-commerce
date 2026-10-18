@@ -7,7 +7,7 @@ from pydantic_core import PydanticCustomError
 
 from app.core.config import get_settings
 from app.models.account import Currency, OrderConfirmationMode, ShopColor
-from app.schemas.common import Description, Name, Slug
+from app.schemas.common import Description, Name
 from app.schemas.delivery import DeliverySettings, DiscountSettings
 from app.schemas.payment import PaymentSettings
 from app.services.phone import normalize_phone
@@ -85,8 +85,8 @@ _FACEBOOK_PAGE_ID = re.compile(r"profile\.php\?id=(\d+)")
 
 
 class StoreUpdate(BaseModel):
+    # No slug: a shop's link is made at sign-up and stays (2026-10-18).
     name: Name | None = None
-    slug: Slug | None = None
     description: Description | None = None
     currency: Currency | None = None
     order_confirmation_mode: OrderConfirmationMode | None = None

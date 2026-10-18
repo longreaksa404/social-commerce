@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import AfterValidator, AliasChoices, BaseModel, Field
 
 from app.models import LoginProvider
-from app.schemas.common import Name, Slug
+from app.schemas.common import Name
 
 
 def _bcrypt_limit(password: str) -> str:
@@ -32,8 +32,6 @@ class RegisterIn(BaseModel):
 
     full_name: Name | None = None
     store_name: Name
-    # The shop's link (/shop/<slug>); made from the name when left out.
-    slug: Slug | None = None
     password: Password
     phone_check: uuid.UUID
 
@@ -120,5 +118,4 @@ class SocialRegisterIn(BaseModel):
     # The Google / Facebook / TikTok account's name; else the Telegram name.
     full_name: Name | None = None
     store_name: Name
-    slug: Slug | None = None
     phone_check: uuid.UUID
