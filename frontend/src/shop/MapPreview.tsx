@@ -41,7 +41,9 @@ export default function MapPreview({ location }: { location: LatLng }) {
   }, [location])
 
   return (
-    <div className="relative h-36 overflow-hidden rounded-xl bg-slate-100">
+    // `isolate` keeps Leaflet's layers (z-index 400+) inside this box, under
+    // the full map and the page's header and Place order bar.
+    <div className="relative isolate h-36 overflow-hidden rounded-xl bg-slate-100">
       <div ref={container} className="pointer-events-none absolute inset-0" />
       {/* The pin's tip marks the middle of the map. */}
       <div className="pointer-events-none absolute top-1/2 left-1/2 z-[450] -translate-x-1/2 -translate-y-full">
