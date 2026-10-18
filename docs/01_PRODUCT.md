@@ -1340,8 +1340,9 @@ the founder brought; no early-seller offer):
     chat too. Paying opens the shop again at once.
   - A paid month or year that runs out works the same way: a reminder 6
     days before, 7 days to pay, then no new orders.
-  - Nothing is cancelled or deleted. The sign-up page and the Terms say
-    all of this.
+  - Nothing is cancelled or deleted. The Terms say all of this, and
+    Settings → Plan shows the price (the sign-up page no longer does,
+    2026-10-18).
 - **How sellers pay Oak Order.** Decided (2026-10-14): sellers pay
   monthly by hand until Oak Solutions qualifies for ABA PayWay (MOC
   registration, ABA account, 6 months of business). Then PayWay: Pay now

@@ -1089,10 +1089,10 @@ later"; then on the link: "it should a random", picked "Code only"):
   our Terms of Service and Privacy Policy." stays, on Create your shop
   and Set up your shop. The price is still in the Terms' Fees and
   Settings → Plan. (Item 6 had brought this line above the fold on
-  laptops.) Open: a checkbox to accept the terms before Create shop? The
-  founder asked; Claude recommended keeping the line under the button
-  (no checkbox) until a lawyer, a payment provider or auto-charging
-  needs one. Waiting for the founder.
+  laptops.) No checkbox to accept the terms (founder, 2026-10-18: "ok",
+  after asking): the line under the button stays, as Google, Facebook
+  and TikTok do it; a tick belongs on the Plan page once ABA PayWay
+  charges automatically, or if a lawyer or payment provider asks.
 
 **UI check fixes** (founder, 2026-10-17: "1A 2A 3A 4A 5A 6A 7A 8A 9A 10A
 11A 12A 13A 14B 15B 16A 17A 18A 19A 20A … fix all now", after the
