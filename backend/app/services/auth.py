@@ -73,7 +73,7 @@ async def create_shop(
     db: AsyncSession,
     *,
     phone_check_id: uuid.UUID,
-    full_name: str,
+    full_name: str | None,
     store_name: str,
     slug: str | None,
     password_hash: str | None,
@@ -82,13 +82,16 @@ async def create_shop(
     phone number the seller shared with the bot. That chat with the bot
     also gets the shop's order alerts from now on (Settings → Alerts can
     change it), so a new shop starts with them on. The shop's link is the
-    one the seller chose, else made from the name. Flushed, not committed."""
+    one the seller chose, else made from the name. Without `full_name`,
+    the seller's name is their Telegram name (else the shop's). Flushed,
+    not committed."""
     if slug is not None and await store_slug_taken(db, slug):
         raise _slug_taken()
     check = await phone_check.use(db, phone_check_id)
     if await phone_check.phone_taken(db, check.phone):
         raise _phone_taken()
 
+    full_name = full_name or check.telegram_name or store_name
     seller = Seller(phone=check.phone, password_hash=password_hash, full_name=full_name)
     db.add(seller)
     try:

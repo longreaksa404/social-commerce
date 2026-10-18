@@ -15,7 +15,7 @@ import { AgreeLine } from './AgreeLine.tsx'
 import { AuthLayout } from './AuthLayout.tsx'
 import { ShopLinkField } from './ShopLinkField.tsx'
 
-const FIELDS = ['store_name', 'slug', 'full_name', 'phone_check']
+const FIELDS = ['store_name', 'slug', 'phone_check']
 // What they type, kept like on Create your shop (pages/Register.tsx).
 const DRAFT_KEY = 'sc.register.social'
 
@@ -36,10 +36,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
   const { startSession } = useAuth()
   const navigate = useNavigate()
   const draft = useSavedDraft(DRAFT_KEY, signup.signup_token)
-  const [form, setForm] = useState({
-    store_name: draft?.store_name ?? '',
-    full_name: draft?.full_name ?? signup.full_name,
-  })
+  const [form, setForm] = useState({ store_name: draft?.store_name ?? '' })
   const { slug, typed, setSlug } = useShopLink(form.store_name, draft?.slug)
   const [phone, setPhone] = useState<Check | null>(null)
   const [opened, setOpened] = useState<Check | null>(draft?.check ?? null)
@@ -72,7 +69,14 @@ function FinishForm({ signup }: { signup: SignupStart }) {
     try {
       const token = await api<AccessToken>('/auth/social/register', {
         method: 'POST',
-        body: { ...form, slug: slug || undefined, signup_token: signup.signup_token, phone_check: phone.id },
+        body: {
+          ...form,
+          // Their Google / Facebook / TikTok name (else the Telegram one).
+          full_name: signup.full_name || undefined,
+          slug: slug || undefined,
+          signup_token: signup.signup_token,
+          phone_check: phone.id,
+        },
         auth: false,
       })
       forgetSignup()
@@ -128,16 +132,6 @@ function FinishForm({ signup }: { signup: SignupStart }) {
             />
           </Field>
           <ShopLinkField slug={slug} storeName={form.store_name} onChange={setSlug} error={error} />
-          <Field label={t.auth.register.yourName} error={fieldError(error, 'full_name')}>
-            <Input
-              required
-              autoComplete="name"
-              autoCapitalize="words"
-              maxLength={100}
-              value={form.full_name}
-              onChange={set('full_name')}
-            />
-          </Field>
           <div>
             <PhoneCheck
               key={phoneKey}

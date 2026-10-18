@@ -6,12 +6,12 @@ import type { AccessToken } from '../lib/api.ts'
 export type Status = 'loading' | 'authenticated' | 'anonymous' | 'unreachable'
 
 /** The phone number isn't typed: it's the one shared with the Telegram
- * bot, handed in as the phone check's id. */
+ * bot, handed in as the phone check's id; the seller's name is that
+ * Telegram account's. */
 export type RegisterInput = {
   store_name: string
   /** The shop's link; made from the name when left out. */
   slug?: string
-  full_name: string
   password: string
   phone_check: string
 }

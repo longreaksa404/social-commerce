@@ -289,5 +289,9 @@ class PhoneCheck(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     telegram_user_id: Mapped[int | None] = mapped_column(BigInteger, index=True)
     # Set once the number is shared, normalized (app/services/phone.py).
     phone: Mapped[str | None] = mapped_column(Text)
+    # A seller's name as their Telegram account has it, shared with the
+    # number: a new seller's name until they change it (founder,
+    # 2026-10-18). Not kept for a customer's check.
+    telegram_name: Mapped[str | None] = mapped_column(Text)
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

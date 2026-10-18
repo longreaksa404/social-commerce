@@ -40,7 +40,6 @@ const DRAFT_MS = 30 * 60_000
 
 export type SignupDraft = {
   store_name: string
-  full_name: string
   /** The link the seller typed; null while it follows the shop name. */
   slug: string | null
   /** The phone check opened in Telegram, to pick up again. */
@@ -89,7 +88,7 @@ export function useKeepDraft(key: string, draft: SignupDraft) {
   const json = JSON.stringify(draft)
   useEffect(() => {
     const value = JSON.parse(json) as SignupDraft
-    if (!value.store_name && !value.full_name && !value.slug && !value.check) {
+    if (!value.store_name && !value.slug && !value.check) {
       forgetDraft(key)
       return
     }

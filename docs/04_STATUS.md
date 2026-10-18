@@ -1053,6 +1053,21 @@ each is its own commit. Frontend only.
   and "Verified with Telegram" carry the green. Also on Set up your shop
   and Settings → Your account.
 
+Then, a shorter form (founder, 2026-10-18: "shop link should follow
+their shop name. and their name should follow their telegram name. so
+both should no need to input while register, and they can edit them
+later"; then on the link: "it should a random", picked "Code only"):
+
+- [x] No "Your name" at sign-up: the bot keeps the Telegram account's
+  name with the number (new column `phone_check.telegram_name`, founder
+  approved the data model change; migration `5e89ca8ba3c8`), and a new
+  seller starts with it, e.g. "Sokha Chan" (else the shop name). After
+  Google, Facebook or TikTok, the name is that account's, as before.
+  Settings → Your account changes it. `POST /auth/register`'s
+  `full_name` is optional. Checked: 709 backend tests (2 new), and in
+  the browser a sign-up with a check saved as "Sokha Chan" shows that
+  name in Settings → Your account.
+
 **UI check fixes** (founder, 2026-10-17: "1A 2A 3A 4A 5A 6A 7A 8A 9A 10A
 11A 12A 13A 14B 15B 16A 17A 18A 19A 20A … fix all now", after the
 visual-only check of every screen, https://claude.ai/artifact/Kj67umM8xsdkEKHT6h422f,

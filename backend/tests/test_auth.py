@@ -68,6 +68,29 @@ async def test_sign_up_with_the_phone_shared_in_telegram(client):
         assert await db.get(PhoneCheck, uuid.UUID(check_id)) is None
 
 
+async def test_a_new_sellers_name_is_their_telegram_name(client):
+    """Sign-up doesn't ask for a name: the one Telegram gave with the
+    number, else the shop's, until the seller changes it in Settings."""
+    named, _ = await verified_phone_check()
+    unnamed, _ = await verified_phone_check()
+    async with unscoped_session() as db:
+        (await db.get(PhoneCheck, uuid.UUID(named))).telegram_name = "Sokha Chan"
+        await db.commit()
+
+    names = []
+    for check_id in (named, unnamed):
+        body = _signup(check_id)
+        del body["full_name"]
+        response = await client.post(REGISTER, json=body)
+        assert response.status_code == 201, response.text
+        headers = {"Authorization": f"Bearer {response.json()['access_token']}"}
+        names.append(
+            (await client.get("/api/v1/seller/account", headers=headers)).json()["full_name"]
+        )
+
+    assert names == ["Sokha Chan", "Sokha Fashion"]
+
+
 async def test_log_in_with_the_phone_typed_any_way(client, register):
     seller = await register(phone="012345679")
 

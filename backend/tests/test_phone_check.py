@@ -43,13 +43,17 @@ def start(user_id: int, code: str) -> dict:
     }
 
 
-def contact(user_id: int, phone: str, owner_id: int | None = None) -> dict:
+def contact(
+    user_id: int, phone: str, owner_id: int | None = None, last_name: str | None = None
+) -> dict:
     """`owner_id`: whose contact card it is (the sender's own by default)."""
     card = {
         "phone_number": phone,
         "first_name": "Sokha",
         "user_id": user_id if owner_id is None else owner_id,
     }
+    if last_name:
+        card["last_name"] = last_name
     return {
         "update_id": 2,
         "message": {
@@ -207,3 +211,14 @@ async def test_unfinished_check_cant_be_used(client, bot):
         with pytest.raises(AppError) as error:
             await phone_check.use(db, uuid.UUID(check["id"]))
     assert error.value.code == "PHONE_NOT_VERIFIED"
+
+
+async def test_keeps_the_sellers_telegram_name(client, bot, sokha):
+    check = await new_check(client)
+    await telegram.handle_update(start(sokha, code_of(check)))
+
+    await telegram.handle_update(contact(sokha, "85512345678", last_name="Chan"))
+
+    async with unscoped_session() as db:
+        saved = await db.get(PhoneCheck, uuid.UUID(check["id"]))
+        assert saved.telegram_name == "Sokha Chan"

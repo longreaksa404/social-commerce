@@ -15,24 +15,21 @@ import { AgreeLine } from './AgreeLine.tsx'
 import { AuthLayout } from './AuthLayout.tsx'
 import { ShopLinkField } from './ShopLinkField.tsx'
 
-const FIELDS = ['store_name', 'slug', 'full_name', 'phone_check', 'password']
+const FIELDS = ['store_name', 'slug', 'phone_check', 'password']
 const DRAFT_KEY = 'sc.register'
 
 /** Sign-up with a phone number and password (founder's choice
  * 2026-10-09). The number is the one the seller shares with the Telegram
  * bot, so it's really theirs; that chat also gets the shop's order
- * alerts. What they type (not the password) and the check they opened
+ * alerts, and the seller's name is that Telegram account's (2026-10-18;
+ * Settings → Your account changes it). What they type (not the password) and the check they opened
  * are kept for 30 minutes, for a page that reloads while they're in
  * Telegram (`lib/signup.ts`). */
 export function Register() {
   const { status, register } = useAuth()
   const navigate = useNavigate()
   const draft = useSavedDraft(DRAFT_KEY)
-  const [form, setForm] = useState({
-    store_name: draft?.store_name ?? '',
-    full_name: draft?.full_name ?? '',
-    password: '',
-  })
+  const [form, setForm] = useState({ store_name: draft?.store_name ?? '', password: '' })
   const { slug, typed, setSlug } = useShopLink(form.store_name, draft?.slug)
   const [phone, setPhone] = useState<Check | null>(null)
   // The check opened in Telegram, kept in the draft.
@@ -42,7 +39,7 @@ export function Register() {
   const [error, setError] = useState<unknown>(null)
   const [pending, setPending] = useState(false)
   const t = useT()
-  useKeepDraft(DRAFT_KEY, { store_name: form.store_name, full_name: form.full_name, slug: typed, check: opened })
+  useKeepDraft(DRAFT_KEY, { store_name: form.store_name, slug: typed, check: opened })
 
   const onPhone = useCallback((check: Check | null) => {
     setPhone(check)
@@ -125,17 +122,6 @@ export function Register() {
           />
         </Field>
         <ShopLinkField slug={slug} storeName={form.store_name} onChange={setSlug} error={error} />
-        <Field label={t.auth.register.yourName} error={fieldError(error, 'full_name')}>
-          <Input
-            required
-            autoComplete="name"
-            autoCapitalize="words"
-            enterKeyHint="next"
-            maxLength={100}
-            value={form.full_name}
-            onChange={set('full_name')}
-          />
-        </Field>
         {/* For password managers: the login this password goes with. */}
         <input type="tel" autoComplete="username" value={phone?.phone ?? ''} hidden readOnly />
         <Field label={t.auth.password} error={fieldError(error, 'password')} hint={t.auth.register.passwordHint}>

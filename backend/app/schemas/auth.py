@@ -27,9 +27,10 @@ Login = Annotated[
 class RegisterIn(BaseModel):
     """Sign-up with a phone number and password (founder's choice
     2026-10-09). The number isn't typed: it's the one the seller shared
-    with the Telegram bot, handed in as the phone check's id."""
+    with the Telegram bot, handed in as the phone check's id. The seller's
+    name is their Telegram name unless given (founder, 2026-10-18)."""
 
-    full_name: Name
+    full_name: Name | None = None
     store_name: Name
     # The shop's link (/shop/<slug>); made from the name when left out.
     slug: Slug | None = None
@@ -116,7 +117,8 @@ class SocialOut(BaseModel):
 
 class SocialRegisterIn(BaseModel):
     signup_token: str = Field(max_length=2000)
-    full_name: Name
+    # The Google / Facebook / TikTok account's name; else the Telegram name.
+    full_name: Name | None = None
     store_name: Name
     slug: Slug | None = None
     phone_check: uuid.UUID

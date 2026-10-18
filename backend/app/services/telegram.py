@@ -232,7 +232,9 @@ async def _phone_shared(chat_id: int, msg: dict[str, Any]) -> dict[str, Any]:
     sender = (msg.get("from") or {}).get("id", chat_id)
     if contact.get("user_id") != sender or not contact.get("phone_number"):
         return _reply(chat_id, PHONE_NOT_OWN_TEXT, _share_keyboard())
-    check = await phone_check.shared(sender, str(contact["phone_number"]))
+    # The account's own name (Telegram always has a first name).
+    name = " ".join(filter(None, (contact.get("first_name"), contact.get("last_name"))))
+    check = await phone_check.shared(sender, str(contact["phone_number"]), name)
     if check is None:
         text = PHONE_EXPIRED_TEXT
     elif check.code.startswith(phone_check.CODE_PREFIX):
