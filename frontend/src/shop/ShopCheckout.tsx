@@ -1,5 +1,5 @@
 import { AlertCircle, Banknote, Check, Landmark, LoaderCircle, MapPin, Plus, QrCode, UserRound, type LucideIcon } from 'lucide-react'
-import { lazy, Suspense, useCallback, useState, type FormEvent, type ReactNode } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import {
   Button,
@@ -13,7 +13,7 @@ import {
   Skeleton,
   TextArea,
 } from '../components/ui.tsx'
-import { useT } from '../i18n/useT.ts'
+import { useLang, useT } from '../i18n/useT.ts'
 import { ApiError } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
 import { formatMoney, fromCents } from '../lib/money.ts'
@@ -24,6 +24,7 @@ import type { Currency, PaymentMethod, ShopStore } from '../lib/types.ts'
 import { useCart, useCheckedCart } from './cart.ts'
 import { CartItems, EmptyCart } from './ShopCart.tsx'
 import { loadCustomerDetails, rememberedLink, rememberOrder, saveCustomerDetails } from './device.ts'
+import { lookUpAddress } from './lookUpAddress.ts'
 import { usePlaceOrder, useShop } from './queries.ts'
 
 // The server's codes for a cart that no longer matches the shop: the page
@@ -112,6 +113,32 @@ export function ShopCheckout() {
     const saved = loadCustomerDetails()
     return !saved?.name || !saved.phone
   })
+  // A pin fills in the address box from the map (founder, 2026-10-18).
+  const { lang } = useLang()
+  const [filledAddress, setFilledAddress] = useState<string | null>(null)
+  const [findingAddress, setFindingAddress] = useState(false)
+  const lookup = useRef<AbortController | null>(null)
+  useEffect(() => () => lookup.current?.abort(), [])
+
+  function pinLocation(location: Location | null) {
+    lookup.current?.abort()
+    setFindingAddress(false)
+    // The words came from the pin, so they go with it.
+    setForm((f) => ({ ...f, location, address: !location && f.address === filledAddress ? '' : f.address }))
+    if (!location) return
+    const controller = new AbortController()
+    lookup.current = controller
+    setFindingAddress(true)
+    void lookUpAddress(location, lang, controller.signal).then((found) => {
+      if (controller.signal.aborted) return
+      setFindingAddress(false)
+      if (!found) return
+      // Into an empty box, or over an earlier pin's words; never over what
+      // the customer typed.
+      setForm((f) => (f.address.trim() === '' || f.address === filledAddress ? { ...f, address: found } : f))
+      setFilledAddress(found)
+    })
+  }
 
   // After a successful order the cart is emptied while leaving this page.
   if (!shop.data) return <CheckoutSkeleton />
@@ -284,12 +311,18 @@ export function ShopCheckout() {
               <>
                 <LocationField
                   location={form.location}
-                  onChange={(location) => setForm((f) => ({ ...f, location }))}
+                  onChange={pinLocation}
                   error={fieldError(place.error, 'delivery_lat')}
                 />
                 <Field
                   label={form.location ? c.addressOptional : c.address}
-                  hint={form.location ? c.addressHintPinned : c.addressHint}
+                  hint={
+                    form.location
+                      ? form.address && form.address === filledAddress
+                        ? c.addressHintFilled
+                        : c.addressHintPinned
+                      : c.addressHint
+                  }
                   error={fieldError(place.error, 'delivery_address')}
                 >
                   <TextArea
@@ -298,6 +331,7 @@ export function ShopCheckout() {
                     maxLength={500}
                     autoComplete="street-address"
                     autoCapitalize="sentences"
+                    placeholder={findingAddress ? c.findingAddress : undefined}
                     value={form.address}
                     onChange={(e) => set('address', e.target.value)}
                   />
@@ -528,6 +562,10 @@ function DeliverySection({
 const MapPicker = lazy(() =>
   import('./MapPicker.tsx').catch(() => ({ default: MapUnavailable })),
 )
+// Without it the pin still works; the row under it says it's there.
+const MapPreview = lazy<ComponentType<{ location: Location }>>(() =>
+  import('./MapPreview.tsx').catch(() => ({ default: () => null })),
+)
 
 /** Where to deliver: a pin on the map, so the seller can open it in
  * Google Maps. Optional when the customer types an address. */
@@ -546,6 +584,21 @@ function LocationField({
 
   return (
     <div>
+      {location && (
+        // Tapping the map is the same as Change, which keyboards and
+        // screen readers use.
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-hidden
+          onClick={() => setOpen(true)}
+          className="mb-2 block w-full cursor-pointer"
+        >
+          <Suspense fallback={<div className="h-36 rounded-xl bg-slate-100" />}>
+            <MapPreview location={location} />
+          </Suspense>
+        </button>
+      )}
       {location ? (
         <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-800">
           <Check aria-hidden className="size-4 shrink-0" />

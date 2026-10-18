@@ -28,6 +28,11 @@ export const checkout = {
     en: 'Location pinned. Add the address too if you can.',
     km: 'បានដៅទីតាំងហើយ។ បញ្ចូលអាសយដ្ឋានផង បើអាច។',
   },
+  addressHintFilled: {
+    en: "From the map. Add the house no. if it's missing.",
+    km: 'ពីផែនទី។ បន្ថែមលេខផ្ទះ បើមិនទាន់មាន។',
+  },
+  findingAddress: { en: 'Finding the address…', km: 'កំពុងរកអាសយដ្ឋាន…' },
   addressHint: {
     en: 'House no., street, village, district, province. Or pin it on the map.',
     km: 'លេខផ្ទះ ផ្លូវ ភូមិ ខណ្ឌ/ស្រុក ខេត្ត/រាជធានី។ ឬដៅលើផែនទី។',

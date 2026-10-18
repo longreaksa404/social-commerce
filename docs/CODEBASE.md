@@ -80,7 +80,7 @@ Founder-side checks on the live site are in `04_STATUS.md`.
 | 5 | Seller delivery UI | DONE | OrderDetail delivery card |
 | 5 | Pickup flow | DONE | pickup transition table: `not_assigned → delivered` |
 | 5 | Completion rule | DONE | `order.can_complete` |
-| 5 | Delivery fee, free delivery, couriers, GPS pin, address note | DONE | `app/services/pricing.py`, `src/shop/MapPicker.tsx` (Leaflet, lazy-loaded) |
+| 5 | Delivery fee, free delivery, couriers, GPS pin, address note | DONE | `app/services/pricing.py`, `src/shop/MapPicker.tsx` (Leaflet, lazy-loaded), `MapPreview.tsx`, `lookUpAddress.ts` |
 | 5 | Bill discounts | DONE | `store.discount_config`, `pricing.discount_for` |
 | 6 | Bot + webhook registration | DONE | `app/services/telegram.py` `register_webhook` (at startup, prod only) |
 | 6 | Store-to-Telegram linking (code) | DONE | signed `/start` code, `POST /seller/store/telegram/link` |
@@ -207,7 +207,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
         ├── components/        ui.tsx (UI kit), styles.ts, FeedbackProvider (toasts/confirm), effects, RootLayout
         ├── pages/             Home (landing), Login, Register, FinishSignup, ShopLinkField, OAuthCallback, ForgotPassword, ResetPassword, Legal (+ legal/content.ts), LoginField, AgreeLine, AuthLayout
         ├── dashboard/         Seller app: Layout, queries.ts, orders/, customers/, products/, links/, settings/, Categories, Notifications
-        ├── shop/              Customer shop: ShopLayout, pages, queries.ts, cart.ts, device.ts, MapPicker, PaymentCard, ...
+        ├── shop/              Customer shop: ShopLayout, pages, queries.ts, cart.ts, device.ts, MapPicker, MapPreview, lookUpAddress, PaymentCard, ...
         ├── i18n/              core.ts, useT.ts, LanguageProvider, LanguageSwitch, messages/*.ts ({en, km} pairs)
         └── theme/             theme.ts (auto/light/dark per device), ThemeSwitch
 ```
@@ -1439,7 +1439,7 @@ don't take the SVG favicon). The three PNGs were drawn from the mark's SVG
 | **Cloudflare R2** (images) | WIRED, env-gated | `services/images.py`: boto3 S3 client against `https://<account>.r2.cloudflarestorage.com`, presigned `put_object` URLs (10 min) signed with exact `ContentType` + `ContentLength`. Keys: `stores/<store>/products/<product>/<hex>[-m].<ext>`, thumbnail `<hex>-s.jpg`, logo `stores/<store>/logo/<hex>.<ext>`, cover `stores/<store>/cover/<hex>.<ext>`. Public URL = `R2_PUBLIC_URL/<key>`, stored **absolute** in `product.image_urls` / `store.logo_url` / `store.cover_url`. The browser PUTs directly. Removing a photo only unlinks it; the object stays. |
 | **R2 backup bucket** | PARTIAL | `.github/workflows/backup.yml` (02:00 Phnom Penh, `pg_dump` 17, custom format, `--no-owner`, grants kept) uploads with the AWS CLI. It skips until its secrets exist (`docs/BACKUPS.md`). |
 | **Sentry** | WIRED, env-gated | Backend `sentry_sdk.init` (errors only); frontend `@sentry/react`. |
-| **Maps** | WIRED (frontend only) | Leaflet + OpenStreetMap tiles in `MapPicker.tsx` (no key). The seller opens the pin in Google Maps by URL. |
+| **Maps** | WIRED (frontend only) | Leaflet + OpenStreetMap tiles in `MapPicker.tsx` (no key). Once pinned, checkout shows a small still map (`MapPreview.tsx`, lazy, tap = Change) and fills the address box from the pin with OpenStreetMap's free address lookup, Nominatim reverse (`lookUpAddress.ts`, no key, in the page's language; road, village, sangkat, khan, province; no shop names, postcode or country). `ShopCheckout.pinLocation` fills only an empty box or one still holding an earlier pin's words, never the customer's typing, and clears untouched pin words when the pin is removed; a failed lookup leaves the box as it was. Nominatim allows about one lookup a second for the whole app; move to a paid geocoder if that's ever hit. The seller opens the pin in Google Maps by URL. |
 | Courier APIs, SMS, email | NOT BUILT | No email or SMS at all: phone numbers are proved through the Telegram bot instead (phone check). A forgotten password is reset by the founder (`python -m app.admin reset-password`). |
 
 ---
