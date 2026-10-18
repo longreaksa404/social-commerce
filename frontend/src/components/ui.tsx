@@ -280,6 +280,47 @@ export function Switch({
   )
 }
 
+/** A short single choice as a row of pills, styled like a product's sizes:
+ * checkout's delivery company, Send to driver's "Send with". */
+export function Pills({
+  name,
+  legend,
+  options,
+  value,
+  onChange,
+  className = '',
+}: {
+  name: string
+  legend: ReactNode
+  options: { value: string; label: string }[]
+  value: string
+  onChange: (value: string) => void
+  className?: string
+}) {
+  return (
+    <fieldset className={className}>
+      <legend className="mb-1.5 block text-sm font-medium text-slate-700">{legend}</legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => (
+          <label key={option.value} className="cursor-pointer">
+            <input
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={value === option.value}
+              onChange={() => onChange(option.value)}
+              className="peer sr-only"
+            />
+            <span className="flex min-h-11 items-center rounded-xl border border-slate-300 bg-surface px-4 text-sm font-medium text-slate-800 transition-colors peer-checked:border-navy-700 peer-checked:bg-navy-50 peer-checked:text-navy-800 peer-checked:ring-1 peer-checked:ring-navy-700 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-navy-600">
+              {option.label}
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Buttons
 

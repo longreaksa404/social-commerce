@@ -48,8 +48,8 @@ class OrderIn(BaseModel):
     items: list[OrderLineIn] = Field(min_length=1, max_length=MAX_ORDER_LINES)
     payment_method: PaymentMethod  # one the shop takes (ShopStoreOut.payment_methods)
     delivery_method: DeliveryMethod  # one the shop offers (ShopStoreOut.delivery)
-    # One of the shop's couriers; null = the shop's own delivery. Ignored
-    # for pickup.
+    # One of the shop's couriers, if the customer wants one; null = the
+    # shop chooses when sending. Ignored for pickup.
     courier: CourierName | None = None
     # A delivery needs the typed address, the GPS location, or both. All
     # ignored for pickup.

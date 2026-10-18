@@ -682,7 +682,7 @@ Mixins (`app/db/base.py`):
 | `order` | yes | `number` int (from 1001 per store), `status`, `currency` (copied from store), `subtotal`, `discount`, `delivery_fee`, `total`, `delivery_method`, `delivery_address`, `delivery_lat`/`delivery_lng` Numeric(9,6), `delivery_address_note`, `source` (link's source, or `chat` for an order the seller added; links can't be named "chat"), `notes`, `created_at`, `updated_at` | `customer_id → customer` (no cascade) | UNIQUE (`store_id`, `number`); (`store_id`, `status`); (`store_id`, `created_at`); (`store_id`, `customer_id`); CHECK lat/lng both or neither; CHECK all four money columns ≥0 |
 | `order_item` | yes (store_id copied from order) | `product_name_snapshot`, `variant_name_snapshot`, `unit_price_snapshot`, `quantity`, `line_total` (no timestamps) | `order_id → order` CASCADE; `product_id → product` (no cascade; products are never deleted); `variant_id → product_variant` ON DELETE SET NULL | (`store_id`, `order_id`); (`variant_id`); CHECK quantity >0; CHECK unit price ≥0 |
 | `payment` | yes (store_id copied from order) | `method` (`cod`/`bank_transfer`/`khqr`), `status` (`pending`/`paid`/`failed`/`refunded`, default pending), `amount` (= order total), `reference` (seller's note), `paid_at`, `created_at` | `order_id → order` CASCADE, **unique** (1:1) | CHECK amount ≥0 |
-| `delivery` | yes (store_id copied from order) | `method` (`seller_delivery`/`pickup`), `status` (default `not_assigned`), `courier` (null = own delivery or pickup), `assignee_note`, `created_at`, `updated_at` | `order_id → order` CASCADE, **unique** (1:1) | none beyond the unique |
+| `delivery` | yes (store_id copied from order) | `method` (`seller_delivery`/`pickup`), `status` (default `not_assigned`), `courier` (the customer's pick at checkout, else null = the shop chooses; null for pickup), `assignee_note`, `created_at`, `updated_at` | `order_id → order` CASCADE, **unique** (1:1) | none beyond the unique |
 | `shareable_link` | yes | `target_type` (`store`/`product`/`category`), `target_id` UUID NULL (**no FK**), `token` (8 chars `[a-z0-9]`, **globally** unique), `source`, `campaign`, `created_at` | none | (`store_id`, `created_at`); CHECK `(target_type = 'store') = (target_id IS NULL)` |
 | `link_event` | yes (store_id copied from link) | `event_type` (`view`/`order`), `created_at` | `link_id → shareable_link` CASCADE; `order_id → order` CASCADE NULL | (`store_id`, `link_id`); UNIQUE index on `order_id` (an order counts for one link); CHECK `(event_type = 'order') = (order_id IS NOT NULL)` |
 | `notification_log` | yes | `channel` (`web`/`telegram`), `event_type` text (`new_order`/`low_stock`), `payload` JSONB, `status` (`sent`/`failed`), `sent_at` (acts as created_at), `read_at` (web only; null = unread) | none | (`store_id`, `channel`, `sent_at`) |
@@ -1038,6 +1038,15 @@ notification, link, storefront (`ShopStoreOut`, `ShopProductCard`,
   `PRODUCT_OUT_OF_STOCK`.
 - A delivery needs an address, a GPS pin, or both. Pickup ignores the
   location fields.
+- `courier` is optional (founder, 2026-10-18): one of the shop's couriers
+  the customer would like, or null = the shop chooses, accepted even when
+  own delivery is off (`delivery.check_checkout_choice`; a name no longer
+  on the list is 409 `DELIVERY_OPTION_UNAVAILABLE`, field `courier`).
+  Checkout (`ShopCheckout.tsx`) offers two cards, Delivery and Pickup,
+  and under Delivery, when the shop lists couriers, "Delivery company
+  (optional)" pills (`Pills` in `components/ui.tsx`): "Shop chooses"
+  first, then each courier. The customer's order page says "Delivery"
+  until a courier is set or it's sent.
 - In the same transaction it creates the customer (or updates it by phone),
   the order, its items, payment and delivery, the web notification rows,
   and a `link_event(order)` if `link` matches one of this store's tokens.

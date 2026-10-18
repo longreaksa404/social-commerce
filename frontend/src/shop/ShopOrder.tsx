@@ -480,7 +480,14 @@ function DeliveryLine({ order }: { order: ShopOrder }) {
       <p className="flex items-center gap-2 text-sm">
         <Icon aria-hidden className="size-4.5 shrink-0 text-slate-500" />
         <span className="min-w-0 flex-1 text-slate-700">
-          {pickup ? t.checkout.pickup : delivery.courier ? t.order.deliveryBy(delivery.courier) : t.checkout.deliveryByShop}
+          {pickup
+            ? t.checkout.pickup
+            : delivery.courier
+              ? t.order.deliveryBy(delivery.courier)
+              : // No courier yet may mean the shop hasn't chosen one.
+                delivery.status === 'not_assigned'
+                ? t.checkout.delivery
+                : t.checkout.deliveryByShop}
         </span>
         {/* Short words beside it, wrapping if they must; a failed
             delivery's sentence gets its own line below (UX check #17:

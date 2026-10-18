@@ -212,6 +212,18 @@ async def test_customer_picks_a_courier_and_shares_their_location(client, auth_h
     assert seller_view["delivery_address_note"] == "Blue gate, next to the pagoda"
 
 
+async def test_customer_can_leave_the_courier_to_a_couriers_only_shop(client, auth_headers):
+    """Delivery is one choice; the courier is optional (founder,
+    2026-10-18), even when the shop doesn't deliver itself."""
+    headers, slug, shirt = await _shop(client, auth_headers)
+    await set_delivery(client, headers, **{**DELIVERY, "own_delivery": {"enabled": False}})
+
+    response = await place_order(client, slug, [(shirt, None, 1)], total="11.50")
+
+    assert response.status_code == 201, response.text
+    assert response.json()["delivery"]["courier"] is None
+
+
 async def test_free_delivery_and_discount_at_checkout(client, auth_headers):
     _, slug, shirt = await _shop(client, auth_headers)
 
@@ -279,7 +291,6 @@ async def test_checkout_refuses_a_delivery_choice_that_does_not_work(client, aut
     await set_delivery(
         client, headers, **{**DELIVERY, "own_delivery": {"enabled": False}}
     )  # couriers only, pickup off now
-    own_gone = await place_order(client, slug, line, total="11.50")
     pickup_off = await place_order(
         client, slug, line, total="10.00", delivery_method="pickup", address=None
     )
@@ -288,7 +299,6 @@ async def test_checkout_refuses_a_delivery_choice_that_does_not_work(client, aut
     assert _error(half_gps) == (422, "delivery_lat")
     assert _error(unknown_courier) == (409, "courier")
     assert unknown_courier.json()["error"]["code"] == "DELIVERY_OPTION_UNAVAILABLE"
-    assert _error(own_gone) == (409, "courier")
     assert _error(pickup_off) == (409, "delivery_method")
     assert pickup_off.json()["error"]["code"] == "DELIVERY_METHOD_UNAVAILABLE"
     assert await stock(Product, shirt) == 10  # nothing taken

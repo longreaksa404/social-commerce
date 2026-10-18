@@ -77,7 +77,9 @@ class DeliveryOut(BaseModel):
 
     method: DeliveryMethod
     status: DeliveryStatus
-    courier: str | None  # null = the seller's own delivery (or pickup)
+    # The customer's pick, or the seller's when sending; null = the shop's
+    # own driver, not chosen yet, or pickup.
+    courier: str | None
     assignee_note: str | None
     updated_at: datetime
     # What the seller can move it to now (02 section 7.3), so the app

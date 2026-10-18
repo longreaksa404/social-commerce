@@ -145,9 +145,10 @@ def shop_delivery_options(store: Store) -> ShopDeliveryOptions:
 def check_checkout_choice(
     settings: DeliverySettings, method: DeliveryMethod, courier: str | None
 ) -> str | None:
-    """The courier for the order (null = the seller's own delivery or
-    pickup), checked against the shop's current settings: the seller may
-    have changed them since the customer opened the page."""
+    """The courier the customer would like (null = the shop chooses, or
+    pickup; founder, 2026-10-18), checked against the shop's current
+    settings: the seller may have changed them since the customer opened
+    the page."""
     if method not in settings.enabled_methods():
         raise AppError(
             409,
@@ -157,9 +158,7 @@ def check_checkout_choice(
         )
     if method is DeliveryMethod.PICKUP:
         return None
-    own_delivery_gone = courier is None and not settings.own_delivery.enabled
-    courier_gone = courier is not None and courier not in settings.couriers
-    if own_delivery_gone or courier_gone:
+    if courier is not None and courier not in settings.couriers:
         raise AppError(
             409,
             "DELIVERY_OPTION_UNAVAILABLE",

@@ -544,6 +544,7 @@ export function DeliveryFields({ form, update, error }: FieldsProps) {
 
       <div>
         <h3 className="text-sm font-medium text-slate-700">{s.couriers}</h3>
+        <p className="mt-0.5 text-sm text-slate-500">{s.couriersHint}</p>
       </div>
       {couriers.map((courier, index) => (
         <div key={courier.key} className="flex items-start gap-2">

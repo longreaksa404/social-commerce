@@ -9,6 +9,7 @@ import {
   Field,
   Input,
   PageHeader,
+  Pills,
   Section,
   Skeleton,
   TextArea,
@@ -51,8 +52,9 @@ type Form = {
   address: string
   notes: string
   payment: PaymentMethod | null
-  /** The delivery choice: OWN, PICKUP, or a courier's name. */
-  how: string | null
+  how: Choice | null
+  /** The delivery company the customer would like; '' = the shop chooses. */
+  courier: string
   addressNote: string
   location: Location | null
 }
@@ -61,14 +63,14 @@ type Location = { lat: number; lng: number }
 
 const PAYMENT_ICON: Record<PaymentMethod, LucideIcon> = { khqr: QrCode, bank_transfer: Landmark, cod: Banknote }
 
-// Delivery choices besides the shop's couriers (whose names can't clash
-// with these: they're typed by people).
-const OWN = '\u0000own'
-const PICKUP = '\u0000pickup'
+// Delivery or pickup; the shop's couriers are an optional pick under
+// delivery (founder, 2026-10-18), not choices of their own.
+type Choice = 'delivery' | 'pickup'
 
 /** The shop's delivery choices, in the order they're offered. */
-function deliveryChoices(options: ShopStore['delivery']): string[] {
-  return [...(options.own_delivery ? [OWN] : []), ...options.couriers, ...(options.pickup ? [PICKUP] : [])]
+function deliveryChoices(options: ShopStore['delivery']): Choice[] {
+  const delivers = options.own_delivery || options.couriers.length > 0
+  return [...(delivers ? (['delivery'] as const) : []), ...(options.pickup ? (['pickup'] as const) : [])]
 }
 
 /** Each part of the price, in cents. `fee` is null until the customer has
@@ -98,6 +100,7 @@ export function ShopCheckout() {
       notes: '',
       payment: null,
       how: null,
+      courier: '',
       addressNote: saved?.addressNote ?? '',
       location: null,
     }
@@ -160,8 +163,9 @@ export function ShopCheckout() {
   const options = shop.data.delivery
   const choices = deliveryChoices(options)
   const how = choices.length === 1 ? choices[0] : form.how && choices.includes(form.how) ? form.how : null
-  const pickup = how === PICKUP
-  const courier = how && how !== OWN && how !== PICKUP ? how : null
+  const pickup = how === 'pickup'
+  // Null = the shop chooses (also when the courier left the shop's list).
+  const courier = !pickup && options.couriers.includes(form.courier) ? form.courier : null
 
   const detailsError = fieldError(place.error, 'name') ?? fieldError(place.error, 'phone')
   const discount = discountCents(checked.subtotalCents, shop.data.discounts)
@@ -306,6 +310,8 @@ export function ShopCheckout() {
             price={price}
             error={place.error}
             onChoose={(choice) => setForm((f) => ({ ...f, how: choice }))}
+            courier={courier ?? ''}
+            onCourier={(choice) => setForm((f) => ({ ...f, courier: choice }))}
           >
             {how !== null && !pickup && (
               <>
@@ -480,15 +486,19 @@ function DeliverySection({
   price,
   error,
   onChoose,
+  courier,
+  onCourier,
   children,
 }: {
   options: ShopStore['delivery']
-  choices: string[]
-  how: string | null
+  choices: Choice[]
+  how: Choice | null
   currency: Currency
   price: Price
   error: unknown
-  onChoose: (choice: string) => void
+  onChoose: (choice: Choice) => void
+  courier: string
+  onCourier: (courier: string) => void
   children: ReactNode
 }) {
   const t = useT()
@@ -500,15 +510,17 @@ function DeliverySection({
     options.free_from_amount !== null && c.freeFromAmount(money(options.free_from_amount)),
     options.free_from_items !== null && c.freeFromItems(options.free_from_items),
   ].filter((rule) => rule !== false)
-  const delivering = how !== null && how !== PICKUP
+  const delivering = how === 'delivery'
   // A free-delivery rule applies to this order (the shop charges otherwise).
   const freeNow = delivering && price.fee === 0 && Number(options.fee) > 0
-  const label = (choice: string) => (choice === OWN ? c.deliveryByShop : choice === PICKUP ? c.pickup : choice)
-  const hint = (choice: string) => (choice === OWN ? c.hintOwn : choice === PICKUP ? c.hintPickup : c.hintCourier)
+  const label = (choice: Choice) => (choice === 'pickup' ? c.pickup : c.delivery)
+  const deliveryHint = !options.couriers.length ? c.hintOwn : options.own_delivery ? c.hintOwnOrCourier : c.hintCourier
+  const hint = (choice: Choice) => (choice === 'pickup' ? c.hintPickup : deliveryHint)
   const check = useChoiceCheck(c.chooseDelivery)
-  const choiceError = fieldError(error, 'delivery_method') ?? fieldError(error, 'courier') ?? check.problem
+  const choiceError = fieldError(error, 'delivery_method') ?? check.problem
+  const courierError = fieldError(error, 'courier')
   return (
-    <Section step={3} title={choices.length === 1 && choices[0] === PICKUP ? c.pickup : c.delivery}>
+    <Section step={3} title={choices.length === 1 && choices[0] === 'pickup' ? c.pickup : c.delivery}>
       {choices.length > 1 ? (
         <fieldset
           aria-describedby={choiceError ? 'delivery-choice-error' : undefined}
@@ -525,7 +537,7 @@ function DeliverySection({
                 onChange={() => onChoose(choice)}
                 label={label(choice)}
                 hint={hint(choice)}
-                trailing={choice === PICKUP ? free : feeText}
+                trailing={choice === 'pickup' ? free : feeText}
               />
             ))}
           </div>
@@ -533,8 +545,20 @@ function DeliverySection({
         </fieldset>
       ) : (
         <p className="text-sm text-slate-700">
-          {label(choices[0])}: {choices[0] === PICKUP ? free : feeText}
+          {label(choices[0])}: {choices[0] === 'pickup' ? free : feeText}
         </p>
+      )}
+      {delivering && options.couriers.length > 0 && (
+        <div>
+          <Pills
+            name="courier"
+            legend={c.courierOptional}
+            options={[{ value: '', label: c.shopChooses }, ...options.couriers.map((name) => ({ value: name, label: name }))]}
+            value={courier}
+            onChange={onCourier}
+          />
+          <ChoiceProblem id="courier-error" text={courierError} />
+        </div>
       )}
       {delivering && freeRules.length > 0 && Number(options.fee) > 0 && (
         <p
@@ -544,7 +568,7 @@ function DeliverySection({
         </p>
       )}
 
-      {how === PICKUP && options.pickup && (
+      {how === 'pickup' && options.pickup && (
         <div className="rounded-xl bg-slate-50 px-3.5 py-2.5">
           <p className="text-xs font-medium text-slate-500">{c.pickUpAt}</p>
           <p className="mt-0.5 whitespace-pre-line break-words text-sm text-slate-900">{options.pickup.address}</p>

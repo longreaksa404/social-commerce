@@ -278,7 +278,7 @@ seller (owner)
 | order_id | UUID FK, unique | 1:1 with order; created with it at checkout |
 | status | enum(`not_assigned`,`assigned`,`picked_up`,`in_transit`,`delivered`,`failed`) | see §7.3 |
 | method | enum(`seller_delivery`,`pickup`) | |
-| courier | text, nullable | the courier the customer chose ("VET Express"); null for the seller's own delivery and pickup |
+| courier | text, nullable | the courier the customer would like ("VET Express"), optional at checkout; null = the shop chooses (decided 2026-10-18), and null for pickup |
 | assignee_note | text, nullable | the seller's note, e.g. "Sokha, 012 999 888" or "VET Takeo branch, no. 123456" — no courier integration in MVP |
 | created_at / updated_at | timestamptz | |
 

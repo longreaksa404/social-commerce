@@ -144,6 +144,10 @@ export const settings = {
   freeFromItems: { en: 'Free delivery from (items)', km: 'ដឹកឥតគិតថ្លៃ ចាប់ពី (ចំនួនទំនិញ)' },
   ownDelivery: { en: 'Own delivery', km: 'ដឹកផ្ទាល់' },
   couriers: { en: 'Couriers', km: 'ក្រុមហ៊ុនដឹកជញ្ជូន' },
+  couriersHint: {
+    en: 'Customers can pick one, or leave it to you.',
+    km: 'អតិថិជនអាចជ្រើសមួយ ឬទុកឲ្យអ្នកជ្រើស។',
+  },
   courier: { en: 'Courier', km: 'ក្រុមហ៊ុនដឹក' },
   removeCourier: { en: (name: string) => `Remove ${name}`, km: (name: string) => `ដក ${name} ចេញ` },
   thisCourier: { en: 'courier', km: 'ក្រុមហ៊ុនដឹកនេះ' },
