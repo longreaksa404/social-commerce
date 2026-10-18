@@ -1199,7 +1199,10 @@ takes a phone number or, behind "Log in with email instead"
 Telegram" is a plain link a phone browser won't block), read every 2.5 s
 once opened (and on focus) until it has the number, and handed to the form;
 a used-up check at submit remounts it (`key`). The phone check shows a
-"Start again" button once it has expired (30 min). On load, if
+"Start again" button once it has expired (30 min). `resume` picks up a
+check opened before a reload (the sign-up draft) instead of making a new
+one; `onOpen` hands the check out when Telegram is opened, so the page can
+keep it. On load, if
 `sc.session` is set, it refreshes (with the cookie) to restore the session.
 If the API can't be reached at all (the refresh rejects with `NETWORK_ERROR`),
 status becomes `'unreachable'`: the cookie stays, `DashboardLayout` shows
@@ -1215,7 +1218,10 @@ routes.
 `sc.orders` (last 20 orders with their phone, for tracking), `sc.links`
 (last link per shop and view timestamps: 30-minute view gap, 7-day order
 window), `sc.chatOrder.<store id>` (the delivery and payment picked on the
-last chat order, picked again on the next). `sessionStorage`: "confetti already shown" per order. Every access
+last chat order, picked again on the next), `sc.register` and
+`sc.register.social` (what a seller typed on Create your shop / Set up your
+shop and the phone check they opened in Telegram, never the password; 30
+minutes; `lib/signup.ts` `useSavedDraft` / `useKeepDraft`). `sessionStorage`: "confetti already shown" per order. Every access
 is wrapped in try/catch (private mode).
 
 ### Shared components and helpers

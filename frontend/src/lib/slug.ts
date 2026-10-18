@@ -14,8 +14,8 @@ export function slugify(text: string): string {
 }
 
 /** The shop's link at sign-up: made from the store name as it's typed,
- * until the seller types their own. */
-export function useShopLink(storeName: string) {
-  const [typed, setTyped] = useState<string | null>(null)
-  return { slug: typed ?? slugify(storeName), setSlug: setTyped }
+ * until the seller types their own (`typed`; `saved` from a draft). */
+export function useShopLink(storeName: string, saved: string | null = null) {
+  const [typed, setTyped] = useState<string | null>(saved)
+  return { slug: typed ?? slugify(storeName), typed, setSlug: setTyped }
 }

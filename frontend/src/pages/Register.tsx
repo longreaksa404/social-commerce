@@ -6,6 +6,7 @@ import { useAuth } from '../auth/useAuth.ts'
 import { Button, ErrorMessage, Field, Input, PasswordInput, SlowNotice } from '../components/ui.tsx'
 import { ApiError } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
+import { forgetDraft, useKeepDraft, useSavedDraft } from '../lib/signup.ts'
 import { useShopLink } from '../lib/slug.ts'
 import type { PhoneCheck as Check } from '../lib/types.ts'
 import { useT } from '../i18n/useT.ts'
@@ -14,25 +15,37 @@ import { AuthLayout } from './AuthLayout.tsx'
 import { ShopLinkField } from './ShopLinkField.tsx'
 
 const FIELDS = ['store_name', 'slug', 'full_name', 'phone_check', 'password']
+const DRAFT_KEY = 'sc.register'
 
 /** Sign-up with a phone number and password (founder's choice
  * 2026-10-09). The number is the one the seller shares with the Telegram
  * bot, so it's really theirs; that chat also gets the shop's order
- * alerts. */
+ * alerts. What they type (not the password) and the check they opened
+ * are kept for 30 minutes, for a page that reloads while they're in
+ * Telegram (`lib/signup.ts`). */
 export function Register() {
   const { status, register } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ store_name: '', full_name: '', password: '' })
-  const { slug, setSlug } = useShopLink(form.store_name)
+  const draft = useSavedDraft(DRAFT_KEY)
+  const [form, setForm] = useState({
+    store_name: draft?.store_name ?? '',
+    full_name: draft?.full_name ?? '',
+    password: '',
+  })
+  const { slug, typed, setSlug } = useShopLink(form.store_name, draft?.slug)
   const [phone, setPhone] = useState<Check | null>(null)
+  // The check opened in Telegram, kept in the draft.
+  const [opened, setOpened] = useState<Check | null>(draft?.check ?? null)
   // A new PhoneCheck when the one handed in turned out to be used up.
   const [phoneKey, setPhoneKey] = useState(0)
   const [error, setError] = useState<unknown>(null)
   const [pending, setPending] = useState(false)
   const t = useT()
+  useKeepDraft(DRAFT_KEY, { store_name: form.store_name, full_name: form.full_name, slug: typed, check: opened })
 
   const onPhone = useCallback((check: Check | null) => {
     setPhone(check)
+    if (!check) setOpened(null)
     setError(null)
   }, [])
 
@@ -53,11 +66,13 @@ export function Register() {
     setError(null)
     try {
       await register({ ...form, slug: slug || undefined, phone_check: phone.id })
+      forgetDraft(DRAFT_KEY)
       navigate('/dashboard/products', { replace: true })
     } catch (err) {
       setError(err)
       if (err instanceof ApiError && err.code === 'PHONE_CHECK_EXPIRED') {
         setPhone(null)
+        setOpened(null)
         setPhoneKey((n) => n + 1)
       }
     } finally {
@@ -85,6 +100,8 @@ export function Register() {
           label={t.auth.register.phoneLabel}
           error={fieldError(error, 'phone_check')}
           onChange={onPhone}
+          resume={opened}
+          onOpen={setOpened}
           taken={
             <p className="text-sm text-slate-700">
               {t.auth.phoneCheck.taken}{' '}

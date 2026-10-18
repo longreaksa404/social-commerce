@@ -23,31 +23,42 @@ const POLL_MS = 2_500
  *
  * `taken`: what to show when the number already has an account; without
  * it, such a number is passed on like any other.
+ *
+ * `resume`: a check opened before the page reloaded (the sign-up draft),
+ * read again instead of making a new one; `onOpen` hands the check out
+ * when the seller opens Telegram, so the page can keep it.
  */
 export function PhoneCheck({
   label,
   error,
   onChange,
   taken,
+  resume = null,
+  onOpen,
 }: {
   label: string
   error?: string | null
   onChange: (check: Check | null) => void
   taken?: ReactNode
+  resume?: Check | null
+  onOpen?: (check: Check) => void
 }) {
   const [attempt, setAttempt] = useState(0)
-  const [opened, setOpened] = useState(false)
+  const [resumed, setResumed] = useState(resume)
+  const [opened, setOpened] = useState(resume !== null)
   const t = useT()
   const p = t.auth.phoneCheck
 
   const created = useQuery({
     queryKey: ['phone-check', 'new', attempt],
     queryFn: () => api<Check>('/auth/phone-checks', { method: 'POST', auth: false }),
+    enabled: resumed === null,
     staleTime: CHECK_REFRESH_MS,
     refetchInterval: opened ? false : CHECK_REFRESH_MS,
     retry: false,
   })
-  const id = created.data?.id
+  const check = resumed ?? created.data
+  const id = check?.id
   const read = useQuery({
     queryKey: ['phone-check', id],
     queryFn: () => api<Check>(`/auth/phone-checks/${id}`, { auth: false }),
@@ -63,6 +74,7 @@ export function PhoneCheck({
   }, [done, onChange])
 
   function startOver() {
+    setResumed(null)
     setOpened(false)
     setAttempt((n) => n + 1)
     onChange(null)
@@ -117,12 +129,15 @@ export function PhoneCheck({
       ) : (
         <div>
           <a
-            href={created.data?.telegram_url}
+            href={check?.telegram_url}
             target="_blank"
             rel="noreferrer"
-            aria-disabled={!created.data}
-            onClick={() => setOpened(true)}
-            className={`${buttonClass(opened ? 'secondary' : 'primary')} w-full ${created.data ? '' : 'pointer-events-none opacity-50'}`}
+            aria-disabled={!check}
+            onClick={() => {
+              setOpened(true)
+              if (check) onOpen?.(check)
+            }}
+            className={`${buttonClass(opened ? 'secondary' : 'primary')} w-full ${check ? '' : 'pointer-events-none opacity-50'}`}
           >
             <Send aria-hidden className="size-4" />
             {p.verify}

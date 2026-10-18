@@ -8,13 +8,15 @@ import { api, ApiError, type AccessToken } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
 import { useShopLink } from '../lib/slug.ts'
 import { PROVIDER_NAMES } from '../lib/oauth.ts'
-import { forgetSignup, savedSignup } from '../lib/signup.ts'
+import { forgetDraft, forgetSignup, savedSignup, useKeepDraft, useSavedDraft } from '../lib/signup.ts'
 import type { PhoneCheck as Check, SignupStart } from '../lib/types.ts'
 import { AgreeLine } from './AgreeLine.tsx'
 import { AuthLayout } from './AuthLayout.tsx'
 import { ShopLinkField } from './ShopLinkField.tsx'
 
 const FIELDS = ['store_name', 'slug', 'full_name', 'phone_check']
+// What they type, kept like on Create your shop (pages/Register.tsx).
+const DRAFT_KEY = 'sc.register.social'
 
 /** /register/finish: someone new from "Continue with Google / Facebook /
  * TikTok" names their shop and proves a phone number in Telegram, like any
@@ -32,18 +34,25 @@ export function FinishSignup() {
 function FinishForm({ signup }: { signup: SignupStart }) {
   const { startSession } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ store_name: '', full_name: signup.full_name })
-  const { slug, setSlug } = useShopLink(form.store_name)
+  const draft = useSavedDraft(DRAFT_KEY, signup.signup_token)
+  const [form, setForm] = useState({
+    store_name: draft?.store_name ?? '',
+    full_name: draft?.full_name ?? signup.full_name,
+  })
+  const { slug, typed, setSlug } = useShopLink(form.store_name, draft?.slug)
   const [phone, setPhone] = useState<Check | null>(null)
+  const [opened, setOpened] = useState<Check | null>(draft?.check ?? null)
   const [phoneKey, setPhoneKey] = useState(0)
   const [error, setError] = useState<unknown>(null)
   const [pending, setPending] = useState(false)
   const t = useT()
   const g = t.auth.social
   const provider = PROVIDER_NAMES[signup.provider]
+  useKeepDraft(DRAFT_KEY, { ...form, slug: typed, check: opened, token: signup.signup_token })
 
   const onPhone = useCallback((check: Check | null) => {
     setPhone(check)
+    if (!check) setOpened(null)
     setError(null)
   }, [])
 
@@ -66,12 +75,14 @@ function FinishForm({ signup }: { signup: SignupStart }) {
         auth: false,
       })
       forgetSignup()
+      forgetDraft(DRAFT_KEY)
       startSession(token)
       navigate('/dashboard/products', { replace: true })
     } catch (err) {
       setError(err)
       if (err instanceof ApiError && err.code === 'PHONE_CHECK_EXPIRED') {
         setPhone(null)
+        setOpened(null)
         setPhoneKey((n) => n + 1)
       }
     } finally {
@@ -132,6 +143,8 @@ function FinishForm({ signup }: { signup: SignupStart }) {
               label={t.auth.phone}
               error={fieldError(error, 'phone_check')}
               onChange={onPhone}
+              resume={opened}
+              onOpen={setOpened}
               taken={<p className="text-sm text-slate-700">{g.phoneHasShop(provider)}</p>}
             />
             {!phone && <p className="mt-1.5 text-xs leading-5 text-slate-500">{g.phoneWhy}</p>}

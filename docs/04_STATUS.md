@@ -1014,6 +1014,16 @@ each is its own commit. Frontend only.
   buttons under the form (`ProviderButton` without `iconOnly`). Checked
   with stand-in keys: Google's "G" only draws with the real client ID,
   so look at it after a push.
+- [x] 2. What the seller typed on Create your shop (shop name, link,
+  their name, never the password) and the Telegram check they opened are
+  kept on the phone for 30 minutes. If the page reloads while they're in
+  Telegram (phones short of memory, Facebook's and TikTok's own
+  browsers), they come back to the form filled in, and the number they
+  shared shows as verified without sharing again. "Use another number"
+  forgets the check; creating the shop forgets everything. Set up your
+  shop (after Google, Facebook or TikTok) keeps its own the same way.
+  Checked in the browser: type, Verify, reload → fields back, password
+  empty, the same check read again, verified once shared.
 
 **UI check fixes** (founder, 2026-10-17: "1A 2A 3A 4A 5A 6A 7A 8A 9A 10A
 11A 12A 13A 14B 15B 16A 17A 18A 19A 20A … fix all now", after the
