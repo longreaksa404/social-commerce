@@ -9,8 +9,11 @@ The delivery's status follows only its own state machine; nothing here
 reads or sets the order's or the payment's (CLAUDE.md hard rule 2).
 """
 
+from decimal import Decimal
+from typing import Any
+
 from app.core.errors import AppError
-from app.models import Delivery, DeliveryMethod, DeliveryStatus, Order, Store
+from app.models import Currency, Delivery, DeliveryMethod, DeliveryStatus, Order, Store
 from app.schemas.delivery import (
     DeliverySettings,
     DiscountSettings,
@@ -90,6 +93,25 @@ def send_with(
     if courier is not None and courier not in settings.couriers and courier != delivery.courier:
         raise AppError(422, "VALIDATION_ERROR", "This courier isn't on your list.", "courier")
     return courier
+
+
+# A new shop's delivery fee until the seller saves Settings → Delivery
+# (founder, 2026-10-18): about what a Phnom Penh delivery costs. Shops from
+# before keep what they had, free if never set.
+NEW_SHOP_FEE = {Currency.USD: Decimal("2.00"), Currency.KHR: Decimal("8000.00")}
+
+
+def new_shop_delivery(currency: Currency) -> dict[str, Any]:
+    """The delivery_config a new shop starts with: only the fee, so it
+    still counts as not set up (Store.delivery_set_up)."""
+    return {"fee": str(NEW_SHOP_FEE[currency])}
+
+
+def follow_currency(store: Store) -> None:
+    """A shop that switches currency before saving its delivery settings
+    gets the new currency's starting fee: $2 doesn't become 2 riel."""
+    if not store.delivery_set_up and "fee" in store.delivery_config:
+        store.delivery_config = new_shop_delivery(store.currency)
 
 
 def delivery_settings(store: Store) -> DeliverySettings:

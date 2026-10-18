@@ -120,9 +120,13 @@ async def register(client):
     """Register a seller through the API, with a phone number already
     shared with the bot; returns its tokens and phone number (its login).
     The shop is opened (its trial started) unless `opened=False`: a new
-    shop is in setup until then."""
+    shop is in setup until then. It delivers for free, like a shop from
+    before the new-shop fee, unless `new_shop_fee=True`: most tests' totals
+    leave delivery out."""
 
-    async def _register(phone: str | None = None, opened: bool = True, **overrides) -> dict:
+    async def _register(
+        phone: str | None = None, opened: bool = True, new_shop_fee: bool = False, **overrides
+    ) -> dict:
         check_id, phone = await verified_phone_check(phone)
         body = {
             "password": "correct-horse",
@@ -134,8 +138,14 @@ async def register(client):
         response = await client.post("/api/v1/auth/register", json=body)
         assert response.status_code == 201, response.text
         session = session_of(response)
+        headers = {"Authorization": f"Bearer {session['access_token']}"}
+        if not new_shop_fee:
+            store_id = (await client.get("/api/v1/seller/store", headers=headers)).json()["id"]
+            async with unscoped_session() as db:
+                store = await db.get(Store, uuid.UUID(store_id))
+                store.delivery_config = {}
+                await db.commit()
         if opened:
-            headers = {"Authorization": f"Bearer {session['access_token']}"}
             opening = await client.post("/api/v1/seller/plan/open", headers=headers)
             assert opening.status_code == 200, opening.text
         return {**session, "phone": phone}

@@ -30,7 +30,31 @@ def _error(response):
 # --- Settings ----------------------------------------------------------------
 
 
-async def test_a_new_shop_delivers_itself_for_free_and_has_no_discounts(client, auth_headers):
+async def test_a_new_shop_starts_at_the_new_shop_fee_until_saved(client, register):
+    """$2 a delivery to start with (founder, 2026-10-18), 8,000 riel in a
+    riel shop, still "not set up" so the setup list asks the seller."""
+    tokens = await register(new_shop_fee=True)
+    headers = {"Authorization": f"Bearer {tokens['access_token']}"}
+
+    new = (await client.get("/api/v1/seller/store", headers=headers)).json()
+    riel = await client.patch("/api/v1/seller/store", headers=headers, json={"currency": "KHR"})
+    saved = await set_delivery(client, headers, fee="5000")
+    back_to_usd = await client.patch(
+        "/api/v1/seller/store", headers=headers, json={"currency": "USD"}
+    )
+
+    assert new["delivery_settings"]["fee"] == "2.00"
+    assert new["delivery_settings"]["own_delivery"] == {"enabled": True}
+    assert new["delivery_set_up"] is False
+    assert riel.json()["delivery_settings"]["fee"] == "8000.00"
+    assert riel.json()["delivery_set_up"] is False
+    assert saved.json()["delivery_set_up"] is True
+    # Once the seller has saved a fee, it's theirs, whatever the currency.
+    assert back_to_usd.json()["delivery_settings"]["fee"] == "5000.00"
+
+
+async def test_a_shop_from_before_that_never_set_delivery_stays_free(client, auth_headers):
+    """No price changes for shops made before the new-shop fee."""
     headers, _, _ = await registered_seller(client, auth_headers)
 
     store = (await client.get("/api/v1/seller/store", headers=headers)).json()

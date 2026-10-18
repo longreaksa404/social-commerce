@@ -251,7 +251,11 @@ function summaries(store: Store, t: Messages): Record<Exclude<SectionId, 'shop'>
         ? m.autoOn
         : m.autoOff,
     payments: methods.map((method) => t.status.paymentMethod[method]).join(', ') || m.noneOn,
-    delivery: store.delivery_set_up ? deliveryParts.join(' · ') || m.noneOn : m.deliveryNotSet,
+    delivery: store.delivery_set_up
+      ? deliveryParts.join(' · ') || m.noneOn
+      : Number(delivery.fee) > 0
+        ? m.deliveryNotSetFee(money(delivery.fee))
+        : m.deliveryNotSet,
     discounts: rules.map((r) => m.discount(money(r.amount_off), money(r.min_subtotal))).join(' · ') || m.none,
     contact:
       [

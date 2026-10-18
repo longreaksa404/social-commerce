@@ -9,7 +9,11 @@ from app.core.errors import AppError, NotFound
 from app.db.session import unscoped_session
 from app.models import Store, StoreOldSlug
 from app.schemas.store import StoreUpdate
-from app.services.delivery import check_delivery_settings, check_discount_settings
+from app.services.delivery import (
+    check_delivery_settings,
+    check_discount_settings,
+    follow_currency,
+)
 from app.services.payment import check_payment_settings
 from app.services.slugs import store_slug_taken
 
@@ -76,10 +80,13 @@ async def update_store(db: AsyncSession, store_id: uuid.UUID, data: StoreUpdate)
         raise AppError(422, "INVALID_IMAGE", "Invalid cover photo.", "cover_url")
     if data.slug is not None and data.slug != store.slug:
         await change_slug(db, store, data.slug)
+    currency = store.currency
     for field, value in data.model_dump(exclude_unset=True, exclude=SETTINGS | {"slug"}).items():
         if value is None and field in REQUIRED_FIELDS:
             continue  # null on a required field means "leave it"
         setattr(store, field, value)
+    if store.currency != currency:
+        follow_currency(store)
     if not store.orders_paused:
         store.orders_resume_on = None
     elif "orders_resume_on" in data.model_fields_set and (

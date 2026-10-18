@@ -234,10 +234,12 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
 
     @property
     def delivery_set_up(self) -> bool:
-        """The seller has saved Settings → Delivery at least once. Until
-        then the shop runs on the defaults, free own delivery, which a
-        seller who never looked would be giving away by accident."""
-        return bool(self.delivery_config)
+        """The seller has saved Settings → Delivery at least once, which
+        stores every part. Until then the shop runs on the defaults: own
+        delivery at the new-shop fee ({"fee": ...} only, since 2026-10-18),
+        or free for shops from before, which a seller who never looked
+        would be giving away by accident."""
+        return bool(self.delivery_config.keys() - {"fee"})
 
 
 class StoreOldSlug(TenantMixin, CreatedAtMixin, Base):

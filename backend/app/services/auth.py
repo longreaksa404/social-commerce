@@ -14,9 +14,9 @@ from app.core import security
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.db.session import unscoped_session
-from app.models import RefreshToken, Seller, Store
+from app.models import Currency, RefreshToken, Seller, Store
 from app.schemas.auth import LoginIn, PasswordResetConfirm, RegisterIn, TokenPair
-from app.services import phone_check, telegram
+from app.services import delivery, phone_check, telegram
 from app.services.phone import normalize_phone
 from app.services.slugs import slugify, store_slug_taken, unique_store_slug
 
@@ -102,6 +102,8 @@ async def create_shop(
         name=store_name,
         slug=slug,
         telegram_chat_id=str(check.telegram_user_id),
+        currency=Currency.USD,
+        delivery_config=delivery.new_shop_delivery(Currency.USD),
     )
     db.add(store)
     try:

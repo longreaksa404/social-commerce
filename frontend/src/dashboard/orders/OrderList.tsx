@@ -94,13 +94,15 @@ function PausedReminder() {
   )
 }
 
-/** Until Settings → Delivery is saved once, the shop delivers for free
- * (the defaults): a seller who never looked would give it away. */
+/** Until Settings → Delivery is saved once, a shop from before the
+ * new-shop fee delivers for free (the defaults): a seller who never
+ * looked would give it away. */
 function DeliveryReminder() {
   const store = useStore()
   const role = useRole()
   const t = useT()
-  if (!store.data || store.data.delivery_set_up) return null
+  // A new shop starts at $2 (founder, 2026-10-18): nothing given away.
+  if (!store.data || store.data.delivery_set_up || Number(store.data.delivery_settings.fee) > 0) return null
   return (
     <Reminder icon={Truck} setting="delivery">
       {role === 'owner' ? t.orders.deliveryNotSet : t.orders.deliveryNotSetStaff}
