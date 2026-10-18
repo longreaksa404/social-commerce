@@ -26,7 +26,8 @@ projects; each product is "Oak + a plain word" (later, for example, Oak
 Pay) on its own subdomain of oaksolve.com.
 
 This product: **Oak Order**, at `order.oaksolve.com`. A shop link reads
-`order.oaksolve.com/shop/<shop>`. Oak Shop was considered and not
+`order.oaksolve.com/shop/<code>`, e.g. `order.oaksolve.com/shop/k7m2qx`
+(a code made at sign-up, 2026-10-18). Oak Shop was considered and not
 picked: "shop" twice in every link, and the seller's shop should be
 the only shop a customer sees. `oaksolve.com` itself forwards to Oak
 Order until Oak Solutions has a home page.

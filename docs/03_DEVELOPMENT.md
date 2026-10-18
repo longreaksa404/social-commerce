@@ -285,7 +285,7 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Plan and billing part 2, hand collection: admin page, payment status, daily reminders, I've paid (founder's picks 2026-10-14; real time spent, about 2 hrs: the admin page and payment statuses carried over from the PayWay work, then the rework) | 2 |
 | Wrong or fake customer phones, part 1: checkout reads the number back once it's whole ("The seller will call 012 345 678") and warns when no Cambodian number starts like it (founder's pick 2026-10-15) | 2 |
 | Wrong or fake customer phones, part 2: "Get updates on Telegram" on the customer's order page; the customer shares their Telegram number with Oak's bot and gets their order's news there; the seller sees "Phone confirmed in Telegram", or the Telegram number when it's another one (founder's pick 2026-10-15; adds `customer.telegram_phone`) | 10 |
-| Shop links: a changed link keeps opening the shop (old links forward to the current one and stay that shop's), and sign-up shows the link, made from the shop's name, to edit (founder's pick 2026-10-15; adds `store_old_slug`) | 3 |
+| Shop links: a changed link keeps opening the shop (old links forward to the current one and stay that shop's) (founder's pick 2026-10-15; adds `store_old_slug`); a new shop's link is a 6-character code, made at sign-up, not changeable (2026-10-18) | 3 |
 | Bug-fix buffer | 10 |
 
 **Subtotal:** ~247 hours (**~19 weeks**)

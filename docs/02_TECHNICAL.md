@@ -178,7 +178,7 @@ seller (owner)
 | id | UUID PK | **this is the `tenant_id` used everywhere below** |
 | seller_id | UUID FK → seller | |
 | name | text | |
-| slug | text, unique | used in shareable URLs, e.g. `/shop/{slug}` |
+| slug | text, unique | used in shareable URLs, e.g. `/shop/{slug}`; a 6-character code made at sign-up, not changeable (2026-10-18) |
 | description | text, nullable | |
 | logo_url | text, nullable | the shop's logo, uploaded with `POST /seller/store/logo` (Phase 9); shown in the shop and dashboard headers |
 | cover_url | text, nullable | the shop's cover photo, 3:1, uploaded with `POST /seller/store/cover`: across the top of the shop's grid pages with the logo over its bottom edge, and the shop's large link card (founder's picks 3A, 4A; 2026-10-15) |
@@ -304,7 +304,7 @@ seller (owner)
 > Unique (provider, provider_user_id) and (seller_id, provider). Not tenant data: no RLS grant.
 
 ### `phone_check` (2026-10-09)
-| id (the page's secret), code (in the `t.me` link), telegram_user_id, phone (normalized, once shared), verified_at, expires_at (30 min), created_at |
+| id (the page's secret), code (in the `t.me` link), telegram_user_id, phone (normalized, once shared), telegram_name (a seller's Telegram name, sent with the number; the new seller's name, 2026-10-18), verified_at, expires_at (30 min), created_at |
 
 > A phone number being proved through the bot (§12.4); used once by the form that needs it. Not tenant data: no RLS grant.
 
@@ -354,7 +354,7 @@ store 1───N plan_payment
 
 ### Auth
 ```
-POST   /api/v1/auth/register                # shop name, name, password, phone_check (2026-10-09)
+POST   /api/v1/auth/register                # shop name, password, phone_check (2026-10-09); name from Telegram, link a code (2026-10-18)
 POST   /api/v1/auth/login                   # phone number, or an older account's email; password
 POST   /api/v1/auth/refresh
 POST   /api/v1/auth/logout
@@ -364,7 +364,7 @@ POST   /api/v1/auth/phone-checks              # start proving a phone number in 
 GET    /api/v1/auth/phone-checks/{id}         # read until it has the number
 POST   /api/v1/auth/google                    # Google's ID token: logged in, or a sign-up to finish
 POST   /api/v1/auth/oauth/{facebook|tiktok}   # the code from /auth/<provider>/callback: logged in, or a sign-up to finish
-POST   /api/v1/auth/social/register           # finish it: shop name, name, phone_check; no password
+POST   /api/v1/auth/social/register           # finish it: shop name, phone_check; no password
 ```
 
 ### Seller — Account and staff (2026-10-08)
