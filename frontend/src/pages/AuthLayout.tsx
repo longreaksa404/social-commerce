@@ -53,16 +53,24 @@ export function AuthLayout({
         <div className="lg:hidden">
           <Glow />
         </div>
-        <div className="mb-8 flex items-center justify-between gap-3 sm:mb-6 sm:w-full sm:max-w-md lg:justify-end">
-          <BrandMark className="lg:hidden" />
+        <div className="mb-8 flex items-center justify-between gap-3 sm:mb-6 sm:w-full sm:max-w-md lg:hidden">
+          <BrandMark />
           <LanguageSwitch />
         </div>
         <div className="w-full sm:max-w-md sm:rounded-2xl sm:bg-surface sm:p-8 sm:shadow-card sm:ring-1 sm:ring-slate-900/6 lg:p-0 lg:shadow-none lg:ring-0">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
+            {/* Laptops: the switch on the title's row, so the form starts
+                higher and the price shows on a 768 px screen (founder's
+                pick 6A, sign-up check 2026-10-18). */}
+            <div className="hidden shrink-0 lg:block">
+              <LanguageSwitch />
+            </div>
+          </div>
           {subtitle && <p className="mt-1.5 text-sm text-slate-500">{subtitle}</p>}
-          <div className="mt-6">{children}</div>
+          <div className="mt-6 lg:mt-5">{children}</div>
         </div>
-        <p className="mt-6 text-center text-sm text-slate-600">{footer}</p>
+        <p className="mt-6 text-center text-sm text-slate-600 lg:mt-5">{footer}</p>
       </main>
     </div>
   )

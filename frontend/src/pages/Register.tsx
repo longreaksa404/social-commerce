@@ -93,7 +93,7 @@ export function Register() {
         </>
       }
     >
-      <form onSubmit={submit} className="space-y-4">
+      <form onSubmit={submit} className="space-y-4 lg:space-y-3">
         {/* The phone number first: every shop has one, checked in Telegram,
             and it's how the seller logs in (founder's pick 1A, 2026-10-18). */}
         <PhoneCheck

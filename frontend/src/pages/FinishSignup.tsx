@@ -115,7 +115,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
           </Link>
         </div>
       ) : (
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} className="space-y-4 lg:space-y-3">
           <Field label={t.auth.register.storeName} error={fieldError(error, 'store_name')} hint={t.auth.register.storeNameHint}>
             <Input
               required

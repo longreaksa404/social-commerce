@@ -1041,6 +1041,13 @@ each is its own commit. Frontend only.
   "Log in with it, then connect Google in Settings" the same way; in
   Settings → Your account, "Another account already has this number." is
   now amber in the box too (it was red under it).
+- [x] 6. Laptops: the language switch sits on the title's row (all the
+  log-in pages), and Create your shop's fields are a little closer, so
+  at 1366 × 768 the price ("Free for 1 month…, then $9.99 a month") and
+  the terms line show without scrolling, in English and Khmer.
+  "Already have an account? Log in" is now under the row of logos (1),
+  so it stays below the fold there when the logos show (14 px below
+  without them). Phones and tablets don't change.
 
 **UI check fixes** (founder, 2026-10-17: "1A 2A 3A 4A 5A 6A 7A 8A 9A 10A
 11A 12A 13A 14B 15B 16A 17A 18A 19A 20A … fix all now", after the
