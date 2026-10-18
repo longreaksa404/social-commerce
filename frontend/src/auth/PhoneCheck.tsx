@@ -113,13 +113,15 @@ export function PhoneCheck({
           </div>
         </div>
       ) : done ? (
+        // A plain box like the fields, the tick and words in green (founder's
+        // pick 7A, 2026-10-18: colour on the words, not the box).
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl bg-emerald-50 px-4 py-3 ring-1 ring-emerald-200">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl border border-slate-300 px-4 py-3">
             <span className="flex items-center gap-2">
               <CircleCheck aria-hidden className="size-5 text-emerald-600" />
               <span>
                 <span className="block font-semibold text-slate-900 tabular-nums">{formatPhone(done.phone ?? '')}</span>
-                <span className="block text-xs text-emerald-800">{p.verified}</span>
+                <span className="block text-xs font-medium text-emerald-700">{p.verified}</span>
               </span>
             </span>
             <button
