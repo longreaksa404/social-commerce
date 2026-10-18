@@ -77,8 +77,23 @@ export function Register() {
         </>
       }
     >
-      <SocialButtons />
       <form onSubmit={submit} className="space-y-4">
+        {/* The phone number first: every shop has one, checked in Telegram,
+            and it's how the seller logs in (founder's pick 1A, 2026-10-18). */}
+        <PhoneCheck
+          key={phoneKey}
+          label={t.auth.register.phoneLabel}
+          error={fieldError(error, 'phone_check')}
+          onChange={onPhone}
+          taken={
+            <p className="text-sm text-slate-700">
+              {t.auth.phoneCheck.taken}{' '}
+              <Link to="/login" className="font-semibold text-navy-700 link">
+                {t.auth.logIn}
+              </Link>
+            </p>
+          }
+        />
         <Field label={t.auth.register.storeName} error={fieldError(error, 'store_name')} hint={t.auth.register.storeNameHint}>
           <Input
             required
@@ -102,20 +117,6 @@ export function Register() {
             onChange={set('full_name')}
           />
         </Field>
-        <PhoneCheck
-          key={phoneKey}
-          label={t.auth.register.phoneLabel}
-          error={fieldError(error, 'phone_check')}
-          onChange={onPhone}
-          taken={
-            <p className="text-sm text-slate-700">
-              {t.auth.phoneCheck.taken}{' '}
-              <Link to="/login" className="font-semibold text-navy-700 link">
-                {t.auth.logIn}
-              </Link>
-            </p>
-          }
-        />
         {/* For password managers: the login this password goes with. */}
         <input type="tel" autoComplete="username" value={phone?.phone ?? ''} hidden readOnly />
         <Field label={t.auth.password} error={fieldError(error, 'password')} hint={t.auth.register.passwordHint}>
@@ -135,6 +136,7 @@ export function Register() {
         {pending && <SlowNotice />}
         <AgreeLine />
       </form>
+      <SocialButtons label={t.auth.social.orSignUp} />
     </AuthLayout>
   )
 }

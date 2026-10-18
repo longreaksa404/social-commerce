@@ -39,7 +39,9 @@ export const auth = {
       en: (provider: string) => `Continue with ${provider}`,
       km: (provider: string) => `បន្តជាមួយ ${provider}`,
     },
-    or: { en: 'or with your phone number', km: 'ឬដោយលេខទូរស័ព្ទរបស់អ្នក' },
+    // Over the row of logos under the phone form.
+    orSignUp: { en: 'or sign up with', km: 'ឬចុះឈ្មោះជាមួយ' },
+    orLogIn: { en: 'or log in with', km: 'ឬចូលគណនីជាមួយ' },
     unavailable: {
       en: "Google sign-in didn't load. Use your phone number instead.",
       km: 'ការចូលដោយ Google មិនដំណើរការ។ សូមប្រើលេខទូរស័ព្ទជំនួសវិញ។',

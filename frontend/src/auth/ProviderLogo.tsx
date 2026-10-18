@@ -17,24 +17,29 @@ export function ProviderLogo({ provider, className = 'size-5' }: { provider: Soc
 
 /** "Continue with Facebook / TikTok", drawn like Google's own outline
  * button above it (white, 40 px, up to 400 px wide), so the three look like
- * one set. White in dark mode too, as Google's is. */
+ * one set. White in dark mode too, as Google's is. `iconOnly`: the logo in
+ * a 40 px square like Google's icon button, `label` read out instead. */
 export function ProviderButton({
   provider,
   label,
   onClick,
+  iconOnly = false,
 }: {
   provider: SocialProvider
   label: string
   onClick: () => void
+  iconOnly?: boolean
 }) {
+  const shape = iconOnly ? 'size-10' : 'mx-auto h-10 w-full max-w-[400px] gap-2.5 px-3'
   return (
     <button
       type="button"
       onClick={onClick}
-      className="mx-auto flex h-10 w-full max-w-[400px] items-center justify-center gap-2.5 rounded-[4px] border border-[#dadce0] bg-white px-3 text-sm font-medium text-[#3c4043] transition-colors hover:bg-[#f8faff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600"
+      aria-label={iconOnly ? label : undefined}
+      className={`flex ${shape} items-center justify-center rounded-[4px] border border-[#dadce0] bg-white text-sm font-medium text-[#3c4043] transition-colors hover:bg-[#f8faff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600`}
     >
       <ProviderLogo provider={provider} className="size-[18px]" />
-      {label}
+      {!iconOnly && label}
     </button>
   )
 }

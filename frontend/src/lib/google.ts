@@ -17,7 +17,7 @@ export type GoogleId = {
       theme?: 'outline' | 'filled_blue' | 'filled_black'
       size?: 'large' | 'medium' | 'small'
       text?: 'signin_with' | 'signup_with' | 'continue_with'
-      shape?: 'rectangular' | 'pill'
+      shape?: 'rectangular' | 'pill' | 'square' | 'circle'
       logo_alignment?: 'left' | 'center'
       width?: number
       locale?: string

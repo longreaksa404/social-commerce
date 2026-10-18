@@ -47,7 +47,6 @@ export function Login() {
         </>
       }
     >
-      <SocialButtons />
       <form onSubmit={submit} className="space-y-4">
         <LoginField value={login} onChange={setLogin} byEmail={byEmail} onByEmailChange={setByEmail} enterKeyHint="next" />
         <Field label={t.auth.password}>
@@ -74,6 +73,7 @@ export function Login() {
         </Button>
         {pending && <SlowNotice />}
       </form>
+      <SocialButtons label={t.auth.social.orLogIn} />
     </AuthLayout>
   )
 }
