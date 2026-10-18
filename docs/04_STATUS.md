@@ -1033,6 +1033,14 @@ each is its own commit. Frontend only.
   យើងនឹងដាក់តំណចៃដន្យឱ្យ។) instead of looking filled in; the grey
   example now reads "e.g. sokha-fashion", and the link under the box is
   in the normal font. Still optional. Same on Set up your shop.
+- [x] 5. A shared number that already has a shop no longer shows a green
+  "Verified" box with a small grey line under it: the box itself shows
+  the number, "This number already has a shop." in amber words, a Log in
+  button and "Use another number". With the phone first (1), the seller
+  sees it before typing anything else. Set up your shop says its longer
+  "Log in with it, then connect Google in Settings" the same way; in
+  Settings → Your account, "Another account already has this number." is
+  now amber in the box too (it was red under it).
 
 **UI check fixes** (founder, 2026-10-17: "1A 2A 3A 4A 5A 6A 7A 8A 9A 10A
 11A 12A 13A 14B 15B 16A 17A 18A 19A 20A … fix all now", after the

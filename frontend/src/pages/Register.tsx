@@ -2,6 +2,7 @@ import { useCallback, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { PhoneCheck } from '../auth/PhoneCheck.tsx'
 import { SocialButtons } from '../auth/SocialButtons.tsx'
+import { buttonClass } from '../components/styles.ts'
 import { useAuth } from '../auth/useAuth.ts'
 import { Button, ErrorMessage, Field, Input, PasswordInput, SlowNotice } from '../components/ui.tsx'
 import { ApiError } from '../lib/api.ts'
@@ -103,14 +104,14 @@ export function Register() {
           resume={opened}
           onOpen={setOpened}
           required
-          taken={
-            <p className="text-sm text-slate-700">
-              {t.auth.phoneCheck.taken}{' '}
-              <Link to="/login" className="font-semibold text-navy-700 link">
+          taken={{
+            message: t.auth.phoneCheck.taken,
+            action: (
+              <Link to="/login" className={buttonClass()}>
                 {t.auth.logIn}
               </Link>
-            </p>
-          }
+            ),
+          }}
         />
         <Field label={t.auth.register.storeName} error={fieldError(error, 'store_name')} hint={t.auth.register.storeNameHint}>
           <Input

@@ -1202,7 +1202,9 @@ a used-up check at submit remounts it (`key`). The phone check shows a
 "Start again" button once it has expired (30 min). `resume` picks up a
 check opened before a reload (the sign-up draft) instead of making a new
 one; `onOpen` hands the check out when Telegram is opened, so the page can
-keep it. On load, if
+keep it. A number that already has an account shows, when the page passes
+`taken` (`message` and an `action`, e.g. Log in), in a plain box with the
+message in amber words, the action and "Use another number". On load, if
 `sc.session` is set, it refreshes (with the cookie) to restore the session.
 If the API can't be reached at all (the refresh rejects with `NETWORK_ERROR`),
 status becomes `'unreachable'`: the cookie stays, `DashboardLayout` shows

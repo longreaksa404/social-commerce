@@ -21,8 +21,10 @@ const POLL_MS = 2_500
  * and comes back to find it verified. `onChange` gets the finished check
  * (its id goes in with the form), or null when they start over.
  *
- * `taken`: what to show when the number already has an account; without
- * it, such a number is passed on like any other.
+ * `taken`: what to say when the number already has an account, in amber
+ * words in the box, with an `action` (e.g. Log in) beside "Use another
+ * number" (founder's pick 5A, 2026-10-18); without it, such a number is
+ * passed on like any other.
  *
  * `required`: a red * on the label, like a required Field.
  *
@@ -42,7 +44,7 @@ export function PhoneCheck({
   label: string
   error?: string | null
   onChange: (check: Check | null) => void
-  taken?: ReactNode
+  taken?: { message: ReactNode; action?: ReactNode }
   resume?: Check | null
   onOpen?: (check: Check) => void
   required?: boolean
@@ -97,7 +99,20 @@ export function PhoneCheck({
           </span>
         )}
       </p>
-      {done ? (
+      {done && done.taken && taken ? (
+        <div className="space-y-3 rounded-xl border border-slate-300 px-4 py-3">
+          <p>
+            <span className="block font-semibold text-slate-900 tabular-nums">{formatPhone(done.phone ?? '')}</span>
+            <span className="block text-sm font-medium text-amber-700">{taken.message}</span>
+          </p>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            {taken.action}
+            <button type="button" onClick={startOver} className="min-h-11 text-sm font-medium text-navy-700 link">
+              {p.another}
+            </button>
+          </div>
+        </div>
+      ) : done ? (
         <div className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl bg-emerald-50 px-4 py-3 ring-1 ring-emerald-200">
             <span className="flex items-center gap-2">
@@ -115,7 +130,6 @@ export function PhoneCheck({
               {p.another}
             </button>
           </div>
-          {done.taken && taken}
         </div>
       ) : created.error ? (
         <div className="space-y-3">

@@ -122,7 +122,7 @@ function LoginPhone({ account }: { account: Account }) {
           <PhoneCheck
             label={s.newPhone}
             onChange={onCheck}
-            taken={takenByOther && <p className="text-sm text-red-600">{s.phoneTakenByOther}</p>}
+            taken={takenByOther ? { message: s.phoneTakenByOther } : undefined}
           />
         ) : (
           <Button variant="secondary" onClick={() => setChanging(true)} className="w-full sm:w-auto">

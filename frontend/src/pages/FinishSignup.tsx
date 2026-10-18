@@ -2,6 +2,7 @@ import { useCallback, useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { PhoneCheck } from '../auth/PhoneCheck.tsx'
 import { useAuth } from '../auth/useAuth.ts'
+import { buttonClass } from '../components/styles.ts'
 import { Button, ErrorMessage, Field, Input, SlowNotice } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
 import { api, ApiError, type AccessToken } from '../lib/api.ts'
@@ -146,7 +147,14 @@ function FinishForm({ signup }: { signup: SignupStart }) {
               resume={opened}
               onOpen={setOpened}
               required
-              taken={<p className="text-sm text-slate-700">{g.phoneHasShop(provider)}</p>}
+              taken={{
+                message: g.phoneHasShop(provider),
+                action: (
+                  <Link to="/login" onClick={forgetSignup} className={buttonClass()}>
+                    {t.auth.logIn}
+                  </Link>
+                ),
+              }}
             />
             {!phone && <p className="mt-1.5 text-xs leading-5 text-slate-500">{g.phoneWhy}</p>}
           </div>
