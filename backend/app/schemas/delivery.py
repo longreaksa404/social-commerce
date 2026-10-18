@@ -92,6 +92,9 @@ class DeliveryUpdate(BaseModel):
     # e.g. "Sokha, 012 999 888" or "VET Takeo branch, no. 123456";
     # replaces the old note if given.
     assignee_note: AssigneeNote | None = None
+    # Sending only: who takes it, one of the shop's couriers or null = the
+    # shop's own driver (founder, 2026-10-18). Left out = unchanged.
+    courier: CourierName | None = None
 
 
 class ShopDeliveryOut(BaseModel):

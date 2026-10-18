@@ -537,3 +537,64 @@ async def test_seller_cannot_move_another_stores_delivery(client, auth_headers):
 
     assert response.status_code == 404
     assert (await track(client, slug, order["id"])).json()["delivery"]["status"] == "not_assigned"
+
+
+async def _send(client, headers, order_id, courier, status="assigned"):
+    return await client.patch(
+        f"/api/v1/seller/orders/{order_id}/delivery",
+        headers=headers,
+        json={"status": status, "assignee_note": "No. 123456", "courier": courier},
+    )
+
+
+async def test_seller_picks_the_courier_when_sending(client, auth_headers):
+    """The customer's pick is a wish (founder, 2026-10-18): the seller
+    chooses who takes it when sending, a courier or their own driver."""
+    headers, slug, shirt = await _shop(client, auth_headers)
+    shop_chooses = (await place_order(client, slug, [(shirt, None, 1)], total="11.50")).json()
+    wants_vet = (
+        await place_order(client, slug, [(shirt, None, 1)], total="11.50", courier="VET Express")
+    ).json()
+
+    with_jt = await _send(client, headers, shop_chooses["id"], "J&T Express")
+    own_driver = await _send(client, headers, wants_vet["id"], None)
+    # Left out: the courier stays as it was.
+    kept = await _deliver(client, headers, shop_chooses["id"], "picked_up")
+
+    assert with_jt.status_code == 200, with_jt.text
+    assert with_jt.json()["delivery"]["courier"] == "J&T Express"
+    assert with_jt.json()["delivery"]["assignee_note"] == "No. 123456"
+    assert own_driver.json()["delivery"]["courier"] is None
+    assert kept.json()["delivery"]["courier"] == "J&T Express"
+    tracked = (await track(client, slug, shop_chooses["id"])).json()["delivery"]
+    assert tracked["courier"] == "J&T Express"
+
+
+async def test_sending_refuses_a_courier_not_on_the_list(client, auth_headers):
+    headers, slug, shirt = await _shop(client, auth_headers)
+    order = (
+        await place_order(client, slug, [(shirt, None, 1)], total="11.50", courier="VET Express")
+    ).json()
+
+    unknown = await _send(client, headers, order["id"], "Grab")
+    not_sending = await _send(client, headers, order["id"], "J&T Express", status="delivered")
+    # The customer's courier still works after the seller drops it.
+    await set_delivery(client, headers, **{**DELIVERY, "couriers": ["J&T Express"]})
+    dropped = await _send(client, headers, order["id"], "VET Express")
+
+    assert _error(unknown) == (422, "courier")
+    assert _error(not_sending) == (422, "courier")
+    assert dropped.status_code == 200, dropped.text
+    assert dropped.json()["delivery"]["courier"] == "VET Express"
+
+
+async def test_seller_cannot_pick_the_courier_of_another_stores_order(client, auth_headers):
+    _, slug, shirt = await _shop(client, auth_headers)
+    other_headers, _, _ = await registered_seller(client, auth_headers)
+    order = (await place_order(client, slug, [(shirt, None, 1)], total="11.50")).json()
+
+    response = await _send(client, other_headers, order["id"], "J&T Express")
+
+    assert response.status_code == 404
+    tracked = (await track(client, slug, order["id"])).json()["delivery"]
+    assert (tracked["status"], tracked["courier"]) == ("not_assigned", None)

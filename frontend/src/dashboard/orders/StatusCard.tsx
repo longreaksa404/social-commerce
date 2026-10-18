@@ -2,11 +2,12 @@ import { LoaderCircle, MapPin, Plus, Send, ShoppingBag, Truck, Wallet, type Luci
 import { useState, type FormEvent, type ReactNode, type Ref } from 'react'
 import { Button, Card, Field, Input } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
-import { deliveryAction, deliveryBadge } from '../../lib/delivery.ts'
+import { courierToChoose, deliveryAction, deliveryBadge } from '../../lib/delivery.ts'
 import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, ORDER_STATUS_TONES, type StatusTone } from '../../lib/orders.ts'
 import { paymentBadge } from '../../lib/payments.ts'
 import type { Order, OrderStatus } from '../../lib/types.ts'
+import { useStore } from '../queries.ts'
 import { cashDue, CLOSED, nextStep, paidAhead, unpaidTransfer } from './orderSteps.ts'
 import { SendAgain } from './SendToDriver.tsx'
 import type { OrderActions } from './useOrderActions.ts'
@@ -222,6 +223,7 @@ function DeliveryRow({
   const { busy } = actions
   const pickup = delivery.method === 'pickup'
   const badge = deliveryBadge(t, delivery.method, delivery.status, delivery.courier)
+  const toChoose = courierToChoose(delivery, useStore().data?.delivery_settings.couriers ?? [])
   // Nothing to deliver before it's accepted, after it's off or once it's
   // completed (the server would still allow it: the two never set each other).
   const live = order.status !== 'pending' && order.status !== 'completed' && !CLOSED.has(order.status)
@@ -275,8 +277,9 @@ function DeliveryRow({
         >
           {delivery.status === 'failed'
             ? t.status.deliveryAction.tryAgain
-            : delivery.courier
-              ? // The line above names the courier ("Send with J&T Express").
+            : delivery.courier || toChoose
+              ? // The line above names the courier ("Send with J&T Express"),
+                // or says there's one to choose in the sheet.
                 o.send
               : o.sendToDriver}
         </Button>
@@ -304,7 +307,13 @@ function DeliveryRow({
       muted={muted}
     >
       <Sub>
-        {pickup ? o.customerCollects : delivery.courier ? o.sendWith(delivery.courier) : o.ownDelivery}
+        {pickup
+          ? o.customerCollects
+          : delivery.courier
+            ? o.sendWith(delivery.courier)
+            : toChoose
+              ? o.driverOrCourier
+              : o.ownDelivery}
         {' · '}
         {Number(order.delivery_fee) > 0 ? formatMoney(order.delivery_fee, order.currency) : t.shop.summary.free}
       </Sub>

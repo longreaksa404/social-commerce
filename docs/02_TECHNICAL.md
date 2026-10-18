@@ -278,7 +278,7 @@ seller (owner)
 | order_id | UUID FK, unique | 1:1 with order; created with it at checkout |
 | status | enum(`not_assigned`,`assigned`,`picked_up`,`in_transit`,`delivered`,`failed`) | see §7.3 |
 | method | enum(`seller_delivery`,`pickup`) | |
-| courier | text, nullable | the courier the customer would like ("VET Express"), optional at checkout; null = the shop chooses (decided 2026-10-18), and null for pickup |
+| courier | text, nullable | the courier the customer would like ("VET Express"), optional at checkout, then the one the seller sends with; null = the shop chooses or its own driver (decided 2026-10-18), and null for pickup |
 | assignee_note | text, nullable | the seller's note, e.g. "Sokha, 012 999 888" or "VET Takeo branch, no. 123456" — no courier integration in MVP |
 | created_at / updated_at | timestamptz | |
 
@@ -552,7 +552,7 @@ NOT_ASSIGNED ──▶ ASSIGNED ──▶ PICKED_UP ──▶ IN_TRANSIT ──�
 - `FAILED ──▶ ASSIGNED`: the seller tries again, e.g. nobody was home (decided 2026-10-03); `FAILED ──▶ DELIVERED`: it went through on a second try.
 - "Delivered, cash received" (cash on delivery, 2026-10-09) records the delivery delivered and the payment paid in one seller action, each through its own state machine, both or neither; the order's status is not touched.
 - For `pickup` delivery method, the flow simplifies: `NOT_ASSIGNED → DELIVERED` (marked by seller when customer collects), skipping the intermediate states.
-- The seller moves it with `PATCH /seller/orders/{id}/delivery` (optionally with an `assignee_note`). Moving the delivery never changes the order's status, or the other way round.
+- The seller moves it with `PATCH /seller/orders/{id}/delivery` (optionally with an `assignee_note`, and when sending a `courier`: one of the shop's couriers, or null for their own driver, whatever the customer picked; decided 2026-10-18). Moving the delivery never changes the order's status, or the other way round.
 
 ## 7.4 Cross-State Validity (Rule 4 / Rule 5)
 

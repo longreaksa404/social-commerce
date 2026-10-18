@@ -365,6 +365,10 @@ export const orders = {
   customerCollects: { en: 'The customer collects it', km: 'អតិថិជនមកយកដោយខ្លួនឯង' },
   sendWith: { en: (courier: string) => `Send with ${courier}`, km: (courier: string) => `ផ្ញើតាម ${courier}` },
   ownDelivery: { en: 'Your own delivery', km: 'ដឹកដោយខ្លួនឯង' },
+  // The customer left the courier to the shop (founder, 2026-10-18).
+  driverOrCourier: { en: 'Your driver or a courier', km: 'អ្នកដឹករបស់អ្នក ឬក្រុមហ៊ុនដឹក' },
+  sendWithLabel: { en: 'Send with', km: 'ផ្ញើតាម' },
+  yourDriver: { en: 'Your driver', km: 'អ្នកដឹករបស់អ្នក' },
   // Before who has it: one label each (UX check #13).
   delivering: { en: 'Driver: ', km: 'អ្នកដឹក៖ ' },
   tracking: { en: 'Tracking: ', km: 'លេខតាមដាន៖ ' },

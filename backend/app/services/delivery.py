@@ -79,6 +79,19 @@ def record(delivery: Delivery, target: DeliveryStatus, assignee_note: str | None
         delivery.assignee_note = assignee_note
 
 
+def send_with(
+    delivery: Delivery, target: DeliveryStatus, courier: str | None, settings: DeliverySettings
+) -> str | None:
+    """The seller's pick when sending (founder, 2026-10-18): their own
+    driver (null) or one of the shop's couriers, whatever the customer
+    asked for. The order's courier also counts if it has left the list."""
+    if target is not DeliveryStatus.ASSIGNED:
+        raise AppError(422, "VALIDATION_ERROR", "Choose who takes it when you send it.", "courier")
+    if courier is not None and courier not in settings.couriers and courier != delivery.courier:
+        raise AppError(422, "VALIDATION_ERROR", "This courier isn't on your list.", "courier")
+    return courier
+
+
 def delivery_settings(store: Store) -> DeliverySettings:
     return DeliverySettings.model_validate(store.delivery_config)
 

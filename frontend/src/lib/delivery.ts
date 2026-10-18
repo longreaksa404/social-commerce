@@ -29,6 +29,12 @@ export function deliveryBadge(
   return { label, tone: TONES[status] }
 }
 
+/** No courier on an order not sent yet, at a shop with couriers: the
+ * customer left it to the shop, so the seller picks when sending. */
+export function courierToChoose(delivery: Delivery, shopCouriers: string[]): boolean {
+  return delivery.method !== 'pickup' && !delivery.courier && delivery.status === 'not_assigned' && shopCouriers.length > 0
+}
+
 /** The button for moving a delivery to each status. */
 export function deliveryAction(t: Messages, delivery: Delivery, to: DeliveryStatus): string {
   const actions = t.status.deliveryAction

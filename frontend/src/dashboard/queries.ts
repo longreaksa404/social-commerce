@@ -254,7 +254,8 @@ export function useRecordPayment(id: string) {
 export function useRecordDelivery(id: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (body: { status: DeliveryStatus; assignee_note: string | null }) =>
+    // `courier` only when sending: who takes it (null = the shop's own driver).
+    mutationFn: (body: { status: DeliveryStatus; assignee_note: string | null; courier?: string | null }) =>
       api<Order>(`/seller/orders/${id}/delivery`, { method: 'PATCH', body }),
     onSuccess: (order) => {
       queryClient.setQueryData(keys.order(id), order)

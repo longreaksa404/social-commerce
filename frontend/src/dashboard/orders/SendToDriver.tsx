@@ -1,7 +1,7 @@
 import { Send, X } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useFeedback } from '../../components/feedback.ts'
-import { Button, Field, IconButton, Input } from '../../components/ui.tsx'
+import { Button, Field, IconButton, Input, Pills } from '../../components/ui.tsx'
 import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { formatMoney } from '../../lib/money.ts'
@@ -91,7 +91,7 @@ export function SendToDriverSheet({
   order: Order
   open: boolean
   onClose: () => void
-  onAssign: (note: string | null, quiet: boolean) => Promise<boolean>
+  onAssign: (note: string | null, quiet: boolean, courier: string | null) => Promise<boolean>
 }) {
   const t = useT()
   const o = t.orders
@@ -100,7 +100,17 @@ export function SendToDriverSheet({
   const dialog = useRef<HTMLDialogElement>(null)
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState<'send' | 'save' | null>(null)
-  const { courier } = order.delivery
+  // Who takes it (founder, 2026-10-18): the shop's own driver ('') or a
+  // courier, starting from the customer's pick. The order's courier stays
+  // a choice if the seller has dropped it from the list since.
+  const settings = store.data?.delivery_settings
+  const ownOn = settings?.own_delivery.enabled ?? true
+  const couriers = [...(settings?.couriers ?? [])]
+  if (order.delivery.courier && !couriers.includes(order.delivery.courier)) couriers.push(order.delivery.courier)
+  const startWith = order.delivery.courier ?? (ownOn ? '' : (couriers[0] ?? ''))
+  const ways = [...(ownOn || startWith === '' ? [''] : []), ...couriers]
+  const [sendWith, setSendWith] = useState(startWith)
+  const courier = sendWith || null
   const failed = order.delivery.status === 'failed'
   const title = failed ? t.status.deliveryAction.tryAgain : courier ? t.status.deliveryAction.sendWith(courier) : o.sendToDriver
 
@@ -110,15 +120,16 @@ export function SendToDriverSheet({
     if (open && !el.open) {
       // A second try starts from who had it the first time.
       setNote(order.delivery.assignee_note ?? '')
+      setSendWith(startWith)
       el.showModal()
     } else if (!open && el.open) el.close()
-  }, [open, order.delivery.assignee_note])
+  }, [open, order.delivery.assignee_note, startWith])
 
   async function finish(how: 'send' | 'save') {
     setSaving(how)
     // The share list has to open straight from the tap.
     const sent = how === 'send' ? await share(driverMessage(t, order, store.data)) : 'saved'
-    if (sent && (await onAssign(note.trim() || null, sent === 'copied'))) onClose()
+    if (sent && (await onAssign(note.trim() || null, sent === 'copied', courier))) onClose()
     setSaving(null)
   }
 
@@ -149,6 +160,16 @@ export function SendToDriverSheet({
           <p className="mt-2 max-h-36 overflow-y-auto rounded-xl bg-slate-50 px-3.5 py-3 text-sm leading-6 whitespace-pre-line break-words text-slate-700">
             {driverMessage(t, order, store.data)}
           </p>
+          {ways.length > 1 && (
+            <Pills
+              name="send-with"
+              legend={o.sendWithLabel}
+              options={ways.map((way) => ({ value: way, label: way || o.yourDriver }))}
+              value={sendWith}
+              onChange={setSendWith}
+              className="mt-4"
+            />
+          )}
           <Field
             label={courier ? o.trackingNumber : o.driverNote}
             hint={courier ? o.trackingHint(courier) : o.driverNoteHint}

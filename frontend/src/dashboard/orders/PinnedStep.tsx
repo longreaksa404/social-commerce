@@ -2,8 +2,9 @@ import { Send } from 'lucide-react'
 import { useEffect, useState, type RefObject } from 'react'
 import { Button } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
-import { deliveryAction } from '../../lib/delivery.ts'
+import { courierToChoose, deliveryAction } from '../../lib/delivery.ts'
 import type { Order } from '../../lib/types.ts'
+import { useStore } from '../queries.ts'
 import { cashDue, nextStep, paidAhead } from './orderSteps.ts'
 import type { OrderActions } from './useOrderActions.ts'
 
@@ -33,6 +34,7 @@ export function PinnedStep({
 }) {
   const t = useT()
   const o = t.orders
+  const toChoose = courierToChoose(order.delivery, useStore().data?.delivery_settings.couriers ?? [])
   const [hidden, setHidden] = useState(false)
   const step = nextStep(order)
 
@@ -98,7 +100,9 @@ export function PinnedStep({
             ? t.status.deliveryAction.tryAgain
             : order.delivery.courier
               ? t.status.deliveryAction.sendWith(order.delivery.courier)
-              : o.sendToDriver}
+              : toChoose
+                ? o.send
+                : o.sendToDriver}
         </Button>
       )
       break

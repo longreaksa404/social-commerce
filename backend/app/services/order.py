@@ -28,6 +28,7 @@ from app.models import (
     PaymentStatus,
     Product,
     ProductVariant,
+    Store,
 )
 from app.schemas.delivery import DeliveryUpdate
 from app.schemas.order import OrderListOut, OrderOut, OrderSummaryOut
@@ -202,10 +203,18 @@ async def record_payment(
 async def record_delivery(
     db: AsyncSession, store_id: uuid.UUID, order_id: uuid.UUID, data: DeliveryUpdate
 ) -> Order:
-    """The seller moves the order's delivery along (02 section 7.3).
-    Locked like a status change, so a double tap can't move it twice."""
+    """The seller moves the order's delivery along (02 section 7.3),
+    choosing who takes it when sending. Locked like a status change, so a
+    double tap can't move it twice."""
     order = await get_order(db, store_id, order_id, for_update=True)
+    choosing = "courier" in data.model_fields_set
+    if choosing:
+        store = await db.get(Store, store_id)
+        settings = delivery_service.delivery_settings(store)
+        courier = delivery_service.send_with(order.delivery, data.status, data.courier, settings)
     delivery_service.record(order.delivery, data.status, data.assignee_note)
+    if choosing:
+        order.delivery.courier = courier
     await db.commit()
     return order
 

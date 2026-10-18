@@ -53,8 +53,8 @@ export function useOrderActions(order: Order, onStale: () => void, onDecided?: (
     if ((await moveOrder(status)) && order.status === 'pending') onDecided?.(status)
   }
 
-  const recordDelivery = (status: DeliveryStatus, note: string | null, what: string | null) =>
-    run(() => delivery.mutateAsync({ status, assignee_note: note }), what)
+  const recordDelivery = (status: DeliveryStatus, note: string | null, what: string | null, courier?: string | null) =>
+    run(() => delivery.mutateAsync({ status, assignee_note: note, ...(courier !== undefined && { courier }) }), what)
   const recordPayment = (status: 'paid' | 'failed' | 'pending', reference: string | null, what: string) =>
     run(() => payment.mutateAsync({ status, reference }), what)
 
@@ -67,8 +67,11 @@ export function useOrderActions(order: Order, onStale: () => void, onDecided?: (
     move,
     /** Delivered, picked up, on the way (no note: the old one stays). */
     deliver: (status: DeliveryStatus = 'delivered') => recordDelivery(status, null, deliveryLabel(status)),
-    /** Who's delivering, from Send to driver; `quiet` when a toast already said so. */
-    assign: (note: string | null, quiet = false) => recordDelivery('assigned', note, quiet ? null : deliveryLabel('assigned')),
+    /** Who's delivering, from Send to driver: the seller's note and who
+     * takes it (a courier, or null for their own driver); `quiet` when a
+     * toast already said so. */
+    assign: (note: string | null, quiet: boolean, courier: string | null) =>
+      recordDelivery('assigned', note, quiet ? null : deliveryBadge(t, method, 'assigned', courier).label, courier),
     /** Cash on delivery: delivered (or collected) and the cash in hand. */
     handOver: () => run(() => handover.mutateAsync(), method === 'pickup' ? o.collectedCash : o.cashHandover),
     markPaid: (reference: string | null) => recordPayment('paid', reference, o.paidToast),
