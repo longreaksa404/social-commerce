@@ -145,6 +145,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
               onChange={onPhone}
               resume={opened}
               onOpen={setOpened}
+              required
               taken={<p className="text-sm text-slate-700">{g.phoneHasShop(provider)}</p>}
             />
             {!phone && <p className="mt-1.5 text-xs leading-5 text-slate-500">{g.phoneWhy}</p>}

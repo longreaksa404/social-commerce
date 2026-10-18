@@ -1024,6 +1024,9 @@ each is its own commit. Frontend only.
   shop (after Google, Facebook or TikTok) keeps its own the same way.
   Checked in the browser: type, Verify, reload → fields back, password
   empty, the same check read again, verified once shared.
+- [x] 3. The phone number's label has the red * like the other required
+  fields, on Create your shop and Set up your shop (pick C: the * only;
+  Verify with Telegram stays a navy button).
 
 **UI check fixes** (founder, 2026-10-17: "1A 2A 3A 4A 5A 6A 7A 8A 9A 10A
 11A 12A 13A 14B 15B 16A 17A 18A 19A 20A … fix all now", after the

@@ -102,6 +102,7 @@ export function Register() {
           onChange={onPhone}
           resume={opened}
           onOpen={setOpened}
+          required
           taken={
             <p className="text-sm text-slate-700">
               {t.auth.phoneCheck.taken}{' '}

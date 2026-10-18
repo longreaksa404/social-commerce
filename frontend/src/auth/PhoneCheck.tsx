@@ -24,6 +24,8 @@ const POLL_MS = 2_500
  * `taken`: what to show when the number already has an account; without
  * it, such a number is passed on like any other.
  *
+ * `required`: a red * on the label, like a required Field.
+ *
  * `resume`: a check opened before the page reloaded (the sign-up draft),
  * read again instead of making a new one; `onOpen` hands the check out
  * when the seller opens Telegram, so the page can keep it.
@@ -35,6 +37,7 @@ export function PhoneCheck({
   taken,
   resume = null,
   onOpen,
+  required = false,
 }: {
   label: string
   error?: string | null
@@ -42,6 +45,7 @@ export function PhoneCheck({
   taken?: ReactNode
   resume?: Check | null
   onOpen?: (check: Check) => void
+  required?: boolean
 }) {
   const [attempt, setAttempt] = useState(0)
   const [resumed, setResumed] = useState(resume)
@@ -85,7 +89,14 @@ export function PhoneCheck({
 
   return (
     <div>
-      <p className="mb-1.5 text-sm font-medium text-slate-700">{label}</p>
+      <p className="mb-1.5 text-sm font-medium text-slate-700">
+        {label}
+        {required && (
+          <span aria-hidden className="ml-0.5 text-red-600">
+            *
+          </span>
+        )}
+      </p>
       {done ? (
         <div className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl bg-emerald-50 px-4 py-3 ring-1 ring-emerald-200">
