@@ -541,7 +541,8 @@ export function DeliveryFields({ form, update, error }: FieldsProps) {
   const onChange = (changes: Partial<DeliveryForm>) => update({ delivery: { ...delivery, ...changes } })
   const fieldErr = (field: string) => fieldError(error, `delivery_settings.${field}`)
   const { couriers, pickup } = delivery
-  const addCourier = (name: string) => onChange({ couriers: [...couriers, { key: crypto.randomUUID(), name }] })
+  const addCourier = (name: string, typed = false) =>
+    onChange({ couriers: [...couriers, { key: crypto.randomUUID(), name, typed }] })
   const setCourier = (key: string, name: string) =>
     onChange({ couriers: couriers.map((c) => (c.key === key ? { ...c, name } : c)) })
   const missingCommon = COMMON_COURIERS.filter(
@@ -559,54 +560,82 @@ export function DeliveryFields({ form, update, error }: FieldsProps) {
           <Field label={s.fee} error={fieldErr('fee')} hint={s.feeHint}>
             <MoneyInput currency={currency} placeholder={s.free} value={delivery.fee} onChange={(fee) => onChange({ fee })} />
           </Field>
+          {/* Labels that say the rule; either one makes delivery free
+              (settings check #6, founder 2026-10-19). */}
           <Field label={s.freeFrom} error={fieldErr('free_from_amount')}>
-            <MoneyInput
-              currency={currency}
-              placeholder={s.off}
-              value={delivery.free_from_amount}
-              onChange={(free_from_amount) => onChange({ free_from_amount })}
-            />
+            <div className="flex items-center gap-3">
+              <div className="w-40 shrink-0">
+                <MoneyInput
+                  currency={currency}
+                  placeholder={s.off}
+                  value={delivery.free_from_amount}
+                  onChange={(free_from_amount) => onChange({ free_from_amount })}
+                />
+              </div>
+              <span className="text-sm text-slate-600">{s.orMore}</span>
+            </div>
           </Field>
           <Field label={s.freeFromItems} error={fieldErr('free_from_items')}>
-            <Input
-              type="number"
-              inputMode="numeric"
-              min="1"
-              max="999"
-              step="1"
-              placeholder={s.off}
-              value={delivery.free_from_items}
-              onWheel={(e) => e.currentTarget.blur()}
-              onChange={(e) => onChange({ free_from_items: e.target.value })}
-            />
+            <div className="flex items-center gap-3">
+              <div className="w-40 shrink-0">
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min="1"
+                  max="999"
+                  step="1"
+                  placeholder={s.off}
+                  value={delivery.free_from_items}
+                  onWheel={(e) => e.currentTarget.blur()}
+                  onChange={(e) => onChange({ free_from_items: e.target.value })}
+                />
+              </div>
+              <span className="text-sm text-slate-600">{s.items}</span>
+            </div>
           </Field>
 
           <div>
             <h3 className="text-sm font-medium text-slate-700">{s.couriers}</h3>
             <p className="mt-0.5 text-sm text-slate-500">{s.couriersHint}</p>
           </div>
-          {couriers.map((courier, index) => (
-            <div key={courier.key} className="flex items-start gap-2">
-              <div className="min-w-0 flex-1">
-                <Field label={s.courier} error={fieldErr(`couriers.${index}`)}>
-                  <Input
-                    required
-                    maxLength={50}
-                    autoCapitalize="words"
-                    value={courier.name}
-                    onChange={(e) => setCourier(courier.key, e.target.value)}
+          {/* A list of names; a box only for one being typed, or one Save
+              found a problem with (settings check #6). */}
+          {couriers.length > 0 && (
+            <ul className="divide-y divide-slate-100 rounded-xl ring-1 ring-slate-200">
+              {couriers.map((courier, index) => {
+                const problem = fieldErr(`couriers.${index}`)
+                const remove = (
+                  <IconButton
+                    icon={Trash2}
+                    tone="danger"
+                    label={s.removeCourier(courier.name || s.thisCourier)}
+                    className={courier.typed || problem ? 'mt-7' : ''}
+                    onClick={() => onChange({ couriers: couriers.filter((c) => c.key !== courier.key) })}
                   />
-                </Field>
-              </div>
-              <IconButton
-                icon={Trash2}
-                tone="danger"
-                label={s.removeCourier(courier.name || s.thisCourier)}
-                className="mt-7"
-                onClick={() => onChange({ couriers: couriers.filter((c) => c.key !== courier.key) })}
-              />
-            </div>
-          ))}
+                )
+                return (
+                  <li key={courier.key} className="flex items-start gap-2 py-1 pr-1 pl-3.5">
+                    {courier.typed || problem ? (
+                      <div className="min-w-0 flex-1 py-2">
+                        <Field label={s.courier} error={problem}>
+                          <Input
+                            required
+                            maxLength={50}
+                            autoCapitalize="words"
+                            value={courier.name}
+                            onChange={(e) => setCourier(courier.key, e.target.value)}
+                          />
+                        </Field>
+                      </div>
+                    ) : (
+                      <span className="min-w-0 flex-1 self-center py-2 font-medium text-slate-900">{courier.name}</span>
+                    )}
+                    {remove}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
           {couriers.length < MAX_COURIERS && (
             <div className="flex flex-wrap gap-2">
               {missingCommon.map((name) => (
@@ -614,7 +643,7 @@ export function DeliveryFields({ form, update, error }: FieldsProps) {
                   {name}
                 </Button>
               ))}
-              <Button variant="secondary" icon={Plus} onClick={() => addCourier('')}>
+              <Button variant="secondary" icon={Plus} onClick={() => addCourier('', true)}>
                 {s.otherCourier}
               </Button>
             </div>

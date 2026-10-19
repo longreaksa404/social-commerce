@@ -162,8 +162,12 @@ export const settings = {
   },
   free: { en: 'Free', km: 'ឥតគិតថ្លៃ' },
   off: { en: 'Off', km: 'បិទ' },
-  freeFrom: { en: 'Free delivery from', km: 'ដឹកឥតគិតថ្លៃ ចាប់ពី' },
-  freeFromItems: { en: 'Free delivery from (items)', km: 'ដឹកឥតគិតថ្លៃ ចាប់ពី (ចំនួនទំនិញ)' },
+  // The labels say the rule, the box's end says the unit (settings check
+  // #6, 2026-10-19): "Free delivery when items cost [$30] or more".
+  freeFrom: { en: 'Free delivery when items cost', km: 'ដឹកឥតគិតថ្លៃ ពេលទំនិញតម្លៃ' },
+  orMore: { en: 'or more', km: 'ឬលើស' },
+  freeFromItems: { en: 'Free delivery from', km: 'ដឹកឥតគិតថ្លៃ ចាប់ពី' },
+  items: { en: 'items', km: 'ទំនិញ' },
   couriers: { en: 'Couriers (optional)', km: 'ក្រុមហ៊ុនដឹកជញ្ជូន (មិនចាំបាច់)' },
   couriersHint: {
     en: 'Customers can pick one, or leave it to you.',

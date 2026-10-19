@@ -11,7 +11,9 @@ import type {
 
 // Rows the seller can add and remove carry a key for React; inputs hold
 // strings, turned back into the API's shape by each section's body.
-export type CourierRow = { key: string; name: string }
+/** `typed`: added with "Other courier", so it shows a box to type in;
+ * the others are a plain list (settings check #6). */
+export type CourierRow = { key: string; name: string; typed?: boolean }
 export type RuleRow = { key: string; min_subtotal: string; amount_off: string }
 export type DeliveryForm = {
   fee: string
