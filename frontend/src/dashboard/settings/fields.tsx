@@ -21,7 +21,7 @@ import { api } from '../../lib/api.ts'
 import { errorText, fieldError } from '../../lib/errors.ts'
 import { prepareCover, prepareLogo, uploadStoreCover, uploadStoreLogo } from '../../lib/images.ts'
 import { formatMoney } from '../../lib/money.ts'
-import { phnomPenhDate } from '../../lib/orders.ts'
+import { formatPhone, phnomPenhDate } from '../../lib/orders.ts'
 import { parseKhqr, readQrImage } from '../../lib/readKhqr.ts'
 import type { Currency, PaymentSettings, ShopColor, Store, TelegramLink } from '../../lib/types.ts'
 import { DEEP_COLORS, LIGHT_COLORS } from '../../shop/colors.ts'
@@ -852,45 +852,74 @@ function TelegramAlerts({ store }: { store: Store }) {
 
 /** How customers with a question reach the seller: buttons on products and
  * orders in the shop. Telegram types the question in; Messenger (a
- * Facebook page) and a phone call are there for those who don't use it. */
-export function ContactFields({ form, update, error }: FieldsProps) {
+ * Facebook page) and a phone call are there for those who don't use it.
+ * A saved one gets "Try it", opening what a customer's button opens, and
+ * the boxes have no grey example that looks filled in (settings check #10,
+ * founder 2026-10-19). */
+export function ContactFields({ store, form, update, error }: FieldsProps) {
   const s = useT().settings
+  // What the shop's buttons open now: saved, and not being changed.
+  const saved = {
+    telegram: store.telegram_username && form.telegram_username === store.telegram_username,
+    messenger: store.messenger_username && form.messenger_username === store.messenger_username,
+    phone: store.contact_phone && form.contact_phone === formatPhone(store.contact_phone),
+  }
   return (
     <>
-      <Field label={s.username} error={fieldError(error, 'telegram_username')}>
-        <Input
-          maxLength={60}
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck={false}
-          placeholder="your_shop"
-          leading={<span className="text-sm font-medium">@</span>}
-          value={form.telegram_username}
-          onChange={(e) => update({ telegram_username: e.target.value.replace(/^@/, '') })}
-        />
-      </Field>
-      <Field label={s.messenger} error={fieldError(error, 'messenger_username')} hint={s.messengerHint}>
-        <Input
-          maxLength={200}
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck={false}
-          placeholder="sokhafashion"
-          value={form.messenger_username}
-          onChange={(e) => update({ messenger_username: e.target.value })}
-        />
-      </Field>
-      <Field label={s.contactPhone} error={fieldError(error, 'contact_phone')} hint={s.contactPhoneHint}>
-        <Input
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          maxLength={32}
-          placeholder="012 345 678"
-          value={form.contact_phone}
-          onChange={(e) => update({ contact_phone: e.target.value })}
-        />
-      </Field>
+      <div>
+        <Field label={s.username} error={fieldError(error, 'telegram_username')}>
+          <Input
+            maxLength={60}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            leading={<span className="text-sm font-medium">@</span>}
+            value={form.telegram_username}
+            onChange={(e) => update({ telegram_username: e.target.value.replace(/^@/, '') })}
+          />
+        </Field>
+        {saved.telegram && <TryIt href={`https://t.me/${store.telegram_username}`} />}
+      </div>
+      <div>
+        <Field label={s.messenger} error={fieldError(error, 'messenger_username')} hint={s.messengerHint}>
+          <Input
+            maxLength={200}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            value={form.messenger_username}
+            onChange={(e) => update({ messenger_username: e.target.value })}
+          />
+        </Field>
+        {saved.messenger && <TryIt href={`https://m.me/${store.messenger_username}`} />}
+      </div>
+      <div>
+        <Field label={s.contactPhone} error={fieldError(error, 'contact_phone')} hint={s.contactPhoneHint}>
+          <Input
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            maxLength={32}
+            value={form.contact_phone}
+            onChange={(e) => update({ contact_phone: e.target.value })}
+          />
+        </Field>
+        {saved.phone && <TryIt href={`tel:${store.contact_phone}`} newTab={false} />}
+      </div>
     </>
+  )
+}
+
+function TryIt({ href, newTab = true }: { href: string; newTab?: boolean }) {
+  const s = useT().settings
+  return (
+    <a
+      href={href}
+      {...(newTab ? { target: '_blank', rel: 'noreferrer' } : {})}
+      className="mt-1 inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-navy-700 link focus-visible:outline-2 focus-visible:outline-navy-600"
+    >
+      <ExternalLink aria-hidden className="size-4" />
+      {s.tryIt}
+    </a>
   )
 }

@@ -245,6 +245,8 @@ export const settings = {
     km: 'ពីតំណទំព័ររបស់អ្នក ឧ. facebook.com/sokhafashion។',
   },
   contactPhone: { en: 'Phone customers can call', km: 'លេខទូរស័ព្ទដែលអតិថិជនអាចហៅ' },
+  // After a saved contact: opens what a customer's button opens.
+  tryIt: { en: 'Try it', km: 'សាកមើល' },
   contactPhoneHint: {
     en: 'Shown in your shop.',
     km: 'បង្ហាញក្នុងហាងរបស់អ្នក។',
