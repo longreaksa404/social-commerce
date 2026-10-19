@@ -190,6 +190,11 @@ export const settings = {
   whenItemsReach: { en: 'When items reach', km: 'នៅពេលទំនិញដល់' },
   takeOff: { en: 'Take off', km: 'បញ្ចុះ' },
   removeDiscount: { en: 'Remove discount', km: 'ដកការបញ្ចុះតម្លៃចេញ' },
+  // Under each rule (settings check #9, 2026-10-19).
+  discountRule: {
+    en: (from: string, off: string) => `Orders of ${from} or more get ${off} off.`,
+    km: (from: string, off: string) => `ការកុម្ម៉ង់ពី ${from} ឡើងទៅ បញ្ចុះ ${off}។`,
+  },
   addDiscount: { en: 'Add discount', km: 'បន្ថែមការបញ្ចុះតម្លៃ' },
 
   telegram: { en: 'Telegram', km: 'Telegram' },

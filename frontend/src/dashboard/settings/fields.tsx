@@ -20,6 +20,7 @@ import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
 import { errorText, fieldError } from '../../lib/errors.ts'
 import { prepareCover, prepareLogo, uploadStoreCover, uploadStoreLogo } from '../../lib/images.ts'
+import { formatMoney } from '../../lib/money.ts'
 import { phnomPenhDate } from '../../lib/orders.ts'
 import { parseKhqr, readQrImage } from '../../lib/readKhqr.ts'
 import type { Currency, PaymentSettings, ShopColor, Store, TelegramLink } from '../../lib/types.ts'
@@ -698,34 +699,42 @@ export function DiscountsFields({ form, update, error }: FieldsProps) {
     <>
       {rules.length === 0 && <p className="text-sm text-slate-500">{s.noDiscounts}</p>}
       {rules.map((rule, index) => (
-        <div key={rule.key} className="flex items-start gap-2">
-          <div className="min-w-0 flex-1">
-            <Field label={s.whenItemsReach} error={fieldError(error, `discount_settings.rules.${index}.min_subtotal`)}>
-              <MoneyInput
-                required
-                currency={form.currency}
-                value={rule.min_subtotal}
-                onChange={(min_subtotal) => setRule(rule.key, { min_subtotal })}
-              />
-            </Field>
+        <div key={rule.key}>
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1">
+              <Field label={s.whenItemsReach} error={fieldError(error, `discount_settings.rules.${index}.min_subtotal`)}>
+                <MoneyInput
+                  required
+                  currency={form.currency}
+                  value={rule.min_subtotal}
+                  onChange={(min_subtotal) => setRule(rule.key, { min_subtotal })}
+                />
+              </Field>
+            </div>
+            <div className="min-w-0 flex-1">
+              <Field label={s.takeOff} error={fieldError(error, `discount_settings.rules.${index}.amount_off`)}>
+                <MoneyInput
+                  required
+                  currency={form.currency}
+                  value={rule.amount_off}
+                  onChange={(amount_off) => setRule(rule.key, { amount_off })}
+                />
+              </Field>
+            </div>
+            <IconButton
+              icon={Trash2}
+              tone="danger"
+              label={s.removeDiscount}
+              className="mt-7"
+              onClick={() => onChange(rules.filter((r) => r.key !== rule.key))}
+            />
           </div>
-          <div className="min-w-0 flex-1">
-            <Field label={s.takeOff} error={fieldError(error, `discount_settings.rules.${index}.amount_off`)}>
-              <MoneyInput
-                required
-                currency={form.currency}
-                value={rule.amount_off}
-                onChange={(amount_off) => setRule(rule.key, { amount_off })}
-              />
-            </Field>
-          </div>
-          <IconButton
-            icon={Trash2}
-            tone="danger"
-            label={s.removeDiscount}
-            className="mt-7"
-            onClick={() => onChange(rules.filter((r) => r.key !== rule.key))}
-          />
+          {/* The rule in words (settings check #9, founder 2026-10-19). */}
+          {Number(rule.min_subtotal) > 0 && Number(rule.amount_off) > 0 && (
+            <p className="mt-1.5 text-sm text-slate-600">
+              {s.discountRule(formatMoney(rule.min_subtotal, form.currency), formatMoney(rule.amount_off, form.currency))}
+            </p>
+          )}
         </div>
       ))}
       {rules.length < MAX_DISCOUNTS && (
