@@ -483,6 +483,7 @@ export const settings = {
     en: (provider: string) => `${provider} connected`,
     km: (provider: string) => `បានភ្ជាប់ ${provider}`,
   },
+  password: { en: 'Password', km: 'ពាក្យសម្ងាត់' },
   addPassword: { en: 'Add a password', km: 'បន្ថែមពាក្យសម្ងាត់' },
   passwordAdded: { en: 'Password added', km: 'បានបន្ថែមពាក្យសម្ងាត់' },
   detailsSaved: { en: 'Details saved', km: 'បានរក្សាទុកព័ត៌មាន' },

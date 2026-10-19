@@ -201,10 +201,13 @@ function OtherLogins({ account }: { account: Account }) {
 }
 
 /** Change the password, or (an account made with Google) add a first one,
- * to log in with the phone number too. */
+ * to log in with the phone number too. Folded behind its button, like
+ * Change number (settings check #4, founder 2026-10-19): most visits
+ * aren't for the password. */
 function PasswordForm({ login, hasPassword }: { login: string; hasPassword: boolean }) {
   const queryClient = useQueryClient()
   const { toast } = useFeedback()
+  const [open, setOpen] = useState(false)
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const t = useT()
@@ -221,6 +224,7 @@ function PasswordForm({ login, hasPassword }: { login: string; hasPassword: bool
       saveTokens(token)
       setCurrent('')
       setNext('')
+      setOpen(false)
       toast(hasPassword ? s.passwordChanged : s.passwordAdded)
       if (!hasPassword) queryClient.invalidateQueries({ queryKey: keys.account })
     },
@@ -229,6 +233,16 @@ function PasswordForm({ login, hasPassword }: { login: string; hasPassword: bool
   function submit(event: FormEvent) {
     event.preventDefault()
     change.mutate()
+  }
+
+  if (!open) {
+    return (
+      <Section title={s.password}>
+        <Button variant="secondary" onClick={() => setOpen(true)} className="w-full sm:w-auto">
+          {hasPassword ? s.changePassword : s.addPassword}
+        </Button>
+      </Section>
+    )
   }
 
   return (
@@ -258,9 +272,14 @@ function PasswordForm({ login, hasPassword }: { login: string; hasPassword: bool
           />
         </Field>
         <ErrorMessage error={formError(change.error, ['current_password', 'new_password'])} />
-        <Button type="submit" variant="secondary" loading={change.isPending} className="w-full sm:w-auto">
-          {hasPassword ? s.changePassword : s.addPassword}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button type="submit" loading={change.isPending} className="w-full sm:w-auto">
+            {hasPassword ? s.changePassword : s.addPassword}
+          </Button>
+          <Button variant="ghost" onClick={() => setOpen(false)} className="w-full sm:w-auto">
+            {t.common.cancel}
+          </Button>
+        </div>
       </form>
     </Section>
   )
