@@ -107,4 +107,7 @@ phone or laptop) before going on.
 - [ ] Settings → Delivery: change the fee, Save. The Settings row and the shop's delivery line show the new fee. Leaving with unsaved changes asks first.
 - [ ] The shop page and a product page show delivery, pickup, ways to pay and discounts as set.
 - [ ] Telegram: Disconnect, then Connect again; a test order alerts the new chat.
+- [ ] Settings → your shop: pick another colour; the preview at the top changes, the app only after Save. Pick riel and Save: "Switch to riel?" asks first; Cancel keeps dollars.
+- [ ] Settings → Orders and alerts: turn off Take orders, Save; the menu row says "Not taking orders" in amber. Export orders downloads this month's orders.
+- [ ] Links: "Your shop link" is first; Copy copies it. Settings → your shop → Close shop (at the bottom) opens Close shop, and its back arrow returns to the shop's page.
 - [ ] "Ask seller on Telegram" on a product opens the seller's chat with the product typed in.

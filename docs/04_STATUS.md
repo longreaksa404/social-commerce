@@ -1,6 +1,6 @@
 # Project Status
 
-> **Last updated:** 2026-10-19 (performance review, pushed (`cdbbd83`); its fixes logged for later by the founder: the features since the 2026-10-14 pause measured against the audit's last code, `docs/PERF_AUDIT.md` section 12; customers' first paint ~0.5 s later, mostly from the seller's QR reader (jsQR) in every page's JS; backend unchanged; the live checks closed F4 (Cloudflare already compresses API answers); new findings F19-F23 logged, to fix later, see In Progress, "Pre-launch performance pass"). 2026-10-18 (no price line under Create shop, not pushed: "Free for 1 month…, then $9.99 a month or $99 a year" removed at the founder's request, only the Terms line stays; the price is in the Terms and Settings → Plan; before that the same day, sign-up check fixes, pushed (`fe1297d`): the founder's 7 picks from the sign-up check page, one commit each, see In Progress, "Sign-up check fixes": the phone number comes first on Sign up, and Google, Facebook and TikTok are a small row of logos under the Sign up and Log in forms; what the seller typed survives a reload while they're in Telegram; then a shorter form: no name (it's the Telegram name, new column phone_check.telegram_name) and no shop link (a new shop's link is a 6-character code the seller can't change); "this number already has a shop" shows in the box with a Log in button; on laptops the price shows without scrolling; the Verified box is plain; before that the same day, delivery and couriers combined, not pushed: checkout offers Delivery or Pickup, with the shop's couriers as an optional pick under Delivery, "Shop chooses" first; the seller picks their driver or a courier in the Send sheet; Settings → Delivery is one Delivery switch with the fee and couriers under it, and chat orders are Delivery or Pickup; new shops start at $2 delivery (8,000៛ for riel); before that the same day, address from the map pin, not pushed: after pinning, checkout shows a small map of the pin and fills in the address box from it, in English or Khmer; before that the same day, shorter texts, not pushed: about 140 hints, empty pages, banners, popups and help steps cut to one short sentence in English and Khmer, see In Progress, "Shorter texts"). 2026-10-17 (UI check fixes, not pushed: the founder's 20 picks from the UI check page, one commit each, see In Progress, "UI check fixes"; the biggest: small Khmer text 13px, underlined links that clear Khmer letters, calmer dark-mode colours, status tags as words, one stand-in for missing photos, laptop pages at one left edge with the bell and share at the top right; less explaining text everywhere; the font is Noto Sans Khmer + Inter (pick A); before that the same day, UX check fixes, all 30 built and pushed (`8a836bd`): one commit each, see In Progress, "UX check fixes"; the biggest: new products no longer start sold out, the customer's order reads Delivered once delivered, a new shop's Orders tab starts with its setup list, "Says paid" in the order list, Accept keeps the order open, payment before shipping for KHQR and bank, one-tap "Cash received, complete" and "Delivered, complete", a share button beside the bell; two API changes, no migrations). 2026-10-16 (Open shop starts the free trial, not pushed: a new shop is in setup, with no time limit and no orders, until the owner taps Open shop, which asks first and starts the 30-day trial; customers see "Opening soon"). 2026-10-15 (shop colour and cover photo, not pushed: eight colours a seller can pick, the shop takes it; a cover photo across the top like a Facebook page, and the shop's large link card made from it; before that the same day, seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only across the app; less motion on the order page; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
+> **Last updated:** 2026-10-19 (settings check fixes, not pushed: the founder's 12 picks from the Settings check page, one commit each, see In Progress, "Settings check fixes": switching currency asks first at Save, prices keep their numbers (converting at a rate Oak Order sets is logged for later); Orders, Alerts and Export orders are one page, "Orders and alerts"; the shop link is first on the Links tab and Close shop is at the bottom of Settings → Shop, so the menu has 10 rows instead of 13; what needs the seller reads in amber; Change password opens its form; a saved bank account shows as a card; clearer free-delivery labels and couriers as a list; a preview of the shop that follows the picks before Save; each discount rule in words; "Try it" after each contact; before that the same day, performance review, pushed (`cdbbd83`); its fixes logged for later by the founder: the features since the 2026-10-14 pause measured against the audit's last code, `docs/PERF_AUDIT.md` section 12; customers' first paint ~0.5 s later, mostly from the seller's QR reader (jsQR) in every page's JS; backend unchanged; the live checks closed F4 (Cloudflare already compresses API answers); new findings F19-F23 logged, to fix later, see In Progress, "Pre-launch performance pass"). 2026-10-18 (no price line under Create shop, not pushed: "Free for 1 month…, then $9.99 a month or $99 a year" removed at the founder's request, only the Terms line stays; the price is in the Terms and Settings → Plan; before that the same day, sign-up check fixes, pushed (`fe1297d`): the founder's 7 picks from the sign-up check page, one commit each, see In Progress, "Sign-up check fixes": the phone number comes first on Sign up, and Google, Facebook and TikTok are a small row of logos under the Sign up and Log in forms; what the seller typed survives a reload while they're in Telegram; then a shorter form: no name (it's the Telegram name, new column phone_check.telegram_name) and no shop link (a new shop's link is a 6-character code the seller can't change); "this number already has a shop" shows in the box with a Log in button; on laptops the price shows without scrolling; the Verified box is plain; before that the same day, delivery and couriers combined, not pushed: checkout offers Delivery or Pickup, with the shop's couriers as an optional pick under Delivery, "Shop chooses" first; the seller picks their driver or a courier in the Send sheet; Settings → Delivery is one Delivery switch with the fee and couriers under it, and chat orders are Delivery or Pickup; new shops start at $2 delivery (8,000៛ for riel); before that the same day, address from the map pin, not pushed: after pinning, checkout shows a small map of the pin and fills in the address box from it, in English or Khmer; before that the same day, shorter texts, not pushed: about 140 hints, empty pages, banners, popups and help steps cut to one short sentence in English and Khmer, see In Progress, "Shorter texts"). 2026-10-17 (UI check fixes, not pushed: the founder's 20 picks from the UI check page, one commit each, see In Progress, "UI check fixes"; the biggest: small Khmer text 13px, underlined links that clear Khmer letters, calmer dark-mode colours, status tags as words, one stand-in for missing photos, laptop pages at one left edge with the bell and share at the top right; less explaining text everywhere; the font is Noto Sans Khmer + Inter (pick A); before that the same day, UX check fixes, all 30 built and pushed (`8a836bd`): one commit each, see In Progress, "UX check fixes"; the biggest: new products no longer start sold out, the customer's order reads Delivered once delivered, a new shop's Orders tab starts with its setup list, "Says paid" in the order list, Accept keeps the order open, payment before shipping for KHQR and bank, one-tap "Cash received, complete" and "Delivered, complete", a share button beside the bell; two API changes, no migrations). 2026-10-16 (Open shop starts the free trial, not pushed: a new shop is in setup, with no time limit and no orders, until the owner taps Open shop, which asks first and starts the 30-day trial; customers see "Opening soon"). 2026-10-15 (shop colour and cover photo, not pushed: eight colours a seller can pick, the shop takes it; a cover photo across the top like a Facebook page, and the shop's large link card made from it; before that the same day, seller's order page redesign, not pushed: one status card with each status's buttons, the customer's name on top, items then one customer card, Send to driver in one step, a ⋯ menu, the next button pinned on phones; red and amber on words only across the app; less motion on the order page; before that the same day, shop links, not pushed: a changed link keeps opening the shop, sign-up shows the link to edit, custom domains logged as a later paid extra; before that the same day, wrong or fake customer phones, not pushed: checkout reads the number back and warns about unusual ones; "Get updates on Telegram" for customers, which shows the seller the number is real; seller tools against fake orders logged). 2026-10-14 (billing by hand, not pushed: the shop's code and Oak's KHQR, "I've paid" with a Telegram alert to the founder, the admin page, daily reminders; ABA PayWay parked on branch `payway`; before that the same day, plan and billing part 1 built: 30-day free trial, Settings → Plan, reminders, no new orders 7 days after the trial or paid time runs out, the founder's `plans` / `paid` commands; before that the same day, pricing decided: Standard $9.99/month or $99/year, no free plan, a payment gateway later, setup free for the first sellers, the frontend moves to Cloudflare Pages). 2026-10-10 (Oak in the shop: the oak leaf mark, "Made with Oak Order", "· Oak Order" and our mark on link cards; performance pass, Phase 2 fixes F1, F5, F6, F9; 2026-10-09: performance audit, Phase 1, `docs/PERF_AUDIT.md`; before that: sign-up with a phone number checked in Telegram; Continue with Google, Facebook and TikTok; privacy, terms and data deletion pages)
 > **Updated by:** Claude Code (edits this file directly)
 >
 > This file is the live source of truth for **what has actually been built**.
@@ -991,6 +991,61 @@ page (artifact "Shop Colour and Cover").
       (the acorn as SVG and PNG, both name layouts).
 
 ## In Progress
+
+**Settings check fixes** (founder, 2026-10-19: "1A 2A 3A 4A 5A 6A 7A 8A
+9B 10A 11A 12A", after a review of the seller's Settings,
+https://claude.ai/artifact/CNab7L8GRMzxxuQL2fZLfB, 12 problems ranked;
+plus "combine if some path is related", picked as Orders + Alerts on
+one page with Export under it, Close shop under Shop, and the shop link
+to Links). Numbers are the page's; each is its own commit. Frontend
+only, no migrations, no new variables. The menu went from 13 rows to 10.
+
+- [x] 1. Switching currency (Settings → Shop) asks at Save: "Switch to
+  riel? Prices keep their numbers: Linen Shirt $12.00 becomes 12៛.
+  Change your prices after." Converting the prices was discussed: a
+  fixed 4,000 or 4,100 goes stale and sellers shouldn't know or type a
+  rate, so the founder asked to log it until the admin page can hold a
+  rate they set (Requirements Log, 03 §6).
+- [x] 2, with the combining. Settings → Orders and alerts: Take orders,
+  Accept automatically, Telegram (Connect, saved at once), the low-stock
+  level, and Export orders under the form (its Download now the plain
+  button). The row says "You accept each one · Telegram off". Telegram is
+  third on the page, not first, as the combining option said. The old
+  Alerts and Export addresses open it; so does the setup list's
+  Telegram step.
+- [x] 3. Amber words in the menu rows: orders paused, Telegram off (once
+  the bot is set up), delivery never saved, and the plan in its last 6
+  days, ended or stopped.
+- [x] 4. Your account: a Password card with one "Change password" (or
+  "Add a password") button; the form opens with Cancel and closes on
+  save.
+- [x] 5. Payments: a saved bank account reads "Customers transfer to ·
+  name · bank · number" with "Edit the details"; a new one, or one with
+  a problem, shows the boxes.
+- [x] 6. Delivery: "Free delivery when items cost [$30] or more" and
+  "Free delivery from [ ] items"; couriers as a list with a remove each,
+  a box only for one typed with "Other courier".
+- [x] 7. No Shop link row (founder: "we already have Links page"): the
+  Links tab starts with "Your shop link" and Copy; the old address opens
+  Links. Replaces UX check #10's Shop link page; the header's share
+  button stays.
+- [x] Combining: Close shop is a row at the bottom of Settings → Shop
+  (red words, plain card) opening the same page; its back arrow returns
+  to Shop.
+- [x] 8. Settings → Shop starts with a preview of the shop's top (cover,
+  logo, name, a Buy now button in the picked colour) that follows the
+  picks before Save; the picture fields are their buttons only.
+- [x] 9 (B). Under each discount rule: "Orders of $50.00 or more get
+  $5.00 off."
+- [x] 10. Contact: "Try it" under a saved Telegram, Messenger or phone
+  (opens what a customer's button opens); no grey examples in the
+  boxes.
+- [x] 11. Staff: the list has no second "Staff" title.
+- [x] 12. Language and theme: "For this device."
+
+Checked on a phone (390 px) in English and Khmer, light and dark, and a
+laptop (1366 × 768); Telegram's Connect and Connected were shown with a
+stand-in (the bot isn't set up locally).
 
 **Sign-up check fixes** (founder, 2026-10-18: "1A 2A 3C 4A 5A 6A 7A",
 after a review of the Create your shop page,
@@ -2587,6 +2642,29 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 ## Next Up
 
+0000000000000000. **Settings check fixes** (all 12 picks built, not
+        pushed; In Progress, "Settings check fixes"). Frontend only, no
+        migrations, no new variables. After a push, on your phone in
+        Khmer, light and dark:
+        1. Settings has 10 rows: Orders and alerts holds Telegram, the
+           low-stock level and Export orders; Close shop is at the
+           bottom of your shop's page; the shop link is first on the
+           Links tab.
+        2. Your shop's page: pick another colour, and the preview at
+           the top changes while the app keeps its colour until Save.
+           Pick riel and Save: it asks first (tap Cancel).
+        3. Turn off Take orders and Save: the menu row reads "Not taking
+           orders" in amber. Turn it back on.
+        4. Payments (the bank card), Delivery (the new labels, couriers
+           as a list), Discounts (the line under the rule), Contact
+           (Try it), Your account (Change password).
+        New Khmer to check: ការកុម្ម៉ង់ និងការជូនដំណឹង (Orders and
+        alerts), ប្ដូរទៅប្រាក់រៀល? / តម្លៃនៅលេខដដែល… (switching
+        currency), ពាក្យសម្ងាត់ (Password), អតិថិជនផ្ទេរទៅ (Customers
+        transfer to), ដឹកឥតគិតថ្លៃ ពេលទំនិញតម្លៃ … ឬលើស and … ទំនិញ
+        (free delivery), ការកុម្ម៉ង់ពី … ឡើងទៅ បញ្ចុះ … (a discount
+        rule), សាកមើល (Try it), តំណហាងរបស់អ្នក (Your shop link),
+        សម្រាប់ឧបករណ៍នេះ។ (For this device).
 000000000000000. **Sign-up check fixes** (all 7 picks and the shorter
         form built and pushed, `fe1297d`; In Progress, "Sign-up check fixes"). One
         migration (`5e89ca8ba3c8`), no new variables. After a push, on your phone in
