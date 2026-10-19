@@ -81,7 +81,7 @@ export const toForm = (store: Store): Form => {
   }
 }
 
-export const SECTION_IDS = ['shop', 'orders', 'payments', 'delivery', 'discounts', 'contact', 'telegram', 'link'] as const
+export const SECTION_IDS = ['shop', 'orders', 'payments', 'delivery', 'discounts', 'contact', 'link'] as const
 export type SectionId = (typeof SECTION_IDS)[number]
 
 export const isSectionId = (value: string | undefined): value is SectionId =>
@@ -89,11 +89,18 @@ export const isSectionId = (value: string | undefined): value is SectionId =>
 
 /** Settings pages that aren't part of the store's settings: each has its
  * own form and endpoint (SettingsSection's PAGES). */
-export const PAGE_IDS = ['account', 'plan', 'staff', 'export', 'close', 'setup'] as const
+export const PAGE_IDS = ['account', 'plan', 'staff', 'close', 'setup'] as const
 export type PageId = (typeof PAGE_IDS)[number]
 
 export const isPageId = (value: string | undefined): value is PageId =>
   (PAGE_IDS as readonly (string | undefined)[]).includes(value)
+
+/** Settings pages that joined another (settings check, founder
+ * 2026-10-19): their old addresses open the new place. */
+export const MOVED: Record<string, string> = {
+  telegram: '/dashboard/settings/orders',
+  export: '/dashboard/settings/orders',
+}
 
 type Section = {
   title: (s: Messages['settings']) => string
@@ -119,14 +126,18 @@ export const SECTIONS: Record<SectionId, Section> = {
     }),
     fields: () => ['name', 'description', 'currency', 'logo_url', 'cover_url', 'color'],
   },
+  // Orders, Alerts and Export orders on one page (settings check,
+  // founder 2026-10-19). Connecting Telegram saves at once; Save is for
+  // the switches and the low-stock level; Export is under the form.
   orders: {
-    title: (s) => s.orders,
+    title: (s) => s.ordersAndAlerts,
     body: (form) => ({
       order_confirmation_mode: form.order_confirmation_mode,
       orders_paused: form.orders_paused,
       orders_resume_on: (form.orders_paused && form.orders_resume_on) || null,
+      low_stock_alert: Number(form.low_stock_alert),
     }),
-    fields: () => ['orders_resume_on'],
+    fields: () => ['orders_resume_on', 'low_stock_alert'],
   },
   payments: {
     title: (s) => s.payments,
@@ -182,13 +193,6 @@ export const SECTIONS: Record<SectionId, Section> = {
       contact_phone: form.contact_phone.trim() || null,
     }),
     fields: () => ['telegram_username', 'messenger_username', 'contact_phone'],
-  },
-  // Its address stays /settings/telegram: the bot's messages point here.
-  telegram: {
-    title: (s) => s.alerts,
-    // Connecting and disconnecting Telegram save at once; Save is for the level.
-    body: (form) => ({ low_stock_alert: Number(form.low_stock_alert) }),
-    fields: () => ['low_stock_alert'],
   },
   // The link is made at sign-up and can't be changed (2026-10-18).
   link: {

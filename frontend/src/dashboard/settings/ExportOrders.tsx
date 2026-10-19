@@ -19,9 +19,11 @@ function month(today: string, back = 0): [string, string] {
   return [first.toISOString().slice(0, 10), last.toISOString().slice(0, 10)]
 }
 
-/** Settings → Export orders: a spreadsheet of the orders placed on some
- * days, for the seller's accounts (one row per order). */
-export function ExportPage() {
+/** Export orders, under Settings → Orders and alerts (settings check,
+ * founder 2026-10-19): a spreadsheet of the orders placed on some days,
+ * for the seller's accounts (one row per order). Its own form, outside
+ * the page's Save. */
+export function ExportOrders() {
   const today = phnomPenhDate()
   const [range, setRange] = useState<Range>('thisMonth')
   const [days, setDays] = useState<[string, string]>([month(today)[0], today])
@@ -50,7 +52,7 @@ export function ExportPage() {
 
   return (
     <form onSubmit={submit}>
-      <Section title={s.exportWhich}>
+      <Section title={s.exportOrders}>
         <div role="group" aria-label={s.exportWhich} className="flex rounded-xl bg-slate-100 p-0.5">
           {RANGES.map((option) => (
             <button
@@ -78,7 +80,7 @@ export function ExportPage() {
         )}
         {first && last && <p className="text-sm text-slate-600">{s.exportDays(formatDate(`${first}T00:00`), formatDate(`${last}T00:00`))}</p>}
         <ErrorMessage error={download.error} />
-        <Button type="submit" icon={Download} loading={download.isPending} disabled={!first || !last} className="w-full sm:w-auto">
+        <Button type="submit" variant="secondary" icon={Download} loading={download.isPending} disabled={!first || !last} className="w-full sm:w-auto">
           {s.exportDownload}
         </Button>
       </Section>

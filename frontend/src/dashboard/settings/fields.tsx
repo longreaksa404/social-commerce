@@ -261,7 +261,10 @@ function ColorField({ store, form, update }: Pick<FieldsProps, 'store' | 'form' 
   )
 }
 
-export function OrdersFields({ form, update, error }: FieldsProps) {
+/** Settings → Orders and alerts (settings check, founder 2026-10-19):
+ * taking orders, accepting them, and hearing about them (Telegram, low
+ * stock). Export orders sits under the form (SettingsSection's AFTER). */
+export function OrdersFields({ store, form, update, error }: FieldsProps) {
   const s = useT().settings
   return (
     <>
@@ -285,11 +288,26 @@ export function OrdersFields({ form, update, error }: FieldsProps) {
       )}
       <hr className="border-slate-100" />
       <Switch
-      checked={form.order_confirmation_mode === 'automatic'}
-      onChange={(on) => update({ order_confirmation_mode: on ? 'automatic' : 'manual' })}
+        checked={form.order_confirmation_mode === 'automatic'}
+        onChange={(on) => update({ order_confirmation_mode: on ? 'automatic' : 'manual' })}
         label={s.autoAccept}
         description={form.order_confirmation_mode === 'automatic' ? s.autoAcceptOn : s.autoAcceptOff}
       />
+      <hr className="border-slate-100" />
+      <TelegramAlerts store={store} />
+      <hr className="border-slate-100" />
+      <Field label={s.lowStockAlert} error={fieldError(error, 'low_stock_alert')} hint={s.lowStockAlertHint}>
+        <Input
+          required
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={999}
+          value={form.low_stock_alert}
+          onChange={(e) => update({ low_stock_alert: e.target.value })}
+          className="max-w-32"
+        />
+      </Field>
     </>
   )
 }
@@ -674,9 +692,9 @@ const LINK_REFRESH_MS = 20 * 60_000
 // While the seller is off in Telegram tapping Start, check for the chat.
 const CONNECT_POLL_MS = 3_000
 
-/** Settings → Alerts: when to warn about low stock (bell and Telegram),
- * and the Telegram chat the alerts go to. */
-export function AlertsFields({ store, form, update, error }: FieldsProps) {
+/** The Telegram chat new-order and low-stock alerts go to. Connecting and
+ * disconnecting save at once, apart from the page's Save. */
+function TelegramAlerts({ store }: { store: Store }) {
   const queryClient = useQueryClient()
   const { toast, confirm } = useFeedback()
   const [opened, setOpened] = useState(false)
@@ -722,19 +740,6 @@ export function AlertsFields({ store, form, update, error }: FieldsProps) {
 
   return (
     <>
-      <Field label={s.lowStockAlert} error={fieldError(error, 'low_stock_alert')} hint={s.lowStockAlertHint}>
-        <Input
-          required
-          type="number"
-          inputMode="numeric"
-          min={1}
-          max={999}
-          value={form.low_stock_alert}
-          onChange={(e) => update({ low_stock_alert: e.target.value })}
-          className="max-w-32"
-        />
-      </Field>
-      <hr className="border-slate-100" />
       <div>
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-sm font-medium text-slate-700">{s.telegram}</h3>

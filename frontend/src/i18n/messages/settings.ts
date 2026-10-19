@@ -78,7 +78,8 @@ export const settings = {
     sand: { en: 'Sand', km: 'ពណ៌ខ្សាច់' },
   },
 
-  orders: { en: 'Orders', km: 'ការកុម្ម៉ង់' },
+  // Orders, Alerts and Export orders on one page (settings check, 2026-10-19).
+  ordersAndAlerts: { en: 'Orders and alerts', km: 'ការកុម្ម៉ង់ និងការជូនដំណឹង' },
   takeOrders: { en: 'Take orders', km: 'ទទួលការកុម្ម៉ង់' },
   takeOrdersOff: {
     en: 'Customers can look and message you, but not order.',
@@ -187,7 +188,6 @@ export const settings = {
   addDiscount: { en: 'Add discount', km: 'បន្ថែមការបញ្ចុះតម្លៃ' },
 
   telegram: { en: 'Telegram', km: 'Telegram' },
-  alerts: { en: 'Alerts', km: 'ការជូនដំណឹង' },
   lowStockAlert: { en: 'Warn me when this many are left', km: 'ជូនដំណឹងខ្ញុំ នៅពេលនៅសល់ប៉ុណ្ណេះ' },
   lowStockAlertHint: {
     en: 'Alert when stock falls to this number, and when sold out.',
@@ -321,12 +321,10 @@ export const settings = {
       km: (off: string, from: string) => `បញ្ចុះ ${off} ចាប់ពី ${from}`,
     },
     none: { en: 'None', km: 'គ្មាន' },
-    lowStockAt: { en: (n: number) => `Low stock at ${n}`, km: (n: number) => `ស្តុកតិចនៅ ${n}` },
     telegramOn: { en: 'Telegram on', km: 'Telegram បានបើក' },
     telegramOff: { en: 'Telegram off', km: 'Telegram បានបិទ' },
     accountHint: { en: 'Name, phone number, password', km: 'ឈ្មោះ លេខទូរស័ព្ទ ពាក្យសម្ងាត់' },
     helpHint: { en: 'Message Oak Order on Telegram', km: 'ផ្ញើសារទៅ Oak Order តាម Telegram' },
-    exportHint: { en: 'Your orders as an Excel file', km: 'ការកុម្ម៉ង់របស់អ្នកជាឯកសារ Excel' },
     closeHint: { en: 'Stop selling here', km: 'ឈប់លក់នៅទីនេះ' },
     staffHint: { en: 'Let others help with orders', km: 'ឱ្យអ្នកផ្សេងជួយការកុម្ម៉ង់' },
   },

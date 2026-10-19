@@ -1,9 +1,7 @@
 import {
-  Bell,
   CalendarCheck,
   ChevronRight,
   DoorClosed,
-  Download,
   ExternalLink,
   Inbox,
   LifeBuoy,
@@ -44,7 +42,6 @@ const ROWS: { id: Exclude<SectionId, 'shop'>; icon: LucideIcon }[] = [
   { id: 'delivery', icon: Truck },
   { id: 'discounts', icon: Tag },
   { id: 'contact', icon: MessageCircle },
-  { id: 'telegram', icon: Bell },
   { id: 'link', icon: Link2 },
 ]
 
@@ -150,15 +147,6 @@ function StoreRows({ store, selected }: { store: Store; selected?: Selected }) {
                 />
               </li>
             ))}
-            <li>
-              <MenuRow
-                to="export"
-                selected={selected === 'export'}
-                icon={<RowIcon icon={Download} />}
-                title={s.exportOrders}
-                summary={s.menu.exportHint}
-              />
-            </li>
           </ul>
         </Card>
       </section>
@@ -242,14 +230,19 @@ function summaries(store: Store, t: Messages): Record<Exclude<SectionId, 'shop'>
   ]
   const rules = [...store.discount_settings.rules].sort((a, b) => Number(a.min_subtotal) - Number(b.min_subtotal))
 
+  const taking = store.orders_paused
+    ? store.orders_resume_on
+      ? m.pausedUntil(formatCalendarDay(store.orders_resume_on))
+      : m.paused
+    : store.order_confirmation_mode === 'automatic'
+      ? m.autoOn
+      : m.autoOff
+
   return {
-    orders: store.orders_paused
-      ? store.orders_resume_on
-        ? m.pausedUntil(formatCalendarDay(store.orders_resume_on))
-        : m.paused
-      : store.order_confirmation_mode === 'automatic'
-        ? m.autoOn
-        : m.autoOff,
+    // Orders and alerts: Telegram once the platform's bot is set up.
+    orders: store.telegram_bot_available
+      ? `${taking} · ${store.telegram_connected ? m.telegramOn : m.telegramOff}`
+      : taking,
     payments: methods.map((method) => t.status.paymentMethod[method]).join(', ') || m.noneOn,
     delivery: store.delivery_set_up
       ? deliveryParts.join(' · ') || m.noneOn
@@ -263,7 +256,6 @@ function summaries(store: Store, t: Messages): Record<Exclude<SectionId, 'shop'>
         ...(store.messenger_username ? ['Messenger'] : []),
         ...(store.contact_phone ? [formatPhone(store.contact_phone)] : []),
       ].join(', ') || m.none,
-    telegram: `${m.lowStockAt(store.low_stock_alert)} · ${store.telegram_connected ? m.telegramOn : m.telegramOff}`,
     link: `/shop/${store.slug}`,
   }
 }

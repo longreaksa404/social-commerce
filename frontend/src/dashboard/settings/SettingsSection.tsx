@@ -19,16 +19,15 @@ import {
   OrdersFields,
   PaymentsFields,
   ShopFields,
-  AlertsFields,
   type FieldsProps,
 } from './fields.tsx'
 import { AccountPage } from './AccountPage.tsx'
 import { CloseShopPage } from './CloseShopPage.tsx'
 import { StaffPage } from './StaffPage.tsx'
-import { ExportPage } from './ExportPage.tsx'
+import { ExportOrders } from './ExportOrders.tsx'
 import { PlanPage } from './PlanPage.tsx'
 import { SetupPage } from './SetupPage.tsx'
-import { isPageId, isSectionId, SECTIONS, toForm, type PageId, type SectionId } from './form.ts'
+import { isPageId, isSectionId, MOVED, SECTIONS, toForm, type PageId, type SectionId } from './form.ts'
 
 const FIELDS: Record<SectionId, ComponentType<FieldsProps>> = {
   shop: ShopFields,
@@ -37,15 +36,18 @@ const FIELDS: Record<SectionId, ComponentType<FieldsProps>> = {
   delivery: DeliveryFields,
   discounts: DiscountsFields,
   contact: ContactFields,
-  telegram: AlertsFields,
   link: LinkFields,
+}
+
+/** What a page shows under its form, with its own buttons. */
+const AFTER: Partial<Record<SectionId, ComponentType>> = {
+  orders: ExportOrders,
 }
 
 /** Pages with their own form and endpoint, not the store's PATCH. */
 const PAGES: Record<PageId, { title: (s: Messages['settings']) => string; hint?: (s: Messages['settings']) => string; Page: ComponentType }> = {
   account: { title: (s) => s.yourAccount, Page: AccountPage },
   plan: { title: (s) => s.plan.title, Page: PlanPage },
-  export: { title: (s) => s.exportOrders, Page: ExportPage },
   close: { title: (s) => s.closeShop, Page: CloseShopPage },
   staff: { title: (s) => s.staff, Page: StaffPage },
   setup: { title: (s) => s.setup.title, Page: SetupPage },
@@ -63,9 +65,11 @@ export function SettingsSection({ open }: { open?: string }) {
   // Staff have their own account here and nothing else (the API refuses
   // them the rest anyway).
   if (role === 'staff' && section !== 'account') return <Navigate to="/dashboard/settings/account" replace />
+  if (section && Object.hasOwn(MOVED, section)) return <Navigate to={MOVED[section]} replace />
   if (isPageId(section)) return <OwnPage id={section} />
   if (!isSectionId(section)) return <Navigate to="/dashboard/settings" replace />
   const { title, hint } = SECTIONS[section]
+  const After = AFTER[section]
 
   return (
     <>
@@ -77,7 +81,14 @@ export function SettingsSection({ open }: { open?: string }) {
       ) : store.error ? (
         <ErrorState error={store.error} onRetry={() => store.refetch()} />
       ) : (
-        <SectionForm key={section} id={section} store={store.data} />
+        <>
+          <SectionForm key={section} id={section} store={store.data} />
+          {After && (
+            <div className="mt-4">
+              <After />
+            </div>
+          )}
+        </>
       )}
     </>
   )

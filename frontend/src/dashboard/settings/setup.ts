@@ -13,7 +13,7 @@ export const STEP_TARGETS: Record<SetupStep, string> = {
   product: '/dashboard/products/new',
   delivery: '/dashboard/settings/delivery',
   payments: '/dashboard/settings/payments',
-  telegram: '/dashboard/settings/telegram',
+  telegram: '/dashboard/settings/orders',
   contact: '/dashboard/settings/contact',
   logo: '/dashboard/settings/shop',
   open: '/dashboard/settings/plan',
