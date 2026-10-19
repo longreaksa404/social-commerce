@@ -39,6 +39,7 @@ export function ShopFields({ store, form, update, error }: FieldsProps) {
   const s = useT().settings
   return (
     <>
+      <ShopPreview form={form} />
       <CoverField form={form} update={update} error={error} />
       <LogoField form={form} update={update} error={error} />
       <ColorField store={store} form={form} update={update} />
@@ -69,6 +70,36 @@ export function ShopFields({ store, form, update, error }: FieldsProps) {
   )
 }
 
+/** The top of the shop as it will look with the picks, before Save
+ * (settings check #8, founder 2026-10-19): the cover, the logo, the name
+ * and a button in the shop's colour. The pictures are only here; the
+ * fields under it are their buttons. Decorative: the fields say it all. */
+function ShopPreview({ form }: { form: Form }) {
+  const t = useT()
+  return (
+    <div data-shop-color={form.color} aria-hidden className="overflow-hidden rounded-xl bg-surface ring-1 ring-slate-200">
+      {form.cover_url ? (
+        <img src={form.cover_url} alt="" className="aspect-[3/1] w-full bg-slate-100 object-cover" />
+      ) : (
+        <div className="aspect-[3/1] w-full bg-navy-50" />
+      )}
+      <div className="-mt-7 flex items-end gap-3 px-4 pb-4">
+        {form.logo_url ? (
+          <img src={form.logo_url} alt="" className="size-14 shrink-0 rounded-full object-cover ring-4 ring-surface" />
+        ) : (
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-brand text-white ring-4 ring-surface">
+            <StoreIcon className="size-6" />
+          </span>
+        )}
+        <span className="min-w-0 flex-1 truncate pb-1 font-semibold text-slate-900">{form.name}</span>
+        <span className="shrink-0 rounded-xl bg-accent px-3.5 py-2 text-sm font-semibold text-on-accent">
+          {t.shop.product.buyNow}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 type PictureProps = Pick<FieldsProps, 'form' | 'update' | 'error'>
 
 /** A picture for the shop, picked from the phone: shrunk and uploaded to
@@ -86,7 +117,7 @@ function usePictureUpload(prepare: (file: File) => Promise<Blob>, upload: (pictu
 }
 
 /** The wide photo at the top of the shop and on its link card (founder's
- * picks 3A 4A, 2026-10-15); the box shows the strip that was kept. */
+ * picks 3A 4A, 2026-10-15); ShopPreview shows the strip that was kept. */
 function CoverField({ form, update, error }: PictureProps) {
   const s = useT().settings
   const { input, send, pick, choose } = usePictureUpload(prepareCover, uploadStoreCover)
@@ -97,21 +128,7 @@ function CoverField({ form, update, error }: PictureProps) {
       <p id="cover-label" className="mb-1.5 text-sm font-medium text-slate-700">
         {s.cover}
       </p>
-      {form.cover_url ? (
-        <img
-          src={form.cover_url}
-          alt=""
-          className="aspect-[3/1] w-full rounded-xl bg-slate-100 object-cover ring-1 ring-slate-200"
-        />
-      ) : (
-        <div
-          aria-hidden
-          className="flex aspect-[3/1] w-full items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400"
-        >
-          <ImagePlus className="size-7" />
-        </div>
-      )}
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button variant="secondary" icon={ImagePlus} loading={send.isPending} onClick={choose}>
           {form.cover_url ? s.changeCover : s.addCover}
         </Button>
@@ -152,24 +169,15 @@ function LogoField({ form, update, error }: PictureProps) {
       <p id="logo-label" className="mb-1.5 text-sm font-medium text-slate-700">
         {s.logo}
       </p>
-      <div className="flex items-center gap-4">
-        {form.logo_url ? (
-          <img src={form.logo_url} alt="" className="size-16 shrink-0 rounded-full object-cover ring-1 ring-slate-200" />
-        ) : (
-          <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand text-white">
-            <StoreIcon aria-hidden className="size-7" />
-          </span>
-        )}
-        <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" icon={ImagePlus} loading={send.isPending} onClick={choose}>
-            {form.logo_url ? s.changeLogo : s.addLogo}
+      <div className="flex flex-wrap gap-2">
+        <Button variant="secondary" icon={ImagePlus} loading={send.isPending} onClick={choose}>
+          {form.logo_url ? s.changeLogo : s.addLogo}
+        </Button>
+        {form.logo_url && (
+          <Button variant="ghost" disabled={send.isPending} onClick={() => update({ logo_url: null })}>
+            {s.removeLogo}
           </Button>
-          {form.logo_url && (
-            <Button variant="ghost" disabled={send.isPending} onClick={() => update({ logo_url: null })}>
-              {s.removeLogo}
-            </Button>
-          )}
-        </div>
+        )}
       </div>
       <input
         ref={input}
