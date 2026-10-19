@@ -352,15 +352,24 @@ function QrUpload({
   )
 }
 
-export function PaymentsFields({ form, update, error }: FieldsProps) {
+export function PaymentsFields({ store, form, update, error }: FieldsProps) {
   const { cod, bank_transfer: bank, khqr } = form.payment_settings
   const t = useT()
   const s = t.settings
   const noneOn = !cod.enabled && !bank.enabled && !khqr.enabled
   const fieldErr = (field: string) => fieldError(error, `payment_settings.${field}`)
   const [typing, setTyping] = useState(false)
+  const [editingBank, setEditingBank] = useState(false)
   const khqrError = ['bakong_account_id', 'merchant_name', 'account_information', 'acquiring_bank'].some((f) => fieldErr(`khqr.${f}`))
   const showKhqrFields = typing || Boolean(khqrError)
+  const bankError = ['bank_name', 'account_name', 'account_number'].some((f) => fieldErr(`bank_transfer.${f}`))
+  // Only details already saved: typing a new account keeps its boxes.
+  const savedBank = store.payment_settings.bank_transfer
+  const showBankCard =
+    !editingBank &&
+    !bankError &&
+    Boolean(savedBank.bank_name && savedBank.account_name && savedBank.account_number) &&
+    (['bank_name', 'account_name', 'account_number'] as const).every((f) => bank[f] === savedBank[f])
   const set = <M extends keyof PaymentSettings>(method: M, changes: Partial<PaymentSettings[M]>) =>
     update({ payment_settings: { ...form.payment_settings, [method]: { ...form.payment_settings[method], ...changes } } })
   return (
@@ -442,7 +451,7 @@ export function PaymentsFields({ form, update, error }: FieldsProps) {
             onClick={() => setTyping(!showKhqrFields)}
             className="inline-flex min-h-11 items-center text-sm font-medium text-navy-700 link"
           >
-            {showKhqrFields ? s.uploadInstead : khqr.bakong_account_id ? s.editKhqr : s.typeInstead}
+            {showKhqrFields ? s.uploadInstead : khqr.bakong_account_id ? s.editDetails : s.typeInstead}
           </button>
         </div>
       )}
@@ -454,33 +463,56 @@ export function PaymentsFields({ form, update, error }: FieldsProps) {
       />
       {bank.enabled && (
         <div className="space-y-4 border-l-2 border-slate-100 pl-4">
-          <Field label={s.bank} error={fieldErr('bank_transfer.bank_name')}>
-            <Input
-              required
-              maxLength={50}
-              placeholder="ABA"
-              value={bank.bank_name}
-              onChange={(e) => set('bank_transfer', { bank_name: e.target.value })}
-            />
-          </Field>
-          <Field label={s.accountName} error={fieldErr('bank_transfer.account_name')}>
-            <Input
-              required
-              maxLength={100}
-              autoCapitalize="characters"
-              value={bank.account_name}
-              onChange={(e) => set('bank_transfer', { account_name: e.target.value })}
-            />
-          </Field>
-          <Field label={s.accountNumber} error={fieldErr('bank_transfer.account_number')}>
-            <Input
-              required
-              maxLength={50}
-              autoComplete="off"
-              value={bank.account_number}
-              onChange={(e) => set('bank_transfer', { account_number: e.target.value })}
-            />
-          </Field>
+          {/* Filled in: a card like KHQR's, the boxes behind "Edit the
+              details" (settings check #5, founder 2026-10-19). */}
+          {showBankCard ? (
+            <>
+              <div className="rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200 ring-inset">
+                <p className="text-xs font-medium text-slate-500">{s.transferTo}</p>
+                <p className="font-semibold text-slate-900">{bank.account_name}</p>
+                <p className="text-sm text-slate-600">
+                  {bank.bank_name} · {bank.account_number}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingBank(true)}
+                className="inline-flex min-h-11 items-center text-sm font-medium text-navy-700 link"
+              >
+                {s.editDetails}
+              </button>
+            </>
+          ) : (
+            <>
+              <Field label={s.bank} error={fieldErr('bank_transfer.bank_name')}>
+                <Input
+                  required
+                  maxLength={50}
+                  placeholder="ABA"
+                  value={bank.bank_name}
+                  onChange={(e) => set('bank_transfer', { bank_name: e.target.value })}
+                />
+              </Field>
+              <Field label={s.accountName} error={fieldErr('bank_transfer.account_name')}>
+                <Input
+                  required
+                  maxLength={100}
+                  autoCapitalize="characters"
+                  value={bank.account_name}
+                  onChange={(e) => set('bank_transfer', { account_name: e.target.value })}
+                />
+              </Field>
+              <Field label={s.accountNumber} error={fieldErr('bank_transfer.account_number')}>
+                <Input
+                  required
+                  maxLength={50}
+                  autoComplete="off"
+                  value={bank.account_number}
+                  onChange={(e) => set('bank_transfer', { account_number: e.target.value })}
+                />
+              </Field>
+            </>
+          )}
         </div>
       )}
 

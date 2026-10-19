@@ -111,7 +111,7 @@ export const settings = {
   uploadAnother: { en: 'Upload another QR', km: 'បញ្ចូល QR ផ្សេងទៀត' },
   payTo: { en: 'Customers pay to', km: 'អតិថិជនបង់ទៅ' },
   typeInstead: { en: 'No QR? Type the details instead', km: 'គ្មាន QR? វាយព័ត៌មានដោយខ្លួនឯង' },
-  editKhqr: { en: 'Edit the details', km: 'កែព័ត៌មាន' },
+  editDetails: { en: 'Edit the details', km: 'កែព័ត៌មាន' },
   uploadInstead: { en: 'Upload a QR instead', km: 'បញ្ចូល QR ជំនួសវិញ' },
   uploadQrHint: {
     en: 'Save your Receive QR from your bank app, then pick it here.',
@@ -149,6 +149,7 @@ export const settings = {
   },
   merchantNameTitle: { en: 'English letters, numbers, and spaces', km: 'អក្សរអង់គ្លេស លេខ និងដកឃ្លា' },
   bank: { en: 'Bank', km: 'ធនាគារ' },
+  transferTo: { en: 'Customers transfer to', km: 'អតិថិជនផ្ទេរទៅ' },
   accountName: { en: 'Name on the account', km: 'ឈ្មោះលើគណនី' },
   accountNumber: { en: 'Account number', km: 'លេខគណនី' },
   noPayment: { en: 'Turn on at least one way to pay.', km: 'សូមបើកវិធីបង់ប្រាក់យ៉ាងតិចមួយ។' },
