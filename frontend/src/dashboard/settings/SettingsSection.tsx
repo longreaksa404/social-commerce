@@ -21,7 +21,7 @@ import {
   type FieldsProps,
 } from './fields.tsx'
 import { AccountPage } from './AccountPage.tsx'
-import { CloseShopPage } from './CloseShopPage.tsx'
+import { CloseShopPage, CloseShopRow } from './CloseShopPage.tsx'
 import { StaffPage } from './StaffPage.tsx'
 import { ExportOrders } from './ExportOrders.tsx'
 import { PlanPage } from './PlanPage.tsx'
@@ -39,14 +39,19 @@ const FIELDS: Record<SectionId, ComponentType<FieldsProps>> = {
 
 /** What a page shows under its form, with its own buttons. */
 const AFTER: Partial<Record<SectionId, ComponentType>> = {
+  shop: CloseShopRow,
   orders: ExportOrders,
 }
 
-/** Pages with their own form and endpoint, not the store's PATCH. */
-const PAGES: Record<PageId, { title: (s: Messages['settings']) => string; hint?: (s: Messages['settings']) => string; Page: ComponentType }> = {
+/** Pages with their own form and endpoint, not the store's PATCH. `back`:
+ * where the back arrow goes, if not the menu. */
+const PAGES: Record<
+  PageId,
+  { title: (s: Messages['settings']) => string; hint?: (s: Messages['settings']) => string; Page: ComponentType; back?: string }
+> = {
   account: { title: (s) => s.yourAccount, Page: AccountPage },
   plan: { title: (s) => s.plan.title, Page: PlanPage },
-  close: { title: (s) => s.closeShop, Page: CloseShopPage },
+  close: { title: (s) => s.closeShop, Page: CloseShopPage, back: '/dashboard/settings/shop' },
   staff: { title: (s) => s.staff, Page: StaffPage },
   setup: { title: (s) => s.setup.title, Page: SetupPage },
 }
@@ -94,11 +99,11 @@ export function SettingsSection({ open }: { open?: string }) {
 
 function OwnPage({ id }: { id: PageId }) {
   const t = useT()
-  const { title, hint, Page } = PAGES[id]
+  const { title, hint, Page, back = '/dashboard/settings' } = PAGES[id]
   return (
     <>
       <title>{title(t.settings)}</title>
-      <PageHeader title={title(t.settings)} back="/dashboard/settings" backOnPhonesOnly />
+      <PageHeader title={title(t.settings)} back={back} backOnPhonesOnly={back === '/dashboard/settings'} />
       {hint && <p className="-mt-2 mb-4 text-sm leading-6 text-slate-500 sm:-mt-4">{hint(t.settings)}</p>}
       <Page />
     </>

@@ -1,9 +1,10 @@
 import { useMutation } from '@tanstack/react-query'
-import { DoorClosed } from 'lucide-react'
+import { ChevronRight, DoorClosed } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router'
 import { useAuth } from '../../auth/useAuth.ts'
 import { useFeedback } from '../../components/feedback.ts'
-import { Button, ErrorMessage, Field, PasswordInput, Section } from '../../components/ui.tsx'
+import { Button, Card, ErrorMessage, Field, PasswordInput, Section } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
 import { fieldError, formError } from '../../lib/errors.ts'
@@ -63,5 +64,27 @@ export function CloseShopPage() {
         </Button>
       </Section>
     </form>
+  )
+}
+
+/** At the bottom of Settings → Shop (settings check, founder 2026-10-19:
+ * related things on one page): opens the page above, which explains and
+ * asks for the password. Red words, plain card (red as text only). */
+export function CloseShopRow() {
+  const s = useT().settings
+  return (
+    <Card>
+      <Link
+        to="/dashboard/settings/close"
+        className="flex min-h-16 items-center gap-3 rounded-2xl px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100"
+      >
+        <DoorClosed aria-hidden className="size-5 shrink-0 text-red-600" />
+        <span className="min-w-0 flex-1">
+          <span className="block font-medium text-red-600">{s.closeShop}</span>
+          <span className="mt-0.5 block text-sm text-slate-500">{s.menu.closeHint}</span>
+        </span>
+        <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
+      </Link>
+    </Card>
   )
 }

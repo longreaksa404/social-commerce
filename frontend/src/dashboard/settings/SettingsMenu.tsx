@@ -1,7 +1,6 @@
 import {
   CalendarCheck,
   ChevronRight,
-  DoorClosed,
   ExternalLink,
   Inbox,
   LifeBuoy,
@@ -114,7 +113,7 @@ function StoreRows({ store, selected }: { store: Store; selected?: Selected }) {
       <Card>
         <MenuRow
           to="shop"
-          selected={selected === 'shop'}
+          selected={selected === 'shop' || selected === 'close'}
           icon={
             store.logo_url ? (
               <img src={store.logo_url} alt="" className="size-12 shrink-0 rounded-full object-cover ring-1 ring-slate-200" />
@@ -281,7 +280,7 @@ function AccountRows({ selected, store, owner }: { selected?: Selected; store?: 
   const a = t.admin
   const plan = usePlan()
   const isAdmin = useAccount().data?.is_admin === true
-  const rows: { id: PageId | 'help' | 'admin'; to?: string; href?: string; icon: LucideIcon; title: string; summary: string }[] = [
+  const rows: { id: Exclude<PageId, 'close'> | 'help' | 'admin'; to?: string; href?: string; icon: LucideIcon; title: string; summary: string }[] = [
     { id: 'account', icon: UserRound, title: s.yourAccount, summary: s.menu.accountHint },
   ]
   if (owner) {
@@ -292,7 +291,6 @@ function AccountRows({ selected, store, owner }: { selected?: Selected; store?: 
     const shop = store ? s.supportText(store.name, `${location.origin}/shop/${store.slug}`) : s.supportTextNoShop
     rows.push({ id: 'help', href: supportLink(shop), icon: LifeBuoy, title: s.help, summary: s.menu.helpHint })
   }
-  if (owner) rows.push({ id: 'close', icon: DoorClosed, title: s.closeShop, summary: s.menu.closeHint })
   if (isAdmin) rows.push({ id: 'admin', to: '/dashboard/admin', icon: ShieldCheck, title: a.title, summary: a.menuHint })
   return (
     <section aria-labelledby="account">
