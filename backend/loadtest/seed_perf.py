@@ -159,6 +159,9 @@ class Builder:
             },
             discount_config={"rules": [{"min_subtotal": "50.00", "amount_off": "5.00"}]},
             order_confirmation_mode="manual",
+            # Open and paid up: a shop without paid_until is still in setup
+            # and takes no orders (app/services/plan.py).
+            paid_until=(now + timedelta(days=60)).date(),
             created_at=now - timedelta(days=DAYS + 5),
         )
 

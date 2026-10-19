@@ -9,6 +9,11 @@
 > "Pre-launch performance pass", item 3. The audit's
 > tooling is in `backend/loadtest/` (`seed_perf.py`, `measure.py`, commit
 > `77fbca2`).
+> **Review 2026-10-19** (section 12): the features of 2026-10-14 to 10-18
+> measured against the audit's last code. Customers' first paint is ~0.5 s
+> later, almost all from one seller-only library (F19); the backend is
+> unchanged; the section 8 live checks are done (F4 closed). New findings
+> F19-F23 wait for the founder's picks.
 
 ---
 
@@ -523,3 +528,149 @@ F5 `7b22bff`, F6 `28050ce`.
 - **F1 at 3 fetches, not 1:** accepted (founder, 2026-10-14); the Products screen refetches for current stock.
 - **F6b gallery photos 2+ after photo 1:** decided by the device checklist, timing the first photo on a 1-photo vs a 4-photo product in flow 3.
 - **F18 smaller photos for order rows:** decided by the device checklist, by whether order photos fill in late in flow 8.
+- **F4 closed** (2026-10-19, section 12.3): Cloudflare, in front of
+  Render, already sends API answers with brotli.
+
+---
+
+## 12. Review 2026-10-19: the features since the pause
+
+The founder asked for a performance review after the work of 2026-10-14 to
+10-18 (plan and billing, Open shop, shop colour and cover photo, the order
+page redesign, the 30 UX and 20 UI fixes, the new fonts, the map pin
+address, delivery and couriers, the shorter sign-up). As 04 planned for the
+resume: `measure.py` and Lighthouse again, on the new features, not a whole
+new audit. No app code changed.
+
+### 12.1 How
+
+- **Old vs new on one machine.** This machine is ~2.6× faster than the
+  audit's laptop (login, bcrypt cost 12: 226 ms vs 586 ms), so its numbers
+  can't be set beside sections 3 and 10. Every comparison below runs the
+  audit's last code (`3d23870`, 2026-10-14, "old") and today's (`2db8742`,
+  "new") on this machine, with the same data and settings. Statement and
+  round-trip counts don't depend on the machine and compare directly with
+  section 3.1.
+- **Data:** `seed_perf.py` as before, now giving each shop a `paid_until`
+  (without it a shop is still in setup and takes no orders). One small shop
+  got a stand-in cover photo (1800 × 600, 187 KB). The big shop's first
+  cards are products made by `measure.py`'s write tests, without photos, so
+  its LCP is text in both builds; photo timings use the 25-product shop.
+- **Backend:** `measure.py` in-process (every endpoint); both production
+  images at `--cpus 0.1` side by side for the busiest endpoints (28 runs).
+- **Frontend:** both builds with Sentry on (as on Vercel), served with full
+  brotli; Lighthouse 12.8.2 mobile, 3 runs per page, old and new taking
+  turns. Scratch builds of two fixes (A: F19; B: F19 + F2) the same way.
+- **Live:** this network doesn't intercept TLS (the API shows its real
+  certificate, Google Trust Services), so the section 8 checks ran from
+  here, plus Lighthouse on the live shop (`/shop/reaksa-store`, 18
+  products, with a cover).
+
+### 12.2 What changed
+
+**The one JS file every page loads** (Vite's gzip figure, Sentry on):
+
+| | Old (10-14) | New (10-19) |
+|---|---|---|
+| Main JS | 266.2 KB | **330.5 KB (+24%)** |
+| CSS | 14.8 KB | 20.8 KB |
+| Fonts (Khmer + Latin) | 90 KB (Kantumruy Pro) | 107 KB (Noto Sans Khmer + Inter) |
+
+Where the +62 KB came from (gzip of each part alone): **jsQR +45.5 KB**
+(the QR reader for Settings → Payments, "Upload your bank's QR", 2026-10-14),
+dashboard code +8.5, `lib/` +1.8, shop code +2.0, translations +1.6. Seller
+code only, apart from the shop's 2 KB.
+
+**Lighthouse mobile**, median of 3 (score range in brackets), old → new:
+
+| Page | Score | FCP | LCP | JS / CSS / fonts sent |
+|---|---|---|---|---|
+| Shop, 500 products | 63 (59-65) → 57 (56-57) | 2.55 → **3.00 s** | 3.98 → 4.43 s (text) | 213 / 12 / 89 → 250 / 16 / 107 KB |
+| Shop, 25 products | 73 (73-74) → 70 (70-71) | 2.55 → **3.00 s** | 6.30 → 6.68 s | same |
+| Product, 2 photos | 78 → 72 (72-74) | 2.15 → **3.00 s** | 5.08 → 5.48 s | same |
+| Product, 4 photos | 75 (73-75) → 72 (71-72) | 2.25 → 2.70 s | 6.60 → 6.90 s | same |
+| Shop, 25 products, with a cover (new) | 75 (72-75) | 3.00 s | **5.07 s** (the cover) | same |
+| Seller: Orders | 69 (69-70) → 65 (61-66) | 2.25 → **3.04 s** | 6.59 → 6.66 s | same |
+| Seller: Products (500) | 48 (48-61) → 45 (44-45) | 2.25 → 3.00 s | 6.10 → 6.45 s | same |
+| **Live shop** (18 products, cover) | 65 (64-74) | 3.47 s | 6.75 s (4.85-7.35) | **326** / 20 / 107 KB; photos 1,919 KB |
+
+So customers' first paint moved ~0.45-0.85 s later and their main image
+0.3-0.45 s later, on every page, from bytes alone (JS +37 KB, CSS +4 KB,
+fonts +18 KB as sent). A cover photo is not a cost: it becomes the shop's
+main image and arrives sooner than a grid photo (LCP 5.1 s vs 6.7 s).
+
+**Backend: unchanged.**
+
+- Statements and round trips are the same as section 3.1 on every endpoint
+  except four, which gained one statement each: the orders list, a
+  customer's page, link stats and the month's export. It is the "Says paid"
+  lookup (`notifications.last_payment_claims`, UX fix `25cde80`): 3.1 ms on
+  the 5,000-order shop, scanning its 11,000 notification rows (F13, now
+  also on the Orders list's 30 s refresh).
+- At 0.1 CPU, old image vs new, same data: orders list p50 103 / 102 ms vs
+  106 / 108 ms (two rounds), p95 195 vs 196-199 ms; shop page, product
+  list, product, customer's order page, seller store, product list and the
+  bell within noise of each other.
+- The audit's 9-screen seller session: 19 → 20 API requests (the new
+  `GET /seller/plan`); the product list still 3× (F1, accepted).
+- Cold start at 0.1 CPU: importing the app takes 21-26 s in both images
+  (Sentry ~5-6 s of it, boto3 ~2 s); a restart to the first `/health`
+  answer (no-op migration + imports) 32 s on this machine.
+- Link-preview pictures at 0.1 CPU: a product card's first drawing
+  0.8-2.2 s, a cover card 0.5 s, a logo 0.2 s, then 0.09 s from memory. A
+  shopper's request during a drawing: 0.1 → 0.5 s. Fine: Facebook and
+  Telegram fetch each picture once.
+
+Checked and fine: the map pin's address lookup runs in the customer's
+browser (OpenStreetMap), not on our server; the map and its pin preview
+still load only at checkout; polling in the dashboard is unchanged (Orders,
+bell, open notifications every 30 s).
+
+### 12.3 Live checks (section 8)
+
+| Item | Result |
+|---|---|
+| API compression | `content-encoding: br`, `server: cloudflare` on shop answers. **F4 closed** |
+| Static files (Vercel) | `/assets/*` (hashed names) sent with `cache-control: public, max-age=0, must-revalidate`, so a returning phone asks Vercel about each file before using it (F21) |
+| Vercel's compression | The main JS goes out as **325 KB** (br, and the same with gzip), cached at the edge or not. The same file is 250 KB at full brotli and 284 KB at brotli 6 (F21) |
+| Photos (`images.oaksolve.com`) | No `Cache-Control`; ETag and Last-Modified; `cf-cache-status: DYNAMIC` on repeat requests, so Cloudflare doesn't keep them at its edge (F23) |
+| Render → Neon | `/health` answers in ~73 ms server time, the shop's product list (15 round trips plus its work) in ~114 ms: at most ~3 ms a trip. F12 stays deferred |
+| Cold start | Not measured: the API is awake in the daytime |
+| Live Lighthouse | In 12.2. Photos: 18 grid tiles, each the ~480 px small copy, but 85 KB on average (17-174 KB), and two older full-size photos without one (383 + 202 KB) |
+
+### 12.4 New findings, ranked by measured impact
+
+| # | Finding | Who | Measured | Proposed fix | Effort | Risk | Migr. | Money |
+|---|---|---|---|---|---|---|---|---|
+| F19 | The seller's QR reader (jsQR) is in the one JS file every page loads | Customers (every shop link), sellers | 45.5 KB of the 62 KB growth. Scratch build A: main JS 330.5 → **282 KB**; Lighthouse shop LCP 6.68 → 6.54 s, product 5.52 → 5.40 s (FCP moves in ~0.15 s steps and counts fonts, so it barely shows there); as Vercel sends it, ~45 KB ≈ 0.2 s on Slow 4G | Load jsQR only when the seller picks a QR photo (`import('jsqr')` inside `readQrImage`, one line). The seller's first QR read waits for ~48 KB more, once | 0.25 | low | no | no |
+| F20 | Photos from iPhones come out ~1.7× bigger than the app asks for | Customers (every grid and product page), sellers uploading on 4G | 11 of the live shop's 12 small copies are encoded at about quality 93, one at about 80, though the app asks for 0.8 (`lib/images.ts`); full photos at about 92-95. The same pixels at a real 0.8: **988 → 576 KB (−42%)** for 12 tiles. Most likely Safari's encoder, which reads the number differently from Chrome's: needs an iPhone check | Encode to a size budget, not just a quality number: if the copy (or the photo) comes out over its budget, encode again lower, same pixel size. Only new uploads change | 1 | low | no | no |
+| F21 | Vercel sends JS and CSS at a low compression level, and asks phones to re-check unchanging files on every visit | Customers, sellers | JS 325 KB sent vs 250 KB at full brotli (+75 KB ≈ 0.4 s on Slow 4G); `/assets/*` `max-age=0` | Cache header: `public, max-age=31536000, immutable` for `/assets/*` in `vercel.json` and `public/_headers` (Cloudflare Pages), a few lines. Compression: no setting on Vercel; measure again after the Cloudflare Pages move (decided 2026-10-14) | 0.25 | low | no | no |
+| F22 | "Get updates on Telegram" checks the order every 3 s with no end | Server (all shops) | After the tap, the order page polls every 3 s until the customer finishes in Telegram, while the page is in front, however long. Each check takes ~0.1 s at 0.1 CPU (~10 ms of actual CPU), so ~3% of the free plan's CPU per customer left waiting | After ~2 minutes, go back to the normal 30 s check | 0.25 | low | no | no |
+| F23 | Photos aren't kept at Cloudflare's edge and carry no cache header | Customers (return visits most) | `DYNAMIC` on repeat requests; browsers keep them only by guesswork from Last-Modified. From here the gain is lost in network noise (a photo's first byte ~0.2-0.35 s either way) | A Cache Rule on `images.oaksolve.com` in the Cloudflare dashboard (founder's account, free plan, no code); photo addresses never change, so a year is safe | 0.25 (founder) | low | no | no |
+
+Updates to earlier findings:
+
+- **F2 (load seller and login pages per route):** scratch build B (F19 +
+  per-route pages) needs **216 KB** of JS up front on a shop page, vs 319 KB
+  today and 273 KB with F19 alone (gzip -9 of every file the page loads at
+  start). Lighthouse vs today: shop FCP 3.00 → 2.70 s, LCP 6.68 → 6.15 s;
+  product FCP 2.70 → 2.55 s, LCP 5.52 → 5.08 s; seller Orders FCP +0.1 s
+  (one more file) and TBT 228 → 121 ms. Still decided by the device
+  checklist (3 s or more to show products on 4G in an in-app browser); the
+  numbers moved toward that line.
+- **F13:** the "Says paid" lookup now also runs on every Orders refresh
+  (30 s). 3 ms at 5,000 orders; same trigger (~20k orders in one shop).
+- **F4:** closed (12.3).
+- The founder's own shop has two photos from before small copies existed
+  (2026-10-03): re-uploading them saves 585 KB on its page. Real sellers
+  don't have this (every upload since 2026-10-04 has a small copy).
+
+### 12.5 Recommendation
+
+1. **Now, ~45 minutes, one commit each, low risk:** F19, F22 and F21's
+   cache header. F19 alone undoes most of the growth since the pause.
+2. **Next, with one iPhone upload by the founder to confirm:** F20, before
+   real sellers have uploaded many photos (old photos stay as they are).
+3. **Unchanged:** F2, F16, F17, F6b and F18 by the device checklist
+   (section 9); F23 any time in the Cloudflare dashboard; F21's
+   compression after the move to Cloudflare Pages.
