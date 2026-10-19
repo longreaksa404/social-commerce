@@ -254,9 +254,10 @@ export const settings = {
 
 
   display: { en: 'Language and theme', km: 'ភាសា និងរូបរាង' },
+  // True on laptops too (settings check #12, 2026-10-19).
   displayHint: {
-    en: 'For this phone.',
-    km: 'សម្រាប់ទូរស័ព្ទនេះ។',
+    en: 'For this device.',
+    km: 'សម្រាប់ឧបករណ៍នេះ។',
   },
   language: { en: 'Language', km: 'ភាសា' },
   theme: { en: 'Theme', km: 'រូបរាង' },
