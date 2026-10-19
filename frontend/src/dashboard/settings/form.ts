@@ -81,7 +81,7 @@ export const toForm = (store: Store): Form => {
   }
 }
 
-export const SECTION_IDS = ['shop', 'orders', 'payments', 'delivery', 'discounts', 'contact', 'link'] as const
+export const SECTION_IDS = ['shop', 'orders', 'payments', 'delivery', 'discounts', 'contact'] as const
 export type SectionId = (typeof SECTION_IDS)[number]
 
 export const isSectionId = (value: string | undefined): value is SectionId =>
@@ -100,6 +100,7 @@ export const isPageId = (value: string | undefined): value is PageId =>
 export const MOVED: Record<string, string> = {
   telegram: '/dashboard/settings/orders',
   export: '/dashboard/settings/orders',
+  link: '/dashboard/links',
 }
 
 type Section = {
@@ -109,8 +110,6 @@ type Section = {
   body: (form: Form) => Record<string, unknown>
   /** Fields the server may name in an error; their message shows by the input. */
   fields: (form: Form) => string[]
-  /** Nothing to save: shown without the Save bar. */
-  view?: true
 }
 
 export const SECTIONS: Record<SectionId, Section> = {
@@ -193,12 +192,5 @@ export const SECTIONS: Record<SectionId, Section> = {
       contact_phone: form.contact_phone.trim() || null,
     }),
     fields: () => ['telegram_username', 'messenger_username', 'contact_phone'],
-  },
-  // The link is made at sign-up and can't be changed (2026-10-18).
-  link: {
-    title: (s) => s.shopLink,
-    body: () => ({}),
-    fields: () => [],
-    view: true,
   },
 }

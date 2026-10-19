@@ -1,4 +1,4 @@
-import { Copy, Link2, Plus } from 'lucide-react'
+import { Copy, Link2, Plus, Store as StoreIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
 import { SourceLogo } from '../../components/SourceLogo.tsx'
@@ -8,7 +8,8 @@ import { buttonClass } from '../../components/styles.ts'
 import { useT } from '../../i18n/useT.ts'
 import { linkPlace, linkTargetName, linkUrl, TARGET_ICONS } from '../../lib/links.ts'
 import type { ShareLink } from '../../lib/types.ts'
-import { useLinks } from '../queries.ts'
+import { useShareShop } from '../ShareShop.tsx'
+import { useLinks, useStore } from '../queries.ts'
 
 /** /dashboard/links: a link per place the seller posts, with the views and
  * orders each brought. */
@@ -37,6 +38,7 @@ export function LinkList() {
     return (
       <>
         <PageHeader title={l.title} />
+        <ShopLinkCard />
         <EmptyState
           icon={Link2}
           title={l.emptyTitle}
@@ -56,6 +58,7 @@ export function LinkList() {
   return (
     <>
       <PageHeader title={l.title} action={newButton} />
+      <ShopLinkCard />
       <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {links.data.map((link) => (
           <li key={link.id}>
@@ -64,6 +67,31 @@ export function LinkList() {
         ))}
       </ul>
     </>
+  )
+}
+
+/** The shop's plain link, first on Links: it was Settings → Shop link
+ * until the settings check (founder, 2026-10-19: "we already have Links").
+ * Copy as on every link's card; the header's share button shares it. */
+function ShopLinkCard() {
+  const store = useStore()
+  const { copy } = useShareShop()
+  const l = useT().links
+  if (!store.data) return null
+  const shown = `${window.location.host}/shop/${store.data.slug}`
+  return (
+    <Card className="mb-4 flex items-center gap-3 p-4">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
+        <StoreIcon aria-hidden className="size-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-slate-900">{l.yourShopLink}</p>
+        <p className="truncate text-sm text-slate-500">{shown}</p>
+      </div>
+      <Button variant="secondary" icon={Copy} onClick={copy} className="shrink-0">
+        {l.copy}
+      </Button>
+    </Card>
   )
 }
 

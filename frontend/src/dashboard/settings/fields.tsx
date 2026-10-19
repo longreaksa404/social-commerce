@@ -1,17 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  Check,
-  CircleCheck,
-  Copy,
-  ExternalLink,
-  ImagePlus,
-  Plus,
-  QrCode,
-  Send,
-  Share2,
-  Store as StoreIcon,
-  Trash2,
-} from 'lucide-react'
+import { Check, CircleCheck, ExternalLink, ImagePlus, Plus, QrCode, Send, Store as StoreIcon, Trash2 } from 'lucide-react'
 import { useRef, useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
@@ -37,7 +25,6 @@ import { parseKhqr, readQrImage } from '../../lib/readKhqr.ts'
 import type { Currency, PaymentSettings, ShopColor, Store, TelegramLink } from '../../lib/types.ts'
 import { DEEP_COLORS, LIGHT_COLORS } from '../../shop/colors.ts'
 import { keys } from '../queries.ts'
-import { useShareShop } from '../ShareShop.tsx'
 import type { DeliveryForm, Form, RuleRow } from './form.ts'
 
 /** What every settings page's fields get from the page. */
@@ -827,57 +814,5 @@ export function ContactFields({ form, update, error }: FieldsProps) {
         />
       </Field>
     </>
-  )
-}
-
-/** The shop's link: a code made at sign-up that the seller can't change
- * (founder, 2026-10-18); shops from before keep the one they had. Copy
- * and Share first, the most common job (UX check #10, 2026-10-17). */
-export function LinkFields({ store }: FieldsProps) {
-  return (
-    <>
-      <p className="break-all rounded-xl bg-slate-50 px-3.5 py-2.5 text-slate-700">
-        {window.location.host}/shop/<span className="font-semibold text-slate-900">{store.slug}</span>
-      </p>
-      <ShopLinkButtons slug={store.slug} />
-    </>
-  )
-}
-
-function ShopLinkButtons({ slug }: { slug: string }) {
-  const t = useT()
-  const s = t.settings
-  const { copy, share } = useShareShop()
-  const canShare = typeof navigator.share === 'function'
-  return (
-    <div className="space-y-3">
-      <div className="flex gap-2">
-        <Button icon={Copy} onClick={copy} className="flex-1 sm:flex-none">
-          {t.links.copyLink}
-        </Button>
-        {canShare && (
-          <Button variant="secondary" icon={Share2} onClick={share} className="flex-1 sm:flex-none">
-            {t.common.share}
-          </Button>
-        )}
-      </div>
-      <div className="flex flex-wrap gap-x-5">
-        <Link
-          to={`/shop/${slug}`}
-          target="_blank"
-          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-navy-700 link"
-        >
-          <ExternalLink aria-hidden className="size-4" />
-          {s.viewShop}
-        </Link>
-        <Link
-          to="/dashboard/links/new"
-          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-navy-700 link"
-        >
-          <Share2 aria-hidden className="size-4" />
-          {s.shareTracked}
-        </Link>
-      </div>
-    </div>
   )
 }

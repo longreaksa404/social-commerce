@@ -5,6 +5,8 @@ export const links = {
   title: { en: 'Links', km: 'តំណ' },
   link: { en: 'Link', km: 'តំណ' },
   newLink: { en: 'New link', km: 'តំណថ្មី' },
+  // The shop's plain link, first on the page (settings check, 2026-10-19).
+  yourShopLink: { en: 'Your shop link', km: 'តំណហាងរបស់អ្នក' },
   emptyTitle: { en: 'See which posts bring orders', km: 'មើលថាប៉ុស្តិ៍ណាខ្លះនាំមកការកុម្ម៉ង់' },
   emptyText: {
     en: 'Make a link for each post to count its views and orders.',

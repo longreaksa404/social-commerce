@@ -6,7 +6,6 @@ import {
   Inbox,
   LifeBuoy,
   MessageCircle,
-  Link2,
   ListChecks,
   LogOut,
   Store as StoreIcon,
@@ -42,7 +41,6 @@ const ROWS: { id: Exclude<SectionId, 'shop'>; icon: LucideIcon }[] = [
   { id: 'delivery', icon: Truck },
   { id: 'discounts', icon: Tag },
   { id: 'contact', icon: MessageCircle },
-  { id: 'link', icon: Link2 },
 ]
 
 /** /dashboard/settings: one row per part of the shop's settings, each
@@ -256,7 +254,6 @@ function summaries(store: Store, t: Messages): Record<Exclude<SectionId, 'shop'>
         ...(store.messenger_username ? ['Messenger'] : []),
         ...(store.contact_phone ? [formatPhone(store.contact_phone)] : []),
       ].join(', ') || m.none,
-    link: `/shop/${store.slug}`,
   }
 }
 

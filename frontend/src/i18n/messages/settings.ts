@@ -240,9 +240,6 @@ export const settings = {
     km: 'បង្ហាញក្នុងហាងរបស់អ្នក។',
   },
 
-  shopLink: { en: 'Shop link', km: 'តំណហាង' },
-  viewShop: { en: 'View your shop', km: 'មើលហាងរបស់អ្នក' },
-  shareTracked: { en: 'Share with a tracked link', km: 'ចែករំលែកជាមួយតំណតាមដាន' },
 
   display: { en: 'Language and theme', km: 'ភាសា និងរូបរាង' },
   displayHint: {
