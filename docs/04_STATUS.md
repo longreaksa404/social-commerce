@@ -2575,6 +2575,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 | Date | Source | Request | Status |
 |---|---|---|---|
+| 2026-10-19 | Founder (settings check) | Convert prices when a shop switches between dollars and riel, at a rate Oak Order sets on the admin page | Logged for later: a fixed rate goes stale. Until then Save asks first and prices keep their numbers. Details in 03 §6. |
 | 2026-10-15 | Founder (customers giving wrong or fake phones) | Seller tools against fake orders: "Couldn't reach the customer" when cancelling, a "No cash on delivery" / block mark on a customer | Validate First: build when a seller gets a fake order. Parts 1 and 2 built instead. Details in 03 §6. |
 | 2026-10-10 | Founder (Oak in the shop) | Let sellers on a paid plan hide "Made with Oak Order" | Decided 2026-10-14: the line stays on the Standard plan; hiding it may come with a later plan (01 §33.1). Details in 03 §6. |
 | 2026-10-09 | Founder (trying the numbers card locally) | A seller dashboard: a page for the shop's numbers, with the chart (sales per day; today, 7 days, this month) | Later: the page first, then the chart on it. The server part is ready (`GET /seller/stats`, owner only). Details in 03 §6. |

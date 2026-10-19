@@ -15,6 +15,26 @@ export const settings = {
     en: 'Existing prices are not converted.',
     km: 'តម្លៃដែលមានស្រាប់មិនត្រូវបានប្ដូរទេ។',
   },
+  // Asked at Save when the currency changes (settings check #1,
+  // 2026-10-19). Prices aren't converted: a rate set by Oak Order is logged
+  // for later.
+  switchTitle: {
+    KHR: { en: 'Switch to riel?', km: 'ប្ដូរទៅប្រាក់រៀល?' },
+    USD: { en: 'Switch to dollars?', km: 'ប្ដូរទៅប្រាក់ដុល្លារ?' },
+  },
+  switchButton: {
+    KHR: { en: 'Switch to riel', km: 'ប្ដូរទៅប្រាក់រៀល' },
+    USD: { en: 'Switch to dollars', km: 'ប្ដូរទៅប្រាក់ដុល្លារ' },
+  },
+  // `example`: "Linen Shirt $12.00 becomes 12៛", or ''.
+  switchMessage: {
+    en: (example: string) => `Prices keep their numbers${example ? `: ${example}` : ''}. Change your prices after.`,
+    km: (example: string) => `តម្លៃនៅលេខដដែល${example ? `៖ ${example}` : ''}។ សូមកែតម្លៃបន្ទាប់ពីប្ដូរ។`,
+  },
+  switchExample: {
+    en: (name: string, from: string, to: string) => `${name} ${from} becomes ${to}`,
+    km: (name: string, from: string, to: string) => `${name} ${from} ក្លាយជា ${to}`,
+  },
   usd: { en: 'US dollar ($)', km: 'ដុល្លារអាមេរិក ($)' },
   khr: { en: 'Cambodian riel (៛)', km: 'ប្រាក់រៀល (៛)' },
   logo: { en: 'Shop logo', km: 'ឡូហ្គោហាង' },

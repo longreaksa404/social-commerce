@@ -7,7 +7,8 @@ import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
 import { formError } from '../../lib/errors.ts'
-import type { Store } from '../../lib/types.ts'
+import { formatMoney } from '../../lib/money.ts'
+import type { Product, Store } from '../../lib/types.ts'
 import { keys, useRole, useStore } from '../queries.ts'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
 import {
@@ -99,13 +100,14 @@ function SectionForm({ id, store }: { id: SectionId; store: Store }) {
   const section = SECTIONS[id]
   const Fields = FIELDS[id]
   const queryClient = useQueryClient()
-  const { toast } = useFeedback()
+  const { toast, confirm } = useFeedback()
   const [form, setForm] = useState(() => toForm(store))
   const t = useT()
   const s = t.settings
   const body = section.body(form)
   const dirty = JSON.stringify(body) !== JSON.stringify(section.body(toForm(store)))
   useUnsavedChanges(dirty)
+  const switching = id === 'shop' && form.currency !== store.currency
 
   const save = useMutation({
     mutationFn: () => api<Store>('/seller/store', { method: 'PATCH', body }),
@@ -116,8 +118,26 @@ function SectionForm({ id, store }: { id: SectionId; store: Store }) {
     },
   })
 
-  function submit(event: FormEvent) {
+  /** A new currency keeps every price's number ($12.00 becomes 12 riel),
+   * so ask first, with one of the shop's own products as the example
+   * (settings check #1, 2026-10-19). */
+  async function confirmSwitch(): Promise<boolean> {
+    const to = form.currency
+    const product = queryClient.getQueryData<Product[]>(keys.products)?.find((p) => Number(p.price) > 0)
+    const example = product
+      ? s.switchExample(product.name, formatMoney(product.price, store.currency), formatMoney(product.price, to))
+      : ''
+    return confirm({
+      title: s.switchTitle[to],
+      message: s.switchMessage(example),
+      confirmLabel: s.switchButton[to],
+      danger: true,
+    })
+  }
+
+  async function submit(event: FormEvent) {
     event.preventDefault()
+    if (switching && !(await confirmSwitch())) return
     save.mutate()
   }
 
