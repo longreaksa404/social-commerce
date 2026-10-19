@@ -13,7 +13,7 @@
 > measured against the audit's last code. Customers' first paint is ~0.5 s
 > later, almost all from one seller-only library (F19); the backend is
 > unchanged; the section 8 live checks are done (F4 closed). New findings
-> F19-F23 wait for the founder's picks.
+> F19-F23 are logged to fix later (founder, 2026-10-19).
 
 ---
 
@@ -530,6 +530,8 @@ F5 `7b22bff`, F6 `28050ce`.
 - **F18 smaller photos for order rows:** decided by the device checklist, by whether order photos fill in late in flow 8.
 - **F4 closed** (2026-10-19, section 12.3): Cloudflare, in front of
   Render, already sends API answers with brotli.
+- **F19-F23:** logged, to fix later (founder, 2026-10-19: "log first and
+  push first, will fix it later"); section 12.5 has the order.
 
 ---
 
@@ -674,3 +676,6 @@ Updates to earlier findings:
 3. **Unchanged:** F2, F16, F17, F6b and F18 by the device checklist
    (section 9); F23 any time in the Cloudflare dashboard; F21's
    compression after the move to Cloudflare Pages.
+
+**Founder, 2026-10-19:** log first, fix later. Nothing above is built
+yet; when the work resumes, start with 1.
