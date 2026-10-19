@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { KeyRound, Trash2, UserPlus } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useFeedback } from '../../components/feedback.ts'
-import { Button, ErrorMessage, ErrorState, Field, IconButton, Input, PasswordInput, Section, Skeleton } from '../../components/ui.tsx'
+import { Button, Card, ErrorMessage, ErrorState, Field, IconButton, Input, PasswordInput, Section, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
 import { fieldError, formError } from '../../lib/errors.ts'
@@ -30,15 +30,17 @@ export function StaffPage() {
   )
 }
 
+/** No title of its own: the page is called Staff already (settings
+ * check #11, founder 2026-10-19). */
 function StaffList({ staff }: { staff: StaffMember[] }) {
   const s = useT().settings
   const [resetting, setResetting] = useState<string | null>(null)
   return (
-    <Section title={s.staff}>
+    <Card className="px-4 py-2 sm:px-6">
       {staff.length === 0 ? (
-        <p className="text-sm text-slate-500">{s.noStaff}</p>
+        <p className="py-2 text-sm text-slate-500">{s.noStaff}</p>
       ) : (
-        <ul className="-my-2 divide-y divide-slate-100">
+        <ul className="divide-y divide-slate-100">
           {staff.map((member) => (
             <li key={member.id} className="py-3">
               <StaffRow member={member} resetting={resetting === member.id} onReset={setResetting} />
@@ -46,7 +48,7 @@ function StaffList({ staff }: { staff: StaffMember[] }) {
           ))}
         </ul>
       )}
-    </Section>
+    </Card>
   )
 }
 
