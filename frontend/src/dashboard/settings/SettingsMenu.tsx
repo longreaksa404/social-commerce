@@ -173,7 +173,7 @@ function MenuRow({
   href?: string
   icon: ReactNode
   title: string
-  summary: string
+  summary: ReactNode
   selected?: boolean
 }) {
   const className = `flex min-h-16 items-center gap-3 px-4 py-3 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100 sm:[:not(li)>&]:rounded-2xl sm:[li:first-child>&]:rounded-t-2xl sm:[li:last-child>&]:rounded-b-2xl ${
@@ -209,8 +209,14 @@ function MenuRow({
   )
 }
 
-/** What each row says is set now. */
-function summaries(store: Store, t: Messages): Record<Exclude<SectionId, 'shop'>, string> {
+/** Words in a row's summary that need the seller (settings check #3,
+ * founder 2026-10-19): amber words, no box or dot, like "Says paid". */
+function attention(text: string): ReactNode {
+  return <span className="text-amber-800">{text}</span>
+}
+
+/** What each row says is set now; what needs the seller in amber. */
+function summaries(store: Store, t: Messages): Record<Exclude<SectionId, 'shop'>, ReactNode> {
   const m = t.settings.menu
   const money = (amount: string) => formatMoney(amount, store.currency)
   const { payment_settings: payments, delivery_settings: delivery } = store
@@ -237,15 +243,18 @@ function summaries(store: Store, t: Messages): Record<Exclude<SectionId, 'shop'>
 
   return {
     // Orders and alerts: Telegram once the platform's bot is set up.
-    orders: store.telegram_bot_available
-      ? `${taking} · ${store.telegram_connected ? m.telegramOn : m.telegramOff}`
-      : taking,
+    orders: (
+      <>
+        {store.orders_paused ? attention(taking) : taking}
+        {store.telegram_bot_available && (
+          <> · {store.telegram_connected ? m.telegramOn : attention(m.telegramOff)}</>
+        )}
+      </>
+    ),
     payments: methods.map((method) => t.status.paymentMethod[method]).join(', ') || m.noneOn,
     delivery: store.delivery_set_up
       ? deliveryParts.join(' · ') || m.noneOn
-      : Number(delivery.fee) > 0
-        ? m.deliveryNotSetFee(money(delivery.fee))
-        : m.deliveryNotSet,
+      : attention(Number(delivery.fee) > 0 ? m.deliveryNotSetFee(money(delivery.fee)) : m.deliveryNotSet),
     discounts: rules.map((r) => m.discount(money(r.amount_off), money(r.min_subtotal))).join(' · ') || m.none,
     contact:
       [
@@ -280,7 +289,14 @@ function AccountRows({ selected, store, owner }: { selected?: Selected; store?: 
   const a = t.admin
   const plan = usePlan()
   const isAdmin = useAccount().data?.is_admin === true
-  const rows: { id: Exclude<PageId, 'close'> | 'help' | 'admin'; to?: string; href?: string; icon: LucideIcon; title: string; summary: string }[] = [
+  const rows: {
+    id: Exclude<PageId, 'close'> | 'help' | 'admin'
+    to?: string
+    href?: string
+    icon: LucideIcon
+    title: string
+    summary: ReactNode
+  }[] = [
     { id: 'account', icon: UserRound, title: s.yourAccount, summary: s.menu.accountHint },
   ]
   if (owner) {
@@ -317,14 +333,16 @@ function AccountRows({ selected, store, owner }: { selected?: Selected; store?: 
   )
 }
 
-/** The Plan row: until when the shop is covered, or what to do now. */
-function planSummary(plan: Plan | undefined, p: Messages['settings']['plan']): string {
+/** The Plan row: until when the shop is covered, or what to do now; in
+ * amber from its last 6 days. */
+function planSummary(plan: Plan | undefined, p: Messages['settings']['plan']): ReactNode {
   if (!plan) return ''
   if (plan.claim) return p.menuClaimed
   if (plan.stage === 'setup') return p.menuSetup
-  if (plan.stage === 'stopped') return p.menuStopped
-  if (plan.stage === 'overdue') return p.menuOverdue(formatCalendarDay(plan.pay_by ?? ''))
-  return (plan.on_trial ? p.menuTrial : p.menuPaid)(formatDate(`${plan.paid_until}T00:00`))
+  if (plan.stage === 'stopped') return attention(p.menuStopped)
+  if (plan.stage === 'overdue') return attention(p.menuOverdue(formatCalendarDay(plan.pay_by ?? '')))
+  const until = (plan.on_trial ? p.menuTrial : p.menuPaid)(formatDate(`${plan.paid_until}T00:00`))
+  return plan.stage === 'ending_soon' ? attention(until) : until
 }
 
 /** Asks first, so a stray tap doesn't log the seller out mid-day. */
