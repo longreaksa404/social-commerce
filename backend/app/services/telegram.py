@@ -280,7 +280,12 @@ async def _phone_shared(chat_id: int, msg: dict[str, Any]) -> dict[str, Any]:
     elif check.code.startswith(phone_check.CODE_PREFIX):
         text = phone_done_text(check.phone)
     elif check.code.startswith(customer_login.CODE_PREFIX):
-        text = customer_login.done_text(check)
+        # "Done", then "Open checkout": all but the last sent now, in order;
+        # the last goes back in the webhook's answer.
+        *first, last = await customer_login.finished(check)
+        for answer in first:
+            await call(answer.pop("method"), answer)
+        return last
     else:
         text = await customer_updates.confirmed(check)
     return _reply(chat_id, text, {"remove_keyboard": True})

@@ -2,9 +2,13 @@
 with the cart, the bot's /start and share button, the token, and an order
 placed with it getting the order's news on Telegram."""
 
+import hashlib
+import hmac
 import json
 import random
+import time
 import uuid
+from urllib.parse import urlencode
 
 import pytest
 
@@ -36,7 +40,12 @@ def bot(monkeypatch):
     async def fake_send(chat_id, text, button=None):
         sent.append({"chat_id": chat_id, "text": text, "button": button})
 
+    async def fake_call(method, payload):
+        sent.append({"method": method, **payload})
+        return {}
+
     monkeypatch.setattr(telegram, "send_message", fake_send)
+    monkeypatch.setattr(telegram, "call", fake_call)
     return sent
 
 
@@ -58,7 +67,7 @@ async def a_shop(client, auth_headers):
     return headers, store_id, slug, cap
 
 
-async def log_in(client, slug, cap, user_id, phone="85512345678") -> dict:
+async def log_in(client, bot, slug, cap, user_id, phone="85512345678") -> dict:
     """Checkout's check, the bot, the shared phone: the page's last read."""
     started = await client.post(
         f"/api/v1/shop/{slug}/telegram-login",
@@ -77,16 +86,19 @@ async def log_in(client, slug, cap, user_id, phone="85512345678") -> dict:
         "first_name": "Sokha",
         "last_name": "Chan",
     }
-    done = await telegram.handle_update(message(user_id, contact=contact))
-    assert "✅" in done["text"]
+    before = len(bot)
+    opener = await telegram.handle_update(message(user_id, contact=contact))
+    # "Done" goes first (taking the share button away), then "Open checkout".
+    [done] = bot[before:]
+    assert "✅" in done["text"] and done["reply_markup"] == {"remove_keyboard": True}
     read = await client.get(f"/api/v1/shop/{slug}/telegram-login/{check['id']}")
     assert read.status_code == 200, read.text
-    return {"check": check, "asked": asked, "done": done, "read": read.json()}
+    return {"check": check, "asked": asked, "done": done, "opener": opener, "read": read.json()}
 
 
 async def test_login_gives_the_device_a_token(client, bot, auth_headers, sokha):
     _, _, slug, cap = await a_shop(client, auth_headers)
-    result = await log_in(client, slug, cap, sokha)
+    result = await log_in(client, bot, slug, cap, sokha)
 
     assert "នឹងឃើញលេខនេះ" in result["asked"]["text"]  # the shop will see the number
     assert "012345678" in result["done"]["text"]
@@ -112,14 +124,14 @@ async def test_a_returning_customer_gets_the_shops_name_and_address(
     _, _, slug, cap = await a_shop(client, auth_headers)
     placed = await place_order(client, slug, [(cap, None, 1)], total="10.00", phone="012 345 678")
     assert placed.status_code == 201
-    customer = (await log_in(client, slug, cap, sokha))["read"]["customer"]
+    customer = (await log_in(client, bot, slug, cap, sokha))["read"]["customer"]
     # The helper orders as "Dara" to St 271.
     assert (customer["name"], customer["address"]) == ("Dara", "St 271, Phnom Penh")
 
 
 async def test_an_order_with_the_token_gets_telegram_news(client, bot, auth_headers, sokha):
     headers, _, slug, cap = await a_shop(client, auth_headers)
-    token = (await log_in(client, slug, cap, sokha))["read"]["customer"]["token"]
+    token = (await log_in(client, bot, slug, cap, sokha))["read"]["customer"]["token"]
 
     placed = await place_order(
         client, slug, [(cap, None, 1)], total="10.00", headers={"X-Customer-Token": token}
@@ -148,7 +160,7 @@ async def test_another_shop_cant_read_the_check(client, bot, auth_headers, sokha
     """The check belongs to the shop it was made in (tenant isolation)."""
     _, _, slug, cap = await a_shop(client, auth_headers)
     _, _, other_slug, _ = await a_shop(client, auth_headers)
-    check_id = (await log_in(client, slug, cap, sokha))["check"]["id"]
+    check_id = (await log_in(client, bot, slug, cap, sokha))["check"]["id"]
     elsewhere = await client.get(f"/api/v1/shop/{other_slug}/telegram-login/{check_id}")
     assert elsewhere.status_code == 404
     unknown = await client.get(f"/api/v1/shop/{slug}/telegram-login/{uuid.uuid4()}")
@@ -180,8 +192,79 @@ async def test_an_expired_or_unknown_login_link_explains(client, bot, sokha):
 
 async def test_a_customer_token_is_no_seller_login(client, bot, auth_headers, sokha):
     _, _, slug, cap = await a_shop(client, auth_headers)
-    token = (await log_in(client, slug, cap, sokha))["read"]["customer"]["token"]
+    token = (await log_in(client, bot, slug, cap, sokha))["read"]["customer"]["token"]
     response = await client.get(
         "/api/v1/seller/store", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == 401
+
+
+# Inside Telegram (the mini app)
+
+
+def init_data(user_id: int, token: str = "123:abc") -> str:
+    """initData as Telegram signs it for the bot, fresh."""
+    fields = {
+        "auth_date": str(int(time.time())),
+        "user": json.dumps({"id": user_id, "first_name": "Sokha"}),
+    }
+    check = "\n".join(f"{k}={v}" for k, v in sorted(fields.items()))
+    secret = hmac.new(b"WebAppData", token.encode(), hashlib.sha256).digest()
+    fields["hash"] = hmac.new(secret, check.encode(), hashlib.sha256).hexdigest()
+    return urlencode(fields)
+
+
+async def test_the_bot_opens_the_same_checkout_inside_telegram(client, bot, auth_headers, sokha):
+    _, _, slug, cap = await a_shop(client, auth_headers)
+    result = await log_in(client, bot, slug, cap, sokha)
+    check_id = result["check"]["id"]
+    button = result["opener"]["reply_markup"]["inline_keyboard"][0][0]
+    assert button["web_app"]["url"] == f"https://app.example.com/shop/{slug}/cart?tg={check_id}"
+
+    url = f"/api/v1/shop/{slug}/telegram-login/{check_id}/mini-app"
+    inside = await client.post(url, json={"init_data": init_data(sokha)})
+    assert inside.status_code == 200, inside.text
+    body = inside.json()
+    assert body["customer"]["phone"] == "012345678"
+    assert [(line["product_id"], line["quantity"]) for line in body["lines"]] == [(str(cap), 1)]
+
+    # Someone else's Telegram (a forwarded button), or data Telegram didn't sign.
+    other = await client.post(url, json={"init_data": init_data(sokha + 1)})
+    assert other.status_code == 404
+    forged = await client.post(url, json={"init_data": init_data(sokha, "999:zzz")})
+    assert forged.status_code == 401
+
+
+async def test_without_https_the_bot_just_says_go_back(
+    client, bot, auth_headers, sokha, monkeypatch
+):
+    monkeypatch.setattr(get_settings(), "public_app_url", "http://localhost:5173")
+    _, _, slug, cap = await a_shop(client, auth_headers)
+    started = await client.post(f"/api/v1/shop/{slug}/telegram-login", json={"lines": []})
+    code = started.json()["telegram_url"].split("?start=")[1]
+    await telegram.handle_update(message(sokha, text=f"/start {code}"))
+    contact = {"phone_number": "85512345678", "user_id": sokha, "first_name": "Sokha"}
+    only = await telegram.handle_update(message(sokha, contact=contact))
+    assert only["text"].startswith("✅") and only["reply_markup"] == {"remove_keyboard": True}
+
+
+async def test_the_mini_app_logs_a_known_customer_in_again(client, bot, auth_headers, sokha):
+    _, _, slug, cap = await a_shop(client, auth_headers)
+    url = f"/api/v1/shop/{slug}/mini-app-login"
+    unknown = await client.post(url, json={"init_data": init_data(sokha)})
+    assert unknown.status_code == 404
+
+    token = (await log_in(client, bot, slug, cap, sokha))["read"]["customer"]["token"]
+    await place_order(
+        client, slug, [(cap, None, 1)], total="10.00", headers={"X-Customer-Token": token}
+    )
+    again = await client.post(url, json={"init_data": init_data(sokha)})
+    assert again.status_code == 200, again.text
+    assert (again.json()["phone"], again.json()["name"]) == ("012345678", "Dara")
+
+    # Another Oak shop: the same Telegram account's proved phone, its name.
+    _, _, other_slug, _ = await a_shop(client, auth_headers)
+    elsewhere = await client.post(
+        f"/api/v1/shop/{other_slug}/mini-app-login", json={"init_data": init_data(sokha)}
+    )
+    assert (elsewhere.json()["phone"], elsewhere.json()["name"]) == ("012345678", "Sokha")

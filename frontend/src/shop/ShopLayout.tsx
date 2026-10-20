@@ -15,6 +15,7 @@ import { MadeWithOak } from './MadeWithOak.tsx'
 import { openedLink } from './device.ts'
 import { onCartLanded } from './fly.ts'
 import { isNotFound, trackView, useShop } from './queries.ts'
+import { useMiniApp } from './miniApp.ts'
 
 /** Customer-facing shell for /shop/:storeSlug/*. Pages render right away
  * and load their own data alongside the shop's, rather than waiting for it,
@@ -27,6 +28,8 @@ export function ShopLayout() {
   // Counted under the shop's current link, once it's known.
   useLinkTracking(shop.data?.slug)
   useShopColor(shop.data?.color)
+  // Inside Telegram: logged in, the cart from the bot, Telegram's back arrow.
+  useMiniApp(storeSlug)
   // Not where the order itself, checkout or the list of orders is showing.
   const orderPage = useMatch('/shop/:storeSlug/order/:orderId') !== null
   const checkout = useMatch('/shop/:storeSlug/cart') !== null

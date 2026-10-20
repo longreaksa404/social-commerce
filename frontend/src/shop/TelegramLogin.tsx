@@ -6,6 +6,7 @@ import { useT } from '../i18n/useT.ts'
 import { ApiError } from '../lib/api.ts'
 import { formatPhone } from '../lib/orders.ts'
 import type { CartLine } from './cart.ts'
+import { insideTelegram, telegramApp } from './miniApp.ts'
 import {
   pendingLogin,
   saveTelegramCustomer,
@@ -80,8 +81,14 @@ export function ContinueWithTelegram({
         target="_blank"
         rel="noreferrer"
         aria-disabled={!check}
-        onClick={() => {
+        onClick={(event) => {
           if (!check) return
+          // Inside Telegram (the mini app), Telegram opens its own links.
+          const app = insideTelegram() ? telegramApp() : null
+          if (app) {
+            event.preventDefault()
+            app.openTelegramLink(check.telegram_url)
+          }
           setOpened(true)
           setPendingLogin(shop, check)
           sendCartWithLogin(shop, check.id, lines)

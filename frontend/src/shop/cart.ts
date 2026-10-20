@@ -80,6 +80,12 @@ window.addEventListener('storage', (event) => {
   }
 })
 
+/** The whole cart at once: the one the customer brought into Telegram
+ * (the mini app, shop/miniApp.ts). */
+export function replaceCart(shop: string, lines: CartLine[]) {
+  write(shop, lines.filter(isLine))
+}
+
 const matches = (line: CartLine, productId: string, variantId: string | null) =>
   line.productId === productId && line.variantId === variantId
 

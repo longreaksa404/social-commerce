@@ -4,3 +4,10 @@
   Content-Security-Policy: frame-ancestors 'none'
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
+
+# The shop inside Telegram on the web (web.telegram.org shows a mini app
+# in a frame; Telegram's phone apps don't use one). Founder, 2026-10-20.
+/shop/*
+  ! Content-Security-Policy
+  ! X-Frame-Options
+  Content-Security-Policy: frame-ancestors 'self' https://web.telegram.org

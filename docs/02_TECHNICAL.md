@@ -485,6 +485,8 @@ POST   /api/v1/shop/{store_slug}/telegram-login            # "Continue with Tele
 GET    /api/v1/shop/{store_slug}/telegram-login/{id}       # read it; the customer token once the phone is shared
 POST   /api/v1/shop/{store_slug}/telegram-login/{id}/cart  # the cart as the page leaves for Telegram (sendBeacon)
 GET    /api/v1/shop/{store_slug}/me                        # X-Customer-Token: what checkout fills in at this shop
+POST   /api/v1/shop/{store_slug}/telegram-login/{id}/mini-app  # inside Telegram, from "Open checkout": initData → the login and the cart
+POST   /api/v1/shop/{store_slug}/mini-app-login            # inside Telegram: initData → the login, if this account shared its phone before
 ```
 
 ### Telegram
@@ -717,7 +719,8 @@ Customer taps "Ask seller on Telegram" on the product page
 - Optional: checkout's "Continue with Telegram" (outlined, above "or type your details"); customers without Telegram stay guests (§5.4, §8 unchanged).
 - Like a seller's phone check (§12.4): checkout makes a check ahead (`login_` code, with the shop and cart in `phone_check.cart`), the customer opens Oak's bot, shares their phone, and the page reads the check until it holds a **customer token** (JWT, type `customer`, 180 days: the Telegram user id, the proved phone, the Telegram name; not stored). The device keeps it for every Oak shop. No password, no profile, no account across shops: each shop still knows its customers by phone, and `GET /shop/{slug}/me` gives that shop's name and address for them.
 - An order placed with the token (`X-Customer-Token`) and the proved phone sets the shop's `customer.telegram_user_id` / `telegram_phone`, so the order's news goes to Telegram as after "Get updates on Telegram".
-- Next (built after the founder's test): the bot's "✅ Done" opens the same checkout inside Telegram as a mini app, logged in by Telegram's signed `initData`; a receipt and "Sent" alert for the customer.
+- **Inside Telegram (the mini app):** after the phone is shared the bot sends "✅ Done", then "Finish your order at <shop> here, or go back to the shop page you were on" with **Open checkout**, a `web_app` button to `/shop/{slug}/cart?tg={check id}`. The shop opens inside Telegram (the same pages), sends Telegram's signed `initData` with the check id and gets the login and the cart, only if Telegram says the opener is the account that shared the phone. Opened again later on a phone that forgot the login, `initData` alone logs in a Telegram account that shared its phone before (with this shop, else another Oak shop). Telegram's script loads only inside Telegram; Telegram's back arrow goes back. Shop pages may be framed by `https://web.telegram.org` (Telegram on the web); the rest of the app can't be framed.
+- Next: a receipt and a "Sent" alert for the customer.
 
 ## 12.5 Oak Order's Billing Messages (2026-10-14)
 - **To the seller, payment reminders:** a daily run (cron-job.org calls `POST /api/v1/billing/run`) sends a Khmer reminder on day 1 and day 5 after a shop's paid time ends ("pay by hand with your code; new orders stop on day 8"), once each per paid-until date (logged as `plan_reminder`), and not while an "I've paid" waits. Telegram is optional (01 §32 Rule 7): shops without it see the reminder on the Orders tab instead.

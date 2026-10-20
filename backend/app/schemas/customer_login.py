@@ -50,3 +50,17 @@ class TelegramLoginOut(BaseModel):
     telegram_url: str  # t.me/<bot>?start=login_<code>
     expires_at: datetime
     customer: CustomerSessionOut | None = None  # once the phone is shared
+
+
+class MiniAppIn(BaseModel):
+    """Telegram's signed `initData`, which says who opened the mini app."""
+
+    init_data: Annotated[str, StringConstraints(max_length=4096)]
+
+
+class MiniAppLoginOut(BaseModel):
+    """Inside Telegram, from the bot's "Open checkout": the login and the
+    cart the customer was checking out."""
+
+    customer: CustomerSessionOut
+    lines: list[CartLineIn]

@@ -3,43 +3,13 @@ import { Link, useSearchParams } from 'react-router'
 import { Button, Card } from '../components/ui.tsx'
 import { api } from '../lib/api.ts'
 import { drawKhqr } from '../lib/khqrImage.ts'
+import { loadTelegram, type WebApp } from '../shop/miniApp.ts'
 
 /** The founder's test of the mini app (2026-10-20, temporary, English
  * only, opened from /minitest in their own shop's bot chat). Each row
  * tries one thing the shop needs inside Telegram; the founder answers the
  * ones only their eyes can check, and the results copy as text to send
  * back. Removed once the mini app is built. */
-
-type WebApp = {
-  initData: string
-  version: string
-  platform: string
-  colorScheme: string
-  ready: () => void
-  expand: () => void
-  isVersionAtLeast: (version: string) => boolean
-  openLink: (url: string) => void
-  openTelegramLink: (url: string) => void
-  downloadFile?: (params: { url: string; file_name: string }, callback?: (accepted: boolean) => void) => void
-  BackButton: { show: () => void; hide: () => void; onClick: (fn: () => void) => void; offClick: (fn: () => void) => void }
-}
-
-declare global {
-  interface Window {
-    Telegram?: { WebApp?: WebApp }
-  }
-}
-
-function loadTelegram(): Promise<WebApp | null> {
-  if (window.Telegram?.WebApp) return Promise.resolve(window.Telegram.WebApp)
-  return new Promise((resolve) => {
-    const script = document.createElement('script')
-    script.src = 'https://telegram.org/js/telegram-web-app.js'
-    script.onload = () => resolve(window.Telegram?.WebApp ?? null)
-    script.onerror = () => resolve(null)
-    document.head.appendChild(script)
-  })
-}
 
 type Result = { ok: boolean | null; note: string }
 const MAPS = 'https://www.google.com/maps?q=11.5564,104.9282'

@@ -32,7 +32,9 @@ from app.core.security import create_customer_token, decode_token
 from app.db.session import tenant_session, unscoped_session
 from app.models import Customer, PhoneCheck, Store
 from app.schemas.customer_login import (
+    CartLineIn,
     CustomerSessionOut,
+    MiniAppLoginOut,
     ShopCustomerOut,
     TelegramLoginIn,
     TelegramLoginOut,
@@ -55,6 +57,13 @@ DONE_TEXT = (
     "✅ រួចរាល់។ អ្នកបានចូលដោយលេខ <b>{phone}</b>។\n\n"
     "សូមត្រឡប់ទៅហាងវិញ ដើម្បីបញ្ចប់ការកុម្ម៉ង់។ ដំណឹងអំពីការកុម្ម៉ង់របស់អ្នកនឹងមកទីនេះ។"
 )
+# With the mini app (an https address): "Done. You're logged in with
+# <phone>. News of your orders will come here.", then "Finish your order at
+# <shop> here, or go back to the shop page you were on." [Open checkout]
+DONE_SHORT_TEXT = "✅ រួចរាល់។ អ្នកបានចូលដោយលេខ <b>{phone}</b>។ ដំណឹងអំពីការកុម្ម៉ង់របស់អ្នកនឹងមកទីនេះ។"
+OPEN_TEXT = "🛍 បញ្ចប់ការកុម្ម៉ង់នៅ <b>{shop}</b> នៅទីនេះ ឬត្រឡប់ទៅទំព័រហាងដែលអ្នកកំពុងបើកវិញ។"
+OPEN_BUTTON = "🛍 បើកការកុម្ម៉ង់"  # Open checkout
+_NOT_TELEGRAM = "This didn't come from Telegram."
 # "This link has expired. Go back to the shop and tap Continue with
 # Telegram again."
 EXPIRED_TEXT = "តំណនេះផុតកំណត់ហើយ។ សូមត្រឡប់ទៅហាងវិញ ហើយចុច “បន្តជាមួយ Telegram” ម្ដងទៀត។"
@@ -189,5 +198,97 @@ async def opened(code: str, telegram_user_id: int) -> str | None:
         return ASK_TEXT.format(shop=telegram.escape(store.name)) if store else None
 
 
-def done_text(check: PhoneCheck) -> str:
-    return DONE_TEXT.format(phone=telegram.escape(check.phone or ""))
+async def finished(check: PhoneCheck) -> list[dict]:
+    """The bot's answers once the phone is shared, as Bot API method calls
+    in order: "Done" (and the share button goes), then "Open checkout",
+    which opens the same checkout inside Telegram as a mini app, logged in
+    and with the cart. Without an https address (a laptop), only "Done"
+    with "go back to the shop"."""
+    phone = telegram.escape(check.phone or "")
+    remove = {"remove_keyboard": True}
+    app_url = get_settings().public_app_url.rstrip("/")
+    store = None
+    if app_url.startswith("https://") and check.cart:
+        store_id = uuid.UUID(check.cart["store_id"])
+        async with tenant_session(store_id) as db:
+            store = await db.get(Store, store_id)
+    chat_id = check.telegram_user_id
+    if store is None:
+        return [
+            {
+                "method": "sendMessage",
+                **telegram.message(chat_id, DONE_TEXT.format(phone=phone)),
+                "reply_markup": remove,
+            }
+        ]
+    url = f"{app_url}/shop/{store.slug}/cart?tg={check.id}"
+    return [
+        {
+            "method": "sendMessage",
+            **telegram.message(chat_id, DONE_SHORT_TEXT.format(phone=phone)),
+            "reply_markup": remove,
+        },
+        {
+            "method": "sendMessage",
+            **telegram.message(chat_id, OPEN_TEXT.format(shop=telegram.escape(store.name))),
+            "reply_markup": {"inline_keyboard": [[{"text": OPEN_BUTTON, "web_app": {"url": url}}]]},
+        },
+    ]
+
+
+# Inside Telegram (the mini app)
+
+
+def _mini_app_user(init_data: str) -> dict:
+    user = telegram.read_mini_app_data(init_data)
+    if user is None:
+        raise AppError(401, "TELEGRAM_DATA_INVALID", _NOT_TELEGRAM)
+    return user
+
+
+async def mini_app_from_check(
+    shop_db: AsyncSession, store: Store, check_id: uuid.UUID, init_data: str
+) -> MiniAppLoginOut:
+    """From the bot's "Open checkout": the login and the cart, for the
+    Telegram account that shared the phone only (Telegram signs who opened
+    the mini app; a forwarded button opens nothing for anyone else)."""
+    user = _mini_app_user(init_data)
+    check = await get(store, check_id)
+    if check.phone is None or check.telegram_user_id != user["id"]:
+        raise NotFound("LOGIN_EXPIRED", _EXPIRED)
+    session = (await describe(shop_db, store, check)).customer
+    assert session is not None
+    lines = [CartLineIn.model_validate(line) for line in (check.cart or {}).get("lines", [])]
+    return MiniAppLoginOut(customer=session, lines=lines)
+
+
+async def mini_app_known(shop_db: AsyncSession, store: Store, init_data: str) -> CustomerSessionOut:
+    """Opening the mini app again on a phone that forgot the login: the
+    Telegram account's proved phone, if it shared it before (with this
+    shop, else with another Oak shop: its own number, only to itself).
+    404 if it never did: checkout shows "Continue with Telegram"."""
+    user = _mini_app_user(init_data)
+    telegram_id = str(user["id"])
+    phone = await shop_db.scalar(
+        select(Customer.telegram_phone).where(
+            Customer.store_id == store.id,
+            Customer.telegram_user_id == telegram_id,
+            Customer.telegram_phone.is_not(None),
+        )
+    )
+    if phone is None:
+        async with unscoped_session() as db:
+            phone = await db.scalar(
+                select(Customer.telegram_phone)
+                .where(
+                    Customer.telegram_user_id == telegram_id, Customer.telegram_phone.is_not(None)
+                )
+                .limit(1)
+            )
+    if phone is None:
+        raise NotFound("TELEGRAM_NOT_KNOWN", "Continue with Telegram first.")
+    name = " ".join(filter(None, (user.get("first_name"), user.get("last_name"))))
+    who = TelegramCustomer(user["id"], phone, name)
+    known = await shop_customer(shop_db, store, who)
+    token = create_customer_token(who.telegram_user_id, who.phone, name)
+    return CustomerSessionOut(token=token, **known.model_dump())

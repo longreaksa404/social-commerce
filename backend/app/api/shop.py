@@ -12,7 +12,14 @@ from app.api.deps import Shop, ShopDb
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.core.ratelimit import check_limit, limiter
-from app.schemas.customer_login import ShopCustomerOut, TelegramLoginIn, TelegramLoginOut
+from app.schemas.customer_login import (
+    CustomerSessionOut,
+    MiniAppIn,
+    MiniAppLoginOut,
+    ShopCustomerOut,
+    TelegramLoginIn,
+    TelegramLoginOut,
+)
 from app.schemas.link import TrackViewIn
 from app.schemas.order import (
     OrderCreate,
@@ -309,3 +316,28 @@ async def logged_in_customer(
     if who is None:
         raise AppError(401, "CUSTOMER_LOGIN_EXPIRED", "Log in with Telegram again.")
     return await customer_login.shop_customer(db, shop, who)
+
+
+@router.post(
+    "/telegram-login/{check_id}/mini-app",
+    response_model=MiniAppLoginOut,
+    dependencies=[Depends(_login_rate_limit)],
+)
+async def mini_app_login_from_check(
+    check_id: uuid.UUID, data: MiniAppIn, shop: Shop, db: ShopDb
+) -> MiniAppLoginOut:
+    """Inside Telegram, from the bot's "Open checkout": the login and the
+    cart, for the account that shared the phone (Telegram's signed
+    initData says who opened it)."""
+    return await customer_login.mini_app_from_check(db, shop, check_id, data.init_data)
+
+
+@router.post(
+    "/mini-app-login",
+    response_model=CustomerSessionOut,
+    dependencies=[Depends(_login_rate_limit)],
+)
+async def mini_app_login(data: MiniAppIn, shop: Shop, db: ShopDb) -> CustomerSessionOut:
+    """Inside Telegram, on a phone that forgot the login: logged in again
+    if this Telegram account shared its phone before; 404 if not."""
+    return await customer_login.mini_app_known(db, shop, data.init_data)
