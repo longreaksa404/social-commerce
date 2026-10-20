@@ -28,7 +28,7 @@ from urllib.parse import parse_qsl
 import httpx
 
 from app.core.config import get_settings
-from app.db.session import tenant_session, unscoped_session
+from app.db.session import tenant_session
 from app.models import Store
 from app.services import customer_login, customer_updates, phone_check
 
@@ -227,8 +227,6 @@ async def handle_update(update: dict[str, Any]) -> dict[str, Any] | None:
     reply = HELP_TEXT
     command, _, argument = text.strip().partition(" ")
     argument = argument.strip()
-    if command.split("@")[0] == MINI_TEST_COMMAND and (test := await _mini_test(chat["id"])):
-        return test
     if command.split("@")[0] == "/start" and argument.startswith(phone_check.CODE_PREFIX):
         # In a private chat the chat's id is the user's.
         if await phone_check.opened(argument, chat["id"]):
@@ -381,32 +379,6 @@ def read_mini_app_data(
     if signed_at + max_age < (now if now is not None else time.time()):
         return None
     return {**user, "auth_date": signed_at}
-
-
-# The founder's test of the mini app (2026-10-20, temporary): /minitest in
-# their own shop's chat answers with a button that opens it in Telegram.
-MINI_TEST_COMMAND = "/minitest"
-
-
-async def _mini_test(chat_id: int) -> dict[str, Any] | None:
-    """The test's button, for the founder's own shop chat only (ADMIN_PHONES);
-    None for anyone else, who gets the usual help."""
-    # Imported here: billing imports notifications, which imports this module.
-    from app.services import billing
-
-    app_url = get_settings().public_app_url.rstrip("/")
-    if not app_url.startswith("https://"):
-        return None
-    async with unscoped_session() as db:
-        shops = [s for s in await billing.founder_shops(db) if s.telegram_chat_id == str(chat_id)]
-    if not shops:
-        return None
-    url = f"{app_url}/tg-test?shop={shops[0].slug}"
-    return _reply(
-        chat_id,
-        "🧪 Mini app test. Tap the button, then go through the page.",
-        {"inline_keyboard": [[{"text": "🧪 Open the test", "web_app": {"url": url}}]]},
-    )
 
 
 def escape(text: str) -> str:
