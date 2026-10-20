@@ -337,9 +337,7 @@ async def test_seller_messages_a_customer_on_telegram(client, bot, auth_headers,
     assert view["url"] == f"https://app.example.com/shop/{slug}/order/{order_id}"
 
 
-async def test_message_without_the_shops_telegram_gives_its_phone(
-    client, bot, auth_headers, dara
-):
+async def test_message_without_the_shops_telegram_gives_its_phone(client, bot, auth_headers, dara):
     headers, _, slug, order_id = await an_order(client, auth_headers)
     await get_updates(client, slug, order_id, dara)
     await client.patch(
