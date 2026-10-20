@@ -2682,6 +2682,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 
 | Date | Source | Request | Status |
 |---|---|---|---|
+| 2026-10-20 | Founder (customers with a wrong phone) | Customers confirm their phone in Telegram before ordering, as a seller's switch | Logged for later (03 §6): build when a seller asks. Picks 1-3 of the same list were built (In Progress, "Customer Telegram and payments"). |
 | 2026-10-19 | Founder (settings check) | Convert prices when a shop switches between dollars and riel, at a rate Oak Order sets on the admin page | Logged for later: a fixed rate goes stale. Until then Save asks first and prices keep their numbers. Details in 03 §6. |
 | 2026-10-15 | Founder (customers giving wrong or fake phones) | Seller tools against fake orders: "Couldn't reach the customer" when cancelling, a "No cash on delivery" / block mark on a customer | Validate First: build when a seller gets a fake order. Parts 1 and 2 built instead. Details in 03 §6. |
 | 2026-10-10 | Founder (Oak in the shop) | Let sellers on a paid plan hide "Made with Oak Order" | Decided 2026-10-14: the line stays on the Standard plan; hiding it may come with a later plan (01 §33.1). Details in 03 §6. |
