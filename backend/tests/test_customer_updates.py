@@ -19,6 +19,14 @@ from tests.helpers import BANK, add_product, place_order, registered_seller, set
 ORDERS = "/api/v1/seller/orders"
 
 
+class Sent(list):
+    """The messages the bot sent; `calls`: its other Bot API calls."""
+
+    def __init__(self):
+        super().__init__()
+        self.calls: list[tuple[str, dict]] = []
+
+
 @pytest.fixture
 def bot(monkeypatch):
     """The bot set up, with every message it sends collected instead."""
@@ -27,12 +35,17 @@ def bot(monkeypatch):
     monkeypatch.setattr(settings, "telegram_bot_username", "TestShopBot")
     monkeypatch.setattr(settings, "telegram_webhook_secret", "secret")
     monkeypatch.setattr(settings, "public_app_url", "https://app.example.com")
-    sent: list[dict] = []
+    sent = Sent()
 
     async def fake_send(chat_id, text, button=None):
         sent.append({"chat_id": chat_id, "text": text, "button": button})
 
+    async def fake_call(method, payload):
+        sent.calls.append((method, payload))
+        return {}
+
     monkeypatch.setattr(telegram, "send_message", fake_send)
+    monkeypatch.setattr(telegram, "call", fake_call)
     return sent
 
 
@@ -468,3 +481,14 @@ async def test_sending_it_tells_the_customer_without_the_drivers_note(
     [news] = bot
     assert news["text"].endswith(customer_updates.SENT_DRIVER)
     assert "012 999 888" not in news["text"]
+
+
+async def test_get_updates_points_the_shop_button_at_that_shop(client, bot, auth_headers, dara):
+    """The button beside the message box (like a shop bot's "Go Shopping")
+    opens the shop the customer asked updates from (founder, 2026-10-20)."""
+    _, _, slug, order_id = await an_order(client, auth_headers)
+    await get_updates(client, slug, order_id, dara)
+    [(method, payload)] = [c for c in bot.calls if c[0] == "setChatMenuButton"]
+    assert payload["chat_id"] == dara
+    assert payload["menu_button"]["web_app"]["url"] == f"https://app.example.com/shop/{slug}"
+    assert payload["menu_button"]["text"].startswith("🛍 ")

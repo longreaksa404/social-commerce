@@ -284,7 +284,10 @@ async def _phone_shared(chat_id: int, msg: dict[str, Any]) -> dict[str, Any]:
         # the last goes back in the webhook's answer.
         *first, last = await customer_login.finished(check)
         for answer in first:
-            await call(answer.pop("method"), answer)
+            try:
+                await call(answer.pop("method"), answer)
+            except (TelegramError, httpx.HTTPError) as exc:
+                logger.warning("A login answer failed: %r", exc)
         return last
     else:
         text = await customer_updates.confirmed(check)
@@ -306,6 +309,43 @@ async def _connect(store_id: uuid.UUID, chat_id: int) -> str:
         "អ្នកនឹងទទួលបានសារនៅទីនេះ រាល់ពេលមានការកុម្ម៉ង់ថ្មី និងពេលទំនិញជិតអស់ស្តុក។ "
         "ដើម្បីបញ្ឈប់ សូមចុច “ផ្ដាច់” នៅក្នុង ការកំណត់ → ការជូនដំណឹង។"
     )
+
+
+# The button beside the message box, like a shop's own bot's "Go Shopping"
+# (founder, 2026-10-20). Oak's bot serves every shop, so Telegram's
+# per-chat menu button opens the shop each customer last logged in at, or
+# asked updates from.
+SHOP_BUTTON_LENGTH = 24
+
+
+def shop_button(store: Store) -> dict[str, Any] | None:
+    """setChatMenuButton's menu_button for this shop, or None without an
+    https address (Telegram opens only those)."""
+    app_url = get_settings().public_app_url.rstrip("/")
+    if not app_url.startswith("https://"):
+        return None
+    name = (
+        store.name
+        if len(store.name) <= SHOP_BUTTON_LENGTH
+        else store.name[: SHOP_BUTTON_LENGTH - 1] + "…"
+    )
+    return {
+        "type": "web_app",
+        "text": f"🛍 {name}",
+        "web_app": {"url": f"{app_url}/shop/{store.slug}"},
+    }
+
+
+async def set_shop_button(chat_id: int | str, store: Store) -> None:
+    """Point this customer's button at this shop. A failure is logged and
+    changes nothing else."""
+    button = shop_button(store)
+    if button is None:
+        return
+    try:
+        await call("setChatMenuButton", {"chat_id": chat_id, "menu_button": button})
+    except (TelegramError, httpx.HTTPError) as exc:
+        logger.warning("Setting a customer's shop button failed: %r", exc)
 
 
 # Mini app (founder, 2026-10-20: customers log in with Telegram and shop

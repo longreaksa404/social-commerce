@@ -283,6 +283,8 @@ async def confirmed(check: PhoneCheck) -> str:
         order.customer.telegram_user_id = str(check.telegram_user_id)
         order.customer.telegram_phone = check.phone
         await db.commit()
+        # The button beside the message box opens this shop from now on.
+        await telegram.set_shop_button(check.telegram_user_id, store)
         shop = telegram.escape(store.name)
         return "\n".join(
             [

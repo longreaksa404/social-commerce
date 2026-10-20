@@ -223,6 +223,12 @@ async def finished(check: PhoneCheck) -> list[dict]:
         ]
     url = f"{app_url}/shop/{store.slug}/cart?tg={check.id}"
     return [
+        # The button beside the message box opens this shop from now on.
+        {
+            "method": "setChatMenuButton",
+            "chat_id": chat_id,
+            "menu_button": telegram.shop_button(store),
+        },
         {
             "method": "sendMessage",
             **telegram.message(chat_id, DONE_SHORT_TEXT.format(phone=phone)),

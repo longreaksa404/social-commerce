@@ -88,8 +88,8 @@ async def log_in(client, bot, slug, cap, user_id, phone="85512345678") -> dict:
     }
     before = len(bot)
     opener = await telegram.handle_update(message(user_id, contact=contact))
-    # "Done" goes first (taking the share button away), then "Open checkout".
-    [done] = bot[before:]
+    # The shop button, "Done" (taking the share button away), then "Open checkout".
+    [done] = [m for m in bot[before:] if m.get("method") != "setChatMenuButton"]
     assert "✅" in done["text"] and done["reply_markup"] == {"remove_keyboard": True}
     read = await client.get(f"/api/v1/shop/{slug}/telegram-login/{check['id']}")
     assert read.status_code == 200, read.text
@@ -218,6 +218,8 @@ async def test_the_bot_opens_the_same_checkout_inside_telegram(client, bot, auth
     _, _, slug, cap = await a_shop(client, auth_headers)
     result = await log_in(client, bot, slug, cap, sokha)
     check_id = result["check"]["id"]
+    [menu] = [m for m in bot if m.get("method") == "setChatMenuButton"]
+    assert menu["menu_button"]["web_app"]["url"] == f"https://app.example.com/shop/{slug}"
     button = result["opener"]["reply_markup"]["inline_keyboard"][0][0]
     assert button["web_app"]["url"] == f"https://app.example.com/shop/{slug}/cart?tg={check_id}"
 
