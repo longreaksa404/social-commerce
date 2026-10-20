@@ -1,5 +1,6 @@
 """Telegram (Phase 6): connecting a store's chat with a signed link, the
-webhook, order alerts, and the seller's username for "Ask seller"."""
+webhook, order alerts, "Received, mark paid" under "says paid", and the
+seller's username for "Ask seller"."""
 
 import uuid
 from decimal import Decimal
@@ -413,7 +414,9 @@ async def test_ive_paid_alerts_the_seller_once_and_shows_on_the_order(client, bo
     assert (first.status_code, again.status_code) == (204, 204)
     assert len(bot) == 1  # not again within 30 minutes
     assert "#1001" in bot[0]["text"] and "$10.00" in bot[0]["text"]
-    assert bot[0]["button"][1].endswith(f"/dashboard/orders/{order['id']}")
+    received, link = bot[0]["button"]
+    assert received["callback_data"] == f"paid:{order['id']}"
+    assert link["url"].endswith(f"/dashboard/orders/{order['id']}")
     seller = (await client.get(f"/api/v1/seller/orders/{order['id']}", headers=headers)).json()
     assert seller["payment"]["status"] == "pending"
     assert seller["payment"]["claimed_at"] is not None
@@ -505,3 +508,132 @@ async def test_ive_paid_on_another_shops_order_is_not_found(client, bot, auth_he
     response = await _say_paid(client, other_slug, order["id"])
 
     assert response.status_code == 404
+
+
+# "Received, mark paid" under "says paid" (founder, 2026-10-20)
+
+
+@pytest.fixture
+def bot_calls(monkeypatch):
+    """Bot API calls other than sendMessage (the alert's edit), collected."""
+    calls: list[tuple[str, dict]] = []
+
+    async def fake_call(method, payload):
+        calls.append((method, payload))
+        return {}
+
+    monkeypatch.setattr(telegram, "call", fake_call)
+    return calls
+
+
+def tap(chat_id: int, data: str) -> dict:
+    return {
+        "update_id": 2,
+        "callback_query": {
+            "id": "tap-1",
+            "from": {"id": chat_id},
+            "message": {"message_id": 77, "chat": {"id": chat_id, "type": "private"}},
+            "data": data,
+        },
+    }
+
+
+async def _claimed_order(client, auth_headers, chat_id=555):
+    """A shop with Telegram connected and a bank order its customer says
+    they paid: (headers, store_id, order)."""
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    await set_payments(client, headers, bank_transfer=BANK)
+    await connect(store_id, chat_id)
+    cap = await add_product(store_id, "cap", stock=5)
+    order = (
+        await place_order(
+            client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
+        )
+    ).json()
+    await _say_paid(client, slug, order["id"])
+    return headers, store_id, order
+
+
+async def _payment(client, headers, order_id) -> dict:
+    return (await client.get(f"/api/v1/seller/orders/{order_id}", headers=headers)).json()[
+        "payment"
+    ]
+
+
+async def test_received_button_marks_it_paid_and_says_so(client, bot, bot_calls, auth_headers):
+    headers, _, order = await _claimed_order(client, auth_headers)
+
+    answer = await telegram.handle_update(tap(555, f"paid:{order['id']}"))
+
+    assert answer["method"] == "answerCallbackQuery"
+    assert answer["callback_query_id"] == "tap-1"
+    assert answer["text"] == "បានកត់ថាបានបង់ #1001"  # Marked #1001 paid
+    assert answer["show_alert"] is False
+    payment = await _payment(client, headers, order["id"])
+    assert payment["status"] == "paid" and payment["paid_at"] is not None
+    # The alert now says it's done, and keeps only Open order.
+    [(method, edit)] = bot_calls
+    assert method == "editMessageText"
+    assert (edit["chat_id"], edit["message_id"]) == (555, 77)
+    assert edit["text"].endswith(notifications.MARKED_PAID)
+    assert [b.get("callback_data") for b in edit["reply_markup"]["inline_keyboard"][0]] == [None]
+
+    # A second tap (or after Mark paid in the app) changes nothing.
+    again = await telegram.handle_update(tap(555, f"paid:{order['id']}"))
+    assert again["text"] == "ការកុម្ម៉ង់ #1001 បានបង់រួចហើយ"  # paid already
+
+
+async def test_received_button_tells_the_customer(client, bot, bot_calls, auth_headers):
+    _, store_id, order = await _claimed_order(client, auth_headers)
+    async with tenant_session(store_id) as db:
+        placed = await db.get(Order, uuid.UUID(order["id"]))
+        await db.refresh(placed, ["customer"])
+        placed.customer.telegram_user_id = "999"
+        await db.commit()
+    bot.clear()
+
+    await telegram.handle_update(tap(555, f"paid:{order['id']}"))
+
+    [news] = bot
+    assert news["chat_id"] == "999"
+    assert "អ្នកលក់បានទទួលការបង់ប្រាក់របស់អ្នកហើយ" in news["text"]  # The seller received it
+
+
+async def test_received_button_works_only_from_that_shops_chat(
+    client, bot, bot_calls, auth_headers
+):
+    """Another shop's chat, or anyone else, sending the same data records
+    nothing (tenant isolation)."""
+    headers, _, order = await _claimed_order(client, auth_headers, chat_id=555)
+    _, other_store, _ = await registered_seller(client, auth_headers)
+    await connect(other_store, 666)
+
+    for chat in (666, 777):
+        answer = await telegram.handle_update(tap(chat, f"paid:{order['id']}"))
+        assert answer["text"] == notifications.TAP_GONE
+        assert answer["show_alert"] is True
+    for data in ("paid:not-a-uuid", f"paid:{uuid.uuid4()}"):
+        assert (await telegram.handle_update(tap(555, data)))["text"] == notifications.TAP_GONE
+    assert (await telegram.handle_update(tap(555, "other:1"))) is None
+
+    assert (await _payment(client, headers, order["id"]))["status"] == "pending"
+    assert bot_calls == []
+
+
+async def test_received_button_leaves_a_cancelled_or_failed_one(
+    client, bot, bot_calls, auth_headers
+):
+    headers, _, order = await _claimed_order(client, auth_headers)
+    url = f"/api/v1/seller/orders/{order['id']}"
+    await client.patch(f"{url}/payment", headers=headers, json={"status": "failed"})
+    failed = await telegram.handle_update(tap(555, f"paid:{order['id']}"))
+    assert "បង់ប្រាក់មិនបាន" in failed["text"]  # Payment failed
+
+    await client.patch(f"{url}/payment", headers=headers, json={"status": "pending"})
+    rejected = await client.patch(f"{url}/status", headers=headers, json={"status": "rejected"})
+    assert rejected.status_code == 200, rejected.text
+    closed = await telegram.handle_update(tap(555, f"paid:{order['id']}"))
+    assert closed["text"] == "អ្នកបានបដិសេធការកុម្ម៉ង់ #1001 រួចហើយ។"  # You rejected it
+
+    assert (await _payment(client, headers, order["id"]))["status"] == "pending"
+    assert bot_calls == []

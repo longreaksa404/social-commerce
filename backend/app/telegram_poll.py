@@ -1,6 +1,6 @@
 """Local dev only: run the bot by asking Telegram for new messages, so a
-laptop (which Telegram's webhook can't reach) can verify phone numbers and
-connect alerts. From backend/, beside `uvicorn`:
+laptop (which Telegram's webhook can't reach) can verify phone numbers,
+connect alerts and answer button taps. From backend/, beside `uvicorn`:
 
     python -m app.telegram_poll
 
@@ -32,7 +32,8 @@ async def run() -> None:
             # Telegram holds the request up to 8 s until a message comes
             # (telegram.call gives up after 10).
             updates = await telegram.call(
-                "getUpdates", {"offset": offset, "timeout": 8, "allowed_updates": ["message"]}
+                "getUpdates",
+                {"offset": offset, "timeout": 8, "allowed_updates": telegram.ALLOWED_UPDATES},
             )
         except telegram.TelegramError as exc:
             if exc.status_code == 409:

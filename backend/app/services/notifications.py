@@ -25,7 +25,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.config import get_settings
-from app.db.session import tenant_session
+from app.db.session import tenant_session, unscoped_session
 from app.models import (
     Currency,
     DeliveryMethod,
@@ -35,10 +35,12 @@ from app.models import (
     Order,
     OrderStatus,
     PaymentMethod,
+    PaymentStatus,
     Store,
 )
 from app.schemas.notification import NotificationListOut, NotificationOut
-from app.services import telegram
+from app.services import customer_updates, telegram
+from app.services import payment as payment_service
 from app.services.telegram import escape
 
 logger = logging.getLogger(__name__)
@@ -287,6 +289,8 @@ def low_stock_text(alerts: list[StockAlert]) -> str:
 
 
 def payment_claimed_text(order: Order) -> str:
+    """Once the payment is marked paid (from its button or the app), the
+    last line says so instead of what to do."""
     money = format_money(order.payment.amount, order.currency)
     name = escape(order.customer.name)
     return "\n".join(
@@ -295,10 +299,31 @@ def payment_claimed_text(order: Order) -> str:
             f"💰 <b>{name} ថាបានបង់ការកុម្ម៉ង់ #{order.number}</b> · {money}",
             f"💳 {PAYMENT_LABELS[order.payment.method]}",
             "",
-            # "Check your bank app, then mark it paid in the order."
-            "សូមពិនិត្យកម្មវិធីធនាគាររបស់អ្នក រួចកត់ថាបានបង់នៅក្នុងការកុម្ម៉ង់។",
+            MARKED_PAID
+            if order.payment.status is PaymentStatus.PAID
+            # "Check your bank app, then tap Received, mark paid."
+            else f"សូមពិនិត្យកម្មវិធីធនាគាររបស់អ្នក រួចចុច “{MARK_PAID_BUTTON}”។",
         ]
     )
+
+
+# "Received, mark paid" under "says paid" (founder, 2026-10-20): the seller
+# checks the bank app and records the payment without opening Oak Order.
+# The tap's data is "paid:<order id>"; button_tapped checks it came from
+# the order's own shop chat.
+MARK_PAID_DATA = "paid:"
+MARK_PAID_BUTTON = "✅ បានទទួល កត់ថាបានបង់"  # Received, mark paid
+MARKED_PAID = "✅ បានកត់ថាបានបង់"  # Marked paid
+
+
+def payment_claimed_buttons(order: Order) -> list[dict[str, str]]:
+    """Received, mark paid (while it's pending), then Open order."""
+    row = []
+    if order.payment.status is PaymentStatus.PENDING:
+        row.append(telegram.tap_button(MARK_PAID_BUTTON, f"{MARK_PAID_DATA}{order.id}"))
+    if (link := order_button(order)) is not None:
+        row.append(telegram.url_button(*link))
+    return row
 
 
 def order_button(order: Order) -> tuple[str, str] | None:
@@ -372,10 +397,102 @@ async def notify_payment_claimed(store_id: uuid.UUID, order_id: uuid.UUID) -> No
                     PAYMENT_CLAIMED,
                     {"order_id": str(order.id), "order_number": order.number},
                     payment_claimed_text(order),
-                    order_button(order),
+                    payment_claimed_buttons(order),
                 )
             ],
         )
+
+
+# What a tap answers (a small note at the top of the seller's chat).
+TAP_DONE = "បានកត់ថាបានបង់ #{number}"  # Marked #1001 paid
+TAP_ALREADY = "ការកុម្ម៉ង់ #{number} បានបង់រួចហើយ"  # Order #1001 is paid already
+# "Order #1001 is marked "payment failed". Open the order to change it."
+TAP_FAILED = "ការកុម្ម៉ង់ #{number} ត្រូវបានកត់ថា បង់ប្រាក់មិនបាន។ សូមបើកការកុម្ម៉ង់ ដើម្បីប្ដូរ។"
+TAP_CLOSED = {
+    OrderStatus.REJECTED: "អ្នកបានបដិសេធការកុម្ម៉ង់ #{number} រួចហើយ។",  # You rejected order #1001
+    OrderStatus.CANCELLED: "ការកុម្ម៉ង់ #{number} ត្រូវបានលុបចោលរួចហើយ។",  # Order #1001 is cancelled
+}
+# "This button doesn't work any more. Open the order in Oak Order."
+TAP_GONE = "ប៊ូតុងនេះលែងដំណើរការហើយ។ សូមបើកការកុម្ម៉ង់នៅក្នុង Oak Order។"
+
+
+async def button_tapped(query: dict[str, Any]) -> dict[str, Any] | None:
+    """A tap on "Received, mark paid". Only the order's own shop chat can
+    record it: the data could come from anyone holding any of the bot's
+    messages. Marks the payment paid like the app's Mark paid (02 section
+    7.2; the order's status is left alone), tells the customer if they get
+    updates, and turns the alert's last line into "Marked paid". Returns
+    the answer to the tap, as a Bot API method call."""
+    data = str(query.get("data") or "")
+    chat_id = ((query.get("message") or {}).get("chat") or {}).get("id")
+    if not data.startswith(MARK_PAID_DATA) or chat_id is None:
+        return None
+    note, recorded, edit = await _mark_paid(data[len(MARK_PAID_DATA) :], str(chat_id))
+    if edit is not None:
+        text, buttons = edit
+        try:
+            await telegram.call(
+                "editMessageText",
+                {
+                    **telegram.message(chat_id, text, buttons),
+                    "message_id": query["message"]["message_id"],
+                },
+            )
+        except (telegram.TelegramError, httpx.HTTPError) as exc:
+            logger.error("Editing a paid alert failed: %r", exc)
+    if recorded is not None:
+        await customer_updates.notify(*recorded, PaymentStatus.PAID)
+    return {
+        "method": "answerCallbackQuery",
+        "callback_query_id": query.get("id"),
+        "text": note,
+        # A refusal stays until closed; "Marked paid" is a passing note.
+        "show_alert": recorded is None,
+    }
+
+
+async def _mark_paid(
+    raw_id: str, chat_id: str
+) -> tuple[str, tuple[uuid.UUID, uuid.UUID] | None, tuple[str, list[dict[str, str]]] | None]:
+    """(the note to show, (store, order) when recorded, the alert's new
+    text and buttons if it should change)."""
+    try:
+        order_id = uuid.UUID(raw_id)
+    except ValueError:
+        return TAP_GONE, None, None
+    # Which shop: the tap has no tenant. Read nothing else unscoped.
+    async with unscoped_session() as db:
+        store_id = await db.scalar(select(Order.store_id).where(Order.id == order_id))
+    if store_id is None:
+        return TAP_GONE, None, None
+    async with tenant_session(store_id) as db:
+        store = await db.get(Store, store_id)
+        if store is None or store.telegram_chat_id != chat_id:
+            return TAP_GONE, None, None
+        # Locked like the app's Mark paid, so two taps can't both record it.
+        order = await db.scalar(
+            select(Order)
+            .where(Order.id == order_id, Order.store_id == store_id)
+            .options(selectinload(Order.customer), selectinload(Order.payment))
+            .with_for_update()
+        )
+        if order is None:
+            return TAP_GONE, None, None
+        number = order.number
+        payment = order.payment
+        if payment.status is PaymentStatus.PAID:
+            return TAP_ALREADY.format(number=number), None, _paid_alert(order)
+        if order.status in TAP_CLOSED:
+            return TAP_CLOSED[order.status].format(number=number), None, None
+        if payment.status is not PaymentStatus.PENDING:
+            return TAP_FAILED.format(number=number), None, None
+        payment_service.record(payment, PaymentStatus.PAID, None)
+        await db.commit()
+        return TAP_DONE.format(number=number), (store_id, order_id), _paid_alert(order)
+
+
+def _paid_alert(order: Order) -> tuple[str, list[dict[str, str]]]:
+    return payment_claimed_text(order), payment_claimed_buttons(order)
 
 
 async def send_to_seller(
@@ -384,7 +501,7 @@ async def send_to_seller(
     event_type: str,
     payload: dict[str, Any],
     text: str,
-    button: tuple[str, str] | None = None,
+    button: telegram.Buttons = None,
 ) -> None:
     """One Telegram message to the store's chat, logged like the alerts
     (billing's messages, app/services/billing.py). Commits."""
@@ -395,7 +512,7 @@ async def send_to_seller(
 async def _send_all(
     db: AsyncSession,
     store: Store,
-    messages: list[tuple[str, dict[str, Any], str, tuple[str, str] | None]],
+    messages: list[tuple[str, dict[str, Any], str, telegram.Buttons]],
 ) -> None:
     """Sends each message to the store's chat in turn, logging each. A
     blocked bot disconnects the store and stops the rest. Commits."""

@@ -2,6 +2,7 @@
 the link that connects a store to a chat, and the webhook.
 
 The bot sends sellers their order alerts (app/services/notifications.py),
+with a "Received, mark paid" button on "says paid" (founder, 2026-10-20),
 proves sellers' phone numbers (app/services/phone_check.py), and sends
 customers who ask for it their orders' news, proving their number too
 (app/services/customer_updates.py). "Ask
@@ -9,7 +10,7 @@ seller" doesn't use it: the shop links straight to the seller's own
 Telegram account (decided 2026-10-03).
 
 Plain HTTPS calls to the Bot API with httpx; no bot framework needed for
-sendMessage, /start and a shared contact.
+sendMessage, /start, a shared contact and a button tap.
 """
 
 import base64
@@ -33,6 +34,8 @@ logger = logging.getLogger(__name__)
 
 API_URL = "https://api.telegram.org"
 WEBHOOK_PATH = "/api/v1/telegram/webhook"
+# Messages, and taps on the buttons under the bot's own messages.
+ALLOWED_UPDATES = ["message", "callback_query"]
 # How long a "Connect Telegram" link works after Settings shows it.
 LINK_TTL_SECONDS = 30 * 60
 
@@ -63,7 +66,28 @@ async def call(method: str, payload: dict[str, Any]) -> dict[str, Any]:
     return body["result"]
 
 
-def message(chat_id: int | str, text: str, button: tuple[str, str] | None = None) -> dict:
+# Buttons under a message: one link (label, url), or a row of buttons made
+# with url_button / tap_button.
+Buttons = tuple[str, str] | list[dict[str, str]] | None
+
+
+def url_button(label: str, url: str) -> dict[str, str]:
+    return {"text": label, "url": url}
+
+
+def tap_button(label: str, data: str) -> dict[str, str]:
+    """A button the bot answers (a callback_query with `data`, at most 64
+    bytes). Anyone who has the message can send any `data`: check it."""
+    return {"text": label, "callback_data": data}
+
+
+def keyboard(buttons: Buttons) -> dict[str, Any] | None:
+    if isinstance(buttons, tuple):
+        buttons = [url_button(*buttons)]
+    return {"inline_keyboard": [buttons]} if buttons else None
+
+
+def message(chat_id: int | str, text: str, button: Buttons = None) -> dict:
     """sendMessage parameters. `text` is Telegram HTML: escape what people typed."""
     payload: dict[str, Any] = {
         "chat_id": chat_id,
@@ -71,15 +95,12 @@ def message(chat_id: int | str, text: str, button: tuple[str, str] | None = None
         "parse_mode": "HTML",
         "link_preview_options": {"is_disabled": True},
     }
-    if button is not None:
-        label, url = button
-        payload["reply_markup"] = {"inline_keyboard": [[{"text": label, "url": url}]]}
+    if (markup := keyboard(button)) is not None:
+        payload["reply_markup"] = markup
     return payload
 
 
-async def send_message(
-    chat_id: int | str, text: str, button: tuple[str, str] | None = None
-) -> None:
+async def send_message(chat_id: int | str, text: str, button: Buttons = None) -> None:
     await call("sendMessage", message(chat_id, text, button))
 
 
@@ -93,7 +114,7 @@ async def register_webhook() -> None:
             {
                 "url": settings.public_api_url.rstrip("/") + WEBHOOK_PATH,
                 "secret_token": settings.telegram_webhook_secret,
-                "allowed_updates": ["message"],
+                "allowed_updates": ALLOWED_UPDATES,
             },
         )
     except (TelegramError, httpx.HTTPError):
@@ -187,6 +208,12 @@ async def handle_update(update: dict[str, Any]) -> dict[str, Any] | None:
     """Answer one webhook update. Returns the reply as a Bot API method call
     (Telegram runs it from the webhook's response, so no extra request), or
     None to stay quiet."""
+    if "callback_query" in update:
+        # A tap on a seller alert's button. Imported here: notifications
+        # imports this module.
+        from app.services import notifications
+
+        return await notifications.button_tapped(update["callback_query"])
     msg = update.get("message") or {}
     chat = msg.get("chat") or {}
     text = msg.get("text") or ""
