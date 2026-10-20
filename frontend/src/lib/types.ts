@@ -308,6 +308,8 @@ export type ShopStore = {
   orders_resume_on: string | null
   /** Not opened by its owner yet: "Opening soon" (orders_paused is true too). */
   opening_soon: boolean
+  /** "Continue with Telegram" at checkout (off without the bot). */
+  telegram_login: boolean
 }
 
 export type ShopProductCard = {

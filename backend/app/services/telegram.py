@@ -30,7 +30,7 @@ import httpx
 from app.core.config import get_settings
 from app.db.session import tenant_session, unscoped_session
 from app.models import Store
-from app.services import customer_updates, phone_check
+from app.services import customer_login, customer_updates, phone_check
 
 logger = logging.getLogger(__name__)
 
@@ -234,6 +234,12 @@ async def handle_update(update: dict[str, Any]) -> dict[str, Any] | None:
         if await phone_check.opened(argument, chat["id"]):
             return _reply(chat["id"], PHONE_ASK_TEXT, _share_keyboard())
         reply = PHONE_EXPIRED_TEXT
+    elif command.split("@")[0] == "/start" and argument.startswith(customer_login.CODE_PREFIX):
+        # A customer's "Continue with Telegram".
+        ask = await customer_login.opened(argument, chat["id"])
+        if ask is not None:
+            return _reply(chat["id"], ask, _share_keyboard())
+        reply = customer_login.EXPIRED_TEXT
     elif command.split("@")[0] == "/start" and customer_updates.read_code(
         argument, check_expiry=False
     ):
@@ -273,6 +279,8 @@ async def _phone_shared(chat_id: int, msg: dict[str, Any]) -> dict[str, Any]:
         text = PHONE_EXPIRED_TEXT
     elif check.code.startswith(phone_check.CODE_PREFIX):
         text = phone_done_text(check.phone)
+    elif check.code.startswith(customer_login.CODE_PREFIX):
+        text = customer_login.done_text(check)
     else:
         text = await customer_updates.confirmed(check)
     return _reply(chat_id, text, {"remove_keyboard": True})

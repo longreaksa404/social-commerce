@@ -295,3 +295,8 @@ class PhoneCheck(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     telegram_name: Mapped[str | None] = mapped_column(Text)
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    # A customer's "Continue with Telegram" at checkout (founder,
+    # 2026-10-20): the shop and the cart they were checking out, so the
+    # bot can open that checkout inside Telegram (`{"store_id", "lines"}`,
+    # app/services/customer_login.py). Gone with the check (30 minutes).
+    cart: Mapped[dict[str, Any] | None] = mapped_column(JSONB)

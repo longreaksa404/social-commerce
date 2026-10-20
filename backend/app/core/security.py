@@ -11,11 +11,14 @@ from app.core.config import get_settings
 from app.core.errors import AppError
 
 ALGORITHM = "HS256"
-TokenType = Literal["access", "refresh", "reset", "signup"]
+TokenType = Literal["access", "refresh", "reset", "signup", "customer"]
 # How long a "choose a new password" link from Telegram works.
 RESET_TOKEN_MINUTES = 30
 # How long someone new from "Continue with Google" has to finish signing up.
 SIGNUP_TOKEN_MINUTES = 30
+# How long a customer's "Continue with Telegram" keeps them logged in on a
+# device (app/services/customer_login.py).
+CUSTOMER_TOKEN_DAYS = 180
 
 
 def _hash(password: str) -> str:
@@ -97,6 +100,16 @@ def create_signup_token(provider: str, provider_user_id: str, email: str | None,
             "name": name,
         },
         timedelta(minutes=SIGNUP_TOKEN_MINUTES),
+    )
+
+
+def create_customer_token(telegram_user_id: int, phone: str, name: str) -> str:
+    """A customer logged in with Telegram (founder, 2026-10-20): who they
+    are on Telegram and the phone it proved, kept on their device for any
+    Oak shop. Not stored; no seller access (its type is "customer")."""
+    return _encode(
+        {"type": "customer", "sub": str(telegram_user_id), "phone": phone, "name": name},
+        timedelta(days=CUSTOMER_TOKEN_DAYS),
     )
 
 

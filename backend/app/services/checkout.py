@@ -40,6 +40,7 @@ from app.services import notifications
 from app.services import order as order_service
 from app.services import payment as payment_service
 from app.services import plan as plan_service
+from app.services.customer_login import TelegramCustomer
 from app.services.payment import ORDER_IS_OFF
 from app.services.phone import normalize_phone
 from app.services.pricing import line_total, order_totals
@@ -81,6 +82,7 @@ async def place_order(
     *,
     link_token: str | None = None,
     by_seller: bool = False,
+    telegram: TelegramCustomer | None = None,
 ) -> tuple[Order, list[notifications.StockAlert]]:
     """The placed order, and the products it took down to low or out of
     stock (for the seller's alert).
@@ -91,7 +93,11 @@ async def place_order(
     the chat), is marked as from a chat, and puts no "new order" on the
     bell (the seller did it; low stock still does). Neither is taken once
     the shop has stopped taking orders for its plan, or before the owner
-    has opened it (services/plan.py)."""
+    has opened it (services/plan.py).
+
+    `telegram`: the customer logged in with Telegram (customer_login.py).
+    When the order's phone is the one Telegram proved, the customer gets
+    the order's news there, as after "Get updates on Telegram"."""
     # Locks the store row until commit, so checkouts in one store run one
     # at a time: order numbers stay unique, and one phone can't become two
     # customers. Fine at MVP volume.
@@ -163,7 +169,7 @@ async def place_order(
     order = Order(
         store_id=store_id,
         number=await _next_number(db, store_id),
-        customer=await _customer(db, store_id, data, location.address),
+        customer=await _customer(db, store_id, data, location.address, telegram),
         status=OrderStatus.PENDING,
         currency=store.currency,
         subtotal=totals.subtotal,
@@ -399,11 +405,15 @@ def _out_of_stock(line: _Line) -> AppError:
 
 
 async def _customer(
-    db: AsyncSession, store_id: uuid.UUID, data: OrderIn, address: str | None
+    db: AsyncSession,
+    store_id: uuid.UUID,
+    data: OrderIn,
+    address: str | None,
+    telegram: TelegramCustomer | None = None,
 ) -> Customer:
     """This store's customer with this phone, updated to the name and
     address from this order (a pickup keeps the last address), or a new
-    one."""
+    one; with their Telegram chat when they're logged in with this phone."""
     customer = await db.scalar(
         select(Customer).where(Customer.store_id == store_id, Customer.phone == data.phone)
     )
@@ -413,6 +423,9 @@ async def _customer(
     customer.name = data.name
     if address is not None:
         customer.address = address
+    if telegram is not None and telegram.phone == data.phone:
+        customer.telegram_user_id = str(telegram.telegram_user_id)
+        customer.telegram_phone = telegram.phone
     return customer
 
 

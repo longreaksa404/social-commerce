@@ -58,6 +58,9 @@ export function setSessionEndedHandler(handler: () => void) {
   onSessionEnded = handler
 }
 
+/** The API's full address for `path`, for navigator.sendBeacon. */
+export const apiUrl = (path: string) => `${API_URL}/api/v1${path}`
+
 async function send(path: string, init: RequestInit): Promise<Response> {
   try {
     // `include`: the refresh cookie goes to /auth and comes back from it.
@@ -112,13 +115,16 @@ function withRefreshLock<T>(task: () => Promise<T>): Promise<T> {
 
 /** `keepalive`: the request finishes even if the page goes to the
  * background meanwhile (e.g. Telegram opening on top of it). */
-type Options = { method?: string; body?: unknown; auth?: boolean; keepalive?: boolean }
+type Options = { method?: string; body?: unknown; auth?: boolean; keepalive?: boolean; headers?: Record<string, string> }
 
 /** A request with the access token, refreshed once on a 401; throws
  * ApiError for any failure. */
-async function authorizedFetch(path: string, { method = 'GET', body, auth = true, keepalive }: Options): Promise<Response> {
+async function authorizedFetch(
+  path: string,
+  { method = 'GET', body, auth = true, keepalive, headers: extra }: Options,
+): Promise<Response> {
   const request = (): Promise<Response> => {
-    const headers: Record<string, string> = {}
+    const headers: Record<string, string> = { ...extra }
     if (body !== undefined) headers['Content-Type'] = 'application/json'
     if (auth && accessToken) headers.Authorization = `Bearer ${accessToken}`
     return send(path, {

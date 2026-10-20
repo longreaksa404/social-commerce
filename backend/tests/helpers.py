@@ -127,10 +127,12 @@ async def place_order(
     lat=None,
     lng=None,
     address_note=None,
+    headers=None,
 ):
     """items: (product_id, variant_id, quantity) tuples."""
     return await client.post(
         f"/api/v1/shop/{slug}/orders",
+        headers=headers,
         json={
             "name": name,
             "phone": phone,

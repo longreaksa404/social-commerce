@@ -54,6 +54,8 @@ class ShopStoreOut(BaseModel):
     # The owner hasn't opened the shop yet: "Opening soon" instead of the
     # paused notice (orders_paused is true too).
     opening_soon: bool
+    # "Continue with Telegram" at checkout: off when the bot isn't set up.
+    telegram_login: bool = False
 
 
 class ShopProductCard(BaseModel):

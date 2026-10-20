@@ -5,6 +5,24 @@ export const checkout = {
   tab: { en: (shop: string) => `Checkout · ${shop}`, km: (shop: string) => `កុម្ម៉ង់ · ${shop}` },
   title: { en: 'Checkout', km: 'កុម្ម៉ង់' },
   yourDetails: { en: 'Your details', km: 'ព័ត៌មានរបស់អ្នក' },
+  // "Continue with Telegram" (founder, 2026-10-20): the customer shares
+  // their phone with Oak's bot and is logged in on this device.
+  telegram: {
+    continue: { en: 'Continue with Telegram', km: 'បន្តជាមួយ Telegram' },
+    hint: {
+      en: 'Fills in your details. Order news comes to Telegram.',
+      km: 'បំពេញព័ត៌មានរបស់អ្នក។ ដំណឹងការកុម្ម៉ង់មកតាម Telegram។',
+    },
+    waiting: {
+      en: 'Share your phone in Telegram, then come back here.',
+      km: 'ចែករំលែកលេខទូរស័ព្ទក្នុង Telegram រួចត្រឡប់មកទីនេះវិញ។',
+    },
+    or: { en: 'or type your details', km: 'ឬវាយបញ្ចូលព័ត៌មានរបស់អ្នក' },
+    confirmed: { en: 'Confirmed in Telegram', km: 'បានផ្ទៀងផ្ទាត់ក្នុង Telegram' },
+    notYou: { en: 'Not you?', km: 'មិនមែនអ្នក?' },
+    loggedIn: { en: 'Logged in with Telegram', km: 'បានចូលជាមួយ Telegram' },
+    again: { en: 'Start again', km: 'ចាប់ផ្ដើមម្ដងទៀត' },
+  },
   name: { en: 'Name', km: 'ឈ្មោះ' },
   phone: { en: 'Phone number', km: 'លេខទូរស័ព្ទ' },
   phoneHint: {

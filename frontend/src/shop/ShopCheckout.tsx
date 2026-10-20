@@ -14,6 +14,7 @@ import {
   Skeleton,
   TextArea,
 } from '../components/ui.tsx'
+import { useFeedback } from '../components/feedback.ts'
 import { useLang, useT } from '../i18n/useT.ts'
 import { ApiError } from '../lib/api.ts'
 import { fieldError, formError } from '../lib/errors.ts'
@@ -27,6 +28,8 @@ import { CartItems, EmptyCart } from './ShopCart.tsx'
 import { loadCustomerDetails, rememberedLink, rememberOrder, saveCustomerDetails } from './device.ts'
 import { lookUpAddress } from './lookUpAddress.ts'
 import { usePlaceOrder, useShop } from './queries.ts'
+import { ContinueWithTelegram, OrTypeDetails, TelegramDetails } from './TelegramLogin.tsx'
+import { clearTelegramCustomer, useShopCustomer, useTelegramCustomer, type ShopCustomer } from './telegramLogin.ts'
 
 // The server's codes for a cart that no longer matches the shop: the page
 // re-checks the cart so the changed lines show what's wrong.
@@ -90,11 +93,16 @@ export function ShopCheckout() {
   const place = usePlaceOrder(storeSlug)
   const t = useT()
   const c = t.checkout
+  const { toast } = useFeedback()
+  // Logged in with Telegram on this device (any Oak shop): the phone it
+  // proved, and what this shop knows of them (name, address).
+  const telegram = useTelegramCustomer()
+  const known = useShopCustomer(storeSlug, telegram)
   // Prefilled from this device's last order.
   const [form, setForm] = useState<Form>(() => {
     const saved = loadCustomerDetails()
     return {
-      name: saved?.name ?? '',
+      name: saved?.name || telegram?.name || '',
       phone: saved?.phone ?? '',
       address: saved?.address ?? '',
       notes: '',
@@ -116,6 +124,34 @@ export function ShopCheckout() {
     const saved = loadCustomerDetails()
     return !saved?.name || !saved.phone
   })
+  // The shop's name and address for a logged-in customer, into empty boxes
+  // (or over the name Telegram gave), never over what they typed. Once per
+  // answer, as it arrives.
+  const [filledFrom, setFilledFrom] = useState<ShopCustomer | null>(null)
+  if (known.data && known.data !== filledFrom) {
+    const shopKnows = known.data
+    setFilledFrom(shopKnows)
+    setForm((f) => ({
+      ...f,
+      name: !f.name.trim() || f.name === telegram?.name ? shopKnows.name : f.name,
+      address: f.address.trim() ? f.address : (shopKnows.address ?? ''),
+    }))
+  }
+  const loggedIn = useCallback(
+    (customer: ShopCustomer) => {
+      setForm((f) => ({
+        ...f,
+        name: customer.name || f.name,
+        address: f.address.trim() ? f.address : (customer.address ?? ''),
+      }))
+      toast(c.telegram.loggedIn)
+    },
+    [toast, c.telegram.loggedIn],
+  )
+  function logOut() {
+    clearTelegramCustomer()
+    setEditDetails(true)
+  }
   // A pin fills in the address box from the map (founder, 2026-10-18).
   const { lang } = useLang()
   const [filledAddress, setFilledAddress] = useState<string | null>(null)
@@ -185,7 +221,8 @@ export function ShopCheckout() {
     if (!checked.ready || place.isPending || !payment || !how) return
     const details = {
       name: form.name.trim(),
-      phone: form.phone.trim(),
+      // Logged in: the phone Telegram proved (the order gets its news there).
+      phone: telegram ? telegram.phone : form.phone.trim(),
       address: form.address.trim(),
       addressNote: form.addressNote.trim(),
     }
@@ -255,23 +292,9 @@ export function ShopCheckout() {
           </Section>
 
           <Section step={2} title={c.yourDetails}>
-            {!editDetails && form.name && form.phone && !detailsError ? (
-              <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3.5 py-2.5">
-                <UserRound aria-hidden className="size-5 shrink-0 text-slate-500" />
-                <p className="min-w-0 flex-1 text-sm leading-5">
-                  <span className="block truncate font-medium text-slate-900">{form.name}</span>
-                  <span className="block text-slate-600 tabular-nums">{form.phone}</span>
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setEditDetails(true)}
-                  className="-my-2 -mr-2 min-h-11 shrink-0 rounded-lg px-2 text-sm font-medium text-navy-700 link"
-                >
-                  {c.change}
-                </button>
-              </div>
-            ) : (
+            {telegram ? (
               <>
+                <TelegramDetails phone={telegram.phone} onLogOut={logOut} />
                 <Field label={c.name} error={fieldError(place.error, 'name')}>
                   <Input
                     required
@@ -282,22 +305,64 @@ export function ShopCheckout() {
                     onChange={(e) => set('name', e.target.value)}
                   />
                 </Field>
-                <Field
-                  label={c.phone}
-                  hint={<PhoneHint phone={form.phone} />}
-                  error={fieldError(place.error, 'phone')}
-                >
-                  <Input
-                    required
-                    type="tel"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    maxLength={32}
-                    placeholder="012 345 678"
-                    value={form.phone}
-                    onChange={(e) => set('phone', e.target.value)}
-                  />
-                </Field>
+              </>
+            ) : (
+              <>
+                {shop.data.telegram_login && (
+                  <>
+                    <ContinueWithTelegram
+                      shop={storeSlug}
+                      lines={cart.lines}
+                      onLoggedIn={loggedIn}
+                    />
+                    <OrTypeDetails />
+                  </>
+                )}
+                {!editDetails && form.name && form.phone && !detailsError ? (
+                  <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3.5 py-2.5">
+                    <UserRound aria-hidden className="size-5 shrink-0 text-slate-500" />
+                    <p className="min-w-0 flex-1 text-sm leading-5">
+                      <span className="block truncate font-medium text-slate-900">{form.name}</span>
+                      <span className="block text-slate-600 tabular-nums">{form.phone}</span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setEditDetails(true)}
+                      className="-my-2 -mr-2 min-h-11 shrink-0 rounded-lg px-2 text-sm font-medium text-navy-700 link"
+                    >
+                      {c.change}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <Field label={c.name} error={fieldError(place.error, 'name')}>
+                      <Input
+                        required
+                        maxLength={100}
+                        autoComplete="name"
+                        autoCapitalize="words"
+                        value={form.name}
+                        onChange={(e) => set('name', e.target.value)}
+                      />
+                    </Field>
+                    <Field
+                      label={c.phone}
+                      hint={<PhoneHint phone={form.phone} />}
+                      error={fieldError(place.error, 'phone')}
+                    >
+                      <Input
+                        required
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        maxLength={32}
+                        placeholder="012 345 678"
+                        value={form.phone}
+                        onChange={(e) => set('phone', e.target.value)}
+                      />
+                    </Field>
+                  </>
+                )}
               </>
             )}
           </Section>

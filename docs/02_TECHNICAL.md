@@ -304,9 +304,9 @@ seller (owner)
 > Unique (provider, provider_user_id) and (seller_id, provider). Not tenant data: no RLS grant.
 
 ### `phone_check` (2026-10-09)
-| id (the page's secret), code (in the `t.me` link), telegram_user_id, phone (normalized, once shared), telegram_name (a seller's Telegram name, sent with the number; the new seller's name, 2026-10-18), verified_at, expires_at (30 min), created_at |
+| id (the page's secret), code (in the `t.me` link), telegram_user_id, phone (normalized, once shared), telegram_name (a seller's Telegram name, sent with the number; the new seller's name, 2026-10-18; also a customer's at login), verified_at, expires_at (30 min), cart (JSONB, a customer's login only: `{store_id, lines}`, the shop and cart being checked out, 2026-10-20), created_at |
 
-> A phone number being proved through the bot (§12.4); used once by the form that needs it. Not tenant data: no RLS grant.
+> A phone number being proved through the bot (§12.4); used once by the form that needs it, or read by checkout for a customer's "Continue with Telegram" (§12.6). Not tenant data: no RLS grant.
 
 ### `plan_payment` (2026-10-14)
 | id, store_id (FK, tenant scope), period (`month`, `year`), amount (numeric(12,2), US dollars: $9.99 a month, $99 a year unless the founder records another amount), method (`manual`: KHQR or transfer to Oak's account), status (`pending`: the seller said "I've paid"; `paid`; `failed`: the founder didn't find it), failure (nullable; the founder's note to the seller), reference (nullable; the founder's own note), paid_on (date), covers_from / covers_until (dates, both included; the three set once paid), created_at |
@@ -481,6 +481,10 @@ POST   /api/v1/shop/{store_slug}/orders        # create order (guest checkout)
 GET    /api/v1/shop/{store_slug}/orders/{order_id}?phone={phone}   # order tracking lookup
 POST   /api/v1/shop/{store_slug}/track-view    # a page opened through a link (§9.2)
 POST   /api/v1/shop/{store_slug}/orders/{order_id}/paid   # "I've paid" (link + phone): tells the seller; the payment stays pending (2026-10-09)
+POST   /api/v1/shop/{store_slug}/telegram-login            # "Continue with Telegram": a check with the cart (§12.6)
+GET    /api/v1/shop/{store_slug}/telegram-login/{id}       # read it; the customer token once the phone is shared
+POST   /api/v1/shop/{store_slug}/telegram-login/{id}/cart  # the cart as the page leaves for Telegram (sendBeacon)
+GET    /api/v1/shop/{store_slug}/me                        # X-Customer-Token: what checkout fills in at this shop
 ```
 
 ### Telegram
@@ -708,6 +712,12 @@ Customer taps "Ask seller on Telegram" on the product page
 - Sellers prove their phone number through the bot instead of an SMS code (free). The page starts a check and opens `t.me/{bot_username}?start=phone_{code}`; `/start phone_{code}` answers with a "Share my phone number" button (`request_contact`).
 - The shared contact counts only if it's the sender's own (`contact.user_id` = the sender); it completes the newest open check that account opened. The page reads the check until it has the number, then hands the check's id in with the form (sign-up, a new login number). A check lasts 30 minutes and works once.
 - Signing up connects that chat with the bot to the new shop's alerts (§12.1). One account per number.
+
+## 12.6 Customers Log In With Telegram (founder, 2026-10-20)
+- Optional: checkout's "Continue with Telegram" (outlined, above "or type your details"); customers without Telegram stay guests (§5.4, §8 unchanged).
+- Like a seller's phone check (§12.4): checkout makes a check ahead (`login_` code, with the shop and cart in `phone_check.cart`), the customer opens Oak's bot, shares their phone, and the page reads the check until it holds a **customer token** (JWT, type `customer`, 180 days: the Telegram user id, the proved phone, the Telegram name; not stored). The device keeps it for every Oak shop. No password, no profile, no account across shops: each shop still knows its customers by phone, and `GET /shop/{slug}/me` gives that shop's name and address for them.
+- An order placed with the token (`X-Customer-Token`) and the proved phone sets the shop's `customer.telegram_user_id` / `telegram_phone`, so the order's news goes to Telegram as after "Get updates on Telegram".
+- Next (built after the founder's test): the bot's "✅ Done" opens the same checkout inside Telegram as a mini app, logged in by Telegram's signed `initData`; a receipt and "Sent" alert for the customer.
 
 ## 12.5 Oak Order's Billing Messages (2026-10-14)
 - **To the seller, payment reminders:** a daily run (cron-job.org calls `POST /api/v1/billing/run`) sends a Khmer reminder on day 1 and day 5 after a shop's paid time ends ("pay by hand with your code; new orders stop on day 8"), once each per paid-until date (logged as `plan_reminder`), and not while an "I've paid" waits. Telegram is optional (01 §32 Rule 7): shops without it see the reminder on the Orders tab instead.

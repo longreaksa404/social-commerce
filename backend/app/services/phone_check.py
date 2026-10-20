@@ -33,6 +33,8 @@ CHECK_MINUTES = 30
 # Telegram start codes: what the bot tells apart from a store's 43-character
 # "Connect Telegram" code (telegram.read_link_code).
 CODE_PREFIX = "phone_"
+# A customer's "Continue with Telegram" (app/services/customer_login.py).
+LOGIN_PREFIX = "login_"
 # A seller's name fits in 100 characters (app/schemas/common.py Name).
 NAME_LENGTH = 100
 
@@ -118,8 +120,9 @@ async def opened(code: str, telegram_user_id: int) -> bool:
 async def shared(telegram_user_id: int, raw_phone: str, name: str = "") -> PhoneCheck | None:
     """The account's own number, shared with the bot: it completes the
     newest open check that account opened, a seller's or a customer's
-    (app/services/customer_updates.py; told apart by the code). A seller's
-    check also keeps the account's `name`, their name at sign-up. Returns
+    (app/services/customer_updates.py, customer_login.py; told apart by
+    the code). A seller's check also keeps the account's `name`, their name
+    at sign-up, and a customer's login the name checkout starts with. Returns
     the check with the number as stored, or None if there's no open check
     (or the number can't be read)."""
     # Telegram writes numbers in international form, usually without the +.
@@ -144,7 +147,7 @@ async def shared(telegram_user_id: int, raw_phone: str, name: str = "") -> Phone
             return None
         check.phone = phone
         check.verified_at = now
-        if check.code.startswith(CODE_PREFIX):
+        if check.code.startswith((CODE_PREFIX, LOGIN_PREFIX)):
             check.telegram_name = name.strip()[:NAME_LENGTH] or None
         await db.commit()
     return check

@@ -5,13 +5,14 @@ from collections.abc import Awaitable, Callable
 from functools import partial
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 
 from app.api.deps import Shop, ShopDb
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.core.ratelimit import check_limit, limiter
+from app.schemas.customer_login import ShopCustomerOut, TelegramLoginIn, TelegramLoginOut
 from app.schemas.link import TrackViewIn
 from app.schemas.order import (
     OrderCreate,
@@ -27,7 +28,7 @@ from app.schemas.storefront import (
     ShopStoreOut,
 )
 from app.services import checkout as checkout_service
-from app.services import customer_updates, notifications
+from app.services import customer_login, customer_updates, notifications
 from app.services import link as link_service
 from app.services import preview as preview_service
 from app.services import storefront as storefront_service
@@ -44,6 +45,11 @@ CLAIM_RATE_LIMIT = "10/minute"
 # Per IP, for "Get updates on Telegram": the order page asks for the link
 # as it opens (so the button is a plain link), not on a tap.
 TELEGRAM_RATE_LIMIT = "30/minute"
+# Per IP, for "Continue with Telegram": checkout makes the check as it
+# opens (the button is a plain link), and reads it every few seconds while
+# the customer is in Telegram.
+LOGIN_RATE_LIMIT = "30/minute"
+LOGIN_READ_RATE_LIMIT = "60/minute"
 # Per IP, for counting link views. The app counts a link once per device
 # per half hour, so this only stops someone inflating a seller's numbers.
 VIEW_RATE_LIMIT = "60/minute"
@@ -75,6 +81,18 @@ async def _claim_rate_limit(request: Request) -> None:
 
 async def _telegram_rate_limit(request: Request) -> None:
     check_limit(TELEGRAM_RATE_LIMIT, "telegram-updates", request)
+
+
+async def _login_rate_limit(request: Request) -> None:
+    check_limit(LOGIN_RATE_LIMIT, "telegram-login", request)
+
+
+async def _login_read_rate_limit(request: Request) -> None:
+    check_limit(LOGIN_READ_RATE_LIMIT, "telegram-login-read", request)
+
+
+# The device's customer token, from "Continue with Telegram".
+CustomerToken = Annotated[str | None, Header(alias="X-Customer-Token", max_length=2048)]
 
 
 async def _preview_rate_limit(request: Request) -> None:
@@ -113,11 +131,20 @@ async def get_category(category_slug: str, shop: Shop, db: ShopDb) -> ShopCatego
     dependencies=[Depends(_order_rate_limit)],
 )
 async def place_order(
-    data: OrderCreate, shop: Shop, db: ShopDb, background: BackgroundTasks
+    data: OrderCreate,
+    shop: Shop,
+    db: ShopDb,
+    background: BackgroundTasks,
+    customer_token: CustomerToken = None,
 ) -> ShopOrderOut:
-    """Guest checkout (02_TECHNICAL.md section 5.4)."""
+    """Guest checkout (02_TECHNICAL.md section 5.4), or logged in with
+    Telegram (the token turns on the order's news there)."""
     order, stock_alerts = await checkout_service.place_order(
-        db, shop.id, data, link_token=data.link
+        db,
+        shop.id,
+        data,
+        link_token=data.link,
+        telegram=customer_login.read_token(customer_token),
     )
     # After the response, so a slow Telegram never holds up the customer.
     background.add_task(notifications.notify_new_order, shop.id, order.id, stock_alerts)
@@ -231,3 +258,54 @@ def _plain_mark() -> RedirectResponse:
         status_code=302,
         headers={"Cache-Control": "public, max-age=300"},
     )
+
+
+@router.post(
+    "/telegram-login",
+    response_model=TelegramLoginOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(_login_rate_limit)],
+)
+async def start_telegram_login(data: TelegramLoginIn, shop: Shop, db: ShopDb) -> TelegramLoginOut:
+    """ "Continue with Telegram" at checkout (founder, 2026-10-20): a check
+    with this cart, opened in Oak's bot (app/services/customer_login.py)."""
+    check = await customer_login.create(shop, data)
+    return await customer_login.describe(db, shop, check)
+
+
+@router.get(
+    "/telegram-login/{check_id}",
+    response_model=TelegramLoginOut,
+    dependencies=[Depends(_login_read_rate_limit)],
+)
+async def read_telegram_login(check_id: uuid.UUID, shop: Shop, db: ShopDb) -> TelegramLoginOut:
+    """The check, with the customer's token once they shared their phone."""
+    return await customer_login.describe(db, shop, await customer_login.get(shop, check_id))
+
+
+@router.post(
+    "/telegram-login/{check_id}/cart",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(_login_rate_limit)],
+)
+async def update_telegram_login_cart(check_id: uuid.UUID, request: Request, shop: Shop) -> None:
+    """The cart as it was when the button was tapped. Sent with
+    navigator.sendBeacon as the page leaves for Telegram, so the body is
+    JSON in text/plain."""
+    try:
+        data = TelegramLoginIn.model_validate_json(await request.body())
+    except ValueError as exc:
+        raise AppError(422, "VALIDATION_ERROR", "Invalid cart.") from exc
+    await customer_login.set_cart(shop, check_id, data)
+
+
+@router.get("/me", response_model=ShopCustomerOut)
+async def logged_in_customer(
+    shop: Shop, db: ShopDb, customer_token: CustomerToken = None
+) -> ShopCustomerOut:
+    """A customer logged in with Telegram on this device: what this shop's
+    checkout fills in for them. 401 when the token isn't good (log in again)."""
+    who = customer_login.read_token(customer_token)
+    if who is None:
+        raise AppError(401, "CUSTOMER_LOGIN_EXPIRED", "Log in with Telegram again.")
+    return await customer_login.shop_customer(db, shop, who)

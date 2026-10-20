@@ -2,6 +2,7 @@ import { queryOptions, useMutation, useQueries, useQuery } from '@tanstack/react
 import { useState } from 'react'
 import { api, ApiError } from '../lib/api.ts'
 import { placedOrders, type PlacedOrder } from './device.ts'
+import { customerHeaders } from './telegramLogin.ts'
 import type {
   DeliveryMethod,
   OrderStatus,
@@ -86,8 +87,9 @@ export type OrderRequest = {
 
 export function usePlaceOrder(slug: string) {
   return useMutation({
+    // Logged in with Telegram: the order's news goes there (telegramLogin.ts).
     mutationFn: (body: OrderRequest) =>
-      api<ShopOrder>(`${shopPath(slug)}/orders`, { method: 'POST', body, auth: false }),
+      api<ShopOrder>(`${shopPath(slug)}/orders`, { method: 'POST', body, auth: false, headers: customerHeaders() }),
   })
 }
 

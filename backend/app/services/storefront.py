@@ -14,6 +14,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.config import get_settings
 from app.core.errors import NotFound
 from app.models import Category, Product, ProductStatus, Seller, Store, StoreOldSlug
 from app.schemas.storefront import (
@@ -86,6 +87,7 @@ async def store_page(db: AsyncSession, store: Store) -> ShopStoreOut:
         orders_paused=store.orders_paused_now or stopped or setup,
         orders_resume_on=None if stopped or setup else store.orders_resume_on_now,
         opening_soon=setup,
+        telegram_login=get_settings().telegram_configured,
     )
 
 

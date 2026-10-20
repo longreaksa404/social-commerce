@@ -68,6 +68,9 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   "Telegram didn't take the message. Try again.": 'Telegram មិនបានទទួលសារនេះទេ។ សូមព្យាយាមម្ដងទៀត។',
   'Updates on Telegram are off.': 'ការទទួលដំណឹងតាម Telegram កំពុងបិទ។',
   "This didn't come from Telegram.": 'នេះមិនមែនមកពី Telegram ទេ។',
+  'This has expired. Tap Continue with Telegram again.': 'នេះផុតកំណត់ហើយ។ សូមចុច “បន្តជាមួយ Telegram” ម្ដងទៀត។',
+  'Log in with Telegram again.': 'សូមចូលជាមួយ Telegram ម្ដងទៀត។',
+  'Invalid cart.': 'កន្ត្រកមិនត្រឹមត្រូវ។',
   "Your shop isn't taking new orders until Oak Order is paid (Settings → Plan).":
     'ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ថ្មីទេ រហូតដល់បង់ប្រាក់ឱ្យ Oak Order (ការកំណត់ → គម្រោង)។',
 
