@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLang, useT } from '../i18n/useT.ts'
 import { GOOGLE_CLIENT_ID, loadGoogle } from '../lib/google.ts'
+import { ProviderLogo } from './ProviderLogo.tsx'
 
 // Google draws its button between 200 and 400 px wide.
 const MAX_WIDTH = 400
@@ -70,11 +71,29 @@ export function GoogleButton({
   }, [lang, icon, onUnavailable])
 
   if (!GOOGLE_CLIENT_ID) return null
-  // Google's button keeps its size while it loads.
-  if (icon) return failed ? null : <div ref={box} className="size-10" />
+  // The square "G": our own tile, the same as TikTok's beside it, drawn at
+  // once, with Google's real button laid over it, invisible, taking the tap.
+  // Google's own swaps its first drawing for another as it loads (a flicker
+  // on iPhones), and in dark mode Chrome puts a white square behind its
+  // frame (founder's screenshots, 2026-10-20). `color-scheme: light` stops
+  // that square on a phone that shows Google's for a moment.
+  if (icon) {
+    if (failed) return null
+    return (
+      <div className="relative size-10 rounded-[4px] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-navy-600">
+        <span
+          aria-hidden
+          className="flex size-10 items-center justify-center rounded-[4px] border border-[#dadce0] bg-white"
+        >
+          <ProviderLogo provider="google" className="size-[18px]" />
+        </span>
+        <div ref={box} className="absolute inset-0 overflow-hidden opacity-[0.01] [color-scheme:light]" />
+      </div>
+    )
+  }
   return (
     <div>
-      <div ref={box} className="flex min-h-11 justify-center" />
+      <div ref={box} className="flex min-h-11 justify-center [color-scheme:light]" />
       {failed && <p className="mt-1.5 text-center text-sm text-slate-500">{t.auth.social.unavailable}</p>}
     </div>
   )
