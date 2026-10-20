@@ -357,6 +357,12 @@ export const orders = {
     km: (amount: string) => `សូមពិនិត្យកម្មវិធីធនាគាររបស់អ្នក រក ${amount}។`,
   },
   backToNotPaid: { en: 'Back to not paid', km: 'ប្ដូរទៅមិនទាន់បង់វិញ' },
+  // "Not paid after 24 h" (founder's pick 2026-10-20): Cancel order is the
+  // next step, after a look in the bank app.
+  unpaidLongHint: {
+    en: 'Check your bank app before you cancel.',
+    km: 'សូមពិនិត្យកម្មវិធីធនាគាររបស់អ្នក មុនពេលលុបចោល។',
+  },
   // A failed payment is the order's next step (UX check #7, 2026-10-17).
   paymentFailedHint: {
     en: 'Ask the customer to pay again, or cancel the order.',

@@ -27,6 +27,8 @@ export const status = {
     unpaid: { en: 'Unpaid', km: 'មិនទាន់បង់' },
     // The customer tapped "I've paid"; the seller still checks (UX check #5).
     saysPaid: { en: 'Says paid', km: 'អតិថិជនថាបានបង់' },
+    // KHQR or bank, 24 hours on with no "I've paid" (founder, 2026-10-20).
+    unpaidLong: { en: 'Not paid after 24 h', km: 'មិនទាន់បង់ជាង 24 ម៉ោង' },
     // Cash on delivery not received yet: a status like Unpaid, not the
     // method's English letters (UX check #24, 2026-10-17).
     cod: { en: 'Cash due', km: 'រង់ចាំសាច់ប្រាក់' },

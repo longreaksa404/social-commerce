@@ -403,6 +403,7 @@ Stages from `store.paid_until` (01 §33.1): `setup` (none yet: until the owner o
 ```
 POST   /api/v1/seller/plan/paid                # owner; {period}: "I've paid": a pending payment, a Telegram alert to the founder
 POST   /api/v1/billing/run                     # cron-job.org, daily, X-Cron-Secret: payment reminders (day 1 and day 5)
+POST   /api/v1/reminders/run                   # cron-job.org, hourly, X-Cron-Secret: customers' payment reminders (§12.2)
 ```
 
 `GET /seller/plan` also gives the shop's code ("OAK-K7Q2MX", from the store id; the KHQR's bill number and the transfer's note), Oak's KHQR for a month and a year and/or bank account (`OAK_*` settings), and a waiting "I've paid". The daily run sends Telegram reminders (Khmer) on day 1 and day 5 after the paid time ends ("pay by hand; new orders stop on day 8"), once each, to shops with Telegram and no waiting "I've paid"; the others see the Orders tab's banner.
@@ -697,6 +698,7 @@ Customer taps "Ask seller on Telegram" on the product page
 - Decided 2026-10-03: the platform's bot isn't involved and nothing is logged; the platform doesn't proxy or store the conversation (`01_PRODUCT.md` §11, §27). No username, no button.
 - This keeps the integration to a single webhook endpoint and avoids building a chat-relay system.
 - **The other way, "Message on Telegram" (founder, 2026-10-20):** for a customer who gets their order's updates from the bot, the seller's order page can send them a message through it, above all when their phone doesn't answer (a wrong digit, a second SIM). It carries a "Reply to <shop>" button to the shop's own Telegram (`t.me/{store.telegram_username}?text=Order #1001: `), else its Messenger, else the shop's phone in the text. The bot still doesn't relay or store a conversation: a customer typing to it is told to tap the shop's button.
+- **Payment reminder (founder, 2026-10-20):** a KHQR or bank order still unpaid 2 hours after it was placed, whose customer gets updates and hasn't tapped "I've paid", gets one reminder from the bot (the amount, a Pay button to the order page). An hourly run (cron-job.org calls `POST /api/v1/reminders/run`, the billing run's secret) finds them; nothing goes out from 22:00 to 7:00 Phnom Penh time. From 24 hours (a KHQR code's life, §10.3) the seller's order and list read "Not paid after 24 h" and, once accepted, Cancel order is its next step, after a look in the bank app. Nothing is cancelled automatically: the order's status never follows the payment's (§7).
 
 ## 12.3 Webhook
 - Single endpoint: `POST /api/v1/telegram/webhook`, registered with Telegram at startup where `PUBLIC_API_URL` is set (production only, so a laptop never takes the bot over).

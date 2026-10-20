@@ -86,6 +86,18 @@ export function PinnedStep({
         </>
       )
       break
+    case 'cancelUnpaid':
+      buttons = (
+        <>
+          <Button variant="secondary" disabled={busy} onClick={onPay}>
+            {o.markPaid}
+          </Button>
+          <Button variant="danger" disabled={busy} onClick={() => move('cancelled')} className="flex-1">
+            {o.action.cancelled}
+          </Button>
+        </>
+      )
+      break
     case 'markPaid':
       buttons = (
         <Button disabled={busy} onClick={onPay} className="flex-1">

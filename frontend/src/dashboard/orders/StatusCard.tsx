@@ -8,7 +8,7 @@ import { formatOrderTime, ORDER_STATUS_TONES, type StatusTone } from '../../lib/
 import { paymentBadge } from '../../lib/payments.ts'
 import type { Order, OrderStatus } from '../../lib/types.ts'
 import { useStore } from '../queries.ts'
-import { cashDue, CLOSED, nextStep, paidAhead, unpaidTransfer } from './orderSteps.ts'
+import { cashDue, CLOSED, nextStep, orderUnpaidLong, paidAhead, unpaidTransfer } from './orderSteps.ts'
 import { SendAgain } from './SendToDriver.tsx'
 import type { OrderActions } from './useOrderActions.ts'
 
@@ -360,10 +360,14 @@ function PaymentRow({
   const { payment } = order
   // Once the customer tapped "I've paid", that is the status line (UX
   // check #5); the payment stays pending until the seller marks it paid.
+  // Without it, 24 hours on: "Not paid after 24 h" (2026-10-20).
   const claimedAt = payment.status === 'pending' ? payment.claimed_at : null
+  const long = orderUnpaidLong(order)
   const badge = claimedAt
     ? { label: o.saysPaidAt(formatOrderTime(claimedAt)), tone: 'amber' as const }
-    : paymentBadge(t, payment.method, payment.status)
+    : long
+      ? { label: t.status.paymentBadge.unpaidLong, tone: 'amber' as const }
+      : paymentBadge(t, payment.method, payment.status)
   const live = order.status !== 'pending' && !CLOSED.has(order.status)
   const canPay = live && payment.next_statuses.includes('paid')
   const cod = payment.method === 'cod'
@@ -381,6 +385,18 @@ function PaymentRow({
         )}
         <Button {...NEXT} loading={actions.payment.isPending} disabled={actions.busy} onClick={actions.notPaid} className="flex-1">
           {o.backToNotPaid}
+        </Button>
+      </Buttons>
+    )
+  } else if (step === 'cancelUnpaid' && !paying) {
+    // Unpaid 24 hours on: cancel after a look in the bank app, or it came.
+    buttons = (
+      <Buttons>
+        <Button variant="secondary" disabled={actions.busy} onClick={() => setPaying(true)}>
+          {o.markPaid}
+        </Button>
+        <Button {...NEXT} variant="danger" disabled={actions.busy} onClick={() => actions.move('cancelled')} className="flex-1">
+          {o.action.cancelled}
         </Button>
       </Buttons>
     )
@@ -422,13 +438,14 @@ function PaymentRow({
       label={o.payment}
       value={badge.label}
       tone={badge.tone}
-      shaded={step === 'markPaid' || step === 'retryPayment'}
+      shaded={step === 'markPaid' || step === 'retryPayment' || step === 'cancelUnpaid'}
       muted={muted}
     >
       <Sub>
         {t.status.paymentMethod[payment.method]} · {formatMoney(payment.amount, order.currency)}
       </Sub>
       {step === 'retryPayment' && <Sub>{o.paymentFailedHint}</Sub>}
+      {long && <Sub>{o.unpaidLongHint}</Sub>}
       {payment.paid_at && payment.status === 'paid' && <Sub>{o.markedPaid(formatOrderTime(payment.paid_at))}</Sub>}
       {payment.reference && (
         <Sub>

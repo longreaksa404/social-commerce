@@ -76,7 +76,8 @@ class Settings(BaseSettings):
     oak_bank_account_name: str = ""
     oak_bank_account_number: str = ""
     # Any long random string: cron-job.org sends it on the daily run (POST
-    # /api/v1/billing/run: payment reminders). Empty turns the run off.
+    # /api/v1/billing/run: payment reminders) and the hourly one (POST
+    # /api/v1/reminders/run: customers' unpaid orders). Empty turns both off.
     billing_cron_secret: str = ""
     # The founder's own login phone numbers, comma-separated: they get the
     # admin page (every shop's plan) and "I've paid" alerts on Telegram.

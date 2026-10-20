@@ -4,7 +4,7 @@ import { useT } from '../../i18n/useT.ts'
 import { deliveryBadge } from '../../lib/delivery.ts'
 import { formatMoney } from '../../lib/money.ts'
 import { formatClock, formatOrderTime, ORDER_STATUS_TONES, type StatusTone } from '../../lib/orders.ts'
-import { paymentBadge } from '../../lib/payments.ts'
+import { paymentBadge, unpaidLong } from '../../lib/payments.ts'
 import type { OrderSummary } from '../../lib/types.ts'
 import { NoPhoto, ProductImage } from '../../shop/components.tsx'
 
@@ -40,11 +40,20 @@ export function OrderRow({
   const t = useT()
   const { search } = useLocation()
   // "Says paid" once the customer tapped "I've paid" (UX check #5): the
-  // seller sees which payments to look for in the bank app.
+  // seller sees which payments to look for in the bank app. "Not paid
+  // after 24 h" without it (2026-10-20): ones to check, then cancel.
   const payment =
     order.payment_status === 'pending' && order.payment_claimed_at
       ? { label: t.status.paymentBadge.saysPaid, tone: 'amber' as const }
-      : paymentBadge(t, order.payment_method, order.payment_status)
+      : unpaidLong({
+            status: order.status,
+            createdAt: order.created_at,
+            method: order.payment_method,
+            paymentStatus: order.payment_status,
+            claimedAt: order.payment_claimed_at,
+          })
+        ? { label: t.status.paymentBadge.unpaidLong, tone: 'amber' as const }
+        : paymentBadge(t, order.payment_method, order.payment_status)
   // Only what needs the seller's eye: a pickup, or a delivery that failed.
   const delivery =
     order.delivery_status === 'failed'
