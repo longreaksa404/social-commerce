@@ -153,8 +153,10 @@ async def place_order(
         link_token=data.link,
         telegram=customer_login.read_token(customer_token),
     )
-    # After the response, so a slow Telegram never holds up the customer.
+    # After the response, so a slow Telegram never holds up the customer:
+    # the seller's alert, and the customer's receipt if they get updates.
     background.add_task(notifications.notify_new_order, shop.id, order.id, stock_alerts)
+    background.add_task(customer_updates.notify_placed, shop.id, order.id)
     return await checkout_service.shop_order_out(db, shop, order)
 
 

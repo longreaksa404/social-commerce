@@ -126,6 +126,12 @@ PICKUP_HEADLINES = {
     OrderStatus.SHIPPED: "🤝 បានប្រគល់ជូន",
     OrderStatus.DELIVERED: "🎉 បានមកយកហើយ",
 }
+# "Sent" (founder, 2026-10-20): the seller's Send to driver, the step most
+# sellers take between Accept and Delivered. A courier's has the tracking
+# number; the own driver's note (their name and phone) stays the seller's.
+SENT_DRIVER = "📦 ការកុម្ម៉ង់របស់អ្នកនៅជាមួយអ្នកដឹកហើយ"  # Your order is with the driver
+SENT_COURIER = "📦 បានផ្ញើតាម {courier}"  # Sent with <courier>
+TRACKING = "លេខតាមដាន៖ {number}"  # Tracking: <number>
 # "Couldn't deliver. The seller will contact you to try again."
 DELIVERY_FAILED = "⚠️ ដឹកមិនបានសម្រេច។ អ្នកលក់នឹងទាក់ទងអ្នក ដើម្បីដឹកម្ដងទៀត។"
 # "The seller has received your payment."
@@ -182,10 +188,22 @@ def news(order: Order, event: Event) -> str | None:
             return headline(order, OrderStatus.DELIVERED)
         if event is DeliveryStatus.FAILED:
             return DELIVERY_FAILED
+        if event is DeliveryStatus.ASSIGNED:
+            return sent_line(order)
         return None
     if event is PaymentStatus.PAID and order.payment.method is not PaymentMethod.COD:
         return PAYMENT_RECEIVED
     return None
+
+
+def sent_line(order: Order) -> str:
+    courier = order.delivery.courier
+    if not courier:
+        return SENT_DRIVER
+    line = SENT_COURIER.format(courier=telegram.escape(courier))
+    if order.delivery.assignee_note:
+        line += "\n" + TRACKING.format(number=telegram.escape(order.delivery.assignee_note))
+    return line
 
 
 def message_text(store: Store, order: Order, line: str) -> str:
@@ -391,3 +409,73 @@ async def is_customer_chat(chat_id: int) -> bool:
             select(Customer.id).where(Customer.telegram_user_id == str(chat_id)).limit(1)
         )
         return customer is not None
+
+
+# The receipt (founder, 2026-10-20): the moment a customer who gets updates
+# places an order (logged in with Telegram, or after "Get updates" on an
+# earlier one), what they ordered and how to pay, in their chat.
+RECEIVED = "✅ បានទទួលការកុម្ម៉ង់របស់អ្នក។"  # We've got your order.
+TOTAL = "សរុប៖ {total} · {method}"  # Total: $24.50 · KHQR
+# "Pay now so the shop can get your order ready." / "Pay in cash when you
+# get your order."
+PAY_NOW = "💳 សូមបង់ប្រាក់ ដើម្បីឱ្យហាងរៀបចំការកុម្ម៉ង់របស់អ្នក។"
+PAY_CASH = "💵 បង់ជាសាច់ប្រាក់ពេលទទួលទំនិញ។"
+PAY = "💳 បង់ប្រាក់"  # Pay
+MAX_LINES_SHOWN = 5
+
+
+def receipt_text(store: Store, order: Order) -> str:
+    # Imported here: notifications imports this module.
+    from app.services import notifications
+
+    money = lambda amount: notifications.format_money(amount, order.currency)  # noqa: E731
+    lines = [RECEIVED]
+    for item in order.items[:MAX_LINES_SHOWN]:
+        name = item.product_name_snapshot
+        if item.variant_name_snapshot:
+            name += f" ({item.variant_name_snapshot})"
+        lines.append(f"{item.quantity} × {telegram.escape(name)}")
+    if len(order.items) > MAX_LINES_SHOWN:
+        lines.append(f"+{len(order.items) - MAX_LINES_SHOWN} …")
+    method = notifications.PAYMENT_LABELS[order.payment.method]
+    lines.append(f"<b>{TOTAL.format(total=money(order.total), method=method)}</b>")
+    lines.append("")
+    lines.append(PAY_CASH if order.payment.method is PaymentMethod.COD else PAY_NOW)
+    lines.append(headline(order))
+    return message_text(store, order, "\n".join(lines))
+
+
+async def notify_placed(store_id: uuid.UUID, order_id: uuid.UUID) -> None:
+    """After a customer's order (a BackgroundTask): the receipt, if they
+    get updates on Telegram. A failure is logged and never affects it."""
+    if not get_settings().telegram_configured:
+        return
+    async with tenant_session(store_id) as db:
+        store = await db.get(Store, store_id)
+        order = await db.scalar(
+            select(Order)
+            .where(Order.id == order_id, Order.store_id == store_id)
+            .options(
+                selectinload(Order.customer),
+                selectinload(Order.items),
+                selectinload(Order.payment),
+                selectinload(Order.delivery),
+            )
+        )
+        if store is None or order is None or order.customer.telegram_user_id is None:
+            return
+        view = order_button(store, order)
+        if view and order.payment.method is not PaymentMethod.COD:
+            view = (PAY, view[1])
+        try:
+            await telegram.send_message(
+                order.customer.telegram_user_id, receipt_text(store, order), view
+            )
+        except telegram.TelegramError as exc:
+            if exc.chat_gone:
+                order.customer.telegram_user_id = None
+                await db.commit()
+            else:
+                logger.error("Telegram receipt to a customer failed: %s", exc)
+        except httpx.HTTPError as exc:
+            logger.error("Telegram receipt to a customer failed: %r", exc)

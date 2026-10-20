@@ -243,11 +243,13 @@ async def test_blocked_bot_stops_the_updates(client, bot, auth_headers, dara, mo
     assert (await seller_customer(client, headers, order_id))["telegram_phone"] == "012345678"
 
 
-def fake_order(status, delivery, *, pickup=False, method=PaymentMethod.COD):
+def fake_order(
+    status, delivery, *, pickup=False, method=PaymentMethod.COD, courier=None, note=None
+):
     return SimpleNamespace(
         status=status,
         delivery_method=DeliveryMethod.PICKUP if pickup else DeliveryMethod.SELLER_DELIVERY,
-        delivery=SimpleNamespace(status=delivery),
+        delivery=SimpleNamespace(status=delivery, courier=courier, assignee_note=note),
         payment=SimpleNamespace(method=method),
     )
 
@@ -285,7 +287,20 @@ def fake_order(status, delivery, *, pickup=False, method=PaymentMethod.COD):
             OrderStatus.PROCESSING,
             None,
         ),
-        (fake_order(OrderStatus.ACCEPTED, DeliveryStatus.ASSIGNED), DeliveryStatus.ASSIGNED, None),
+        # Sent (2026-10-20): the driver's note (their name, phone) stays the
+        # seller's; a courier's tracking number goes to the customer.
+        (
+            fake_order(OrderStatus.ACCEPTED, DeliveryStatus.ASSIGNED, note="Dara 012 999 888"),
+            DeliveryStatus.ASSIGNED,
+            customer_updates.SENT_DRIVER,
+        ),
+        (
+            fake_order(
+                OrderStatus.ACCEPTED, DeliveryStatus.ASSIGNED, courier="J&T Express", note="JT123"
+            ),
+            DeliveryStatus.ASSIGNED,
+            "📦 បានផ្ញើតាម J&amp;T Express\nលេខតាមដាន៖ JT123",
+        ),
         (fake_order(OrderStatus.ACCEPTED, DeliveryStatus.DELIVERED), P.PAID, None),  # cash
         (
             fake_order(
@@ -395,3 +410,61 @@ async def test_a_customer_typing_to_the_bot_is_told_to_use_the_button(
     await get_updates(client, slug, order_id, dara)
     reply = await telegram.handle_update(message(dara, text="Thanks, it's 097 123 456"))
     assert reply["text"] == customer_updates.HELP_TEXT
+
+
+# The receipt and "Sent" (founder, 2026-10-20)
+
+
+async def test_a_customer_who_gets_updates_gets_a_receipt(client, bot, auth_headers, dara):
+    headers, store_id, slug, first = await an_order(client, auth_headers)
+    await set_payments(client, headers, bank_transfer=BANK)
+    await get_updates(client, slug, first, dara)
+    cap = await add_product(store_id, "hat", stock=5)
+    bot.clear()
+
+    placed = await place_order(
+        client, slug, [(cap, None, 2)], total="20.00", payment_method="bank_transfer"
+    )
+    assert placed.status_code == 201, placed.text
+    [receipt] = [m for m in bot if m["chat_id"] == str(dara)]
+    assert "#1002" in receipt["text"] and "2 × Hat" in receipt["text"]
+    assert "$20.00" in receipt["text"] and customer_updates.PAY_NOW in receipt["text"]
+    assert receipt["button"] == (
+        customer_updates.PAY,
+        f"https://app.example.com/shop/{slug}/order/{placed.json()['id']}",
+    )
+
+    # Cash on delivery: how it's paid, and View order.
+    bot.clear()
+    await place_order(client, slug, [(cap, None, 1)], total="10.00")
+    [cash] = [m for m in bot if m["chat_id"] == str(dara)]
+    assert customer_updates.PAY_CASH in cash["text"]
+    assert cash["button"][0] == customer_updates.VIEW_ORDER
+
+
+async def test_no_receipt_without_updates(client, bot, auth_headers):
+    _, store_id, slug, _ = await an_order(client, auth_headers)
+    bot.clear()
+    cap = await add_product(store_id, "hat", stock=5)
+    await place_order(client, slug, [(cap, None, 1)], total="10.00", phone="097 123 4567")
+    # Only the seller's new-order alert, to the shop's chat.
+    assert all("ការកុម្ម៉ង់ថ្មី" in m["text"] for m in bot)
+
+
+async def test_sending_it_tells_the_customer_without_the_drivers_note(
+    client, bot, auth_headers, dara
+):
+    headers, _, slug, order_id = await an_order(client, auth_headers)
+    await get_updates(client, slug, order_id, dara)
+    await client.patch(f"{ORDERS}/{order_id}/status", headers=headers, json={"status": "accepted"})
+    bot.clear()
+
+    sent = await client.patch(
+        f"{ORDERS}/{order_id}/delivery",
+        headers=headers,
+        json={"status": "assigned", "assignee_note": "Dara 012 999 888"},
+    )
+    assert sent.status_code == 200, sent.text
+    [news] = bot
+    assert news["text"].endswith(customer_updates.SENT_DRIVER)
+    assert "012 999 888" not in news["text"]
