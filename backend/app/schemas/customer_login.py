@@ -64,3 +64,19 @@ class MiniAppLoginOut(BaseModel):
 
     customer: CustomerSessionOut
     lines: list[CartLineIn]
+
+
+class MyShopOut(BaseModel):
+    """A shop on "Your shops": one this customer has ordered from."""
+
+    name: str
+    slug: str
+    logo_url: str | None
+    last_order_at: datetime | None
+
+
+class MyShopsIn(BaseModel):
+    """Inside Telegram, its signed `initData`; in a browser, nothing (the
+    customer token comes in X-Customer-Token)."""
+
+    init_data: Annotated[str, StringConstraints(max_length=4096)] | None = None

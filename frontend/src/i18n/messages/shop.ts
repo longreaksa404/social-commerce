@@ -3,6 +3,20 @@ import type { Tree } from '../core.ts'
 /** The customer's shop: browsing, product page, cart. */
 export const shop = {
   shopNotFound: { en: 'Shop not found', km: 'រកមិនឃើញហាង' },
+  // "Your shops": what OPEN in Telegram's chat list opens (2026-10-20).
+  yourShops: {
+    title: { en: 'Your shops', km: 'ហាងរបស់អ្នក' },
+    lastOrder: { en: (day: string) => `Last order ${day}`, km: (day: string) => `កុម្ម៉ង់ចុងក្រោយ ${day}` },
+    empty: {
+      en: 'Shops you order from show up here.',
+      km: 'ហាងដែលអ្នកកុម្ម៉ង់នឹងបង្ហាញនៅទីនេះ។',
+    },
+    // In a browser without a Telegram login.
+    logIn: {
+      en: 'Log in with Telegram at a shop’s checkout to see your shops.',
+      km: 'ចូលជាមួយ Telegram នៅពេលកុម្ម៉ង់ ដើម្បីមើលហាងរបស់អ្នក។',
+    },
+  },
   shopNotFoundText: {
     en: 'Check the link, or ask the seller to send it again.',
     km: 'សូមពិនិត្យតំណ ឬសុំឱ្យអ្នកលក់ផ្ញើវាម្ដងទៀត។',

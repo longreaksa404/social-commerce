@@ -48,6 +48,8 @@ export const router = createBrowserRouter([
       { path: '/forgot-password', element: <ForgotPassword /> },
       // The link the bot sends to the shop's Telegram: /reset-password#<token>.
       { path: '/reset-password', element: <ResetPassword /> },
+      // "Your shops": what OPEN in Telegram's chat list opens (2026-10-20).
+      { path: '/shops', lazy: async () => ({ Component: (await import('./pages/YourShops.tsx')).YourShops }) },
       // The founder's mini app test (2026-10-20, temporary), loaded only here.
       { path: '/tg-test', lazy: async () => ({ Component: (await import('./pages/TelegramTest.tsx')).TelegramTest }) },
       {

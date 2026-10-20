@@ -3,7 +3,7 @@
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
     {
-      "source": "/((?!shop/).*)",
+      "source": "/((?!shop/|shops$).*)",
       "headers": [
         { "key": "Content-Security-Policy", "value": "frame-ancestors 'none'" },
         { "key": "X-Frame-Options", "value": "DENY" },
@@ -11,7 +11,7 @@
       ]
     },
     {
-      "source": "/shop/(.*)",
+      "source": "/(shop/.*|shops)",
       "headers": [
         { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' https://web.telegram.org" },
         { "key": "X-Content-Type-Options", "value": "nosniff" }

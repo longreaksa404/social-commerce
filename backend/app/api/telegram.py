@@ -10,7 +10,8 @@ from pydantic import BaseModel, StringConstraints
 from app.core.config import get_settings
 from app.core.errors import AppError, NotFound
 from app.core.ratelimit import check_limit
-from app.services import telegram
+from app.schemas.customer_login import MyShopOut, MyShopsIn
+from app.services import customer_login, telegram
 
 router = APIRouter(prefix="/telegram", tags=["telegram"], include_in_schema=False)
 
@@ -50,3 +51,14 @@ async def mini_app_check(data: MiniAppCheckIn) -> dict[str, Any]:
     if user is None:
         raise AppError(401, "TELEGRAM_DATA_INVALID", "This didn't come from Telegram.")
     return {"id": user["id"], "first_name": user.get("first_name"), "auth_date": user["auth_date"]}
+
+
+@router.post("/my-shops", response_model=list[MyShopOut], dependencies=[Depends(_check_rate_limit)])
+async def my_shops(
+    data: MyShopsIn,
+    customer_token: Annotated[str | None, Header(alias="X-Customer-Token", max_length=2048)] = None,
+) -> list[MyShopOut]:
+    """ "Your shops", what OPEN in Telegram's chat list opens (founder,
+    2026-10-20): the shops this customer ordered from, by Telegram's signed
+    initData inside Telegram, else their device's token."""
+    return await customer_login.my_shops(data.init_data, customer_token)

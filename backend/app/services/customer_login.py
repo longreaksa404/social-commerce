@@ -23,18 +23,19 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.errors import AppError, NotFound
 from app.core.security import create_customer_token, decode_token
 from app.db.session import tenant_session, unscoped_session
-from app.models import Customer, PhoneCheck, Store
+from app.models import Customer, Order, PhoneCheck, Seller, Store
 from app.schemas.customer_login import (
     CartLineIn,
     CustomerSessionOut,
     MiniAppLoginOut,
+    MyShopOut,
     ShopCustomerOut,
     TelegramLoginIn,
     TelegramLoginOut,
@@ -298,3 +299,37 @@ async def mini_app_known(shop_db: AsyncSession, store: Store, init_data: str) ->
     known = await shop_customer(shop_db, store, who)
     token = create_customer_token(who.telegram_user_id, who.phone, name)
     return CustomerSessionOut(token=token, **known.model_dump())
+
+
+# "Your shops" (founder, 2026-10-20): what OPEN in Telegram's chat list
+# opens, Oak's bot's main mini app. One address for every customer, so it
+# lists the shops this Telegram account is a customer of.
+
+
+async def my_shops(init_data: str | None, token: str | None) -> list[MyShopOut]:
+    """The shops this customer has ordered from, latest first: who they are
+    from Telegram's signed `initData` inside Telegram, else from their
+    device's token. Their own customer rows only, across shops (read
+    unscoped, filtered by their Telegram account); shops that are off
+    are left out. 401 when neither says who they are."""
+    if init_data:
+        telegram_id = _mini_app_user(init_data)["id"]
+    elif (who := read_token(token)) is not None:
+        telegram_id = who.telegram_user_id
+    else:
+        raise AppError(401, "CUSTOMER_LOGIN_EXPIRED", "Log in with Telegram again.")
+    last_order = func.max(Order.created_at)
+    async with unscoped_session() as db:
+        rows = await db.execute(
+            select(Store.name, Store.slug, Store.logo_url, last_order)
+            .join(Customer, Customer.store_id == Store.id)
+            .join(Seller, Seller.id == Store.seller_id)
+            .outerjoin(Order, Order.customer_id == Customer.id)
+            .where(Customer.telegram_user_id == str(telegram_id), Seller.is_active.is_(True))
+            .group_by(Store.id)
+            .order_by(last_order.desc().nulls_last(), Store.name)
+        )
+        return [
+            MyShopOut(name=name, slug=slug, logo_url=logo, last_order_at=at)
+            for name, slug, logo, at in rows.all()
+        ]

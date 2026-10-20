@@ -317,7 +317,7 @@ export function ProductGridSkeleton() {
 
 /** The shop's logo, round as on social media, or the shop icon on green
  * when it has none or it won't load. `className` sizes it. */
-export function ShopLogo({ shop, className = 'size-8' }: { shop: ShopStore | undefined; className?: string }) {
+export function ShopLogo({ shop, className = 'size-8' }: { shop: Pick<ShopStore, 'logo_url'> | undefined; className?: string }) {
   const [failed, setFailed] = useState<string | null>(null)
   const logo = shop?.logo_url
   if (logo && failed !== logo) {

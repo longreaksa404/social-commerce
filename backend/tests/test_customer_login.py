@@ -270,3 +270,34 @@ async def test_the_mini_app_logs_a_known_customer_in_again(client, bot, auth_hea
         f"/api/v1/shop/{other_slug}/mini-app-login", json={"init_data": init_data(sokha)}
     )
     assert (elsewhere.json()["phone"], elsewhere.json()["name"]) == ("012345678", "Sokha")
+
+
+# "Your shops": what OPEN in Telegram's chat list opens
+
+
+async def test_your_shops_lists_the_shops_this_customer_ordered_from(
+    client, bot, auth_headers, sokha
+):
+    _, _, slug_a, cap_a = await a_shop(client, auth_headers)
+    _, _, slug_b, cap_b = await a_shop(client, auth_headers)
+    _, _, slug_c, _ = await a_shop(client, auth_headers)  # never ordered from
+    token = (await log_in(client, bot, slug_a, cap_a, sokha))["read"]["customer"]["token"]
+    for slug, cap in ((slug_a, cap_a), (slug_b, cap_b)):
+        placed = await place_order(
+            client, slug, [(cap, None, 1)], total="10.00", headers={"X-Customer-Token": token}
+        )
+        assert placed.status_code == 201
+
+    inside = await client.post("/api/v1/telegram/my-shops", json={"init_data": init_data(sokha)})
+    assert inside.status_code == 200, inside.text
+    assert [shop["slug"] for shop in inside.json()] == [slug_b, slug_a]  # latest first
+    in_browser = await client.post(
+        "/api/v1/telegram/my-shops", json={}, headers={"X-Customer-Token": token}
+    )
+    assert [shop["slug"] for shop in in_browser.json()] == [slug_b, slug_a]
+    assert slug_c not in {shop["slug"] for shop in in_browser.json()}
+
+    # Someone else sees none of them; nobody at all is refused.
+    other = await client.post("/api/v1/telegram/my-shops", json={"init_data": init_data(sokha + 1)})
+    assert other.json() == []
+    assert (await client.post("/api/v1/telegram/my-shops", json={})).status_code == 401

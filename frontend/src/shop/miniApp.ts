@@ -32,6 +32,25 @@ declare global {
 }
 
 const FLAG = 'sc.miniapp'
+const FROM_SHOPS = 'sc.fromshops'
+
+/** Opening a shop from "Your shops" (pages/YourShops.tsx): its home gets
+ * Telegram's back arrow to the list. */
+export function markFromYourShops() {
+  try {
+    sessionStorage.setItem(FROM_SHOPS, '1')
+  } catch {
+    // No way back to the list but Telegram's own close.
+  }
+}
+
+function fromYourShops(): boolean {
+  try {
+    return sessionStorage.getItem(FROM_SHOPS) === '1'
+  } catch {
+    return false
+  }
+}
 
 /** Opened inside Telegram: Telegram puts its launch data in the address of
  * the first page; the tab remembers it for the pages after. */
@@ -140,15 +159,19 @@ export function useMiniApp(shop: string) {
   }, [app, checkId, customer, navigate, shop])
 
   // Telegram's back arrow instead of a browser's: back, or to the shop's
-  // home when the mini app opened straight on a page (from "Open checkout").
+  // home when the mini app opened straight on a page (from "Open checkout");
+  // on the home, back to "Your shops" if it came from there.
   useEffect(() => {
     if (!app) return
     const home = `/shop/${shop}`
-    if (pathname === home || pathname === `${home}/`) {
+    const atHome = pathname === home || pathname === `${home}/`
+    if (atHome && !fromYourShops()) {
       app.BackButton.hide()
       return
     }
-    const back = () => (window.history.length > 1 ? navigate(-1) : navigate(home, { replace: true }))
+    const back = atHome
+      ? () => navigate('/shops')
+      : () => (window.history.length > 1 ? navigate(-1) : navigate(home, { replace: true }))
     app.BackButton.onClick(back)
     app.BackButton.show()
     return () => app.BackButton.offClick(back)
