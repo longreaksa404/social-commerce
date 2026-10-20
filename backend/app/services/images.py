@@ -53,6 +53,29 @@ def delete_store_files(store_id: uuid.UUID) -> int:
     return deleted
 
 
+def put_file(key: str, body: bytes, content_type: str) -> str:
+    """Store a file the server made or fetched (a customer's Telegram photo)
+    and return its public address. Blocking: run it in a thread."""
+    settings = get_settings()
+    _r2_client().put_object(
+        Bucket=settings.r2_bucket,
+        Key=key,
+        Body=body,
+        ContentType=content_type,
+        CacheControl="public, max-age=31536000, immutable",
+    )
+    return f"{settings.r2_public_url}/{key}"
+
+
+def delete_file(url: str) -> None:
+    """Delete one of our own files by its public address (others are left
+    alone). Blocking: run it in a thread."""
+    settings = get_settings()
+    prefix = f"{settings.r2_public_url}/"
+    if settings.r2_configured and url.startswith(prefix):
+        _r2_client().delete_object(Bucket=settings.r2_bucket, Key=url.removeprefix(prefix))
+
+
 def _check_configured() -> None:
     if not get_settings().r2_configured:
         raise AppError(503, "UPLOADS_NOT_CONFIGURED", "Image uploads are not set up yet.")

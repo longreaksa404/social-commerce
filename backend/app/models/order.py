@@ -52,6 +52,10 @@ class Customer(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
     # stays, as what they proved.
     telegram_user_id: Mapped[str | None] = mapped_column(Text)
     telegram_phone: Mapped[str | None] = mapped_column(Text)
+    # Their Telegram profile photo, copied to R2 (founder, 2026-10-20;
+    # app/services/customer_photos.py): shown to the seller on the order
+    # and the customer's page. None without one, or hidden from bots.
+    photo_url: Mapped[str | None] = mapped_column(Text)
 
     @property
     def on_telegram(self) -> bool:

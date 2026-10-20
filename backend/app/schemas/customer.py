@@ -42,6 +42,7 @@ class CustomerDetailOut(BaseModel):
     name: str
     phone: str
     address: str | None  # their latest delivery address
+    photo_url: str | None = None  # their Telegram profile photo
     created_at: datetime  # their first order
     order_count: int
     spent: list[AmountOut]  # as in CustomerSummaryOut

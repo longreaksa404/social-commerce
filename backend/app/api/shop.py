@@ -35,7 +35,7 @@ from app.schemas.storefront import (
     ShopStoreOut,
 )
 from app.services import checkout as checkout_service
-from app.services import customer_login, customer_updates, notifications
+from app.services import customer_login, customer_photos, customer_updates, notifications
 from app.services import link as link_service
 from app.services import preview as preview_service
 from app.services import storefront as storefront_service
@@ -157,6 +157,9 @@ async def place_order(
     # the seller's alert, and the customer's receipt if they get updates.
     background.add_task(notifications.notify_new_order, shop.id, order.id, stock_alerts)
     background.add_task(customer_updates.notify_placed, shop.id, order.id)
+    if order.customer.telegram_user_id is not None:
+        # The seller sees their Telegram photo (a new one replaces the old).
+        background.add_task(customer_photos.refresh, shop.id, order.customer.id)
     return await checkout_service.shop_order_out(db, shop, order)
 
 

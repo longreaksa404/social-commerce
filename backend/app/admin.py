@@ -46,7 +46,7 @@ from app.schemas.plan import PlanStage
 from app.services import plan
 from app.services.account import set_shop_logins
 from app.services.auth import login_filter
-from app.services.images import delete_store_files
+from app.services.images import delete_file, delete_store_files
 from app.services.phone import normalize_phone
 from app.services.slugs import slugify, unique_store_slug
 
@@ -322,6 +322,7 @@ async def forget_customer(slug: str, phone: str) -> int:
         customer.address = None
         customer.telegram_user_id = None
         customer.telegram_phone = None
+        photo, customer.photo_url = customer.photo_url, None
         await db.execute(
             update(Order)
             .where(Order.customer_id == customer.id)
@@ -344,6 +345,8 @@ async def forget_customer(slug: str, phone: str) -> int:
             {"removed": REMOVED, "store_id": store.id, "ids": [str(i) for i in order_ids]},
         )
         await db.commit()
+    if photo:
+        delete_file(photo)
     return len(order_ids)
 
 

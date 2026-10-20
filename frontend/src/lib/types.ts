@@ -466,6 +466,8 @@ export type Order = Omit<ShopOrder, 'payment' | 'delivery'> & {
     telegram_phone: string | null
     /** They get updates on Telegram now: "Message on Telegram" works. */
     on_telegram: boolean
+    /** Their Telegram profile photo, if they have one. */
+    photo_url: string | null
   }
   /** Where the seller can move the order now; the server applies the rules. */
   next_statuses: OrderStatus[]
@@ -567,6 +569,8 @@ export type CustomerDetail = {
   phone: string
   /** Their latest delivery address (each order keeps its own). */
   address: string | null
+  /** Their Telegram profile photo, if they have one. */
+  photo_url: string | null
   /** Their first order. */
   created_at: string
   order_count: number

@@ -15,6 +15,7 @@ import type { Order, OrderStatus } from '../../lib/types.ts'
 import { NoPhoto, ProductImage } from '../../shop/components.tsx'
 import { useOrder, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
+import { CustomerPhoto } from '../customers/CustomerPhoto.tsx'
 import { MessageCustomerSheet } from './MessageCustomer.tsx'
 import { cashDue, CLOSED } from './orderSteps.ts'
 import { PinnedStep } from './PinnedStep.tsx'
@@ -323,7 +324,10 @@ function CustomerCard({ order, onStale }: { order: Order; onStale: () => void })
   return (
     <Card className="p-4 sm:p-6">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="min-w-0 font-semibold break-words text-slate-900">{customer.name}</h2>
+        <div className="flex min-w-0 items-center gap-3">
+          <CustomerPhoto url={customer.photo_url} />
+          <h2 className="min-w-0 font-semibold break-words text-slate-900">{customer.name}</h2>
+        </div>
         <Link
           to={`/dashboard/customers/${customer.id}`}
           state={{ back: `/dashboard/orders/${order.id}` }}

@@ -155,6 +155,7 @@ class CustomerOut(BaseModel):
     telegram_phone: str | None = None
     # They get updates on Telegram now, so "Message on Telegram" works.
     on_telegram: bool = False
+    photo_url: str | None = None  # their Telegram profile photo
     address: str | None
 
 

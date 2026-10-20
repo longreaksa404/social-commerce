@@ -52,7 +52,7 @@ from app.models import (
     PhoneCheck,
     Store,
 )
-from app.services import telegram
+from app.services import customer_photos, telegram
 
 logger = logging.getLogger(__name__)
 
@@ -283,8 +283,10 @@ async def confirmed(check: PhoneCheck) -> str:
         order.customer.telegram_user_id = str(check.telegram_user_id)
         order.customer.telegram_phone = check.phone
         await db.commit()
-        # The button beside the message box opens this shop from now on.
+        # The button beside the message box opens this shop from now on,
+        # and the seller sees their Telegram photo.
         await telegram.set_shop_button(check.telegram_user_id, store)
+        customer_photos.refresh_later(store_id, order.customer.id)
         shop = telegram.escape(store.name)
         return "\n".join(
             [

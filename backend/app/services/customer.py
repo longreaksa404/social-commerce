@@ -114,6 +114,7 @@ async def get_customer(
         name=customer.name,
         phone=customer.phone,
         address=customer.address,
+        photo_url=customer.photo_url,
         created_at=customer.created_at,
         order_count=order_count or 0,
         spent=spent.get(customer.id, []),
