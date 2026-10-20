@@ -305,3 +305,95 @@ def fake_order(status, delivery, *, pickup=False, method=PaymentMethod.COD):
 )
 def test_news_says_each_thing_once(order, event, said):
     assert customer_updates.news(order, event) == said
+
+
+# "Message on Telegram" (founder's pick 2026-10-20)
+
+
+async def test_seller_messages_a_customer_on_telegram(client, bot, auth_headers, dara):
+    headers, _, slug, order_id = await an_order(client, auth_headers)
+    url = f"{ORDERS}/{order_id}/telegram-message"
+    # Not before they get updates there.
+    assert (await seller_customer(client, headers, order_id))["on_telegram"] is False
+    refused = await client.post(url, headers=headers, json={"text": "Hello"})
+    assert refused.status_code == 409
+    assert refused.json()["error"]["code"] == "NOT_ON_TELEGRAM"
+
+    await get_updates(client, slug, order_id, dara)
+    assert (await seller_customer(client, headers, order_id))["on_telegram"] is True
+    await client.patch(
+        "/api/v1/seller/store", headers=headers, json={"telegram_username": "srey_mom"}
+    )
+    bot.clear()
+    sent = await client.post(url, headers=headers, json={"text": "  Driver is <near>  "})
+
+    assert sent.status_code == 204, sent.text
+    [message] = bot
+    assert message["chat_id"] == str(dara)
+    assert "#1001" in message["text"]
+    assert message["text"].endswith("💬 Driver is &lt;near&gt;")
+    reply, view = message["button"]
+    assert reply["url"].startswith("https://t.me/srey_mom?text=")
+    assert view["url"] == f"https://app.example.com/shop/{slug}/order/{order_id}"
+
+
+async def test_message_without_the_shops_telegram_gives_its_phone(
+    client, bot, auth_headers, dara
+):
+    headers, _, slug, order_id = await an_order(client, auth_headers)
+    await get_updates(client, slug, order_id, dara)
+    await client.patch(
+        "/api/v1/seller/store", headers=headers, json={"contact_phone": "012 999 888"}
+    )
+    bot.clear()
+    sent = await client.post(
+        f"{ORDERS}/{order_id}/telegram-message", headers=headers, json={"text": "Hi"}
+    )
+    assert sent.status_code == 204, sent.text
+    [message] = bot
+    assert message["text"].endswith("\n📞 012999888")
+    assert [b["text"] for b in message["button"]] == ["មើលការកុម្ម៉ង់"]  # View order only
+
+
+async def test_message_is_refused_for_another_shops_order_or_no_text(
+    client, bot, auth_headers, dara
+):
+    """A seller can't message another shop's customer (tenant isolation)."""
+    _, _, slug, order_id = await an_order(client, auth_headers)
+    await get_updates(client, slug, order_id, dara)
+    other_headers, _, _, _ = await an_order(client, auth_headers)
+    bot.clear()
+    url = f"{ORDERS}/{order_id}/telegram-message"
+    elsewhere = await client.post(url, headers=other_headers, json={"text": "Hi"})
+    assert elsewhere.status_code == 404
+    blank = await client.post(url, headers=other_headers, json={"text": "   "})
+    assert blank.status_code == 422
+    assert bot == []
+
+
+async def test_message_to_a_blocked_bot_says_so_and_stops(
+    client, bot, auth_headers, dara, monkeypatch
+):
+    headers, _, slug, order_id = await an_order(client, auth_headers)
+    await get_updates(client, slug, order_id, dara)
+
+    async def blocked(chat_id, text, button=None):
+        raise telegram.TelegramError(403, "Forbidden: bot was blocked by the user")
+
+    monkeypatch.setattr(telegram, "send_message", blocked)
+    sent = await client.post(
+        f"{ORDERS}/{order_id}/telegram-message", headers=headers, json={"text": "Hi"}
+    )
+    assert sent.status_code == 409
+    assert (await seller_customer(client, headers, order_id))["on_telegram"] is False
+
+
+async def test_a_customer_typing_to_the_bot_is_told_to_use_the_button(
+    client, bot, auth_headers, dara
+):
+    _, _, slug, order_id = await an_order(client, auth_headers)
+    stranger = await telegram.handle_update(message(dara, text="Hello?"))
+    assert stranger["text"] == telegram.HELP_TEXT  # the seller's help
+    await get_updates(client, slug, order_id, dara)
+    reply = await telegram.handle_update(message(dara, text="Thanks, it's 097 123 456"))
+    assert reply["text"] == customer_updates.HELP_TEXT

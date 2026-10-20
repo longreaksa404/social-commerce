@@ -138,6 +138,12 @@ class TelegramUpdatesOut(BaseModel):
     expires_at: datetime
 
 
+class CustomerMessageIn(BaseModel):
+    """ "Message on Telegram", from the seller's order page."""
+
+    text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)]
+
+
 class CustomerOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -147,6 +153,8 @@ class CustomerOut(BaseModel):
     # The number the customer's Telegram shared, when they get updates
     # there: the order's phone (confirmed) or another of theirs.
     telegram_phone: str | None = None
+    # They get updates on Telegram now, so "Message on Telegram" works.
+    on_telegram: bool = False
     address: str | None
 
 

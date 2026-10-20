@@ -446,6 +446,7 @@ PATCH  /api/v1/seller/orders/{id}/payment     # mark paid/failed
 PATCH  /api/v1/seller/orders/{id}/delivery    # update delivery status
 POST   /api/v1/seller/orders                  # an order that came by chat, added by the seller at the shop's prices (2026-10-09)
 POST   /api/v1/seller/orders/{id}/cash-handover   # "Delivered, cash received": delivery delivered + payment paid, both or neither (§7.3)
+POST   /api/v1/seller/orders/{id}/telegram-message # "Message on Telegram": the bot sends the seller's words to a customer who gets updates there (§12.2)
 GET    /api/v1/seller/stats?period=today|week|month   # owner; sales and orders, for a seller dashboard (not shown in the app yet)
 ```
 
@@ -695,6 +696,7 @@ Customer taps "Ask seller on Telegram" on the product page
 ```
 - Decided 2026-10-03: the platform's bot isn't involved and nothing is logged; the platform doesn't proxy or store the conversation (`01_PRODUCT.md` §11, §27). No username, no button.
 - This keeps the integration to a single webhook endpoint and avoids building a chat-relay system.
+- **The other way, "Message on Telegram" (founder, 2026-10-20):** for a customer who gets their order's updates from the bot, the seller's order page can send them a message through it, above all when their phone doesn't answer (a wrong digit, a second SIM). It carries a "Reply to <shop>" button to the shop's own Telegram (`t.me/{store.telegram_username}?text=Order #1001: `), else its Messenger, else the shop's phone in the text. The bot still doesn't relay or store a conversation: a customer typing to it is told to tap the shop's button.
 
 ## 12.3 Webhook
 - Single endpoint: `POST /api/v1/telegram/webhook`, registered with Telegram at startup where `PUBLIC_API_URL` is set (production only, so a laptop never takes the bot over).

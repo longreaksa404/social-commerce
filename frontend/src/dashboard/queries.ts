@@ -250,6 +250,13 @@ export function useRecordPayment(id: string) {
   })
 }
 
+/** "Message on Telegram": Oak's bot sends it to the order's customer. */
+export function useMessageCustomer(id: string) {
+  return useMutation({
+    mutationFn: (text: string) => api<void>(`/seller/orders/${id}/telegram-message`, { method: 'POST', body: { text } }),
+  })
+}
+
 /** Move the order's delivery along, with an optional note on who delivers. */
 export function useRecordDelivery(id: string) {
   const queryClient = useQueryClient()

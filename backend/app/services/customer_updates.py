@@ -14,6 +14,10 @@ number when it's another one (people often have two SIMs).
    there get news too.
 4. The seller's taps that a customer would want to hear about send a
    message after the response (notify). A blocked bot clears the chat.
+5. "Message on Telegram" (founder's pick 2026-10-20, send_from_seller):
+   the seller's own words, above all for a phone that doesn't answer,
+   with a button to reply to the shop's own Telegram or Messenger. The bot
+   doesn't carry replies (no chat inside Oak Order, decided 2026-10-03).
 
 Customers hear in Khmer, the bot's language, in the order page's words
 (frontend/src/i18n/messages/order.ts).
@@ -27,14 +31,18 @@ import struct
 import time
 import uuid
 from datetime import UTC, datetime, timedelta
+from urllib.parse import quote
 
 import httpx
 from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.config import get_settings
+from app.core.errors import AppError, NotFound
 from app.db.session import tenant_session, unscoped_session
 from app.models import (
+    Customer,
     DeliveryMethod,
     DeliveryStatus,
     Order,
@@ -300,3 +308,86 @@ async def notify(store_id: uuid.UUID, order_id: uuid.UUID, event: Event) -> None
                 logger.error("Telegram update to a customer failed: %s", exc)
         except httpx.HTTPError as exc:
             logger.error("Telegram update to a customer failed: %r", exc)
+
+
+# The seller's own message ("Message on Telegram")
+
+REPLY_TO = "💬 ឆ្លើយតបទៅ {shop}"  # Reply to <shop>
+# A customer typing in the bot's chat: "This chat only brings news of your
+# orders and can't read replies. To answer a shop, tap the button under its
+# message."
+HELP_TEXT = (
+    "ឆាតនេះផ្ញើតែដំណឹងអំពីការកុម្ម៉ង់របស់អ្នកប៉ុណ្ណោះ ហើយមិនអាចអានសារតបបានទេ។ "
+    "ដើម្បីឆ្លើយតបហាង សូមចុចប៊ូតុងនៅក្រោមសាររបស់ហាង។"
+)
+
+
+def reply_button(store: Store, order: Order) -> dict[str, str] | None:
+    """The shop's own Telegram with "Order #1001: " typed in, else its
+    Messenger; None without either (the message then gives its phone)."""
+    label = REPLY_TO.format(shop=store.name)
+    if store.telegram_username:
+        typed = quote(f"ការកុម្ម៉ង់ #{order.number}៖ ")
+        return telegram.url_button(label, f"https://t.me/{store.telegram_username}?text={typed}")
+    if store.messenger_username:
+        return telegram.url_button(label, f"https://m.me/{store.messenger_username}")
+    return None
+
+
+def seller_message_text(store: Store, order: Order, text: str) -> str:
+    line = f"💬 {telegram.escape(text)}"
+    if not (store.telegram_username or store.messenger_username) and store.contact_phone:
+        line += f"\n📞 {store.contact_phone}"
+    return message_text(store, order, line)
+
+
+async def send_from_seller(
+    db: AsyncSession, store_id: uuid.UUID, order_id: uuid.UUID, text: str
+) -> None:
+    """Oak's bot sends the seller's `text` to the order's customer, with
+    buttons to reply to the shop and to view the order. Waits for Telegram,
+    so the seller knows whether it went."""
+    if not get_settings().telegram_configured:
+        raise AppError(503, "TELEGRAM_NOT_CONFIGURED", "Updates on Telegram are off.")
+    found = await _load(db, store_id, order_id)
+    if found is None:
+        raise NotFound("ORDER_NOT_FOUND", "Order not found.")
+    store, order = found
+    chat_id = order.customer.telegram_user_id
+    if chat_id is None:
+        raise AppError(409, "NOT_ON_TELEGRAM", "This customer doesn't get updates on Telegram.")
+    view = order_button(store, order)
+    buttons = [b for b in (reply_button(store, order), view and telegram.url_button(*view)) if b]
+    try:
+        await telegram.send_message(chat_id, seller_message_text(store, order, text), buttons)
+    except telegram.TelegramError as exc:
+        if exc.chat_gone:
+            # Blocked or deleted: the order stops offering this.
+            order.customer.telegram_user_id = None
+            await db.commit()
+            raise AppError(
+                409,
+                "NOT_ON_TELEGRAM",
+                "This customer has stopped updates on Telegram. Call them instead.",
+            ) from exc
+        logger.error("Telegram message to a customer failed: %s", exc)
+        raise _send_failed() from exc
+    except httpx.HTTPError as exc:
+        logger.error("Telegram message to a customer failed: %r", exc)
+        raise _send_failed() from exc
+
+
+def _send_failed() -> AppError:
+    return AppError(502, "TELEGRAM_FAILED", "Telegram didn't take the message. Try again.")
+
+
+async def is_customer_chat(chat_id: int) -> bool:
+    """A customer's chat with the bot (their updates), not a shop's alerts
+    chat: someone who sells and buys gets the seller's help."""
+    async with unscoped_session() as db:
+        if await db.scalar(select(Store.id).where(Store.telegram_chat_id == str(chat_id))):
+            return False
+        customer = await db.scalar(
+            select(Customer.id).where(Customer.telegram_user_id == str(chat_id)).limit(1)
+        )
+        return customer is not None

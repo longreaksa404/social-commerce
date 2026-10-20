@@ -462,6 +462,8 @@ export type Order = Omit<ShopOrder, 'payment' | 'delivery'> & {
     /** The number the customer's Telegram shared, if they get updates there:
      * the order's phone (confirmed) or another of theirs. */
     telegram_phone: string | null
+    /** They get updates on Telegram now: "Message on Telegram" works. */
+    on_telegram: boolean
   }
   /** Where the seller can move the order now; the server applies the rules. */
   next_statuses: OrderStatus[]

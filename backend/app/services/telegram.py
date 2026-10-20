@@ -241,6 +241,9 @@ async def handle_update(update: dict[str, Any]) -> dict[str, Any] | None:
     elif command.split("@")[0] == "/start" and argument:
         store_id = read_link_code(argument)
         reply = await _connect(store_id, chat["id"]) if store_id else EXPIRED_TEXT
+    elif not text.startswith("/") and await customer_updates.is_customer_chat(chat["id"]):
+        # A customer answering a shop's message here: the bot can't pass it on.
+        reply = customer_updates.HELP_TEXT
     return _reply(chat["id"], reply)
 
 

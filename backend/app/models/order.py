@@ -53,6 +53,12 @@ class Customer(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
     telegram_user_id: Mapped[str | None] = mapped_column(Text)
     telegram_phone: Mapped[str | None] = mapped_column(Text)
 
+    @property
+    def on_telegram(self) -> bool:
+        """Their chat with the bot is open, so the seller can message them
+        there ("Message on Telegram")."""
+        return self.telegram_user_id is not None
+
 
 class Order(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
     """Payment and delivery are separate tables with their own state

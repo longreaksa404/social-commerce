@@ -15,6 +15,7 @@ import type { Order, OrderStatus } from '../../lib/types.ts'
 import { NoPhoto, ProductImage } from '../../shop/components.tsx'
 import { useOrder, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
+import { MessageCustomerSheet } from './MessageCustomer.tsx'
 import { cashDue, CLOSED } from './orderSteps.ts'
 import { PinnedStep } from './PinnedStep.tsx'
 import { SendToDriverSheet } from './SendToDriver.tsx'
@@ -133,7 +134,7 @@ function OrderView({
           onSend={() => setSending(true)}
         />
         <ItemsCard order={order} />
-        <CustomerCard order={order} />
+        <CustomerCard order={order} onStale={onStale} />
       </div>
       <PinnedStep
         order={order}
@@ -302,13 +303,15 @@ const ROUND_BUTTON =
   'inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-surface text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-95'
 
 /** Who and where in one card (founder's pick 3A): the name, the phone with
- * Call and Copy beside it, then the address and the map. */
-function CustomerCard({ order }: { order: Order }) {
+ * Call and Copy beside it, "Message on Telegram" when they get updates
+ * there (2026-10-20), then the address and the map. */
+function CustomerCard({ order, onStale }: { order: Order; onStale: () => void }) {
   const t = useT()
   const o = t.orders
   const c = t.customers
   const { toast } = useFeedback()
   const { customer } = order
+  const [messaging, setMessaging] = useState(false)
   async function copyPhone() {
     try {
       await navigator.clipboard.writeText(customer.phone)
@@ -342,6 +345,14 @@ function CustomerCard({ order }: { order: Order }) {
           <Copy aria-hidden className="size-4.5" />
         </button>
       </div>
+      {customer.on_telegram && (
+        <>
+          <Button variant="secondary" icon={Send} onClick={() => setMessaging(true)} className="mt-3 w-full sm:w-auto">
+            {o.messageOnTelegram}
+          </Button>
+          <MessageCustomerSheet order={order} open={messaging} onClose={() => setMessaging(false)} onGone={onStale} />
+        </>
+      )}
       {/* An order from a chat: the customer hasn't seen the order page,
           where they follow it and see how to pay (KHQR, bank). */}
       {order.source === 'chat' && <CopyOrderLink order={order} />}

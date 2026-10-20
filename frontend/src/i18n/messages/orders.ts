@@ -303,6 +303,35 @@ export const orders = {
     en: "Their Telegram number, not the order's",
     km: 'លេខ Telegram របស់គាត់ មិនមែនលេខក្នុងការកុម្ម៉ង់ទេ',
   },
+  // "Message on Telegram" (founder's pick 2026-10-20): Oak's bot sends it to
+  // a customer who gets updates there, with a button to reply to the shop's
+  // own Telegram (or Messenger). Ready messages fill the box, to change.
+  messageOnTelegram: { en: 'Message on Telegram', km: 'ផ្ញើសារតាម Telegram' },
+  messageTitle: { en: (name: string) => `Message ${name}`, km: (name: string) => `ផ្ញើសារទៅ ${name}` },
+  messageLabel: { en: 'Message', km: 'សារ' },
+  readyMessages: { en: 'Ready messages', km: 'សារស្រាប់' },
+  ready: {
+    cantReach: {
+      label: { en: "Can't reach you", km: 'ទាក់ទងមិនបាន' },
+      text: {
+        en: (phone: string) => `We couldn't reach you on ${phone}. Please send us your right number.`,
+        km: (phone: string) => `យើងទាក់ទងអ្នកតាមលេខ ${phone} មិនបានទេ។ សូមផ្ញើលេខត្រឹមត្រូវរបស់អ្នកមកយើង។`,
+      },
+    },
+    driverNear: {
+      label: { en: 'Driver is near', km: 'អ្នកដឹកជិតដល់' },
+      text: {
+        en: 'The driver is near your address. Please answer your phone.',
+        km: 'អ្នកដឹកជិតដល់អាសយដ្ឋានរបស់អ្នកហើយ។ សូមលើកទូរស័ព្ទ។',
+      },
+    },
+  },
+  // Without the shop's Telegram or Messenger the customer can't answer.
+  noReplyWay: {
+    en: 'Add your Telegram in Settings → Contact so they can reply.',
+    km: 'បញ្ចូល Telegram របស់អ្នកក្នុង ការកំណត់ → ទំនាក់ទំនង ដើម្បីឱ្យគាត់ឆ្លើយតបបាន។',
+  },
+  messageSent: { en: 'Sent on Telegram', km: 'បានផ្ញើតាម Telegram' },
   deliverTo: { en: 'Deliver to', km: 'ដឹកទៅ' },
   note: { en: 'Note: ', km: 'ចំណាំ៖ ' },
   openMaps: { en: 'Open in Google Maps', km: 'បើកក្នុង Google Maps' },

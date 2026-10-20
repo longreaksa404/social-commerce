@@ -4,13 +4,20 @@ import uuid
 from datetime import date, datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, BackgroundTasks, Query, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, Response
 
 from app.api.deps import Owner, Seller, TenantDb
 from app.core.errors import AppError
+from app.core.ratelimit import check_limit
 from app.models import DeliveryStatus, OrderStatus
 from app.schemas.delivery import DeliveryUpdate
-from app.schemas.order import OrderListOut, OrderOut, OrderStatusUpdate, SellerOrderCreate
+from app.schemas.order import (
+    CustomerMessageIn,
+    OrderListOut,
+    OrderOut,
+    OrderStatusUpdate,
+    SellerOrderCreate,
+)
 from app.schemas.payment import PaymentUpdate
 from app.services import checkout as checkout_service
 from app.services import customer_updates, notifications
@@ -151,3 +158,22 @@ async def record_delivery(
     order = await order_service.record_delivery(db, seller.store_id, order_id, data)
     background.add_task(customer_updates.notify, seller.store_id, order_id, data.status)
     return await order_service.order_out(db, seller.store_id, order)
+
+
+def _message_rate_limit(request: Request) -> None:
+    # Each one is a Telegram message to a customer.
+    check_limit("20/minute", "customer-message", request)
+
+
+@router.post(
+    "/{order_id}/telegram-message",
+    status_code=204,
+    dependencies=[Depends(_message_rate_limit)],
+)
+async def message_customer(
+    order_id: uuid.UUID, data: CustomerMessageIn, seller: Seller, db: TenantDb
+) -> None:
+    """ "Message on Telegram" (founder's pick 2026-10-20): Oak's bot sends
+    the seller's message to a customer who gets updates there, with a
+    button to reply to the shop (app/services/customer_updates.py)."""
+    await customer_updates.send_from_seller(db, seller.store_id, order_id, data.text)

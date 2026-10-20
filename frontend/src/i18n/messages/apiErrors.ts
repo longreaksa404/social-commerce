@@ -61,6 +61,12 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   'This payment was already checked.': 'ការបង់ប្រាក់នេះត្រូវបានពិនិត្យរួចហើយ។',
   'Payment not found.': 'រកមិនឃើញការបង់ប្រាក់។',
   'This page is for Oak Order only.': 'ទំព័រនេះសម្រាប់តែ Oak Order ប៉ុណ្ណោះ។',
+  // "Message on Telegram" (seller's order page)
+  "This customer doesn't get updates on Telegram.": 'អតិថិជននេះមិនទទួលដំណឹងតាម Telegram ទេ។',
+  'This customer has stopped updates on Telegram. Call them instead.':
+    'អតិថិជននេះបានបញ្ឈប់ការទទួលដំណឹងតាម Telegram ហើយ។ សូមហៅទូរស័ព្ទទៅគាត់វិញ។',
+  "Telegram didn't take the message. Try again.": 'Telegram មិនបានទទួលសារនេះទេ។ សូមព្យាយាមម្ដងទៀត។',
+  'Updates on Telegram are off.': 'ការទទួលដំណឹងតាម Telegram កំពុងបិទ។',
   "Your shop isn't taking new orders until Oak Order is paid (Settings → Plan).":
     'ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ថ្មីទេ រហូតដល់បង់ប្រាក់ឱ្យ Oak Order (ការកំណត់ → គម្រោង)។',
 
