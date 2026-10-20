@@ -16,17 +16,19 @@ sendMessage, /start, a shared contact and a button tap.
 import base64
 import hashlib
 import hmac
+import json
 import logging
 import struct
 import time
 import uuid
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import parse_qsl
 
 import httpx
 
 from app.core.config import get_settings
-from app.db.session import tenant_session
+from app.db.session import tenant_session, unscoped_session
 from app.models import Store
 from app.services import customer_updates, phone_check
 
@@ -225,6 +227,8 @@ async def handle_update(update: dict[str, Any]) -> dict[str, Any] | None:
     reply = HELP_TEXT
     command, _, argument = text.strip().partition(" ")
     argument = argument.strip()
+    if command.split("@")[0] == MINI_TEST_COMMAND and (test := await _mini_test(chat["id"])):
+        return test
     if command.split("@")[0] == "/start" and argument.startswith(phone_check.CODE_PREFIX):
         # In a private chat the chat's id is the user's.
         if await phone_check.opened(argument, chat["id"]):
@@ -288,6 +292,67 @@ async def _connect(store_id: uuid.UUID, chat_id: int) -> str:
         f"✅ បានភ្ជាប់ជាមួយ <b>{name}</b>។\n\n"
         "អ្នកនឹងទទួលបានសារនៅទីនេះ រាល់ពេលមានការកុម្ម៉ង់ថ្មី និងពេលទំនិញជិតអស់ស្តុក។ "
         "ដើម្បីបញ្ឈប់ សូមចុច “ផ្ដាច់” នៅក្នុង ការកំណត់ → ការជូនដំណឹង។"
+    )
+
+
+# Mini app (founder, 2026-10-20: customers log in with Telegram and shop
+# inside it). Telegram hands the page `initData`, signed with the bot's
+# token, saying who opened it: the server checks it, never the page.
+MINI_APP_MAX_AGE = 24 * 60 * 60
+
+
+def read_mini_app_data(
+    init_data: str, now: float | None = None, max_age: int = MINI_APP_MAX_AGE
+) -> dict[str, Any] | None:
+    """The Telegram user who opened the mini app, from its `initData`, or
+    None if it isn't Telegram's (wrong signature), or older than `max_age`
+    seconds. Telegram's rule: HMAC-SHA256 of the other fields, sorted, one
+    "key=value" a line, keyed by HMAC-SHA256("WebAppData", bot token)."""
+    try:
+        fields = dict(parse_qsl(init_data, keep_blank_values=True, strict_parsing=True))
+    except ValueError:
+        return None
+    received = fields.pop("hash", "")
+    check = "\n".join(f"{key}={value}" for key, value in sorted(fields.items()))
+    secret = hmac.new(b"WebAppData", get_settings().telegram_bot_token.encode(), hashlib.sha256)
+    expected = hmac.new(secret.digest(), check.encode(), hashlib.sha256).hexdigest()
+    if not received or not hmac.compare_digest(received, expected):
+        return None
+    try:
+        signed_at = int(fields.get("auth_date", "0"))
+        user = json.loads(fields.get("user", ""))
+    except ValueError:
+        return None
+    if not isinstance(user, dict) or "id" not in user:
+        return None
+    if signed_at + max_age < (now if now is not None else time.time()):
+        return None
+    return {**user, "auth_date": signed_at}
+
+
+# The founder's test of the mini app (2026-10-20, temporary): /minitest in
+# their own shop's chat answers with a button that opens it in Telegram.
+MINI_TEST_COMMAND = "/minitest"
+
+
+async def _mini_test(chat_id: int) -> dict[str, Any] | None:
+    """The test's button, for the founder's own shop chat only (ADMIN_PHONES);
+    None for anyone else, who gets the usual help."""
+    # Imported here: billing imports notifications, which imports this module.
+    from app.services import billing
+
+    app_url = get_settings().public_app_url.rstrip("/")
+    if not app_url.startswith("https://"):
+        return None
+    async with unscoped_session() as db:
+        shops = [s for s in await billing.founder_shops(db) if s.telegram_chat_id == str(chat_id)]
+    if not shops:
+        return None
+    url = f"{app_url}/tg-test?shop={shops[0].slug}"
+    return _reply(
+        chat_id,
+        "🧪 Mini app test. Tap the button, then go through the page.",
+        {"inline_keyboard": [[{"text": "🧪 Open the test", "web_app": {"url": url}}]]},
     )
 
 

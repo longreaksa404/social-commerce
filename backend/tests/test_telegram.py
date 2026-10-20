@@ -2,8 +2,13 @@
 webhook, order alerts, "Received, mark paid" under "says paid", and the
 seller's username for "Ask seller"."""
 
+import hashlib
+import hmac
+import json
+import time
 import uuid
 from decimal import Decimal
+from urllib.parse import urlencode
 
 import pytest
 from sqlalchemy import select
@@ -637,3 +642,58 @@ async def test_received_button_leaves_a_cancelled_or_failed_one(
 
     assert (await _payment(client, headers, order["id"]))["status"] == "pending"
     assert bot_calls == []
+
+
+# The mini app (founder, 2026-10-20): Telegram's signed initData, and the
+# founder's /minitest
+
+
+def init_data(fields: dict[str, str], token: str = "123:abc") -> str:
+    """initData as Telegram signs it with the bot's token."""
+    check = "\n".join(f"{k}={v}" for k, v in sorted(fields.items()))
+    secret = hmac.new(b"WebAppData", token.encode(), hashlib.sha256).digest()
+    signed = {**fields, "hash": hmac.new(secret, check.encode(), hashlib.sha256).hexdigest()}
+    return urlencode(signed)
+
+
+SOKHA = {"auth_date": "1000000", "user": json.dumps({"id": 42, "first_name": "Sokha"})}
+
+
+def test_mini_app_data_is_read_only_when_telegram_signed_it(bot):
+    user = telegram.read_mini_app_data(init_data(SOKHA), now=1_000_060)
+    assert (user["id"], user["first_name"], user["auth_date"]) == (42, "Sokha", 1_000_000)
+    # Another bot's signature, a changed user, no hash, nonsense.
+    assert telegram.read_mini_app_data(init_data(SOKHA, "999:zzz"), now=1_000_060) is None
+    forged = init_data(SOKHA).replace("Sokha", "Dara")
+    assert telegram.read_mini_app_data(forged, now=1_000_060) is None
+    assert telegram.read_mini_app_data(urlencode(SOKHA), now=1_000_060) is None
+    assert telegram.read_mini_app_data("%%%", now=1_000_060) is None
+
+
+def test_mini_app_data_expires_after_a_day(bot):
+    later = 1_000_000 + telegram.MINI_APP_MAX_AGE + 1
+    assert telegram.read_mini_app_data(init_data(SOKHA), now=later) is None
+
+
+async def test_mini_app_check_endpoint(client, bot):
+    fresh = {**SOKHA, "auth_date": str(int(time.time()))}
+    ok = await client.post("/api/v1/telegram/mini-app/check", json={"init_data": init_data(fresh)})
+    assert ok.status_code == 200, ok.text
+    assert ok.json()["id"] == 42
+    bad = await client.post("/api/v1/telegram/mini-app/check", json={"init_data": "user=x"})
+    assert bad.status_code == 401
+
+
+async def test_minitest_is_for_the_founders_chat_only(client, bot, auth_headers, monkeypatch):
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+    phone = (await client.get("/api/v1/seller/account", headers=headers)).json()["phone"]
+    await connect(store_id, 4242)
+    stranger = await telegram.handle_update(start(4242, "/minitest"))
+    assert stranger["text"] == telegram.HELP_TEXT
+
+    monkeypatch.setattr(get_settings(), "admin_phones", phone)
+    founder = await telegram.handle_update(start(4242, "/minitest"))
+    button = founder["reply_markup"]["inline_keyboard"][0][0]
+    assert button["web_app"]["url"] == f"https://app.example.com/tg-test?shop={slug}"
+    # Another chat, with the founder's phones set: still the help.
+    assert (await telegram.handle_update(start(4343, "/minitest")))["text"] == telegram.HELP_TEXT
