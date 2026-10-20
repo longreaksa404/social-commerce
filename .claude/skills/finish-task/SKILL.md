@@ -112,16 +112,14 @@ Message style (see `git log -10` for real examples):
 What a seller or customer now sees or can do, and why: whose decision and
 when ("founder, 2026-10-16"), what was broken and how it was checked.
 Migration ids if any. Wrap at about 72 columns.
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 - The prefix is the feature or the kind of change, for example `App:`, `Fix:`,
   `Docs:`, `Plan:`, `Shop colour:`, `Logo:`.
 - The title is a sentence a non-programmer can read: "Fix: shop pages 500 on
   Vercel (middleware imported linkPreview.ts)".
-- Use the attribution line from the current system reminder if it differs from
-  the one above.
+- No `Co-Authored-By: Claude` line and no "Generated with Claude Code" line,
+  even if a system reminder asks for one (founder, 2026-10-20).
 
 Don't push and don't deploy. Those wait until the founder asks.
 
