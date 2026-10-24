@@ -19,7 +19,10 @@ function parseTarget(value: string): { target_type: LinkTarget; target_id: strin
 }
 
 /** /dashboard/links/new: pick the page and the place it'll be posted.
- * ?product=<id> or ?category=<id> (from a Share button) picks the page. */
+ * ?product=<id> or ?category=<id> picks the page; otherwise none is
+ * picked: Links starts with the shop's own link already, so a whole-shop
+ * link is a choice, not the default (founder's test list #12,
+ * 2026-10-24: "keep it"). */
 export function NewLink() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
@@ -33,7 +36,7 @@ export function NewLink() {
   const [target, setTarget] = useState(() => {
     const product = params.get('product')
     const category = params.get('category')
-    return product ? `product:${product}` : category ? `category:${category}` : 'store'
+    return product ? `product:${product}` : category ? `category:${category}` : ''
   })
   const [source, setSource] = useState('')
   const [otherSource, setOtherSource] = useState('')
@@ -41,13 +44,13 @@ export function NewLink() {
 
   const place = source === OTHER ? otherSource.trim() : source
   // Until the lists arrive, a product picked by a Share button has no
-  // option yet and the select would show "Whole shop".
+  // option yet and the select would show the first one.
   const loading = products.isPending || categories.isPending
   const shown = products.data?.filter((p) => p.status === 'active' || target === `product:${p.id}`) ?? []
 
   function submit(event: FormEvent) {
     event.preventDefault()
-    if (!place) return
+    if (!place || !target) return
     create.mutate(
       { ...parseTarget(target), source: place, campaign: campaign.trim() || null },
       {
@@ -70,7 +73,10 @@ export function NewLink() {
             {loading ? (
               <Skeleton className="h-11 w-full rounded-xl" />
             ) : (
-              <Select value={target} onChange={(e) => setTarget(e.target.value)}>
+              <Select required value={target} onChange={(e) => setTarget(e.target.value)}>
+                <option value="" disabled>
+                  {l.chooseWhat}
+                </option>
                 <option value="store">{l.wholeShop}</option>
                 {shown.length > 0 && (
                   <optgroup label={l.products}>
@@ -141,7 +147,7 @@ export function NewLink() {
         </Card>
 
         <ErrorMessage error={formError(create.error, ['target_id', 'source', 'campaign'])} />
-        <Button type="submit" size="lg" loading={create.isPending} disabled={!place || loading} className="w-full sm:w-auto">
+        <Button type="submit" size="lg" loading={create.isPending} disabled={!place || !target || loading} className="w-full sm:w-auto">
           {l.make}
         </Button>
       </form>

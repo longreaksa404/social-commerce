@@ -27,6 +27,7 @@ export const links = {
 
   ready: { en: 'Link ready. Copy it or share it.', km: 'តំណរួចរាល់។ ចម្លង ឬចែករំលែកវា។' },
   whatItOpens: { en: 'What it opens', km: 'អ្វីដែលតំណនឹងបើក' },
+  chooseWhat: { en: 'Choose…', km: 'ជ្រើសរើស…' },
   products: { en: 'Products', km: 'ទំនិញ' },
   categories: { en: 'Categories', km: 'ប្រភេទ' },
   wherePost: { en: "Where you'll post it", km: 'កន្លែងដែលអ្នកនឹងប៉ុស្តិ៍' },
