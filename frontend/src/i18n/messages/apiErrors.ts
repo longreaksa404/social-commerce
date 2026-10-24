@@ -121,6 +121,9 @@ export const KM_BY_MESSAGE: Record<string, string> = {
     'សូមបញ្ចូលឈ្មោះអ្នកប្រើ Telegram ឧ. @your_shop៖ អក្សរ លេខ និង _។',
   "Telegram alerts aren't set up yet.": 'ការជូនដំណឹងតាម Telegram មិនទាន់បានរៀបចំនៅឡើយ។',
   'No shop uses this number yet.': 'មិនទាន់មានហាងប្រើលេខនេះទេ។',
+  'Choose products from your shop.': 'សូមជ្រើសទំនិញពីហាងរបស់អ្នក។',
+  'Choose today or a day after.': 'សូមជ្រើសថ្ងៃនេះ ឬថ្ងៃក្រោយ។',
+  'Sale not found.': 'រកមិនឃើញប្រូម៉ូសិន។',
   'Staff log in with their phone number and password.': 'បុគ្គលិកចូលគណនីដោយលេខទូរស័ព្ទ និងពាក្យសម្ងាត់។',
   "Enter your Facebook page's username, e.g. sokhafashion, or its m.me link.":
     'សូមបញ្ចូលឈ្មោះទំព័រ Facebook របស់អ្នក ឧ. sokhafashion ឬតំណ m.me របស់វា។',

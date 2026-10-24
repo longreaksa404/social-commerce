@@ -1,10 +1,11 @@
 import enum
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
     CheckConstraint,
+    Date,
     DateTime,
     ForeignKey,
     Index,
@@ -94,3 +95,26 @@ class ProductVariant(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
     stock_quantity: Mapped[int] = mapped_column(default=0, server_default="0")
 
     product: Mapped[Product] = relationship(back_populates="variants")
+
+
+class Sale(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
+    """A sale on chosen products (founder's test list #21, 2026-10-24):
+    a percentage or an amount off each one's price (every option of it),
+    until the end of `ends_on` in Phnom Penh, or until removed. A product in
+    two sales gets the bigger saving; they never add up. The shop's bill
+    discounts then count on the sale prices (app/services/sale.py)."""
+
+    __tablename__ = "sale"
+    __table_args__ = (
+        CheckConstraint("(percent_off IS NULL) <> (amount_off IS NULL)", name="one_kind_of_saving"),
+        CheckConstraint("percent_off IS NULL OR percent_off BETWEEN 1 AND 90", name="percent"),
+        CheckConstraint("amount_off IS NULL OR amount_off > 0", name="amount"),
+    )
+
+    name: Mapped[str | None] = mapped_column(Text)  # the seller's own, e.g. "11.11"
+    percent_off: Mapped[int | None] = mapped_column()
+    amount_off: Mapped[Decimal | None] = mapped_column(Money)
+    # The shop's own products only (checked when saved); a product deleted
+    # since is skipped.
+    product_ids: Mapped[list[str]] = mapped_column(JSONB, default=list, server_default="[]")
+    ends_on: Mapped[date | None] = mapped_column(Date)

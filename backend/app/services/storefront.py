@@ -8,6 +8,7 @@ are shown.
 """
 
 import uuid
+from dataclasses import dataclass
 from decimal import Decimal
 
 from sqlalchemy import func, select
@@ -16,7 +17,16 @@ from sqlalchemy.orm import selectinload
 
 from app.core.config import get_settings
 from app.core.errors import NotFound
-from app.models import Category, Product, ProductStatus, Seller, Store, StoreOldSlug
+from app.models import (
+    Category,
+    Currency,
+    Product,
+    ProductStatus,
+    Sale,
+    Seller,
+    Store,
+    StoreOldSlug,
+)
 from app.schemas.storefront import (
     ShopCategoryOut,
     ShopCategoryPageOut,
@@ -26,6 +36,7 @@ from app.schemas.storefront import (
     ShopStoreOut,
     ShopVariantOut,
 )
+from app.services import sale as sale_service
 from app.services.delivery import discount_settings, shop_delivery_options
 from app.services.payment import payment_settings
 from app.services.plan import in_setup, orders_stopped
@@ -105,7 +116,27 @@ async def list_products(
         query = query.where(Product.category_id == category_id)
     rows = await db.execute(select(Category.id, Category.slug).where(Category.store_id == store_id))
     slugs = {category_id: slug for category_id, slug in rows}
-    return [_card(product, slugs.get(product.category_id)) for product in await db.scalars(query)]
+    pricing = await _pricing(db, store_id)
+    return [
+        _card(product, slugs.get(product.category_id), pricing)
+        for product in await db.scalars(query)
+    ]
+
+
+@dataclass(frozen=True)
+class _Pricing:
+    """What a product's price is today: the shop's sales and currency."""
+
+    sales: list[Sale]
+    currency: Currency
+
+    def price(self, product_id: uuid.UUID, price: Decimal) -> Decimal:
+        return sale_service.best_price(price, product_id, self.sales, self.currency)
+
+
+async def _pricing(db: AsyncSession, store_id: uuid.UUID) -> _Pricing:
+    store = await db.get(Store, store_id)
+    return _Pricing(await sale_service.active_sales(db, store_id), store.currency)
 
 
 async def get_product(db: AsyncSession, store_id: uuid.UUID, slug: str) -> ShopProductOut:
@@ -128,24 +159,32 @@ async def get_product(db: AsyncSession, store_id: uuid.UUID, slug: str) -> ShopP
                 Category.id == product.category_id, Category.store_id == store_id
             )
         )
+    pricing = await _pricing(db, store_id)
+    price = pricing.price(product.id, product.price)
+    variants = []
+    for variant in product.variants:
+        full = _variant_price(product, variant.price_override)
+        sold_at = pricing.price(product.id, full)
+        variants.append(
+            ShopVariantOut(
+                id=variant.id,
+                name=variant.name,
+                price=sold_at,
+                stock_quantity=variant.stock_quantity,
+                was_price=full if sold_at < full else None,
+            )
+        )
     return ShopProductOut(
         id=product.id,
         name=product.name,
         slug=product.slug,
         description=product.description,
-        price=product.price,
+        price=price,
+        was_price=product.price if price < product.price else None,
         image_urls=product.image_urls,
         has_variants=product.has_variants,
         stock_quantity=None if product.has_variants else (product.stock_quantity or 0),
-        variants=[
-            ShopVariantOut(
-                id=variant.id,
-                name=variant.name,
-                price=_variant_price(product, variant.price_override),
-                stock_quantity=variant.stock_quantity,
-            )
-            for variant in product.variants
-        ],
+        variants=variants,
         category=category and ShopCategoryRef(name=category.name, slug=category.slug),
     )
 
@@ -181,13 +220,14 @@ def _variant_price(product: Product, price_override: Decimal | None) -> Decimal:
     return product.price if price_override is None else price_override
 
 
-def _card(product: Product, category: str | None) -> ShopProductCard:
+def _card(product: Product, category: str | None, pricing: _Pricing) -> ShopProductCard:
     if product.has_variants and product.variants:
-        prices = [_variant_price(product, v.price_override) for v in product.variants]
+        full = [_variant_price(product, v.price_override) for v in product.variants]
         in_stock = any(v.stock_quantity > 0 for v in product.variants)
     else:
-        prices = [product.price]
+        full = [product.price]
         in_stock = (product.stock_quantity or 0) > 0
+    prices = [pricing.price(product.id, price) for price in full]
     return ShopProductCard(
         id=product.id,
         name=product.name,
@@ -199,4 +239,5 @@ def _card(product: Product, category: str | None) -> ShopProductCard:
         has_variants=product.has_variants,
         stock_quantity=None if product.has_variants else (product.stock_quantity or 0),
         category=category,
+        was_price_min=min(full) if min(prices) < min(full) else None,
     )

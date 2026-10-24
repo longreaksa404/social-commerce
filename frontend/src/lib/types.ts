@@ -251,6 +251,8 @@ export type Variant = {
   name: string
   sku: string | null
   price_override: string | null
+  /** After a sale today, when lower (test list #21); null: none. */
+  sale_price?: string | null
   stock_quantity: number
 }
 
@@ -268,6 +270,8 @@ export type Product = {
   variants: Variant[]
   created_at: string
   updated_at: string
+  /** After a sale today, when lower (the list only; test list #21). */
+  sale_price?: string | null
 }
 
 export type ImageUpload = {
@@ -330,16 +334,27 @@ export type ShopProductCard = {
   stock_quantity: number | null
   /** The category's slug; null: none. */
   category: string | null
+  /** On sale: price_min before it, to cross out (test list #21). */
+  was_price_min: string | null
 }
 
-export type ShopVariant = { id: string; name: string; price: string; stock_quantity: number }
+export type ShopVariant = {
+  id: string
+  name: string
+  /** After any sale; `was_price` before it, to cross out (test list #21). */
+  price: string
+  stock_quantity: number
+  was_price: string | null
+}
 
 export type ShopProduct = {
   id: string
   name: string
   slug: string
   description: string | null
+  /** After any sale; `was_price` before it (test list #21). */
   price: string
+  was_price: string | null
   image_urls: string[]
   has_variants: boolean
   /** null when has_variants: stock is per variant. */
@@ -637,3 +652,17 @@ export type SignupStart = {
 /** POST /auth/google or /auth/oauth/{provider}: logged in (access_token),
  * or someone new (signup). */
 export type SocialResult = { access_token: string | null; signup: SignupStart | null }
+
+/** A sale on chosen products (Settings → Discounts, test list #21). */
+export type Sale = {
+  id: string
+  name: string | null
+  percent_off: number | null
+  amount_off: string | null
+  product_ids: string[]
+  /** Its last day; null: until removed. */
+  ends_on: string | null
+  created_at: string
+  /** Not past its last day. */
+  active: boolean
+}

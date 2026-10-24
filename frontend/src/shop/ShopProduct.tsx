@@ -80,7 +80,13 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
         <h1 className="text-xl font-bold leading-snug tracking-tight break-words text-slate-900 sm:text-2xl">
           {product.name}
         </h1>
-        <p className="mt-2 text-2xl font-bold text-slate-900">{priceText(product, variant, shop)}</p>
+        <p className="mt-2 text-2xl font-bold text-slate-900">
+          {priceText(product, variant, shop)}
+          {/* On sale (test list #21): the price before, crossed out. */}
+          {wasPrice(product, variant) && (
+            <s className="ml-2 text-lg font-medium text-slate-400">{formatMoney(wasPrice(product, variant)!, shop.currency)}</s>
+          )}
+        </p>
         <StockLine product={product} variant={variant} />
 
         {product.has_variants && (
@@ -120,6 +126,15 @@ function ProductView({ shop, product }: { shop: ShopStore; product: Product }) {
       </div>
     </div>
   )
+}
+
+/** The price before the sale, for what's shown: the variant picked, the
+ * product, or its cheapest option's. Null when not on sale. */
+function wasPrice(product: Product, variant: ShopVariant | null): string | null {
+  if (variant) return variant.was_price
+  if (!product.has_variants) return product.was_price
+  const cheapest = [...product.variants].sort((a, b) => Number(a.price) - Number(b.price))[0]
+  return cheapest?.was_price ?? null
 }
 
 function priceText(product: Product, variant: ShopVariant | null, shop: ShopStore) {

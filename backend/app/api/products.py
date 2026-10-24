@@ -20,7 +20,8 @@ async def list_products(
     status: ProductStatus | None = None,
     category_id: uuid.UUID | None = None,
 ) -> list[ProductOut]:
-    return await product_service.list_products(db, seller.store_id, status, category_id)
+    products = await product_service.list_products(db, seller.store_id, status, category_id)
+    return await product_service.with_sale_prices(db, seller.store_id, products)
 
 
 @router.post("", response_model=ProductOut, status_code=status.HTTP_201_CREATED)

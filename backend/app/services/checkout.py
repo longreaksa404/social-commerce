@@ -18,6 +18,7 @@ from sqlalchemy.orm import selectinload
 from app.core.config import get_settings
 from app.core.errors import AppError, NotFound
 from app.models import (
+    Currency,
     Customer,
     Delivery,
     DeliveryMethod,
@@ -31,6 +32,7 @@ from app.models import (
     Product,
     ProductStatus,
     ProductVariant,
+    Sale,
     Store,
 )
 from app.schemas.order import OrderIn, OrderLineIn, ShopOrderOut
@@ -40,6 +42,7 @@ from app.services import notifications
 from app.services import order as order_service
 from app.services import payment as payment_service
 from app.services import plan as plan_service
+from app.services import sale as sale_service
 from app.services.customer_login import TelegramCustomer
 from app.services.payment import ORDER_IS_OFF
 from app.services.phone import normalize_phone
@@ -57,12 +60,14 @@ class _Line:
     product: Product
     variant: ProductVariant | None
     quantity: int
+    # The price, after any sale on the product (test list #21).
+    unit_price: Decimal
 
-    @property
-    def unit_price(self) -> Decimal:
-        if self.variant is None or self.variant.price_override is None:
-            return self.product.price
-        return self.variant.price_override
+    @staticmethod
+    def full_price(product: Product, variant: ProductVariant | None) -> Decimal:
+        if variant is None or variant.price_override is None:
+            return product.price
+        return variant.price_override
 
     @property
     def stock(self) -> int:
@@ -126,7 +131,8 @@ async def place_order(
     )
     location = _delivery_location(data)
 
-    lines = await _resolve_lines(db, store_id, data.items)
+    sales = await sale_service.active_sales(db, store_id)
+    lines = await _resolve_lines(db, store_id, data.items, sales, store.currency)
     items = [
         OrderItem(
             store_id=store_id,
@@ -323,11 +329,15 @@ def _delivery_location(data: OrderIn) -> _Location:
 
 
 async def _resolve_lines(
-    db: AsyncSession, store_id: uuid.UUID, requested: list[OrderLineIn]
+    db: AsyncSession,
+    store_id: uuid.UUID,
+    requested: list[OrderLineIn],
+    sales: list[Sale],
+    currency: Currency,
 ) -> list[_Line]:
-    """Each requested line with its product/variant, after checking it can
-    be bought and enough is in stock. The same product and variant twice
-    count as one line."""
+    """Each requested line with its product/variant and price (after any
+    sale), after checking it can be bought and enough is in stock. The
+    same product and variant twice count as one line."""
     merged: dict[tuple[uuid.UUID, uuid.UUID | None], tuple[int, int]] = {}
     for index, line in enumerate(requested):
         key = (line.product_id, line.variant_id)
@@ -366,7 +376,10 @@ async def _resolve_lines(
                 "An item in your cart is no longer available.",
                 f"items.{index}",
             )
-        line = _Line(index, product, variant, quantity)
+        price = sale_service.best_price(
+            _Line.full_price(product, variant), product.id, sales, currency
+        )
+        line = _Line(index, product, variant, quantity, price)
         if line.quantity > line.stock:
             raise _out_of_stock(line)
         lines.append(line)

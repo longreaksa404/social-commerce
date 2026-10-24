@@ -77,13 +77,17 @@ class ShopProductCard(BaseModel):
     # The category's slug (null: none), so a category tab can show at once
     # from the shop's list of all products.
     category: str | None
+    # On sale (test list #21): price_min before the sale, to cross out;
+    # null when not on sale. The prices above are the sale prices.
+    was_price_min: Decimal | None = None
 
 
 class ShopVariantOut(BaseModel):
     id: uuid.UUID
     name: str
-    price: Decimal  # the variant's own price, or else the product's
+    price: Decimal  # the variant's own price, or else the product's; after any sale
     stock_quantity: int
+    was_price: Decimal | None = None  # before the sale, to cross out; null: none
 
 
 class ShopProductOut(BaseModel):
@@ -91,7 +95,8 @@ class ShopProductOut(BaseModel):
     name: str
     slug: str
     description: str | None
-    price: Decimal
+    price: Decimal  # after any sale (test list #21)
+    was_price: Decimal | None = None  # before the sale, to cross out; null: none
     image_urls: list[str]
     has_variants: bool
     stock_quantity: int | None  # null when has_variants: stock is per variant

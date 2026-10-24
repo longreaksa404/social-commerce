@@ -24,6 +24,7 @@ import { AccountPage } from './AccountPage.tsx'
 import { CloseShopPage, CloseShopRow } from './CloseShopPage.tsx'
 import { StaffPage } from './StaffPage.tsx'
 import { ExportOrders } from './ExportOrders.tsx'
+import { SalesSection } from './SalesSection.tsx'
 import { PlanPage } from './PlanPage.tsx'
 import { SetupPage } from './SetupPage.tsx'
 import { isPageId, isSectionId, MOVED, SECTIONS, toForm, type PageId, type SectionId } from './form.ts'
@@ -40,6 +41,8 @@ const FIELDS: Record<SectionId, ComponentType<FieldsProps>> = {
 /** What a page shows under its form, with its own buttons. */
 const AFTER: Partial<Record<SectionId, ComponentType>> = {
   shop: CloseShopRow,
+  // Sales on chosen products (test list #21, 2026-10-24).
+  discounts: SalesSection,
 }
 
 /** Pages with their own form and endpoint, not the store's PATCH. `back`:

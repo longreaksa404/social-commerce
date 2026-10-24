@@ -1,9 +1,9 @@
 """A shop switching between dollars and riel (founder's test list #15,
 2026-10-24: "convert currency not just switch the sign"). Its product and
-option prices, its delivery fee and free-delivery amount, and its
-discounts are converted at Settings.khr_per_usd (4,100 for now); riel
-rounds to the nearest 100, dollars to the cent. Orders already placed keep
-their own currency and amounts.
+option prices, its delivery fee and free-delivery amount, its discounts
+and its sales' amounts off are converted at Settings.khr_per_usd (4,100
+for now); riel rounds to the nearest 100, dollars to the cent. Orders
+already placed keep their own currency and amounts.
 """
 
 from decimal import ROUND_HALF_UP, Decimal
@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
-from app.models import Currency, Product, ProductVariant, Store
+from app.models import Currency, Product, ProductVariant, Sale, Store
 from app.services.delivery import follow_currency
 
 CENT = Decimal("0.01")
@@ -45,6 +45,12 @@ async def switch(db: AsyncSession, store: Store) -> None:
         )
     ):
         variant.price_override = convert(variant.price_override, to)
+    # A sale's amount off too (a percentage needs nothing), never to 0.
+    smallest = HUNDRED if to is Currency.KHR else CENT
+    for sale in await db.scalars(
+        select(Sale).where(Sale.store_id == store.id, Sale.amount_off.is_not(None))
+    ):
+        sale.amount_off = max(convert(sale.amount_off, to), smallest)
 
     if store.delivery_set_up:
         delivery = dict(store.delivery_config)

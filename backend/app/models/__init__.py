@@ -13,7 +13,7 @@ from app.models.account import (
     Store,
     StoreOldSlug,
 )
-from app.models.catalog import Category, Product, ProductStatus, ProductVariant
+from app.models.catalog import Category, Product, ProductStatus, ProductVariant, Sale
 from app.models.delivery import Delivery, DeliveryMethod, DeliveryStatus
 from app.models.link import LinkEvent, LinkEventType, LinkTarget, ShareableLink
 from app.models.notification import (
@@ -54,6 +54,7 @@ __all__ = [
     "Product",
     "ProductStatus",
     "ProductVariant",
+    "Sale",
     "RefreshToken",
     "Seller",
     "SellerLogin",

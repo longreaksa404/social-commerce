@@ -99,8 +99,10 @@ function shopDelivery(store: Store): ShopStore['delivery'] {
   }
 }
 
+/** After any sale today (test list #21), as checkout prices it. */
 function priceOf(line: { product: Product; variant: Variant | null }): string {
-  return line.variant?.price_override ?? line.product.price
+  if (line.variant) return line.variant.sale_price ?? line.variant.price_override ?? line.product.price
+  return line.product.sale_price ?? line.product.price
 }
 
 function stockOf(line: { product: Product; variant: Variant | null }): number {
@@ -436,7 +438,7 @@ function ProductPicker({
                   <span className="min-w-0 flex-1">
                     <span className="block break-words font-medium text-slate-900">{product.name}</span>
                     <span className="text-sm text-slate-500">
-                      {formatMoney(product.price, currency)} · {left > 0 ? n.left(left) : n.soldOut}
+                      {formatMoney(priceOf({ product, variant: null }), currency)} · {left > 0 ? n.left(left) : n.soldOut}
                     </span>
                   </span>
                   <Plus aria-hidden className="size-5 shrink-0 text-slate-400" />
@@ -455,7 +457,7 @@ function ProductPicker({
                         >
                           {variant.name}
                           <span className="text-slate-500">
-                            {formatMoney(variant.price_override ?? product.price, currency)}
+                            {formatMoney(priceOf({ product, variant }), currency)}
                           </span>
                         </button>
                       ))}

@@ -84,6 +84,7 @@ async def test_products_are_this_stores_active_products_only(client, two_stores)
             "has_variants": False,
             "stock_quantity": 0,
             "category": None,
+            "was_price_min": None,  # on no sale
         }
     ]
 

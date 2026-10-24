@@ -19,6 +19,7 @@ from app.api import (
     plan,
     products,
     reminders,
+    sales,
     shop,
     staff,
     stats,
@@ -65,6 +66,7 @@ api_v1.include_router(store.router)
 api_v1.include_router(staff.router)
 api_v1.include_router(categories.router)
 api_v1.include_router(products.router)
+api_v1.include_router(sales.router)
 api_v1.include_router(orders.router)
 api_v1.include_router(stats.router)
 api_v1.include_router(plan.router)

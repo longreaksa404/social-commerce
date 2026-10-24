@@ -47,6 +47,8 @@ class VariantOut(BaseModel):
     sku: str | None
     price_override: Decimal | None
     stock_quantity: int
+    # After a sale today (test list #21), when lower; null: no sale.
+    sale_price: Decimal | None = None
 
 
 def _check_variant_names(variants: list[VariantIn] | None) -> None:
@@ -114,3 +116,6 @@ class ProductOut(BaseModel):
     variants: list[VariantOut]
     created_at: datetime
     updated_at: datetime
+    # After a sale today (test list #21), when lower; null: no sale. In the
+    # list only: the seller's chat orders price with it, as checkout does.
+    sale_price: Decimal | None = None

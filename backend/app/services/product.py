@@ -10,9 +10,10 @@ from sqlalchemy.orm import selectinload
 
 from app.core.config import get_settings
 from app.core.errors import AppError, NotFound
-from app.models import Product, ProductStatus, ProductVariant
-from app.schemas.product import ProductCreate, ProductUpdate, VariantIn
+from app.models import Product, ProductStatus, ProductVariant, Store
+from app.schemas.product import ProductCreate, ProductOut, ProductUpdate, VariantIn
 from app.services import category as category_service
+from app.services import sale as sale_service
 from app.services.slugs import slugify, unique_slug
 
 
@@ -33,6 +34,26 @@ async def list_products(
     if category_id is not None:
         query = query.where(Product.category_id == category_id)
     return list((await db.scalars(query)).all())
+
+
+async def with_sale_prices(
+    db: AsyncSession, store_id: uuid.UUID, products: list[Product]
+) -> list[ProductOut]:
+    """The products with their price after any sale today (test list #21),
+    for the seller's list and chat orders."""
+    store = await db.get(Store, store_id)
+    sales = await sale_service.active_sales(db, store_id)
+    out = []
+    for product in products:
+        row = ProductOut.model_validate(product)
+        price = sale_service.best_price(product.price, product.id, sales, store.currency)
+        row.sale_price = price if price < product.price else None
+        for variant in row.variants:
+            full = product.price if variant.price_override is None else variant.price_override
+            price = sale_service.best_price(full, product.id, sales, store.currency)
+            variant.sale_price = price if price < full else None
+        out.append(row)
+    return out
 
 
 async def get_product(db: AsyncSession, store_id: uuid.UUID, product_id: uuid.UUID) -> Product:

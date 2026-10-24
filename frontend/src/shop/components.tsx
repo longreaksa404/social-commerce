@@ -4,7 +4,7 @@ import { Link, NavLink, useLocation } from 'react-router'
 import { revealChosen } from '../components/revealChosen.ts'
 import { Badge, Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { thumbnailUrl } from '../lib/images.ts'
-import { formatPriceRange } from '../lib/money.ts'
+import { formatMoney, formatPriceRange } from '../lib/money.ts'
 import { formatCalendarDay } from '../lib/orders.ts'
 import { useT } from '../i18n/useT.ts'
 import type { ShopProductCard, ShopStore } from '../lib/types.ts'
@@ -221,6 +221,10 @@ export function ProductGrid({
                   <span className="line-clamp-2 text-sm leading-5 font-medium text-slate-900">{product.name}</span>
                   <span className="mt-0.5 block text-sm font-semibold text-slate-900 tabular-nums">
                     {formatPriceRange(product.price_min, product.price_max, shop.currency)}
+                    {/* On sale (test list #21): the price before, crossed out. */}
+                    {product.was_price_min && (
+                      <s className="ml-1.5 font-normal text-slate-400">{formatMoney(product.was_price_min, shop.currency)}</s>
+                    )}
                   </span>
                   <StockTag product={product} />
                 </Link>
