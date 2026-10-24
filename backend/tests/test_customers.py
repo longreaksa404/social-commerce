@@ -85,12 +85,13 @@ async def test_spent_is_kept_apart_per_currency(client, auth_headers):
     headers, store_id, slug = await registered_seller(client, auth_headers)
     cap = await add_product(store_id, "cap", stock=20)
     await place_order(client, slug, [(cap, None, 1)], total="10.00")
+    # The cap's $10.00 becomes 41,000៛ (test list #15); the $10 order stays.
     await client.patch("/api/v1/seller/store", headers=headers, json={"currency": "KHR"})
-    await place_order(client, slug, [(cap, None, 2)], total="20.00")
+    await place_order(client, slug, [(cap, None, 2)], total="82000")
 
     [dara] = (await customers(client, headers))["customers"]
     assert dara["spent"] == [
-        {"currency": "KHR", "amount": "20.00"},
+        {"currency": "KHR", "amount": "82000.00"},
         {"currency": "USD", "amount": "10.00"},
     ]
 
