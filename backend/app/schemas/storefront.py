@@ -73,6 +73,9 @@ class ShopProductCard(BaseModel):
     # up to their stock (null when has_variants: stock is per variant).
     has_variants: bool
     stock_quantity: int | None
+    # The category's slug (null: none), so a category tab can show at once
+    # from the shop's list of all products.
+    category: str | None
 
 
 class ShopVariantOut(BaseModel):

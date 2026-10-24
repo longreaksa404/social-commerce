@@ -82,6 +82,7 @@ async def test_products_are_this_stores_active_products_only(client, two_stores)
             "in_stock": False,
             "has_variants": False,
             "stock_quantity": 0,
+            "category": None,
         }
     ]
 
@@ -162,6 +163,9 @@ async def test_category_page_lists_its_active_products(client, two_stores):
     assert response.status_code == 200
     assert response.json()["category"] == {"name": "Tops", "slug": "tops"}
     assert [p["slug"] for p in response.json()["products"]] == ["shirt"]
+    # All's cards name their category, so a tab can show at once from them.
+    response = await client.get(f"{a_shop}/products")
+    assert {p["slug"]: p["category"] for p in response.json()} == {"shirt": "tops", "hat": None}
     # Store B's category is not reachable through store A's shop.
     response = await client.get(f"{a_shop}/categories/shoes")
     assert response.status_code == 404

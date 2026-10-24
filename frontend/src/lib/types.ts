@@ -323,6 +323,8 @@ export type ShopProductCard = {
   has_variants: boolean
   /** null when has_variants: stock is per variant. */
   stock_quantity: number | null
+  /** The category's slug; null: none. */
+  category: string | null
 }
 
 export type ShopVariant = { id: string; name: string; price: string; stock_quantity: number }

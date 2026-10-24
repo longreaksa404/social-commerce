@@ -1,4 +1,4 @@
-import { queryOptions, useMutation, useQueries, useQuery } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { api, ApiError } from '../lib/api.ts'
 import { placedOrders, type PlacedOrder } from './device.ts'
@@ -56,11 +56,25 @@ export function useShopProduct(slug: string, productSlug: string) {
 }
 
 export function useShopCategory(slug: string, categorySlug: string) {
+  const queryClient = useQueryClient()
   return useQuery({
     ...options,
     queryKey: ['shop', slug, 'category', categorySlug],
     queryFn: () =>
       api<ShopCategoryPage>(`${shopPath(slug)}/categories/${encodeURIComponent(categorySlug)}`, { auth: false }),
+    // A tab opened from All shows at once from All's products (the
+    // founder's test list #5, 2026-10-24: the first switch waited for the
+    // server), and the server's answer replaces it.
+    placeholderData: () => {
+      const shop = queryClient.getQueryData<ShopStore>(['shop', slug])
+      const all = queryClient.getQueryData<ShopProductCard[]>(['shop', slug, 'products'])
+      const category = shop?.categories.find((c) => c.slug === categorySlug)
+      if (!category || !all) return undefined
+      return {
+        category: { name: category.name, slug: category.slug },
+        products: all.filter((p) => p.category === categorySlug),
+      }
+    },
   })
 }
 

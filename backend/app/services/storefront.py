@@ -102,7 +102,9 @@ async def list_products(
     )
     if category_id is not None:
         query = query.where(Product.category_id == category_id)
-    return [_card(product) for product in await db.scalars(query)]
+    rows = await db.execute(select(Category.id, Category.slug).where(Category.store_id == store_id))
+    slugs = {category_id: slug for category_id, slug in rows}
+    return [_card(product, slugs.get(product.category_id)) for product in await db.scalars(query)]
 
 
 async def get_product(db: AsyncSession, store_id: uuid.UUID, slug: str) -> ShopProductOut:
@@ -178,7 +180,7 @@ def _variant_price(product: Product, price_override: Decimal | None) -> Decimal:
     return product.price if price_override is None else price_override
 
 
-def _card(product: Product) -> ShopProductCard:
+def _card(product: Product, category: str | None) -> ShopProductCard:
     if product.has_variants and product.variants:
         prices = [_variant_price(product, v.price_override) for v in product.variants]
         in_stock = any(v.stock_quantity > 0 for v in product.variants)
@@ -195,4 +197,5 @@ def _card(product: Product) -> ShopProductCard:
         in_stock=in_stock,
         has_variants=product.has_variants,
         stock_quantity=None if product.has_variants else (product.stock_quantity or 0),
+        category=category,
     )
