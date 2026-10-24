@@ -30,6 +30,8 @@ export const links = {
   products: { en: 'Products', km: 'ទំនិញ' },
   categories: { en: 'Categories', km: 'ប្រភេទ' },
   wherePost: { en: "Where you'll post it", km: 'កន្លែងដែលអ្នកនឹងប៉ុស្តិ៍' },
+  // Share on a product or category (test list #9, 2026-10-24).
+  shareTitle: { en: (name: string) => `Share ${name}`, km: (name: string) => `ចែករំលែក ${name}` },
   other: { en: 'Other', km: 'ផ្សេងទៀត' },
   where: { en: 'Where?', km: 'នៅកន្លែងណា?' },
   wherePlaceholder: { en: 'e.g. YouTube, my Facebook group', km: 'ឧ. YouTube, ក្រុម Facebook របស់ខ្ញុំ' },

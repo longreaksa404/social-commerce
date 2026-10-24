@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, Pencil, Plus, Share2, Tags, Trash2, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import {
   Button,
@@ -21,6 +21,7 @@ import { api } from '../lib/api.ts'
 import { errorText } from '../lib/errors.ts'
 import type { Category } from '../lib/types.ts'
 import { keys, useCategories } from './queries.ts'
+import { ShareLinkSheet } from './links/ShareLinkSheet.tsx'
 
 /** /dashboard/categories. Adding one starts from a "New category" button,
  * like New link, so nothing on the page looks like a search box (founder's
@@ -130,8 +131,8 @@ function AddCategory({ onClose, onAdded }: { onClose: () => void; onAdded: () =>
 
 function CategoryRow({ category, onChanged }: { category: Category; onChanged: () => void }) {
   const { toast, confirm } = useFeedback()
-  const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
+  const [sharing, setSharing] = useState(false)
   const [name, setName] = useState(category.name)
   const t = useT()
   const c = t.categories
@@ -224,10 +225,15 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
         label={c.more(category.name)}
         disabled={remove.isPending}
         items={[
-          { label: c.shareLink, icon: Share2, onSelect: () => navigate(`/dashboard/links/new?category=${category.id}`) },
+          { label: c.shareLink, icon: Share2, onSelect: () => setSharing(true) },
           { label: c.rename, icon: Pencil, onSelect: () => setEditing(true) },
           { label: t.common.delete, icon: Trash2, danger: true, onSelect: confirmDelete },
         ]}
+      />
+      <ShareLinkSheet
+        target={{ type: 'category', id: category.id, name: category.name }}
+        open={sharing}
+        onClose={() => setSharing(false)}
       />
     </div>
   )

@@ -2,7 +2,6 @@ import { Minus, Plus, Share2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
-import { buttonClass } from '../../components/styles.ts'
 import {
   Button,
   ErrorMessage,
@@ -26,6 +25,7 @@ import { uploadProductImage } from '../../lib/images.ts'
 import type { Currency, Product, ProductStatus } from '../../lib/types.ts'
 import { useCategories, useProduct, useSaveProduct, useStore } from '../queries.ts'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
+import { ShareLinkSheet } from '../links/ShareLinkSheet.tsx'
 import { NewProductPhotos, ProductPhotos, type LocalPhoto } from './ProductPhotos.tsx'
 import { VariantList, type VariantDraft } from './VariantList.tsx'
 
@@ -140,6 +140,7 @@ function ProductForm({ product }: { product?: Product }) {
   const [newPhotos, setNewPhotos] = useState<LocalPhoto[]>([])
   const [progress, setProgress] = useState<string | null>(null)
   const [photoUploads, setPhotoUploads] = useState(0)
+  const [sharing, setSharing] = useState(false)
   const t = useT()
   const p = t.products
 
@@ -205,13 +206,20 @@ function ProductForm({ product }: { product?: Product }) {
           // A hidden product's page doesn't open, so there's nothing to share.
           product &&
           baseline.status === 'active' && (
-            <Link to={`/dashboard/links/new?product=${product.id}`} className={`${buttonClass('secondary')} shrink-0`}>
-              <Share2 aria-hidden className="size-4" />
+            <Button variant="secondary" icon={Share2} onClick={() => setSharing(true)} className="shrink-0">
               {t.common.share}
-            </Link>
+            </Button>
           )
         }
       />
+
+      {product && (
+        <ShareLinkSheet
+          target={{ type: 'product', id: product.id, name: baseline.name }}
+          open={sharing}
+          onClose={() => setSharing(false)}
+        />
+      )}
 
       <form onSubmit={submit} className="space-y-4">
         <Section
