@@ -5,7 +5,9 @@ Order, payment, and delivery are independent state machines (CLAUDE.md
 hard rule 2). The order's status follows only the table below, the
 payment's and the delivery's only their own (app/services/payment.py,
 app/services/delivery.py); none is ever set from another. The one rule
-that couples them is completion (section 7.4).
+that couples them is completion (section 7.4), which since the founder's
+test list (#3, 2026-10-24) also completes a delivered, paid order by
+itself (complete_when_done).
 
 Every query filters by store_id (layer 1) on a tenant session where RLS
 enforces the same thing (layer 2).
@@ -128,6 +130,23 @@ async def transition(db: AsyncSession, order: Order, target: OrderStatus) -> Non
     order.status = target
 
 
+async def complete_when_done(db: AsyncSession, order: Order) -> bool:
+    """Delivered (or collected) and paid: the order completes by itself,
+    through transition(), without the seller's Complete (founder's test
+    list #3, 2026-10-24). Called after the payment or the delivery is
+    recorded. Cash on delivery waits for "Cash received" (paid): the
+    seller can still complete one without the cash by hand, as section 7.4
+    allows. True if it completed. The caller commits."""
+    if (
+        S.COMPLETED in ALLOWED_ORDER_TRANSITIONS[order.status]
+        and order.delivery.status is DeliveryStatus.DELIVERED
+        and order.payment.status is PaymentStatus.PAID
+    ):
+        await transition(db, order, S.COMPLETED)
+        return True
+    return False
+
+
 async def _return_stock(db: AsyncSession, order: Order) -> None:
     for item in order.items:
         if item.variant_id is not None:
@@ -218,6 +237,7 @@ async def record_payment(
     it twice."""
     order = await get_order(db, store_id, order_id, for_update=True)
     payment_service.record(order.payment, data.status, data.reference)
+    await complete_when_done(db, order)
     await db.commit()
     return order
 
@@ -237,6 +257,7 @@ async def record_delivery(
     delivery_service.record(order.delivery, data.status, data.assignee_note)
     if choosing:
         order.delivery.courier = courier
+    await complete_when_done(db, order)
     await db.commit()
     return order
 
@@ -245,7 +266,8 @@ async def record_cash_handover(db: AsyncSession, store_id: uuid.UUID, order_id: 
     """ "Delivered, cash received" on a cash-on-delivery order (founder's
     pick 1C, 2026-10-09): the seller's one tap records two things they
     saw, the delivery delivered (or collected) and the cash in hand, each
-    through its own state machine. The order's status is left alone."""
+    through its own state machine. Both done, the order then completes by
+    itself (complete_when_done)."""
     order = await get_order(db, store_id, order_id, for_update=True)
     if order.payment.method is not PaymentMethod.COD:
         raise AppError(
@@ -258,6 +280,7 @@ async def record_cash_handover(db: AsyncSession, store_id: uuid.UUID, order_id: 
     payment_service.check_transition(order.payment.status, PaymentStatus.PAID)
     delivery_service.record(order.delivery, DeliveryStatus.DELIVERED, None)
     payment_service.record(order.payment, PaymentStatus.PAID, None)
+    await complete_when_done(db, order)
     await db.commit()
     return order
 

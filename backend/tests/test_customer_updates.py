@@ -203,19 +203,14 @@ async def test_the_sellers_taps_send_news(client, bot, auth_headers, dara):
         f"https://app.example.com/shop/{slug}/order/{order_id}",
     )
 
-    # Cash on delivery, handed over: the delivery is news, the cash isn't.
+    # Cash on delivery, handed over: the delivery is news, the cash isn't,
+    # and the order completing by itself with it (test list #3) says
+    # nothing more.
     bot.clear()
     handed = await client.post(f"{ORDERS}/{order_id}/cash-handover", headers=headers)
     assert handed.status_code == 200, handed.text
+    assert handed.json()["status"] == "completed"
     assert [m["text"].splitlines()[-1] for m in bot] == ["🎉 បានដល់ដៃ"]  # Delivered
-
-    # Completing after that says nothing new.
-    bot.clear()
-    done = await client.patch(
-        f"{ORDERS}/{order_id}/status", headers=headers, json={"status": "completed"}
-    )
-    assert done.status_code == 200, done.text
-    assert bot == []
 
 
 async def test_a_recorded_transfer_tells_the_customer(client, bot, auth_headers, dara):

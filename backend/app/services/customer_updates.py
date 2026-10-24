@@ -183,7 +183,9 @@ def news(order: Order, event: Event) -> str | None:
                 return None
             return headline(order, OrderStatus.SHIPPED)
         if event is DeliveryStatus.DELIVERED:
-            if order.status in (OrderStatus.DELIVERED, OrderStatus.COMPLETED):
+            # Completed by itself as it was delivered (test list #3): still
+            # news. Only an order already marked delivered (before) isn't.
+            if order.status is OrderStatus.DELIVERED:
                 return None
             return headline(order, OrderStatus.DELIVERED)
         if event is DeliveryStatus.FAILED:

@@ -20,8 +20,14 @@ from app.models import (
     Product,
     ProductVariant,
 )
-from app.services.order import can_complete, check_transition, next_statuses, transition
-from tests.helpers import add_product, place_order, stock, variant_ids
+from app.services.order import (
+    can_complete,
+    check_transition,
+    complete_when_done,
+    next_statuses,
+    transition,
+)
+from tests.helpers import KHQR, add_product, place_order, set_payments, stock, variant_ids
 
 S = OrderStatus
 
@@ -145,6 +151,32 @@ async def test_an_order_cannot_complete_before_its_delivery_is_delivered():
         await transition(None, order, S.COMPLETED)
     assert error.value.code == "ORDER_NOT_DELIVERED"
     assert order.status is S.ACCEPTED
+
+
+# Delivered and paid: complete by itself (founder's test list #3,
+# 2026-10-24). Cash on delivery waits for the cash; a new or closed order
+# is left alone.
+@pytest.mark.parametrize(
+    ("status", "method", "paid", "delivered", "completes"),
+    [
+        (S.ACCEPTED, PaymentMethod.KHQR, PaymentStatus.PAID, DeliveryStatus.DELIVERED, True),
+        (S.READY, PaymentMethod.COD, PaymentStatus.PAID, DeliveryStatus.DELIVERED, True),
+        (S.SHIPPED, PaymentMethod.KHQR, PaymentStatus.PAID, DeliveryStatus.DELIVERED, True),
+        (S.ACCEPTED, PaymentMethod.COD, PaymentStatus.PENDING, DeliveryStatus.DELIVERED, False),
+        (S.ACCEPTED, PaymentMethod.KHQR, PaymentStatus.PAID, DeliveryStatus.IN_TRANSIT, False),
+        (S.ACCEPTED, PaymentMethod.KHQR, PaymentStatus.FAILED, DeliveryStatus.DELIVERED, False),
+        (S.PENDING, PaymentMethod.KHQR, PaymentStatus.PAID, DeliveryStatus.DELIVERED, False),
+        (S.CANCELLED, PaymentMethod.KHQR, PaymentStatus.PAID, DeliveryStatus.DELIVERED, False),
+        (S.COMPLETED, PaymentMethod.KHQR, PaymentStatus.PAID, DeliveryStatus.DELIVERED, False),
+    ],
+)
+async def test_an_order_completes_by_itself_once_delivered_and_paid(
+    status, method, paid, delivered, completes
+):
+    order = _order(status, method, paid, delivered)
+
+    assert await complete_when_done(None, order) is completes
+    assert order.status is (S.COMPLETED if completes else status)
 
 
 # --- Seller endpoints ------------------------------------------------------
@@ -339,3 +371,58 @@ async def test_seller_turns_on_automatic_confirmation(client, auth_headers):
     cap = await add_product(store_id, "cap")
     placed = await place_order(client, slug, [(cap, None, 1)], total="10.00")
     assert placed.json()["status"] == "accepted"
+
+
+async def _deliver(client, headers, order_id, status="delivered"):
+    return await client.patch(
+        f"/api/v1/seller/orders/{order_id}/delivery", headers=headers, json={"status": status}
+    )
+
+
+async def _pay(client, headers, order_id):
+    return await client.patch(
+        f"/api/v1/seller/orders/{order_id}/payment",
+        headers=headers,
+        json={"status": "paid", "reference": None},
+    )
+
+
+async def test_the_last_of_delivered_and_paid_completes_the_order(client, auth_headers):
+    """Test list #3 (2026-10-24), whichever the seller records last."""
+    headers, store_id, slug = await _seller(client, auth_headers)
+    cap = await add_product(store_id, "cap", stock=5)
+    await set_payments(client, headers, khqr=KHQR)
+    first, second = [
+        (
+            await place_order(client, slug, [(cap, None, 1)], total="10.00", payment_method="khqr")
+        ).json()["id"]
+        for _ in range(2)
+    ]
+    for order_id in (first, second):
+        await _move(client, headers, order_id, "accepted")
+
+    delivered = (await _deliver(client, headers, first)).json()
+    assert delivered["status"] == "accepted"  # not paid yet
+    paid = (await _pay(client, headers, first)).json()
+    assert (paid["status"], paid["payment"]["status"]) == ("completed", "paid")
+
+    paid = (await _pay(client, headers, second)).json()
+    assert paid["status"] == "accepted"  # not delivered yet
+    delivered = (await _deliver(client, headers, second)).json()
+    assert (delivered["status"], delivered["delivery"]["status"]) == ("completed", "delivered")
+
+
+async def test_cash_on_delivery_waits_for_the_cash(client, auth_headers):
+    headers, store_id, slug = await _seller(client, auth_headers)
+    cap = await add_product(store_id, "cap", stock=5)
+    order_id = (await place_order(client, slug, [(cap, None, 1)], total="10.00")).json()["id"]
+    await _move(client, headers, order_id, "accepted")
+
+    delivered = (await _deliver(client, headers, order_id)).json()
+    # The driver may still have the cash: Complete stays the seller's.
+    assert (delivered["status"], delivered["next_statuses"]) == (
+        "accepted",
+        ["completed", "cancelled"],
+    )
+    paid = (await _pay(client, headers, order_id)).json()  # "Cash received"
+    assert paid["status"] == "completed"

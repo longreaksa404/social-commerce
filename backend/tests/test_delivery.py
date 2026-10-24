@@ -470,7 +470,7 @@ async def _handover(client, headers, order_id):
     return await client.post(f"/api/v1/seller/orders/{order_id}/cash-handover", headers=headers)
 
 
-async def test_delivered_cash_received_records_both_and_leaves_the_order(client, auth_headers):
+async def test_delivered_cash_received_records_both_and_completes(client, auth_headers):
     headers, slug, shirt = await _shop(client, auth_headers)
     order = (await place_order(client, slug, [(shirt, None, 1)], total="11.50")).json()
     await client.patch(
@@ -483,8 +483,8 @@ async def test_delivered_cash_received_records_both_and_leaves_the_order(client,
     body = response.json()
     assert (body["delivery"]["status"], body["payment"]["status"]) == ("delivered", "paid")
     assert body["payment"]["paid_at"] is not None
-    assert body["status"] == "accepted"  # the order moves only by its own taps
-    assert "completed" in body["next_statuses"]
+    # Delivered and paid: the order completes by itself (test list #3).
+    assert (body["status"], body["next_statuses"]) == ("completed", [])
     # Done once: a second tap is refused and changes nothing.
     again = await _handover(client, headers, order["id"])
     assert again.status_code == 409

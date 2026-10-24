@@ -248,7 +248,8 @@ async def test_seller_marks_a_transfer_paid_and_can_then_complete(client, auth_h
     assert body["payment"]["reference"] == "ABA 14:05, ...123"
     assert body["payment"]["paid_at"] is not None
     assert body["payment"]["next_statuses"] == ["pending"]  # "Not paid after all"
-    assert (body["status"], body["next_statuses"]) == ("accepted", ["completed", "cancelled"])
+    # Delivered and now paid: completed by itself (test list #3).
+    assert (body["status"], body["next_statuses"]) == ("completed", [])
     # The customer sees it's paid, and no longer gets the account to pay to.
     tracked = (await track(client, slug, order["id"])).json()["payment"]
     assert (tracked["status"], tracked["bank_account"]) == ("paid", None)

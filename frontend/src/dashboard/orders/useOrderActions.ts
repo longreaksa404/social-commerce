@@ -37,9 +37,13 @@ export function useOrderActions(order: Order, onStale: () => void, onDecided?: (
   /** `what` goes in the toast ("Order #1005: Delivered"); null for none. */
   async function run(action: () => Promise<unknown>, what: string | null): Promise<boolean> {
     try {
-      await action()
+      const result = await action()
       buzz()
-      if (what) toast(o.changed(order.number, what))
+      // Delivered and paid: the order completed by itself (founder's test
+      // list #3, 2026-10-24), which is what the toast says then.
+      const completed = order.status !== 'completed' && (result as Order | undefined)?.status === 'completed'
+      if (completed) toast(o.changed(order.number, t.status.order.completed))
+      else if (what) toast(o.changed(order.number, what))
       return true
     } catch (error) {
       toast(errorText(error), 'error')
@@ -75,15 +79,15 @@ export function useOrderActions(order: Order, onStale: () => void, onDecided?: (
     /** Cash on delivery: delivered (or collected) and the cash in hand. */
     handOver: () => run(() => handover.mutateAsync(), method === 'pickup' ? o.collectedCash : o.cashHandover),
     markPaid: (reference: string | null) => recordPayment('paid', reference, o.paidToast),
-    /** Paid already: delivered (or collected), then complete (UX check
-     * #15). Two records, as the button says. */
+    /** Paid already: delivered (or collected), and the order completes
+     * by itself (UX check #15; test list #3, 2026-10-24). */
     async deliverAndComplete() {
-      if (await recordDelivery('delivered', null, null)) await moveOrder('completed')
+      await recordDelivery('delivered', null, deliveryLabel('delivered'))
     },
-    /** A delivered cash order: the cash in hand, then complete (UX check
-     * #8). Two records, as the button says; each stays if the other fails. */
+    /** A delivered cash order: the cash in hand, and the order completes
+     * by itself (UX check #8; test list #3). */
     async cashAndComplete() {
-      if (await recordPayment('paid', null, o.paidToast)) await moveOrder('completed')
+      await recordPayment('paid', null, o.paidToast)
     },
     async deliveryFailed() {
       await recordDelivery('failed', null, deliveryLabel('failed'))
