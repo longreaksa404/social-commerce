@@ -171,14 +171,20 @@ function ProductForm({ product }: { product?: Product }) {
       return
     }
 
-    // New product: upload the photos picked before it existed.
+    // New product: upload the photos picked before it existed, all at
+    // once (one after another took seconds a photo on a phone).
     allowLeave()
     try {
-      const urls: string[] = []
-      for (const [i, photo] of newPhotos.entries()) {
-        setProgress(p.uploadingPhotoOf(i + 1, newPhotos.length))
-        urls.push(await uploadProductImage(saved.id, photo.photo))
-      }
+      let done = 0
+      const n = newPhotos.length
+      if (n) setProgress(p.uploadingPhotos(0, n))
+      const urls = await Promise.all(
+        newPhotos.map(async (photo) => {
+          const url = await uploadProductImage(saved.id, photo.photo)
+          setProgress(p.uploadingPhotos(++done, n))
+          return url
+        }),
+      )
       if (urls.length) await save.mutateAsync({ id: saved.id, body: { image_urls: urls } })
       newPhotos.forEach((p) => URL.revokeObjectURL(p.preview))
       toast(p.productAdded)

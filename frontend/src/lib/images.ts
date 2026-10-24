@@ -75,11 +75,14 @@ export async function uploadProductImage(productId: string, { image, thumbnail }
     method: 'POST',
     body: { content_type: image.type, size: image.size, thumbnail_size: thumbnail?.size ?? null },
   })
-  // The small copy first: a photo named as having one must have it.
-  if (thumbnail && upload.thumbnail_upload_url) {
-    await put(upload.thumbnail_upload_url, { 'Content-Type': 'image/jpeg' }, thumbnail)
-  }
-  await put(upload.upload_url, upload.headers, image)
+  // Both at once; the URL is saved only after both are in, so a photo
+  // named as having a small copy has it.
+  await Promise.all([
+    thumbnail && upload.thumbnail_upload_url
+      ? put(upload.thumbnail_upload_url, { 'Content-Type': 'image/jpeg' }, thumbnail)
+      : null,
+    put(upload.upload_url, upload.headers, image),
+  ])
   return upload.public_url
 }
 

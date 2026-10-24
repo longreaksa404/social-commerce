@@ -602,7 +602,7 @@ Codes in use: `ACCOUNT_DISABLED`, `ACCOUNT_NOT_FOUND`, `CATEGORY_NOT_FOUND`,
 `ORDER_TOTAL_CHANGED`, `PAYMENT_METHOD_UNAVAILABLE`, `PRODUCT_HIDDEN`,
 `PRODUCT_NOT_FOUND`, `PRODUCT_OUT_OF_STOCK`, `PRODUCT_UNAVAILABLE`,
 `OWNER_ONLY`, `RATE_LIMITED`, `RESET_LINK_INVALID`, `SLUG_TAKEN`, `STAFF_LIMIT`, `STAFF_NOT_FOUND`, `STORE_MISSING`, `STORE_NOT_FOUND`,
-`TELEGRAM_NOT_CONFIGURED`, `TOKEN_EXPIRED`, `TOO_MANY_IMAGES`,
+`TELEGRAM_NOT_CONFIGURED`, `TOKEN_EXPIRED`,
 `UPLOADS_NOT_CONFIGURED`, `VALIDATION_ERROR`, `VARIANT_NOT_FOUND`,
 `VARIANTS_DISABLED`, `VARIANTS_REQUIRED`, `WRONG_PASSWORD` (422, not
 401: the app reads any 401 as "logged out"). The frontend also makes
@@ -992,7 +992,7 @@ from the schema.
 | GET | `/seller/products/{product_id}` | seller | — | `ProductOut` | |
 | PATCH | `/seller/products/{product_id}` | seller | `ProductUpdate` | `ProductOut` | `variants` = full new list (id keeps, missing deletes); omitted `stock_quantity` = unchanged; `image_urls` prefix-checked |
 | DELETE | `/seller/products/{product_id}` | seller | — | 204 | Soft: `status=inactive` |
-| POST | `/seller/products/{product_id}/images` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT (+ thumbnail PUT if `thumbnail_size`); max 5 images, 5 MB, JPEG/PNG/WebP |
+| POST | `/seller/products/{product_id}/images` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT (+ thumbnail PUT if `thumbnail_size`); 5 MB, JPEG/PNG/WebP; 30 a minute per IP, no count of the saved photos (the form's photos count; `PATCH` takes at most 5) |
 | POST | `/seller/orders` | seller | `SellerOrderCreate` | `OrderOut` (201) | An order from a chat (founder's pick 3A): `checkout.place_order(by_seller=True)`, so checkout's prices, stock, totals and `expected_total` check; taken while paused; starts `accepted`; `source = "chat"`; no "new order" on the bell or Telegram, low stock only |
 | GET | `/seller/stats` | **owner** | `?period=today\|week\|month` | `StatsOut` | **Not shown in the app yet**: kept for the seller dashboard (founder, 2026-10-09: the numbers and chart wait for it; picks 8B, 9B; `services/stats.py`): orders placed in the period except rejected / cancelled, their totals and their pending payments per currency, Phnom Penh days; `days` = sales per day in the shop's currency, the last 7 days for today and the week, this month's days so far for the month. 403 `OWNER_ONLY` for staff |
 | GET | `/seller/plan` | seller (staff too) | — | `PlanOut` | The shop's plan with Oak Order (01 §33.1): `stage` (`setup`/`active`/`ending_soon`/`overdue`/`stopped`), `on_trial` (no payment yet), `paid_until`, `pay_by` (paid_until + 7: the last day before new orders stop), `days_left` (today included, 0 once run out) (these three null in setup), `trial_until` (in setup: the trial's last day if opened today), `prices` (`month` "9.99", `year` "99.00", USD), `code` (the shop's code), `pay_to` (`khqr_month`, `khqr_year`, `khqr_name`, `bank`; all empty without `OAK_*`), `claim` (an "I've paid" waiting for the founder), `payments` newest first: paid ones and ones not found |

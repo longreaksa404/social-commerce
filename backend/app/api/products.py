@@ -1,8 +1,9 @@
 import uuid
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, Request, status
 
 from app.api.deps import Seller, TenantDb
+from app.core.ratelimit import check_limit
 from app.models import ProductStatus
 from app.schemas.product import ProductCreate, ProductOut, ProductUpdate
 from app.schemas.upload import ImageUploadIn, ImageUploadOut
@@ -44,7 +45,17 @@ async def deactivate_product(product_id: uuid.UUID, seller: Seller, db: TenantDb
     await product_service.deactivate_product(db, seller.store_id, product_id)
 
 
-@router.post("/{product_id}/images", response_model=ImageUploadOut)
+def _upload_rate_limit(request: Request) -> None:
+    # In place of a count of the saved photos (services/images.py): five
+    # photos picked at once, a few times over, is plenty.
+    check_limit("30/minute", "product-image", request)
+
+
+@router.post(
+    "/{product_id}/images",
+    response_model=ImageUploadOut,
+    dependencies=[Depends(_upload_rate_limit)],
+)
 async def create_image_upload(
     product_id: uuid.UUID, data: ImageUploadIn, seller: Seller, db: TenantDb
 ) -> ImageUploadOut:

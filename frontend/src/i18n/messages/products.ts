@@ -50,9 +50,10 @@ export const products = {
   editProduct: { en: 'Edit product', km: 'កែទំនិញ' },
   changesSaved: { en: 'Changes saved', km: 'បានរក្សាទុកការកែប្រែ' },
   productAdded: { en: 'Product added', km: 'បានបន្ថែមទំនិញ' },
-  uploadingPhotoOf: {
-    en: (i: number, n: number) => `Uploading photo ${i} of ${n}…`,
-    km: (i: number, n: number) => `កំពុងបង្ហោះរូបទី ${i} នៃ ${n}…`,
+  // All at once: how many are in so far.
+  uploadingPhotos: {
+    en: (done: number, n: number) => `Uploading photos… ${done} of ${n}`,
+    km: (done: number, n: number) => `កំពុងបង្ហោះរូបថត… ${done} នៃ ${n}`,
   },
   photosNotUploaded: {
     en: (reason: string) => `Product saved, but photos weren't uploaded. ${reason}`,

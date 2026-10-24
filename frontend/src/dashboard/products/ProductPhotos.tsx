@@ -132,20 +132,23 @@ export function ProductPhotos({
   async function add(files: File[]) {
     const accepted = files.slice(0, MAX_PHOTOS - urls.length)
     if (accepted.length < files.length) toast(words.tooMany, 'error')
-    busy(accepted.length)
-    let current = urls
-    try {
-      for (const [i, file] of accepted.entries()) {
-        const url = await uploadProductImage(product.id, await prepareImage(file))
-        current = [...current, url]
-        onChange(current)
-        busy(accepted.length - i - 1)
-      }
-    } catch (err) {
-      toast(errorText(err, words.uploadFailed), 'error')
-    } finally {
-      busy(0)
-    }
+    let left = accepted.length
+    busy(left)
+    // All at once, added in the order picked; one that fails doesn't stop
+    // the others.
+    const results = await Promise.allSettled(
+      accepted.map(async (file) => {
+        try {
+          return await uploadProductImage(product.id, await prepareImage(file))
+        } finally {
+          busy(--left)
+        }
+      }),
+    )
+    const added = results.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []))
+    if (added.length) onChange([...urls, ...added])
+    const failed = results.find((r) => r.status === 'rejected')
+    if (failed) toast(errorText(failed.reason, words.uploadFailed), 'error')
   }
 
   return (

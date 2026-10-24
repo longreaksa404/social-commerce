@@ -15,7 +15,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.errors import AppError
-from app.schemas.product import MAX_IMAGES
 from app.schemas.upload import EXTENSIONS, ImageUploadIn, ImageUploadOut
 from app.services.product import get_product, image_prefix
 from app.services.store import cover_prefix, logo_prefix
@@ -86,9 +85,10 @@ async def create_upload(
 ) -> ImageUploadOut:
     settings = get_settings()
     _check_configured()
+    # No count here: the form's photos (saved or not) are what count, and
+    # saving more than MAX_IMAGES is refused (ProductUpdate.image_urls). A
+    # seller who removed two of five and adds two must not hear "max 5".
     product = await get_product(db, store_id, product_id)
-    if len(product.image_urls) >= MAX_IMAGES:
-        raise AppError(422, "TOO_MANY_IMAGES", f"A product can have up to {MAX_IMAGES} images.")
 
     folder = image_prefix(store_id, product.id).removeprefix(f"{settings.r2_public_url}/")
     name = uuid.uuid4().hex
