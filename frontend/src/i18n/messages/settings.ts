@@ -43,6 +43,9 @@ export const settings = {
   addCover: { en: 'Add cover photo', km: 'បន្ថែមរូបក្រប' },
   changeCover: { en: 'Change cover', km: 'ប្ដូររូបក្រប' },
   removeCover: { en: 'Remove cover', km: 'ដករូបក្របចេញ' },
+  // Asked before removing (test list #14, 2026-10-24).
+  removeCoverAsk: { en: 'Remove the cover photo?', km: 'ដករូបក្របចេញ?' },
+  removeLogoAsk: { en: 'Remove the logo?', km: 'ដកឡូហ្គោចេញ?' },
   // Under the shop's top, whose cover and logo are buttons (test list #13).
   pictureHint: {
     en: 'Tap the cover or logo. Your Facebook cover works well.',
@@ -170,6 +173,7 @@ export const settings = {
   },
   courier: { en: 'Courier', km: 'ក្រុមហ៊ុនដឹក' },
   removeCourier: { en: (name: string) => `Remove ${name}`, km: (name: string) => `ដក ${name} ចេញ` },
+  removeCourierAsk: { en: (name: string) => `Remove ${name}?`, km: (name: string) => `ដក ${name} ចេញ?` },
   thisCourier: { en: 'courier', km: 'ក្រុមហ៊ុនដឹកនេះ' },
   otherCourier: { en: 'Other courier', km: 'ក្រុមហ៊ុនដឹកផ្សេង' },
   pickup: { en: 'Pickup', km: 'មកយកផ្ទាល់' },
@@ -185,6 +189,7 @@ export const settings = {
   whenItemsReach: { en: 'When items reach', km: 'នៅពេលទំនិញដល់' },
   takeOff: { en: 'Take off', km: 'បញ្ចុះ' },
   removeDiscount: { en: 'Remove discount', km: 'ដកការបញ្ចុះតម្លៃចេញ' },
+  removeDiscountAsk: { en: 'Remove this discount?', km: 'ដកការបញ្ចុះតម្លៃនេះចេញ?' },
   // Under each rule (settings check #9, 2026-10-19).
   discountRule: {
     en: (from: string, off: string) => `Orders of ${from} or more get ${off} off.`,

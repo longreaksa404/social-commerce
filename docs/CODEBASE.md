@@ -1274,7 +1274,12 @@ is wrapped in try/catch (private mode).
   ghost; sizes md, lg) and `cardClass`.
 - `components/feedback.ts` + `FeedbackProvider.tsx`: `useFeedback()` →
   `toast(message, tone)` and `await confirm({title, message,
-  confirmLabel, danger})` (a bottom sheet).
+  confirmLabel, danger})` (a bottom sheet). `useAskRemove()(title)`
+  asks before every remove, even in a form that waits for Save: the
+  cover, the logo, a product photo, an option, a courier, a discount
+  (founder's test list #14, 2026-10-24); a row with nothing typed in
+  goes without asking. Deleting a category and removing staff ask with
+  their own texts.
 - `components/SourceLogo.tsx`: the real Facebook, TikTok, Instagram,
   Telegram and Messenger logos in their own colours, wherever a link's
   place shows (link cards, New link picker, link page, an order's "Came

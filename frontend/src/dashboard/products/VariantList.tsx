@@ -1,5 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { useAskRemove } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
 import { Field, IconButton, Input, MoneyInput } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
@@ -29,6 +30,7 @@ export function VariantList({
   onAdd: () => void
 }) {
   const p = useT().products
+  const askRemove = useAskRemove()
   const [skus, setSkus] = useState(() => variants.some((v) => v.sku))
   const set = (key: string, change: Partial<VariantDraft>) =>
     onChange(variants.map((v) => (v.key === key ? { ...v, ...change } : v)))
@@ -78,7 +80,12 @@ export function VariantList({
                 tone="danger"
                 label={p.removeVariant(index + 1)}
                 disabled={variants.length === 1}
-                onClick={() => onChange(variants.filter((v) => v.key !== variant.key))}
+                onClick={async () => {
+                  // One with nothing typed yet goes without asking.
+                  const typed = variant.name.trim() || variant.stock_quantity || variant.price_override
+                  if (typed && !(await askRemove(p.removeVariantAsk(variant.name.trim())))) return
+                  onChange(variants.filter((v) => v.key !== variant.key))
+                }}
                 className="@max-[18rem]:mt-5 @min-[18rem]:order-last"
               />
               <Field label={p.stock} labelClassName={label}>

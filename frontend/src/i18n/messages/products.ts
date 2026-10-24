@@ -80,6 +80,11 @@ export const products = {
   },
   variant: { en: (i: number) => `Variant ${i}`, km: (i: number) => `ជម្រើសទី ${i}` },
   removeVariant: { en: (i: number) => `Remove variant ${i}`, km: (i: number) => `ដកជម្រើសទី ${i} ចេញ` },
+  // Asked before removing (test list #14, 2026-10-24).
+  removeVariantAsk: {
+    en: (name: string) => (name ? `Remove ${name}?` : 'Remove this option?'),
+    km: (name: string) => (name ? `ដកជម្រើស ${name} ចេញ?` : 'ដកជម្រើសនេះចេញ?'),
+  },
   variantName: { en: 'Name', km: 'ឈ្មោះ' },
   variantNamePlaceholder: { en: 'e.g. Red / M', km: 'ឧ. ក្រហម / M' },
   stock: { en: 'Stock', km: 'ស្តុក' },
@@ -111,6 +116,7 @@ export const products = {
     main: { en: 'Main', km: 'រូបចម្បង' },
     setMain: { en: 'Set main', km: 'ដាក់ជារូបចម្បង' },
     remove: { en: (i: number) => `Remove photo ${i}`, km: (i: number) => `ដករូបទី ${i} ចេញ` },
+    removeAsk: { en: 'Remove this photo?', km: 'ដករូបថតនេះចេញ?' },
     uploading: { en: 'Uploading photo', km: 'កំពុងបង្ហោះរូបថត' },
     add: { en: 'Add photo', km: 'បន្ថែមរូបថត' },
     uploadFailed: { en: 'The photo upload failed. Please try again.', km: 'បង្ហោះរូបថតមិនបាន។ សូមព្យាយាមម្ដងទៀត។' },

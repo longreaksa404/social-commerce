@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { useRef, useState, type ChangeEvent, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { useFeedback } from '../../components/feedback.ts'
+import { useAskRemove, useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
 import {
   Badge,
@@ -90,6 +90,7 @@ export function ShopFields({ store, form, update, error }: FieldsProps) {
 function ShopTop({ form, update, error }: PictureProps) {
   const t = useT()
   const s = t.settings
+  const askRemove = useAskRemove()
   const { input: coverInput, send: coverSend, pick: pickCover, choose: chooseCover } = usePictureUpload(
     prepareCover,
     uploadStoreCover,
@@ -134,7 +135,7 @@ function ShopTop({ form, update, error }: PictureProps) {
           label={form.cover_url ? s.changeCover : s.addCover}
           busy={coverSend.isPending}
           onPick={chooseCover}
-          onRemove={() => update({ cover_url: null })}
+          onRemove={async () => (await askRemove(s.removeCoverAsk)) && update({ cover_url: null })}
           changeLabel={s.changeCover}
           removeLabel={s.removeCover}
           className="relative block w-full rounded-t-xl"
@@ -148,7 +149,7 @@ function ShopTop({ form, update, error }: PictureProps) {
             label={form.logo_url ? s.changeLogo : s.addLogo}
             busy={logoSend.isPending}
             onPick={chooseLogo}
-            onRemove={() => update({ logo_url: null })}
+            onRemove={async () => (await askRemove(s.removeLogoAsk)) && update({ logo_url: null })}
             changeLabel={s.changeLogo}
             removeLabel={s.removeLogo}
             className="relative z-10 size-14 shrink-0 rounded-full"
@@ -633,6 +634,7 @@ export function DeliveryFields({ form, update, error }: FieldsProps) {
   )
   const noneOn = !delivery.delivers && !pickup.enabled
   const s = useT().settings
+  const askRemove = useAskRemove()
   return (
     <>
       {/* One Delivery switch: the shop's own driver, plus any couriers it
@@ -693,7 +695,11 @@ export function DeliveryFields({ form, update, error }: FieldsProps) {
                     tone="danger"
                     label={s.removeCourier(courier.name || s.thisCourier)}
                     className={courier.typed || problem ? 'mt-7' : ''}
-                    onClick={() => onChange({ couriers: couriers.filter((c) => c.key !== courier.key) })}
+                    onClick={async () => {
+                      // A row with nothing typed yet goes without asking.
+                      if (courier.name.trim() && !(await askRemove(s.removeCourierAsk(courier.name.trim())))) return
+                      onChange({ couriers: couriers.filter((c) => c.key !== courier.key) })
+                    }}
                   />
                 )
                 return (
@@ -769,6 +775,7 @@ export function DiscountsFields({ form, update, error }: FieldsProps) {
   const setRule = (key: string, changes: Partial<RuleRow>) =>
     onChange(rules.map((r) => (r.key === key ? { ...r, ...changes } : r)))
   const s = useT().settings
+  const askRemove = useAskRemove()
   return (
     <>
       {rules.length === 0 && <p className="text-sm text-slate-500">{s.noDiscounts}</p>}
@@ -800,7 +807,10 @@ export function DiscountsFields({ form, update, error }: FieldsProps) {
               tone="danger"
               label={s.removeDiscount}
               className="mt-7"
-              onClick={() => onChange(rules.filter((r) => r.key !== rule.key))}
+              onClick={async () => {
+                if ((rule.min_subtotal || rule.amount_off) && !(await askRemove(s.removeDiscountAsk))) return
+                onChange(rules.filter((r) => r.key !== rule.key))
+              }}
             />
           </div>
           {/* The rule in words (settings check #9, founder 2026-10-19). */}

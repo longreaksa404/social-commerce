@@ -1,6 +1,6 @@
 import { ImagePlus, LoaderCircle, X } from 'lucide-react'
 import { useRef, useState, type ChangeEvent } from 'react'
-import { useFeedback } from '../../components/feedback.ts'
+import { useAskRemove, useFeedback } from '../../components/feedback.ts'
 import { useT } from '../../i18n/useT.ts'
 import { errorText } from '../../lib/errors.ts'
 import { prepareImage, thumbnailUrl, uploadProductImage, type PreparedPhoto } from '../../lib/images.ts'
@@ -31,6 +31,7 @@ function PhotoGrid({
 }) {
   const input = useRef<HTMLInputElement>(null)
   const words = useT().products.photo
+  const askRemove = useAskRemove()
   const room = MAX_PHOTOS - photos.length - uploading
 
   function pick(event: ChangeEvent<HTMLInputElement>) {
@@ -68,7 +69,7 @@ function PhotoGrid({
             type="button"
             disabled={disabled}
             aria-label={words.remove(index + 1)}
-            onClick={() => onRemove(photo.key)}
+            onClick={async () => (await askRemove(words.removeAsk)) && onRemove(photo.key)}
             className="absolute -right-2 -top-2 flex size-8 items-center justify-center rounded-full bg-surface text-slate-700 shadow ring-1 ring-slate-200 after:absolute after:-inset-1.5 disabled:opacity-50"
           >
             <X aria-hidden className="size-4" />
