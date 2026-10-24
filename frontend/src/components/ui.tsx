@@ -502,8 +502,25 @@ export type MenuItem = {
 
 /** A ⋯ button with a small menu under it. Closes on a choice, a tap
  * outside or Escape (which puts focus back on the button); arrow keys move
- * between the items. Red is for the words only (founder, 2026-10-15). */
-export function MenuButton({ label, items, disabled }: { label: string; items: MenuItem[]; disabled?: boolean }) {
+ * between the items. Red is for the words only (founder, 2026-10-15).
+ * With `children`, they are the button instead of ⋯ (a picture that opens
+ * Change / Remove), `className` its classes and `menuClassName` where the
+ * menu opens. */
+export function MenuButton({
+  label,
+  items,
+  disabled,
+  children,
+  className = '',
+  menuClassName = 'top-full right-0 mt-1',
+}: {
+  label: string
+  items: MenuItem[]
+  disabled?: boolean
+  children?: ReactNode
+  className?: string
+  menuClassName?: string
+}) {
   const [open, setOpen] = useState(false)
   const wrap = useRef<HTMLDivElement>(null)
 
@@ -530,20 +547,34 @@ export function MenuButton({ label, items, disabled }: { label: string; items: M
   }
 
   return (
-    <div ref={wrap} className="relative" onKeyDown={onKeyDown}>
-      <IconButton
-        icon={Ellipsis}
-        label={label}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        disabled={disabled}
-        onClick={() => setOpen((o) => !o)}
-      />
+    <div ref={wrap} className={children ? `relative ${className}` : 'relative'} onKeyDown={onKeyDown}>
+      {children ? (
+        <button
+          type="button"
+          aria-label={label}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          disabled={disabled}
+          onClick={() => setOpen((o) => !o)}
+          className="block size-full rounded-[inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600"
+        >
+          {children}
+        </button>
+      ) : (
+        <IconButton
+          icon={Ellipsis}
+          label={label}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          disabled={disabled}
+          onClick={() => setOpen((o) => !o)}
+        />
+      )}
       {open && (
         <div
           role="menu"
           aria-label={label}
-          className="absolute top-full right-0 z-20 mt-1 flex min-w-48 animate-zoom-in flex-col rounded-xl bg-surface p-1.5 shadow-lg ring-1 ring-slate-900/10"
+          className={`absolute z-20 flex min-w-48 animate-zoom-in flex-col rounded-xl bg-surface p-1.5 shadow-lg ring-1 ring-slate-900/10 ${menuClassName}`}
         >
           {items.map(({ label: text, icon: Icon, danger, onSelect }) => (
             <button

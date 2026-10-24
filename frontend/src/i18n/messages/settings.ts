@@ -37,22 +37,17 @@ export const settings = {
   },
   usd: { en: 'US dollar ($)', km: 'ដុល្លារអាមេរិក ($)' },
   khr: { en: 'Cambodian riel (៛)', km: 'ប្រាក់រៀល (៛)' },
-  logo: { en: 'Shop logo', km: 'ឡូហ្គោហាង' },
-  logoHint: {
-    en: 'A square picture works best.',
-    km: 'រូបការ៉េល្អបំផុត។',
-  },
   addLogo: { en: 'Add logo', km: 'បន្ថែមឡូហ្គោ' },
   changeLogo: { en: 'Change logo', km: 'ប្ដូរឡូហ្គោ' },
   removeLogo: { en: 'Remove logo', km: 'ដកឡូហ្គោចេញ' },
-  cover: { en: 'Cover photo', km: 'រូបក្រប' },
-  coverHint: {
-    en: 'Your Facebook cover works well.',
-    km: 'រូបក្រប Facebook របស់អ្នកប្រើបានល្អ។',
-  },
   addCover: { en: 'Add cover photo', km: 'បន្ថែមរូបក្រប' },
   changeCover: { en: 'Change cover', km: 'ប្ដូររូបក្រប' },
   removeCover: { en: 'Remove cover', km: 'ដករូបក្របចេញ' },
+  // Under the shop's top, whose cover and logo are buttons (test list #13).
+  pictureHint: {
+    en: 'Tap the cover or logo. Your Facebook cover works well.',
+    km: 'ចុចលើរូបក្រប ឬឡូហ្គោ។ រូបក្រប Facebook របស់អ្នកប្រើបានល្អ។',
+  },
   shopColor: { en: 'Shop color', km: 'ពណ៌ហាង' },
   colorHint: {
     en: 'Used in your shop and this app.',
