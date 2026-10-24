@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { KeyRound, Trash2, UserPlus } from 'lucide-react'
+import { KeyRound, Pencil, Trash2, UserPlus } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useFeedback } from '../../components/feedback.ts'
-import { Button, Card, ErrorMessage, ErrorState, Field, IconButton, Input, PasswordInput, Section, Skeleton } from '../../components/ui.tsx'
+import { Button, Card, ErrorMessage, ErrorState, Field, Input, MenuButton, PasswordInput, Section, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
 import { fieldError, formError } from '../../lib/errors.ts'
@@ -34,7 +34,8 @@ export function StaffPage() {
  * check #11, founder 2026-10-19). */
 function StaffList({ staff }: { staff: StaffMember[] }) {
   const s = useT().settings
-  const [resetting, setResetting] = useState<string | null>(null)
+  // The one row with a form open: its edit or its new password.
+  const [open, setOpen] = useState<{ id: string; form: RowForm } | null>(null)
   return (
     <Card className="px-4 py-2 sm:px-6">
       {staff.length === 0 ? (
@@ -43,7 +44,11 @@ function StaffList({ staff }: { staff: StaffMember[] }) {
         <ul className="divide-y divide-slate-100">
           {staff.map((member) => (
             <li key={member.id} className="py-3">
-              <StaffRow member={member} resetting={resetting === member.id} onReset={setResetting} />
+              <StaffRow
+                member={member}
+                form={open?.id === member.id ? open.form : null}
+                onForm={(form) => setOpen(form && { id: member.id, form })}
+              />
             </li>
           ))}
         </ul>
@@ -52,19 +57,25 @@ function StaffList({ staff }: { staff: StaffMember[] }) {
   )
 }
 
+type RowForm = 'edit' | 'password'
+
+/** A helper: their name and login, and a ⋯ menu with Edit (founder's
+ * test list #26, 2026-10-24), New password (asks first, #27) and Remove. */
 function StaffRow({
   member,
-  resetting,
-  onReset,
+  form,
+  onForm,
 }: {
   member: StaffMember
-  resetting: boolean
-  onReset: (id: string | null) => void
+  form: RowForm | null
+  onForm: (form: RowForm | null) => void
 }) {
   const queryClient = useQueryClient()
   const { toast, confirm } = useFeedback()
   const [password, setPassword] = useState('')
-  const s = useT().settings
+  const [details, setDetails] = useState({ full_name: member.full_name, phone: member.phone ? formatPhone(member.phone) : '' })
+  const t = useT()
+  const s = t.settings
 
   const remove = useMutation({
     mutationFn: () => api(`/seller/staff/${member.id}`, { method: 'DELETE' }),
@@ -77,8 +88,20 @@ function StaffRow({
     mutationFn: () => api(`/seller/staff/${member.id}/password`, { method: 'POST', body: { password } }),
     onSuccess: () => {
       setPassword('')
-      onReset(null)
+      onForm(null)
       toast(s.staffPasswordSet(member.full_name))
+    },
+  })
+  const edit = useMutation({
+    mutationFn: () =>
+      api<StaffMember>(`/seller/staff/${member.id}`, {
+        method: 'PATCH',
+        body: { full_name: details.full_name, ...(details.phone ? { phone: details.phone } : {}) },
+      }),
+    onSuccess: (saved) => {
+      queryClient.invalidateQueries({ queryKey: keys.staff })
+      onForm(null)
+      toast(s.staffSaved(saved.full_name))
     },
   })
 
@@ -92,37 +115,96 @@ function StaffRow({
     if (ok) remove.mutate()
   }
 
-  function submit(event: FormEvent) {
+  function openForm(next: RowForm) {
+    reset.reset()
+    edit.reset()
+    setPassword('')
+    setDetails({ full_name: member.full_name, phone: member.phone ? formatPhone(member.phone) : '' })
+    onForm(next)
+  }
+
+  async function submitPassword(event: FormEvent) {
     event.preventDefault()
-    reset.mutate()
+    // They forgot theirs, so it isn't asked; asking first is (test list #27).
+    const ok = await confirm({
+      title: s.setPasswordTitle(member.full_name),
+      message: s.setPasswordMessage(member.full_name),
+      confirmLabel: s.setPasswordConfirm,
+    })
+    if (ok) reset.mutate()
+  }
+
+  function submitEdit(event: FormEvent) {
+    event.preventDefault()
+    edit.mutate()
   }
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        {/* The buttons go under the name when it wouldn't fit beside them. */}
-        <div className="min-w-0 flex-1 basis-56">
+      <div className="flex items-center gap-3">
+        <div className="min-w-0 flex-1">
           <p className="truncate font-medium text-slate-900">{member.full_name}</p>
           <p className="truncate text-sm text-slate-500 tabular-nums">
             {member.phone ? formatPhone(member.phone) : member.email}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" icon={KeyRound} onClick={() => onReset(resetting ? null : member.id)}>
-            {s.newPassword}
-          </Button>
-          <IconButton icon={Trash2} tone="danger" disabled={remove.isPending} onClick={askRemove} label={s.removeStaffTitle(member.full_name)} />
-        </div>
+        <MenuButton
+          label={s.staffMore(member.full_name)}
+          disabled={remove.isPending}
+          items={[
+            { label: s.editStaff, icon: Pencil, onSelect: () => openForm('edit') },
+            { label: s.newPassword, icon: KeyRound, onSelect: () => openForm('password') },
+            { label: s.removeStaff, icon: Trash2, danger: true, onSelect: askRemove },
+          ]}
+        />
       </div>
-      {resetting && (
-        <form onSubmit={submit} className="space-y-3 rounded-xl bg-slate-50 p-3">
-          <Field label={s.newPasswordFor(member.full_name)} error={fieldError(reset.error, 'password')} hint={s.newPasswordForHint}>
+      {form === 'edit' && (
+        <form onSubmit={submitEdit} className="space-y-3 rounded-xl bg-slate-50 p-3">
+          <Field label={s.staffName} error={fieldError(edit.error, 'full_name')}>
+            <Input
+              required
+              maxLength={100}
+              autoComplete="off"
+              autoCapitalize="words"
+              value={details.full_name}
+              onChange={(e) => setDetails((d) => ({ ...d, full_name: e.target.value }))}
+            />
+          </Field>
+          <Field label={s.staffPhone} error={fieldError(edit.error, 'phone')}>
+            <Input
+              required={Boolean(member.phone)}
+              type="tel"
+              inputMode="tel"
+              autoComplete="off"
+              value={details.phone}
+              onChange={(e) => setDetails((d) => ({ ...d, phone: e.target.value }))}
+            />
+          </Field>
+          <ErrorMessage error={formError(edit.error, ['full_name', 'phone'])} />
+          <div className="flex gap-2">
+            <Button type="submit" loading={edit.isPending} className="flex-1 sm:flex-none">
+              {t.common.save}
+            </Button>
+            <Button variant="secondary" onClick={() => onForm(null)} className="flex-1 sm:flex-none">
+              {t.common.cancel}
+            </Button>
+          </div>
+        </form>
+      )}
+      {form === 'password' && (
+        <form onSubmit={submitPassword} className="space-y-3 rounded-xl bg-slate-50 p-3">
+          <Field label={s.newPasswordFor(member.full_name)} error={fieldError(reset.error, 'password')} hint={s.firstPasswordHint}>
             <PasswordInput required minLength={8} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </Field>
           <ErrorMessage error={formError(reset.error, ['password'])} />
-          <Button type="submit" loading={reset.isPending} className="w-full sm:w-auto">
-            {s.saveNewPassword}
-          </Button>
+          <div className="flex gap-2">
+            <Button type="submit" loading={reset.isPending} className="flex-1 sm:flex-none">
+              {s.saveNewPassword}
+            </Button>
+            <Button variant="secondary" onClick={() => onForm(null)} className="flex-1 sm:flex-none">
+              {t.common.cancel}
+            </Button>
+          </div>
         </form>
       )}
       <ErrorMessage error={remove.error} />

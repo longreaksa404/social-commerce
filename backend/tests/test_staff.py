@@ -119,6 +119,31 @@ async def test_owner_sees_sets_a_password_for_and_removes_only_their_staff(clien
     assert (await client.get(STAFF, headers=a)).json() == []
 
 
+async def test_owner_edits_only_their_staff(client, auth_headers, register):
+    """Test list #26 (2026-10-24): a new name and login number."""
+    a, _, _ = await registered_seller(client, auth_headers)
+    b, _, _ = await registered_seller(client, auth_headers)
+    helper = await _add_staff(client, a, random_phone())
+    url = f"{STAFF}/{helper['id']}"
+
+    others = await client.patch(url, headers=b, json={"full_name": "Taken"})
+    assert others.status_code == 404
+
+    new_phone = random_phone()
+    edited = await client.patch(url, headers=a, json={"full_name": "Dara Sok", "phone": new_phone})
+    assert edited.status_code == 200, edited.text
+    assert edited.json()["full_name"] == "Dara Sok"
+    await _staff_login(client, new_phone)
+
+    someone = await register()
+    taken = await client.patch(url, headers=a, json={"phone": someone["phone"]})
+    assert taken.status_code == 409
+    assert taken.json()["error"]["field"] == "phone"
+    # Their own number again is no change, not "taken".
+    same = await client.patch(url, headers=a, json={"phone": new_phone})
+    assert same.status_code == 200
+
+
 async def test_staff_phone_must_be_free(client, auth_headers, register):
     owner, _, _ = await registered_seller(client, auth_headers)
     someone = await register()

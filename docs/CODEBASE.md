@@ -981,7 +981,8 @@ from the schema.
 | DELETE | `/seller/store/telegram` | seller | — | `StoreOut` | Clears `telegram_chat_id` (logic in the router) |
 | GET | `/seller/staff` | owner | — | `list[StaffOut]` | The shop's staff, oldest first |
 | POST | `/seller/staff` | owner | `StaffCreate` (`full_name`, `phone`, `password`) | `StaffOut` (201) | Phone (their login) taken → 409 `PHONE_TAKEN`; more than 10 → 409 `STAFF_LIMIT` |
-| POST | `/seller/staff/{staff_id}/password` | owner | `StaffPassword` | `StaffOut` | Sets it and logs their phones out; another shop's → 404 `STAFF_NOT_FOUND` |
+| PATCH | `/seller/staff/{staff_id}` | owner | `StaffUpdate` (`full_name?`, `phone?`) | `StaffOut` | Edit a helper (founder's test list #26, 2026-10-24); a phone on another account → 409 `PHONE_TAKEN`; their phones stay logged in; another shop's → 404 |
+| POST | `/seller/staff/{staff_id}/password` | owner | `StaffPassword` | `StaffOut` | Sets it and logs their phones out; another shop's → 404 `STAFF_NOT_FOUND`. The app asks first ("Set a new password for Dara?", test list #27); the old one isn't asked, as they forgot it |
 | DELETE | `/seller/staff/{staff_id}` | owner | — | 204 | Deletes the login (and its sessions) |
 | GET | `/seller/categories` | seller | — | `list[CategoryOut]` | With `product_count`; by name |
 | POST | `/seller/categories` | seller | `CategoryCreate` | `CategoryOut` (201) | Slug from name if omitted |

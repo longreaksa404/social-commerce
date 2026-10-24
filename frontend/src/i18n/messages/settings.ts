@@ -542,10 +542,20 @@ export const settings = {
     en: (name: string) => `New password for ${name}`,
     km: (name: string) => `ពាក្យសម្ងាត់ថ្មីសម្រាប់ ${name}`,
   },
-  newPasswordForHint: {
-    en: "They're logged out and log in with this.",
-    km: 'គេនឹងចាកចេញ ហើយចូលវិញដោយពាក្យសម្ងាត់នេះ។',
+  // Asked before setting it (test list #27, 2026-10-24).
+  setPasswordTitle: {
+    en: (name: string) => `Set a new password for ${name}?`,
+    km: (name: string) => `កំណត់ពាក្យសម្ងាត់ថ្មីសម្រាប់ ${name}?`,
   },
+  setPasswordMessage: {
+    en: (name: string) => `${name} gets logged out on their phones.`,
+    km: (name: string) => `${name} នឹងត្រូវចាកចេញពីទូរស័ព្ទរបស់គេ។`,
+  },
+  setPasswordConfirm: { en: 'Set', km: 'កំណត់' },
+  // A helper's ⋯ menu and Edit (test list #26, 2026-10-24).
+  staffMore: { en: (name: string) => `More for ${name}`, km: (name: string) => `ផ្សេងទៀតសម្រាប់ ${name}` },
+  editStaff: { en: 'Edit', km: 'កែ' },
+  staffSaved: { en: (name: string) => `${name} saved`, km: (name: string) => `បានរក្សាទុក ${name}` },
   saveNewPassword: { en: 'Save new password', km: 'រក្សាទុកពាក្យសម្ងាត់ថ្មី' },
   staffPasswordSet: {
     en: (name: string) => `New password saved for ${name}`,

@@ -28,5 +28,13 @@ class StaffCreate(BaseModel):
     password: Password
 
 
+class StaffUpdate(BaseModel):
+    """Edit a helper (founder's test list #26, 2026-10-24): their name, or
+    the phone number they log in with. Left out = unchanged."""
+
+    full_name: Name | None = None
+    phone: Phone | None = None
+
+
 class StaffPassword(BaseModel):
     password: Password

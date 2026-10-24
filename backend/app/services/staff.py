@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import security
 from app.core.errors import AppError, NotFound
 from app.models import RefreshToken, Seller, SellerRole
-from app.schemas.staff import StaffCreate
+from app.schemas.staff import StaffCreate, StaffUpdate
 
 MAX_STAFF = 10
 
@@ -49,6 +49,26 @@ async def add_staff(db: AsyncSession, store_id: uuid.UUID, data: StaffCreate) ->
         store_id=store_id,
     )
     db.add(staff)
+    try:
+        await db.commit()
+    except IntegrityError as exc:  # the same number saved by someone else meanwhile
+        await db.rollback()
+        raise _phone_taken() from exc
+    return staff
+
+
+async def update_staff(
+    db: AsyncSession, store_id: uuid.UUID, staff_id: uuid.UUID, data: StaffUpdate
+) -> Seller:
+    """A new name, or a new login number (free on every account); their
+    phones stay logged in."""
+    staff = await _get(db, store_id, staff_id)
+    if data.full_name is not None:
+        staff.full_name = data.full_name
+    if data.phone is not None and data.phone != staff.phone:
+        if await db.scalar(select(Seller.id).where(Seller.phone == data.phone)):
+            raise _phone_taken()
+        staff.phone = data.phone
     try:
         await db.commit()
     except IntegrityError as exc:  # the same number saved by someone else meanwhile

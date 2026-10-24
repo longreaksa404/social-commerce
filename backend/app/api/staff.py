@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, status
 
 from app.api.deps import Owner, UnscopedDb
-from app.schemas.staff import StaffCreate, StaffOut, StaffPassword
+from app.schemas.staff import StaffCreate, StaffOut, StaffPassword, StaffUpdate
 from app.services import staff as staff_service
 
 # The owner only. The seller table isn't tenant-scoped: the service filters
@@ -19,6 +19,13 @@ async def list_staff(seller: Owner, db: UnscopedDb) -> list[StaffOut]:
 @router.post("", response_model=StaffOut, status_code=status.HTTP_201_CREATED)
 async def add_staff(data: StaffCreate, seller: Owner, db: UnscopedDb) -> StaffOut:
     return await staff_service.add_staff(db, seller.store_id, data)
+
+
+@router.patch("/{staff_id}", response_model=StaffOut)
+async def update_staff(
+    staff_id: uuid.UUID, data: StaffUpdate, seller: Owner, db: UnscopedDb
+) -> StaffOut:
+    return await staff_service.update_staff(db, seller.store_id, staff_id, data)
 
 
 @router.post("/{staff_id}/password", response_model=StaffOut)
