@@ -116,6 +116,16 @@ export const settings = {
     km: 'រក្សាទុក QR ទទួលប្រាក់ពីកម្មវិធីធនាគារ រួចជ្រើសវានៅទីនេះ។',
   },
   qrRead: { en: 'Filled in from your QR. Check and save.', km: 'បានបំពេញពី QR របស់អ្នក។ សូមពិនិត្យ ហើយរក្សាទុក។' },
+  // A dual KHQR, dollars and riel in one picture (test list #20).
+  qrUsedOne: {
+    en: (currency: string) => `Two accounts found: using your ${currency === 'KHR' ? 'riel' : 'dollar'} one. Check and save.`,
+    km: (currency: string) => `រកឃើញគណនីពីរ៖ ប្រើគណនី${currency === 'KHR' ? 'រៀល' : 'ដុល្លារ'}។ សូមពិនិត្យ ហើយរក្សាទុក។`,
+  },
+  qrChoose: { en: 'Two accounts found. Which one?', km: 'រកឃើញគណនីពីរ។ ប្រើមួយណា?' },
+  qrAccount: {
+    en: (currency: string | null) => (currency === 'USD' ? 'Dollar account' : currency === 'KHR' ? 'Riel account' : 'Account'),
+    km: (currency: string | null) => (currency === 'USD' ? 'គណនីដុល្លារ' : currency === 'KHR' ? 'គណនីរៀល' : 'គណនី'),
+  },
   qrNone: {
     en: 'No QR found. Try a screenshot or a clearer photo.',
     km: 'រកមិនឃើញ QR ទេ។ សូមសាកល្បងរូបថតអេក្រង់ ឬរូបច្បាស់ជាងនេះ។',

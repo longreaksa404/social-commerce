@@ -34,7 +34,7 @@ import { errorText, fieldError } from '../../lib/errors.ts'
 import { prepareCover, prepareLogo, uploadStoreCover, uploadStoreLogo } from '../../lib/images.ts'
 import { formatMoney } from '../../lib/money.ts'
 import { formatPhone, phnomPenhDate } from '../../lib/orders.ts'
-import { parseKhqr, readQrImage } from '../../lib/readKhqr.ts'
+import { parseKhqr, readQrImages, type KhqrAccount } from '../../lib/readKhqr.ts'
 import type { Currency, PaymentSettings, ShopColor, Store, TelegramLink } from '../../lib/types.ts'
 import { DEEP_COLORS, LIGHT_COLORS } from '../../shop/colors.ts'
 import { keys } from '../queries.ts'
@@ -385,7 +385,9 @@ export function OrdersFields({ store, form, update, error }: FieldsProps) {
 /** "Upload your bank's QR": the seller's own KHQR picture, read on the
  * phone (lib/readKhqr.ts), fills in the Bakong ID, the account and the
  * name. Warns when the QR's account isn't in the shop's currency (an ABA
- * QR points at the default account, often the riel one). */
+ * QR points at the default account, often the riel one). A "dual" picture
+ * with a dollar and a riel QR (founder's test list #20, 2026-10-24) uses
+ * the one in the shop's currency, or asks which when it can't tell. */
 function QrUpload({
   again,
   shopCurrency,
@@ -393,13 +395,22 @@ function QrUpload({
 }: {
   again: boolean
   shopCurrency: Currency
-  onRead: (account: Exclude<ReturnType<typeof parseKhqr>, string>) => void
+  onRead: (account: KhqrAccount) => void
 }) {
   const s = useT().settings
   const { toast } = useFeedback()
   const input = useRef<HTMLInputElement>(null)
   const [problem, setProblem] = useState<string | null>(null)
   const [reading, setReading] = useState(false)
+  // Two accounts in the picture and none, or both, in the shop's currency.
+  const [choices, setChoices] = useState<KhqrAccount[]>([])
+
+  function take(account: KhqrAccount, message = s.qrRead) {
+    setChoices([])
+    onRead(account)
+    toast(message)
+    if (account.currency && account.currency !== shopCurrency) setProblem(s.qrCurrency(account.currency, shopCurrency))
+  }
 
   async function pick(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -407,20 +418,25 @@ function QrUpload({
     if (!file) return
     setReading(true)
     setProblem(null)
-    let result: ReturnType<typeof parseKhqr>
+    setChoices([])
+    let results: ReturnType<typeof parseKhqr>[]
     try {
-      result = parseKhqr(await readQrImage(file))
+      const texts = await readQrImages(file)
+      results = texts.length ? texts.map(parseKhqr) : ['no_qr']
     } catch {
-      result = 'no_qr'
+      results = ['no_qr']
     }
     setReading(false)
-    if (typeof result === 'string') {
+    const accounts = results.filter((r): r is KhqrAccount => typeof r !== 'string')
+    if (accounts.length === 0) {
+      const result = results[0]
       setProblem(result === 'no_qr' ? s.qrNone : result === 'business' ? s.qrBusiness : s.qrNotKhqr)
       return
     }
-    onRead(result)
-    toast(s.qrRead)
-    if (result.currency && result.currency !== shopCurrency) setProblem(s.qrCurrency(result.currency, shopCurrency))
+    if (accounts.length === 1) return take(accounts[0])
+    const inShopCurrency = accounts.filter((a) => a.currency === shopCurrency)
+    if (inShopCurrency.length === 1) return take(inShopCurrency[0], s.qrUsedOne(shopCurrency))
+    setChoices(accounts)
   }
 
   return (
@@ -430,6 +446,30 @@ function QrUpload({
         {again ? s.uploadAnother : s.uploadQr}
       </Button>
       {!again && <p className="text-xs leading-5 text-slate-500">{s.uploadQrHint}</p>}
+      {choices.length > 0 && (
+        <div role="group" aria-labelledby="qr-choose" className="space-y-2">
+          <p id="qr-choose" className="text-sm font-medium text-slate-700">
+            {s.qrChoose}
+          </p>
+          {choices.map((account, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => take(account)}
+              className="flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left ring-1 ring-slate-200 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-navy-600"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-slate-900">{s.qrAccount(account.currency)}</span>
+                <span className="block truncate text-sm text-slate-500">
+                  {account.accountInformation
+                    ? `${account.acquiringBank || account.bakongAccountId} ···${account.accountInformation.slice(-4)}`
+                    : account.bakongAccountId}
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
       {problem && <p role="alert" className="text-sm leading-6 font-medium text-amber-800">{problem}</p>}
     </div>
   )

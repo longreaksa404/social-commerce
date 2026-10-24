@@ -15,10 +15,15 @@ export type KhqrAccount = {
 
 export type KhqrProblem = 'no_qr' | 'not_khqr' | 'business'
 
-/** The text in a QR picture, or null. Big photos are scaled down first;
- * screenshots read as they are. */
-export async function readQrImage(file: File): Promise<string | null> {
+/** Every QR's text in a picture (at most 4), none found = []. A bank's
+ * "dual" KHQR has two side by side, dollars and riel (founder's test list
+ * #20, 2026-10-24): each one found is painted over and the picture read
+ * again, then each half on its own, as jsQR reads one code at a time and
+ * can miss both when two share a picture. Big photos are scaled down
+ * first; screenshots read as they are. */
+export async function readQrImages(file: File): Promise<string[]> {
   const bitmap = await createImageBitmap(file)
+  const found = new Set<string>()
   for (const size of [1200, 2400]) {
     const scale = Math.min(1, size / Math.max(bitmap.width, bitmap.height))
     const width = Math.round(bitmap.width * scale)
@@ -27,13 +32,54 @@ export async function readQrImage(file: File): Promise<string | null> {
     canvas.width = width
     canvas.height = height
     const ctx = canvas.getContext('2d', { willReadFrequently: true })
-    if (!ctx) return null
+    if (!ctx) return []
     ctx.drawImage(bitmap, 0, 0, width, height)
-    const found = jsQR(ctx.getImageData(0, 0, width, height).data, width, height)
-    if (found) return found.data
-    if (scale === 1) break
+    // The whole picture, covering each code once read.
+    for (let i = 0; i < 4; i++) {
+      const code = jsQR(ctx.getImageData(0, 0, width, height).data, width, height)
+      if (!code) break
+      found.add(code.data)
+      cover(ctx, code.location)
+    }
+    // Each half: left and right, top and bottom.
+    if (found.size < 2) {
+      ctx.drawImage(bitmap, 0, 0, width, height)
+      const halves: [number, number, number, number][] = [
+        [0, 0, Math.ceil(width / 2), height],
+        [Math.floor(width / 2), 0, Math.ceil(width / 2), height],
+        [0, 0, width, Math.ceil(height / 2)],
+        [0, Math.floor(height / 2), width, Math.ceil(height / 2)],
+      ]
+      for (const [x, y, w, h] of halves) {
+        const code = jsQR(ctx.getImageData(x, y, w, h).data, w, h)
+        if (code) found.add(code.data)
+      }
+    }
+    if (found.size > 0 || scale === 1) break
   }
-  return null
+  bitmap.close()
+  return [...found].slice(0, 4)
+}
+
+type Point = { x: number; y: number }
+
+/** Paint a read code over in white, with a margin, so the next read finds
+ * the other one. */
+function cover(
+  ctx: CanvasRenderingContext2D,
+  at: { topLeftCorner: Point; topRightCorner: Point; bottomRightCorner: Point; bottomLeftCorner: Point },
+) {
+  const corners = [at.topLeftCorner, at.topRightCorner, at.bottomRightCorner, at.bottomLeftCorner]
+  const xs = corners.map((p) => p.x)
+  const ys = corners.map((p) => p.y)
+  const margin = (Math.max(...xs) - Math.min(...xs)) * 0.15
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(
+    Math.min(...xs) - margin,
+    Math.min(...ys) - margin,
+    Math.max(...xs) - Math.min(...xs) + 2 * margin,
+    Math.max(...ys) - Math.min(...ys) + 2 * margin,
+  )
 }
 
 /** EMVCo's tag-length-value fields, one level. */

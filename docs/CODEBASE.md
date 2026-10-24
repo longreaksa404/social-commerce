@@ -698,7 +698,7 @@ missing parts read as the defaults:
 - `payment_config` ↔ `PaymentSettings` (`schemas/payment.py`): `cod
   {enabled=true}`, `bank_transfer {enabled=false, bank_name, account_name,
   account_number}`, `khqr {enabled=false, bakong_account_id,
-  merchant_name, account_information, acquiring_bank}` (the last two: ABA-style banks, put in tag 29 by `khqr.individual_khqr`; read from the seller's own QR picture by `frontend/src/lib/readKhqr.ts`, "Upload your bank's QR" in Settings → Payments, 2026-10-14). A method can't be on without its details, and at least
+  merchant_name, account_information, acquiring_bank}` (the last two: ABA-style banks, put in tag 29 by `khqr.individual_khqr`; read from the seller's own QR picture by `frontend/src/lib/readKhqr.ts`, "Upload your bank's QR" in Settings → Payments, 2026-10-14; `readQrImages` finds every code in the picture, painting each one read over and then reading each half, so a bank's "dual" KHQR (dollars and riel side by side) gives both, and the one in the shop's currency is used, or the seller picks when it can't tell: founder's test list #20, 2026-10-24). A method can't be on without its details, and at least
   one must be on.
 - New shops (`auth.create_shop`) start with `delivery_config = {"fee":
   "2.00"}` (`delivery.NEW_SHOP_FEE`: $2, 8,000 riel; founder,
