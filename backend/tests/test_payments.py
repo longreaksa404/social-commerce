@@ -227,10 +227,9 @@ async def test_seller_marks_a_transfer_paid_and_can_then_complete(client, auth_h
             client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
         )
     ).json()
-    for status in ("accepted", "processing", "ready", "shipped", "delivered"):
-        await client.patch(
-            f"/api/v1/seller/orders/{order['id']}/status", headers=headers, json={"status": status}
-        )
+    await client.patch(
+        f"/api/v1/seller/orders/{order['id']}/status", headers=headers, json={"status": "accepted"}
+    )
     for status in ("assigned", "picked_up", "in_transit", "delivered"):
         await client.patch(
             f"/api/v1/seller/orders/{order['id']}/delivery",
@@ -238,7 +237,7 @@ async def test_seller_marks_a_transfer_paid_and_can_then_complete(client, auth_h
             json={"status": status},
         )
     detail = (await client.get(f"/api/v1/seller/orders/{order['id']}", headers=headers)).json()
-    assert detail["next_statuses"] == []  # not paid yet
+    assert detail["next_statuses"] == ["cancelled"]  # not paid yet
     assert detail["payment"]["next_statuses"] == ["paid", "failed"]
 
     response = await _record(client, headers, order["id"], "paid", "ABA 14:05, ...123")
@@ -249,7 +248,7 @@ async def test_seller_marks_a_transfer_paid_and_can_then_complete(client, auth_h
     assert body["payment"]["reference"] == "ABA 14:05, ...123"
     assert body["payment"]["paid_at"] is not None
     assert body["payment"]["next_statuses"] == ["pending"]  # "Not paid after all"
-    assert (body["status"], body["next_statuses"]) == ("delivered", ["completed"])
+    assert (body["status"], body["next_statuses"]) == ("accepted", ["completed", "cancelled"])
     # The customer sees it's paid, and no longer gets the account to pay to.
     tracked = (await track(client, slug, order["id"])).json()["payment"]
     assert (tracked["status"], tracked["bank_account"]) == ("paid", None)

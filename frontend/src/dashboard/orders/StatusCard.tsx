@@ -1,4 +1,4 @@
-import { LoaderCircle, MapPin, Plus, Send, ShoppingBag, Truck, Wallet, type LucideIcon } from 'lucide-react'
+import { MapPin, Send, ShoppingBag, Truck, Wallet, type LucideIcon } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode, type Ref } from 'react'
 import { Button, Card, Field, Input } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
@@ -6,7 +6,7 @@ import { courierToChoose, deliveryAction, deliveryBadge } from '../../lib/delive
 import { formatMoney } from '../../lib/money.ts'
 import { formatOrderTime, ORDER_STATUS_TONES, type StatusTone } from '../../lib/orders.ts'
 import { paymentBadge } from '../../lib/payments.ts'
-import type { Order, OrderStatus } from '../../lib/types.ts'
+import type { Order } from '../../lib/types.ts'
 import { useStore } from '../queries.ts'
 import { cashDue, CLOSED, nextStep, orderUnpaidLong, paidAhead, unpaidTransfer } from './orderSteps.ts'
 import { SendAgain } from './SendToDriver.tsx'
@@ -20,11 +20,6 @@ const TONE_TEXT: Record<StatusTone, string> = {
   amber: 'text-amber-700',
   red: 'text-red-700',
 }
-
-// The order's own steps between Accept and Complete: optional since the
-// short path (founder's pick 1C, 2026-10-09), for customers who follow
-// along. Its "delivered" is left out: the delivery's own Delivered says it.
-const OPTIONAL_STEPS = new Set<OrderStatus>(['processing', 'ready', 'shipped'])
 
 /** Where the order stands, at the top of the page (founder's pick 1A,
  * 2026-10-15): a row each for the order, the delivery and the payment,
@@ -112,14 +107,11 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
   const t = useT()
   const o = t.orders
   const { busy, change, move } = actions
-  const [showSteps, setShowSteps] = useState(false)
   const ends = order.next_statuses.filter((s) => s === 'rejected')
-  const optional = order.next_statuses.filter((s) => OPTIONAL_STEPS.has(s))
-  // The delivery's own optional steps, once someone has it.
-  const { delivery } = order
-  const out = delivery.status === 'assigned' || delivery.status === 'picked_up' || delivery.status === 'in_transit'
-  const deliverySteps =
-    out && !CLOSED.has(order.status) ? delivery.next_statuses.filter((s) => s === 'picked_up' || s === 'in_transit') : []
+  // A pickup order's one step of its own (founder's test list #1,
+  // 2026-10-24: Preparing, Shipped and "+ Tell the customer a step" went;
+  // the delivery's row says the rest).
+  const canReady = order.next_statuses.includes('ready')
   const canComplete = order.next_statuses.includes('completed')
   let body: ReactNode = null
   if (order.status === 'pending') {
@@ -158,37 +150,18 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
         </Button>
       </Buttons>
     )
-  } else if (optional.length > 0 || deliverySteps.length > 0) {
-    // Preparing, Ready, Shipped, Picked up, On the way: optional, so one
-    // quiet link until wanted (UX check #14, 2026-10-17).
-    body = showSteps ? (
-      <>
-        <div className="flex flex-wrap gap-x-2">
-          <StepChips
-            steps={optional}
-            label={(s) => t.status.order[s]}
-            busy={busy}
-            pending={change.isPending ? change.variables : undefined}
-            onPick={(s) => move(s)}
-          />
-          <StepChips
-            steps={deliverySteps}
-            label={(s) => deliveryAction(t, order.delivery, s)}
-            busy={busy}
-            pending={actions.delivery.isPending ? actions.delivery.variables?.status : undefined}
-            onPick={(s) => actions.deliver(s)}
-          />
-        </div>
-      </>
-    ) : (
-      <button
-        type="button"
-        onClick={() => setShowSteps(true)}
-        className="-my-1 mt-1 inline-flex min-h-11 items-center gap-1.5 rounded-lg text-sm font-medium text-navy-700 link focus-visible:outline-2 focus-visible:outline-navy-600 sm:min-h-9"
-      >
-        <Plus aria-hidden className="size-4" />
-        {o.tellStep}
-      </button>
+  } else if (canReady) {
+    body = (
+      <Buttons>
+        <Button
+          variant="secondary"
+          loading={change.isPending && change.variables === 'ready'}
+          disabled={busy}
+          onClick={() => move('ready')}
+        >
+          {t.order.pickupStep.ready}
+        </Button>
+      </Buttons>
     )
   }
   return (
@@ -487,34 +460,3 @@ function PaidForm({ actions, onBack, onDone }: { actions: OrderActions; onBack: 
 }
 
 /** Small buttons for optional steps, in state-machine order. */
-function StepChips<S extends string>({
-  steps,
-  label,
-  busy,
-  pending,
-  onPick,
-}: {
-  steps: S[]
-  label: (step: S) => string
-  busy: boolean
-  pending?: S
-  onPick: (step: S) => void
-}) {
-  return (
-    <div className="mt-1.5 flex flex-wrap gap-2">
-      {steps.map((step) => (
-        <button
-          key={step}
-          type="button"
-          disabled={busy}
-          aria-busy={pending === step || undefined}
-          onClick={() => onPick(step)}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-dashed border-slate-300 px-3.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 disabled:opacity-50 sm:min-h-9"
-        >
-          {pending === step ? <LoaderCircle aria-hidden className="size-3.5 animate-spin" /> : <Plus aria-hidden className="size-3.5" />}
-          {label(step)}
-        </button>
-      ))}
-    </div>
-  )
-}

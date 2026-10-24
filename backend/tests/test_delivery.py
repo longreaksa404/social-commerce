@@ -463,13 +463,7 @@ async def test_seller_hands_it_over_without_the_steps_in_between(client, auth_he
     assert delivered["delivery"]["status"] == "delivered"
     # Cash on delivery and delivered: Complete is offered from Accepted.
     assert delivered["status"] == "accepted"
-    assert delivered["next_statuses"] == [
-        "processing",
-        "ready",
-        "shipped",
-        "completed",
-        "cancelled",
-    ]
+    assert delivered["next_statuses"] == ["completed", "cancelled"]
 
 
 async def _handover(client, headers, order_id):

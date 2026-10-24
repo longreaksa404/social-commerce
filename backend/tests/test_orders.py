@@ -27,15 +27,16 @@ S = OrderStatus
 
 # Copied from 02_TECHNICAL.md section 7.1 on purpose, not imported: a
 # change to the service's table has to be made here too, deliberately.
-# The short path (founder's pick 1C, 2026-10-09): the steps after Accept
-# are optional, and completing is allowed from any of them (the
-# completion rule is checked separately).
+# Accept, then complete (the completion rule is checked separately); Ready
+# only for pickup, checked separately too. Preparing, Shipped and Delivered
+# are retired (founder's test list #1, 2026-10-24): nothing enters them,
+# and an order left there can still close.
 EXPECTED = {
     S.PENDING: {S.ACCEPTED, S.REJECTED},
-    S.ACCEPTED: {S.PROCESSING, S.READY, S.SHIPPED, S.COMPLETED, S.CANCELLED},
-    S.PROCESSING: {S.READY, S.SHIPPED, S.COMPLETED, S.CANCELLED},
-    S.READY: {S.SHIPPED, S.COMPLETED, S.CANCELLED},
-    S.SHIPPED: {S.DELIVERED, S.COMPLETED},
+    S.ACCEPTED: {S.READY, S.COMPLETED, S.CANCELLED},
+    S.READY: {S.COMPLETED, S.CANCELLED},
+    S.PROCESSING: {S.COMPLETED, S.CANCELLED},
+    S.SHIPPED: {S.COMPLETED},
     S.DELIVERED: {S.COMPLETED},
     S.COMPLETED: set(),
     S.REJECTED: set(),
@@ -58,25 +59,41 @@ def _order(
     method=PaymentMethod.BANK_TRANSFER,
     paid=PaymentStatus.PENDING,
     delivered=DeliveryStatus.DELIVERED,
+    delivery_method=DeliveryMethod.SELLER_DELIVERY,
 ):
     return Order(
         status=status,
         items=[],
         payment=Payment(method=method, status=paid),
-        delivery=Delivery(method=DeliveryMethod.SELLER_DELIVERY, status=delivered),
+        delivery=Delivery(method=delivery_method, status=delivered),
     )
 
 
 def test_next_statuses_offer_the_allowed_moves_in_order():
     assert next_statuses(_order(S.PENDING)) == [S.ACCEPTED, S.REJECTED]
-    # Not paid yet: completing isn't offered.
-    assert next_statuses(_order(S.READY)) == [S.SHIPPED, S.CANCELLED]
-    assert next_statuses(_order(S.ACCEPTED)) == [S.PROCESSING, S.READY, S.SHIPPED, S.CANCELLED]
+    # Not paid yet: completing isn't offered; a delivery isn't "ready".
+    assert next_statuses(_order(S.ACCEPTED)) == [S.CANCELLED]
+    pickup = _order(S.ACCEPTED, delivery_method=DeliveryMethod.PICKUP)
+    assert next_statuses(pickup) == [S.READY, S.CANCELLED]
     assert next_statuses(_order(S.CANCELLED)) == []
 
 
+async def test_only_a_pickup_order_is_ready_to_collect():
+    order = _order(S.ACCEPTED, delivered=DeliveryStatus.NOT_ASSIGNED)
+    with pytest.raises(AppError) as error:
+        await transition(None, order, S.READY)
+    assert error.value.code == "INVALID_STATUS_TRANSITION"
+    assert order.status is S.ACCEPTED
+
+    pickup = _order(
+        S.ACCEPTED, delivered=DeliveryStatus.NOT_ASSIGNED, delivery_method=DeliveryMethod.PICKUP
+    )
+    await transition(None, pickup, S.READY)
+    assert pickup.status is S.READY
+
+
 def test_complete_is_offered_from_any_step_once_delivered_and_paid():
-    for status in (S.ACCEPTED, S.PROCESSING, S.READY, S.SHIPPED, S.DELIVERED):
+    for status in (S.ACCEPTED, S.READY, S.PROCESSING, S.SHIPPED, S.DELIVERED):
         order = _order(status, paid=PaymentStatus.PAID)
         assert S.COMPLETED in next_statuses(order), status
 
@@ -102,32 +119,32 @@ def test_the_completion_rule(method, paid, delivered):
     expected = delivered is DeliveryStatus.DELIVERED and (
         paid is PaymentStatus.PAID or method is PaymentMethod.COD
     )
-    assert can_complete(_order(S.DELIVERED, method, paid, delivered)) is expected
+    assert can_complete(_order(S.ACCEPTED, method, paid, delivered)) is expected
 
 
 async def test_an_order_cannot_complete_before_its_payment_is_settled():
-    order = _order(S.DELIVERED, PaymentMethod.KHQR, PaymentStatus.PENDING)
+    order = _order(S.ACCEPTED, PaymentMethod.KHQR, PaymentStatus.PENDING)
 
-    assert next_statuses(order) == []
+    assert next_statuses(order) == [S.CANCELLED]
     with pytest.raises(AppError) as error:
         await transition(None, order, S.COMPLETED)
     assert error.value.code == "ORDER_NOT_PAID"
-    assert order.status is S.DELIVERED
+    assert order.status is S.ACCEPTED
 
     order.payment.status = PaymentStatus.PAID
-    assert next_statuses(order) == [S.COMPLETED]
+    assert next_statuses(order) == [S.COMPLETED, S.CANCELLED]
     await transition(None, order, S.COMPLETED)
     assert order.status is S.COMPLETED
 
 
 async def test_an_order_cannot_complete_before_its_delivery_is_delivered():
-    order = _order(S.DELIVERED, PaymentMethod.COD, delivered=DeliveryStatus.IN_TRANSIT)
+    order = _order(S.ACCEPTED, PaymentMethod.COD, delivered=DeliveryStatus.IN_TRANSIT)
 
-    assert next_statuses(order) == []
+    assert next_statuses(order) == [S.CANCELLED]
     with pytest.raises(AppError) as error:
         await transition(None, order, S.COMPLETED)
     assert error.value.code == "ORDER_NOT_DELIVERED"
-    assert order.status is S.DELIVERED
+    assert order.status is S.ACCEPTED
 
 
 # --- Seller endpoints ------------------------------------------------------
@@ -157,12 +174,14 @@ async def test_seller_moves_an_order_along_and_sees_what_comes_next(client, auth
     assert detail.json()["delivery_address"] == "St 271, Phnom Penh"
     assert detail.json()["next_statuses"] == ["accepted", "rejected"]
 
-    for status in ("accepted", "processing", "ready", "shipped", "delivered"):
-        response = await _move(client, headers, placed["id"], status)
-        assert response.status_code == 200, response.text
-    assert response.json()["status"] == "delivered"
+    response = await _move(client, headers, placed["id"], "accepted")
+    assert response.status_code == 200, response.text
     assert response.json()["delivery"]["status"] == "not_assigned"  # untouched by the order
-    assert response.json()["next_statuses"] == []  # the delivery isn't delivered yet
+    # The delivery isn't delivered yet; a delivery isn't "ready to collect".
+    assert response.json()["next_statuses"] == ["cancelled"]
+    for retired in ("processing", "ready", "shipped", "delivered"):
+        refused = await _move(client, headers, placed["id"], retired)
+        assert refused.status_code == 409, retired
     for status in ("assigned", "picked_up", "in_transit", "delivered"):
         response = await client.patch(
             f"/api/v1/seller/orders/{placed['id']}/delivery",
@@ -170,9 +189,12 @@ async def test_seller_moves_an_order_along_and_sees_what_comes_next(client, auth
             json={"status": status},
         )
         assert response.status_code == 200, response.text
-    assert response.json()["status"] == "delivered"
+    assert (response.json()["status"], response.json()["delivery"]["status"]) == (
+        "accepted",  # untouched by the delivery
+        "delivered",
+    )
     # Cash on delivery: completing doesn't wait for the cash to be recorded.
-    assert response.json()["next_statuses"] == ["completed"]
+    assert response.json()["next_statuses"] == ["completed", "cancelled"]
     response = await _move(client, headers, placed["id"], "completed")
     assert response.json()["status"] == "completed"
     assert response.json()["payment"]["status"] == "pending"  # untouched by the order

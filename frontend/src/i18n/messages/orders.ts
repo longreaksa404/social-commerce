@@ -114,7 +114,6 @@ export const orders = {
   statuses: { en: 'Where the order stands', km: 'ស្ថានភាពការកុម្ម៉ង់' },
   // The order's own steps between Accept and Complete.
   // The optional steps, folded behind one link (UX check #14, 2026-10-17).
-  tellStep: { en: 'Tell the customer a step', km: 'ប្រាប់អតិថិជនពីជំហាន' },
   // The ⋯ menu at the top: cancel, failed, not paid after all.
   more: { en: (n: number) => `More for order #${n}`, km: (n: number) => `ផ្សេងទៀតសម្រាប់ការកុម្ម៉ង់ #${n}` },
   // One tap on a cash-on-delivery order: delivered (or collected) and the

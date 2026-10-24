@@ -20,6 +20,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.errors import AppError, NotFound
 from app.models import (
+    DeliveryMethod,
     DeliveryStatus,
     Order,
     OrderItem,
@@ -39,21 +40,27 @@ from app.services import payment as payment_service
 
 S = OrderStatus
 
-# The short path (founder's pick 1C, 2026-10-09): after Accept, preparing,
-# ready, shipped and delivered are optional steps for customers who follow
-# along, and an order can complete from any of them once the completion
-# rule holds (can_complete, checked in transition()).
+# Accept, then complete once the completion rule holds (can_complete,
+# checked in transition()). The order's own Preparing, Shipped and
+# Delivered steps went (founder's test list #1, 2026-10-24): the delivery's
+# row says where the parcel is. Ready stays for pickup orders only, as
+# "Ready to collect" (PICKUP_ONLY). No order enters the retired steps any
+# more (orders in them were moved back to accepted, migration
+# c4e8a2f61d07); one left there can still close.
 ALLOWED_ORDER_TRANSITIONS: dict[OrderStatus, frozenset[OrderStatus]] = {
     S.PENDING: frozenset({S.ACCEPTED, S.REJECTED}),
-    S.ACCEPTED: frozenset({S.PROCESSING, S.READY, S.SHIPPED, S.COMPLETED, S.CANCELLED}),
-    S.PROCESSING: frozenset({S.READY, S.SHIPPED, S.COMPLETED, S.CANCELLED}),
-    S.READY: frozenset({S.SHIPPED, S.COMPLETED, S.CANCELLED}),
-    S.SHIPPED: frozenset({S.DELIVERED, S.COMPLETED}),
-    S.DELIVERED: frozenset({S.COMPLETED}),
+    S.ACCEPTED: frozenset({S.READY, S.COMPLETED, S.CANCELLED}),
+    S.READY: frozenset({S.COMPLETED, S.CANCELLED}),
+    S.PROCESSING: frozenset({S.COMPLETED, S.CANCELLED}),  # retired
+    S.SHIPPED: frozenset({S.COMPLETED}),  # retired
+    S.DELIVERED: frozenset({S.COMPLETED}),  # retired
     S.COMPLETED: frozenset(),
     S.REJECTED: frozenset(),
     S.CANCELLED: frozenset(),
 }
+# Only a pickup order is "Ready to collect"; a delivery's progress is the
+# delivery's own (app/services/delivery.py).
+PICKUP_ONLY = frozenset({S.READY})
 
 # Placing an order takes its stock (decided 2026-10-02); these give it back.
 RETURNS_STOCK = frozenset({S.REJECTED, S.CANCELLED})
@@ -81,15 +88,30 @@ def check_transition(current: OrderStatus, target: OrderStatus) -> None:
         )
 
 
+def _for_method(order: Order, target: OrderStatus) -> bool:
+    return target not in PICKUP_ONLY or order.delivery.method is DeliveryMethod.PICKUP
+
+
 def next_statuses(order: Order) -> list[OrderStatus]:
     """Where the seller can move this order now, in state-machine order."""
     allowed = ALLOWED_ORDER_TRANSITIONS[order.status]
-    return [s for s in S if s in allowed and (s is not S.COMPLETED or can_complete(order))]
+    return [
+        s
+        for s in S
+        if s in allowed and _for_method(order, s) and (s is not S.COMPLETED or can_complete(order))
+    ]
 
 
 async def transition(db: AsyncSession, order: Order, target: OrderStatus) -> None:
     """The one place an order's status changes. The caller commits."""
     check_transition(order.status, target)
+    if not _for_method(order, target):
+        raise AppError(
+            409,
+            "INVALID_STATUS_TRANSITION",
+            "Only a pickup order is marked ready to collect.",
+            "status",
+        )
     if target is S.COMPLETED and order.delivery.status is not DeliveryStatus.DELIVERED:
         raise AppError(
             409,

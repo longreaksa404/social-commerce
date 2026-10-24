@@ -68,7 +68,7 @@ phone or laptop) before going on.
 - [ ] Pickup: the customer sees the pickup address; the seller taps Customer collected; the order completes.
 - [ ] Courier: choose one of the shop's couriers at checkout; the seller sees "Send with <courier>".
 - [ ] Delivery failed → Try again → Assign works.
-- [ ] The optional steps (Preparing, Ready, Shipped; Picked up, On the way) still work and show on the customer's page.
+- [ ] A pickup order: "Ready to collect" on its order row shows on the customer's page (and in Telegram). A delivery order has no steps of its own between Accept and Complete.
 
 **Orders and stock**
 
