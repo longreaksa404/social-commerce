@@ -139,7 +139,7 @@ class TelegramUpdatesOut(BaseModel):
 
 
 class CustomerMessageIn(BaseModel):
-    """ "Message on Telegram", from the seller's order page."""
+    """ "Message on Telegram", from the seller's order or customer page."""
 
     text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)]
 

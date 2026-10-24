@@ -6,7 +6,6 @@ import { useT } from '../../i18n/useT.ts'
 import { ApiError } from '../../lib/api.ts'
 import { errorText } from '../../lib/errors.ts'
 import { formatPhone } from '../../lib/orders.ts'
-import type { Order } from '../../lib/types.ts'
 import { useMessageCustomer, useStore } from '../queries.ts'
 
 /** "Message on Telegram" (founder's pick 2026-10-20): for a customer who
@@ -14,29 +13,36 @@ import { useMessageCustomer, useStore } from '../queries.ts'
  * reply to the shop's own Telegram (or Messenger). Above all for a phone
  * that doesn't answer: a wrong digit, or a second SIM. Ready messages fill
  * the box, in the seller's language, to change before Send. A bottom sheet
- * on phones, a centred card from `sm` up, like Send to driver. */
+ * on phones, a centred card from `sm` up, like Send to driver. From an
+ * order (`orderId`: the message names it, and "Driver is near" is ready)
+ * or from the customer's page (`customerId`; founder's test list #2,
+ * 2026-10-24). */
 export function MessageCustomerSheet({
-  order,
+  customer,
+  orderId,
+  customerId,
   open,
   onClose,
   onGone,
 }: {
-  order: Order
+  customer: { name: string; phone: string }
   open: boolean
   onClose: () => void
-  /** The customer stopped the bot: the order no longer offers this. */
+  /** The customer stopped the bot: the page no longer offers this. */
   onGone: () => void
-}) {
+} & ({ orderId: string; customerId?: never } | { customerId: string; orderId?: never })) {
   const o = useT().orders
   const t = useT()
   const { toast } = useFeedback()
   const store = useStore().data
-  const send = useMessageCustomer(order.id)
+  const send = useMessageCustomer(
+    orderId ? `/seller/orders/${orderId}/telegram-message` : `/seller/customers/${customerId}/telegram-message`,
+  )
   const dialog = useRef<HTMLDialogElement>(null)
   const [text, setText] = useState('')
   const ready = [
-    { label: o.ready.cantReach.label, text: o.ready.cantReach.text(formatPhone(order.customer.phone)) },
-    { label: o.ready.driverNear.label, text: o.ready.driverNear.text },
+    { label: o.ready.cantReach.label, text: o.ready.cantReach.text(formatPhone(customer.phone)) },
+    ...(orderId ? [{ label: o.ready.driverNear.label, text: o.ready.driverNear.text }] : []),
   ]
   const noReply = store && !store.telegram_username && !store.messenger_username && !store.contact_phone
 
@@ -79,7 +85,7 @@ export function MessageCustomerSheet({
         <form onSubmit={submit} className="p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] sm:pb-5">
           <div className="flex items-center justify-between gap-3">
             <h2 id="message-customer-title" className="min-w-0 text-lg font-semibold break-words text-slate-900">
-              {o.messageTitle(order.customer.name)}
+              {o.messageTitle(customer.name)}
             </h2>
             <IconButton icon={X} label={t.common.close} onClick={onClose} className="-mr-2" />
           </div>

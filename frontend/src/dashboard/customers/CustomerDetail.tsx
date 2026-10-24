@@ -1,4 +1,5 @@
-import { Copy, MapPin, Phone } from 'lucide-react'
+import { Copy, MapPin, Phone, Send } from 'lucide-react'
+import { useState } from 'react'
 import { useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
@@ -8,6 +9,7 @@ import { formatSpent } from '../../lib/customers.ts'
 import { formatDate, formatPhone } from '../../lib/orders.ts'
 import type { CustomerDetail as Customer } from '../../lib/types.ts'
 import { EAGER_PHOTOS } from '../../shop/components.tsx'
+import { MessageCustomerSheet } from '../orders/MessageCustomer.tsx'
 import { OrderRow } from '../orders/OrderRow.tsx'
 import { useCustomer, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
@@ -29,14 +31,15 @@ export function CustomerDetail() {
       </>
     )
   }
-  return <CustomerView customer={customer.data} back={back} />
+  return <CustomerView customer={customer.data} back={back} onStale={() => customer.refetch()} />
 }
 
-function CustomerView({ customer, back }: { customer: Customer; back: string }) {
+function CustomerView({ customer, back, onStale }: { customer: Customer; back: string; onStale: () => void }) {
   const currency = useStore().data?.currency ?? 'USD'
   const { toast } = useFeedback()
   const t = useT()
   const c = t.customers
+  const [messaging, setMessaging] = useState(false)
 
   async function copyPhone() {
     try {
@@ -75,6 +78,21 @@ function CustomerView({ customer, back }: { customer: Customer; back: string }) 
               {c.copyPhone}
             </Button>
           </div>
+          {/* As on an order (founder's test list #2, 2026-10-24). */}
+          {customer.on_telegram && (
+            <>
+              <Button variant="secondary" icon={Send} onClick={() => setMessaging(true)} className="mt-3 w-full">
+                {t.orders.messageOnTelegram}
+              </Button>
+              <MessageCustomerSheet
+                customer={customer}
+                customerId={customer.id}
+                open={messaging}
+                onClose={() => setMessaging(false)}
+                onGone={onStale}
+              />
+            </>
+          )}
 
           <dl className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-slate-50 px-3.5 py-2.5">

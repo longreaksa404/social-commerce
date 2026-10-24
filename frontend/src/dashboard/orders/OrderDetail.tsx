@@ -354,7 +354,13 @@ function CustomerCard({ order, onStale }: { order: Order; onStale: () => void })
           <Button variant="secondary" icon={Send} onClick={() => setMessaging(true)} className="mt-3 w-full sm:w-auto">
             {o.messageOnTelegram}
           </Button>
-          <MessageCustomerSheet order={order} open={messaging} onClose={() => setMessaging(false)} onGone={onStale} />
+          <MessageCustomerSheet
+            customer={customer}
+            orderId={order.id}
+            open={messaging}
+            onClose={() => setMessaging(false)}
+            onGone={onStale}
+          />
         </>
       )}
       {/* An order from a chat: the customer hasn't seen the order page,

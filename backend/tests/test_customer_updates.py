@@ -414,6 +414,52 @@ async def test_message_to_a_blocked_bot_says_so_and_stops(
     assert (await seller_customer(client, headers, order_id))["on_telegram"] is False
 
 
+async def test_seller_messages_a_customer_from_their_page(client, bot, auth_headers, dara):
+    """Test list #2 (2026-10-24): the customer's page, no order number."""
+    headers, _, slug, order_id = await an_order(client, auth_headers)
+    customer_id = (await seller_customer(client, headers, order_id))["id"]
+    page = f"/api/v1/seller/customers/{customer_id}"
+    assert (await client.get(page, headers=headers)).json()["on_telegram"] is False
+    refused = await client.post(f"{page}/telegram-message", headers=headers, json={"text": "Hi"})
+    assert refused.status_code == 409
+
+    await get_updates(client, slug, order_id, dara)
+    assert (await client.get(page, headers=headers)).json()["on_telegram"] is True
+    await client.patch(
+        "/api/v1/seller/store", headers=headers, json={"telegram_username": "srey_mom"}
+    )
+    bot.clear()
+    sent = await client.post(
+        f"{page}/telegram-message", headers=headers, json={"text": "New stock <today>"}
+    )
+
+    assert sent.status_code == 204, sent.text
+    [message] = bot
+    assert message["chat_id"] == str(dara)
+    assert "#" not in message["text"]
+    assert message["text"].endswith("\n💬 New stock &lt;today&gt;")
+    [reply] = message["button"]
+    assert reply["url"] == "https://t.me/srey_mom"
+
+
+async def test_customer_page_message_is_refused_for_another_shops_customer(
+    client, bot, auth_headers, dara
+):
+    """A seller can't message another shop's customer (tenant isolation)."""
+    headers, _, slug, order_id = await an_order(client, auth_headers)
+    await get_updates(client, slug, order_id, dara)
+    customer_id = (await seller_customer(client, headers, order_id))["id"]
+    other_headers, _, _, _ = await an_order(client, auth_headers)
+    bot.clear()
+    elsewhere = await client.post(
+        f"/api/v1/seller/customers/{customer_id}/telegram-message",
+        headers=other_headers,
+        json={"text": "Hi"},
+    )
+    assert elsewhere.status_code == 404
+    assert bot == []
+
+
 async def test_a_customer_typing_to_the_bot_is_told_to_use_the_button(
     client, bot, auth_headers, dara
 ):

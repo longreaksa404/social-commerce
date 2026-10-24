@@ -573,6 +573,8 @@ export type CustomerDetail = {
   address: string | null
   /** Their Telegram profile photo, if they have one. */
   photo_url: string | null
+  /** They get updates on Telegram, so "Message on Telegram" works. */
+  on_telegram: boolean
   /** Their first order. */
   created_at: string
   order_count: number

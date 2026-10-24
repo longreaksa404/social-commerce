@@ -43,6 +43,8 @@ class CustomerDetailOut(BaseModel):
     phone: str
     address: str | None  # their latest delivery address
     photo_url: str | None = None  # their Telegram profile photo
+    # They get updates on Telegram now, so "Message on Telegram" works.
+    on_telegram: bool = False
     created_at: datetime  # their first order
     order_count: int
     spent: list[AmountOut]  # as in CustomerSummaryOut

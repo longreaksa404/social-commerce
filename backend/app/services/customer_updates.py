@@ -344,22 +344,29 @@ HELP_TEXT = (
 )
 
 
-def reply_button(store: Store, order: Order) -> dict[str, str] | None:
-    """The shop's own Telegram with "Order #1001: " typed in, else its
-    Messenger; None without either (the message then gives its phone)."""
+def reply_button(store: Store, order: Order | None) -> dict[str, str] | None:
+    """The shop's own Telegram (with "Order #1001: " typed in, from an
+    order), else its Messenger; None without either (the message then
+    gives its phone)."""
     label = REPLY_TO.format(shop=store.name)
     if store.telegram_username:
-        typed = quote(f"ការកុម្ម៉ង់ #{order.number}៖ ")
-        return telegram.url_button(label, f"https://t.me/{store.telegram_username}?text={typed}")
+        url = f"https://t.me/{store.telegram_username}"
+        if order is not None:
+            url += f"?text={quote(f'ការកុម្ម៉ង់ #{order.number}៖ ')}"
+        return telegram.url_button(label, url)
     if store.messenger_username:
         return telegram.url_button(label, f"https://m.me/{store.messenger_username}")
     return None
 
 
-def seller_message_text(store: Store, order: Order, text: str) -> str:
+def seller_message_text(store: Store, order: Order | None, text: str) -> str:
+    """From an order, under "<shop> · Order #1005"; from the customer's
+    page, under the shop's name alone."""
     line = f"💬 {telegram.escape(text)}"
     if not (store.telegram_username or store.messenger_username) and store.contact_phone:
         line += f"\n📞 {store.contact_phone}"
+    if order is None:
+        return f"<b>{telegram.escape(store.name)}</b>\n{line}"
     return message_text(store, order, line)
 
 
@@ -375,17 +382,41 @@ async def send_from_seller(
     if found is None:
         raise NotFound("ORDER_NOT_FOUND", "Order not found.")
     store, order = found
-    chat_id = order.customer.telegram_user_id
-    if chat_id is None:
-        raise AppError(409, "NOT_ON_TELEGRAM", "This customer doesn't get updates on Telegram.")
     view = order_button(store, order)
     buttons = [b for b in (reply_button(store, order), view and telegram.url_button(*view)) if b]
+    await _send_seller_message(db, order.customer, seller_message_text(store, order, text), buttons)
+
+
+async def send_to_customer(
+    db: AsyncSession, store_id: uuid.UUID, customer_id: uuid.UUID, text: str
+) -> None:
+    """The same from the customer's page (founder's test list #2,
+    2026-10-24): no order number, and only the button to reply."""
+    if not get_settings().telegram_configured:
+        raise AppError(503, "TELEGRAM_NOT_CONFIGURED", "Updates on Telegram are off.")
+    customer = await db.scalar(
+        select(Customer).where(Customer.id == customer_id, Customer.store_id == store_id)
+    )
+    store = await db.get(Store, store_id)
+    if customer is None or store is None:
+        raise NotFound("CUSTOMER_NOT_FOUND", "Customer not found.")
+    buttons = [b for b in (reply_button(store, None),) if b]
+    await _send_seller_message(db, customer, seller_message_text(store, None, text), buttons)
+
+
+async def _send_seller_message(
+    db: AsyncSession, customer: Customer, text: str, buttons: list[dict[str, str]]
+) -> None:
+    chat_id = customer.telegram_user_id
+    if chat_id is None:
+        raise AppError(409, "NOT_ON_TELEGRAM", "This customer doesn't get updates on Telegram.")
     try:
-        await telegram.send_message(chat_id, seller_message_text(store, order, text), buttons)
+        await telegram.send_message(chat_id, text, buttons)
     except telegram.TelegramError as exc:
         if exc.chat_gone:
-            # Blocked or deleted: the order stops offering this.
-            order.customer.telegram_user_id = None
+            # Blocked or deleted: the order and the customer's page stop
+            # offering this.
+            customer.telegram_user_id = None
             await db.commit()
             raise AppError(
                 409,

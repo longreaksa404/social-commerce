@@ -251,9 +251,10 @@ export function useRecordPayment(id: string) {
 }
 
 /** "Message on Telegram": Oak's bot sends it to the order's customer. */
-export function useMessageCustomer(id: string) {
+/** `path`: an order's or a customer's `…/telegram-message`. */
+export function useMessageCustomer(path: string) {
   return useMutation({
-    mutationFn: (text: string) => api<void>(`/seller/orders/${id}/telegram-message`, { method: 'POST', body: { text } }),
+    mutationFn: (text: string) => api<void>(path, { method: 'POST', body: { text } }),
   })
 }
 
