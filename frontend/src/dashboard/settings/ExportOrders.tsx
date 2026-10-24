@@ -69,18 +69,36 @@ export function ExportOrders() {
           ))}
         </div>
         {range === 'days' && (
+          // min-w-0: a phone's date box is wider than half the card.
           <div className="grid grid-cols-2 gap-3">
-            <Field label={s.exportFrom}>
-              <Input type="date" required max={today} value={days[0]} onChange={(e) => setDays([e.target.value, days[1]])} />
+            <Field label={s.exportFrom} className="min-w-0">
+              <Input
+                type="date"
+                required
+                max={today}
+                value={days[0]}
+                // A start after the end moves the end with it.
+                onChange={(e) => setDays([e.target.value, e.target.value > days[1] ? e.target.value : days[1]])}
+                className="min-w-0"
+              />
             </Field>
-            <Field label={s.exportTo}>
-              <Input type="date" required min={days[0]} max={today} value={days[1]} onChange={(e) => setDays([days[0], e.target.value])} />
+            <Field label={s.exportTo} className="min-w-0">
+              <Input
+                type="date"
+                required
+                min={days[0]}
+                max={today}
+                value={days[1]}
+                onChange={(e) => setDays([days[0], e.target.value])}
+                className="min-w-0"
+              />
             </Field>
           </div>
         )}
         {first && last && <p className="text-sm text-slate-600">{s.exportDays(formatDate(`${first}T00:00`), formatDate(`${last}T00:00`))}</p>}
         <ErrorMessage error={download.error} />
-        <Button type="submit" variant="secondary" icon={Download} loading={download.isPending} disabled={!first || !last} className="w-full sm:w-auto">
+        {/* The page's one action, so the dark button (test list #18). */}
+        <Button type="submit" icon={Download} loading={download.isPending} disabled={!first || !last} className="w-full sm:w-auto">
           {s.exportDownload}
         </Button>
       </Card>

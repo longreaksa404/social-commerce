@@ -512,7 +512,8 @@ export const settings = {
   exportRange: {
     thisMonth: { en: 'This month', km: 'ខែនេះ' },
     lastMonth: { en: 'Last month', km: 'ខែមុន' },
-    days: { en: 'Choose days', km: 'ជ្រើសថ្ងៃ' },
+    // Test list #18, 2026-10-24 (was Choose days).
+    days: { en: 'Custom', km: 'ផ្ទាល់ខ្លួន' },
   },
   exportFrom: { en: 'From', km: 'ពី' },
   exportTo: { en: 'To', km: 'ដល់' },
