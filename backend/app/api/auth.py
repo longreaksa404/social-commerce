@@ -21,6 +21,7 @@ from app.schemas.auth import (
     SignupStart,
     SocialOut,
     SocialRegisterIn,
+    TelegramLoginIn,
     TokenPair,
 )
 from app.services import auth as auth_service
@@ -42,6 +43,17 @@ async def register(
 @limiter.limit("10/minute")
 async def login(request: Request, response: Response, data: LoginIn, db: UnscopedDb) -> AccessOut:
     return start_session(response, await auth_service.login(db, data))
+
+
+@router.post("/telegram", response_model=AccessOut)
+@limiter.limit("10/minute")
+async def telegram_login(
+    request: Request, response: Response, data: TelegramLoginIn, db: UnscopedDb
+) -> AccessOut:
+    """ "Log in with Telegram": the owner's number, verified in the bot
+    (POST /auth/phone-checks), instead of the password (founder's test list
+    #30, 2026-10-24). 404 NO_SHOP_FOR_PHONE, 403 STAFF_USE_PASSWORD."""
+    return start_session(response, await auth_service.telegram_login(db, data))
 
 
 @router.post("/refresh", response_model=AccessOut)

@@ -622,6 +622,7 @@ decorated limit per request, so stricter second limits call
 |---|---|
 | `POST /auth/register` | 5/min |
 | `POST /auth/login` | 10/min |
+| `POST /auth/telegram` | 10/min |
 | `POST /auth/refresh` | 30/min |
 | `POST /auth/password-reset` | 5/min |
 | `POST /auth/password-reset/confirm` | 10/min |
@@ -975,6 +976,7 @@ from the schema.
 | GET | `/health` | none | — | `{"status": "ok"}` | Render health check |
 | POST | `/auth/register` | none | `RegisterIn` (`full_name`? (else the check's Telegram name, else the shop name), `store_name`, `password`, `phone_check`) | `AccessOut` + cookie (201) | Creates seller + store with the checked phone; 422 `PHONE_NOT_VERIFIED` / `PHONE_CHECK_EXPIRED`, 409 `PHONE_TAKEN` / `SLUG_TAKEN`; 5/min |
 | POST | `/auth/login` | none | `LoginIn` (`login`: phone or older account's email; `email` accepted) | `AccessOut` + cookie | 10/min |
+| POST | `/auth/telegram` | none | `TelegramLoginIn` (`phone_check`: one verified in the bot) | `AccessOut` + cookie | "Log in with Telegram" (founder's test list #30, 2026-10-24; `auth.telegram_login`): the owner whose phone it is; 404 `NO_SHOP_FOR_PHONE` (the check is kept, for Create your shop), 403 `STAFF_USE_PASSWORD` (staff keep their password, #25), 403 `ACCOUNT_DISABLED`; uses the check up; 10/min |
 | POST | `/auth/refresh` | refresh cookie | none | `AccessOut` + cookie | Rotates; a retry within 60 s gets a new pair, later reuse ends all sessions; 30/min |
 | POST | `/auth/logout` | refresh cookie | none | 204 | Deletes that token's session and the cookie; bad tokens ignored |
 | POST | `/auth/password-reset` | none | `PasswordResetIn` (`login`) | 202 | Telegram link in the background (§4 Auth); same answer for any login; 5/min |
@@ -1118,7 +1120,7 @@ KHQR), @sentry/react, @vercel/functions (middleware),
 | Path | Component | Notes |
 |---|---|---|
 | `/` | `pages/Home` | Landing: Register / Log in |
-| `/login`, `/register` | `pages/Login`, `pages/Register` | Register asks only the phone check, shop name and password (the seller's name is their Telegram name; the link is a code the API makes). Under each form, "or sign up with" / "or log in with" and a row of Google, Facebook and TikTok logos (`auth/SocialButtons.tsx` with its `label`: Google's square icon button, `ProviderButton` `iconOnly`; each only when its `VITE_` ID is set); Login has "Forgot password?" |
+| `/login`, `/register` | `pages/Login`, `pages/Register` | Register asks only the phone check, shop name and password (the seller's name is their Telegram name; the link is a code the API makes). Under each form, "or sign up with" / "or log in with" and a row of Google, Facebook and TikTok logos (`auth/SocialButtons.tsx` with its `label`: Google's square icon button, `ProviderButton` `iconOnly`; each only when its `VITE_` ID is set); Login has "Forgot password?". Log in starts with "Log in with Telegram" (`auth/TelegramLogIn.tsx` on `auth/usePhoneCheck.ts`, the check Register's `PhoneCheck` also uses; founder's test list #30, 2026-10-24): open the bot, share the number, come back logged in (`POST /auth/telegram`); a number with no shop shows Create your shop, a staff number says to use the password; hidden where the bot isn't set up (503). Then "or with your password" and the phone + password form, its Log in outlined |
 | `/register/finish` | `pages/FinishSignup` | Someone new from Google, Facebook or TikTok: shop name, phone checked in Telegram (the name is the provider's) → `POST /auth/social/register`. The signup comes in the navigation state or `sessionStorage` `sc.signup` (`lib/signup.ts`); without one, back to `/register` |
 | `/auth/:provider/callback` | `pages/OAuthCallback` | Back from Facebook / TikTok with `code` and `state`. Only the sign-in this tab started (`sessionStorage` `sc.oauth`, 15 min, `lib/oauth.ts`) is finished: log in (`POST /auth/oauth/{provider}`, then like Google, `auth/useSocialResult.ts`) or connect (waits for the session, `POST /seller/account/oauth/{provider}`, back to Your account). Cancelled, refused or someone else's → "Couldn't log you in" with a link back |
 | `/shops` | `pages/YourShops` (lazy) | "Your shops" (2026-10-20): what OPEN in Telegram's chat list opens (the bot's main mini app, set in BotFather). Inside Telegram by `initData`, in a browser by the Telegram login; with one shop it goes straight in; a shop opened from the list gets Telegram's back arrow to it on its home (`markFromYourShops`) |

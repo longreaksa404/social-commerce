@@ -14,8 +14,8 @@ from app.core import security
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.db.session import unscoped_session
-from app.models import Currency, RefreshToken, Seller, Store
-from app.schemas.auth import LoginIn, PasswordResetConfirm, RegisterIn, TokenPair
+from app.models import Currency, RefreshToken, Seller, SellerRole, Store
+from app.schemas.auth import LoginIn, PasswordResetConfirm, RegisterIn, TelegramLoginIn, TokenPair
 from app.services import delivery, phone_check, telegram
 from app.services.phone import normalize_phone
 from app.services.slugs import new_store_slug
@@ -134,6 +134,28 @@ async def login(db: AsyncSession, data: LoginIn) -> TokenPair:
         raise _invalid_credentials()
     if not await security.verify_password(data.password, seller.password_hash):
         raise _invalid_credentials()
+    return await log_in(db, seller)
+
+
+async def telegram_login(db: AsyncSession, data: TelegramLoginIn) -> TokenPair:
+    """ "Log in with Telegram" (founder's test list #30, 2026-10-24): the
+    number the owner just shared with the bot proves it's them, as at
+    sign-up. Owners only: staff log in with their phone and password
+    (#25, "no"). Refused, the check isn't used up, so the page can offer
+    Create your shop with it."""
+    check = await phone_check.use(db, data.phone_check)
+    seller = await db.scalar(select(Seller).where(Seller.phone == check.phone))
+    if seller is None:
+        await db.rollback()
+        raise AppError(404, "NO_SHOP_FOR_PHONE", "No shop uses this number yet.", "phone_check")
+    if seller.role is SellerRole.STAFF:
+        await db.rollback()
+        raise AppError(
+            403,
+            "STAFF_USE_PASSWORD",
+            "Staff log in with their phone number and password.",
+            "phone_check",
+        )
     return await log_in(db, seller)
 
 

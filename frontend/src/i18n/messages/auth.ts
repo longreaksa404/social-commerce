@@ -96,6 +96,17 @@ export const auth = {
     again: { en: 'Start again', km: 'ចាប់ផ្ដើមម្ដងទៀត' },
     taken: { en: 'This number already has a shop.', km: 'លេខនេះមានហាងរួចហើយ។' },
   },
+  // Log in with Telegram, first on Log in (test list #30, 2026-10-24).
+  telegramLogin: {
+    button: { en: 'Log in with Telegram', km: 'ចូលគណនីជាមួយ Telegram' },
+    loggingIn: { en: 'Logging in…', km: 'កំពុងចូលគណនី…' },
+    noShop: { en: 'No shop uses this number yet.', km: 'មិនទាន់មានហាងប្រើលេខនេះទេ។' },
+    staff: {
+      en: 'Staff log in with their phone number and password below.',
+      km: 'បុគ្គលិកចូលគណនីដោយលេខទូរស័ព្ទ និងពាក្យសម្ងាត់ខាងក្រោម។',
+    },
+    orPassword: { en: 'or with your password', km: 'ឬចូលដោយពាក្យសម្ងាត់' },
+  },
   login: {
     title: { en: 'Welcome back', km: 'សូមស្វាគមន៍ការត្រឡប់មកវិញ' },
     newHere: { en: 'New here?', km: 'ទើបមកលើកដំបូង?' },

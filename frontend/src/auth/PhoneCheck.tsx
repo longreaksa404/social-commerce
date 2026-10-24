@@ -1,19 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
 import { AlertCircle, CircleCheck, LoaderCircle, RotateCcw, Send } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { buttonClass } from '../components/styles.ts'
 import { Button, ErrorMessage } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
-import { api, ApiError } from '../lib/api.ts'
 import { formatPhone } from '../lib/orders.ts'
 import type { PhoneCheck as Check } from '../lib/types.ts'
-
-// The check is made ahead, so "Verify with Telegram" is a plain link: a
-// phone browser blocks a new tab opened after waiting for a request. It
-// works for 30 minutes; a fresh one is fetched before then.
-const CHECK_REFRESH_MS = 20 * 60_000
-// While the seller is off in Telegram, look for the number.
-const POLL_MS = 2_500
+import { usePhoneCheck } from './usePhoneCheck.ts'
 
 /**
  * A phone number proved through the Telegram bot (founder's choice
@@ -49,45 +41,18 @@ export function PhoneCheck({
   onOpen?: (check: Check) => void
   required?: boolean
 }) {
-  const [attempt, setAttempt] = useState(0)
-  const [resumed, setResumed] = useState(resume)
-  const [opened, setOpened] = useState(resume !== null)
+  const { check, created, read, done, opened, setOpened, startOver: restart, expired } = usePhoneCheck(resume)
   const t = useT()
   const p = t.auth.phoneCheck
-
-  const created = useQuery({
-    queryKey: ['phone-check', 'new', attempt],
-    queryFn: () => api<Check>('/auth/phone-checks', { method: 'POST', auth: false }),
-    enabled: resumed === null,
-    staleTime: CHECK_REFRESH_MS,
-    refetchInterval: opened ? false : CHECK_REFRESH_MS,
-    retry: false,
-  })
-  const check = resumed ?? created.data
-  const id = check?.id
-  const read = useQuery({
-    queryKey: ['phone-check', id],
-    queryFn: () => api<Check>(`/auth/phone-checks/${id}`, { auth: false }),
-    enabled: opened && id !== undefined,
-    refetchInterval: (query) => (query.state.data?.phone ? false : POLL_MS),
-    refetchOnWindowFocus: true,
-    retry: false,
-  })
-  const done = read.data?.phone ? read.data : null
 
   useEffect(() => {
     if (done) onChange(done)
   }, [done, onChange])
 
   function startOver() {
-    setResumed(null)
-    setOpened(false)
-    setAttempt((n) => n + 1)
+    restart()
     onChange(null)
   }
-
-  // Took longer than the check lasts (30 minutes): start again.
-  const expired = read.error instanceof ApiError && read.error.code === 'PHONE_CHECK_EXPIRED'
 
   return (
     <div>

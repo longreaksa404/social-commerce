@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { SocialButtons } from '../auth/SocialButtons.tsx'
+import { TelegramLogIn } from '../auth/TelegramLogIn.tsx'
 import { useAuth } from '../auth/useAuth.ts'
 import { Button, ErrorMessage, Field, PasswordInput, SlowNotice } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
@@ -47,6 +48,9 @@ export function Login() {
         </>
       }
     >
+      {/* Telegram first (founder's test list #30, 2026-10-24); the phone
+          and password stay under it. */}
+      <TelegramLogIn onLoggedIn={() => navigate(from, { replace: true })} />
       <form onSubmit={submit} className="space-y-4">
         <LoginField value={login} onChange={setLogin} byEmail={byEmail} onByEmailChange={setByEmail} enterKeyHint="next" />
         <Field label={t.auth.password}>
@@ -68,7 +72,8 @@ export function Login() {
           </Link>
         </p>
         <ErrorMessage error={error} />
-        <Button type="submit" size="lg" loading={pending} className="w-full">
+        {/* Outlined: Log in with Telegram above is the dark one. */}
+        <Button type="submit" variant="secondary" size="lg" loading={pending} className="w-full">
           {t.auth.logIn}
         </Button>
         {pending && <SlowNotice />}

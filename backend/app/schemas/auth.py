@@ -43,6 +43,13 @@ class LoginIn(BaseModel):
     password: str = Field(max_length=200)
 
 
+class TelegramLoginIn(BaseModel):
+    """ "Log in with Telegram" (founder's test list #30, 2026-10-24): the
+    shop owner's number, shared with the bot, instead of the password."""
+
+    phone_check: uuid.UUID
+
+
 class PasswordResetIn(BaseModel):
     login: Login
 
