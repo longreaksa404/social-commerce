@@ -58,6 +58,12 @@ class StoreOut(BaseModel):
 
     @computed_field
     @property
+    def khr_per_usd(self) -> int:
+        """The rate a currency switch converts at, for Settings to show."""
+        return get_settings().khr_per_usd
+
+    @computed_field
+    @property
     def telegram_bot_available(self) -> bool:
         """False until the platform's bot is set up (env vars)."""
         return get_settings().telegram_configured

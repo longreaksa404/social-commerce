@@ -82,6 +82,11 @@ class Settings(BaseSettings):
     # The founder's own login phone numbers, comma-separated: they get the
     # admin page (every shop's plan) and "I've paid" alerts on Telegram.
     admin_phones: str = ""
+    # Riel to the dollar, for a shop that switches currency: its prices,
+    # fees and discounts are converted at this rate (founder's test list
+    # #15, 2026-10-24: 4,100 for now, set by hand until the admin page
+    # holds it).
+    khr_per_usd: int = Field(default=4100, ge=1000, le=10000)
 
     @property
     def facebook_configured(self) -> bool:

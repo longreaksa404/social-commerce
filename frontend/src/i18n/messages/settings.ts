@@ -12,12 +12,12 @@ export const settings = {
   description: { en: 'Description', km: 'ការពិពណ៌នា' },
   currency: { en: 'Currency', km: 'រូបិយប័ណ្ណ' },
   currencyHint: {
-    en: 'Existing prices are not converted.',
-    km: 'តម្លៃដែលមានស្រាប់មិនត្រូវបានប្ដូរទេ។',
+    en: (rate: string) => `Prices are converted at $1 = ${rate}.`,
+    km: (rate: string) => `តម្លៃត្រូវបានប្ដូរតាមអត្រា $1 = ${rate}។`,
   },
   // Asked at Save when the currency changes (settings check #1,
-  // 2026-10-19). Prices aren't converted: a rate set by Oak Order is logged
-  // for later.
+  // 2026-10-19). Prices, fees and discounts are converted at Oak Order's
+  // rate (test list #15, 2026-10-24).
   switchTitle: {
     KHR: { en: 'Switch to riel?', km: 'ប្ដូរទៅប្រាក់រៀល?' },
     USD: { en: 'Switch to dollars?', km: 'ប្ដូរទៅប្រាក់ដុល្លារ?' },
@@ -26,10 +26,12 @@ export const settings = {
     KHR: { en: 'Switch to riel', km: 'ប្ដូរទៅប្រាក់រៀល' },
     USD: { en: 'Switch to dollars', km: 'ប្ដូរទៅប្រាក់ដុល្លារ' },
   },
-  // `example`: "Linen Shirt $12.00 becomes 12៛", or ''.
+  // `rate`: "4,100៛"; `example`: "Linen Shirt $12.50 becomes 51,300៛", or ''.
   switchMessage: {
-    en: (example: string) => `Prices keep their numbers${example ? `: ${example}` : ''}. Change your prices after.`,
-    km: (example: string) => `តម្លៃនៅលេខដដែល${example ? `៖ ${example}` : ''}។ សូមកែតម្លៃបន្ទាប់ពីប្ដូរ។`,
+    en: (rate: string, example: string) =>
+      `Prices, delivery fees and discounts change at $1 = ${rate}${example ? `: ${example}` : ''}. Orders already placed stay as they are.`,
+    km: (rate: string, example: string) =>
+      `តម្លៃ ថ្លៃដឹក និងការបញ្ចុះតម្លៃ ប្ដូរតាមអត្រា $1 = ${rate}${example ? `៖ ${example}` : ''}។ ការកុម្ម៉ង់ដែលមានរួចនៅដដែល។`,
   },
   switchExample: {
     en: (name: string, from: string, to: string) => `${name} ${from} becomes ${to}`,

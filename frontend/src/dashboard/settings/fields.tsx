@@ -71,7 +71,7 @@ export function ShopFields({ store, form, update, error }: FieldsProps) {
           onChange={(e) => update({ description: e.target.value })}
         />
       </Field>
-      <Field label={s.currency} hint={s.currencyHint}>
+      <Field label={s.currency} hint={s.currencyHint(formatMoney(store.khr_per_usd, 'KHR'))}>
         <Select value={form.currency} onChange={(e) => update({ currency: e.target.value as Currency })}>
           <option value="USD">{s.usd}</option>
           <option value="KHR">{s.khr}</option>

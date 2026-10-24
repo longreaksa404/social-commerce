@@ -307,6 +307,7 @@ blocks the deploy (04).
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` | backend | All three, or Telegram is off (`telegram_configured`) |
 | `PUBLIC_API_URL` | backend | Set only in production: when set (with Telegram on), startup calls `setWebhook` |
 | `PUBLIC_APP_URL` | backend | Base for the "Open order" button in alerts (only if https) |
+| `KHR_PER_USD` | backend | Riel to the dollar, 1000-10000, default 4100: a shop switching currency has its amounts converted at it (`services/currency.py`, founder's test list #15, 2026-10-24); shown in Settings (`StoreOut.khr_per_usd`). Set by hand until the admin page holds it |
 | `VITE_API_URL` | frontend, middleware.ts | API base; defaults to `http://localhost:8000` |
 | `VITE_SENTRY_DSN` | frontend | Optional |
 | `GOOGLE_CLIENT_ID` | backend | The Google OAuth client ID ("Web application"); empty: `/auth/google` answers 503 `SOCIAL_NOT_CONFIGURED`. Not a secret. In `render.yaml` as `sync: false` |
@@ -703,8 +704,13 @@ missing parts read as the defaults:
 - New shops (`auth.create_shop`) start with `delivery_config = {"fee":
   "2.00"}` (`delivery.NEW_SHOP_FEE`: $2, 8,000 riel; founder,
   2026-10-18). Switching currency before Delivery is saved swaps it for
-  the other currency's (`delivery.follow_currency` from
-  `store.update_store`). Tests' `register` fixture resets it to `{}`
+  the other currency's (`delivery.follow_currency`); after, the saved
+  fee and free-delivery amount are converted. A switch
+  (`currency.switch` from `store.update_store`, founder's test list #15,
+  2026-10-24) converts the shop's product prices, option prices,
+  delivery amounts and discount rules at `KHR_PER_USD`: riel to the
+  nearest 100, dollars to the cent ($12.50 → 51,300៛ → $12.51). Orders
+  keep their own currency. Tests' `register` fixture resets it to `{}`
   (free) unless `new_shop_fee=True`.
 - `delivery_config` ↔ `DeliverySettings` (`schemas/delivery.py`): `fee=0`,
   `free_from_amount`, `free_from_items`, `own_delivery {enabled=true}`,
@@ -974,7 +980,7 @@ from the schema.
 | POST | `/seller/account/close-shop` | seller | `CloseShopIn` (`password`, not needed without one) | 204 | `seller.is_active = false` and every session deleted: the shop page is 404, login 403 `ACCOUNT_DISABLED` ("This shop is closed. Message Oak Order to open it again."). Nothing is erased; wrong password → 422 `WRONG_PASSWORD` |
 | POST | `/seller/account/password` | seller | `PasswordChange` | `AccessOut` + cookie | Wrong current password → 422 `WRONG_PASSWORD`; ends every other session (§4 Auth) |
 | GET | `/seller/store` | seller | — | `StoreOut` | Includes the three settings, `payment_set_up` (false until `payment_config` was saved once; the setup checklist), `delivery_set_up` (false until Settings → Delivery was saved once, which stores every part: a new shop runs on own delivery at the new-shop fee, `delivery_config = {"fee": ...}` only; a shop from before 2026-10-18 on free own delivery, `{}`), `telegram_connected`, `telegram_bot_available` |
-| PATCH | `/seller/store` | seller | `StoreUpdate` | `StoreOut` | Partial; settings blobs saved whole; null on name/currency/mode = leave; no `slug` (ignored: the link can't change, 2026-10-18); `logo_url` / `cover_url` only from this store's logo / cover folder (null removes); `color` one of the eight (null = leave) |
+| PATCH | `/seller/store` | seller | `StoreUpdate` | `StoreOut` | Partial; settings blobs saved whole; null on name/currency/mode = leave; no `slug` (ignored: the link can't change, 2026-10-18); a new `currency` converts the shop's amounts (`currency.switch`); `logo_url` / `cover_url` only from this store's logo / cover folder (null removes); `color` one of the eight (null = leave) |
 | POST | `/seller/store/logo` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT into `stores/<id>/logo/` |
 | POST | `/seller/store/cover` | seller | `ImageUploadIn` | `ImageUploadOut` | Presigned PUT into `stores/<id>/cover/` (owner; 2026-10-15) |
 | POST | `/seller/store/telegram/link` | seller | — | `TelegramLinkOut` | `t.me/<bot>?start=<code>`, valid 30 min; 503 if bot not configured |

@@ -9,6 +9,14 @@ export function formatMoney(amount: string | number, currency: Currency): string
   return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
+/** An amount in the other currency, as the API converts a shop that
+ * switches (app/services/currency.py): riel to the nearest 100, dollars
+ * to the cent, at `khrPerUsd`. */
+export function convertMoney(amount: string | number, to: Currency, khrPerUsd: number): number {
+  const value = Number(amount)
+  return to === 'KHR' ? Math.round((value * khrPerUsd) / 100) * 100 : Math.round((value / khrPerUsd) * 100) / 100
+}
+
 /** Step for price inputs: riel has no cents. */
 export function priceStep(currency: Currency): string {
   return currency === 'KHR' ? '1' : '0.01'

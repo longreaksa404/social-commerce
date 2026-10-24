@@ -7,7 +7,7 @@ import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
 import { formError } from '../../lib/errors.ts'
-import { formatMoney } from '../../lib/money.ts'
+import { convertMoney, formatMoney } from '../../lib/money.ts'
 import type { Product, Store } from '../../lib/types.ts'
 import { keys, useRole, useStore } from '../queries.ts'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
@@ -129,23 +129,30 @@ function SectionForm({ id, store }: { id: SectionId; store: Store }) {
       queryClient.setQueryData(keys.store, updated)
       setForm(toForm(updated))
       toast(s.saved)
+      // A new currency converted every product's price.
+      if (updated.currency !== store.currency) queryClient.invalidateQueries({ queryKey: keys.products })
     },
   })
 
-  /** A new currency keeps every price's number ($12.00 becomes 12 riel),
-   * so ask first, with one of the shop's own products as the example
-   * (settings check #1, 2026-10-19). */
+  /** A new currency converts every price, fee and discount at Oak
+   * Order's rate (founder's test list #15, 2026-10-24; until then they
+   * kept their numbers), so ask first, with one of the shop's own
+   * products as the example (settings check #1, 2026-10-19). */
   async function confirmSwitch(): Promise<boolean> {
     const to = form.currency
+    const rate = formatMoney(store.khr_per_usd, 'KHR')
     const product = queryClient.getQueryData<Product[]>(keys.products)?.find((p) => Number(p.price) > 0)
     const example = product
-      ? s.switchExample(product.name, formatMoney(product.price, store.currency), formatMoney(product.price, to))
+      ? s.switchExample(
+          product.name,
+          formatMoney(product.price, store.currency),
+          formatMoney(convertMoney(product.price, to, store.khr_per_usd), to),
+        )
       : ''
     return confirm({
       title: s.switchTitle[to],
-      message: s.switchMessage(example),
+      message: s.switchMessage(rate, example),
       confirmLabel: s.switchButton[to],
-      danger: true,
     })
   }
 

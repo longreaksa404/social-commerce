@@ -7,11 +7,8 @@ from app.core.config import get_settings
 from app.core.errors import AppError, NotFound
 from app.models import Store
 from app.schemas.store import StoreUpdate
-from app.services.delivery import (
-    check_delivery_settings,
-    check_discount_settings,
-    follow_currency,
-)
+from app.services import currency as currency_service
+from app.services.delivery import check_delivery_settings, check_discount_settings
 from app.services.payment import check_payment_settings
 
 REQUIRED_FIELDS = {
@@ -62,7 +59,8 @@ async def update_store(db: AsyncSession, store_id: uuid.UUID, data: StoreUpdate)
             continue  # null on a required field means "leave it"
         setattr(store, field, value)
     if store.currency != currency:
-        follow_currency(store)
+        # Prices, fees and discounts follow, converted (test list #15).
+        await currency_service.switch(db, store)
     if not store.orders_paused:
         store.orders_resume_on = None
     elif "orders_resume_on" in data.model_fields_set and (

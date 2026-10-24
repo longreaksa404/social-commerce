@@ -49,8 +49,9 @@ async def test_a_new_shop_starts_at_the_new_shop_fee_until_saved(client, registe
     assert riel.json()["delivery_settings"]["fee"] == "8000.00"
     assert riel.json()["delivery_set_up"] is False
     assert saved.json()["delivery_set_up"] is True
-    # Once the seller has saved a fee, it's theirs, whatever the currency.
-    assert back_to_usd.json()["delivery_settings"]["fee"] == "5000.00"
+    # Once the seller has saved a fee, it's theirs, converted at the rate
+    # when the currency changes (test list #15): 5,000៛ is $1.22.
+    assert back_to_usd.json()["delivery_settings"]["fee"] == "1.22"
 
 
 async def test_a_shop_from_before_that_never_set_delivery_stays_free(client, auth_headers):

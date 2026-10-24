@@ -98,6 +98,8 @@ export type Store = {
   telegram_connected: boolean
   /** False until the platform's bot is set up. */
   telegram_bot_available: boolean
+  /** Riel to the dollar: what a currency switch converts at. */
+  khr_per_usd: number
   created_at: string
 }
 
