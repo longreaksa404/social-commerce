@@ -91,7 +91,7 @@ export const isSectionId = (value: string | undefined): value is SectionId =>
 
 /** Settings pages that aren't part of the store's settings: each has its
  * own form and endpoint (SettingsSection's PAGES). */
-export const PAGE_IDS = ['account', 'plan', 'staff', 'close', 'setup'] as const
+export const PAGE_IDS = ['account', 'plan', 'staff', 'close', 'setup', 'export'] as const
 export type PageId = (typeof PAGE_IDS)[number]
 
 export const isPageId = (value: string | undefined): value is PageId =>
@@ -101,7 +101,6 @@ export const isPageId = (value: string | undefined): value is PageId =>
  * 2026-10-19): their old addresses open the new place. */
 export const MOVED: Record<string, string> = {
   telegram: '/dashboard/settings/orders',
-  export: '/dashboard/settings/orders',
   link: '/dashboard/links',
 }
 
@@ -127,9 +126,9 @@ export const SECTIONS: Record<SectionId, Section> = {
     }),
     fields: () => ['name', 'description', 'currency', 'logo_url', 'cover_url', 'color'],
   },
-  // Orders, Alerts and Export orders on one page (settings check,
-  // founder 2026-10-19). Connecting Telegram saves at once; Save is for
-  // the switches and the low-stock level; Export is under the form.
+  // Orders and Alerts on one page (settings check, founder 2026-10-19).
+  // Connecting Telegram saves at once; Save is for the switches and the
+  // low-stock level. Export orders is its own page again (test list #17).
   orders: {
     title: (s) => s.ordersAndAlerts,
     body: (form) => ({

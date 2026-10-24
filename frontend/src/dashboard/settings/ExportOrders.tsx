@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { Download } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Button, ErrorMessage, Field, Input, Section } from '../../components/ui.tsx'
+import { Button, Card, ErrorMessage, Field, Input } from '../../components/ui.tsx'
 import { currentLang } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { apiBlob } from '../../lib/api.ts'
@@ -19,10 +19,10 @@ function month(today: string, back = 0): [string, string] {
   return [first.toISOString().slice(0, 10), last.toISOString().slice(0, 10)]
 }
 
-/** Export orders, under Settings → Orders and alerts (settings check,
- * founder 2026-10-19): a spreadsheet of the orders placed on some days,
- * for the seller's accounts (one row per order). Its own form, outside
- * the page's Save. */
+/** Settings → Export orders, its own row again (founder's test list #17,
+ * 2026-10-24; under Orders and alerts since the settings check): a
+ * spreadsheet of the orders placed on some days, for the seller's
+ * accounts (one row per order). */
 export function ExportOrders() {
   const today = phnomPenhDate()
   const [range, setRange] = useState<Range>('thisMonth')
@@ -52,7 +52,7 @@ export function ExportOrders() {
 
   return (
     <form onSubmit={submit}>
-      <Section title={s.exportOrders}>
+      <Card className="space-y-4 p-4 sm:p-6">
         <div role="group" aria-label={s.exportWhich} className="flex rounded-xl bg-slate-100 p-0.5">
           {RANGES.map((option) => (
             <button
@@ -83,7 +83,7 @@ export function ExportOrders() {
         <Button type="submit" variant="secondary" icon={Download} loading={download.isPending} disabled={!first || !last} className="w-full sm:w-auto">
           {s.exportDownload}
         </Button>
-      </Section>
+      </Card>
     </form>
   )
 }

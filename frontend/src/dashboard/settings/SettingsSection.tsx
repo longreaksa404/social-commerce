@@ -40,7 +40,6 @@ const FIELDS: Record<SectionId, ComponentType<FieldsProps>> = {
 /** What a page shows under its form, with its own buttons. */
 const AFTER: Partial<Record<SectionId, ComponentType>> = {
   shop: CloseShopRow,
-  orders: ExportOrders,
 }
 
 /** Pages with their own form and endpoint, not the store's PATCH. `back`:
@@ -54,6 +53,7 @@ const PAGES: Record<
   close: { title: (s) => s.closeShop, Page: CloseShopPage, back: '/dashboard/settings/shop' },
   staff: { title: (s) => s.staff, Page: StaffPage },
   setup: { title: (s) => s.setup.title, Page: SetupPage },
+  export: { title: (s) => s.exportOrders, Page: ExportOrders },
 }
 
 /** /dashboard/settings/:section: one part of the shop's settings, opened

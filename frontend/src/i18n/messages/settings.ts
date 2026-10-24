@@ -336,6 +336,7 @@ export const settings = {
     helpHint: { en: 'Message Oak Order on Telegram', km: 'ផ្ញើសារទៅ Oak Order តាម Telegram' },
     closeHint: { en: 'Stop selling here', km: 'ឈប់លក់នៅទីនេះ' },
     staffHint: { en: 'Let others help with orders', km: 'ឱ្យអ្នកផ្សេងជួយការកុម្ម៉ង់' },
+    exportHint: { en: 'An Excel file of your orders', km: 'ឯកសារ Excel នៃការកុម្ម៉ង់របស់អ្នក' },
   },
 
   // Settings → Plan: the shop's plan with Oak Order (01_PRODUCT.md §33.1).

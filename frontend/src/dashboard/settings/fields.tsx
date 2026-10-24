@@ -333,7 +333,7 @@ function ColorField({ store, form, update }: Pick<FieldsProps, 'store' | 'form' 
 
 /** Settings → Orders and alerts (settings check, founder 2026-10-19):
  * taking orders, accepting them, and hearing about them (Telegram, low
- * stock). Export orders sits under the form (SettingsSection's AFTER). */
+ * stock). */
 export function OrdersFields({ store, form, update, error }: FieldsProps) {
   const s = useT().settings
   return (

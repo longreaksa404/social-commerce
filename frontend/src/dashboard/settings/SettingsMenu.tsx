@@ -1,6 +1,7 @@
 import {
   CalendarCheck,
   ChevronRight,
+  Download,
   ExternalLink,
   Inbox,
   LifeBuoy,
@@ -144,6 +145,16 @@ function StoreRows({ store, selected }: { store: Store; selected?: Selected }) {
                 />
               </li>
             ))}
+            {/* Its own row again (founder's test list #17, 2026-10-24). */}
+            <li>
+              <MenuRow
+                to="export"
+                selected={selected === 'export'}
+                icon={<RowIcon icon={Download} />}
+                title={s.exportOrders}
+                summary={s.menu.exportHint}
+              />
+            </li>
           </ul>
         </Card>
       </section>
