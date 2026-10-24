@@ -105,12 +105,6 @@ export const products = {
   increaseStock: { en: 'Increase stock', km: 'បន្ថែមស្តុក' },
   visibility: { en: 'Visibility', km: 'ការបង្ហាញ' },
   showInShop: { en: 'Show in shop', km: 'បង្ហាញក្នុងហាង' },
-  advanced: { en: 'Advanced', km: 'កម្រិតខ្ពស់' },
-  linkName: { en: 'Link name', km: 'ឈ្មោះក្នុងតំណ' },
-  linkNameHint: {
-    en: "Changing it breaks links you already shared.",
-    km: 'ការប្ដូរវានឹងធ្វើឱ្យតំណដែលអ្នកបានចែករំលែករួច លែងដំណើរការ។',
-  },
 
   photo: {
     tooMany: { en: 'A product can have up to 5 photos.', km: 'ទំនិញមួយអាចមានរូបថតបានច្រើនបំផុត 5។' },

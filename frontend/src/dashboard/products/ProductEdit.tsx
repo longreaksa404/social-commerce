@@ -2,7 +2,7 @@ import { Minus, Plus, Share2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
-import { buttonClass, cardClass } from '../../components/styles.ts'
+import { buttonClass } from '../../components/styles.ts'
 import {
   Button,
   ErrorMessage,
@@ -32,7 +32,6 @@ import { VariantList, type VariantDraft } from './VariantList.tsx'
 
 type Draft = {
   name: string
-  slug: string
   description: string
   category_id: string
   price: string
@@ -56,7 +55,6 @@ const blankVariant = (): VariantDraft => ({
 function toDraft(product?: Product): Draft {
   return {
     name: product?.name ?? '',
-    slug: product?.slug ?? '',
     description: product?.description ?? '',
     category_id: product?.category_id ?? '',
     price: product?.price ?? '',
@@ -87,7 +85,6 @@ function toBody(draft: Draft, isNew: boolean, saved?: Draft) {
   const keepStock = saved && !saved.has_variants && !draft.has_variants && draft.stock_quantity === saved.stock_quantity
   return {
     name: draft.name.trim(),
-    ...(isNew ? {} : { slug: draft.slug }),
     description: draft.description.trim() || null,
     category_id: draft.category_id || null,
     price: draft.price,
@@ -197,8 +194,7 @@ function ProductForm({ product }: { product?: Product }) {
   }
 
   const busy = progress !== null || photoUploads > 0
-  const fields = ['name', 'slug', 'description', 'category_id', 'price', 'stock_quantity']
-  const slugError = fieldError(save.error, 'slug')
+  const fields = ['name', 'description', 'category_id', 'price', 'stock_quantity']
 
   return (
     <>
@@ -323,26 +319,6 @@ function ProductForm({ product }: { product?: Product }) {
             label={p.showInShop}
           />
         </Section>
-
-        {!isNew && (
-          <details open={slugError ? true : undefined} className={`group px-4 sm:px-6 ${cardClass}`}>
-            <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between text-base font-semibold text-slate-900">
-              {p.advanced}
-              <Plus aria-hidden className="size-5 text-slate-400 transition-transform group-open:rotate-45" />
-            </summary>
-            <div className="pb-5">
-              <Field label={p.linkName} error={slugError} hint={p.linkNameHint}>
-                <Input
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  value={draft.slug}
-                  onChange={(e) => set('slug', e.target.value.toLowerCase())}
-                />
-              </Field>
-            </div>
-          </details>
-        )}
 
         <ErrorMessage error={formError(save.error, fields)} />
 
