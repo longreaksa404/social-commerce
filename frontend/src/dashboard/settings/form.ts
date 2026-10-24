@@ -146,9 +146,6 @@ export const SECTIONS: Record<SectionId, Section> = {
     body: (form) => ({ payment_settings: form.payment_settings }),
     fields: () => [
       'payment_settings',
-      'payment_settings.bank_transfer.bank_name',
-      'payment_settings.bank_transfer.account_name',
-      'payment_settings.bank_transfer.account_number',
       'payment_settings.khqr.bakong_account_id',
       'payment_settings.khqr.merchant_name',
     ],

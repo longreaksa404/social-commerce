@@ -24,7 +24,7 @@ from app.models import (
 )
 from app.services import notifications, telegram
 from tests.helpers import (
-    BANK,
+    KHQR,
     add_product,
     place_order,
     registered_seller,
@@ -402,13 +402,11 @@ async def test_ive_paid_alerts_the_seller_once_and_shows_on_the_order(client, bo
     Telegram alert, "Customer says paid" on the order; the payment stays
     pending until the seller checks."""
     headers, store_id, slug = await registered_seller(client, auth_headers)
-    await set_payments(client, headers, bank_transfer=BANK)
+    await set_payments(client, headers, khqr=KHQR)
     await connect(store_id)
     cap = await add_product(store_id, "cap", stock=5)
     order = (
-        await place_order(
-            client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
-        )
+        await place_order(client, slug, [(cap, None, 1)], total="10.00", payment_method="khqr")
     ).json()
     bot.clear()
 
@@ -438,20 +436,18 @@ async def test_ive_paid_shows_in_that_shops_order_list_only(client, bot, auth_he
     headers, store_id, slug = await registered_seller(client, auth_headers)
     other_headers, other_id, other_slug = await registered_seller(client, auth_headers)
     for h in (headers, other_headers):
-        await set_payments(client, h, bank_transfer=BANK)
+        await set_payments(client, h, khqr=KHQR)
     cap = await add_product(store_id, "cap", stock=5)
     hat = await add_product(other_id, "hat", stock=5)
     claimed, quiet = [
         (
-            await place_order(
-                client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
-            )
+            await place_order(client, slug, [(cap, None, 1)], total="10.00", payment_method="khqr")
         ).json()
         for _ in range(2)
     ]
     theirs = (
         await place_order(
-            client, other_slug, [(hat, None, 1)], total="10.00", payment_method="bank_transfer"
+            client, other_slug, [(hat, None, 1)], total="10.00", payment_method="khqr"
         )
     ).json()
     await _say_paid(client, slug, claimed["id"])
@@ -476,13 +472,11 @@ async def test_ive_paid_shows_in_that_shops_order_list_only(client, bot, auth_he
 
 async def test_ive_paid_needs_something_to_pay_and_the_right_phone(client, bot, auth_headers):
     headers, store_id, slug = await registered_seller(client, auth_headers)
-    await set_payments(client, headers, bank_transfer=BANK)
+    await set_payments(client, headers, khqr=KHQR)
     cap = await add_product(store_id, "cap", stock=5)
     cod = (await place_order(client, slug, [(cap, None, 1)], total="10.00")).json()
     bank = (
-        await place_order(
-            client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
-        )
+        await place_order(client, slug, [(cap, None, 1)], total="10.00", payment_method="khqr")
     ).json()
 
     cash = await _say_paid(client, slug, cod["id"])
@@ -501,12 +495,10 @@ async def test_ive_paid_needs_something_to_pay_and_the_right_phone(client, bot, 
 async def test_ive_paid_on_another_shops_order_is_not_found(client, bot, auth_headers):
     headers, store_id, slug = await registered_seller(client, auth_headers)
     _, _, other_slug = await registered_seller(client, auth_headers)
-    await set_payments(client, headers, bank_transfer=BANK)
+    await set_payments(client, headers, khqr=KHQR)
     cap = await add_product(store_id, "cap", stock=5)
     order = (
-        await place_order(
-            client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
-        )
+        await place_order(client, slug, [(cap, None, 1)], total="10.00", payment_method="khqr")
     ).json()
 
     response = await _say_paid(client, other_slug, order["id"])
@@ -546,13 +538,11 @@ async def _claimed_order(client, auth_headers, chat_id=555):
     """A shop with Telegram connected and a bank order its customer says
     they paid: (headers, store_id, order)."""
     headers, store_id, slug = await registered_seller(client, auth_headers)
-    await set_payments(client, headers, bank_transfer=BANK)
+    await set_payments(client, headers, khqr=KHQR)
     await connect(store_id, chat_id)
     cap = await add_product(store_id, "cap", stock=5)
     order = (
-        await place_order(
-            client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
-        )
+        await place_order(client, slug, [(cap, None, 1)], total="10.00", payment_method="khqr")
     ).json()
     await _say_paid(client, slug, order["id"])
     return headers, store_id, order

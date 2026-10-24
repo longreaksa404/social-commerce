@@ -9,8 +9,8 @@ from app.core.errors import AppError
 from app.models import Delivery, DeliveryMethod, DeliveryStatus, Product
 from app.services.delivery import check_transition, next_statuses
 from tests.helpers import (
-    BANK,
     DELIVERY,
+    KHQR,
     PICKUP,
     add_product,
     place_order,
@@ -519,11 +519,9 @@ async def test_cash_handover_is_both_or_neither(client, auth_headers):
 
 async def test_cash_handover_is_for_cash_on_delivery_only(client, auth_headers):
     headers, slug, shirt = await _shop(client, auth_headers)
-    await set_payments(client, headers, bank_transfer=BANK)
+    await set_payments(client, headers, khqr=KHQR)
     order = (
-        await place_order(
-            client, slug, [(shirt, None, 1)], total="11.50", payment_method="bank_transfer"
-        )
+        await place_order(client, slug, [(shirt, None, 1)], total="11.50", payment_method="khqr")
     ).json()
 
     response = await _handover(client, headers, order["id"])

@@ -56,11 +56,11 @@ phone or laptop) before going on.
 
 **Payments**
 
-- [ ] Cash on delivery: New → Accept → "Delivered, cash received" → Complete is 3 taps, and the payment shows paid.
+- [ ] Cash on delivery: New → Accept → "Delivered, cash received" is 2 taps: the payment shows paid and the order Completed by itself.
 - [ ] Cash on delivery: Delivered alone, then Complete without marking it paid. Works.
 - [ ] A paid payment: "Not paid after all" (asks first) puts it back to not paid; the customer sees how to pay again.
-- [ ] Bank transfer: the customer sees the bank, name and account number with copy buttons.
-- [ ] Bank transfer, delivered but not paid: Complete is blocked with a hint.
+- [ ] Settings → Payments has only KHQR and cash on delivery; checkout offers no bank transfer.
+- [ ] KHQR, delivered but not paid: the order stays Accepted; Mark paid completes it by itself.
 - [ ] Payment failed (asks first) shows "Payment failed" in the order list.
 
 **Delivery**

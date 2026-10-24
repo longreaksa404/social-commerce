@@ -14,7 +14,7 @@ from app.core.config import get_settings
 from app.db.session import tenant_session
 from app.models import NotificationLog, Order, Store
 from app.services import order_reminders, telegram
-from tests.helpers import BANK, add_product, place_order, registered_seller, set_payments
+from tests.helpers import KHQR, add_product, place_order, registered_seller, set_payments
 
 ORDERS = "/api/v1/seller/orders"
 
@@ -43,11 +43,11 @@ def placed_at() -> datetime:
     return datetime(2031, 1, 1, 3, tzinfo=UTC) + timedelta(days=random.randrange(20_000))
 
 
-async def an_order(client, auth_headers, placed_at, *, method="bank_transfer", chat="777"):
+async def an_order(client, auth_headers, placed_at, *, method="khqr", chat="777"):
     """A shop with one order placed at `placed_at` whose customer gets
     updates on Telegram (`chat`, or None): (headers, store_id, slug, order)."""
     headers, store_id, slug = await registered_seller(client, auth_headers)
-    await set_payments(client, headers, bank_transfer=BANK)
+    await set_payments(client, headers, khqr=KHQR)
     cap = await add_product(store_id, "cap", stock=5)
     response = await place_order(
         client, slug, [(cap, None, 1)], total="10.00", payment_method=method

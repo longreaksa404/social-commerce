@@ -1,12 +1,15 @@
 """Payments (02_TECHNICAL.md sections 7.2 and 10): the seller's payment
 settings, choosing a method at checkout, and what the customer is shown."""
 
+import uuid
 from itertools import product
 
 import pytest
+from sqlalchemy import update
 
 from app.core.errors import AppError
-from app.models import Payment, PaymentStatus
+from app.db.session import unscoped_session
+from app.models import Payment, PaymentMethod, PaymentStatus
 from app.services.payment import check_transition, next_statuses
 from tests.helpers import (
     BANK,
@@ -77,7 +80,9 @@ async def test_payments_are_set_up_once_saved(client, auth_headers):
     assert saved.json()["payment_set_up"] is True
 
 
-async def test_seller_turns_on_bank_transfer_and_khqr(client, auth_headers):
+async def test_seller_turns_on_khqr_and_bank_transfer_stays_off(client, auth_headers):
+    """Bank transfer is no longer offered (founder's test list #19,
+    2026-10-24): sent on, it's saved off, its details kept."""
     headers, _, slug = await registered_seller(client, auth_headers)
 
     response = await set_payments(
@@ -85,10 +90,24 @@ async def test_seller_turns_on_bank_transfer_and_khqr(client, auth_headers):
     )
 
     assert response.status_code == 200, response.text
-    assert response.json()["payment_settings"]["bank_transfer"] == BANK
+    assert response.json()["payment_settings"]["bank_transfer"] == {**BANK, "enabled": False}
     shop = (await client.get(f"/api/v1/shop/{slug}")).json()
-    assert shop["payment_methods"] == ["bank_transfer", "khqr"]
-    assert "000 123 456" not in str(shop)  # account details only come with an order
+    assert shop["payment_methods"] == ["khqr"]
+    assert "000 123 456" not in str(shop)
+
+
+async def test_bank_transfer_alone_is_no_way_to_pay(client, auth_headers):
+    headers, store_id, slug = await registered_seller(client, auth_headers)
+
+    response = await set_payments(client, headers, cod={"enabled": False}, bank_transfer=BANK)
+
+    assert response.status_code == 422
+    assert response.json()["error"]["field"] == "payment_settings"
+    cap = await add_product(store_id, "cap", stock=5)
+    refused = await place_order(
+        client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
+    )
+    assert refused.json()["error"]["code"] == "PAYMENT_METHOD_UNAVAILABLE"
 
 
 async def test_turning_a_method_off_keeps_its_details(client, auth_headers):
@@ -103,10 +122,6 @@ async def test_turning_a_method_off_keeps_its_details(client, auth_headers):
 async def test_payment_settings_must_be_usable(client, auth_headers):
     headers, _, _ = await registered_seller(client, auth_headers)
     cases = [
-        (
-            {"bank_transfer": {**BANK, "account_number": " "}},
-            "payment_settings.bank_transfer.account_number",
-        ),
         ({"khqr": {**KHQR, "bakong_account_id": ""}}, "payment_settings.khqr.bakong_account_id"),
         (
             {"khqr": {**KHQR, "bakong_account_id": "dara"}},
@@ -133,7 +148,7 @@ async def test_payment_settings_must_be_usable(client, auth_headers):
 
 async def test_the_order_gets_a_pending_payment_for_its_total(client, auth_headers):
     headers, store_id, slug = await registered_seller(client, auth_headers)
-    await set_payments(client, headers, bank_transfer=BANK)
+    await set_payments(client, headers, khqr=KHQR)
     cap = await add_product(store_id, "cap", stock=5)
     dress = await add_product(store_id, "dress", variants=[("XL", "12.35", 4)])
     xl = (await variant_ids(dress))["XL"]
@@ -143,13 +158,13 @@ async def test_the_order_gets_a_pending_payment_for_its_total(client, auth_heade
         slug,
         [(cap, None, 3), (dress, xl, 3)],
         total="67.05",  # 3 x 10.00 + 3 x 12.35
-        payment_method="bank_transfer",
+        payment_method="khqr",
     )
 
     assert response.status_code == 201, response.text
     payment = response.json()["payment"]
     assert (payment["method"], payment["status"], payment["amount"]) == (
-        "bank_transfer",
+        "khqr",
         "pending",
         "67.05",
     )
@@ -172,25 +187,29 @@ async def test_checkout_refuses_a_method_the_shop_does_not_take(client, auth_hea
     assert response.json()["error"]["field"] == "payment_method"
 
 
-async def test_the_customer_sees_the_bank_account_until_there_is_nothing_to_pay(
+async def test_an_order_placed_by_bank_transfer_before_still_shows_the_account(
     client, auth_headers
 ):
+    """Placed before bank transfer went (test list #19): its customer still
+    sees where to pay, until there's nothing to pay."""
     headers, store_id, slug = await registered_seller(client, auth_headers)
-    await set_payments(client, headers, bank_transfer=BANK)
+    await set_payments(client, headers, bank_transfer=BANK)  # saved off, details kept
     cap = await add_product(store_id, "cap", stock=5)
-    transfer = await place_order(
-        client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
-    )
-    cash = await place_order(client, slug, [(cap, None, 1)], total="10.00")
+    order_id = (await place_order(client, slug, [(cap, None, 1)], total="10.00")).json()["id"]
+    async with unscoped_session() as db:
+        await db.execute(
+            update(Payment)
+            .where(Payment.order_id == uuid.UUID(order_id))
+            .values(method=PaymentMethod.BANK_TRANSFER)
+        )
+        await db.commit()
 
-    assert transfer.json()["payment"]["bank_account"] == {
+    assert (await track(client, slug, order_id)).json()["payment"]["bank_account"] == {
         "bank_name": "ABA",
         "account_name": "SOK DARA",
         "account_number": "000 123 456",
     }
-    assert cash.json()["payment"]["bank_account"] is None
 
-    order_id = transfer.json()["id"]
     await client.patch(
         f"/api/v1/seller/orders/{order_id}/status", headers=headers, json={"status": "rejected"}
     )
@@ -220,12 +239,10 @@ async def _record(client, headers, order_id, status, reference=None):
 
 async def test_seller_marks_a_transfer_paid_and_can_then_complete(client, auth_headers):
     headers, store_id, slug = await registered_seller(client, auth_headers)
-    await set_payments(client, headers, bank_transfer=BANK)
+    await set_payments(client, headers, khqr=KHQR)
     cap = await add_product(store_id, "cap", stock=5)
     order = (
-        await place_order(
-            client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
-        )
+        await place_order(client, slug, [(cap, None, 1)], total="10.00", payment_method="khqr")
     ).json()
     await client.patch(
         f"/api/v1/seller/orders/{order['id']}/status", headers=headers, json={"status": "accepted"}
@@ -250,9 +267,9 @@ async def test_seller_marks_a_transfer_paid_and_can_then_complete(client, auth_h
     assert body["payment"]["next_statuses"] == ["pending"]  # "Not paid after all"
     # Delivered and now paid: completed by itself (test list #3).
     assert (body["status"], body["next_statuses"]) == ("completed", [])
-    # The customer sees it's paid, and no longer gets the account to pay to.
+    # The customer sees it's paid, and no longer gets the code to pay.
     tracked = (await track(client, slug, order["id"])).json()["payment"]
-    assert (tracked["status"], tracked["bank_account"]) == ("paid", None)
+    assert (tracked["status"], tracked["khqr"]) == ("paid", None)
 
     again = await _record(client, headers, order["id"], "failed")
     assert again.status_code == 409
@@ -263,12 +280,10 @@ async def test_not_paid_after_all_puts_it_back_and_the_customer_can_pay(client, 
     """The seller tapped Paid on the wrong order, or the transfer never
     arrived: the payment goes back to pending, at any time."""
     headers, store_id, slug = await registered_seller(client, auth_headers)
-    await set_payments(client, headers, bank_transfer=BANK)
+    await set_payments(client, headers, khqr=KHQR)
     cap = await add_product(store_id, "cap", stock=5)
     order = (
-        await place_order(
-            client, slug, [(cap, None, 1)], total="10.00", payment_method="bank_transfer"
-        )
+        await place_order(client, slug, [(cap, None, 1)], total="10.00", payment_method="khqr")
     ).json()
     await _record(client, headers, order["id"], "paid", "ABA 14:05")
 
@@ -281,7 +296,7 @@ async def test_not_paid_after_all_puts_it_back_and_the_customer_can_pay(client, 
     assert undone.json()["status"] == "pending"  # the order is left alone
     # The customer is shown how to pay again.
     tracked = (await track(client, slug, order["id"])).json()["payment"]
-    assert tracked["bank_account"] is not None
+    assert tracked["khqr"] is not None
     # A failed one goes back too.
     await _record(client, headers, order["id"], "failed")
     assert (await _record(client, headers, order["id"], "pending")).status_code == 200

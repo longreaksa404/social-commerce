@@ -158,10 +158,6 @@ export const settings = {
     km: 'ឈ្មោះលើគណនីរបស់អ្នក ជាអក្សរអង់គ្លេស។',
   },
   merchantNameTitle: { en: 'English letters, numbers, and spaces', km: 'អក្សរអង់គ្លេស លេខ និងដកឃ្លា' },
-  bank: { en: 'Bank', km: 'ធនាគារ' },
-  transferTo: { en: 'Customers transfer to', km: 'អតិថិជនផ្ទេរទៅ' },
-  accountName: { en: 'Name on the account', km: 'ឈ្មោះលើគណនី' },
-  accountNumber: { en: 'Account number', km: 'លេខគណនី' },
   noPayment: { en: 'Turn on at least one way to pay.', km: 'សូមបើកវិធីបង់ប្រាក់យ៉ាងតិចមួយ។' },
 
   delivery: { en: 'Delivery', km: 'ការដឹកជញ្ជូន' },

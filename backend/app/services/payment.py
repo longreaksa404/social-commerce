@@ -68,16 +68,10 @@ def payment_settings(store: Store) -> PaymentSettings:
 
 def check_payment_settings(settings: PaymentSettings) -> None:
     """A method can only be on with the details a customer needs for it,
-    and a shop must take at least one."""
+    and a shop must take at least one. Bank transfer is never on any more
+    (test list #19): it's switched off here, details kept."""
+    settings.bank_transfer.enabled = False
     required = {
-        "bank_transfer": (
-            settings.bank_transfer.enabled,
-            {
-                "bank_name": "Enter the bank's name.",
-                "account_name": "Enter the name on the account.",
-                "account_number": "Enter the account number.",
-            },
-        ),
         "khqr": (
             settings.khqr.enabled,
             {
@@ -120,7 +114,9 @@ def shop_payment_out(store: Store, order: Order) -> ShopPaymentOut:
     # The store's current details, not a copy from when the order was
     # placed: an account the seller has since replaced may be closed.
     settings = payment_settings(store)
-    if payment.method is PaymentMethod.BANK_TRANSFER and settings.bank_transfer.enabled:
+    # Bank transfer isn't offered any more (test list #19); an order placed
+    # with it before still shows the account it was placed to pay.
+    if payment.method is PaymentMethod.BANK_TRANSFER and settings.bank_transfer.account_number:
         bank = settings.bank_transfer
         out.bank_account = ShopBankAccount(
             bank_name=bank.bank_name,

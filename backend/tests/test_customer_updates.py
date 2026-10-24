@@ -14,7 +14,7 @@ from app.db.session import tenant_session
 from app.models import Customer, DeliveryMethod, DeliveryStatus, OrderStatus, PaymentMethod
 from app.models import PaymentStatus as P
 from app.services import customer_updates, telegram
-from tests.helpers import BANK, add_product, place_order, registered_seller, set_payments, track
+from tests.helpers import KHQR, add_product, place_order, registered_seller, set_payments, track
 
 ORDERS = "/api/v1/seller/orders"
 
@@ -68,8 +68,8 @@ def contact(user_id: int, phone: str) -> dict:
 async def an_order(client, auth_headers, *, payment_method="cod", phone="012 345 678"):
     """A seller's shop with one order: (headers, store_id, slug, order id)."""
     headers, store_id, slug = await registered_seller(client, auth_headers)
-    if payment_method == "bank_transfer":
-        await set_payments(client, headers, bank_transfer=BANK)
+    if payment_method == "khqr":
+        await set_payments(client, headers, khqr=KHQR)
     cap = await add_product(store_id, "cap", stock=20)
     placed = await place_order(
         client, slug, [(cap, None, 1)], total="10.00", payment_method=payment_method, phone=phone
@@ -214,9 +214,7 @@ async def test_the_sellers_taps_send_news(client, bot, auth_headers, dara):
 
 
 async def test_a_recorded_transfer_tells_the_customer(client, bot, auth_headers, dara):
-    headers, _, slug, order_id = await an_order(
-        client, auth_headers, payment_method="bank_transfer"
-    )
+    headers, _, slug, order_id = await an_order(client, auth_headers, payment_method="khqr")
     await get_updates(client, slug, order_id, dara)
     bot.clear()
     paid = await client.patch(
@@ -471,14 +469,12 @@ async def test_a_customer_typing_to_the_bot_is_told_to_use_the_button(
 
 async def test_a_customer_who_gets_updates_gets_a_receipt(client, bot, auth_headers, dara):
     headers, store_id, slug, first = await an_order(client, auth_headers)
-    await set_payments(client, headers, bank_transfer=BANK)
+    await set_payments(client, headers, khqr=KHQR)
     await get_updates(client, slug, first, dara)
     cap = await add_product(store_id, "hat", stock=5)
     bot.clear()
 
-    placed = await place_order(
-        client, slug, [(cap, None, 2)], total="20.00", payment_method="bank_transfer"
-    )
+    placed = await place_order(client, slug, [(cap, None, 2)], total="20.00", payment_method="khqr")
     assert placed.status_code == 201, placed.text
     [receipt] = [m for m in bot if m["chat_id"] == str(dara)]
     assert "#1002" in receipt["text"] and "2 × Hat" in receipt["text"]

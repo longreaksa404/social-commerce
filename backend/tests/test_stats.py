@@ -11,7 +11,7 @@ from app.db.session import unscoped_session
 from app.models import Order
 from app.services.stats import period_days
 from tests.helpers import (
-    BANK,
+    KHQR,
     add_product,
     place_order,
     random_phone,
@@ -40,13 +40,11 @@ async def _placed_at(order_id: str, when: datetime) -> None:
 
 async def test_todays_orders_sales_and_what_is_still_to_collect(client, auth_headers):
     headers, store_id, slug = await registered_seller(client, auth_headers)
-    await set_payments(client, headers, bank_transfer=BANK)
+    await set_payments(client, headers, khqr=KHQR)
     cap = await add_product(store_id, "cap", stock=20)  # $10.00
     cash = (await place_order(client, slug, [(cap, None, 1)], total="10.00")).json()
     paid = (
-        await place_order(
-            client, slug, [(cap, None, 2)], total="20.00", payment_method="bank_transfer"
-        )
+        await place_order(client, slug, [(cap, None, 2)], total="20.00", payment_method="khqr")
     ).json()
     rejected = (await place_order(client, slug, [(cap, None, 3)], total="30.00")).json()
     await client.patch(

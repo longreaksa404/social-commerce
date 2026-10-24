@@ -47,8 +47,10 @@ class CodSettings(BaseModel):
 
 
 class BankTransferSettings(BaseModel):
-    """Shown to the customer after they order (02_TECHNICAL.md section 10.2).
-    Kept when turned off, so turning it back on needs no retyping."""
+    """No longer offered (founder's test list #19, 2026-10-24: KHQR does
+    the same, with nothing to type wrong): never on, whatever is sent. The
+    details stay, for bank-transfer orders placed before, whose customer
+    still sees where to pay (payment.shop_payment_out)."""
 
     enabled: bool = False
     bank_name: BankName = ""  # e.g. "ABA"
@@ -82,7 +84,7 @@ class PaymentSettings(BaseModel):
     def enabled_methods(self) -> list[PaymentMethod]:
         on = {
             PaymentMethod.COD: self.cod.enabled,
-            PaymentMethod.BANK_TRANSFER: self.bank_transfer.enabled,
+            PaymentMethod.BANK_TRANSFER: False,  # no longer offered (test list #19)
             PaymentMethod.KHQR: self.khqr.enabled,
         }
         return [method for method in PaymentMethod if on[method]]
