@@ -2974,7 +2974,7 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
 ## Next Up
 
 000000000000000000000. **Seller-side test list** (founder, 2026-10-24; In
-        Progress, "Seller-side test list"; not pushed). Five migrations run
+        Progress, "Seller-side test list"; not pushed). Four migrations run
         on deploy: `b7d41c2e9a10` (store.instagram_username),
         `c4e8a2f61d07` (orders in the old Preparing / Shipped / Delivered
         steps back to Accepted), `d9a3f1b7c2e5` (bank transfer off in
