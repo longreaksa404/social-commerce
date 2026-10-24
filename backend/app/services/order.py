@@ -272,6 +272,7 @@ def order_summary(
         currency=order.currency,
         total=order.total,
         customer_name=order.customer.name,
+        customer_photo_url=order.customer.photo_url,
         item_count=sum(item.quantity for item in order.items),
         first_item_name=main.product_name_snapshot,
         line_count=len(order.items),

@@ -8,6 +8,7 @@ import { formatOrderTime, formatPhone } from '../../lib/orders.ts'
 import type { Currency, CustomerSummary } from '../../lib/types.ts'
 import { useDebounced } from '../../lib/useDebounced.ts'
 import { useCustomers, useStore } from '../queries.ts'
+import { CustomerPhoto } from './CustomerPhoto.tsx'
 
 /** /dashboard/customers: everyone who has ordered, whoever ordered last
  * first; find one by name or phone number. */
@@ -112,6 +113,7 @@ function CustomerRow({
       state={{ back: search ? `/dashboard/customers?q=${encodeURIComponent(search)}` : '/dashboard/customers' }}
       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
     >
+      <CustomerPhoto url={customer.photo_url} name={customer.name} className="size-11" />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-semibold text-slate-900">{customer.name}</span>
         <span className="mt-0.5 block text-sm text-slate-700">{formatPhone(customer.phone)}</span>
@@ -185,9 +187,10 @@ function CustomerTable({ customers, currency, search }: { customers: CustomerSum
                 <Link
                   to={`/dashboard/customers/${customer.id}`}
                   state={{ back }}
-                  className="block truncate font-semibold text-slate-900 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-navy-600"
+                  className="flex items-center gap-2.5 font-semibold text-slate-900 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-navy-600"
                 >
-                  {customer.name}
+                  <CustomerPhoto url={customer.photo_url} name={customer.name} className="size-8 text-sm" />
+                  <span className="truncate">{customer.name}</span>
                 </Link>
               </td>
               <td className="px-4 py-3 whitespace-nowrap text-slate-600 tabular-nums">{formatPhone(customer.phone)}</td>

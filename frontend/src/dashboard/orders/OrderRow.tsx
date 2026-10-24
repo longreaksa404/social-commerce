@@ -7,6 +7,7 @@ import { formatClock, formatOrderTime, ORDER_STATUS_TONES, type StatusTone } fro
 import { paymentBadge, unpaidLong } from '../../lib/payments.ts'
 import type { OrderSummary } from '../../lib/types.ts'
 import { NoPhoto, ProductImage } from '../../shop/components.tsx'
+import { CustomerPhoto } from '../customers/CustomerPhoto.tsx'
 
 /** A row in an order list (the Orders tab, a customer's page, a link's
  * page), led by who ordered (founder's pick 2B, 2026-10-08): the customer
@@ -89,7 +90,15 @@ export function OrderRow({
         )}
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline justify-between gap-3">
-            <span className="truncate font-semibold text-slate-900">{showCustomer ? order.customer_name : item}</span>
+            {showCustomer ? (
+              // Their Telegram photo by the name, when they have one (test list #6).
+              <span className="flex min-w-0 items-center gap-1.5">
+                <CustomerPhoto url={order.customer_photo_url} className="size-5" />
+                <span className="truncate font-semibold text-slate-900">{order.customer_name}</span>
+              </span>
+            ) : (
+              <span className="truncate font-semibold text-slate-900">{item}</span>
+            )}
             <span className="shrink-0 font-semibold text-slate-900 tabular-nums">
               {formatMoney(order.total, order.currency)}
             </span>

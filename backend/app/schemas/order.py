@@ -185,6 +185,9 @@ class OrderSummaryOut(BaseModel):
     currency: Currency
     total: Decimal
     customer_name: str
+    # Their Telegram profile photo, beside their name in the list (test
+    # list #6, 2026-10-24); null without one.
+    customer_photo_url: str | None = None
     item_count: int  # units, not lines
     # What was bought, for the row: the line with the highest total, how
     # many lines there are, and that product's first photo now (or null).

@@ -80,6 +80,7 @@ async def list_customers(
                 id=customer.id,
                 name=customer.name,
                 phone=customer.phone,
+                photo_url=customer.photo_url,
                 order_count=order_count or 0,
                 last_order_at=last_order_at,
                 spent=spent.get(customer.id, []),

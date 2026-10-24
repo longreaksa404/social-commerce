@@ -485,6 +485,8 @@ export type OrderSummary = {
   currency: Currency
   total: string
   customer_name: string
+  /** Their Telegram profile photo, beside the name; null without one. */
+  customer_photo_url: string | null
   /** Units, not lines. */
   item_count: number
   /** What the row leads with: the biggest line, how many lines, its photo now. */
@@ -551,6 +553,8 @@ export type CustomerSummary = {
   /** As typed at their latest order. */
   name: string
   phone: string
+  /** Their Telegram profile photo, if they have one. */
+  photo_url: string | null
   /** Every order, rejected and cancelled ones too. */
   order_count: number
   last_order_at: string | null

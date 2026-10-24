@@ -21,6 +21,7 @@ class CustomerSummaryOut(BaseModel):
     id: uuid.UUID
     name: str  # as typed at their latest order
     phone: str
+    photo_url: str | None = None  # their Telegram profile photo (test list #6)
     order_count: int  # every order, rejected and cancelled ones too
     last_order_at: datetime | None
     # What their orders came to, except rejected and cancelled ones; orders

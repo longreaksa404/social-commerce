@@ -87,6 +87,11 @@ async def test_the_photo_is_copied_and_shown_to_the_seller(client, storage, auth
     assert order["customer"]["photo_url"] == url
     page = (await client.get(f"/api/v1/seller/customers/{customer_id}", headers=headers)).json()
     assert page["photo_url"] == url
+    # And in the lists (test list #6, 2026-10-24).
+    [row] = (await client.get("/api/v1/seller/orders", headers=headers)).json()["orders"]
+    assert row["customer_photo_url"] == url
+    [listed] = (await client.get("/api/v1/seller/customers", headers=headers)).json()["customers"]
+    assert listed["photo_url"] == url
 
     # The same photo again: nothing copied.
     await customer_photos.refresh(store_id, customer_id)
