@@ -346,8 +346,8 @@ HELP_TEXT = (
 
 def reply_button(store: Store, order: Order | None) -> dict[str, str] | None:
     """The shop's own Telegram (with "Order #1001: " typed in, from an
-    order), else its Messenger; None without either (the message then
-    gives its phone)."""
+    order), else its Messenger, else its Instagram; None without any (the
+    message then gives its phone)."""
     label = REPLY_TO.format(shop=store.name)
     if store.telegram_username:
         url = f"https://t.me/{store.telegram_username}"
@@ -356,6 +356,8 @@ def reply_button(store: Store, order: Order | None) -> dict[str, str] | None:
         return telegram.url_button(label, url)
     if store.messenger_username:
         return telegram.url_button(label, f"https://m.me/{store.messenger_username}")
+    if store.instagram_username:
+        return telegram.url_button(label, f"https://ig.me/m/{store.instagram_username}")
     return None
 
 
@@ -363,7 +365,10 @@ def seller_message_text(store: Store, order: Order | None, text: str) -> str:
     """From an order, under "<shop> · Order #1005"; from the customer's
     page, under the shop's name alone."""
     line = f"💬 {telegram.escape(text)}"
-    if not (store.telegram_username or store.messenger_username) and store.contact_phone:
+    if (
+        not (store.telegram_username or store.messenger_username or store.instagram_username)
+        and store.contact_phone
+    ):
         line += f"\n📞 {store.contact_phone}"
     if order is None:
         return f"<b>{telegram.escape(store.name)}</b>\n{line}"

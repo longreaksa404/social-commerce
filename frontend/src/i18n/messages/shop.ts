@@ -48,10 +48,12 @@ export const shop = {
   contact: {
     askTheSeller: { en: 'Ask the seller', km: 'សួរអ្នកលក់' },
     askOnMessenger: { en: 'Ask seller on Messenger', km: 'សួរអ្នកលក់តាម Messenger' },
+    askOnInstagram: { en: 'Ask seller on Instagram', km: 'សួរអ្នកលក់តាម Instagram' },
     call: { en: (phone: string) => `Call ${phone}`, km: (phone: string) => `ហៅ ${phone}` },
     short: {
       telegram: { en: 'Telegram', km: 'Telegram' },
       messenger: { en: 'Messenger', km: 'Messenger' },
+      instagram: { en: 'Instagram', km: 'Instagram' },
       phone: { en: 'Call', km: 'ហៅទូរស័ព្ទ' },
     },
     copied: {

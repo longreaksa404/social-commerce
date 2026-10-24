@@ -41,6 +41,7 @@ class StoreOut(BaseModel):
     # Call and Messenger buttons beside it (Settings → Contact); null hides each.
     contact_phone: str | None
     messenger_username: str | None
+    instagram_username: str | None
     # Not taking orders right now (Settings → Orders). Both read as off once
     # the day it reopens has come (Store.orders_paused_now).
     orders_paused: bool = Field(validation_alias="orders_paused_now")
@@ -88,6 +89,12 @@ _MESSENGER_PREFIX = re.compile(
     re.IGNORECASE,
 )
 _FACEBOOK_PAGE_ID = re.compile(r"profile\.php\?id=(\d+)")
+# An Instagram username (letters, numbers, dots and _, up to 30), typed as
+# is, with @, or as its instagram.com or ig.me/m address.
+_INSTAGRAM_USERNAME = re.compile(r"[A-Za-z0-9._]{1,30}")
+_INSTAGRAM_PREFIX = re.compile(
+    r"^(?:https?://)?(?:www\.)?(?:instagram\.com/|ig\.me/m/|ig\.me/)|^@", re.IGNORECASE
+)
 
 
 class StoreUpdate(BaseModel):
@@ -111,6 +118,8 @@ class StoreUpdate(BaseModel):
     contact_phone: str | None = Field(default=None, max_length=32)
     # "sokhafashion", "m.me/sokhafashion" or the page's facebook.com link.
     messenger_username: str | None = Field(default=None, max_length=200)
+    # "sokha.fashion", "@sokha.fashion" or its instagram.com link.
+    instagram_username: str | None = Field(default=None, max_length=200)
     # A public_url from POST /seller/store/logo; null removes the logo.
     logo_url: str | None = Field(default=None, max_length=500)
     # A public_url from POST /seller/store/cover; null removes the cover.
@@ -156,5 +165,18 @@ class StoreUpdate(BaseModel):
             raise PydanticCustomError(
                 "messenger_username",
                 "Enter your Facebook page's username, e.g. sokhafashion, or its m.me link.",
+            )
+        return value
+
+    @field_validator("instagram_username")
+    @classmethod
+    def _instagram_username(cls, value: str | None) -> str | None:
+        if value is None or not value.strip():
+            return None
+        value = _INSTAGRAM_PREFIX.sub("", value.strip()).split("?")[0].strip("/")
+        if not _INSTAGRAM_USERNAME.fullmatch(value):
+            raise PydanticCustomError(
+                "instagram_username",
+                "Enter your Instagram username, e.g. sokha.fashion, or its instagram.com link.",
             )
         return value

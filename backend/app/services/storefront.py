@@ -81,6 +81,7 @@ async def store_page(db: AsyncSession, store: Store) -> ShopStoreOut:
         telegram_username=store.telegram_username,
         contact_phone=store.contact_phone,
         messenger_username=store.messenger_username,
+        instagram_username=store.instagram_username,
         # A shop that stopped taking orders for its plan shows the same
         # notice as a paused one, with no reopening day (01_PRODUCT.md §33.1).
         # One the owner hasn't opened yet says "Opening soon" instead.

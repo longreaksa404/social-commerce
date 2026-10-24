@@ -47,6 +47,7 @@ class ShopStoreOut(BaseModel):
     # A number to call and a Facebook page for Messenger; null hides each.
     contact_phone: str | None
     messenger_username: str | None
+    instagram_username: str | None  # for DMs: ig.me/m/<it>
     # Not taking orders now: browsing works, checkout is refused. The day
     # it opens again, if the seller set one.
     orders_paused: bool

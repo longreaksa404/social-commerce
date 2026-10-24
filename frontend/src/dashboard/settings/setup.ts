@@ -79,7 +79,7 @@ export function useSetup(): Setup | null {
     { step: 'payments', done: s.payment_set_up },
     // Only once the platform's bot is set up.
     ...(s.telegram_bot_available ? [{ step: 'telegram' as const, done: s.telegram_connected }] : []),
-    { step: 'contact', done: Boolean(s.telegram_username || s.messenger_username || s.contact_phone) },
+    { step: 'contact', done: Boolean(s.telegram_username || s.messenger_username || s.instagram_username || s.contact_phone) },
     { step: 'logo', done: s.logo_url !== null },
     { step: 'open', done: plan.data.stage !== 'setup' },
   ]

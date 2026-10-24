@@ -43,6 +43,7 @@ export type Form = {
   discounts: RuleRow[]
   telegram_username: string
   messenger_username: string
+  instagram_username: string
   contact_phone: string
   low_stock_alert: string
 }
@@ -78,6 +79,7 @@ export const toForm = (store: Store): Form => {
     })),
     telegram_username: store.telegram_username ?? '',
     messenger_username: store.messenger_username ?? '',
+    instagram_username: store.instagram_username ?? '',
     contact_phone: store.contact_phone ? formatPhone(store.contact_phone) : '',
     low_stock_alert: String(store.low_stock_alert),
   }
@@ -190,8 +192,9 @@ export const SECTIONS: Record<SectionId, Section> = {
     body: (form) => ({
       telegram_username: form.telegram_username.trim() || null,
       messenger_username: form.messenger_username.trim() || null,
+      instagram_username: form.instagram_username.trim() || null,
       contact_phone: form.contact_phone.trim() || null,
     }),
-    fields: () => ['telegram_username', 'messenger_username', 'contact_phone'],
+    fields: () => ['telegram_username', 'messenger_username', 'instagram_username', 'contact_phone'],
   },
 }

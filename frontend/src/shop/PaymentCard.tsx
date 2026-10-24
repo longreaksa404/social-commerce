@@ -124,7 +124,13 @@ function IvePaid({
   const queryClient = useQueryClient()
   const total = formatMoney(order.payment.amount, order.currency)
   const contact = useContactLink(shop, p.iPaidText(order.number, total))
-  const channel = shop.telegram_username ? 'telegram' : shop.messenger_username ? 'messenger' : null
+  const channel = shop.telegram_username
+    ? 'telegram'
+    : shop.messenger_username
+      ? 'messenger'
+      : shop.instagram_username
+        ? 'instagram'
+        : null
 
   function tell() {
     // Not awaited: the chat opens at once (a new tab after a wait is

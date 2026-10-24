@@ -27,7 +27,9 @@ export function ContactButtons({ shop, text, className = '' }: { shop: ShopStore
         ? t.shop.product.askSeller
         : channel === 'messenger'
           ? c.askOnMessenger
-          : c.call(formatPhone(shop.contact_phone!))
+          : channel === 'instagram'
+            ? c.askOnInstagram
+            : c.call(formatPhone(shop.contact_phone!))
     return (
       <a {...link(channel)} rel="noreferrer" className={`${buttonClass('secondary')} w-full ${className}`}>
         <ChannelIcon channel={channel} />

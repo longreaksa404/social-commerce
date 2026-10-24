@@ -44,7 +44,8 @@ export function MessageCustomerSheet({
     { label: o.ready.cantReach.label, text: o.ready.cantReach.text(formatPhone(customer.phone)) },
     ...(orderId ? [{ label: o.ready.driverNear.label, text: o.ready.driverNear.text }] : []),
   ]
-  const noReply = store && !store.telegram_username && !store.messenger_username && !store.contact_phone
+  const noReply =
+    store && !store.telegram_username && !store.messenger_username && !store.instagram_username && !store.contact_phone
 
   useEffect(() => {
     const el = dialog.current

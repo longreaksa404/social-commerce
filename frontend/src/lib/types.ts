@@ -86,6 +86,8 @@ export type Store = {
    * username for Messenger (Settings → Contact); null hides each. */
   contact_phone: string | null
   messenger_username: string | null
+  /** An Instagram account for DMs (ig.me/m/<it>); null: none. */
+  instagram_username: string | null
   /** Not taking orders right now (Settings → Orders); false again once
    * orders_resume_on has come. */
   orders_paused: boolean
@@ -301,9 +303,10 @@ export type ShopStore = {
   discounts: DiscountRule[]
   /** null = no "Ask seller" button. */
   telegram_username: string | null
-  /** Call and Messenger buttons; null hides each. */
+  /** Call, Messenger and Instagram buttons; null hides each. */
   contact_phone: string | null
   messenger_username: string | null
+  instagram_username: string | null
   /** Not taking orders now: browsing works, checkout is refused. */
   orders_paused: boolean
   /** The day it opens again, if the seller set one. */

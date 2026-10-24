@@ -993,6 +993,7 @@ export function ContactFields({ store, form, update, error }: FieldsProps) {
   const saved = {
     telegram: store.telegram_username && form.telegram_username === store.telegram_username,
     messenger: store.messenger_username && form.messenger_username === store.messenger_username,
+    instagram: store.instagram_username && form.instagram_username === store.instagram_username,
     phone: store.contact_phone && form.contact_phone === formatPhone(store.contact_phone),
   }
   return (
@@ -1023,6 +1024,21 @@ export function ContactFields({ store, form, update, error }: FieldsProps) {
           />
         </Field>
         {saved.messenger && <TryIt href={`https://m.me/${store.messenger_username}`} />}
+      </div>
+      {/* Test list #22, 2026-10-24. */}
+      <div>
+        <Field label={s.instagram} error={fieldError(error, 'instagram_username')}>
+          <Input
+            maxLength={200}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            leading={<span className="text-sm font-medium">@</span>}
+            value={form.instagram_username}
+            onChange={(e) => update({ instagram_username: e.target.value.replace(/^@/, '') })}
+          />
+        </Field>
+        {saved.instagram && <TryIt href={`https://ig.me/m/${store.instagram_username}`} />}
       </div>
       <div>
         <Field label={s.contactPhone} error={fieldError(error, 'contact_phone')} hint={s.contactPhoneHint}>

@@ -47,6 +47,42 @@ async def test_not_a_page_username_is_refused_by_its_field(client, auth_headers,
     }
 
 
+@pytest.mark.parametrize(
+    ("typed", "saved"),
+    [
+        ("sokha.fashion", "sokha.fashion"),
+        ("@sokha_fashion", "sokha_fashion"),
+        ("https://www.instagram.com/sokha.fashion/", "sokha.fashion"),
+        ("instagram.com/sokha.fashion?igsh=abc", "sokha.fashion"),
+        ("https://ig.me/m/sokha.fashion", "sokha.fashion"),
+        ("", None),
+    ],
+)
+async def test_instagram_is_saved_as_its_username(client, auth_headers, typed, saved):
+    """Test list #22 (2026-10-24): Instagram as a way to ask the seller."""
+    headers, _, slug = await registered_seller(client, auth_headers)
+
+    response = await _contact(client, headers, instagram_username=typed)
+
+    assert response.status_code == 200, response.text
+    assert response.json()["instagram_username"] == saved
+    assert (await client.get(f"/api/v1/shop/{slug}")).json()["instagram_username"] == saved
+
+
+@pytest.mark.parametrize("typed", ["sokha fashion", "instagram.com/sokha/p/123", "a" * 31])
+async def test_not_an_instagram_username_is_refused_by_its_field(client, auth_headers, typed):
+    headers, _, _ = await registered_seller(client, auth_headers)
+
+    response = await _contact(client, headers, instagram_username=typed)
+
+    assert response.status_code == 422
+    assert response.json()["error"] == {
+        "code": "VALIDATION_ERROR",
+        "message": "Enter your Instagram username, e.g. sokha.fashion, or its instagram.com link.",
+        "field": "instagram_username",
+    }
+
+
 async def test_phone_is_stored_in_one_form_and_bad_ones_refused(client, auth_headers):
     headers, _, _ = await registered_seller(client, auth_headers)
 

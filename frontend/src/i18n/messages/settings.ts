@@ -251,6 +251,7 @@ export const settings = {
 
   contact: { en: 'Contact', km: 'ទំនាក់ទំនង' },
   messenger: { en: 'Facebook page for Messenger', km: 'ទំព័រ Facebook សម្រាប់ Messenger' },
+  instagram: { en: 'Instagram username', km: 'ឈ្មោះអ្នកប្រើ Instagram' },
   messengerHint: {
     en: 'From your page link, e.g. facebook.com/sokhafashion.',
     km: 'ពីតំណទំព័ររបស់អ្នក ឧ. facebook.com/sokhafashion។',

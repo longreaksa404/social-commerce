@@ -184,6 +184,9 @@ class Store(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     # and a Facebook page's username for Messenger (m.me/<username>).
     contact_phone: Mapped[str | None] = mapped_column(Text)
     messenger_username: Mapped[str | None] = mapped_column(Text)
+    # An Instagram account for DMs (ig.me/m/<username>; founder's test
+    # list #22, 2026-10-24).
+    instagram_username: Mapped[str | None] = mapped_column(Text)
     payment_config: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, server_default="{}")
     delivery_config: Mapped[dict[str, Any]] = mapped_column(
         JSONB, default=dict, server_default="{}"

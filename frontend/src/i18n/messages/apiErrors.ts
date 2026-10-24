@@ -122,6 +122,8 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   "Telegram alerts aren't set up yet.": 'ការជូនដំណឹងតាម Telegram មិនទាន់បានរៀបចំនៅឡើយ។',
   "Enter your Facebook page's username, e.g. sokhafashion, or its m.me link.":
     'សូមបញ្ចូលឈ្មោះទំព័រ Facebook របស់អ្នក ឧ. sokhafashion ឬតំណ m.me របស់វា។',
+  'Enter your Instagram username, e.g. sokha.fashion, or its instagram.com link.':
+    'សូមបញ្ចូលឈ្មោះអ្នកប្រើ Instagram របស់អ្នក ឧ. sokha.fashion ឬតំណ instagram.com របស់វា។',
 
   // Links
   'Choose what the link opens.': 'សូមជ្រើសអ្វីដែលតំណនឹងបើក។',

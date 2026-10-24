@@ -271,6 +271,7 @@ function summaries(store: Store, t: Messages): Record<Exclude<SectionId, 'shop'>
       [
         ...(store.telegram_username ? ['Telegram'] : []),
         ...(store.messenger_username ? ['Messenger'] : []),
+        ...(store.instagram_username ? ['Instagram'] : []),
         ...(store.contact_phone ? [formatPhone(store.contact_phone)] : []),
       ].join(', ') || m.none,
   }
