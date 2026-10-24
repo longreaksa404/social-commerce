@@ -197,7 +197,7 @@ export const settings = {
   },
   addDiscount: { en: 'Add discount', km: 'បន្ថែមការបញ្ចុះតម្លៃ' },
 
-  telegram: { en: 'Telegram', km: 'Telegram' },
+  telegram: { en: 'Telegram alerts', km: 'ការជូនដំណឹង Telegram' },
   lowStockAlert: { en: 'Warn me when this many are left', km: 'ជូនដំណឹងខ្ញុំ នៅពេលនៅសល់ប៉ុណ្ណេះ' },
   lowStockAlertHint: {
     en: 'Alert when stock falls to this number, and when sold out.',
@@ -207,26 +207,25 @@ export const settings = {
     en: 'New orders and low stock, on your phone.',
     km: 'ការកុម្ម៉ង់ថ្មី និងស្តុកជិតអស់ នៅលើទូរស័ព្ទរបស់អ្នក។',
   },
-  connected: { en: 'Connected', km: 'បានភ្ជាប់' },
   alertsUnavailable: {
     en: "Telegram alerts aren't available yet.",
     km: 'ការជូនដំណឹង Telegram មិនទាន់មានទេ។',
   },
   alertsOn: {
-    en: 'A message for new orders and low stock.',
-    km: 'មានសារពេលមានការកុម្ម៉ង់ថ្មី និងពេលស្តុកជិតអស់។',
+    en: 'On: new orders and low stock',
+    km: 'បើក៖ ការកុម្ម៉ង់ថ្មី និងស្តុកជិតអស់',
   },
   alertsOff: {
     en: 'Get a message for new orders and low stock.',
     km: 'ទទួលសារពេលមានការកុម្ម៉ង់ថ្មី និងពេលស្តុកជិតអស់។',
   },
-  disconnect: { en: 'Disconnect', km: 'ផ្ដាច់' },
-  disconnectTitle: { en: 'Disconnect Telegram?', km: 'ផ្ដាច់ Telegram?' },
+  disconnect: { en: 'Turn off', km: 'បិទ' },
+  disconnectTitle: { en: 'Turn off Telegram alerts?', km: 'បិទការជូនដំណឹង Telegram?' },
   disconnectMessage: {
     en: "You'll stop getting messages about new orders.",
     km: 'អ្នកនឹងឈប់ទទួលសារអំពីការកុម្ម៉ង់ថ្មី។',
   },
-  disconnected: { en: 'Telegram disconnected', km: 'បានផ្ដាច់ Telegram' },
+  disconnected: { en: 'Telegram alerts off', km: 'បានបិទការជូនដំណឹង Telegram' },
   connect: { en: 'Connect Telegram', km: 'ភ្ជាប់ Telegram' },
   connectWaiting: {
     en: 'In Telegram, tap Start. This page updates by itself.',

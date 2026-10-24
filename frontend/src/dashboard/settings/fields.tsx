@@ -17,7 +17,6 @@ import { Link } from 'react-router'
 import { useAskRemove, useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
 import {
-  Badge,
   Button,
   ErrorMessage,
   Field,
@@ -842,7 +841,10 @@ const LINK_REFRESH_MS = 20 * 60_000
 const CONNECT_POLL_MS = 3_000
 
 /** The Telegram chat new-order and low-stock alerts go to. Connecting and
- * disconnecting save at once, apart from the page's Save. */
+ * turning off save at once, apart from the page's Save. Every shop starts
+ * connected (the sign-up's chat with the bot), so connected is one line
+ * with Turn off; Connect shows only when off, e.g. after the seller
+ * blocked the bot (founder's test list #16, 2026-10-24). */
 function TelegramAlerts({ store }: { store: Store }) {
   const queryClient = useQueryClient()
   const { toast, confirm } = useFeedback()
@@ -887,28 +889,35 @@ function TelegramAlerts({ store }: { store: Store }) {
     if (ok) disconnect.mutate()
   }
 
+  if (connected) {
+    return (
+      <div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-sm font-medium text-slate-700">{s.telegram}</h3>
+            <p className="mt-0.5 flex items-center gap-1.5 text-sm text-emerald-700">
+              <CircleCheck aria-hidden className="size-4 shrink-0" />
+              {s.alertsOn}
+            </p>
+          </div>
+          <Button variant="ghost" loading={disconnect.isPending} onClick={askDisconnect} className="shrink-0">
+            {s.disconnect}
+          </Button>
+        </div>
+        {disconnect.error && <ErrorMessage error={disconnect.error} />}
+      </div>
+    )
+  }
+
   return (
     <>
       <div>
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="text-sm font-medium text-slate-700">{s.telegram}</h3>
-          {connected && (
-            <Badge tone="green">
-              <CircleCheck aria-hidden className="mr-1 size-3.5" />
-              {s.connected}
-            </Badge>
-          )}
-        </div>
+        <h3 className="text-sm font-medium text-slate-700">{s.telegram}</h3>
         <p className="mt-0.5 text-xs leading-5 text-slate-500">
-          {!store.telegram_bot_available ? s.alertsUnavailable : connected ? s.alertsOn : s.alertsOff}
+          {!store.telegram_bot_available ? s.alertsUnavailable : s.alertsOff}
         </p>
       </div>
-      {connected ? (
-        <Button variant="danger" loading={disconnect.isPending} onClick={askDisconnect} className="w-full sm:w-auto">
-          {s.disconnect}
-        </Button>
-      ) : (
-        canConnect && (
+      {canConnect && (
           <div>
             {link.error ? (
               <ErrorMessage error={link.error} />
@@ -927,9 +936,7 @@ function TelegramAlerts({ store }: { store: Store }) {
             )}
             <p className="mt-2 text-xs leading-5 text-slate-500">{waiting ? s.connectWaiting : s.connectHint}</p>
           </div>
-        )
       )}
-      {disconnect.error && <ErrorMessage error={disconnect.error} />}
     </>
   )
 }
