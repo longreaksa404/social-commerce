@@ -128,19 +128,23 @@ export function parseKhqr(text: string | null): KhqrAccount | KhqrProblem {
   }
 }
 
-/** Every account in a KHQR: one, or two for a "dual" code. Wing's dual
- * KHQR (the founder's own, 2026-10-25) is one code for a riel and a
- * dollar account: tag 29 holds one of them, in tag 53's currency, and
- * Wing's own tag 42 lists both (its 02 and 03) with 04 "Dual". The one
- * that isn't tag 29's is then the other currency's account, at the same
- * Bakong ID, bank and name. Other banks' dual codes may differ: they read
- * as their one account until a sample shows how. */
+/** Every account in a KHQR: one, or two for a "dual" code. Banks save a
+ * dual KHQR as one code for a riel and a dollar account (the founder's
+ * own Wing and ABA ones, 2026-10-25): tag 29 holds one of them, in tag
+ * 53's currency, and the bank's own template lists both, its 02 and 03,
+ * with 04 "Dual" (Wing's is tag 42, ABA's 40: any of the merchant tags
+ * 26-51). The one that isn't tag 29's is then the other currency's
+ * account, at the same Bakong ID, bank and name. A bank whose dual code
+ * differs reads as its one account. */
 export function parseKhqrAccounts(text: string | null): KhqrAccount[] | KhqrProblem {
   const account = parseKhqr(text)
   if (typeof account === 'string') return account
-  const extra = text && fields(text)?.get('42')
-  const dual = extra ? fields(extra) : null
-  if (!dual || dual.get('04')?.toLowerCase() !== 'dual' || !account.currency) return [account]
+  const top = text ? fields(text) : null
+  const dual = [...(top ?? [])]
+    .filter(([tag]) => Number(tag) >= 26 && Number(tag) <= 51 && tag !== '29')
+    .map(([, value]) => fields(value))
+    .find((sub) => sub?.get('04')?.toLowerCase() === 'dual')
+  if (!dual || !account.currency) return [account]
   const numbers = [dual.get('02'), dual.get('03')]
   const other = numbers.find((n) => n && n !== account.accountInformation)
   if (!other || !numbers.includes(account.accountInformation)) return [account]
