@@ -1,6 +1,20 @@
-import { BanknoteX, ChevronRight, CircleCheck, CircleX, Copy, Link2, MapPinned, MessagesSquare, PackageX, Phone, Send, Undo2 } from 'lucide-react'
+import {
+  BanknoteX,
+  ChevronRight,
+  CircleCheck,
+  CircleX,
+  Copy,
+  Link2,
+  MapPinned,
+  MessagesSquare,
+  PackageX,
+  Phone,
+  ReceiptText,
+  Send,
+  Undo2,
+} from 'lucide-react'
 import { useRef, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { reducedMotion } from '../../components/effects.ts'
 import { useFeedback } from '../../components/feedback.ts'
 import { SourceLogo } from '../../components/SourceLogo.tsx'
@@ -153,6 +167,7 @@ function OrderView({
 /** Rare actions that are hard to undo, out of the way of the everyday
  * buttons (founder's pick 5A, 2026-10-15). */
 function useMenuItems(order: Order, actions: OrderActions): MenuItem[] {
+  const navigate = useNavigate()
   const t = useT()
   const o = t.orders
   const { payment, delivery } = order
@@ -179,6 +194,10 @@ function useMenuItems(order: Order, actions: OrderActions): MenuItem[] {
       icon: Undo2,
       onSelect: actions.notPaid,
     })
+  }
+  // The parcel slip, to print or share (founder's pick 4A, 2026-10-25).
+  if (!CLOSED.has(order.status)) {
+    items.unshift({ label: o.receipt.title, icon: ReceiptText, onSelect: () => navigate(`/dashboard/orders/${order.id}/receipt`) })
   }
   return items
 }

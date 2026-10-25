@@ -12,6 +12,7 @@ import { AdminShops } from './dashboard/admin/AdminShops.tsx'
 import { Notifications } from './dashboard/Notifications.tsx'
 import { NewOrder } from './dashboard/orders/NewOrder.tsx'
 import { OrdersPage } from './dashboard/orders/OrderList.tsx'
+import { Receipt } from './dashboard/orders/Receipt.tsx'
 import { ProductEdit } from './dashboard/products/ProductEdit.tsx'
 import { ProductList } from './dashboard/products/ProductList.tsx'
 import { SettingsPage } from './dashboard/settings/SettingsPage.tsx'
@@ -60,6 +61,8 @@ export const router = createBrowserRouter([
           // An order that came by chat (founder's pick 3A).
           { path: 'orders/new', element: <NewOrder /> },
           { path: 'orders/:orderId', element: <OrdersPage /> },
+          // The order's parcel slip, to print or share (pick 4A, 2026-10-25).
+          { path: 'orders/:orderId/receipt', element: <Receipt /> },
           { path: 'customers', element: <CustomerList /> },
           { path: 'customers/:customerId', element: <CustomerDetail /> },
           { path: 'products', element: <ProductList /> },

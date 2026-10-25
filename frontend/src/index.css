@@ -412,3 +412,25 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Printing a receipt (founder's pick 4A, 2026-10-25): only the slip's
+   picture, 72 mm wide (an 80 mm roll's printable width), at the top left;
+   on A4 it prints the same size. */
+@media print {
+  @page {
+    margin: 4mm;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #receipt-print {
+    visibility: visible;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 72mm;
+    max-width: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+}

@@ -49,7 +49,8 @@ function Shell() {
   // screens on phones: no app bar or tab bar; the page brings its own back
   // button and a pinned bar with its buttons.
   const productScreen = useMatch('/dashboard/products/:productId') !== null
-  const orderScreen = useMatch('/dashboard/orders/:orderId') !== null
+  const receiptScreen = useMatch('/dashboard/orders/:orderId/receipt') !== null
+  const orderScreen = useMatch('/dashboard/orders/:orderId') !== null || receiptScreen
   const settingsScreen = useMatch('/dashboard/settings/:section') !== null
   const focused = productScreen || orderScreen || settingsScreen
   // How wide the page may get on laptops: lists that sit beside what's

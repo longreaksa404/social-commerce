@@ -167,6 +167,27 @@ export const orders = {
   send: { en: 'Send', km: 'ផ្ញើ' },
   saveWithoutSending: { en: 'Save without sending', km: 'រក្សាទុកដោយមិនផ្ញើ' },
   sendAgain: { en: 'Send again', km: 'ផ្ញើម្ដងទៀត' },
+  // The parcel slip (pick 4A, 2026-10-25).
+  receipt: {
+    title: { en: 'Receipt', km: 'វិក្កយបត្រ' },
+    alt: { en: (n: number) => `Receipt for order #${n}`, km: (n: number) => `វិក្កយបត្រការកុម្ម៉ង់ #${n}` },
+    share: { en: 'Share picture', km: 'ចែករំលែករូបភាព' },
+    save: { en: 'Save picture', km: 'រក្សាទុករូបភាព' },
+    saved: { en: 'Picture saved', km: 'បានរក្សាទុករូបភាព' },
+    print: { en: 'Print', km: 'បោះពុម្ព' },
+    bluetoothHint: {
+      en: "Bluetooth receipt printer? Share the picture to its app.",
+      km: 'ម៉ាស៊ីនព្រីន Bluetooth? ចែករំលែករូបភាពទៅកម្មវិធីរបស់វា។',
+    },
+    collect: { en: (amount: string) => `COLLECT ${amount} CASH`, km: (amount: string) => `ប្រមូលសាច់ប្រាក់ ${amount}` },
+    toPay: {
+      en: (amount: string, method: string) => `TO PAY ${amount} BY ${method}`,
+      km: (amount: string, method: string) => `ត្រូវបង់ ${amount} តាម ${method}`,
+    },
+    paid: { en: 'PAID', km: 'បានបង់' },
+    note: { en: 'Note: ', km: 'ចំណាំ៖ ' },
+    thanks: { en: 'Thank you!', km: 'សូមអរគុណ!' },
+  },
   driver: {
     title: {
       en: (number: number, shop: string | null) => `🛵 Delivery${shop ? ` for ${shop}` : ''} · Order #${number}`,
