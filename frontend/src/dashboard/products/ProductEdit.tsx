@@ -1,6 +1,6 @@
 import { Minus, Plus, Share2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
 import {
   Button,
@@ -13,7 +13,6 @@ import {
   PageHeader,
   SavedNote,
   Section,
-  Select,
   Skeleton,
   Switch,
   TextArea,
@@ -23,9 +22,10 @@ import { ApiError } from '../../lib/api.ts'
 import { errorText, fieldError, formError } from '../../lib/errors.ts'
 import { uploadProductImage } from '../../lib/images.ts'
 import type { Currency, Product, ProductStatus } from '../../lib/types.ts'
-import { useCategories, useProduct, useSaveProduct, useStore } from '../queries.ts'
+import { useProduct, useSaveProduct, useStore } from '../queries.ts'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
 import { ShareLinkSheet } from '../links/ShareLinkSheet.tsx'
+import { CategoryPicker } from './CategoryPicker.tsx'
 import { NewProductPhotos, ProductPhotos, type LocalPhoto } from './ProductPhotos.tsx'
 import { VariantList, type VariantDraft } from './VariantList.tsx'
 
@@ -133,7 +133,6 @@ function ProductForm({ product }: { product?: Product }) {
   const navigate = useNavigate()
   const { toast } = useFeedback()
   const store = useStore()
-  const categories = useCategories()
   const save = useSaveProduct()
   const [baseline, setBaseline] = useState(() => toDraft(product))
   const [draft, setDraft] = useState(baseline)
@@ -286,29 +285,7 @@ function ProductForm({ product }: { product?: Product }) {
             />
           )}
 
-          <Field
-            label={p.category}
-            error={fieldError(save.error, 'category_id')}
-            hint={
-              categories.data?.length === 0 ? (
-                <>
-                  {p.noCategoriesYet}{' '}
-                  <Link to="/dashboard/categories" className="font-medium text-navy-700 link">
-                    {p.createOne}
-                  </Link>
-                </>
-              ) : undefined
-            }
-          >
-            <Select value={draft.category_id} onChange={(e) => set('category_id', e.target.value)}>
-              <option value="">{p.noCategory}</option>
-              {categories.data?.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
+          <CategoryPicker value={draft.category_id} onChange={(id) => set('category_id', id)} />
           <Field label={p.description} hint={p.descriptionHint} error={fieldError(save.error, 'description')}>
             <TextArea
               rows={4}

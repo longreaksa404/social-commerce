@@ -69,9 +69,9 @@ export const products = {
     km: 'ទំហំ សាច់ក្រណាត់ របៀបថែទាំ…',
   },
   category: { en: 'Category', km: 'ប្រភេទ' },
-  noCategoriesYet: { en: 'No categories yet.', km: 'មិនទាន់មានប្រភេទនៅឡើយ។' },
-  createOne: { en: 'Create one', km: 'បង្កើតមួយ' },
   noCategory: { en: 'No category', km: 'គ្មានប្រភេទ' },
+  // + New on the product's category chips (pick 10A, 2026-10-25).
+  newCategory: { en: 'New', km: 'ថ្មី' },
   price: { en: 'Price', km: 'តម្លៃ' },
   hasVariants: { en: 'This product has variants', km: 'ទំនិញនេះមានជម្រើស' },
   hasVariantsHint: {
