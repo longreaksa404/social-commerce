@@ -31,7 +31,8 @@ Confirm what we're working on before writing code, unless I've already stated it
    tenant_id from a request body. No per-tenant infrastructure.
 2. Order, payment, and delivery are three independent state machines
    (02_TECHNICAL.md section 7). Never infer one status from another. The only
-   coupling is the completion rule in section 7.4.
+   coupling is the completion rule in section 7.4, which also completes a
+   delivered, paid order by itself (2026-10-24).
 3. Keep infrastructure and architecture simple: no microservices, queues, or
    extra services unless there's a clear need. If you think something more
    complex or different would genuinely be better, don't just do it and don't

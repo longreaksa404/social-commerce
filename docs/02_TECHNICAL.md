@@ -147,6 +147,7 @@ seller (owner)
      ├─ category
      ├─ product
      │   └─ product_variant
+     ├─ sale (products on sale, 2026-10-24)
      ├─ customer
      ├─ order
      │   ├─ order_item
@@ -187,7 +188,8 @@ seller (owner)
 | telegram_username | text, nullable | the seller's own Telegram username (without @), public on the shop page for "Ask seller" |
 | contact_phone | text, nullable | a number customers can call, stored like customers' phones (`012345678`); public (2026-10-08) |
 | messenger_username | text, nullable | a Facebook page's username or number, for a Messenger button (`m.me/<it>`); public (2026-10-08) |
-| payment_config | JSONB | which methods are on, with their details: `{"cod": {"enabled": true}, "bank_transfer": {"enabled", "bank_name", "account_name", "account_number"}, "khqr": {"enabled", "bakong_account_id", "merchant_name", "account_information", "acquiring_bank"}}` (the last two for banks like ABA whose customers share the bank's Bakong ID, 2026-10-14). A method can only be on with its details filled in; at least one must be on. Missing parts read as the defaults (cash on delivery on, the others off), so a new store takes cash on delivery. Details are kept while a method is off. |
+| instagram_username | text, nullable | an Instagram username, for an Instagram button (`ig.me/m/<it>`); public (2026-10-24) |
+| payment_config | JSONB | which methods are on, with their details: `{"cod": {"enabled": true}, "bank_transfer": {"enabled", "bank_name", "account_name", "account_number"}, "khqr": {"enabled", "bakong_account_id", "merchant_name", "account_information", "acquiring_bank"}}` (the last two for banks like ABA whose customers share the bank's Bakong ID, 2026-10-14). A method can only be on with its details filled in; at least one must be on. Bank transfer is never on since 2026-10-24 (§10.2); its details stay for orders placed with it before. Missing parts read as the defaults (cash on delivery on, the others off), so a new store takes cash on delivery. Details are kept while a method is off. |
 | delivery_config | JSONB | `{"fee", "free_from_amount", "free_from_items", "own_delivery": {"enabled"}, "couriers": ["J&T Express", ...], "pickup": {"enabled", "address"}}`. One fee for any delivery (own or courier); free from an amount (items before discount) or a number of units; pickup free. At least one of own delivery, a courier, or pickup. Missing parts read as the defaults (own delivery on, free), so a new store can take orders at once. A new store starts with `{"fee": "2.00"}` (8000.00 for riel, following a currency change until delivery is saved; decided 2026-10-18); stores from before keep `{}`, free. |
 | discount_config | JSONB | `{"rules": [{"min_subtotal", "amount_off"}]}`, up to 5; the biggest rule the items reach applies, never more than the items |
 | order_confirmation_mode | enum(`automatic`,`manual`) | default `manual` |
@@ -219,6 +221,11 @@ seller (owner)
 
 ### `product_variant`
 | id, store_id (FK, tenant scope), product_id (FK), name (e.g. "Red / L"), sku (nullable), price_override (nullable), stock_quantity (int), created_at |
+
+### `sale` (2026-10-24)
+| id, store_id (FK, tenant scope, RLS), name (nullable), percent_off (int 1–90) **or** amount_off (numeric(12,2) > 0), product_ids (JSONB list of the store's product ids), ends_on (date, nullable: the last day, Phnom Penh; null until removed), created_at |
+
+A product's price today is the lowest of its price and each active sale's price for it (percent: riel rounded to the nearest 100, dollars to the cent; amount: never below 0). Checkout, the shop and the seller's chat orders all use it; bill discounts count on the sale prices.
 
 ### `customer`
 | Column | Type | Notes |
@@ -356,6 +363,7 @@ store 1───N plan_payment
 ```
 POST   /api/v1/auth/register                # shop name, password, phone_check (2026-10-09); name from Telegram, link a code (2026-10-18)
 POST   /api/v1/auth/login                   # phone number, or an older account's email; password
+POST   /api/v1/auth/telegram                # "Log in with Telegram": an owner's phone_check verified in the bot (2026-10-24)
 POST   /api/v1/auth/refresh
 POST   /api/v1/auth/logout
 POST   /api/v1/auth/password-reset            # Forgot password? a link to the shop's Telegram chat; same answer for any login
@@ -378,6 +386,7 @@ POST   /api/v1/seller/account/password        # needs the current one if there i
 POST   /api/v1/seller/account/close-shop      # owner; password, if the account has one; link and logins stop, nothing erased
 GET    /api/v1/seller/staff                   # owner only, like everything under Settings
 POST   /api/v1/seller/staff                   # name, phone (their login), first password
+PATCH  /api/v1/seller/staff/{id}              # name, phone (2026-10-24)
 POST   /api/v1/seller/staff/{id}/password
 DELETE /api/v1/seller/staff/{id}
 ```
@@ -455,6 +464,15 @@ GET    /api/v1/seller/stats?period=today|week|month   # owner; sales and orders,
 ```
 GET    /api/v1/seller/customers               # whoever ordered last first; ?q= part of a name or phone
 GET    /api/v1/seller/customers/{id}          # includes order history (latest 100)
+POST   /api/v1/seller/customers/{id}/telegram-message   # "Message on Telegram" from the customer's page (2026-10-24)
+```
+
+### Seller — Sales (2026-10-24)
+```
+GET    /api/v1/seller/sales                   # owner; newest first, ended ones too
+POST   /api/v1/seller/sales                   # name?, percent_off or amount_off, product_ids, ends_on?
+PUT    /api/v1/seller/sales/{id}
+DELETE /api/v1/seller/sales/{id}
 ```
 
 ### Seller — Notifications
@@ -517,25 +535,26 @@ Matches `01_PRODUCT.md` §29–§31 and Rule 4/Rule 5 (§32): order, payment, an
 ## 7.1 Order State Machine
 
 ```
-PENDING ──accept──▶ ACCEPTED ──▶ PROCESSING ──▶ READY ──▶ SHIPPED ──▶ DELIVERED ──▶ COMPLETED
+PENDING ──accept──▶ ACCEPTED ──▶ (READY: pickup only) ──▶ COMPLETED
    │                    │
    └──reject──▶ REJECTED └──cancel──▶ CANCELLED
 ```
 
-- Allowed transitions enforced via a transition table in code. The steps after accepted are optional, forward only (the short path, decided 2026-10-09): Accept, Delivered, Complete is enough for a cash order. `*` = only if §7.4 holds:
+- Allowed transitions enforced via a transition table in code. Accept, then Complete (2026-10-24; before, the short path of 2026-10-09 had optional steps between). `*` = only if §7.4 holds:
 ```python
 ALLOWED_ORDER_TRANSITIONS = {
     "pending": {"accepted", "rejected"},
-    "accepted": {"processing", "ready", "shipped", "completed*", "cancelled"},
-    "processing": {"ready", "shipped", "completed*", "cancelled"},
-    "ready": {"shipped", "completed*", "cancelled"},
-    "shipped": {"delivered", "completed*"},
-    "delivered": {"completed*"},
+    "accepted": {"ready", "completed*", "cancelled"},   # ready: pickup orders only
+    "ready": {"completed*", "cancelled"},
+    "processing": {"completed*", "cancelled"},          # retired 2026-10-24
+    "shipped": {"completed*"},                          # retired 2026-10-24
+    "delivered": {"completed*"},                        # retired 2026-10-24
     "completed": set(),
     "rejected": set(),
     "cancelled": set(),
 }
 ```
+- **Fewer steps (2026-10-24):** the order's own processing, shipped and delivered steps were retired (the delivery's status says where the parcel is); orders in them were moved back to accepted. `ready` stays for pickup orders only ("Ready to collect"). The values stay in the enum.
 - `order_confirmation_mode` (on `store`) determines whether a new order enters `pending` (manual) or is auto-transitioned to `accepted` immediately (automatic) via the same service function.
 
 ## 7.2 Payment State Machine
@@ -565,6 +584,8 @@ NOT_ASSIGNED ──▶ ASSIGNED ──▶ PICKED_UP ──▶ IN_TRANSIT ──�
 ## 7.4 Cross-State Validity (Rule 4 / Rule 5)
 
 No database constraint forces payment/delivery status to match order status — this is intentional. Valid real-world combinations like `order=shipped, payment=pending` (COD) must remain possible. The only enforced coupling: an order cannot move to `completed` unless `delivery.status = delivered` **and** (`payment.status = paid` **or** `payment.method = cod`) (COD orders complete on delivery regardless of when cash changes hands; the delivery condition was added 2026-10-03) — this single business rule lives in the order-transition service function, not the schema.
+
+**Completes by itself (2026-10-24):** once the delivery is `delivered` **and** the payment is `paid`, recording the last of the two moves the order to `completed` through the same transition function, in the same commit. Cash on delivery therefore waits for the cash to be recorded; the seller can still complete a COD order by hand without it, as above.
 
 ## 7.5 Oak Order's Own Billing (2026-10-14)
 
@@ -624,7 +645,7 @@ Facebook, Messenger, Telegram, TikTok and similar apps build a link's preview ca
 
 # 10. Payment Integration
 
-Matches `01_PRODUCT.md` §25: **COD + KHQR + manual bank transfer**, no additional providers.
+Matches `01_PRODUCT.md` §25: **COD + KHQR**, no additional providers (manual bank transfer removed 2026-10-24, §10.2).
 
 **Decided (2026-10-02):**
 - The customer chooses the method at checkout, from those the store has on (`payment_config`). Only method names are public; account details and the KHQR code come with the order.
@@ -636,6 +657,8 @@ Matches `01_PRODUCT.md` §25: **COD + KHQR + manual bank transfer**, no addition
 No integration. `payment.status` starts `pending`, seller manually marks `paid` after collecting cash (`PATCH /seller/orders/{id}/payment`). A COD order can be completed without the cash being recorded (§7.4).
 
 ## 10.2 Manual Bank Transfer
+**Removed 2026-10-24:** no longer offered at checkout or in Settings; `bank_transfer.enabled` is never on. Orders placed with it before still show the stored account while unpaid. What follows is how it worked.
+
 No integration. Store's `payment_config.bank_transfer` holds account details (bank, name on the account, account number), shown to the customer on the order page right after they order, with the amount and a request to put the order number (e.g. "#1001") in the transfer note. Customer transfers manually; seller manually marks `paid` after checking their bank app. `payment.reference` can store a free-text note (e.g., last 4 digits, transfer time) for reconciliation.
 
 ## 10.3 KHQR
@@ -735,6 +758,7 @@ Customer taps "Ask seller on Telegram" on the product page
 
 - **Passwords:** `bcrypt` (used directly; passlib is unmaintained), never stored/logged in plaintext.
 - **Sign-up (2026-10-09):** a phone number proved in Telegram (§12.4), one account per number; login by that number (any spelling) or, for accounts from before, their email.
+- **Log in with Telegram (2026-10-24):** a shop owner proves their number in the Telegram bot (the same phone check as sign-up, §12.4) and `POST /auth/telegram` logs them in; a number without a shop gets 404 and keeps its check for sign-up; staff numbers are refused (staff use their password). Owners keep their password.
 - **Google, Facebook, TikTok (2026-10-09):** Google's ID token is checked (signature against Google's keys, audience = our client ID, issuer, expiry). Facebook and TikTok send the browser back to `/auth/<provider>/callback` with a one-time code and the `state` the tab saved; the API trades the code with the app's secret (Facebook with `appsecret_proof`), and only for the app's own callback addresses. Nothing is stored but the account's id and its name and verified email. An account is joined to a shop only from that shop's own Settings, never by a matching phone number or email.
 - **Privacy policy, terms, data deletion (2026-10-09):** public pages at `/privacy`, `/terms` and `/data-deletion`, in English and Khmer, which Meta and TikTok require; they must stay true to what the code keeps.
 - **Tokens:** short-lived access JWT (~15 min) + longer-lived refresh JWT (~7 days), refresh rotated on use; a retry within 60 s of a rotation gets a new pair, later reuse ends every session of that seller. The access token is in the response body and kept in memory only; the refresh token is an httpOnly, Secure, SameSite=Lax cookie on the API's host, path `/api/v1/auth`, so no script can read it (app and API share the site oaksolve.com, 2026-10-09).

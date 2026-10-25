@@ -1027,16 +1027,16 @@ The MVP should therefore focus on the smallest complete transaction loop.
 **Decided (2026-10-08), added to the MVP at the founder's request:**
 
 - Pause orders for a while, with an optional day they open again by themselves
-- Contact buttons for customers: Telegram, Messenger (a Facebook page), a phone to call
+- Contact buttons for customers: Telegram, Messenger (a Facebook page), Instagram (2026-10-24), a phone to call
 - Low-stock alert level
-- Account: name, phone number (the login, changed through Telegram), password; a forgotten password is reset through the shop's Telegram chat (or by Oak Order)
+- Account: name, phone number (the login, changed through Telegram), password; a forgotten password is reset through the shop's Telegram chat (or by Oak Order). Owners can also "Log in with Telegram" (2026-10-24); staff log in with their phone and password
 - Staff logins: helpers with their own phone number who can do everything except Settings
 - Export orders to Excel
 - Close shop: the link and logins stop, nothing is erased; Oak Order reopens it or erases it for good on request
 
 **Decided (2026-10-09):** orders that came by chat, added by the seller at the shop's prices; a short path (Accept, Delivered, Complete; the steps between optional; "Delivered, cash received" for cash on delivery); "Not paid after all"; Send to driver; a setup checklist for new shops. The shop's numbers wait for a seller dashboard.
 
-**Decided (2026-10-09):** sellers sign up with a phone number proved through the Telegram bot (free; one shop per number) and a password, or with Google, Facebook or TikTok. The purpose is ease of use; after signing up, sellers still pay a subscription to use the platform (pricing still open, §46). A privacy policy, terms of service and data deletion instructions are public pages.
+**Decided (2026-10-09):** sellers sign up with a phone number proved through the Telegram bot (free; one shop per number) and a password, or with Google, Facebook or TikTok. Since 2026-10-24 Log in starts with "Log in with Telegram" for shop owners (the number shared with the bot, as at sign-up); owners keep their password, and staff log in only with phone and password. The purpose is ease of use; after signing up, sellers still pay a subscription to use the platform (pricing still open, §46). A privacy policy, terms of service and data deletion instructions are public pages.
 
 # 24. MVP Customer Features
 
@@ -1077,6 +1077,8 @@ Manual Bank Transfer
 
 The exact implementation depends on validation and integration feasibility.
 
+**Decided (2026-10-24):** bank transfer was removed: KHQR does the same with nothing to type wrong. The MVP offers cash on delivery and KHQR. Orders placed with bank transfer before still show the account to pay.
+
 **Decided (2026-10-02):** the MVP offers all three, each turned on or off by the seller. The customer chooses one at checkout and sees how to pay right after ordering, before the seller accepts. KHQR codes are made from the seller's Bakong ID with the exact amount, without a payment provider. The seller confirms every payment by hand.
 
 Do not implement multiple payment providers simply to make the product appear complete.
@@ -1097,7 +1099,9 @@ Complex logistics functionality should be postponed.
 
 **Decided (2026-10-03):** the seller turns on delivery, pickup, or both; under delivery they list the couriers they send with, if any (e.g. J&T Express, VET Express; one Delivery switch since 2026-10-18, before that own delivery and couriers were separate). The customer chooses delivery or pickup at checkout; under delivery they can pick one of the shop's couriers or leave it to the shop, and the seller chooses their own driver or a courier when sending (founder, 2026-10-18; before that each courier was its own choice next to the shop's delivery). Delivery costs one fee set by the seller, the same for every address and every courier (per-area fees were dropped because a customer could pick the cheaper area); the seller can make it free from an amount or from a number of items, and pickup is always free. A new shop starts at $2 a delivery (8,000៛ in a riel shop) until the seller changes it (founder, 2026-10-18); shops from before keep their fee. For delivery the customer gives a typed address, a pin they place on a map (it can jump to the phone's location), or both, plus an optional note for the driver; the seller opens the location in Google Maps. The seller books the courier and moves each delivery along by hand; no courier integration in the MVP.
 
-**Decided (2026-10-03):** simple bill discounts are in the MVP: the seller sets a fixed amount off once the items reach a total (e.g. $5 off from $40). If an order reaches more than one, the biggest applies; they never add up. No discount codes, percentages, or per-product discounts.
+**Decided (2026-10-03):** simple bill discounts are in the MVP: the seller sets a fixed amount off once the items reach a total (e.g. $5 off from $40). If an order reaches more than one, the biggest applies; they never add up. No discount codes.
+
+**Decided (2026-10-24):** sales on chosen products: the seller picks products and takes a percentage or an amount off each one's price (every option of it), until a last day or until removed. A product in two sales gets the lower price; sales never add up. The bill discounts then count on the sale prices. The shop shows the sale price with the old one crossed out. (Until then: no percentages or per-product discounts.)
 
 # 27. MVP Telegram Scope
 
@@ -1153,7 +1157,7 @@ The following should not be part of the initial MVP unless validation demonstrat
 - Accounting
 - Payroll
 - Complex reporting
-- Advanced promotion engine (simple bill discounts are in the MVP, §26)
+- Advanced promotion engine (simple bill discounts and sales on chosen products are in the MVP, §26)
 - Advanced marketing automation
 
 ## Platform Features
@@ -1200,6 +1204,8 @@ COMPLETED
 ```
 
 Cancellation may occur from appropriate states.
+
+**Decided (2026-10-24):** the order's own steps are PENDING → ACCEPTED → COMPLETED (or REJECTED / CANCELLED); a pickup order may also be READY ("Ready to collect") before it completes. PROCESSING, SHIPPED and DELIVERED were retired: the delivery's own status says where the parcel is. An order completes by itself once its delivery is delivered and its payment paid (cash on delivery: once the cash is received); the seller can still complete a cash order without recording the cash.
 
 # 30. Payment State Model
 
@@ -1905,7 +1911,7 @@ Decided so far (details in §24, §25 and `02_TECHNICAL.md`):
 
 - Guest checkout, no customer accounts in the MVP (2026-10-02)
 - Order tracking: the order link plus the phone used at checkout (2026-10-02)
-- Payment methods: cash on delivery, bank transfer, and KHQR, each turned on by the seller (2026-10-02)
+- Payment methods: cash on delivery and KHQR, each turned on by the seller (2026-10-02; bank transfer removed 2026-10-24)
 - KHQR: generated from the seller's Bakong ID, no payment provider (2026-10-02)
 - Payment timing: the customer sees how to pay right after ordering (2026-10-02)
 - Payment confirmation: by hand by the seller, for every method (2026-10-02)
