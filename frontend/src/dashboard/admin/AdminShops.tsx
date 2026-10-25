@@ -1,18 +1,20 @@
 import { ChevronRight, Search } from 'lucide-react'
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router'
-import { Badge, Card, EmptyState, ErrorState, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
+import { useFeedback } from '../../components/feedback.ts'
+import { Badge, Button, Card, EmptyState, ErrorMessage, ErrorState, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
 import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { formatMoney } from '../../lib/money.ts'
 import { formatDate, formatPhone } from '../../lib/orders.ts'
-import type { AdminShop } from '../../lib/types.ts'
-import { useAccount, useAdminShops } from '../queries.ts'
+import type { AdminShop, PlanPayment } from '../../lib/types.ts'
+import { useAccount, useAdminShops, useCheckClaim } from '../queries.ts'
 import { STAGE_TONE, day } from './shared.ts'
 
 const usd = (amount: string) => formatMoney(amount, 'USD')
 
-const FILTERS = ['all', 'claimed', 'ending', 'unpaid', 'stopped'] as const
+// What needs the founder first, All last (founder's pick 28A, 2026-10-25).
+const FILTERS = ['claimed', 'ending', 'unpaid', 'stopped', 'all'] as const
 type Filter = (typeof FILTERS)[number]
 
 const matches: Record<Filter, (shop: AdminShop) => boolean> = {
@@ -25,13 +27,18 @@ const matches: Record<Filter, (shop: AdminShop) => boolean> = {
 
 /** /dashboard/admin: Oak Order's admin page (founder's pick 2B): every
  * shop's plan, the soonest to run out first. Only for the founder's login
- * (ADMIN_PHONES); the API refuses anyone else. */
+ * (ADMIN_PHONES); the API refuses anyone else. An inbox of what needs the
+ * founder (pick 28A, 2026-10-25): tabs with their counts, opening on
+ * "Said paid" while any wait, each with Found it / Not found on its row. */
 export function AdminShops() {
   const t = useT()
   const a = t.admin
   const account = useAccount()
   const shops = useAdminShops()
-  const [filter, setFilter] = useState<Filter>('all')
+  const [picked, setPicked] = useState<Filter | null>(null)
+  const waiting = (shops.data ?? []).some(matches.claimed)
+  const filter: Filter = picked ?? (waiting ? 'claimed' : 'all')
+  const setFilter = setPicked
   const [query, setQuery] = useState('')
   if (account.data && !account.data.is_admin) return <Navigate to="/dashboard" replace />
 
@@ -71,6 +78,11 @@ export function AdminShops() {
               }`}
             >
               {a.filters[key]}
+              {shops.data && (
+                <span className={`ml-1.5 tabular-nums ${filter === key ? 'text-white/80' : 'text-slate-500'}`}>
+                  {shops.data.filter(matches[key]).length}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -88,6 +100,7 @@ export function AdminShops() {
                 {shown.map((shop) => (
                   <li key={shop.id}>
                     <ShopRow shop={shop} a={a} />
+                    {shop.claim && <ClaimButtons shop={shop} claim={shop.claim} />}
                   </li>
                 ))}
               </ul>
@@ -105,6 +118,9 @@ function ShopRow({ shop, a }: { shop: AdminShop; a: Messages['admin'] }) {
       to={`/dashboard/admin/${shop.id}`}
       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100 sm:[li:first-child>&]:rounded-t-2xl sm:[li:last-child>&]:rounded-b-2xl"
     >
+      <span aria-hidden className="flex size-10 shrink-0 items-center justify-center self-start rounded-full bg-navy-50 font-semibold text-navy-700">
+        {[...shop.name.trim()][0]?.toUpperCase()}
+      </span>
       <span className="min-w-0 flex-1 space-y-1">
         <span className="flex flex-wrap items-center gap-1.5">
           <span className="truncate font-medium text-slate-900">{shop.name}</span>
@@ -128,5 +144,40 @@ function ShopRow({ shop, a }: { shop: AdminShop; a: Messages['admin'] }) {
       </span>
       <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
     </Link>
+  )
+}
+
+/** The two answers to an "I've paid", right on its row: Found it marks it
+ * paid at the amount claimed (asks first); Not found tells the seller
+ * "No transfer with your code yet" (asks first). Another amount or note:
+ * the shop's own page. */
+function ClaimButtons({ shop, claim }: { shop: AdminShop; claim: PlanPayment }) {
+  const a = useT().admin
+  const { confirm, toast } = useFeedback()
+  const check = useCheckClaim(shop.id)
+  const period = (claim.period === 'month' ? a.month : a.year).toLowerCase()
+
+  async function found() {
+    const ok = await confirm({ title: a.foundTitle(shop.name), message: a.confirmMessage(usd(claim.amount), period), confirmLabel: a.found })
+    if (ok) check.mutate({ paymentId: claim.id, found: true, note: null }, { onSuccess: (updated) => toast(a.marked(day(updated.paid_until))) })
+  }
+
+  async function notFound() {
+    const ok = await confirm({ title: a.notFoundTitle, message: a.notFoundDefault, confirmLabel: a.notFound, danger: true })
+    if (ok) check.mutate({ paymentId: claim.id, found: false, note: a.notFoundDefault }, { onSuccess: () => toast(a.checked) })
+  }
+
+  return (
+    <div className="space-y-2 px-4 pb-3">
+      <div className="flex gap-2">
+        <Button loading={check.isPending && check.variables?.found} disabled={check.isPending} onClick={found} className="flex-1 sm:flex-none">
+          {a.found}
+        </Button>
+        <Button variant="secondary" disabled={check.isPending} onClick={notFound} className="flex-1 sm:flex-none">
+          {a.notFound}
+        </Button>
+      </div>
+      <ErrorMessage error={check.error} />
+    </div>
   )
 }
