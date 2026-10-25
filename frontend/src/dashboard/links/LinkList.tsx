@@ -1,4 +1,4 @@
-import { Copy, Link2, Plus, Store as StoreIcon } from 'lucide-react'
+import { Copy, Link2, Plus, Store as StoreIcon, Tags } from 'lucide-react'
 import { Link } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
 import { SourceLogo } from '../../components/SourceLogo.tsx'
@@ -6,10 +6,11 @@ import { hasLogo } from '../../lib/sourceLogos.ts'
 import { Button, Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
 import { useT } from '../../i18n/useT.ts'
-import { linkPlace, linkTargetName, linkUrl, TARGET_ICONS } from '../../lib/links.ts'
+import { linkPlace, linkTargetName, linkUrl } from '../../lib/links.ts'
 import type { ShareLink } from '../../lib/types.ts'
 import { useShareShop } from '../ShareShop.tsx'
-import { useLinks, useStore } from '../queries.ts'
+import { NoPhoto, ProductImage } from '../../shop/components.tsx'
+import { useLinks, useProducts, useStore } from '../queries.ts'
 
 /** /dashboard/links: a link per place the seller posts, with the views and
  * orders each brought. */
@@ -38,7 +39,9 @@ export function LinkList() {
     return (
       <>
         <PageHeader title={l.title} />
-        <ShopLinkCard />
+        <Card className="mb-4 overflow-hidden">
+          <ShopLinkRow />
+        </Card>
         <EmptyState
           icon={Link2}
           title={l.emptyTitle}
@@ -58,29 +61,103 @@ export function LinkList() {
   return (
     <>
       <PageHeader title={l.title} action={newButton} />
-      <ShopLinkCard />
-      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {links.data.map((link) => (
-          <li key={link.id}>
-            <LinkCard link={link} />
-          </li>
-        ))}
-      </ul>
+      <LinkGroups links={links.data} />
     </>
   )
 }
 
-/** The shop's plain link, first on Links: it was Settings → Shop link
+type Group = { key: string; type: ShareLink['target_type']; id: string | null; name: string; links: ShareLink[] }
+
+/** Links grouped by what they open (founder's pick 11A, 2026-10-25): the
+ * shop (its own link, then whole-shop links), then each product once with
+ * its photo, then each category, each with its places as rows: views,
+ * orders and Copy. Most orders first inside each part. */
+function LinkGroups({ links }: { links: ShareLink[] }) {
+  const t = useT()
+  const l = t.links
+  const products = useProducts()
+  const photo = new Map(products.data?.map((p) => [p.id, p.image_urls[0]]))
+  const groups = new Map<string, Group>()
+  for (const link of links) {
+    const key = link.target_type === 'store' ? 'store' : `${link.target_type}:${link.target_id}`
+    const group = groups.get(key) ?? {
+      key,
+      type: link.target_type,
+      id: link.target_id,
+      name: linkTargetName(t, link),
+      links: [],
+    }
+    group.links.push(link)
+    groups.set(key, group)
+  }
+  const orders = (g: Group) => g.links.reduce((n, link) => n + link.order_count, 0)
+  const byOrders = (a: Group, b: Group) => orders(b) - orders(a)
+  for (const g of groups.values()) g.links.sort((a, b) => b.order_count - a.order_count || b.view_count - a.view_count)
+  const all = [...groups.values()]
+  const shop = groups.get('store')
+  const parts = [
+    { title: l.products, groups: all.filter((g) => g.type === 'product').sort(byOrders) },
+    { title: l.categories, groups: all.filter((g) => g.type === 'category').sort(byOrders) },
+  ]
+
+  return (
+    <div className="space-y-6">
+      <section aria-labelledby="links-shop" className="space-y-2">
+        <h2 id="links-shop" className="text-sm font-semibold text-slate-500 sm:px-1">
+          {l.yourShop}
+        </h2>
+        <Card className="divide-y divide-slate-100 overflow-hidden">
+          <ShopLinkRow />
+          {shop?.links.map((link) => <PlaceRow key={link.id} link={link} />)}
+        </Card>
+      </section>
+      {parts.map(
+        (part) =>
+          part.groups.length > 0 && (
+            <section key={part.title} aria-label={part.title} className="space-y-2">
+              <h2 className="text-sm font-semibold text-slate-500 sm:px-1">{part.title}</h2>
+              <div className="grid gap-3 lg:grid-cols-2">
+                {part.groups.map((group) => (
+                  <Card key={group.key} className="divide-y divide-slate-100 overflow-hidden">
+                    <div className="flex items-center gap-3 px-4 py-3">
+                      {group.type === 'product' ? (
+                        photo.get(group.id ?? '') ? (
+                          <ProductImage small src={photo.get(group.id ?? '')!} alt="" className="size-11 shrink-0 rounded-lg" />
+                        ) : (
+                          <NoPhoto className="size-11 shrink-0 rounded-lg" iconClassName="size-5" />
+                        )
+                      ) : (
+                        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                          <Tags aria-hidden className="size-5" />
+                        </span>
+                      )}
+                      <p className="min-w-0 flex-1 truncate font-semibold text-slate-900">{group.name}</p>
+                      <span className="shrink-0 text-sm text-slate-500 tabular-nums">{l.orders(orders(group))}</span>
+                    </div>
+                    {group.links.map((link) => (
+                      <PlaceRow key={link.id} link={link} />
+                    ))}
+                  </Card>
+                ))}
+              </div>
+            </section>
+          ),
+      )}
+    </div>
+  )
+}
+
+/** The shop's plain link, first in Your shop: it was Settings → Shop link
  * until the settings check (founder, 2026-10-19: "we already have Links").
- * Copy as on every link's card; the header's share button shares it. */
-function ShopLinkCard() {
+ * Copy as on every link; the header's share button shares it. */
+function ShopLinkRow() {
   const store = useStore()
   const { copy } = useShareShop()
   const l = useT().links
   if (!store.data) return null
   const shown = `${window.location.host}/shop/${store.data.slug}`
   return (
-    <Card className="mb-4 flex items-center gap-3 p-4">
+    <div className="flex items-center gap-3 px-4 py-3">
       <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
         <StoreIcon aria-hidden className="size-5" />
       </span>
@@ -91,16 +168,14 @@ function ShopLinkCard() {
       <Button variant="secondary" icon={Copy} onClick={copy} className="shrink-0">
         {l.copy}
       </Button>
-    </Card>
+    </div>
   )
 }
 
-/** A link as a card (founder's pick, 2026-10-08): where it's posted and
- * what it opens, Copy right on it (posting a link is one tap from the
- * list), and its views and orders, with how many of the views ordered.
- * The card opens the link's page. */
-function LinkCard({ link }: { link: ShareLink }) {
-  const Icon = TARGET_ICONS[link.target_type]
+/** One link: where it's posted (the place's own logo), its views and
+ * orders with how many of the views ordered, and Copy right on it. The
+ * row opens the link's page. */
+function PlaceRow({ link }: { link: ShareLink }) {
   const { toast } = useFeedback()
   const t = useT()
   const l = t.links
@@ -117,49 +192,34 @@ function LinkCard({ link }: { link: ShareLink }) {
   }
 
   return (
-    <Card className="relative flex h-full flex-col gap-3 p-4 transition-colors hover:bg-slate-50">
-      <div className="flex items-center gap-3">
-        {/* The place's own logo, so links are told apart at a glance. */}
-        {hasLogo(link.source) ? (
-          <SourceLogo source={link.source} />
-        ) : (
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-            <Icon aria-hidden className="size-5" />
-          </span>
-        )}
-        <div className="min-w-0 flex-1">
-          <Link
-            to={`/dashboard/links/${link.id}`}
-            className="block truncate font-semibold text-slate-900 after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-2 focus-visible:outline-navy-600"
-          >
-            {linkTargetName(t, link)}
-          </Link>
-          <p className="truncate text-sm text-slate-500">
-            {linkPlace(link) || l.wholeShop}
-            {link.path === null && <span className="text-red-700">{l.notWorkingTag}</span>}
-          </p>
-        </div>
-        {link.path && (
-          // Above the card's link, so it copies rather than opens.
-          <Button variant="secondary" icon={Copy} onClick={copy} className="relative z-10 shrink-0">
-            {l.copy}
-          </Button>
-        )}
+    <div className="relative flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-slate-50">
+      {hasLogo(link.source) ? (
+        <SourceLogo source={link.source} className="size-8" />
+      ) : (
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+          <Link2 aria-hidden className="size-4" />
+        </span>
+      )}
+      <div className="min-w-0 flex-1">
+        <Link
+          to={`/dashboard/links/${link.id}`}
+          className="block truncate text-sm font-medium text-slate-900 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-navy-600"
+        >
+          {linkPlace(link) || l.wholeShop}
+          {link.path === null && <span className="text-red-700">{l.notWorkingTag}</span>}
+        </Link>
+        <p className="text-xs text-slate-500 tabular-nums">
+          {l.views(link.view_count)} · {l.orders(link.order_count)}
+          {pct !== null && ` · ${l.ordered(pct)}`}
+        </p>
       </div>
-      <dl className="grid grid-cols-2 gap-2">
-        <div className="rounded-xl bg-slate-50 px-3 py-2">
-          <dt className="text-xs text-slate-500">{l.viewsLabel}</dt>
-          <dd className="text-lg font-bold text-slate-900 tabular-nums">{link.view_count}</dd>
-        </div>
-        <div className="rounded-xl bg-slate-50 px-3 py-2">
-          <dt className="text-xs text-slate-500">{l.ordersLabel}</dt>
-          <dd className="text-lg font-bold text-slate-900 tabular-nums">
-            {link.order_count}
-            {pct !== null && <span className="ml-1.5 text-xs font-medium text-slate-500">{l.ordered(pct)}</span>}
-          </dd>
-        </div>
-      </dl>
-    </Card>
+      {link.path && (
+        // Above the row's link, so it copies rather than opens.
+        <Button variant="secondary" icon={Copy} onClick={copy} className="relative z-10 shrink-0">
+          {l.copy}
+        </Button>
+      )}
+    </div>
   )
 }
 
