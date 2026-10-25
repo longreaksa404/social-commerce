@@ -184,6 +184,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 │   │   ├── schemas/           Pydantic request/response models, one file per domain (+ common, upload)
 │   │   ├── services/          All business logic and queries (see §4)
 │   │   └── api/               Thin FastAPI routers, one per resource; deps.py holds the dependencies
+│   ├── marketing/             Not app code: shots.py (marketing screenshots and MP4s of a demo shop, local only), demo_shop.py (its seed), requirements.txt (Playwright, imageio-ffmpeg); out/ is git-ignored
 │   └── tests/
 │       ├── conftest.py        Creates and migrates <db>_test, empties it, fixtures (client, register, auth_headers, make_store)
 │       ├── helpers.py         Direct-DB factories (add_product, ...) and API shortcuts (place_order, set_delivery, ...)
@@ -284,6 +285,7 @@ cd frontend && npm install
 | Founder's commands | `python -m app.admin <command> <login>` (a phone number typed any way, or an older account's email; `auth.login_filter`), commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend), `test-shop [--name]` (a shop with an email login and no phone, for the load test: sign-up needs a phone checked in Telegram, one shop per number), `forget-customer <shop link name> <phone>` (a customer's name becomes "(removed)"; phone, addresses, map pins and notes go from that shop's customer, orders and alert payloads; the orders' items and money stay; the Data deletion page promises it), and `move-photos <old> <new>` (rewrites the R2 address saved in `product.image_urls`, `store.logo_url` and `store.cover_url`, for `images.oaksolve.com`); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
 | Bot on a laptop | `python -m app.telegram_poll` (backend, beside uvicorn): answers your **test** bot by polling, since Telegram's webhook can't reach localhost. Needs the three `TELEGRAM_*` values in `.env` and `PUBLIC_API_URL` empty; refuses a bot that has a webhook (the live one) |
 | Performance audit tools | `backend/loadtest/seed_perf.py` (a local `social_commerce_perf` database with a 500-product shop; refuses anything but a local `*_perf` database) and `measure.py` (every endpoint's time, SQL statements and Postgres round trips), run from `backend/` with its venv; `backend/loadtest/README.md`, results in `docs/PERF_AUDIT.md` |
+| Marketing screenshots | `.venv/bin/python marketing/shots.py --photos <folder> [--video] [--lang km en]` (backend, Postgres running; once: `.venv/bin/pip install -r marketing/requirements.txt && .venv/bin/playwright install --with-deps chromium`). Seeds "Bopha Boutique" (`marketing/demo_shop.py`: 5 Khmer-named products, one with sizes, 3 earlier orders; refuses anything but a local `*_demo` database, `social_commerce_demo`), builds the frontend against its own API (ports 8011 API, 4180 site, 8091 photos; Telegram, R2, Sentry and sign-in providers blanked whatever `.env` says), and drives headless Chromium at 390 × 844 @3x. Output in `backend/marketing/out/` (git-ignored): `km/` and `en/` `01_shop` … `09_notifications.png` (1170 × 2532: shop top, products, product, option chosen, checkout, confirmation, Orders tab, the order, notifications), and with `--video` `video/{km,en}_customer.mp4` and `{km,en}_order_arrives.mp4` (1080 wide, H.264, from Chrome's screencast). The photos folder holds `1.jpg` … `5.jpg` (names in `CATALOG`, edit to match the photos) and optional `logo.*`, `cover.*`. Each picture is checked: no console errors or failed requests, no debug words, nothing loading, Khmer drawn in Noto Sans Khmer. The browser clock is frozen and the new order's API times are pinned (`demo_shop.NOW`, `ORDER_TIME`), so reruns give the same PNGs. The bell shows no number for a new order (UX check #20): the New tab counts it, the notifications page shows it unread |
 | Frontend dev server | `npm run dev`: http://localhost:5173 |
 | Frontend lint | `npm run lint` (oxlint) |
 | Frontend build | `npm run build` (`tsc -b && vite build`, type-checks) |
@@ -1763,7 +1765,7 @@ None (grep for TODO, FIXME, XXX and HACK over `backend/`,
   customers, skipped).
 - `DELETE /seller/store/telegram` has its logic in the router instead of
   a service, unlike the rest of the code.
-- There is no seed script for demo or first-seller data (`backend/loadtest/seed_perf.py` is a local, made-up data set for performance measurements only).
+- There is no seed script for first-seller data (`backend/loadtest/seed_perf.py` is a local, made-up data set for performance measurements only; `backend/marketing/demo_shop.py` one local demo shop for marketing pictures).
 
 ---
 

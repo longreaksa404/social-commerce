@@ -22,3 +22,6 @@ npm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Marketing screenshots and videos (backend/marketing/shots.py)
+backend/marketing/out/
