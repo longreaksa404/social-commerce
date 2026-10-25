@@ -127,3 +127,22 @@ export function parseKhqr(text: string | null): KhqrAccount | KhqrProblem {
     currency: currency === '840' ? 'USD' : currency === '116' ? 'KHR' : null,
   }
 }
+
+/** Every account in a KHQR: one, or two for a "dual" code. Wing's dual
+ * KHQR (the founder's own, 2026-10-25) is one code for a riel and a
+ * dollar account: tag 29 holds one of them, in tag 53's currency, and
+ * Wing's own tag 42 lists both (its 02 and 03) with 04 "Dual". The one
+ * that isn't tag 29's is then the other currency's account, at the same
+ * Bakong ID, bank and name. Other banks' dual codes may differ: they read
+ * as their one account until a sample shows how. */
+export function parseKhqrAccounts(text: string | null): KhqrAccount[] | KhqrProblem {
+  const account = parseKhqr(text)
+  if (typeof account === 'string') return account
+  const extra = text && fields(text)?.get('42')
+  const dual = extra ? fields(extra) : null
+  if (!dual || dual.get('04')?.toLowerCase() !== 'dual' || !account.currency) return [account]
+  const numbers = [dual.get('02'), dual.get('03')]
+  const other = numbers.find((n) => n && n !== account.accountInformation)
+  if (!other || !numbers.includes(account.accountInformation)) return [account]
+  return [account, { ...account, accountInformation: other, currency: account.currency === 'USD' ? 'KHR' : 'USD' }]
+}

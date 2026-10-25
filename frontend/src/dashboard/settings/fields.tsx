@@ -34,7 +34,7 @@ import { errorText, fieldError } from '../../lib/errors.ts'
 import { prepareCover, prepareLogo, uploadStoreCover, uploadStoreLogo } from '../../lib/images.ts'
 import { formatMoney } from '../../lib/money.ts'
 import { formatPhone, phnomPenhDate } from '../../lib/orders.ts'
-import { parseKhqr, readQrImages, type KhqrAccount } from '../../lib/readKhqr.ts'
+import { parseKhqrAccounts, readQrImages, type KhqrAccount, type KhqrProblem } from '../../lib/readKhqr.ts'
 import type { Currency, PaymentSettings, ShopColor, Store, TelegramLink } from '../../lib/types.ts'
 import { DEEP_COLORS, LIGHT_COLORS } from '../../shop/colors.ts'
 import { keys } from '../queries.ts'
@@ -386,8 +386,9 @@ export function OrdersFields({ store, form, update, error }: FieldsProps) {
  * phone (lib/readKhqr.ts), fills in the Bakong ID, the account and the
  * name. Warns when the QR's account isn't in the shop's currency (an ABA
  * QR points at the default account, often the riel one). A "dual" picture
- * with a dollar and a riel QR (founder's test list #20, 2026-10-24) uses
- * the one in the shop's currency, or asks which when it can't tell. */
+ * with a dollar and a riel QR (founder's test list #20, 2026-10-24), or a
+ * dual code naming both accounts (Wing's, 2026-10-25), uses the account in
+ * the shop's currency, or asks which when it can't tell. */
 function QrUpload({
   again,
   shopCurrency,
@@ -419,10 +420,16 @@ function QrUpload({
     setReading(true)
     setProblem(null)
     setChoices([])
-    let results: ReturnType<typeof parseKhqr>[]
+    let results: (KhqrAccount | KhqrProblem)[]
     try {
       const texts = await readQrImages(file)
-      results = texts.length ? texts.map(parseKhqr) : ['no_qr']
+      // A dual code (Wing's) gives both its accounts, riel and dollars.
+      results = texts.length
+        ? texts.flatMap((text): (KhqrAccount | KhqrProblem)[] => {
+            const read = parseKhqrAccounts(text)
+            return typeof read === 'string' ? [read] : read
+          })
+        : ['no_qr']
     } catch {
       results = ['no_qr']
     }
