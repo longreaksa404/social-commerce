@@ -1036,6 +1036,8 @@ The MVP should therefore focus on the smallest complete transaction loop.
 
 **Decided (2026-10-09):** orders that came by chat, added by the seller at the shop's prices; a short path (Accept, Delivered, Complete; the steps between optional; "Delivered, cash received" for cash on delivery); "Not paid after all"; Send to driver; a setup checklist for new shops. The shop's numbers wait for a seller dashboard.
 
+**Decided (2026-10-25):** a receipt for each order: a parcel slip for an 80 mm receipt printer (the shop, the customer and address, the items and totals, and what the driver collects), shared as a picture (to a Bluetooth printer's app, or to the customer) or printed.
+
 **Decided (2026-10-09):** sellers sign up with a phone number proved through the Telegram bot (free; one shop per number) and a password, or with Google, Facebook or TikTok. Since 2026-10-24 Log in starts with "Log in with Telegram" for shop owners (the number shared with the bot, as at sign-up); owners keep their password, and staff log in only with phone and password. The purpose is ease of use; after signing up, sellers still pay a subscription to use the platform (pricing still open, §46). A privacy policy, terms of service and data deletion instructions are public pages.
 
 # 24. MVP Customer Features
