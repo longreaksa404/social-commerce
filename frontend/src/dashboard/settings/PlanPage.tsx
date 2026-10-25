@@ -1,8 +1,8 @@
-import { Check, CircleCheck, Copy, Download, Send } from 'lucide-react'
+import { Check, ChevronDown, CircleCheck, Copy, Download, Send } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
-import { Badge, Button, ErrorMessage, ErrorState, IconButton, Section, Skeleton } from '../../components/ui.tsx'
+import { Button, Card, ErrorMessage, ErrorState, IconButton, Section, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { drawKhqr, isIOS } from '../../lib/khqrImage.ts'
 import { formatMoney } from '../../lib/money.ts'
@@ -39,38 +39,57 @@ export function PlanPage() {
     )
   }
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Status plan={plan.data} />
       {/* Nothing to pay before the shop opens: its trial comes first. */}
-      {plan.data.stage !== 'setup' && <PaySection plan={plan.data} store={store.data} />}
+      {plan.data.stage !== 'setup' && <Pay plan={plan.data} store={store.data} />}
+      <Included />
       {plan.data.payments.length > 0 && <Payments plan={plan.data} />}
     </div>
   )
 }
 
+/** How long the shop has, at a glance (founder's pick 23A, 2026-10-25):
+ * the trial or the plan, its last day, the days left and a bar for them;
+ * in setup, Open shop; overdue or stopped, what happens, in amber. */
 function Status({ plan }: { plan: Plan }) {
   const p = useT().settings.plan
   const running = plan.stage === 'active' || plan.stage === 'ending_soon'
+  // The bar: the days left of the trial (30) or of the last period paid.
+  const last = plan.payments.find((pay) => pay.status === 'paid' && pay.covers_from && pay.covers_until)
+  const span = plan.on_trial
+    ? 30
+    : last
+      ? Math.round((Date.parse(`${last.covers_until}T00:00Z`) - Date.parse(`${last.covers_from}T00:00Z`)) / 86_400_000) + 1
+      : null
+  const left = plan.days_left ?? 0
   return (
-    <Section title={plan.on_trial ? p.freeTrial : p.standard}>
+    <Card className="space-y-3 p-4 sm:p-6">
       {plan.stage === 'setup' ? (
-        <div className="space-y-3">
+        <>
           <div>
             <p className="text-lg font-semibold text-slate-900">{p.notOpen}</p>
             <p className="mt-1 text-sm text-slate-600">{p.notOpenText(usd(plan.prices.month), usd(plan.prices.year))}</p>
           </div>
           <OpenShopButton />
-        </div>
+        </>
       ) : running ? (
-        <div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <p className="text-lg font-semibold text-slate-900">
-              {(plan.on_trial ? p.freeUntil : p.paidUntil)(day(plan.paid_until))}
+        <>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-lg font-semibold text-slate-900">{plan.on_trial ? p.freeTrial : p.standard}</p>
+              <p className="text-sm text-slate-500">{p.until(day(plan.paid_until))}</p>
+            </div>
+            <p className={`shrink-0 text-right text-sm ${plan.stage === 'ending_soon' ? 'font-semibold text-amber-700' : 'text-slate-600'}`}>
+              {p.daysLeft(left)}
             </p>
-            <Badge tone={plan.stage === 'ending_soon' ? 'amber' : 'neutral'}>{p.daysLeft(plan.days_left ?? 0)}</Badge>
           </div>
-          {plan.on_trial && <p className="mt-1 text-sm text-slate-600">{p.afterTrial(usd(plan.prices.month), usd(plan.prices.year))}</p>}
-        </div>
+          {span && (
+            <div aria-hidden className="h-2 overflow-hidden rounded-full bg-navy-50">
+              <div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(3, Math.min(100, (left / span) * 100))}%` }} />
+            </div>
+          )}
+        </>
       ) : (
         <div className="space-y-1 text-sm leading-6 text-amber-800">
           {plan.stage === 'overdue' ? (
@@ -86,9 +105,21 @@ function Status({ plan }: { plan: Plan }) {
           )}
         </div>
       )}
-      <div>
-        <h3 className="mb-2 text-sm font-medium text-slate-700">{p.includes}</h3>
-        <ul className="space-y-1.5 text-sm leading-6 text-slate-600">
+    </Card>
+  )
+}
+
+/** What the plan includes, folded: it's the same for everyone. */
+function Included() {
+  const p = useT().settings.plan
+  return (
+    <Card>
+      <details className="group">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-4 font-medium text-slate-900 sm:px-6 [&::-webkit-details-marker]:hidden">
+          {p.includes}
+          <ChevronDown aria-hidden className="size-5 text-slate-400 transition-transform group-open:rotate-180" />
+        </summary>
+        <ul className="space-y-1.5 px-4 pb-4 text-sm leading-6 text-slate-600 sm:px-6">
           {[p.includesEverything, p.includesStaff, p.includesHosting].map((line) => (
             <li key={line} className="flex gap-2">
               <Check aria-hidden className="mt-1 size-4 shrink-0 text-navy-600" />
@@ -96,61 +127,45 @@ function Status({ plan }: { plan: Plan }) {
             </li>
           ))}
         </ul>
-      </div>
-    </Section>
+      </details>
+    </Card>
   )
 }
 
-/** Monthly or yearly. */
+/** Monthly or yearly, as two halves of one switch, the yearly saving in
+ * its label. */
 function PeriodChoice({ plan, period, onChange }: { plan: Plan; period: PlanPeriod; onChange: (period: PlanPeriod) => void }) {
   const p = useT().settings.plan
   const cents = (amount: string) => Math.round(Number(amount) * 100)
   const saving = (cents(plan.prices.month) * 12 - cents(plan.prices.year)) / 100
-  const options: { id: PlanPeriod; label: string; price: string; note?: string }[] = [
-    { id: 'month', label: p.monthly, price: p.perMonth(usd(plan.prices.month)) },
-    { id: 'year', label: p.yearly, price: p.perYear(usd(plan.prices.year)), note: saving > 0 ? p.save(usd(saving)) : undefined },
+  const options: { id: PlanPeriod; label: string }[] = [
+    { id: 'month', label: p.monthly },
+    { id: 'year', label: saving > 0 ? `${p.yearly} · ${p.save(usd(saving))}` : p.yearly },
   ]
   return (
-    <div role="group" aria-label={p.pay} className="grid grid-cols-2 gap-3">
+    <div role="group" aria-label={p.pay} className="flex rounded-xl bg-slate-100 p-0.5">
       {options.map((option) => (
         <button
           key={option.id}
           type="button"
           aria-pressed={period === option.id}
           onClick={() => onChange(option.id)}
-          className={`rounded-xl px-3.5 py-3 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 ${
-            period === option.id ? 'bg-navy-50 ring-2 ring-navy-600' : 'ring-1 ring-slate-200 hover:bg-slate-50'
+          className={`min-h-10 flex-1 rounded-[10px] px-2 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-navy-600 ${
+            period === option.id ? 'bg-raised text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <span className="block text-sm font-semibold text-slate-900">{option.label}</span>
-          <span className="mt-0.5 block text-sm text-slate-600">{option.price}</span>
-          {option.note && <span className="mt-1 block text-xs font-semibold text-navy-700">{option.note}</span>}
+          {option.label}
         </button>
       ))}
     </div>
   )
 }
 
-/** Paying Oak by hand: the shop's code, Oak's KHQR or bank account (or a
- * message to Oak Order when neither is set), and "I've paid". */
-/** During the trial, with more than a week left and nothing sent yet,
- * paying is folded behind "Pay early": a new seller shouldn't think they
- * have to pay on day one (UX check #23, 2026-10-17). */
-function PaySection({ plan, store }: { plan: Plan; store: Store }) {
-  const p = useT().settings.plan
-  const [early, setEarly] = useState(false)
-  const folded = plan.on_trial && plan.stage === 'active' && !plan.claim && !early
-  if (!folded) return <Pay plan={plan} store={store} />
-  return (
-    <Section title={p.pay}>
-      <p className="text-sm leading-6 text-slate-600">{p.payEarlyHint(day(plan.paid_until))}</p>
-      <Button variant="secondary" onClick={() => setEarly(true)} className="w-full sm:w-auto">
-        {p.payEarly}
-      </Button>
-    </Section>
-  )
-}
-
+/** One Pay card (founder's pick 23A, 2026-10-25): monthly or yearly, the
+ * price, and one button; Oak's KHQR, the shop's code and "I've paid"
+ * open after it (else Oak's bank account, or a message to Oak Order).
+ * During the trial the button says Pay early (UX check #23: no one should
+ * think they must pay on day one). */
 function Pay({ plan, store }: { plan: Plan; store: Store }) {
   const t = useT()
   const p = t.settings.plan
@@ -161,6 +176,9 @@ function Pay({ plan, store }: { plan: Plan; store: Store }) {
   const khqr = period === 'month' ? plan.pay_to.khqr_month : plan.pay_to.khqr_year
   const bank = plan.pay_to.bank
   const claim = plan.claim
+  // Opened by its button; already open once they said they paid.
+  const [open, setOpen] = useState(Boolean(claim))
+  const early = plan.on_trial && plan.stage === 'active'
 
   async function copy(text: string) {
     try {
@@ -174,6 +192,20 @@ function Pay({ plan, store }: { plan: Plan; store: Store }) {
   return (
     <Section title={p.pay}>
       <PeriodChoice plan={plan} period={period} onChange={setPeriod} />
+      <p className="text-slate-600">
+        <span className="text-2xl font-bold text-slate-900 tabular-nums">{price}</span>{' '}
+        {period === 'month' ? p.aMonth : p.aYear}
+      </p>
+      {!open && (
+        <>
+          <Button size="lg" onClick={() => setOpen(true)} className="w-full sm:w-auto">
+            {(early ? p.payEarlyBy : p.payBy_)(price)}
+          </Button>
+          {early && <p className="-mt-2 text-xs leading-5 text-slate-500">{p.payEarlyHint(day(plan.paid_until))}</p>}
+        </>
+      )}
+      {open && (
+      <>
       <div className="flex items-center justify-between gap-3 rounded-xl bg-navy-50 px-4 py-3">
         <div className="min-w-0">
           <p className="text-xs font-medium text-slate-600">{p.yourCode}</p>
@@ -242,6 +274,8 @@ function Pay({ plan, store }: { plan: Plan; store: Store }) {
         </div>
       )}
       <p className="text-xs leading-5 text-slate-500">{p.carriesOn}</p>
+      </>
+      )}
     </Section>
   )
 }

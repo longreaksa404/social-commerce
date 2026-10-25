@@ -388,15 +388,13 @@ export const settings = {
         `ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃចាប់ផ្ដើមពេលអ្នកបើកហាង បន្ទាប់មក ${month} ក្នុងមួយខែ ឬ ${year} ក្នុងមួយឆ្នាំ។`,
     },
     standard: { en: 'Oak Order Standard', km: 'Oak Order Standard' },
-    freeUntil: { en: (day: string) => `Free until ${day}`, km: (day: string) => `ឥតគិតថ្លៃរហូតដល់ ${day}` },
-    paidUntil: { en: (day: string) => `Paid until ${day}`, km: (day: string) => `បានបង់រហូតដល់ ${day}` },
+    // The status card (pick 23A, 2026-10-25).
+    until: { en: (day: string) => `Until ${day}`, km: (day: string) => `រហូតដល់ ${day}` },
+    payBy_: { en: (price: string) => `Pay ${price}`, km: (price: string) => `បង់ ${price}` },
+    payEarlyBy: { en: (price: string) => `Pay early: ${price}`, km: (price: string) => `បង់មុន៖ ${price}` },
     daysLeft: {
       en: (n: number) => (n === 1 ? '1 day left' : `${n} days left`),
       km: (n: number) => `នៅសល់ ${n} ថ្ងៃ`,
-    },
-    afterTrial: {
-      en: (month: string, year: string) => `Then ${month} a month or ${year} a year.`,
-      km: (month: string, year: string) => `បន្ទាប់មក ${month} ក្នុងមួយខែ ឬ ${year} ក្នុងមួយឆ្នាំ។`,
     },
     trialEnded: {
       en: (day: string) => `Your free trial ended on ${day}.`,
@@ -442,8 +440,7 @@ export const settings = {
       km: 'សូមទាក់ទង Oak Order ជាមួយលេខកូដហាង ដើម្បីបង់។',
     },
     payOnTelegram: { en: (price: string) => `Pay ${price} on Telegram`, km: (price: string) => `បង់ ${price} តាម Telegram` },
-    // During the trial, more than a week left: Pay folded (UX check #23).
-    payEarly: { en: 'Pay early', km: 'បង់មុន' },
+    // During the trial: under Pay early (UX check #23; pick 23A).
     payEarlyHint: {
       en: (day: string) => `Nothing to pay until ${day}. Paying early loses no days.`,
       km: (day: string) => `មិនចាំបាច់បង់ទេ រហូតដល់ ${day}។ ការបង់មុនមិនបាត់បង់ថ្ងៃទេ។`,
