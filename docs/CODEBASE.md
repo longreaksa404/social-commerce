@@ -158,7 +158,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 │   ├── ci.yml                 Backend: ruff, ruff format, alembic upgrade, pytest (Postgres service). Frontend: oxlint, build
 │   └── backup.yml             Nightly pg_dump of prod to a private R2 bucket; skips until its secrets exist
 ├── .devcontainer/             Dev container (Python 3.12, Node, Docker-in-Docker; file polling on)
-├── docs/                      01_PRODUCT, 02_TECHNICAL, 03_DEVELOPMENT, 04_STATUS, ADMIN (founder's commands), BACKUPS, REGRESSION_CHECKLIST, PERF_AUDIT (performance baseline and findings), this file
+├── docs/                      01_PRODUCT, 02_TECHNICAL, 03_DEVELOPMENT, 04_STATUS, ADMIN (founder's commands), BACKUPS, REGRESSION_CHECKLIST, PERF_AUDIT (performance baseline and findings), MARKETING_FACTS (what's live, for the marketing project; recheck when a feature, price or login changes), this file
 │
 ├── backend/
 │   ├── Dockerfile             python:3.12-slim; CMD runs `alembic upgrade head` then uvicorn
