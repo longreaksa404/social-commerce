@@ -1,10 +1,11 @@
-"""Who a Google, Facebook or TikTok account is (founder's choice
-2026-10-09), as the rest of the app sees it.
+"""Who a Google or Facebook account is (founder's choice 2026-10-09), as
+the rest of the app sees it. TikTok went on 2026-10-27 (TikTok turned the
+app down; Log in with Telegram covers it).
 
-Google hands the page a signed ID token (app/core/google.py). Facebook and
-TikTok send the browser back to /auth/<provider>/callback with a one-time
-code; the API trades it for the account here, with the app's secret, so
-the secret never leaves the server.
+Google hands the page a signed ID token (app/core/google.py). Facebook
+sends the browser back to /auth/facebook/callback with a one-time code;
+the API trades it for the account here, with the app's secret, so the
+secret never leaves the server.
 """
 
 import hashlib
@@ -19,8 +20,6 @@ from app.core.errors import AppError
 from app.models import LoginProvider
 
 FACEBOOK_GRAPH = "https://graph.facebook.com/v26.0"
-TIKTOK_TOKEN = "https://open.tiktokapis.com/v2/oauth/token/"
-TIKTOK_USER = "https://open.tiktokapis.com/v2/user/info/"
 
 
 @dataclass(frozen=True)
@@ -29,7 +28,7 @@ class SocialAccount:
     # The provider's id for the account, for this app: it stays when the
     # person changes their email or name.
     user_id: str
-    # Only when the provider says it's checked; TikTok gives none.
+    # Only when the provider says it's checked.
     email: str | None
     name: str
 
@@ -53,7 +52,7 @@ def check_redirect_uri(provider: LoginProvider, redirect_uri: str) -> None:
 
 
 def _http() -> httpx.AsyncClient:
-    """Separate so tests can answer for Facebook and TikTok."""
+    """Separate so tests can answer for Facebook."""
     return httpx.AsyncClient(timeout=10)
 
 
@@ -115,45 +114,4 @@ async def facebook(code: str, redirect_uri: str) -> SocialAccount:
         user_id=str(me["id"]),
         email=email.lower() if isinstance(email, str) else None,
         name=str(me.get("name") or "").strip()[:100],
-    )
-
-
-async def tiktok(code: str, redirect_uri: str) -> SocialAccount:
-    settings = get_settings()
-    if not settings.tiktok_configured:
-        raise not_configured()
-    check_redirect_uri(LoginProvider.TIKTOK, redirect_uri)
-    try:
-        async with _http() as client:
-            token = _json(
-                await client.post(
-                    TIKTOK_TOKEN,
-                    data={
-                        "client_key": settings.tiktok_client_key,
-                        "client_secret": settings.tiktok_client_secret,
-                        "code": code,
-                        "grant_type": "authorization_code",
-                        "redirect_uri": redirect_uri,
-                    },
-                )
-            )
-            access_token, open_id = token.get("access_token"), token.get("open_id")
-            if not isinstance(access_token, str) or not open_id:
-                raise sign_in_failed()
-            info = _json(
-                await client.get(
-                    TIKTOK_USER,
-                    params={"fields": "open_id,display_name"},
-                    headers={"Authorization": f"Bearer {access_token}"},
-                )
-            )
-    except httpx.HTTPError as exc:
-        raise sign_in_failed() from exc
-    user = (info.get("data") or {}).get("user") or {}
-    return SocialAccount(
-        provider=LoginProvider.TIKTOK,
-        # open_id: this person, for this app.
-        user_id=str(open_id),
-        email=None,
-        name=str(user.get("display_name") or "").strip()[:100],
     )

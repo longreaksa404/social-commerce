@@ -89,7 +89,7 @@ def create_reset_token(seller_id: uuid.UUID, password_hash: str | None) -> str:
 
 
 def create_signup_token(provider: str, provider_user_id: str, email: str | None, name: str) -> str:
-    """Someone new from "Continue with Google / Facebook / TikTok": what
+    """Someone new from "Continue with Google / Facebook": what
     they proved, carried to POST /auth/social/register. Not stored."""
     return _encode(
         {

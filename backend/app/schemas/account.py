@@ -9,7 +9,7 @@ from app.schemas.common import Name
 
 class LoginOut(BaseModel):
     provider: LoginProvider
-    # Its email, or (TikTok, or no email given) its name.
+    # Its email, or (no email given) its name.
     label: str | None
 
 
@@ -24,10 +24,10 @@ class AccountOut(BaseModel):
     full_name: str
     # owner: everything; staff: everything but Settings.
     role: SellerRole
-    # False for an account made with Google, Facebook or TikTok until it
+    # False for an account made with Google or Facebook until it
     # adds a password.
     has_password: bool
-    # The Google, Facebook and TikTok accounts that log in to this one.
+    # The Google and Facebook accounts that log in to this one.
     logins: list[LoginOut] = []
     # The founder's own login (ADMIN_PHONES): the app shows the admin page.
     is_admin: bool = False

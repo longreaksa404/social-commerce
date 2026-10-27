@@ -42,7 +42,7 @@ export const router = createBrowserRouter([
       { path: '/login', element: <Login /> },
       { path: '/register', element: <Register /> },
       { path: '/register/finish', element: <FinishSignup /> },
-      { path: '/auth/:provider/callback', element: <OAuthCallback /> },
+      { path: '/auth/facebook/callback', element: <OAuthCallback provider="facebook" /> },
       { path: '/privacy', element: <Legal doc="privacy" /> },
       { path: '/terms', element: <Legal doc="terms" /> },
       { path: '/data-deletion', element: <Legal doc="data-deletion" /> },

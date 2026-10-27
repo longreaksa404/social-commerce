@@ -1,6 +1,7 @@
-"""Logging in with a Google, Facebook or TikTok account (founder's choice
+"""Logging in with a Google or Facebook account (founder's choice
 2026-10-09). Who the account is comes from app/core/google.py (Google's ID
-token) or app/core/oauth.py (Facebook's and TikTok's codes).
+token) or app/core/oauth.py (Facebook's code). TikTok went on 2026-10-27:
+its rows saved before stay in seller_login but don't log in or show.
 
 "Continue with ..." logs in the seller that account belongs to
 (seller_login). Someone new gets a signup token instead and finishes with
@@ -28,6 +29,9 @@ from app.models import LoginProvider, Seller, SellerLogin
 from app.schemas.account import LoginOut
 from app.schemas.auth import SignupStart, SocialRegisterIn, TokenPair
 from app.services import auth
+
+# TikTok turned the app down (2026-10-27); Log in with Telegram covers it.
+RETIRED = {LoginProvider.TIKTOK}
 
 
 def _taken_at_signup() -> AppError:
@@ -70,6 +74,8 @@ async def register(db: AsyncSession, data: SocialRegisterIn) -> TokenPair:
         provider = LoginProvider(payload["provider"])
     except (AppError, KeyError, ValueError) as exc:
         raise _signup_expired() from exc
+    if provider in RETIRED:  # a TikTok sign-up started before it went
+        raise _signup_expired()
     if await _seller_of(db, provider, payload["sub"]) is not None:
         raise _taken_at_signup()
 
@@ -129,7 +135,11 @@ async def connect(db: AsyncSession, seller_id: uuid.UUID, account: SocialAccount
 async def logins(db: AsyncSession, seller_id: uuid.UUID) -> list[LoginOut]:
     """The accounts that log in to this seller, Google first."""
     order = list(LoginProvider)
-    rows = await db.scalars(select(SellerLogin).where(SellerLogin.seller_id == seller_id))
+    rows = await db.scalars(
+        select(SellerLogin).where(
+            SellerLogin.seller_id == seller_id, SellerLogin.provider.not_in(RETIRED)
+        )
+    )
     return [
         LoginOut(provider=row.provider, label=row.email or row.name)
         for row in sorted(rows, key=lambda row: order.index(row.provider))

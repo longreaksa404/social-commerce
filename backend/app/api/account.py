@@ -5,7 +5,6 @@ from fastapi import APIRouter, Response, status
 from app.api.deps import Owner, Seller, UnscopedDb
 from app.api.session_cookie import start_session
 from app.core import google, oauth
-from app.models import LoginProvider
 from app.schemas.account import (
     AccountOut,
     AccountUpdate,
@@ -55,12 +54,11 @@ async def connect_google(data: GoogleIn, seller: Seller, db: UnscopedDb) -> Acco
 
 @router.post("/oauth/{provider}", response_model=AccountOut)
 async def connect_oauth(
-    provider: Literal["facebook", "tiktok"], data: OAuthIn, seller: Seller, db: UnscopedDb
+    provider: Literal["facebook"], data: OAuthIn, seller: Seller, db: UnscopedDb
 ) -> AccountOut:
-    """Log in with this Facebook or TikTok account too: the code it sent
-    the browser back with (/auth/<provider>/callback)."""
-    exchange = oauth.facebook if provider == LoginProvider.FACEBOOK else oauth.tiktok
-    account = await exchange(data.code, data.redirect_uri)
+    """Log in with this Facebook account too: the code it sent the browser
+    back with (/auth/facebook/callback)."""
+    account = await oauth.facebook(data.code, data.redirect_uri)
     await social_service.connect(db, seller.seller_id, account)
     return await account_service.describe(
         db, await account_service.get_account(db, seller.seller_id)

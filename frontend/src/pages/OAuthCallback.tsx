@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { useSocialResult } from '../auth/useSocialResult.ts'
 import { useAuth } from '../auth/useAuth.ts'
 import { useFeedback } from '../components/feedback.ts'
@@ -12,13 +12,12 @@ import type { Account, SocialResult } from '../lib/types.ts'
 import { keys } from '../dashboard/queries.ts'
 import { AuthLayout } from './AuthLayout.tsx'
 
-/** /auth/<facebook|tiktok>/callback: back from the provider's sign-in page
- * with a one-time code (or an error). Only a sign-in this tab started (the
+/** /auth/facebook/callback: back from Facebook's sign-in page with a
+ * one-time code (or an error). Only a sign-in this tab started (the
  * `state` it saved) is finished. Logging in goes on like "Continue with
  * Google"; connecting (Settings → Your account) saves it and goes back
- * there. */
-export function OAuthCallback() {
-  const { provider } = useParams()
+ * there. Only Facebook's page is routed (TikTok's went on 2026-10-27). */
+export function OAuthCallback({ provider }: { provider: OAuthProvider }) {
   const [params] = useSearchParams()
   const [pending] = useState(() => pendingOAuth(provider, params.get('state')))
   const { status } = useAuth()
@@ -32,7 +31,7 @@ export function OAuthCallback() {
   const c = t.auth.social
 
   const code = params.get('code')
-  const name = provider === 'facebook' || provider === 'tiktok' ? PROVIDER_NAMES[provider] : ''
+  const name = PROVIDER_NAMES[provider]
   // Connecting needs the session restored first (a full page load).
   const ready = pending !== null && code !== null && (pending.intent === 'login' || status !== 'loading')
 
@@ -64,7 +63,7 @@ export function OAuthCallback() {
     )
 
   // Refused or cancelled on the provider's page, or not this tab's sign-in.
-  const problem = params.get('error') ? c.cancelled(name || '…') : !pending || !code ? c.stale : null
+  const problem = params.get('error') ? c.cancelled(name) : !pending || !code ? c.stale : null
 
   if (problem || error) {
     return (

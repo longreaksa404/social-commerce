@@ -1,10 +1,11 @@
 import type { Lang } from '../../i18n/core.ts'
 
 /** The privacy policy, terms and data deletion pages (/privacy, /terms,
- * /data-deletion), which Meta and TikTok ask for before "Continue with
- * Facebook / TikTok" can go live (2026-10-09). Plain words, in both
- * languages. Facts in them (what's kept, who hosts it, how long) follow
- * the code and docs/02_TECHNICAL.md: change them together.
+ * /data-deletion), which Meta asks for before "Continue with Facebook"
+ * can go live (2026-10-09; TikTok's login went on 2026-10-27). Plain
+ * words, in both languages. Facts in them (what's kept, who hosts it, how
+ * long, how sellers pay) follow the code and docs/02_TECHNICAL.md: change
+ * them together.
  *
  * A block is a paragraph, or a list when it's an array. The contact
  * section is added by the page (it links Oak Order's Telegram). */
@@ -13,7 +14,7 @@ export type Block = string | string[]
 export type LegalPage = { title: string; intro: string; sections: { heading: string; body: Block[] }[] }
 
 // Change it with the text.
-export const UPDATED = '2026-10-20'
+export const UPDATED = '2026-10-27'
 
 const en: Record<LegalDoc, LegalPage> = {
   privacy: {
@@ -26,7 +27,7 @@ const en: Record<LegalDoc, LegalPage> = {
         body: [
           [
             'Your name, the phone number you log in with (checked through our Telegram bot), and your password, which we keep only in scrambled form (a hash) and can never read.',
-            "If you log in with Google, Facebook or TikTok: that account's ID, and the name and email it gives us (TikTok gives no email). We never get your password there, your posts or your friends.",
+            "If you log in with Google or Facebook: that account's ID, and the name and email it gives us. We never get your password there, your posts or your friends.",
             "Your shop: its name, link, logo and description, your products, photos and prices, your delivery and payment details (such as a bank account number or KHQR account, which customers see so they can pay you), your contact buttons, and your staff's names and phone numbers.",
             'Your chat with our Telegram bot, so we can send you order alerts and "choose a new password" links.',
             "Your shop's orders and customers (below).",
@@ -61,7 +62,7 @@ const en: Record<LegalDoc, LegalPage> = {
             'Cloudflare: the domain, photo storage and nightly backups.',
             'Telegram: order alerts, customers\' order updates, and phone number checks.',
             'Sentry: reports when something breaks, so we can fix it.',
-            'Google, Facebook and TikTok: only when you choose to log in with them.',
+            'Google and Facebook: only when you choose to log in with them.',
           ],
         ],
       },
@@ -124,16 +125,16 @@ const en: Record<LegalDoc, LegalPage> = {
       {
         heading: 'Money between you and your customers',
         body: [
-          "Customers pay you directly (cash, bank transfer or KHQR). Oak Order doesn't hold or move that money and isn't part of the sale.",
+          "Customers pay you directly, by KHQR or in cash when they get their order. Oak Order doesn't hold or move that money and isn't part of the sale.",
         ],
       },
       {
         heading: 'Fees',
         body: [
           "Every new shop gets a free trial of 1 month (30 days), starting the day you open your shop in the app, not the day you sign up. Until then customers can see your shop but can't order. After the trial, Oak Order Standard costs $9.99 a month or $99 a year for each shop, in US dollars, hosting included.",
-          'Until the app takes payments, you pay Oak Order by bank transfer or KHQR: message us on Telegram (Settings → Plan). A new month or year starts where your trial or your last payment ends.',
-          "If your trial or your paid time runs out, you have 7 more days to pay, and your shop keeps taking orders. After that it stops taking new orders until you pay: customers can still see it, and you can still finish and download the orders you have. Nothing is deleted.",
-          'You will see the price before you pay, and nothing is charged without your agreement.',
+          "You pay Oak Order from your own bank app. Settings → Plan shows your shop's code and Oak Order's KHQR or bank account. Pay with the code in the transfer note (the KHQR adds it for you), then tap \"I've paid\". We check each payment by hand, usually within a day. A new month or year starts where your trial or your last payment ends, so paying early loses no days.",
+          "If your trial or your paid time runs out, you have 7 more days to pay, and your shop keeps taking orders. After that it stops taking new orders until you pay, and paying opens it again at once. Customers can still see your shop, and you can still finish and download the orders you have. Nothing is deleted.",
+          'You will see the price before you pay. No card is needed, and nothing is charged automatically.',
         ],
       },
       {
@@ -181,9 +182,9 @@ const en: Record<LegalDoc, LegalPage> = {
         ],
       },
       {
-        heading: 'If you logged in with Facebook, Google or TikTok',
+        heading: 'If you logged in with Facebook or Google',
         body: [
-          'Follow the steps above to delete what Oak Order keeps. You can also remove Oak Order from that account: on Facebook, Settings & privacy → Settings → Apps and websites → Oak Order → Remove; on Google, myaccount.google.com → Security → Your connections to third-party apps; on TikTok, Settings and privacy → Security → Manage app permissions. That stops the login; it does not delete your shop by itself.',
+          'Follow the steps above to delete what Oak Order keeps. You can also remove Oak Order from that account: on Facebook, Settings & privacy → Settings → Apps and websites → Oak Order → Remove; on Google, myaccount.google.com → Security → Your connections to third-party apps. That stops the login; it does not delete your shop by itself.',
         ],
       },
       {
@@ -207,7 +208,7 @@ const km: Record<LegalDoc, LegalPage> = {
         body: [
           [
             'ឈ្មោះរបស់អ្នក លេខទូរស័ព្ទដែលអ្នកប្រើចូលគណនី (ផ្ទៀងផ្ទាត់តាម bot Telegram របស់យើង) និងពាក្យសម្ងាត់ ដែលយើងរក្សាទុកតែជាទម្រង់កូដ (hash) ហើយមិនអាចអានវាបានឡើយ។',
-            'បើអ្នកចូលដោយ Google, Facebook ឬ TikTok៖ លេខសម្គាល់គណនីនោះ និងឈ្មោះ និងអ៊ីមែលដែលវាផ្ដល់ឱ្យយើង (TikTok មិនផ្ដល់អ៊ីមែលទេ)។ យើងមិនដែលទទួលបានពាក្យសម្ងាត់ ការបង្ហោះ ឬមិត្តភក្តិរបស់អ្នកនៅទីនោះឡើយ។',
+            'បើអ្នកចូលដោយ Google ឬ Facebook៖ លេខសម្គាល់គណនីនោះ និងឈ្មោះ និងអ៊ីមែលដែលវាផ្ដល់ឱ្យយើង។ យើងមិនដែលទទួលបានពាក្យសម្ងាត់ ការបង្ហោះ ឬមិត្តភក្តិរបស់អ្នកនៅទីនោះឡើយ។',
             'ហាងរបស់អ្នក៖ ឈ្មោះ តំណ ឡូហ្គោ និងការពិពណ៌នា ទំនិញ រូបថត និងតម្លៃ ព័ត៌មានដឹកជញ្ជូន និងបង់ប្រាក់ (ដូចជាលេខគណនីធនាគារ ឬគណនី KHQR ដែលអតិថិជនឃើញ ដើម្បីបង់ប្រាក់ឱ្យអ្នក) ប៊ូតុងទំនាក់ទំនង និងឈ្មោះ និងលេខទូរស័ព្ទរបស់បុគ្គលិកអ្នក។',
             'ការឆាតរបស់អ្នកជាមួយ bot Telegram របស់យើង ដើម្បីផ្ញើការជូនដំណឹងការកុម្ម៉ង់ និងតំណ “ជ្រើសពាក្យសម្ងាត់ថ្មី”។',
             'ការកុម្ម៉ង់ និងអតិថិជនរបស់ហាងអ្នក (ខាងក្រោម)។',
@@ -242,7 +243,7 @@ const km: Record<LegalDoc, LegalPage> = {
             'Cloudflare៖ ដែន ទីផ្ទុករូបថត និងការបម្រុងទុករៀងរាល់យប់។',
             'Telegram៖ ការជូនដំណឹងការកុម្ម៉ង់ ដំណឹងការកុម្ម៉ង់សម្រាប់អតិថិជន និងការផ្ទៀងផ្ទាត់លេខទូរស័ព្ទ។',
             'Sentry៖ របាយការណ៍ពេលមានអ្វីខូច ដើម្បីឱ្យយើងជួសជុលបាន។',
-            'Google, Facebook និង TikTok៖ តែពេលអ្នកជ្រើសចូលគណនីតាមពួកវាប៉ុណ្ណោះ។',
+            'Google និង Facebook៖ តែពេលអ្នកជ្រើសចូលគណនីតាមពួកវាប៉ុណ្ណោះ។',
           ],
         ],
       },
@@ -305,16 +306,16 @@ const km: Record<LegalDoc, LegalPage> = {
       {
         heading: 'ប្រាក់រវាងអ្នក និងអតិថិជន',
         body: [
-          'អតិថិជនបង់ប្រាក់ទៅអ្នកដោយផ្ទាល់ (សាច់ប្រាក់ ផ្ទេរតាមធនាគារ ឬ KHQR)។ Oak Order មិនកាន់ ឬផ្ទេរប្រាក់នោះទេ ហើយមិនមែនជាភាគីនៃការលក់នោះឡើយ។',
+          'អតិថិជនបង់ប្រាក់ទៅអ្នកដោយផ្ទាល់ តាម KHQR ឬជាសាច់ប្រាក់ ពេលទទួលទំនិញ។ Oak Order មិនកាន់ ឬផ្ទេរប្រាក់នោះទេ ហើយមិនមែនជាភាគីនៃការលក់នោះឡើយ។',
         ],
       },
       {
         heading: 'ថ្លៃសេវា',
         body: [
           'ហាងថ្មីនីមួយៗទទួលបានការសាកល្បងឥតគិតថ្លៃ 1 ខែ (30 ថ្ងៃ) ចាប់ពីថ្ងៃដែលអ្នកបើកហាងក្នុងកម្មវិធី មិនមែនថ្ងៃចុះឈ្មោះទេ។ រហូតដល់ពេលនោះ អតិថិជនអាចមើលហាងរបស់អ្នកបាន ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។ បន្ទាប់ពីការសាកល្បង Oak Order Standard មានតម្លៃ $9.99 ក្នុងមួយខែ ឬ $99 ក្នុងមួយឆ្នាំ សម្រាប់ហាងនីមួយៗ ជាដុល្លារអាមេរិក រួមទាំងសេវាបង្ហោះ។',
-          'រហូតដល់កម្មវិធីអាចទទួលការបង់ប្រាក់ អ្នកបង់ឱ្យ Oak Order តាមការផ្ទេរប្រាក់តាមធនាគារ ឬ KHQR៖ ផ្ញើសារមកយើងតាម Telegram (ការកំណត់ → គម្រោង)។ ខែ ឬឆ្នាំថ្មីចាប់ផ្ដើមនៅពេលការសាកល្បង ឬការបង់ប្រាក់ចុងក្រោយរបស់អ្នកបញ្ចប់។',
-          'បើការសាកល្បង ឬពេលវេលាដែលអ្នកបានបង់អស់ អ្នកនៅមាន 7 ថ្ងៃទៀតដើម្បីបង់ ហើយហាងរបស់អ្នកនៅតែទទួលការកុម្ម៉ង់។ បន្ទាប់ពីនោះ ហាងឈប់ទទួលការកុម្ម៉ង់ថ្មី រហូតដល់អ្នកបង់៖ អតិថិជននៅតែអាចមើលហាងបាន ហើយអ្នកនៅតែអាចបញ្ចប់ និងទាញយកការកុម្ម៉ង់ដែលមានស្រាប់បាន។ គ្មានអ្វីត្រូវបានលុបទេ។',
-          'អ្នកនឹងឃើញតម្លៃមុនពេលបង់ ហើយគ្មានការគិតប្រាក់ណាមួយដោយគ្មានការយល់ព្រមពីអ្នកឡើយ។',
+          'អ្នកបង់ឱ្យ Oak Order ពីកម្មវិធីធនាគាររបស់អ្នកផ្ទាល់។ ការកំណត់ → គម្រោង បង្ហាញលេខកូដហាងរបស់អ្នក និង KHQR ឬគណនីធនាគាររបស់ Oak Order។ សូមបង់ដោយដាក់លេខកូដនោះក្នុងកំណត់ចំណាំនៃការផ្ទេរប្រាក់ (KHQR ដាក់វាឱ្យអ្នកស្រាប់) រួចចុច “ខ្ញុំបានបង់”។ យើងពិនិត្យការបង់ប្រាក់នីមួយៗដោយដៃ ជាធម្មតារួចក្នុងមួយថ្ងៃ។ ខែ ឬឆ្នាំថ្មីចាប់ផ្ដើមនៅពេលការសាកល្បង ឬការបង់ប្រាក់ចុងក្រោយរបស់អ្នកបញ្ចប់ ដូច្នេះការបង់មុនមិនបាត់បង់ថ្ងៃទេ។',
+          'បើការសាកល្បង ឬពេលវេលាដែលអ្នកបានបង់អស់ អ្នកនៅមាន 7 ថ្ងៃទៀតដើម្បីបង់ ហើយហាងរបស់អ្នកនៅតែទទួលការកុម្ម៉ង់។ បន្ទាប់ពីនោះ ហាងឈប់ទទួលការកុម្ម៉ង់ថ្មី រហូតដល់អ្នកបង់ ហើយពេលបង់ ហាងបើកវិញភ្លាមៗ។ អតិថិជននៅតែអាចមើលហាងរបស់អ្នកបាន ហើយអ្នកនៅតែអាចបញ្ចប់ និងទាញយកការកុម្ម៉ង់ដែលមានស្រាប់បាន។ គ្មានអ្វីត្រូវបានលុបទេ។',
+          'អ្នកនឹងឃើញតម្លៃមុនពេលបង់។ មិនត្រូវការកាត និងមិនកាត់ប្រាក់ដោយស្វ័យប្រវត្តិទេ។',
         ],
       },
       {
@@ -362,9 +363,9 @@ const km: Record<LegalDoc, LegalPage> = {
         ],
       },
       {
-        heading: 'បើអ្នកបានចូលដោយ Facebook, Google ឬ TikTok',
+        heading: 'បើអ្នកបានចូលដោយ Facebook ឬ Google',
         body: [
-          'សូមធ្វើតាមជំហានខាងលើ ដើម្បីលុបអ្វីដែល Oak Order រក្សាទុក។ អ្នកក៏អាចដក Oak Order ចេញពីគណនីនោះបានដែរ៖ នៅលើ Facebook ការកំណត់ និងឯកជនភាព → ការកំណត់ → កម្មវិធី និងគេហទំព័រ → Oak Order → ដកចេញ។ នៅលើ Google myaccount.google.com → សុវត្ថិភាព → ការតភ្ជាប់របស់អ្នកទៅកម្មវិធីភាគីទីបី។ នៅលើ TikTok ការកំណត់ និងឯកជនភាព → សុវត្ថិភាព → គ្រប់គ្រងការអនុញ្ញាតកម្មវិធី។ ការធ្វើបែបនេះបញ្ឈប់ការចូលគណនី ប៉ុន្តែមិនលុបហាងរបស់អ្នកដោយខ្លួនឯងទេ។',
+          'សូមធ្វើតាមជំហានខាងលើ ដើម្បីលុបអ្វីដែល Oak Order រក្សាទុក។ អ្នកក៏អាចដក Oak Order ចេញពីគណនីនោះបានដែរ៖ នៅលើ Facebook ការកំណត់ និងឯកជនភាព → ការកំណត់ → កម្មវិធី និងគេហទំព័រ → Oak Order → ដកចេញ។ នៅលើ Google myaccount.google.com → សុវត្ថិភាព → ការតភ្ជាប់របស់អ្នកទៅកម្មវិធីភាគីទីបី។ ការធ្វើបែបនេះបញ្ឈប់ការចូលគណនី ប៉ុន្តែមិនលុបហាងរបស់អ្នកដោយខ្លួនឯងទេ។',
         ],
       },
       {

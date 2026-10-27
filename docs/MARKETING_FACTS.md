@@ -2,7 +2,8 @@
 
 > **Last checked: 2026-10-27, against the code at commit `11378ac`** (branch
 > `main`, the same as `origin/main`, so the same as the live site).
-> The live site was checked the same day (section 9).
+> The live site was checked the same day (section 9). Updated the same day
+> for the sign-up methods: TikTok login was removed.
 >
 > For whoever writes from this sheet (people or the claude.ai marketing
 > project): **only rows marked Live may be shown, or described as working
@@ -75,7 +76,7 @@ numbers, reviews or quotes to use.
 | Shop owners log in by sharing their number in Telegram, or with phone and password. Staff use phone and password. | Log in → **Log in with Telegram** (ចូលគណនីជាមួយ Telegram) | Live |
 | Sign up or log in with Google. | The square Google "G" button under the sign-up and log-in forms | Live |
 | Sign up or log in with Facebook. | (hidden on the live site) | In progress: waits for Meta's business verification and App Review |
-| Sign up or log in with TikTok. | The TikTok logo under the forms | In progress: TikTok hasn't approved the app yet. The logo shows on the live site, but only the founder's test account can use it |
+| Sign up or log in with TikTok. | — | Removed 2026-10-27 (TikTok turned the app down). Don't mention it; Telegram and Google cover it |
 | A checklist for a new shop: product, delivery fee, ways to pay, Telegram alerts, contact buttons, logo, open the shop. | Orders tab → **Get your shop ready** (រៀបចំហាងរបស់អ្នកឱ្យរួចរាល់); Settings → **Set up your shop** (រៀបចំហាងរបស់អ្នក) | Live |
 | Open the shop when ready. This starts the 30-day free trial (section 5). Before that, customers see "Opening soon". | Orders tab → **Open shop** (បើកហាង) → **Start free trial and open shop** (ចាប់ផ្ដើមសាកល្បង ហើយបើកហាង) | Live |
 | Forgot password: a reset link comes to the shop's Telegram chat. | Log in → **Forgot password?** (ភ្លេចពាក្យសម្ងាត់?) | Live |
@@ -241,8 +242,9 @@ Settings → Plan and the Terms page (`/terms`, Fees).
   no days.
 - **How sellers pay Oak Order: by hand.** Settings → Plan → the Pay button
   ("Pay early: $9.99" during the trial) shows the shop's code (e.g.
-  OAK-K7Q2MX) to put in the transfer note, and Oak Order's KHQR or bank
-  account (or a "Pay $9.99 on Telegram" button). The seller pays from their
+  OAK-K7Q2MX) to put in the transfer note, and Oak Order's KHQR for the
+  exact price (set up on the live site, founder 2026-10-27), with **Save
+  QR to photos** (រក្សាទុក QR ក្នុងរូបថត). The seller pays from their
   bank app and taps **I've paid** (ខ្ញុំបានបង់). Oak Order checks it by hand,
   "usually within a day". Telegram reminders go on the first day after the
   paid time ends and on day 5.
@@ -270,7 +272,7 @@ Settings → Plan and the Terms page (`/terms`, Fees).
 | "Linked with J&T / books the courier / live courier tracking" | The seller books the courier, types the tracking number and marks it delivered | "Send the driver every detail in one message" |
 | "Push notifications" / "the app notifies you" | Alerts are Telegram messages from Oak Order's bot; the bell updates only while the app is open | "Every new order on your Telegram" |
 | "Download the app" / App Store / Play Store | A website in the phone's browser | "Nothing to install" |
-| "Log in with Facebook" / "Log in with TikTok" | Not live (section 3.0) | Telegram, Google, or phone and password |
+| "Log in with Facebook" / "Log in with TikTok" | Facebook isn't live yet; TikTok login was removed (section 3.0) | "Sign up with your phone number through Telegram", or Google |
 | "Bank transfer" | Removed 2026-10-24; KHQR replaces it | KHQR or cash on delivery |
 | "Card payments" / "pay Oak in the app" / "auto-renew" | Sellers pay Oak Order by hand; no card, no automatic charges | "No card needed" |
 | "Free" / "free forever" | 30 days free from opening, then $9.99 a month | "Free for your first 30 days of selling" |
@@ -397,7 +399,8 @@ always stays navy.
   newest features (receipt, sales, Log in with Telegram, Continue with
   Telegram, Message on Telegram, the admin page's Found it). In the live
   app's settings: Google login and the support Telegram are on; Facebook
-  is off; TikTok is on with TikTok's test (sandbox) key.
+  is off. (TikTok's sandbox login was on that morning; it was removed
+  later that day, after TikTok turned the app down.)
 - **The $0 free-time payment** on the admin page: checked by a test run
   against the code (section 5).
 - **Check again** after any push that changes a feature, a price or a

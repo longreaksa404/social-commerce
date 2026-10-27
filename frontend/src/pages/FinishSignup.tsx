@@ -17,8 +17,8 @@ const FIELDS = ['store_name', 'phone_check']
 // What they type, kept like on Create your shop (pages/Register.tsx).
 const DRAFT_KEY = 'sc.register.social'
 
-/** /register/finish: someone new from "Continue with Google / Facebook /
- * TikTok" names their shop and proves a phone number in Telegram, like any
+/** /register/finish: someone new from "Continue with Google / Facebook"
+ * names their shop and proves a phone number in Telegram, like any
  * sign-up, so every shop has a real number. No password: that account is
  * how they log in (they can add one in Settings). */
 export function FinishSignup() {
@@ -68,7 +68,7 @@ function FinishForm({ signup }: { signup: SignupStart }) {
         method: 'POST',
         body: {
           ...form,
-          // Their Google / Facebook / TikTok name (else the Telegram one).
+          // Their Google / Facebook name (else the Telegram one).
           full_name: signup.full_name || undefined,
           signup_token: signup.signup_token,
           phone_check: phone.id,

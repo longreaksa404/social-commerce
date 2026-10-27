@@ -40,6 +40,8 @@ class LoginProvider(enum.StrEnum):
 
     GOOGLE = "google"
     FACEBOOK = "facebook"
+    # Retired 2026-10-27 (TikTok turned the app down): nothing logs in with
+    # it or lists it (social.RETIRED). Kept so rows saved before still load.
     TIKTOK = "tiktok"
 
 
@@ -130,8 +132,9 @@ class Seller(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
 
 
 class SellerLogin(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
-    """A Google, Facebook or TikTok account that logs in as a seller.
-    Not tenant-scoped; app_user has no grant on it."""
+    """A Google or Facebook account that logs in as a seller (and TikTok
+    ones saved before 2026-10-27, which no longer do). Not tenant-scoped;
+    app_user has no grant on it."""
 
     __tablename__ = "seller_login"
     __table_args__ = (
@@ -146,7 +149,7 @@ class SellerLogin(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     # the person changes their email.
     provider_user_id: Mapped[str] = mapped_column(Text)
     # What the provider said when it was connected, to show in Settings
-    # (TikTok gives no email, only a name).
+    # (Facebook gives no email for an account made with a phone number).
     email: Mapped[str | None] = mapped_column(Text)
     name: Mapped[str | None] = mapped_column(Text)
 

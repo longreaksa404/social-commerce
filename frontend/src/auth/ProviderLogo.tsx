@@ -1,8 +1,8 @@
 import { SourceLogo } from '../components/SourceLogo.tsx'
 import type { SocialProvider } from '../lib/types.ts'
 
-/** Google's "G" (its sign-in brand mark), or the Facebook / TikTok logo the
- * app already draws for link sources. Decorative: the name is beside it. */
+/** Google's "G" (its sign-in brand mark), or the Facebook logo the app
+ * already draws for link sources. Decorative: the name is beside it. */
 export function ProviderLogo({ provider, className = 'size-5' }: { provider: SocialProvider; className?: string }) {
   if (provider !== 'google') return <SourceLogo source={provider} className={className} />
   return (
@@ -15,9 +15,9 @@ export function ProviderLogo({ provider, className = 'size-5' }: { provider: Soc
   )
 }
 
-/** "Continue with Facebook / TikTok", drawn like Google's own outline
- * button above it (white, 40 px, up to 400 px wide), so the three look like
- * one set. White in dark mode too, as Google's is. `iconOnly`: the logo in
+/** "Continue with Facebook", drawn like Google's own outline button
+ * above it (white, 40 px, up to 400 px wide), so the two look like one
+ * set. White in dark mode too, as Google's is. `iconOnly`: the logo in
  * a 40 px square like Google's icon button, `label` read out instead. */
 export function ProviderButton({
   provider,

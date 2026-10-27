@@ -9,13 +9,14 @@ import { GoogleButton } from './GoogleButton.tsx'
 import { ProviderButton } from './ProviderLogo.tsx'
 import { useSocialResult } from './useSocialResult.ts'
 
-const REDIRECT_PROVIDERS: OAuthProvider[] = ['facebook', 'tiktok']
+const REDIRECT_PROVIDERS: OAuthProvider[] = ['facebook']
 
-/** Google, Facebook and TikTok as one small row of logos under the phone
- * form, after `label` ("or sign up with", "or log in with"): the phone
- * number is what every shop has, these are a shortcut (founder's pick 1A,
- * sign-up check 2026-10-18; Google, then Facebook, then TikTok). Each
- * shows only once its app is set up; nothing at all when none is. */
+/** Google and Facebook as one small row of logos under the phone form,
+ * after `label` ("or sign up with", "or log in with"): the phone number
+ * is what every shop has, these are a shortcut (founder's pick 1A,
+ * sign-up check 2026-10-18; Google, then Facebook; TikTok's went on
+ * 2026-10-27). Each shows only once its app is set up; nothing at all
+ * when none is. */
 export function SocialButtons({ label }: { label: string }) {
   const onResult = useSocialResult()
   const [error, setError] = useState<unknown>(null)

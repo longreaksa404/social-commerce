@@ -9,7 +9,7 @@ import { LEGAL, UPDATED, type Block, type LegalDoc } from './legal/content.ts'
 const PATHS: Record<LegalDoc, string> = { privacy: '/privacy', terms: '/terms', 'data-deletion': '/data-deletion' }
 
 /** /privacy, /terms, /data-deletion: public, readable without logging in,
- * in the chosen language (Meta's and TikTok's reviewers read the
+ * in the chosen language (Meta's reviewers read the
  * English). A plain page: the text, its date, and how to reach Oak Order. */
 export function Legal({ doc }: { doc: LegalDoc }) {
   const { lang } = useLang()

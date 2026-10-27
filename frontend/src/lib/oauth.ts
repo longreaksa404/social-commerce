@@ -1,19 +1,19 @@
-/** "Continue with Facebook" and "Continue with TikTok" (founder's choice
- * 2026-10-09). The browser goes to the provider's sign-in page and comes
- * back to /auth/<provider>/callback with a one-time code, which the API
- * trades for the account (it has the app's secret). The app ID / client
- * key below are public. Empty hides that provider's buttons. */
+/** "Continue with Facebook" (founder's choice 2026-10-09). The browser
+ * goes to Facebook's sign-in page and comes back to
+ * /auth/facebook/callback with a one-time code, which the API trades for
+ * the account (it has the app's secret). The app ID below is public.
+ * Empty hides Facebook's buttons. TikTok's went on 2026-10-27 (TikTok
+ * turned the app down; Log in with Telegram covers it). */
 export const FACEBOOK_APP_ID = (import.meta.env.VITE_FACEBOOK_APP_ID ?? '').trim()
-export const TIKTOK_CLIENT_KEY = (import.meta.env.VITE_TIKTOK_CLIENT_KEY ?? '').trim()
 // The same Graph API version as the API (FACEBOOK_GRAPH in app/core/oauth.py).
 const FACEBOOK_VERSION = 'v26.0'
 
-export type OAuthProvider = 'facebook' | 'tiktok'
+export type OAuthProvider = 'facebook'
 /** Signing in, or connecting the account in Settings → Your account. */
 export type OAuthIntent = 'login' | 'connect'
 
 export function oauthAvailable(provider: OAuthProvider): boolean {
-  return provider === 'facebook' ? FACEBOOK_APP_ID !== '' : TIKTOK_CLIENT_KEY !== ''
+  return provider === 'facebook' && FACEBOOK_APP_ID !== ''
 }
 
 /** The page the provider sends the browser back to. It must be listed in
@@ -42,25 +42,15 @@ export function startOAuth(provider: OAuthProvider, intent: OAuthIntent) {
   } catch {
     // Without it the callback can't check the state and will refuse.
   }
-  const redirect = callbackUrl(provider)
   const url =
-    provider === 'facebook'
-      ? `https://www.facebook.com/${FACEBOOK_VERSION}/dialog/oauth?` +
-        new URLSearchParams({
-          client_id: FACEBOOK_APP_ID,
-          redirect_uri: redirect,
-          state,
-          response_type: 'code',
-          scope: 'public_profile,email',
-        })
-      : 'https://www.tiktok.com/v2/auth/authorize/?' +
-        new URLSearchParams({
-          client_key: TIKTOK_CLIENT_KEY,
-          response_type: 'code',
-          scope: 'user.info.basic',
-          redirect_uri: redirect,
-          state,
-        })
+    `https://www.facebook.com/${FACEBOOK_VERSION}/dialog/oauth?` +
+    new URLSearchParams({
+      client_id: FACEBOOK_APP_ID,
+      redirect_uri: callbackUrl(provider),
+      state,
+      response_type: 'code',
+      scope: 'public_profile,email',
+    })
   window.location.assign(url)
 }
 
@@ -86,4 +76,4 @@ export function forgetOAuth() {
 }
 
 /** Brand names: the same in every language. */
-export const PROVIDER_NAMES = { google: 'Google', facebook: 'Facebook', tiktok: 'TikTok' } as const
+export const PROVIDER_NAMES = { google: 'Google', facebook: 'Facebook' } as const

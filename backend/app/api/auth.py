@@ -8,7 +8,6 @@ from app.api.session_cookie import RefreshCookie, end_session, start_session
 from app.core import google as google_auth
 from app.core import oauth
 from app.core.ratelimit import limiter
-from app.models import LoginProvider
 from app.schemas.auth import (
     AccessOut,
     GoogleIn,
@@ -117,14 +116,14 @@ async def google(request: Request, response: Response, data: GoogleIn, db: Unsco
 async def oauth_sign_in(
     request: Request,
     response: Response,
-    provider: Literal["facebook", "tiktok"],
+    provider: Literal["facebook"],
     data: OAuthIn,
     db: UnscopedDb,
 ) -> SocialOut:
-    """Continue with Facebook / TikTok: the code the provider sent the
-    browser back with. Logs in, or answers `signup` for someone new."""
-    exchange = oauth.facebook if provider == LoginProvider.FACEBOOK else oauth.tiktok
-    account = await exchange(data.code, data.redirect_uri)
+    """Continue with Facebook: the code Facebook sent the browser back
+    with. Logs in, or answers `signup` for someone new. TikTok's went
+    on 2026-10-27, so /oauth/tiktok is a 422 like any other name."""
+    account = await oauth.facebook(data.code, data.redirect_uri)
     return _social_out(response, await social_service.sign_in(db, account))
 
 
@@ -139,6 +138,6 @@ def _social_out(response: Response, result: TokenPair | SignupStart) -> SocialOu
 async def social_register(
     request: Request, response: Response, data: SocialRegisterIn, db: UnscopedDb
 ) -> AccessOut:
-    """Someone new from Continue with Google / Facebook / TikTok: their
-    shop, with a phone number checked in Telegram."""
+    """Someone new from Continue with Google / Facebook: their shop, with
+    a phone number checked in Telegram."""
     return start_session(response, await social_service.register(db, data))

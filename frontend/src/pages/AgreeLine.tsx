@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { useT } from '../i18n/useT.ts'
 
 /** Under "Create shop": signing up accepts the terms and the privacy
- * policy (Meta and TikTok ask for both to be shown). The price is in the
+ * policy (Meta asks for both to be shown). The price is in the
  * Terms and Settings → Plan, not here (founder, 2026-10-18). */
 export function AgreeLine() {
   const l = useT().legal

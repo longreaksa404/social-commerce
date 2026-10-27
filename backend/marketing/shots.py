@@ -202,8 +202,6 @@ def api_env(database_url: str) -> dict[str, str]:
         "GOOGLE_CLIENT_ID",
         "FACEBOOK_APP_ID",
         "FACEBOOK_APP_SECRET",
-        "TIKTOK_CLIENT_KEY",
-        "TIKTOK_CLIENT_SECRET",
     ):
         env[name] = ""
     return env

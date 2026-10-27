@@ -71,7 +71,7 @@ export function GoogleButton({
   }, [lang, icon, onUnavailable])
 
   if (!GOOGLE_CLIENT_ID) return null
-  // The square "G": our own tile, the same as TikTok's beside it, drawn at
+  // The square "G": our own tile, the same as Facebook's beside it, drawn at
   // once, with Google's real button laid over it, invisible, taking the tap.
   // Google's own swaps its first drawing for another as it loads (a flicker
   // on iPhones), and in dark mode Chrome puts a white square behind its

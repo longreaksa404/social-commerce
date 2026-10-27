@@ -32,8 +32,8 @@ export const auth = {
   // Accounts from before 2026-10-09 (and their staff) log in with an email.
   useEmail: { en: 'Log in with email instead', km: 'ចូលដោយអ៊ីមែលជំនួសវិញ' },
   usePhone: { en: 'Log in with phone number', km: 'ចូលដោយលេខទូរស័ព្ទ' },
-  // "Continue with Google / Facebook / TikTok". Google draws its own
-  // button, in the app's language; Facebook's and TikTok's are ours.
+  // "Continue with Google / Facebook". Google draws its own button, in
+  // the app's language; Facebook's is ours.
   social: {
     continueWith: {
       en: (provider: string) => `Continue with ${provider}`,
@@ -65,7 +65,7 @@ export const auth = {
       en: 'This took too long. Please start again.',
       km: 'ចំណាយពេលយូរពេក។ សូមចាប់ផ្ដើមម្ដងទៀត។',
     },
-    // /auth/<provider>/callback: back from Facebook or TikTok.
+    // /auth/facebook/callback: back from Facebook.
     working: { en: 'Logging you in…', km: 'កំពុងចូលគណនី…' },
     failedTitle: { en: "Couldn't log you in", km: 'មិនអាចចូលគណនីបាន' },
     cancelled: {

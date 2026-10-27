@@ -204,18 +204,18 @@ export type Account = {
   email: string | null
   full_name: string
   role: Role
-  /** False for an account made with Google, Facebook or TikTok until it
-   * adds a password. */
+  /** False for an account made with Google or Facebook until it adds a
+   * password. */
   has_password: boolean
-  /** The Google, Facebook and TikTok accounts that log in to this one. */
+  /** The Google and Facebook accounts that log in to this one. */
   logins: SocialLogin[]
   /** Oak Order's own login (ADMIN_PHONES): the admin page shows. */
   is_admin: boolean
 }
 
-export type SocialProvider = 'google' | 'facebook' | 'tiktok'
+export type SocialProvider = 'google' | 'facebook'
 
-/** label: the account's email, or (TikTok, or no email) its name. */
+/** label: the account's email, or (no email) its name. */
 export type SocialLogin = { provider: SocialProvider; label: string | null }
 
 /** A helper the owner added (Settings → Staff); logs in with the phone. */
@@ -639,7 +639,7 @@ export type LinkStats = ShareLink & {
   orders: OrderSummary[]
 }
 
-/** Someone new from "Continue with Google / Facebook / TikTok": they
+/** Someone new from "Continue with Google / Facebook": they
  * finish with a shop name and a phone checked in Telegram
  * (POST /auth/social/register). */
 export type SignupStart = {

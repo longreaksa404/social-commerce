@@ -5,8 +5,7 @@ import type { SocialResult } from '../lib/types.ts'
 import { useAuth } from './useAuth.ts'
 
 /** After any "Continue with ...": logged in, or off to set up the shop
- * (/register/finish). Used by the buttons and by the Facebook / TikTok
- * callback. */
+ * (/register/finish). Used by the buttons and by the Facebook callback. */
 export function useSocialResult() {
   const { startSession } = useAuth()
   const navigate = useNavigate()

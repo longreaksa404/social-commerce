@@ -41,10 +41,6 @@ services:
         sync: false
       - key: FACEBOOK_APP_SECRET
         sync: false
-      - key: TIKTOK_CLIENT_KEY
-        sync: false
-      - key: TIKTOK_CLIENT_SECRET
-        sync: false
       - key: OAK_KHQR_ACCOUNT
         sync: false
       - key: OAK_KHQR_NAME

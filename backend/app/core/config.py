@@ -55,10 +55,6 @@ class Settings(BaseSettings):
     # it as VITE_FACEBOOK_APP_ID) and secret (here only). Off unless both.
     facebook_app_id: str = ""
     facebook_app_secret: str = ""
-    # "Continue with TikTok": the TikTok app's client key (public; the
-    # frontend has it as VITE_TIKTOK_CLIENT_KEY) and secret. Off unless both.
-    tiktok_client_key: str = ""
-    tiktok_client_secret: str = ""
 
     # How sellers pay Oak Order by hand (01_PRODUCT.md §33.1), shown on
     # Settings → Plan with the shop's code. Oak's Bakong account (e.g.
@@ -91,10 +87,6 @@ class Settings(BaseSettings):
     @property
     def facebook_configured(self) -> bool:
         return bool(self.facebook_app_id and self.facebook_app_secret)
-
-    @property
-    def tiktok_configured(self) -> bool:
-        return bool(self.tiktok_client_key and self.tiktok_client_secret)
 
     @property
     def telegram_configured(self) -> bool:

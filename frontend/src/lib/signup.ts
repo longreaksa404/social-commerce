@@ -31,7 +31,7 @@ export function saveSignup(signup: SignupStart) {
 }
 
 // What a seller typed on Create your shop (or Set up your shop after
-// Google, Facebook or TikTok), the shop's name, kept on this phone so coming back from
+// Google or Facebook), the shop's name, kept on this phone so coming back from
 // Telegram to a reloaded page doesn't lose it (founder's pick 2A,
 // 2026-10-18). localStorage, not sessionStorage: an in-app browser can
 // drop the tab's storage while the seller is in Telegram. Never the

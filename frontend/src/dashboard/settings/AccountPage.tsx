@@ -135,10 +135,10 @@ function LoginPhone({ account }: { account: Account }) {
   )
 }
 
-/** Google, Facebook and TikTok for this account: which ones log in to it,
- * and connecting one (or another account of that kind). Google's button
- * gives the token here; Facebook and TikTok go off to their page and come
- * back through /auth/<provider>/callback. Only providers that are set up;
+/** Google and Facebook for this account: which ones log in to it, and
+ * connecting one (or another account of that kind). Google's button
+ * gives the token here; Facebook goes off to its page and comes back
+ * through /auth/facebook/callback. Only providers that are set up;
  * nothing when none is. */
 function OtherLogins({ account }: { account: Account }) {
   const queryClient = useQueryClient()
@@ -155,7 +155,7 @@ function OtherLogins({ account }: { account: Account }) {
   })
   const { mutate } = connectGoogle
 
-  const providers = (['google', 'facebook', 'tiktok'] as const).filter((p) =>
+  const providers = (['google', 'facebook'] as const).filter((p) =>
     p === 'google' ? GOOGLE_CLIENT_ID !== '' : oauthAvailable(p),
   )
   if (providers.length === 0) return null

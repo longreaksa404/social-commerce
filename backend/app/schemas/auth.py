@@ -93,7 +93,7 @@ class GoogleIn(BaseModel):
 
 
 class OAuthIn(BaseModel):
-    """What Facebook or TikTok sent the browser back with: a one-time code,
+    """What Facebook sent the browser back with: a one-time code,
     and the callback page's address (the code was made for it)."""
 
     code: str = Field(min_length=1, max_length=2000)
@@ -101,7 +101,7 @@ class OAuthIn(BaseModel):
 
 
 class SignupStart(BaseModel):
-    """A Google, Facebook or TikTok account with no shop yet: the seller
+    """A Google or Facebook account with no shop yet: the seller
     finishes signing up (shop name, phone checked in Telegram) with POST
     /auth/social/register."""
 
@@ -112,7 +112,7 @@ class SignupStart(BaseModel):
 
 
 class SocialOut(BaseModel):
-    """After "Continue with Google / Facebook / TikTok": logged in
+    """After "Continue with Google / Facebook": logged in
     (access_token, and the refresh cookie is set), or someone new (signup)."""
 
     access_token: str | None = None
@@ -122,7 +122,7 @@ class SocialOut(BaseModel):
 
 class SocialRegisterIn(BaseModel):
     signup_token: str = Field(max_length=2000)
-    # The Google / Facebook / TikTok account's name; else the Telegram name.
+    # The Google / Facebook account's name; else the Telegram name.
     full_name: Name | None = None
     store_name: Name
     phone_check: uuid.UUID
