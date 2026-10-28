@@ -11,7 +11,9 @@ from app.core.config import get_settings
 from app.core.errors import AppError
 
 ALGORITHM = "HS256"
-TokenType = Literal["access", "refresh", "reset", "signup", "customer"]
+TokenType = Literal[
+    "access", "refresh", "reset", "signup", "customer", "admin", "admin_refresh", "admin_step"
+]
 # How long a "choose a new password" link from Telegram works.
 RESET_TOKEN_MINUTES = 30
 # How long someone new from "Continue with Google" has to finish signing up.
@@ -110,6 +112,35 @@ def create_customer_token(telegram_user_id: int, phone: str, name: str) -> str:
     return _encode(
         {"type": "customer", "sub": str(telegram_user_id), "phone": phone, "name": name},
         timedelta(days=CUSTOMER_TOKEN_DAYS),
+    )
+
+
+# The admin's login (01_PRODUCT.md §22.11): the password gives a step token,
+# good this long for the Telegram step that follows.
+ADMIN_STEP_MINUTES = 5
+
+
+def create_admin_access_token(admin_id: uuid.UUID, session_id: uuid.UUID) -> str:
+    """An admin account's access: its own type, so a seller's token never
+    opens /admin and this one never opens a shop. `sid` is the session,
+    for the password-again window."""
+    return _encode(
+        {"type": "admin", "sub": str(admin_id), "sid": str(session_id)},
+        timedelta(minutes=get_settings().access_token_minutes),
+    )
+
+
+def create_admin_refresh_token(admin_id: uuid.UUID, session_id: uuid.UUID) -> str:
+    return _encode(
+        {"type": "admin_refresh", "sub": str(admin_id), "jti": str(session_id)},
+        refresh_token_lifetime(),
+    )
+
+
+def create_admin_step_token(admin_id: uuid.UUID) -> str:
+    """The right password, waiting for the Telegram step. Not stored."""
+    return _encode(
+        {"type": "admin_step", "sub": str(admin_id)}, timedelta(minutes=ADMIN_STEP_MINUTES)
     )
 
 

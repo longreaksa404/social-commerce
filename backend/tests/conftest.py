@@ -6,6 +6,7 @@ each run, so local dev data is never touched.
 
 import asyncio
 import os
+import random
 import uuid
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
@@ -56,7 +57,7 @@ async def _empty_tables() -> None:
         database=TEST_URL.database,
     )
     try:
-        await conn.execute("TRUNCATE seller, store RESTART IDENTITY CASCADE")
+        await conn.execute("TRUNCATE seller, store, admin_account RESTART IDENTITY CASCADE")
     finally:
         await conn.close()
 
@@ -151,6 +152,32 @@ async def register(client):
         return {**session, "phone": phone}
 
     return _register
+
+
+ADMIN_PASSWORD = "admin-horse-battery"
+
+
+@pytest.fixture
+async def admin(client, monkeypatch):
+    """An admin account (the admin panel's own login, 01_PRODUCT.md §22.11)
+    set up through the API, its number in ADMIN_PHONES: its tokens, phone
+    and Telegram id (its "I've paid" alerts go there)."""
+    from app.api.session_cookie import ADMIN_REFRESH_COOKIE
+    from app.core.config import get_settings
+
+    telegram_user_id = random.randrange(10**9, 10**10)
+    check_id, phone = await verified_phone_check(telegram_user_id=telegram_user_id)
+    monkeypatch.setattr(get_settings(), "admin_phones", f"+855 {phone[1:]}")
+    response = await client.post(
+        "/api/v1/admin/auth/setup", json={"phone_check": check_id, "password": ADMIN_PASSWORD}
+    )
+    assert response.status_code == 201, response.text
+    return {
+        **response.json(),
+        "refresh_token": response.cookies[ADMIN_REFRESH_COOKIE],
+        "phone": phone,
+        "telegram_user_id": telegram_user_id,
+    }
 
 
 @pytest.fixture

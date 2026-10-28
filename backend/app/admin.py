@@ -11,12 +11,13 @@ seller is named by their login, a phone number or (accounts from before
     python -m app.admin test-shop
     python -m app.admin forget-customer <shop link name> 012345678
     python -m app.admin move-photos https://pub-xxxx.r2.dev https://images.oaksolve.com
+    python -m app.admin admin-password 095748182
 
 On the live database: put Neon's direct connection string in
 DATABASE_URL for that one command (it wins over the .env file).
 
-There's no admin screen in the MVP; these are the few things only the
-founder does.
+The admin panel (/admin, 01_PRODUCT.md §22.11) takes these over step by
+step; admin-password is for its own login.
 """
 
 import argparse
@@ -32,6 +33,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import clock, security
 from app.db.session import unscoped_session
 from app.models import (
+    AdminAccount,
+    AdminSession,
     Customer,
     Order,
     PlanPayment,
@@ -73,6 +76,25 @@ async def reset_password(login: str) -> str:
         seller = await _seller(db, login)
         seller.password_hash = await security.hash_password(password)
         await db.execute(delete(RefreshToken).where(RefreshToken.seller_id == seller.id))
+        await db.commit()
+    return password
+
+
+async def admin_password(phone: str) -> str:
+    """A new password for an admin account (the admin panel's own login,
+    01_PRODUCT.md §22.11), for one that was forgotten: every browser on it
+    is logged out. The Telegram step still follows each login."""
+    try:
+        normalized = normalize_phone(phone)
+    except ValueError as exc:
+        raise AdminError(f"{phone} isn't a phone number.") from exc
+    password = temporary_password()
+    async with unscoped_session() as db:
+        account = await db.scalar(select(AdminAccount).where(AdminAccount.phone == normalized))
+        if account is None:
+            raise AdminError(f"No admin account for {phone}. Set it up at /admin/login first.")
+        account.password_hash = await security.hash_password(password)
+        await db.execute(delete(AdminSession).where(AdminSession.admin_id == account.id))
         await db.commit()
     return password
 
@@ -412,6 +434,12 @@ async def _run(args: argparse.Namespace) -> str:
             "Every phone is logged out. Send it to the seller and ask them to change it "
             "in Settings → Your account."
         )
+    if args.command == "admin-password":
+        password = await admin_password(args.phone)
+        return (
+            f"New admin password for {args.phone}: {password}\n"
+            "Every browser on the admin is logged out. Log in at /admin with it."
+        )
     if args.command in ("close-shop", "reopen-shop"):
         slug = await set_shop_open(args.login, args.command == "reopen-shop")
         if args.command == "close-shop":
@@ -475,6 +503,9 @@ def main(argv: list[str] | None = None) -> None:
         commands.add_parser(name, help=help_text).add_argument(
             "login", help="the seller's phone number, or email for accounts from before 2026-10-09"
         )
+    commands.add_parser(
+        "admin-password", help="a new password for your admin account (the admin panel's login)"
+    ).add_argument("phone", help="the admin's phone number")
     test = commands.add_parser("test-shop", help="make a shop to try things on (load test)")
     test.add_argument("--name", default="Load Test Shop", help="the shop's name")
     forget = commands.add_parser(

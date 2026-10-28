@@ -58,6 +58,20 @@ today, and takes orders again at once.
 
 ---
 
+## You forgot your admin password
+
+The admin panel (order.oaksolve.com/admin, 2026-10-28) has its own login:
+your password, then Telegram. If you forget the password:
+
+```bash
+python -m app.admin admin-password 095748182
+```
+
+It prints a new one and logs out every browser on the admin. The
+Telegram step still follows each login.
+
+---
+
 ## A seller forgot their password
 
 Sellers whose shop has Telegram connected can reset it themselves:

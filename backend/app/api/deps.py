@@ -10,9 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.errors import AppError
 from app.core.security import decode_token
 from app.db.session import get_db, tenant_session, unscoped_session
-from app.models import Seller as SellerModel
-from app.models import SellerRole, Store
-from app.services import admin as admin_service
+from app.models import AdminAccount, AdminSession, SellerRole, Store
+from app.services import admin_auth
 from app.services import storefront as storefront_service
 
 _bearer = HTTPBearer(auto_error=False)
@@ -52,16 +51,39 @@ async def current_owner(
     return seller
 
 
+@dataclass(frozen=True)
+class CurrentAdmin:
+    admin_id: uuid.UUID
+    session_id: uuid.UUID
+
+
 async def current_admin(
-    seller: Annotated[CurrentSeller, Depends(current_seller)],
-) -> CurrentSeller:
-    """The founder's admin page: a login whose phone number is in
-    ADMIN_PHONES, read from the database each time (not the token)."""
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+) -> CurrentAdmin:
+    """The admin panel: an admin account's own token (not a seller's), its
+    phone still in ADMIN_PHONES, read from the database each time."""
+    if credentials is None:
+        raise AppError(401, "NOT_AUTHENTICATED", "Please log in.")
+    payload = decode_token(credentials.credentials, "admin")
+    try:
+        admin = CurrentAdmin(uuid.UUID(payload["sub"]), uuid.UUID(payload["sid"]))
+    except (KeyError, ValueError) as exc:
+        raise AppError(401, "INVALID_TOKEN", "Invalid authentication token.") from exc
     async with unscoped_session() as db:
-        account = await db.get(SellerModel, seller.seller_id)
-        if account is None or not account.is_active or not admin_service.is_admin(account):
+        if not admin_auth.allowed(await db.get(AdminAccount, admin.admin_id)):
             raise AppError(403, "ADMIN_ONLY", "This page is for Oak Order only.")
-    return seller
+    return admin
+
+
+async def current_admin_password_again(
+    admin: Annotated[CurrentAdmin, Depends(current_admin)],
+) -> CurrentAdmin:
+    """A critical action (01_PRODUCT.md §22.11): the password typed again in
+    this browser in the last 10 minutes (POST /admin/auth/password)."""
+    async with unscoped_session() as db:
+        if not admin_auth.password_recent(await db.get(AdminSession, admin.session_id)):
+            raise AppError(403, "PASSWORD_AGAIN", "Type your password again to do this.")
+    return admin
 
 
 async def get_tenant_db(
@@ -90,7 +112,8 @@ async def get_shop_db(shop: Annotated[Store, Depends(get_shop)]) -> AsyncIterato
 
 Seller = Annotated[CurrentSeller, Depends(current_seller)]
 Owner = Annotated[CurrentSeller, Depends(current_owner)]
-Admin = Annotated[CurrentSeller, Depends(current_admin)]
+Admin = Annotated[CurrentAdmin, Depends(current_admin)]
+AdminPasswordAgain = Annotated[CurrentAdmin, Depends(current_admin_password_again)]
 TenantDb = Annotated[AsyncSession, Depends(get_tenant_db)]
 UnscopedDb = Annotated[AsyncSession, Depends(get_db)]
 Shop = Annotated[Store, Depends(get_shop)]

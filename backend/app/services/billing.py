@@ -21,6 +21,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import date, timedelta
 
+import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,6 +30,7 @@ from app.core.config import get_settings
 from app.core.errors import NotFound
 from app.db.session import unscoped_session
 from app.models import (
+    AdminAccount,
     NotificationLog,
     PlanPayment,
     PlanPaymentMethod,
@@ -38,13 +40,12 @@ from app.models import (
     Store,
 )
 from app.services import admin as admin_service
-from app.services import notifications
+from app.services import notifications, telegram
 from app.services import plan as plan_service
-from app.services.telegram import escape
+from app.services.telegram import TelegramError, escape
 
 logger = logging.getLogger(__name__)
 
-PLAN_CLAIMED = "plan_claimed"  # to the founder: a seller says they've paid
 PLAN_REMINDER = "plan_reminder"  # to the seller: time to pay
 # Reminders on day 1 (the start day) and day 5 of the 7 days to pay
 # (founder, 2026-10-14). A run missed is made up the next day.
@@ -79,36 +80,34 @@ async def claim(store_id: uuid.UUID, period: PlanPeriod) -> uuid.UUID | None:
 
 
 async def notify_claim(store_id: uuid.UUID, payment_id: uuid.UUID) -> None:
-    """Telegram to the founder (the shops of ADMIN_PHONES' logins), after
-    the seller's response."""
+    """Telegram to each admin account's own chat with the bot (01_PRODUCT.md
+    §22.11, 2026-10-28), after the seller's response."""
     async with unscoped_session() as db:
         store = await db.get(Store, store_id)
         payment = await db.get(PlanPayment, payment_id)
         if store is None or payment is None:
             return
         text = claim_text(store, payment)
-        button = _button(f"/dashboard/admin/{store_id}", "ពិនិត្យ")
-        for chat_store in await founder_shops(db):
-            await notifications.send_to_seller(
-                db,
-                chat_store,
-                PLAN_CLAIMED,
-                {"store_id": str(store_id), "payment_id": str(payment_id)},
-                text,
-                button,
-            )
+        button = _button(f"/admin/shops/{store_id}", "ពិនិត្យ")
+        for chat_id in await admin_chats(db):
+            try:
+                await telegram.send_message(chat_id, text, button)
+            except (TelegramError, httpx.HTTPError) as exc:
+                logger.warning("The admin's \"I've paid\" alert failed: %r", exc)
 
 
-async def founder_shops(db: AsyncSession) -> list[Store]:
-    """The founder's own shops: their Telegram chat gets Oak Order's alerts."""
+async def admin_chats(db: AsyncSession) -> list[int]:
+    """The Telegram chats of the admin accounts still in ADMIN_PHONES."""
     phones = admin_service.admin_phones()
     if not phones:
         return []
     return list(
         await db.scalars(
-            select(Store)
-            .join(Seller, Seller.id == Store.seller_id)
-            .where(Seller.phone.in_(phones), Store.telegram_chat_id.is_not(None))
+            select(AdminAccount.telegram_user_id).where(
+                AdminAccount.phone.in_(phones),
+                AdminAccount.is_active,
+                AdminAccount.telegram_user_id.is_not(None),
+            )
         )
     )
 

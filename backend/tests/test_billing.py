@@ -42,11 +42,10 @@ def sent(monkeypatch):
 
 
 @pytest.fixture
-async def founder(register, monkeypatch):
-    """The founder's own login (ADMIN_PHONES), whose shop's chat gets alerts."""
-    tokens = await register()
-    monkeypatch.setattr(get_settings(), "admin_phones", f"+855 {tokens['phone'][1:]}")
-    return tokens
+async def founder(admin):
+    """The founder's admin account (ADMIN_PHONES), whose own Telegram chat
+    with the bot gets Oak Order's alerts."""
+    return admin
 
 
 async def store_of(client, headers) -> dict:
@@ -103,7 +102,6 @@ async def test_ive_paid_alerts_the_founder_once(client, register, founder, sent)
     seller = await register()
     headers = bearer(seller)
     store = await store_of(client, headers)
-    founder_store = await store_of(client, bearer(founder))
 
     first = await client.post(f"{PLAN}/paid", headers=headers, json={"period": "month"})
     again = await client.post(f"{PLAN}/paid", headers=headers, json={"period": "year"})
@@ -115,9 +113,9 @@ async def test_ive_paid_alerts_the_founder_once(client, register, founder, sent)
     # Nothing changes until the founder finds the money.
     assert again.json()["paid_until"] == first.json()["paid_until"]
     assert len(sent) == 1
-    assert sent[0]["chat_id"] == await chat_of(founder_store["id"])
+    assert sent[0]["chat_id"] == str(founder["telegram_user_id"])
     assert first.json()["code"] in sent[0]["text"]
-    assert sent[0]["button"] == ("ពិនិត្យ", f"https://order.example.com/dashboard/admin/{store['id']}")
+    assert sent[0]["button"] == ("ពិនិត្យ", f"https://order.example.com/admin/shops/{store['id']}")
 
 
 async def test_the_founder_confirms_and_the_month_is_added(client, register, founder, sent):
@@ -288,8 +286,8 @@ async def test_one_shops_payments_stay_its_own(client, register, founder):
 
     assert plan_b["claim"] is None and plan_b["payments"] == []
     assert crossed.status_code == 404
-    assert by_seller.status_code == 403
-    assert by_seller.json()["error"]["code"] == "ADMIN_ONLY"
+    # A seller's login never opens the admin, the founder's own shop's neither.
+    assert by_seller.status_code == 401
 
 
 async def test_the_admin_page_lists_codes_and_waiting_payments(client, register, founder):
@@ -298,10 +296,8 @@ async def test_the_admin_page_lists_codes_and_waiting_payments(client, register,
     await client.post(f"{PLAN}/paid", headers=bearer(seller), json={"period": "month"})
 
     shops = (await client.get(ADMIN, headers=bearer(founder))).json()
-    account = (await client.get("/api/v1/seller/account", headers=bearer(founder))).json()
 
     row = next(shop for shop in shops if shop["id"] == store["id"])
     assert row["code"] == shop_code(uuid.UUID(store["id"]))
     assert row["claim"]["status"] == "pending"
     assert row["telegram"] is True
-    assert account["is_admin"] is True

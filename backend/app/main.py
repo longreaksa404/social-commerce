@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import (
     account,
     admin,
+    admin_auth,
     auth,
     billing,
     categories,
@@ -70,6 +71,7 @@ api_v1.include_router(sales.router)
 api_v1.include_router(orders.router)
 api_v1.include_router(stats.router)
 api_v1.include_router(plan.router)
+api_v1.include_router(admin_auth.router)
 api_v1.include_router(admin.router)
 api_v1.include_router(billing.router)
 api_v1.include_router(reminders.router)
