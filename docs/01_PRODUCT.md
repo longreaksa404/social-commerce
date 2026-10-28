@@ -951,11 +951,23 @@ Potential future analytics:
 
 Decided 2026-10-28 (the founder's picks from the admin plan: D1A D2B D3A
 D4B D5A; every part built except 7, later, and 32, skipped): Oak Order's
-admin panel, its own area of the app at `/admin` with its own menu and a
-"My shop" link back, for the logins in `ADMIN_PHONES` only, in English
-only (the two admin pages built before keep their Khmer). The same app,
-API and login, with no second site or server. Before that, the admin page
-only checked plan payments (§33.1).
+admin panel, its own area of the app at `/admin` with its own menu, in
+English only (the two admin pages built before keep their Khmer). The
+same app and API, with no second site or server. Before that, the admin
+page only checked plan payments (§33.1), from a seller login.
+
+- **Its own account** (founder, 2026-10-28: "im the system owner if i
+  also want to have shop in my system i can create shop like other
+  seller"): the admin is the system owner's own login, with no shop.
+  Logging in at `/admin` takes two steps, the password then a
+  confirmation in Telegram (sharing the phone with Oak's bot, as sellers
+  do). Only a number in `ADMIN_PHONES` (set on Render, not in the app)
+  can have an admin account; the first time, it logs in with Telegram and
+  sets its password. It stays logged in on that phone like a seller, and
+  can be logged in beside a seller's shop on the same phone. The
+  founder's own shop (Oak Fashion) is an ordinary shop with its own
+  login. "I've paid" alerts go to the admin's own Telegram chat with
+  Oak's bot.
 
 - **Home:** what needs the founder ("I've paid" to check, shops ending
   soon or unpaid, shops not opened 7 days after sign-up, failed Telegram

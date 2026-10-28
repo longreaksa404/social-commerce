@@ -320,13 +320,18 @@ A product's price today is the lowest of its price and each active sale's price 
 
 > One payment a shop made, or says it made, to Oak Order (01 §33.1). Once paid it sets `store.paid_until` to `covers_until`. A payment carries on from the day after `paid_until`; once the shop has stopped taking orders, from the day it's paid. Only the founder marks one paid (§6.2 Admin). RLS like every tenant table, but `app_user` may only SELECT: billing writes the seller's "I've paid" on its own session. The ABA PayWay version (transactions, saved tokens) is parked on the `payway` branch. Admin panel (2026-10-28): a fourth status, `void` ("Undone": marked paid by mistake); undoing a shop's latest paid payment moves `paid_until` back to the day before its `covers_from`, keeps the row, and leaves it out of the money totals. The prices come from `platform_setting` instead of the code.
 
+### `admin_account` (2026-10-28, admin panel)
+| id, phone (normalized, unique), password_hash, telegram_user_id (bigint, from its Telegram step; its "I've paid" alerts go there), is_active, created_at, last_login_at |
+
+> The system owner's own login for `/admin` (01 §22.11), separate from `seller`: no shop, so the same phone can also own a shop. Only a phone in `ADMIN_PHONES` may have one or log in with it; removing a number from the variable stops it at once. Its sessions are `admin_session` rows (id = the refresh JWT's jti, admin_id FK CASCADE, expires_at, revoked_at, created_at), swapped like `refresh_token` and sent in their own cookie, so a seller login on the same phone isn't touched. Not tenant data: no RLS, no `app_user` grant.
+
 ### `admin_action` (2026-10-28, admin panel)
-| id, admin_id (FK seller, the admin's login; SET NULL), store_id (nullable FK store, SET NULL: kept after a shop is erased, with its name in `details`), action (text: e.g. `mark_paid`, `undo_payment`, `paid_until`, `close_shop`, `reopen_shop`, `erase_shop`, `reset_password`, `logout_all`, `change_phone`, `remove_login`, `forget_customer`, `hide_product`, `open_as_seller`, `seller_save`, `setting`, `broadcast`, `run_job`), reason (nullable; the founder's own words), details (JSONB: what changed, before and after), created_at |
+| id, admin_id (FK admin_account; SET NULL), store_id (nullable FK store, SET NULL: kept after a shop is erased, with its name in `details`), action (text: e.g. `mark_paid`, `undo_payment`, `paid_until`, `close_shop`, `reopen_shop`, `erase_shop`, `reset_password`, `logout_all`, `change_phone`, `remove_login`, `forget_customer`, `hide_product`, `open_as_seller`, `seller_save`, `setting`, `broadcast`, `run_job`), reason (nullable; the founder's own words), details (JSONB: what changed, before and after), created_at |
 
 > The admin panel's log (01 §22.11): one row per admin action, and per save made while opened as a seller. Written in the same transaction as the action. Not tenant data: no RLS, no `app_user` grant; only the admin's unscoped session reads it. Index on (store_id, created_at) and created_at.
 
 ### `platform_setting` (2026-10-28, admin panel)
-| key (text, primary key), value (JSONB), updated_at, updated_by (nullable FK seller) |
+| key (text, primary key), value (JSONB), updated_at, updated_by (nullable FK admin_account) |
 
 > Oak Order's own settings changed from the admin panel without a redeploy (founder's pick D2B). Keys: `khr_per_usd` (replaces the `KHR_PER_USD` variable, which stays the default until saved once), `prices` (`{month, year}` in US dollars), `trial_days` (30), and the last run of each job (`job:billing`, `job:reminders`: when, how many sent). A missing key reads as today's default. Each change is logged in `admin_action`. Not tenant data: `app_user` may only SELECT (sellers' pages and the shop read the prices and the rate).
 
@@ -438,7 +443,16 @@ POST   /api/v1/admin/shops/{store_id}/payments/{id}/reject    # not found: {note
 
 Only for a login whose phone number is in `ADMIN_PHONES` (checked in the database on each request), else 403 `ADMIN_ONLY`. The only endpoints that read across shops, on an unscoped session.
 
-**Admin panel (decided 2026-10-28, 01 §22.11; being built).** More routes under `/api/v1/admin`, the same guard, each change logged in `admin_action` in its own transaction; the exact shapes go in `docs/CODEBASE.md` as each is built:
+**Admin panel (decided 2026-10-28, 01 §22.11; being built).** The guard becomes an admin account's access token (`admin_account`, §5) instead of a seller login: the routes above move behind it and Settings → Oak Order admin goes. Logging in:
+
+```
+POST   /admin/auth/login        # {phone, password} → a 5-minute step token + Oak's bot link (a phone check)
+POST   /admin/auth/confirm      # {step token, phone_check}: the check's phone is the account's → access + admin cookie
+POST   /admin/auth/setup        # first time: {phone_check, password}; the phone is in ADMIN_PHONES and has no account yet
+POST   /admin/auth/refresh | /admin/auth/logout
+```
+
+The phone must still be in `ADMIN_PHONES` at every step and on each request. Login and setup 10/min. More routes under `/api/v1/admin`, behind that guard, each change logged in `admin_action` in its own transaction; the exact shapes go in `docs/CODEBASE.md` as each is built:
 
 ```
 GET    /admin/overview                          # Home: what needs you, the numbers, 30 days per day
@@ -788,7 +802,7 @@ Customer taps "Ask seller on Telegram" on the product page
 
 ## 12.5 Oak Order's Billing Messages (2026-10-14)
 - **To the seller, payment reminders:** a daily run (cron-job.org calls `POST /api/v1/billing/run`) sends a Khmer reminder on day 1 and day 5 after a shop's paid time ends ("pay by hand with your code; new orders stop on day 8"), once each per paid-until date (logged as `plan_reminder`), and not while an "I've paid" waits. Telegram is optional (01 §32 Rule 7): shops without it see the reminder on the Orders tab instead.
-- **To the founder:** "I've paid" sends the shop's name, code and amount to the Telegram chat of each shop whose owner is in `ADMIN_PHONES` (their own shop's alerts chat), with a button to the admin page.
+- **To the founder:** "I've paid" sends the shop's name, code and amount to the Telegram chat of each shop whose owner is in `ADMIN_PHONES` (their own shop's alerts chat), with a button to the admin page. From the admin panel (2026-10-28): to each admin account's own Telegram chat (`admin_account.telegram_user_id`) instead, with a button to `/admin`.
 
 ---
 
