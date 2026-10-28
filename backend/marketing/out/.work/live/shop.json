@@ -1,0 +1,990 @@
+{
+ "products": [
+  {
+   "category": {
+    "name": "ស្បែកជើងនារី",
+    "slug": "womens-shoes"
+   },
+   "description": "ស្បែកសិប្បនិម្មិត ជូតសម្អាតងាយ បាតកៅស៊ូទន់ស្រាល ពាក់ដើរពេញមួយថ្ងៃមិនឈឺជើង។\nទំហំត្រូវតាមខ្នាត បើជើងធំ ឬក្រាស់ សូមយកធំជាង ១ លេខ។",
+   "has_variants": true,
+   "id": "38754e13-ff60-4094-88f4-74269d1fedae",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/38754e13-ff60-4094-88f4-74269d1fedae/e8421037109e4765a10d62fa3cb52c79-m.jpg",
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/38754e13-ff60-4094-88f4-74269d1fedae/10e673981f734c83bc025a495ce76f7b-m.webp",
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/38754e13-ff60-4094-88f4-74269d1fedae/3847fca4edd84037ad54207197ade17e-m.jpg"
+   ],
+   "name": "Sneaker នារី ពណ៌ស",
+   "price": "15.00",
+   "slug": "women-sneaker-white",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "cc0cf365-dd0b-48d2-b767-30e3ae767659",
+     "name": "36",
+     "price": "15.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "69f03618-ab5a-4f3a-9dde-fff30f0611f9",
+     "name": "37",
+     "price": "15.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "ebed968d-fec7-41ce-b6b1-a72b419b380c",
+     "name": "38",
+     "price": "15.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "0a561621-662e-4910-a87f-da62e913232b",
+     "name": "39",
+     "price": "15.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "372c43b8-a5e1-423d-85cc-18e9819c3920",
+     "name": "40",
+     "price": "15.00",
+     "stock_quantity": 3,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងនារី",
+    "slug": "womens-shoes"
+   },
+   "description": "ស្បែកសិប្បនិម្មិត ជូតសម្អាតងាយ បាតកៅស៊ូទន់ស្រាល ពាក់ដើរពេញមួយថ្ងៃមិនឈឺជើង។\nទំហំត្រូវតាមខ្នាត បើជើងធំ ឬក្រាស់ សូមយកធំជាង ១ លេខ។",
+   "has_variants": true,
+   "id": "cb176ea0-2899-4f30-b7be-524ffad293cf",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/cb176ea0-2899-4f30-b7be-524ffad293cf/0158896021ea40a9917b2ed0e61cce22-m.webp",
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/cb176ea0-2899-4f30-b7be-524ffad293cf/e1365b5f1074485288701e3a7e887c4b-m.jpg",
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/cb176ea0-2899-4f30-b7be-524ffad293cf/a06b7a7675a4435aa251e7477f7fdb8c-m.jpg"
+   ],
+   "name": "Sneaker នារី ពណ៌ស-ផ្កាឈូក",
+   "price": "15.00",
+   "slug": "women-sneaker-white-pink",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "081148d2-8385-4820-a158-65467e23058a",
+     "name": "36",
+     "price": "15.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "ded3ebc7-136b-4322-a36a-eeae8db33f86",
+     "name": "37",
+     "price": "15.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "644cd87c-0bb4-49fb-973e-bceceef8b665",
+     "name": "38",
+     "price": "15.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "2ac4aed9-e1fd-4368-a30f-32e8b920e6a1",
+     "name": "39",
+     "price": "15.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "1b697ef5-51d3-4fa2-82f5-1029603407f8",
+     "name": "40",
+     "price": "15.00",
+     "stock_quantity": 3,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងសាន់ដាល់",
+    "slug": "sandals"
+   },
+   "description": "ខ្សែស្បែកសិប្បនិម្មិតទន់ មិនកកិតជើង កែងតែ 3cm ពាក់ទៅធ្វើការ ឬដើរលេងស្រួល។\nទំហំត្រូវតាមខ្នាត បើនៅចន្លោះលេខ សូមយកលេខធំ។",
+   "has_variants": true,
+   "id": "370b7249-d3c0-4efa-b513-86a000db5c90",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/370b7249-d3c0-4efa-b513-86a000db5c90/252baf044ee94358b159028dadd6decf-m.jpg"
+   ],
+   "name": "Sandal នារី កែង 3cm ពណ៌ខ្មៅ",
+   "price": "14.00",
+   "slug": "women-sandal-black",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "8419a653-b5c0-4df8-92c5-9f7bb33cf382",
+     "name": "36",
+     "price": "14.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "6face7f3-06fd-4dd2-ac97-df942cf97880",
+     "name": "37",
+     "price": "14.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "99ef6ab1-e9c9-403c-b18e-543443e737f7",
+     "name": "38",
+     "price": "14.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "324c1ac8-18c6-4364-8b64-5bcbc8001b3c",
+     "name": "39",
+     "price": "14.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "b077fb8d-8b94-4f19-b70a-4f41d5474410",
+     "name": "40",
+     "price": "14.00",
+     "stock_quantity": 3,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងសាន់ដាល់",
+    "slug": "sandals"
+   },
+   "description": "ខ្សែស្បែកសិប្បនិម្មិតទន់ មិនកកិតជើង កែងតែ 3cm ពាក់ទៅធ្វើការ ឬដើរលេងស្រួល។\nទំហំត្រូវតាមខ្នាត បើនៅចន្លោះលេខ សូមយកលេខធំ។",
+   "has_variants": true,
+   "id": "6e2f3c53-4b1d-4625-86df-46597972adb7",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/6e2f3c53-4b1d-4625-86df-46597972adb7/584cada6e40c4fee8ac6a16c6103cad1-m.jpg"
+   ],
+   "name": "Sandal នារី កែង 3cm ពណ៌ Beige",
+   "price": "14.00",
+   "slug": "women-sandal-beige",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "05716350-2c27-413e-8494-11ab13a9fe46",
+     "name": "36",
+     "price": "14.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "0f9d28d0-ad15-4c97-b7fb-6ee93897de9b",
+     "name": "37",
+     "price": "14.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "9bca3ff4-602e-4df9-bcfc-0d9a7c206d01",
+     "name": "38",
+     "price": "14.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "a11945d6-c1df-47ba-8f81-fc09a4a4a6da",
+     "name": "39",
+     "price": "14.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "c10adb6c-9176-4509-ab88-b75f1146de93",
+     "name": "40",
+     "price": "14.00",
+     "stock_quantity": 3,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងនារី",
+    "slug": "womens-shoes"
+   },
+   "description": "ស្បែកសិប្បនិម្មិតទន់ បាតរាបមានទ្រនាប់ពោះជើង ពាក់យូរមិនឈឺ។\nទំហំតូចបន្តិច សូមយកធំជាង ១ លេខ។",
+   "has_variants": true,
+   "id": "a10a12a3-3143-4e7c-901c-1665cdbe5cea",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/a10a12a3-3143-4e7c-901c-1665cdbe5cea/446a60c5ce0742a280e77930ed455d88-m.jpg",
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/a10a12a3-3143-4e7c-901c-1665cdbe5cea/e2056a9af64a46189f60c679784a5164-m.jpg",
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/a10a12a3-3143-4e7c-901c-1665cdbe5cea/5bca556543f84f24b8ee9b123321e9b2-m.jpg"
+   ],
+   "name": "ស្បែកជើងបាតរាប នារី ពណ៌ខ្មៅ",
+   "price": "10.00",
+   "slug": "women-flat-black",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "4d83e338-86b2-4431-ae71-2daec195bbae",
+     "name": "36",
+     "price": "10.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "18e1d138-28c2-45a4-b35e-b438b8f85a61",
+     "name": "37",
+     "price": "10.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "b2c7e200-e244-42b1-b452-7f265e979228",
+     "name": "38",
+     "price": "10.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "c60b01e0-0f60-4d8d-a645-3533fb9fd1aa",
+     "name": "39",
+     "price": "10.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "6dd0c3da-ac15-4f23-ade7-9bbf407485d8",
+     "name": "40",
+     "price": "10.00",
+     "stock_quantity": 3,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងនារី",
+    "slug": "womens-shoes"
+   },
+   "description": "ស្បែកសិប្បនិម្មិតទន់ បាតរាបមានទ្រនាប់ពោះជើង ពាក់យូរមិនឈឺ។\nទំហំតូចបន្តិច សូមយកធំជាង ១ លេខ។",
+   "has_variants": true,
+   "id": "53982903-6a4d-495b-8e4f-039c911e9ad8",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/53982903-6a4d-495b-8e4f-039c911e9ad8/d046cfbeb90143c39223620e4c7e9010-m.jpg",
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/53982903-6a4d-495b-8e4f-039c911e9ad8/b7c04156985a4a3e8e1573a954159276-m.jpg",
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/53982903-6a4d-495b-8e4f-039c911e9ad8/07040402eafe4c6a9b72dd3ef7bf4046-m.jpg"
+   ],
+   "name": "ស្បែកជើងបាតរាប នារី ពណ៌ Nude",
+   "price": "10.00",
+   "slug": "women-flat-nude",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "b05f65a7-bf3e-4528-9446-d8727ff9625b",
+     "name": "36",
+     "price": "10.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "f0bfa2ae-a643-49c4-9cb2-c2e52234750c",
+     "name": "37",
+     "price": "10.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "2a4d9176-a146-43b9-b187-740c3610e5ea",
+     "name": "38",
+     "price": "10.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "ab1c9e40-e01b-48fc-8936-75f3fd8472bc",
+     "name": "39",
+     "price": "10.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "5dea5644-9b1c-4775-b122-bc8a170420a0",
+     "name": "40",
+     "price": "10.00",
+     "stock_quantity": 3,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងនារី",
+    "slug": "womens-shoes"
+   },
+   "description": "ស្បែកម៉ាតទន់ កែងរឹងមាំ 7cm មានទ្រនាប់ក្រោមម្រាមជើង ឈរយូរមិនសូវឈឺ។\nទំហំត្រូវតាមខ្នាត មានតែលេខ 36 ដល់ 39។",
+   "has_variants": true,
+   "id": "f58b1dc0-0524-4ef2-9e7c-bb854789ddfb",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/f58b1dc0-0524-4ef2-9e7c-bb854789ddfb/ab57cf809058452cb89b80aa6e09c782-m.webp",
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/f58b1dc0-0524-4ef2-9e7c-bb854789ddfb/284ea29aa7f44d3a8cc9b8d3afd9c5fb-m.jpg"
+   ],
+   "name": "ស្បែកជើងកែងចោត 7cm ពណ៌ខ្មៅ",
+   "price": "18.00",
+   "slug": "women-heels-black",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "c6899771-1698-44f4-be56-18beba3a36d0",
+     "name": "36",
+     "price": "18.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "c6ede425-7591-4909-a037-77193f09b172",
+     "name": "37",
+     "price": "18.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "7952dc40-16ab-45dd-88e2-e7a54fbf3dc5",
+     "name": "38",
+     "price": "18.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "5c8f6cd5-0c32-4a4a-92ab-67cf8dfe4a78",
+     "name": "39",
+     "price": "18.00",
+     "stock_quantity": 3,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងនារី",
+    "slug": "womens-shoes"
+   },
+   "description": "ស្បែកម៉ាតទន់ កែងរឹងមាំ 7cm មានទ្រនាប់ក្រោមម្រាមជើង ឈរយូរមិនសូវឈឺ។\nទំហំត្រូវតាមខ្នាត មានតែលេខ 36 ដល់ 39។",
+   "has_variants": true,
+   "id": "58658473-239b-4827-9972-9ee6929f8b4c",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/58658473-239b-4827-9972-9ee6929f8b4c/eb9106673a554eed81b27eb406cc2003-m.webp"
+   ],
+   "name": "ស្បែកជើងកែងចោត 7cm ពណ៌ Nude",
+   "price": "18.00",
+   "slug": "women-heels-nude",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "7ba3bb56-071d-44d9-91ff-08e8de982bb6",
+     "name": "36",
+     "price": "18.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "e35bd6e5-c499-4c11-95d6-e17fd1c63f8a",
+     "name": "37",
+     "price": "18.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "22610ce4-3202-4137-9cbd-ccbc31a1fdd4",
+     "name": "38",
+     "price": "18.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "22447c9b-a500-4187-a560-88098ae9b9f3",
+     "name": "39",
+     "price": "18.00",
+     "stock_quantity": 3,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងសាន់ដាល់",
+    "slug": "sandals"
+   },
+   "description": "កៅស៊ូ EVA ស្រាល ទន់ ប៉ះទឹកបាន មិនរអិល ពាក់នៅផ្ទះ ឬដើរលេងស្រួល។\nបើចង់ពាក់ធូរ សូមយកធំជាង ១ លេខ។",
+   "has_variants": true,
+   "id": "9985ab75-a3ac-462f-8f89-b26f021a529e",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/9985ab75-a3ac-462f-8f89-b26f021a529e/26648e261d9a450b941659724ae4e069-m.jpg"
+   ],
+   "name": "ស្បែកជើងផ្ទាត់ Slides នារី ពណ៌ខ្មៅ",
+   "price": "8.00",
+   "slug": "women-slides-black",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "3f107d4b-45eb-4819-9eed-99abaef82dd2",
+     "name": "36",
+     "price": "8.00",
+     "stock_quantity": 4,
+     "was_price": null
+    },
+    {
+     "id": "60c566a6-1cc3-4682-b845-1e76cb461067",
+     "name": "37",
+     "price": "8.00",
+     "stock_quantity": 4,
+     "was_price": null
+    },
+    {
+     "id": "0f3cfc2a-4eab-4aa2-b2cf-742b94b085dd",
+     "name": "38",
+     "price": "8.00",
+     "stock_quantity": 4,
+     "was_price": null
+    },
+    {
+     "id": "04175723-2817-40ae-b659-093514906b23",
+     "name": "39",
+     "price": "8.00",
+     "stock_quantity": 4,
+     "was_price": null
+    },
+    {
+     "id": "71b79eb9-88d6-48fe-8e7e-8dfdd3143d07",
+     "name": "40",
+     "price": "8.00",
+     "stock_quantity": 4,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងសាន់ដាល់",
+    "slug": "sandals"
+   },
+   "description": "កៅស៊ូ EVA ស្រាល ទន់ ប៉ះទឹកបាន មិនរអិល ពាក់នៅផ្ទះ ឬដើរលេងស្រួល។\nបើចង់ពាក់ធូរ សូមយកធំជាង ១ លេខ។",
+   "has_variants": true,
+   "id": "0e97325a-e644-4063-b3e8-7175a33e6b9e",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/0e97325a-e644-4063-b3e8-7175a33e6b9e/40cc8f0b1f2c46559eaa0a2fb781e9fa-m.jpg"
+   ],
+   "name": "ស្បែកជើងផ្ទាត់ Slides នារី ពណ៌ក្រែម",
+   "price": "8.00",
+   "slug": "women-slides-cream",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "a4658690-534c-4e88-933e-f2d7e6a4009c",
+     "name": "36",
+     "price": "8.00",
+     "stock_quantity": 4,
+     "was_price": null
+    },
+    {
+     "id": "a37e9c49-fe9a-4a6a-a45b-854beba9d096",
+     "name": "37",
+     "price": "8.00",
+     "stock_quantity": 4,
+     "was_price": null
+    },
+    {
+     "id": "ad54baf5-6ce0-4576-b034-9e8789e1ce3a",
+     "name": "38",
+     "price": "8.00",
+     "stock_quantity": 4,
+     "was_price": null
+    },
+    {
+     "id": "ae0de917-af21-4470-91a5-7e3294256e8f",
+     "name": "39",
+     "price": "8.00",
+     "stock_quantity": 4,
+     "was_price": null
+    },
+    {
+     "id": "71be0e68-d346-441d-8c96-f3b5e229f51a",
+     "name": "40",
+     "price": "8.00",
+     "stock_quantity": 4,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងបុរស",
+    "slug": "mens-shoes"
+   },
+   "description": "ក្រណាត់សំណាញ់ ខ្យល់ចេញចូលល្អ បាតពពុះស្រាល ទប់ការទង្គិចល្អ សម្រាប់រត់ និងហាត់ប្រាណ។\nទំហំត្រូវតាមខ្នាត បើពាក់ស្រោមជើងក្រាស់ សូមយកធំជាង ១ លេខ។",
+   "has_variants": true,
+   "id": "b45184b1-ed66-4aef-8584-fc9cf6d26d19",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/b45184b1-ed66-4aef-8584-fc9cf6d26d19/6759439a97854028a7fab34f77dcfedb-m.webp",
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/b45184b1-ed66-4aef-8584-fc9cf6d26d19/bd84bf8eca9f4306b969fabfe6025a46-m.webp",
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/b45184b1-ed66-4aef-8584-fc9cf6d26d19/2dff4548dcdd4f229518a5839ef07d19-m.jpg"
+   ],
+   "name": "Running Sneaker បុរស ពណ៌ខ្មៅ",
+   "price": "22.00",
+   "slug": "men-running-black",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "0690010f-3426-4cba-a7a7-1d8fd795237c",
+     "name": "39",
+     "price": "22.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "9d601c06-17e8-4131-b17a-f87ff4077e7d",
+     "name": "40",
+     "price": "22.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "f3daacb7-9a64-4c3f-93f5-3ba084a6b5d5",
+     "name": "41",
+     "price": "22.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "74b4228f-f4f2-4f43-8ba4-10b7cf1392a6",
+     "name": "42",
+     "price": "22.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "41f13545-b1f1-43c5-b6da-79289cd053f8",
+     "name": "43",
+     "price": "22.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "bebfc66b-ec97-42f4-9756-31d4542d07e1",
+     "name": "44",
+     "price": "22.00",
+     "stock_quantity": 3,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងបុរស",
+    "slug": "mens-shoes"
+   },
+   "description": "ក្រណាត់សំណាញ់ ខ្យល់ចេញចូលល្អ បាតពពុះស្រាល ទប់ការទង្គិចល្អ សម្រាប់រត់ និងហាត់ប្រាណ។\nទំហំត្រូវតាមខ្នាត បើពាក់ស្រោមជើងក្រាស់ សូមយកធំជាង ១ លេខ។",
+   "has_variants": true,
+   "id": "d9b9a32f-389a-4fcc-acef-d4eb1c8e788a",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/d9b9a32f-389a-4fcc-acef-d4eb1c8e788a/87a65b88e3744961b2b074c515a52a83-m.webp"
+   ],
+   "name": "Running Sneaker បុរស ពណ៌ប្រផេះ",
+   "price": "22.00",
+   "slug": "men-running-grey",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "c28e857d-0bf8-48fc-8a35-a264b4603210",
+     "name": "39",
+     "price": "22.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "74515c0a-4508-4a05-99f6-5f3b62feaf10",
+     "name": "40",
+     "price": "22.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "e8fbda1d-c74c-4cdf-881d-27c9b639d344",
+     "name": "41",
+     "price": "22.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "d3a2e86b-74c6-46a0-a80c-bd9b49a88d2b",
+     "name": "42",
+     "price": "22.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "4feb8df6-d5db-4922-85ce-9a99646c8d3d",
+     "name": "43",
+     "price": "22.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "dc8a5d6c-1123-44a7-8292-7f3e5c35d2c1",
+     "name": "44",
+     "price": "22.00",
+     "stock_quantity": 3,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងបុរស",
+    "slug": "mens-shoes"
+   },
+   "description": "ស្បែកទន់ ភ្លឺរលោង ពាក់ទៅធ្វើការ ឬចូលកម្មវិធីបាន បាតកៅស៊ូមិនរអិល។\nពាក់ដំបូងតឹងបន្តិច ពាក់ ២-៣ ថ្ងៃនឹងធូរតាមជើង។",
+   "has_variants": true,
+   "id": "4893db8a-fc5f-4f2b-b665-f83221aeb81b",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/4893db8a-fc5f-4f2b-b665-f83221aeb81b/e9d2cde97bc04761ba1982047e893a75-m.jpg"
+   ],
+   "name": "Loafer ស្បែក បុរស ពណ៌ខ្មៅ",
+   "price": "25.00",
+   "slug": "men-loafer-black",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "7def870a-2f1a-43dd-8a4f-2c337f8f5599",
+     "name": "39",
+     "price": "25.00",
+     "stock_quantity": 2,
+     "was_price": null
+    },
+    {
+     "id": "16ab4644-97db-4dd9-9755-b18d3713ef3f",
+     "name": "40",
+     "price": "25.00",
+     "stock_quantity": 2,
+     "was_price": null
+    },
+    {
+     "id": "91135468-71bf-43e6-889e-f207768cd8be",
+     "name": "41",
+     "price": "25.00",
+     "stock_quantity": 2,
+     "was_price": null
+    },
+    {
+     "id": "cb5a9d2a-cd9a-4d87-bc92-b24733816372",
+     "name": "42",
+     "price": "25.00",
+     "stock_quantity": 2,
+     "was_price": null
+    },
+    {
+     "id": "8b7f3d4b-dd34-4d3f-b848-9c057c5285b5",
+     "name": "43",
+     "price": "25.00",
+     "stock_quantity": 2,
+     "was_price": null
+    },
+    {
+     "id": "d5f3dcf0-0dc7-4b0a-a4e3-a050a61247c4",
+     "name": "44",
+     "price": "25.00",
+     "stock_quantity": 2,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងបុរស",
+    "slug": "mens-shoes"
+   },
+   "description": "ស្បែកទន់ ភ្លឺរលោង ពាក់ទៅធ្វើការ ឬចូលកម្មវិធីបាន បាតកៅស៊ូមិនរអិល។\nពាក់ដំបូងតឹងបន្តិច ពាក់ ២-៣ ថ្ងៃនឹងធូរតាមជើង។",
+   "has_variants": true,
+   "id": "fc392b6e-75de-459f-a7e3-4dc2385fbbb5",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/fc392b6e-75de-459f-a7e3-4dc2385fbbb5/c48d717064ef4e9ba8b290e4eaac062b-m.webp"
+   ],
+   "name": "Loafer ស្បែក បុរស ពណ៌ត្នោត",
+   "price": "25.00",
+   "slug": "men-loafer-brown",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "1f2a95d6-b183-4794-b3a3-8d88012ed2e4",
+     "name": "39",
+     "price": "25.00",
+     "stock_quantity": 2,
+     "was_price": null
+    },
+    {
+     "id": "945bfd9c-c911-4bd4-b15c-747423959797",
+     "name": "40",
+     "price": "25.00",
+     "stock_quantity": 2,
+     "was_price": null
+    },
+    {
+     "id": "ebd5ecef-bd24-4c1e-8a46-aa6d67b61501",
+     "name": "41",
+     "price": "25.00",
+     "stock_quantity": 2,
+     "was_price": null
+    },
+    {
+     "id": "45e3fa2d-ac7f-4baa-b23a-6d3638fb8fbc",
+     "name": "42",
+     "price": "25.00",
+     "stock_quantity": 2,
+     "was_price": null
+    },
+    {
+     "id": "6f73aa4e-6bd8-4dde-ad2c-e79b3bcfd0ca",
+     "name": "43",
+     "price": "25.00",
+     "stock_quantity": 2,
+     "was_price": null
+    },
+    {
+     "id": "835633ae-09f2-4b1b-93a7-2190094f137e",
+     "name": "44",
+     "price": "25.00",
+     "stock_quantity": 2,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងបុរស",
+    "slug": "mens-shoes"
+   },
+   "description": "ក្រណាត់ Canvas ក្រាស់ បាតកៅស៊ូ ពាក់ស្រាល ខ្យល់ចេញចូលល្អ លាងទឹកបាន។\nទំហំធំបន្តិច បើជើងស្គម សូមយកតូចជាង ១ លេខ។",
+   "has_variants": true,
+   "id": "bb1b3c24-eab2-4287-bcb8-ae6f6e4ee294",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/bb1b3c24-eab2-4287-bcb8-ae6f6e4ee294/00a35162d1c64965beec55277efe144b-m.webp"
+   ],
+   "name": "ស្បែកជើងក្រណាត់ Canvas បុរស ពណ៌ខៀវចាស់",
+   "price": "12.00",
+   "slug": "men-canvas-navy",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "fa9bbb48-9e2d-4626-8ca3-44e675fea982",
+     "name": "39",
+     "price": "12.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "97a5251c-ad27-43d7-8a70-79c2e48ea1bc",
+     "name": "40",
+     "price": "12.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "bd9bbf95-08be-416b-b879-c4c0bf819c30",
+     "name": "41",
+     "price": "12.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "75436b6a-504a-4c9f-96cb-a660c37625ec",
+     "name": "42",
+     "price": "12.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "cb4a15b9-610d-4e7e-827b-96e8132235d2",
+     "name": "43",
+     "price": "12.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "e3f46ca4-5158-46d7-a642-975b388e7083",
+     "name": "44",
+     "price": "12.00",
+     "stock_quantity": 3,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងបុរស",
+    "slug": "mens-shoes"
+   },
+   "description": "ក្រណាត់ Canvas ក្រាស់ បាតកៅស៊ូ ពាក់ស្រាល ខ្យល់ចេញចូលល្អ លាងទឹកបាន។\nទំហំធំបន្តិច បើជើងស្គម សូមយកតូចជាង ១ លេខ។",
+   "has_variants": true,
+   "id": "25569434-ec4e-4a5e-bc55-0607093ed97b",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/25569434-ec4e-4a5e-bc55-0607093ed97b/3af86fcaa6c7489298a39394f38d46d5-m.webp"
+   ],
+   "name": "ស្បែកជើងក្រណាត់ Canvas បុរស ពណ៌ស",
+   "price": "12.00",
+   "slug": "men-canvas-white",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "1dfb8ff2-8ba8-4cb1-afe6-9437a2edad4e",
+     "name": "39",
+     "price": "12.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "f4cf693f-a50f-497f-802d-889658657517",
+     "name": "40",
+     "price": "12.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "dccaa093-32ed-4b82-b14b-c26ca8ff553c",
+     "name": "41",
+     "price": "12.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "bcdedaa2-331d-4f8d-b950-4a3b00dee913",
+     "name": "42",
+     "price": "12.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "23dc1c38-5a2e-42bc-90eb-bc592fa96dc4",
+     "name": "43",
+     "price": "12.00",
+     "stock_quantity": 3,
+     "was_price": null
+    },
+    {
+     "id": "196372ca-f917-49ae-b290-b3718b594176",
+     "name": "44",
+     "price": "12.00",
+     "stock_quantity": 3,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  },
+  {
+   "category": {
+    "name": "ស្បែកជើងសាន់ដាល់",
+    "slug": "sandals"
+   },
+   "description": "កៅស៊ូ EVA ស្រាល ទន់ ប៉ះទឹកបាន មិនរអិល ពាក់នៅផ្ទះ ឬចេញក្រៅស្រួល។\nFree size ពាក់បានលេខ 40 ដល់ 43។",
+   "has_variants": true,
+   "id": "8263dc89-c0de-4d86-8d58-460fb2a8c691",
+   "image_urls": [
+    "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/products/8263dc89-c0de-4d86-8d58-460fb2a8c691/2dab78a916a64b889bd81c36977b7e2d-m.jpg"
+   ],
+   "name": "ស្បែកជើងផ្ទាត់ Slides បុរស ពណ៌ខ្មៅ",
+   "price": "8.00",
+   "slug": "men-slides-black",
+   "stock_quantity": null,
+   "variants": [
+    {
+     "id": "d6f4db57-22a4-4686-9c9f-4bb33facb7e3",
+     "name": "Free size",
+     "price": "8.00",
+     "stock_quantity": 6,
+     "was_price": null
+    }
+   ],
+   "was_price": null
+  }
+ ],
+ "shop": {
+  "categories": [
+   {
+    "name": "ស្បែកជើងនារី",
+    "product_count": 6,
+    "slug": "womens-shoes"
+   },
+   {
+    "name": "ស្បែកជើងបុរស",
+    "product_count": 6,
+    "slug": "mens-shoes"
+   },
+   {
+    "name": "ស្បែកជើងសាន់ដាល់",
+    "product_count": 5,
+    "slug": "sandals"
+   }
+  ],
+  "color": "navy",
+  "contact_phone": "095748182",
+  "cover_url": "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/cover/966dc5f124674bf1954f8f8403086a77.jpg",
+  "currency": "USD",
+  "delivery": {
+   "couriers": [
+    "J&T Express",
+    "VET Express"
+   ],
+   "fee": "1.50",
+   "free_from_amount": null,
+   "free_from_items": null,
+   "own_delivery": true,
+   "pickup": {
+    "address": "ផ្លូវលេខ 163, សង្កាត់ទួលទំពូង១, ខណ្ឌចំការមន, ភ្នំពេញ"
+   }
+  },
+  "description": "ស្បែកជើងនារី និងបុរស ម៉ូដថ្មីៗ តម្លៃសមរម្យ។ ដឹកជញ្ជូនទូទាំងប្រទេស ឬមកយកផ្ទាល់នៅភ្នំពេញ។",
+  "discounts": [
+   {
+    "amount_off": "2.00",
+    "min_subtotal": "30.00"
+   }
+  ],
+  "instagram_username": null,
+  "logo_url": "https://images.oaksolve.com/stores/16d3a4b3-d76c-454e-b1f5-1615283c7855/logo/d780dd39710b423abfbbdd66cc2aa83d.jpg",
+  "messenger_username": "longchanreaksa",
+  "name": "Oak Fashion",
+  "opening_soon": false,
+  "orders_paused": false,
+  "orders_resume_on": null,
+  "payment_methods": [
+   "cod",
+   "khqr"
+  ],
+  "slug": "zdpb5d",
+  "telegram_login": true,
+  "telegram_username": "longreaksa"
+ }
+}

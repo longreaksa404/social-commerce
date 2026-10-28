@@ -24,4 +24,4 @@ npm-debug.log*
 Thumbs.db
 
 # Marketing screenshots and videos (backend/marketing/shots.py)
-backend/marketing/out/
+# backend/marketing/out/
