@@ -80,3 +80,25 @@ async def test_home_is_for_the_admin_only(client, register):
     response = await client.get(OVERVIEW, headers=bearer(seller))
 
     assert response.status_code == 401
+
+
+async def test_a_shops_page_has_its_people_counts_and_messages(client, register, admin):
+    seller = await register()
+    shop = await store_of(client, seller)
+    cap = await add_product(shop["id"], "cap", stock=5)
+    await place_order(client, shop["slug"], [(cap, None, 1)], total="10.00")
+
+    row = next(
+        s
+        for s in (await client.get("/api/v1/admin/shops", headers=bearer(admin))).json()
+        if s["id"] == shop["id"]
+    )
+    page = (await client.get(f"/api/v1/admin/shops/{shop['id']}", headers=bearer(admin))).json()
+
+    assert (row["orders"], row["owner_name"]) == (1, "Test Seller")
+    assert row["last_order_at"] is not None
+    assert (page["orders"], page["products"], page["customers"]) == (1, 1, 1)
+    assert page["pays_by"] == ["cod"]
+    assert [p["role"] for p in page["people"]] == ["owner"]
+    assert page["people"][0]["last_seen"] is not None
+    assert {a["event_type"] for a in page["activity"]} >= {"new_order"}

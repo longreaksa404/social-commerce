@@ -127,14 +127,47 @@ class AdminShopOut(BaseModel):
     pay_by: date | None
     last_paid_on: date | None
     claim: PlanPaymentOut | None  # an "I've paid" waiting for the founder
+    # The shop list as a table (founder's pick 4B, 2026-10-28).
+    logo_url: str | None = None
+    owner_name: str = ""
+    orders: int = 0
+    last_order_at: datetime | None = None
 
 
 class AdminPaymentOut(PlanPaymentOut):
     reference: str | None  # the founder's note
 
 
+class AdminPersonOut(BaseModel):
+    """A login of the shop: its owner or a helper."""
+
+    id: uuid.UUID
+    name: str
+    phone: str | None
+    role: str
+    last_seen: datetime | None  # the last time the app renewed its login
+
+
+class AdminActivityOut(BaseModel):
+    """One message the shop was sent: an alert, a reminder."""
+
+    sent_at: datetime
+    channel: str
+    event_type: str
+    status: str
+
+
 class AdminShopDetailOut(AdminShopOut):
     payments: list[AdminPaymentOut]  # every one, newest first
+    # A shop's page beside the list (founder's pick 5D, 2026-10-28).
+    currency: str = "USD"
+    pays_by: list[str] = []  # the ways customers can pay: cod, khqr
+    payment_set_up: bool = False
+    delivery_set_up: bool = False
+    products: int = 0
+    customers: int = 0
+    people: list[AdminPersonOut] = []  # the owner first, then staff
+    activity: list[AdminActivityOut] = []  # the newest 20
 
 
 class AdminShopsCount(BaseModel):

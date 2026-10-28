@@ -1,33 +1,8 @@
 import type { Tree } from '../core.ts'
 
-/** Oak Order's admin page: only the founder's login sees it (ADMIN_PHONES). */
+/** Oak Order's admin page (/admin, English only since 2026-10-28: AdminRoot
+ * gives it the English texts): checking an "I've paid" and Mark paid. */
 export const admin = {
-  title: { en: 'Oak Order admin', km: 'គ្រប់គ្រង Oak Order' },
-  search: { en: 'Shop, code, link or phone', km: 'ហាង លេខកូដ តំណ ឬលេខទូរស័ព្ទ' },
-  filters: {
-    all: { en: 'All', km: 'ទាំងអស់' },
-    ending: { en: 'Ends soon', km: 'ជិតផុត' },
-    unpaid: { en: 'Unpaid', km: 'មិនទាន់បង់' },
-    stopped: { en: 'No orders', km: 'ឈប់ទទួល' },
-    claimed: { en: 'Said paid', km: 'និយាយថាបានបង់' },
-  },
-  count: { en: (n: number) => (n === 1 ? '1 shop' : `${n} shops`), km: (n: number) => `${n} ហាង` },
-  none: { en: 'No shops here.', km: 'គ្មានហាងនៅទីនេះទេ។' },
-  stage: {
-    setup: { en: 'Not open', km: 'មិនទាន់បើក' },
-    active: { en: 'OK', km: 'ធម្មតា' },
-    ending_soon: { en: 'Ends soon', km: 'ជិតផុត' },
-    overdue: { en: 'Unpaid', km: 'មិនទាន់បង់' },
-    stopped: { en: 'No orders', km: 'ឈប់ទទួល' },
-  },
-  trial: { en: 'Trial', km: 'សាកល្បង' },
-  paying: { en: 'Paying', km: 'កំពុងបង់' },
-  closed: { en: 'Closed', km: 'បានបិទ' },
-  // In setup: the trial starts when the seller opens the shop.
-  notOpened: { en: 'Not opened yet: no trial started', km: 'មិនទាន់បើក៖ មិនទាន់ចាប់ផ្ដើមការសាកល្បង' },
-  paidUntil: { en: (day: string) => `Paid until ${day}`, km: (day: string) => `បានបង់រហូតដល់ ${day}` },
-  payBy: { en: (day: string) => `pay by ${day}`, km: (day: string) => `បង់ត្រឹម ${day}` },
-  noTelegram: { en: 'No Telegram', km: 'គ្មាន Telegram' },
   claim: {
     en: (amount: string, period: string, when: string) => `Says paid ${amount} for ${period} on ${when}`,
     km: (amount: string, period: string, when: string) => `និយាយថាបានបង់ ${amount} សម្រាប់${period} នៅ ${when}`,
@@ -39,13 +14,9 @@ export const admin = {
   found: { en: 'Found it: mark paid', km: 'រកឃើញ៖ កត់ថាបានបង់' },
   notFound: { en: 'Not found', km: 'រកមិនឃើញ' },
   notFoundTitle: { en: 'Tell the seller it wasn’t found?', km: 'ប្រាប់អ្នកលក់ថារកមិនឃើញ?' },
-  notFoundNote: { en: 'What to tell the seller', km: 'អ្វីដែលត្រូវប្រាប់អ្នកលក់' },
   notFoundDefault: { en: 'No transfer with your code yet', km: 'មិនទាន់មានការផ្ទេរប្រាក់ដែលមានលេខកូដរបស់អ្នកទេ' },
   foundTitle: { en: (shop: string) => `Mark ${shop} paid?`, km: (shop: string) => `កត់ថា ${shop} បានបង់?` },
   checked: { en: 'Done', km: 'រួចរាល់' },
-  lastPaid: { en: (day: string) => `Last paid ${day}`, km: (day: string) => `បង់ចុងក្រោយ ${day}` },
-  signedUp: { en: (day: string) => `Signed up ${day}`, km: (day: string) => `ចុះឈ្មោះ ${day}` },
-  viewShop: { en: 'View shop', km: 'មើលហាង' },
   payments: { en: 'Payments', km: 'ការបង់ប្រាក់' },
   noPayments: { en: 'No payments yet.', km: 'មិនទាន់មានការបង់ប្រាក់ទេ។' },
   status: {

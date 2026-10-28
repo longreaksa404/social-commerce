@@ -186,10 +186,25 @@ export type AdminShop = {
   last_paid_on: string | null
   /** An "I've paid" waiting to be checked. */
   claim: PlanPayment | null
+  logo_url: string | null
+  owner_name: string
+  orders: number
+  last_order_at: string | null
 }
 
 export type AdminShopDetail = AdminShop & {
   payments: (PlanPayment & { reference: string | null })[]
+  currency: Currency
+  /** How customers can pay: cod, khqr. */
+  pays_by: string[]
+  payment_set_up: boolean
+  delivery_set_up: boolean
+  products: number
+  customers: number
+  /** The owner first, then staff; last_seen: the app last renewed the login. */
+  people: { id: string; name: string; phone: string | null; role: 'owner' | 'staff'; last_seen: string | null }[]
+  /** The newest 20 messages the shop was sent. */
+  activity: { sent_at: string; channel: 'web' | 'telegram'; event_type: string; status: 'sent' | 'failed' }[]
 }
 
 /** A shop on the admin's Home list (founder's pick 3B, 2026-10-28). `day`:

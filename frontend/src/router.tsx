@@ -90,8 +90,9 @@ export const router = createBrowserRouter([
             lazy: async () => ({ Component: (await import('./admin/AdminLayout.tsx')).AdminLayout }),
             children: [
               { index: true, lazy: async () => ({ Component: (await import('./admin/AdminHome.tsx')).AdminHome }) },
-              { path: 'shops', lazy: async () => ({ Component: (await import('./admin/AdminShops.tsx')).AdminShops }) },
-              { path: 'shops/:storeId', lazy: async () => ({ Component: (await import('./admin/AdminShop.tsx')).AdminShop }) },
+              // One page: on laptops the list stays beside the open shop (pick 5D).
+              { path: 'shops', lazy: async () => ({ Component: (await import('./admin/AdminShops.tsx')).AdminShops }), handle: { page: 'shops' } },
+              { path: 'shops/:storeId', lazy: async () => ({ Component: (await import('./admin/AdminShops.tsx')).AdminShops }), handle: { page: 'shops' } },
             ],
           },
         ],

@@ -19,6 +19,7 @@ from app.core import clock
 from app.core.config import get_settings
 from app.core.errors import AppError, NotFound
 from app.models import (
+    Customer,
     NotificationChannel,
     NotificationLog,
     NotificationStatus,
@@ -26,16 +27,22 @@ from app.models import (
     PlanPayment,
     PlanPaymentStatus,
     PlanPeriod,
+    Product,
+    RefreshToken,
     Seller,
+    SellerRole,
     Store,
 )
+from app.schemas.payment import PaymentSettings
 from app.schemas.plan import (
+    AdminActivityOut,
     AdminConfirmIn,
     AdminDayOut,
     AdminNeedOut,
     AdminOverviewOut,
     AdminPaymentIn,
     AdminPaymentOut,
+    AdminPersonOut,
     AdminRejectIn,
     AdminShopDetailOut,
     AdminShopOut,
@@ -57,7 +64,13 @@ def admin_phones() -> set[str]:
     return phones
 
 
-def _shop(store: Store, owner: Seller, payments: list[PlanPayment], today: date) -> AdminShopOut:
+def _shop(
+    store: Store,
+    owner: Seller,
+    payments: list[PlanPayment],
+    today: date,
+    orders: tuple[int, datetime | None] = (0, None),
+) -> AdminShopOut:
     paid = [p for p in payments if p.status is PlanPaymentStatus.PAID]
     claim = plan_service.open_claim(payments)
     return AdminShopOut(
@@ -75,7 +88,18 @@ def _shop(store: Store, owner: Seller, payments: list[PlanPayment], today: date)
         pay_by=plan_service.pay_by(store.paid_until),
         last_paid_on=max((p.paid_on for p in paid if p.paid_on), default=None),
         claim=PlanPaymentOut.model_validate(claim) if claim else None,
+        logo_url=store.logo_url,
+        owner_name=owner.full_name,
+        orders=orders[0],
+        last_order_at=orders[1],
     )
+
+
+async def _orders_by_store(db: AsyncSession) -> dict[uuid.UUID, tuple[int, datetime | None]]:
+    rows = await db.execute(
+        select(Order.store_id, func.count(), func.max(Order.created_at)).group_by(Order.store_id)
+    )
+    return {store_id: (count, last) for store_id, count, last in rows.all()}
 
 
 async def list_shops(db: AsyncSession) -> list[AdminShopOut]:
@@ -91,7 +115,11 @@ async def list_shops(db: AsyncSession) -> list[AdminShopOut]:
     for payment in await db.scalars(select(PlanPayment).order_by(PlanPayment.created_at.desc())):
         by_store[payment.store_id].append(payment)
     today = clock.today()
-    return [_shop(store, owner, by_store[store.id], today) for store, owner in rows]
+    orders = await _orders_by_store(db)
+    return [
+        _shop(store, owner, by_store[store.id], today, orders.get(store.id, (0, None)))
+        for store, owner in rows
+    ]
 
 
 # A shop still in setup this long after signing up shows on Home.
@@ -243,10 +271,70 @@ async def shop_detail(db: AsyncSession, store_id: uuid.UUID) -> AdminShopDetailO
         raise NotFound("STORE_NOT_FOUND", "Shop not found.")
     store, owner = row
     payments = await plan_service.payments_of(db, store_id)
-    shop = _shop(store, owner, payments, clock.today())
+    order_count, last_order = (
+        await db.execute(
+            select(func.count(), func.max(Order.created_at)).where(Order.store_id == store_id)
+        )
+    ).one()
+    shop = _shop(store, owner, payments, clock.today(), (order_count, last_order))
+
+    async def count(model: type[Product | Customer]) -> int:
+        return await db.scalar(
+            select(func.count()).select_from(model).where(model.store_id == store_id)
+        )
+
+    staff = list(
+        await db.scalars(
+            select(Seller)
+            .where(Seller.store_id == store_id, Seller.role == SellerRole.STAFF)
+            .order_by(Seller.created_at)
+        )
+    )
+    logins = [owner, *staff]
+    seen = dict(
+        (
+            await db.execute(
+                select(RefreshToken.seller_id, func.max(RefreshToken.created_at))
+                .where(RefreshToken.seller_id.in_([p.id for p in logins]))
+                .group_by(RefreshToken.seller_id)
+            )
+        ).all()
+    )
+    activity = await db.scalars(
+        select(NotificationLog)
+        .where(NotificationLog.store_id == store_id)
+        .order_by(NotificationLog.sent_at.desc())
+        .limit(20)
+    )
+    methods = PaymentSettings.model_validate(store.payment_config).enabled_methods()
     return AdminShopDetailOut(
         **shop.model_dump(),
         payments=[AdminPaymentOut.model_validate(p) for p in payments],
+        currency=store.currency.value,
+        pays_by=[m.value for m in methods],
+        payment_set_up=store.payment_set_up,
+        delivery_set_up=store.delivery_set_up,
+        products=await count(Product),
+        customers=await count(Customer),
+        people=[
+            AdminPersonOut(
+                id=p.id,
+                name=p.full_name,
+                phone=p.phone,
+                role=p.role.value,
+                last_seen=seen.get(p.id),
+            )
+            for p in logins
+        ],
+        activity=[
+            AdminActivityOut(
+                sent_at=a.sent_at,
+                channel=a.channel.value,
+                event_type=a.event_type,
+                status=a.status.value,
+            )
+            for a in activity
+        ],
     )
 
 

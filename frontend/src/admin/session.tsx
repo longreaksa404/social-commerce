@@ -1,6 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { PageOutlet } from '../components/ui.tsx'
+import { MESSAGES } from '../i18n/core.ts'
+import { LanguageContext } from '../i18n/useT.ts'
 import { admin, adminApi, type AccessToken } from '../lib/api.ts'
 import { adminKeys } from './queries.ts'
 import { AdminSessionContext, type AdminStatus } from './useAdminSession.ts'
@@ -59,8 +61,14 @@ export function AdminRoot() {
     [status, restoreError, retry, startSession, logOut],
   )
   return (
-    <AdminSessionContext value={value}>
-      <PageOutlet depth={2} />
-    </AdminSessionContext>
+    <LanguageContext value={ENGLISH}>
+      <AdminSessionContext value={value}>
+        <PageOutlet depth={2} />
+      </AdminSessionContext>
+    </LanguageContext>
   )
 }
+
+// The admin is English only (founder's pick D5A, 2026-10-28), whatever
+// language the app is in for a shop.
+const ENGLISH = { lang: 'en' as const, setLang: () => {}, t: MESSAGES.en }
