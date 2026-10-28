@@ -28,7 +28,6 @@ async def test_seller_sees_and_edits_only_their_own_account(client, register):
         "role": "owner",
         "has_password": True,
         "logins": [],
-        "is_admin": False,
     }
     assert other.json()["full_name"] == "Dara"
 

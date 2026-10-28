@@ -34,8 +34,9 @@ after their paid time ends the daily run also reminds them on Telegram;
 from day 8 the shop takes no new orders until you mark it paid. Shops
 that existed when the trial shipped got 30 days from that day.
 
-**The admin page** (Settings → Oak Order admin; only the numbers in
-`ADMIN_PHONES` see it): every shop with its code, the soonest to run out
+**The admin page** (order.oaksolve.com/admin since 2026-10-28, with its
+own login: your password, then Telegram; only the numbers in
+`ADMIN_PHONES`): every shop with its code, the soonest to run out
 first. When a seller taps "I've paid", your shop's Telegram chat gets an
 alert with their code; open the shop, find the transfer with that code in
 your bank app, then **Found it: mark paid** (change the amount if they

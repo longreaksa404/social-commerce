@@ -1,14 +1,14 @@
 import { ChevronRight, Search } from 'lucide-react'
 import { useState } from 'react'
-import { Link, Navigate } from 'react-router'
-import { useFeedback } from '../../components/feedback.ts'
-import { Badge, Button, Card, EmptyState, ErrorMessage, ErrorState, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
-import type { Messages } from '../../i18n/core.ts'
-import { useT } from '../../i18n/useT.ts'
-import { formatMoney } from '../../lib/money.ts'
-import { formatDate, formatPhone } from '../../lib/orders.ts'
-import type { AdminShop, PlanPayment } from '../../lib/types.ts'
-import { useAccount, useAdminShops, useCheckClaim } from '../queries.ts'
+import { Link } from 'react-router'
+import { useFeedback } from '../components/feedback.ts'
+import { Badge, Button, Card, EmptyState, ErrorMessage, ErrorState, Input, PageHeader, Skeleton } from '../components/ui.tsx'
+import type { Messages } from '../i18n/core.ts'
+import { useT } from '../i18n/useT.ts'
+import { formatMoney } from '../lib/money.ts'
+import { formatDate, formatPhone } from '../lib/orders.ts'
+import type { AdminShop, PlanPayment } from '../lib/types.ts'
+import { useAdminShops, useCheckClaim } from './queries.ts'
 import { STAGE_TONE, day } from './shared.ts'
 
 const usd = (amount: string) => formatMoney(amount, 'USD')
@@ -25,7 +25,7 @@ const matches: Record<Filter, (shop: AdminShop) => boolean> = {
   stopped: (shop) => shop.stage === 'stopped',
 }
 
-/** /dashboard/admin: Oak Order's admin page (founder's pick 2B): every
+/** /admin/shops: Oak Order's admin page (founder's pick 2B): every
  * shop's plan, the soonest to run out first. Only for the founder's login
  * (ADMIN_PHONES); the API refuses anyone else. An inbox of what needs the
  * founder (pick 28A, 2026-10-25): tabs with their counts, opening on
@@ -33,14 +33,12 @@ const matches: Record<Filter, (shop: AdminShop) => boolean> = {
 export function AdminShops() {
   const t = useT()
   const a = t.admin
-  const account = useAccount()
   const shops = useAdminShops()
   const [picked, setPicked] = useState<Filter | null>(null)
   const waiting = (shops.data ?? []).some(matches.claimed)
   const filter: Filter = picked ?? (waiting ? 'claimed' : 'all')
   const setFilter = setPicked
   const [query, setQuery] = useState('')
-  if (account.data && !account.data.is_admin) return <Navigate to="/dashboard" replace />
 
   const words = query.trim().toLowerCase()
   const digits = words.replace(/\D/g, '')
@@ -56,7 +54,7 @@ export function AdminShops() {
   return (
     <>
       <title>{a.title}</title>
-      <PageHeader title={a.title} back="/dashboard/settings" />
+      <PageHeader title={a.title} />
       <div className="space-y-4">
         <Input
           type="search"
@@ -115,7 +113,7 @@ export function AdminShops() {
 function ShopRow({ shop, a }: { shop: AdminShop; a: Messages['admin'] }) {
   return (
     <Link
-      to={`/dashboard/admin/${shop.id}`}
+      to={`/admin/shops/${shop.id}`}
       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100 sm:[li:first-child>&]:rounded-t-2xl sm:[li:last-child>&]:rounded-b-2xl"
     >
       <span aria-hidden className="flex size-10 shrink-0 items-center justify-center self-start rounded-full bg-navy-50 font-semibold text-navy-700">

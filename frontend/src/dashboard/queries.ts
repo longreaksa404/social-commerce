@@ -13,8 +13,6 @@ import type {
   OrderList,
   OrderStatus,
   PaymentStatus,
-  AdminShop,
-  AdminShopDetail,
   Plan,
   Product,
   ShareLink,
@@ -27,8 +25,6 @@ export const keys = {
   account: ['account'] as const,
   staff: ['staff'] as const,
   plan: ['plan'] as const,
-  adminShops: ['admin', 'shops'] as const,
-  adminShop: (id: string) => ['admin', 'shops', id] as const,
   telegramLink: ['telegram-link'] as const,
   categories: ['categories'] as const,
   products: ['products'] as const,
@@ -94,45 +90,6 @@ export function useSayPaid() {
   return useMutation({
     mutationFn: (period: 'month' | 'year') => api<Plan>('/seller/plan/paid', { method: 'POST', body: { period } }),
     onSuccess: (plan) => queryClient.setQueryData(keys.plan, plan),
-  })
-}
-
-/** Oak Order's admin page: every shop's plan. */
-export function useAdminShops() {
-  return useQuery({ queryKey: keys.adminShops, queryFn: () => api<AdminShop[]>('/admin/shops') })
-}
-
-export function useAdminShop(id: string) {
-  return useQuery({ queryKey: keys.adminShop(id), queryFn: () => api<AdminShopDetail>(`/admin/shops/${id}`) })
-}
-
-/** Mark a payment made by hand (amount "0": free time). */
-export function useMarkPaid(id: string) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (body: { period: 'month' | 'year'; amount: string | null; note: string | null }) =>
-      api<AdminShopDetail>(`/admin/shops/${id}/payments`, { method: 'POST', body }),
-    onSuccess: (shop) => {
-      queryClient.setQueryData(keys.adminShop(id), shop)
-      queryClient.invalidateQueries({ queryKey: keys.adminShops, exact: true })
-    },
-  })
-}
-
-/** The founder checks a seller's "I've paid": found (paid, with the
- * amount found if different) or not (the seller sees the note). */
-export function useCheckClaim(storeId: string) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ paymentId, found, amount, note }: { paymentId: string; found: boolean; amount?: string | null; note: string | null }) =>
-      api<AdminShopDetail>(`/admin/shops/${storeId}/payments/${paymentId}/${found ? 'confirm' : 'reject'}`, {
-        method: 'POST',
-        body: found ? { amount: amount ?? null, note } : { note },
-      }),
-    onSuccess: (shop) => {
-      queryClient.setQueryData(keys.adminShop(storeId), shop)
-      queryClient.invalidateQueries({ queryKey: keys.adminShops, exact: true })
-    },
   })
 }
 

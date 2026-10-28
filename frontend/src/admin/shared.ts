@@ -1,5 +1,5 @@
-import { formatDate } from '../../lib/orders.ts'
-import type { PlanStage } from '../../lib/types.ts'
+import { formatDate } from '../lib/orders.ts'
+import type { PlanStage } from '../lib/types.ts'
 
 /** How each plan stage looks on the admin page. */
 export const STAGE_TONE: Record<PlanStage, 'neutral' | 'amber' | 'red'> = {

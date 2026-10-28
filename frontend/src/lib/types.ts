@@ -209,8 +209,6 @@ export type Account = {
   has_password: boolean
   /** The Google and Facebook accounts that log in to this one. */
   logins: SocialLogin[]
-  /** Oak Order's own login (ADMIN_PHONES): the admin page shows. */
-  is_admin: boolean
 }
 
 export type SocialProvider = 'google' | 'facebook'

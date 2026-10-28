@@ -256,8 +256,9 @@ Settings → Plan and the Terms page (`/terms`, Fees).
   founder fixes one. Prices after that aren't set; the starting ideas in
   01 aren't to be published.
 - **Free time (internal, not an offer):** the founder can give any shop
-  free time from the admin page with a $0 payment (Oak Order admin → a
-  shop → **Mark paid**, amount 0). Checked 2026-10-27: a shop whose orders
+  free time from the admin page with a $0 payment (order.oaksolve.com/admin
+  → a shop → **Mark paid**, amount 0; Settings → Oak Order admin before
+  2026-10-28). Checked 2026-10-27: a shop whose orders
   had stopped took orders again, its plan read active for a month, and the
   payment shows as $0.00 paid.
 

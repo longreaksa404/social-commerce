@@ -41,10 +41,6 @@ def admin_phones() -> set[str]:
     return phones
 
 
-def is_admin(seller: Seller) -> bool:
-    return seller.phone is not None and seller.phone in admin_phones()
-
-
 def _shop(store: Store, owner: Seller, payments: list[PlanPayment], today: date) -> AdminShopOut:
     paid = [p for p in payments if p.status is PlanPaymentStatus.PAID]
     claim = plan_service.open_claim(payments)

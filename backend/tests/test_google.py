@@ -98,7 +98,6 @@ async def test_someone_new_signs_up_with_a_checked_phone_then_logs_in(client):
         "role": "owner",
         "has_password": False,
         "logins": [{"provider": "google", "label": "sokha@gmail.com"}],
-        "is_admin": False,
     }
 
     again = await client.post(GOOGLE, json={"credential": id_token(sub)})

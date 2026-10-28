@@ -12,7 +12,6 @@ import {
   Tag,
   Truck,
   UserRound,
-  ShieldCheck,
   Users,
   Wallet,
   type LucideIcon,
@@ -212,9 +211,8 @@ function MenuRow({
     )
   }
   return (
-    // From the menu's own address, so it works beside an open setting too;
-    // an address starting with / is a page of its own (the admin page).
-    <Link to={to?.startsWith('/') ? to : `/dashboard/settings/${to}`} aria-current={selected ? 'page' : undefined} className={className}>
+    // From the menu's own address, so it works beside an open setting too.
+    <Link to={`/dashboard/settings/${to}`} aria-current={selected ? 'page' : undefined} className={className}>
       {content}
     </Link>
   )
@@ -298,11 +296,9 @@ function DisplaySection() {
 function AccountRows({ selected, store, owner }: { selected?: Selected; store?: Store; owner: boolean }) {
   const t = useT()
   const s = t.settings
-  const a = t.admin
   const plan = usePlan()
-  const isAdmin = useAccount().data?.is_admin === true
   const rows: {
-    id: Exclude<PageId, 'close'> | 'help' | 'admin'
+    id: Exclude<PageId, 'close'> | 'help'
     to?: string
     href?: string
     icon: LucideIcon
@@ -319,7 +315,6 @@ function AccountRows({ selected, store, owner }: { selected?: Selected; store?: 
     const shop = store ? s.supportText(store.name, `${location.origin}/shop/${store.slug}`) : s.supportTextNoShop
     rows.push({ id: 'help', href: supportLink(shop), icon: LifeBuoy, title: s.help, summary: s.menu.helpHint })
   }
-  if (isAdmin) rows.push({ id: 'admin', to: '/dashboard/admin', icon: ShieldCheck, title: a.title, summary: a.menuHint })
   return (
     <section aria-labelledby="account">
       <h2 id="account" className="mb-2 sm:px-1 text-sm font-semibold text-slate-500">

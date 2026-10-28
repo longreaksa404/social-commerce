@@ -1,31 +1,29 @@
 import { ExternalLink } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Navigate, useParams } from 'react-router'
-import { useFeedback } from '../../components/feedback.ts'
-import { buttonClass } from '../../components/styles.ts'
-import { Badge, Button, ErrorMessage, ErrorState, Field, Input, PageHeader, Section, Skeleton } from '../../components/ui.tsx'
-import { useT } from '../../i18n/useT.ts'
-import { formatMoney } from '../../lib/money.ts'
-import { formatDate, formatPhone } from '../../lib/orders.ts'
-import type { AdminShopDetail, PlanPayment, PlanPeriod } from '../../lib/types.ts'
-import { useAccount, useAdminShop, useCheckClaim, useMarkPaid } from '../queries.ts'
+import { useParams } from 'react-router'
+import { useFeedback } from '../components/feedback.ts'
+import { buttonClass } from '../components/styles.ts'
+import { Badge, Button, ErrorMessage, ErrorState, Field, Input, PageHeader, Section, Skeleton } from '../components/ui.tsx'
+import { useT } from '../i18n/useT.ts'
+import { formatMoney } from '../lib/money.ts'
+import { formatDate, formatPhone } from '../lib/orders.ts'
+import type { AdminShopDetail, PlanPayment, PlanPeriod } from '../lib/types.ts'
+import { useAdminShop, useCheckClaim, useMarkPaid } from './queries.ts'
 import { STAGE_TONE, day } from './shared.ts'
 
 const usd = (amount: string | number) => formatMoney(amount, 'USD')
 
-/** /dashboard/admin/:storeId: one shop's plan and code, its "I've paid"
+/** /admin/shops/:storeId: one shop's plan and code, its "I've paid"
  * to check (found: paid; not found: the seller sees why), "mark paid" for
  * a payment made by hand (0 gives free time), and every payment. */
 export function AdminShop() {
   const { storeId = '' } = useParams()
   const a = useT().admin
-  const account = useAccount()
   const shop = useAdminShop(storeId)
-  if (account.data && !account.data.is_admin) return <Navigate to="/dashboard" replace />
   return (
     <>
       <title>{shop.data?.name ?? a.title}</title>
-      <PageHeader title={shop.data?.name ?? a.title} back="/dashboard/admin" />
+      <PageHeader title={shop.data?.name ?? a.title} back="/admin/shops" />
       {shop.isPending ? (
         <Skeleton className="h-96 w-full rounded-2xl" />
       ) : shop.error ? (

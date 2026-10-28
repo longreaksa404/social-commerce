@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router'
+import { OldAdminLink } from './admin/OldAdminLink.tsx'
 import { RootLayout } from './components/RootLayout.tsx'
 import { Categories } from './dashboard/Categories.tsx'
 import { CustomerDetail } from './dashboard/customers/CustomerDetail.tsx'
@@ -7,8 +8,6 @@ import { DashboardLayout } from './dashboard/Layout.tsx'
 import { LinkDetail } from './dashboard/links/LinkDetail.tsx'
 import { LinkList } from './dashboard/links/LinkList.tsx'
 import { NewLink } from './dashboard/links/NewLink.tsx'
-import { AdminShop } from './dashboard/admin/AdminShop.tsx'
-import { AdminShops } from './dashboard/admin/AdminShops.tsx'
 import { Notifications } from './dashboard/Notifications.tsx'
 import { NewOrder } from './dashboard/orders/NewOrder.tsx'
 import { OrdersPage } from './dashboard/orders/OrderList.tsx'
@@ -51,6 +50,7 @@ export const router = createBrowserRouter([
       { path: '/reset-password', element: <ResetPassword /> },
       // "Your shops": what OPEN in Telegram's chat list opens (2026-10-20).
       { path: '/shops', lazy: async () => ({ Component: (await import('./pages/YourShops.tsx')).YourShops }) },
+      { path: '/dashboard/admin/*', element: <OldAdminLink /> },
       {
         path: '/dashboard',
         element: <DashboardLayout />,
@@ -76,9 +76,24 @@ export const router = createBrowserRouter([
           { path: 'settings', element: <SettingsPage /> },
           { path: 'settings/:section', element: <SettingsPage /> },
           { path: 'notifications', element: <Notifications /> },
-          // Oak Order's admin page: the founder's login only (ADMIN_PHONES).
-          { path: 'admin', element: <AdminShops /> },
-          { path: 'admin/:storeId', element: <AdminShop /> },
+        ],
+      },
+      {
+        // Oak Order's admin panel (01_PRODUCT.md §22.11): its own login,
+        // apart from any shop's. Loaded only when opened: sellers and
+        // customers never download it.
+        path: '/admin',
+        lazy: async () => ({ Component: (await import('./admin/session.tsx')).AdminRoot }),
+        children: [
+          { path: 'login', lazy: async () => ({ Component: (await import('./admin/AdminLogin.tsx')).AdminLogin }) },
+          {
+            lazy: async () => ({ Component: (await import('./admin/AdminLayout.tsx')).AdminLayout }),
+            children: [
+              { index: true, element: <Navigate to="shops" replace /> },
+              { path: 'shops', lazy: async () => ({ Component: (await import('./admin/AdminShops.tsx')).AdminShops }) },
+              { path: 'shops/:storeId', lazy: async () => ({ Component: (await import('./admin/AdminShop.tsx')).AdminShop }) },
+            ],
+          },
         ],
       },
       {

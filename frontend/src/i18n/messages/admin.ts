@@ -3,7 +3,6 @@ import type { Tree } from '../core.ts'
 /** Oak Order's admin page: only the founder's login sees it (ADMIN_PHONES). */
 export const admin = {
   title: { en: 'Oak Order admin', km: 'គ្រប់គ្រង Oak Order' },
-  menuHint: { en: "Every shop's plan", km: 'គម្រោងរបស់ហាងទាំងអស់' },
   search: { en: 'Shop, code, link or phone', km: 'ហាង លេខកូដ តំណ ឬលេខទូរស័ព្ទ' },
   filters: {
     all: { en: 'All', km: 'ទាំងអស់' },
