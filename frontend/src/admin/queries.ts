@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminApi } from '../lib/api.ts'
-import type { AdminShop, AdminShopDetail } from '../lib/types.ts'
+import type { AdminOverview, AdminShop, AdminShopDetail } from '../lib/types.ts'
 
 /** The admin panel's data, on the admin's own session (`adminApi`), under
  * one key so logging out of the admin leaves a shop's login alone. */
 export const adminKeys = {
   all: ['admin'] as const,
   me: ['admin', 'me'] as const,
+  overview: ['admin', 'overview'] as const,
   shops: ['admin', 'shops'] as const,
   shop: (id: string) => ['admin', 'shops', id] as const,
 }
@@ -14,6 +15,11 @@ export const adminKeys = {
 /** Who is logged in to the admin. */
 export function useAdminMe() {
   return useQuery({ queryKey: adminKeys.me, queryFn: () => adminApi<{ phone: string; telegram: boolean }>('/admin/auth/me') })
+}
+
+/** Home: the numbers, then what needs the admin. Fresh each visit. */
+export function useAdminOverview() {
+  return useQuery({ queryKey: adminKeys.overview, queryFn: () => adminApi<AdminOverview>('/admin/overview'), staleTime: 0 })
 }
 
 /** Every shop's plan. */
@@ -34,6 +40,7 @@ export function useMarkPaid(id: string) {
     onSuccess: (shop) => {
       queryClient.setQueryData(adminKeys.shop(id), shop)
       queryClient.invalidateQueries({ queryKey: adminKeys.shops, exact: true })
+      queryClient.invalidateQueries({ queryKey: adminKeys.overview })
     },
   })
 }
@@ -51,6 +58,7 @@ export function useCheckClaim(storeId: string) {
     onSuccess: (shop) => {
       queryClient.setQueryData(adminKeys.shop(storeId), shop)
       queryClient.invalidateQueries({ queryKey: adminKeys.shops, exact: true })
+      queryClient.invalidateQueries({ queryKey: adminKeys.overview })
     },
   })
 }

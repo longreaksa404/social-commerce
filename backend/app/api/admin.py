@@ -1,5 +1,5 @@
 """The founder's admin page (founder's pick 2B, 2026-10-14): every shop
-at once, so unscoped, and only for ADMIN_PHONES (the Admin guard)."""
+at once, so unscoped, and only for an admin account (the Admin guard)."""
 
 import uuid
 
@@ -8,6 +8,7 @@ from fastapi import APIRouter
 from app.api.deps import Admin, UnscopedDb
 from app.schemas.plan import (
     AdminConfirmIn,
+    AdminOverviewOut,
     AdminPaymentIn,
     AdminRejectIn,
     AdminShopDetailOut,
@@ -16,6 +17,12 @@ from app.schemas.plan import (
 from app.services import admin as admin_service
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+
+@router.get("/overview", response_model=AdminOverviewOut)
+async def overview(_: Admin, db: UnscopedDb) -> AdminOverviewOut:
+    """Home: the numbers across every shop, then what needs the admin."""
+    return await admin_service.overview(db)
 
 
 @router.get("/shops", response_model=list[AdminShopOut])

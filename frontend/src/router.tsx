@@ -89,7 +89,7 @@ export const router = createBrowserRouter([
           {
             lazy: async () => ({ Component: (await import('./admin/AdminLayout.tsx')).AdminLayout }),
             children: [
-              { index: true, element: <Navigate to="shops" replace /> },
+              { index: true, lazy: async () => ({ Component: (await import('./admin/AdminHome.tsx')).AdminHome }) },
               { path: 'shops', lazy: async () => ({ Component: (await import('./admin/AdminShops.tsx')).AdminShops }) },
               { path: 'shops/:storeId', lazy: async () => ({ Component: (await import('./admin/AdminShop.tsx')).AdminShop }) },
             ],

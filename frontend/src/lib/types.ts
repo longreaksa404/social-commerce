@@ -192,6 +192,36 @@ export type AdminShopDetail = AdminShop & {
   payments: (PlanPayment & { reference: string | null })[]
 }
 
+/** A shop on the admin's Home list (founder's pick 3B, 2026-10-28). `day`:
+ * when it said it paid (claim), paid until (ending), the last day to pay
+ * (unpaid, stopped), the day it signed up (not opened). */
+export type AdminNeed = {
+  kind: 'claim' | 'ending' | 'unpaid' | 'stopped' | 'not_opened'
+  store_id: string
+  name: string
+  day: string | null
+  amount: string | null
+  period: PlanPeriod | null
+  on_trial: boolean
+}
+
+/** The admin's Home: the numbers across every shop, then what needs the admin. */
+export type AdminOverview = {
+  shops: { total: number; setup: number; trial: number; paying: number; stopped: number; closed: number }
+  collected_month: string
+  payments_month: number
+  collected_year: string
+  /** If every paying shop renews: a month's price, or a year's / 12. */
+  monthly_income: string
+  orders_today: number
+  orders_week: number
+  /** The last 30 days, oldest first (Phnom Penh days). */
+  days: { day: string; orders: number; signups: number }[]
+  needs: AdminNeed[]
+  /** Telegram messages that failed in the last 24 hours. */
+  telegram_failed: number
+}
+
 /** owner: everything; staff: everything but Settings (founder's choice
  * 2026-10-08). */
 export type Role = 'owner' | 'staff'

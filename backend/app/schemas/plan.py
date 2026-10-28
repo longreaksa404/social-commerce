@@ -2,6 +2,7 @@ import enum
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -134,3 +135,53 @@ class AdminPaymentOut(PlanPaymentOut):
 
 class AdminShopDetailOut(AdminShopOut):
     payments: list[AdminPaymentOut]  # every one, newest first
+
+
+class AdminShopsCount(BaseModel):
+    """Every shop by where it stands: open ones are in setup, on trial,
+    paying (or due) or stopped; closed is apart."""
+
+    total: int
+    setup: int
+    trial: int
+    paying: int
+    stopped: int
+    closed: int
+
+
+class AdminNeedOut(BaseModel):
+    """A shop on the admin's Home list: a waiting "I've paid" (claim), a
+    plan ending soon, unpaid, orders stopped, or not opened 7 days after
+    sign-up."""
+
+    kind: Literal["claim", "ending", "unpaid", "stopped", "not_opened"]
+    store_id: uuid.UUID
+    name: str
+    day: (
+        date | None
+    )  # claim: the day said; ending: paid until; unpaid: pay by; not opened: signed up
+    amount: Decimal | None = None  # claim
+    period: PlanPeriod | None = None  # claim
+    on_trial: bool = False
+
+
+class AdminDayOut(BaseModel):
+    day: date
+    orders: int
+    signups: int
+
+
+class AdminOverviewOut(BaseModel):
+    """The admin's Home (founder's pick 3B, 2026-10-28): the numbers first,
+    then what needs the admin."""
+
+    shops: AdminShopsCount
+    collected_month: Decimal  # paid plan payments this month, US dollars
+    payments_month: int
+    collected_year: Decimal
+    monthly_income: Decimal  # if every paying shop renews: a month's price, a year's / 12
+    orders_today: int  # in every shop, Phnom Penh days
+    orders_week: int  # the last 7 days, today included
+    days: list[AdminDayOut]  # the last 30 days, oldest first
+    needs: list[AdminNeedOut]
+    telegram_failed: int  # Telegram messages that failed in the last 24 hours

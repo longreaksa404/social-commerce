@@ -82,6 +82,8 @@ async def claim(store_id: uuid.UUID, period: PlanPeriod) -> uuid.UUID | None:
 async def notify_claim(store_id: uuid.UUID, payment_id: uuid.UUID) -> None:
     """Telegram to each admin account's own chat with the bot (01_PRODUCT.md
     §22.11, 2026-10-28), after the seller's response."""
+    if not get_settings().telegram_configured:
+        return
     async with unscoped_session() as db:
         store = await db.get(Store, store_id)
         payment = await db.get(PlanPayment, payment_id)
