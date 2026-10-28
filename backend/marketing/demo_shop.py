@@ -1,27 +1,43 @@
 """Seed the marketing demo shop into its own local database, for
 marketing/shots.py. Development only.
 
-    cd backend && .venv/bin/python marketing/demo_shop.py --photos ~/oak-photos
+    cd backend && .venv/bin/python marketing/demo_shop.py --fetch --image-base http://localhost:8091
 
-One shop, `bopha-boutique` (the products in CATALOG, three earlier orders),
-written straight to the database like loadtest/seed_perf.py. It creates
-and migrates `social_commerce_demo`, then empties it, so it refuses
-anything but a database on this machine whose name ends in `_demo`.
-Every id and time is fixed, so two runs give the same shop.
+The shop is a copy of the founder's demo shop on the live site (its link
+code in the .env as DEMO_SHOP_SLUG), read through the public storefront
+only: GET requests, no login, nothing written there. `fetch` saves those
+answers and the shop's photos to a folder, whose photos/ shots.py serves
+as the shop's photo host. `seed` writes the shop from that folder straight
+to the database like loadtest/seed_perf.py, with earlier orders so the
+dashboard isn't empty. It creates and migrates `social_commerce_demo`,
+then empties it, so it refuses anything but a database on this machine
+whose name ends in `_demo`. Every id and time is fixed, so the same live
+shop gives the same demo shop.
 
-The photos folder holds one photo per product, named as in CATALOG
-(`1.jpg`, `2.png`, ...), and optionally `logo.*` and `cover.*`. They are
-copied, shrunk as the app's uploads are, to `--serve-dir`, where
-shots.py serves them as the shop's photo host.
+Copied: the name, description, logo, cover, colour, currency, contacts,
+delivery, bill discounts, categories, and every product with its photos,
+options, prices and stock. Not public, so not copied: sales (a product on
+sale keeps its sale price, without the crossed-out one), the low-stock
+level (the app's default, 5) and the KHQR details, which come from the
+.env: DEMO_BAKONG_ID, and with ABA's shared ID (abaakhppxxx@abaa) the
+account number in the QR as DEMO_KHQR_ACCOUNT. Without them the copy
+takes cash on delivery only.
 """
 
 import argparse
 import asyncio
 import hashlib
+import json
 import os
+import re
+import shutil
 import subprocess
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -32,73 +48,53 @@ sys.path.insert(0, str(BACKEND))
 from loadtest.seed_perf import LOCAL_HOSTS, TABLES, create_database  # noqa: E402
 
 DEFAULT_DATABASE = "social_commerce_demo"
-SLUG = "bopha-boutique"
+DEFAULT_COPY = Path(__file__).resolve().parent / "out" / ".work" / "live"
+LIVE_API = "https://api.oaksolve.com/api/v1"
+# Cloudflare turns away Python's own user agent.
+USER_AGENT = "oak-order-marketing/1.0 (demo shop copy, read only)"
+# ABA's one Bakong ID for all its customers: the QR also needs the account.
+ABA_SHARED_ID = "abaakhppxxx@abaa"
 # The seller's login on the demo dashboard (a test password, local only).
 PHONE = "012888168"
 PASSWORD = "demo-password-123"
 # The moment the pictures show: the browser's clock is frozen here and the
-# new order is dated a minute before it (shots.py). In the past, so it can
-# never be mistaken for a time the API stamps during a run.
+# new orders are dated a minute before it (shots.py). In the past, so it
+# can never be mistaken for a time the API stamps during a run.
 NOW = datetime(2026, 10, 2, 3, 42, tzinfo=UTC)  # 10:42 in Phnom Penh, a Friday
 ORDER_TIME = NOW - timedelta(minutes=1)
 
-PHOTO_TYPES = (".jpg", ".jpeg", ".png", ".webp")
-
-# Edit to match your photos: each product's `photo` is a file name in the
-# photos folder without its extension. The one with `options` is the
-# product the customer picks an option on (shots.py picks `pick`).
-CATALOG = (
-    {
-        "photo": "1",
-        "name": "រ៉ូបផ្កា",
-        "price": "12.00",
-        "category": "clothes",
-        "options": ("S", "M", "L"),
-        "pick": "M",
-        "description": "រ៉ូបផ្កាក្រណាត់ទន់ ពាក់ស្រួល ស័ក្តិសមដើរលេង និងទៅធ្វើការ។\n"
-        "Soft floral dress, true to size.",
-    },
-    {
-        "photo": "2",
-        "name": "អាវយឺតកប្បាស",
-        "price": "6.50",
-        "category": "clothes",
-        "description": "អាវយឺតកប្បាសសុទ្ធ ១០០% ទន់ ស្រូបញើសល្អ។\n100% cotton T-shirt.",
-    },
-    {
-        "photo": "3",
-        "name": "ខោខូវប៊យ",
-        "price": "14.00",
-        "category": "clothes",
-        "description": "ខោខូវប៊យជើងត្រង់ ក្រណាត់យឺតបន្តិច។\nStraight-leg jeans with a little stretch.",
-    },
-    {
-        "photo": "4",
-        "name": "កាបូបស្ពាយ",
-        "price": "9.50",
-        "category": "accessories",
-        "description": "កាបូបស្ពាយស្បែក ទំហំល្មម ដាក់ទូរស័ព្ទ និងកាបូបលុយបាន។",
-    },
-    {
-        "photo": "5",
-        "name": "ស្បែកជើងប៉ាតា",
-        "price": "18.00",
-        "category": "accessories",
-        "description": "ស្បែកជើងប៉ាតាស្រាល ពាក់ដើរបានយូរមិនឈឺជើង។",
-    },
-)
-CATEGORIES = {"clothes": "សម្លៀកបំពាក់", "accessories": "គ្រឿងលម្អ"}
-STOCK = 30  # above the low-stock level, so the new order raises no alert
-
-# Earlier orders, so the dashboard isn't empty: (customer, phone, address,
-# [(product index, option, quantity)], age, order status, payment method,
-# payment status, delivery status).
+# Earlier orders, oldest first, so the dashboard and Customers aren't
+# empty: (customer, phone, address, [(product's place in the shop, from 0;
+# quantity)], age, order status, payment method, payment status, delivery
+# status). A product with options is bought in its middle one.
 EARLIER = (
+    (
+        "Vannak Heng",
+        "011223344",
+        "#9, St 2011, Sen Sok, Phnom Penh",
+        [(10, 1)],
+        timedelta(days=5, hours=2),
+        "completed",
+        "cod",
+        "paid",
+        "delivered",
+    ),
+    (
+        "ស្រីពៅ ជា",
+        "098112233",
+        "ផ្ទះលេខ ១២ ផ្លូវ ៣៧១ សង្កាត់ស្ទឹងមានជ័យ ភ្នំពេញ",
+        [(6, 1)],
+        timedelta(days=3, hours=6),
+        "completed",
+        "khqr",
+        "paid",
+        "delivered",
+    ),
     (
         "Sokha Chan",
         "092345671",
         "#18, St 155, Toul Tompoung, Phnom Penh",
-        [(1, None, 2)],
+        [(12, 1)],
         timedelta(days=2, hours=3),
         "completed",
         "cod",
@@ -108,19 +104,30 @@ EARLIER = (
     (
         "ដារ៉ា គឹម",
         "077456123",
-        "#7, St 598, Toul Kork, Phnom Penh",
-        [(0, "S", 1), (3, None, 1)],
+        "ផ្ទះលេខ ៧ ផ្លូវ ៥៩៨ សង្កាត់ទួលគោក ភ្នំពេញ",
+        [(2, 1), (8, 1)],
         timedelta(hours=19),
-        "shipped",
+        "accepted",
         "khqr",
         "paid",
         "in_transit",
     ),
     (
+        "Malis Chea",
+        "087654321",
+        "#3, St 63, BKK1, Phnom Penh",
+        [(4, 2)],
+        timedelta(hours=5, minutes=10),
+        "accepted",
+        "khqr",
+        "paid",
+        "not_assigned",
+    ),
+    (
         "Pisey Long",
         "015678234",
         "#42, St 2004, Sen Sok, Phnom Penh",
-        [(2, None, 1)],
+        [(14, 1)],
         timedelta(hours=2, minutes=25),
         "accepted",
         "cod",
@@ -128,7 +135,6 @@ EARLIER = (
         "not_assigned",
     ),
 )
-DELIVERY_FEE = Decimal("1.50")
 
 
 def fixed_id(name: str) -> uuid.UUID:
@@ -137,6 +143,18 @@ def fixed_id(name: str) -> uuid.UUID:
 
 def fixed_hex(name: str) -> str:
     return hashlib.sha256(name.encode()).hexdigest()[:32]
+
+
+def env(name: str) -> str:
+    """From the environment, else the repo's .env (where the app reads it)."""
+    from dotenv import dotenv_values
+
+    from app.core.config import ENV_FILE
+
+    value = os.environ.get(name)
+    if value is None and ENV_FILE.is_file():
+        value = dotenv_values(ENV_FILE).get(name)
+    return (value or "").strip()
 
 
 def database_url(name: str) -> str:
@@ -151,65 +169,127 @@ def database_url(name: str) -> str:
     return url.set(database=name).render_as_string(hide_password=False)
 
 
-def find_photo(folder: Path, stem: str) -> Path | None:
-    for suffix in PHOTO_TYPES:
-        for candidate in (folder / f"{stem}{suffix}", folder / f"{stem}{suffix.upper()}"):
-            if candidate.is_file():
-                return candidate
-    return None
+def khqr_settings() -> tuple[dict | None, str]:
+    """The founder's KHQR details from the .env (without the name the
+    customer's bank app shows, which is the shop's), or None and why."""
+    bakong = env("DEMO_BAKONG_ID")
+    if not bakong:
+        return None, "no DEMO_BAKONG_ID in the .env"
+    account = env("DEMO_KHQR_ACCOUNT").replace(" ", "")
+    shared = bakong.lower() == ABA_SHARED_ID
+    if shared and not account:
+        return None, (
+            f"DEMO_BAKONG_ID is ABA's shared ID ({ABA_SHARED_ID}): add your ABA account "
+            "number as DEMO_KHQR_ACCOUNT to the .env"
+        )
+    bank = "ABA Bank" if shared else ""  # as ABA's own QR names it
+    return {"bakong_account_id": bakong, "account_information": account, "acquiring_bank": bank}, ""
 
 
-def save_jpeg(image, path: Path, quality: int) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    image.convert("RGB").save(path, "JPEG", quality=quality)
+# --- the live shop -------------------------------------------------------------
 
 
-def prepare_photos(folder: Path, serve_dir: Path, image_base: str) -> dict[str, str | None]:
-    """The photos, shrunk and named as the app's uploads are, under
-    `serve_dir`; returns their addresses (product photo, logo, cover)."""
-    from PIL import Image, ImageOps
-
-    store_id = fixed_id("store")
-    missing = [p["photo"] for p in CATALOG if find_photo(folder, p["photo"]) is None]
-    if missing:
-        names = ", ".join(f"{stem}.jpg" for stem in missing)
-        sys.exit(f"Missing in {folder}: {names} (one photo per product; see CATALOG).")
-
-    urls: dict[str, str | None] = {}
-    for product in CATALOG:
-        with Image.open(find_photo(folder, product["photo"])) as opened:
-            image = ImageOps.exif_transpose(opened)
-            path = f"stores/{store_id}/products/{fixed_id(product['photo'])}"
-            name = fixed_hex(product["photo"])
-            # As lib/images.ts: longest side 1600, and a copy 480 on its short side.
-            big = image.copy()
-            big.thumbnail((1600, 1600))
-            save_jpeg(big, serve_dir / path / f"{name}-m.jpg", 85)
-            scale = min(1, 480 / min(image.size))
-            small = image.resize((round(image.width * scale), round(image.height * scale)))
-            save_jpeg(small, serve_dir / path / f"{name}-s.jpg", 80)
-            urls[product["photo"]] = f"{image_base}/{path}/{name}-m.jpg"
-
-    # As the app crops them: a 256 px square logo, a 3:1 cover.
-    for kind, size in (("logo", (256, 256)), ("cover", (1800, 600))):
-        source = find_photo(folder, kind)
-        urls[kind] = None
-        if source is None:
-            continue
-        with Image.open(source) as opened:
-            image = ImageOps.fit(ImageOps.exif_transpose(opened), size)
-            path = f"stores/{store_id}/{kind}/{fixed_hex(kind)}.jpg"
-            save_jpeg(image, serve_dir / path, 85)
-            urls[kind] = f"{image_base}/{path}"
-    return urls
+def get(url: str) -> bytes:
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return response.read()
 
 
-def build_rows(urls: dict[str, str | None], password_hash: str) -> dict[str, list[dict]]:
+def fetch(folder: Path) -> dict:
+    """Reads the live demo shop through its public storefront into
+    `folder` (shop.json and photos/, at the paths they have on the live
+    photo host); stops if it can't."""
+    slug = env("DEMO_SHOP_SLUG")
+    if not slug:
+        sys.exit(
+            "No DEMO_SHOP_SLUG in the .env: the live demo shop's code, order.oaksolve.com/shop/<it>"
+        )
+    shop_url = f"{LIVE_API}/shop/{urllib.parse.quote(slug)}"
+    try:
+        shop = json.loads(get(shop_url))
+        cards = json.loads(get(f"{shop_url}/products"))
+        # A few at a time: well inside the storefront's rate limit.
+        with ThreadPoolExecutor(8) as pool:
+            pages = [f"{shop_url}/products/{urllib.parse.quote(card['slug'])}" for card in cards]
+            products = [json.loads(page) for page in pool.map(get, pages)]
+            urls = photo_urls(shop, products)
+            photos = dict(zip(urls, pool.map(get, urls), strict=True))
+    except urllib.error.HTTPError as error:
+        sys.exit(f"Couldn't read the live demo shop: HTTP {error.code} from {error.url}")
+    except OSError as error:  # no connection, DNS, timeout
+        sys.exit(
+            f"Couldn't reach the live site for the demo shop: {getattr(error, 'reason', error)}"
+        )
+    if not products:
+        sys.exit(f"The live demo shop {slug} has no products to copy.")
+
+    shutil.rmtree(folder, ignore_errors=True)
+    served = (folder / "photos").resolve()
+    for url, data in photos.items():
+        path = (served / photo_path(url)).resolve()
+        if served not in path.parents:
+            sys.exit(f"Refusing a photo outside the copy's folder: {url}")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    copy = {"shop": shop, "products": products}
+    (folder / "shop.json").write_text(
+        json.dumps(copy, ensure_ascii=False, indent=1, sort_keys=True)
+    )
+    return copy
+
+
+def photo_urls(shop: dict, products: list[dict]) -> list[str]:
+    """The logo, the cover and every product photo with the small copy the
+    shop's grids show (lib/images.ts: "-m.<ext>" has "-s.jpg" beside it)."""
+    urls = [shop["logo_url"], shop["cover_url"]]
+    for product in products:
+        for url in product["image_urls"]:
+            urls += [url, re.sub(r"-m\.(jpg|png|webp)$", "-s.jpg", url)]
+    return list(dict.fromkeys(url for url in urls if url))
+
+
+def photo_path(url: str) -> str:
+    return urllib.parse.urlsplit(url).path.lstrip("/")
+
+
+def load(folder: Path) -> dict:
+    """The copy `fetch` saved."""
+    try:
+        return json.loads((folder / "shop.json").read_text())
+    except FileNotFoundError:
+        sys.exit(f"No copy of the live shop in {folder}: run with --fetch first.")
+
+
+# --- the demo shop -------------------------------------------------------------
+
+
+def middle_option(product: dict) -> dict | None:
+    variants = product["variants"]
+    return variants[len(variants) // 2] if variants else None
+
+
+def khqr_name(shop_name: str) -> str:
+    """The name bank apps show (plain capitals, at most 25): the shop's."""
+    name = re.sub(r"[^A-Z0-9 &.-]", "", shop_name.upper())
+    return re.sub(r" +", " ", name).strip()[:25] or "SHOP"
+
+
+def build_rows(
+    copy: dict, image_base: str, password_hash: str, khqr: dict | None
+) -> dict[str, list[dict]]:
+    from app.models import DeliveryMethod
+    from app.schemas.delivery import DeliverySettings, DiscountSettings
+    from app.services.pricing import line_total, order_totals
+
+    shop, products = copy["shop"], copy["products"]
     rows: dict[str, list[dict]] = {}
 
     def add(table: str, **row: object) -> dict:
         rows.setdefault(table, []).append(row)
         return row
+
+    def local(url: str | None) -> str | None:
+        return url and f"{image_base}/{photo_path(url)}"
 
     seller_id, store_id = fixed_id("seller"), fixed_id("store")
     opened = NOW - timedelta(days=120)
@@ -221,35 +301,40 @@ def build_rows(urls: dict[str, str | None], password_hash: str) -> dict[str, lis
         full_name="Bopha Sok",
         created_at=opened,
     )
+    live = shop["delivery"]
+    delivery = {
+        "fee": live["fee"],
+        "free_from_amount": live["free_from_amount"],
+        "free_from_items": live["free_from_items"],
+        "own_delivery": {"enabled": live["own_delivery"]},
+        "couriers": live["couriers"],
+        "pickup": {
+            "enabled": live["pickup"] is not None,
+            "address": (live["pickup"] or {}).get("address", ""),
+        },
+    }
+    discounts = {"rules": shop["discounts"]}
+    payments = {"cod": {"enabled": "cod" in shop["payment_methods"]}, "khqr": {"enabled": False}}
+    if khqr:
+        payments["khqr"] = {"enabled": True, "merchant_name": khqr_name(shop["name"]), **khqr}
     add(
         "store",
         id=store_id,
         seller_id=seller_id,
-        name="Bopha Boutique",
-        slug=SLUG,
-        description="សម្លៀកបំពាក់នារី និងគ្រឿងលម្អ តម្លៃសមរម្យ។ ដឹកជញ្ជូនក្នុងភ្នំពេញ ១ថ្ងៃ និងតាមខេត្ត ២-៣ថ្ងៃ។",
-        logo_url=urls["logo"],
-        cover_url=urls["cover"],
-        currency="USD",
-        contact_phone="012888168",
-        payment_config={
-            "cod": {"enabled": True},
-            # A made-up account: the customer in the pictures pays cash.
-            "khqr": {
-                "enabled": True,
-                "bakong_account_id": "bophaboutique@aclb",
-                "merchant_name": "BOPHA BOUTIQUE",
-            },
-        },
-        delivery_config={
-            "fee": str(DELIVERY_FEE),
-            "free_from_amount": None,
-            "free_from_items": None,
-            "own_delivery": {"enabled": True},
-            "couriers": [],
-            "pickup": {"enabled": True, "address": "#25, St 271, Phnom Penh"},
-        },
-        discount_config={"rules": []},
+        name=shop["name"],
+        slug=shop["slug"],
+        description=shop["description"],
+        logo_url=local(shop["logo_url"]),
+        cover_url=local(shop["cover_url"]),
+        color=shop["color"],
+        currency=shop["currency"],
+        telegram_username=shop["telegram_username"],
+        contact_phone=shop["contact_phone"],
+        messenger_username=shop["messenger_username"],
+        instagram_username=shop["instagram_username"],
+        payment_config=payments,
+        delivery_config=delivery,
+        discount_config=discounts,
         order_confirmation_mode="manual",
         # Open and paid up: a shop without paid_until is still in setup
         # and takes no orders (app/services/plan.py).
@@ -257,53 +342,57 @@ def build_rows(urls: dict[str, str | None], password_hash: str) -> dict[str, lis
         created_at=opened,
     )
     categories = {}
-    for key, name in CATEGORIES.items():
-        categories[key] = add(
+    for category in shop["categories"]:
+        categories[category["slug"]] = add(
             "category",
-            id=fixed_id(f"category/{key}"),
+            id=fixed_id(f"category/{category['slug']}"),
             store_id=store_id,
-            name=name,
-            slug=key,
+            name=category["name"],
+            slug=category["slug"],
             created_at=opened,
         )
 
-    # (product, variant or None) by CATALOG index and option
-    sellable: dict[tuple[int, str | None], tuple[dict, dict | None]] = {}
-    for index, entry in enumerate(CATALOG):
-        options = entry.get("options", ())
-        # Newest first in the shop: the first in CATALOG is the newest.
-        created = opened + timedelta(days=60 - index)
+    saved = []  # (product row, {option name: variant row}), in the shop's order
+    for index, entry in enumerate(products):
+        # Newest first in the shop, as on the live one.
+        created = opened + timedelta(days=60, minutes=-index)
+        price = Decimal(entry["price"])
         product = add(
             "product",
-            id=fixed_id(entry["photo"]),
+            id=fixed_id(f"product/{entry['slug']}"),
             store_id=store_id,
-            category_id=categories[entry["category"]]["id"],
+            category_id=entry["category"] and categories[entry["category"]["slug"]]["id"],
             name=entry["name"],
-            slug=f"product-{index + 1}",
+            slug=entry["slug"],
             description=entry["description"],
-            price=Decimal(entry["price"]),
-            image_urls=[urls[entry["photo"]]],
+            price=price,
+            image_urls=[local(url) for url in entry["image_urls"]],
             status="active",
-            has_variants=bool(options),
-            stock_quantity=None if options else STOCK,
+            has_variants=entry["has_variants"],
+            stock_quantity=entry["stock_quantity"],
             created_at=created,
             updated_at=created,
         )
-        sellable[(index, None)] = (product, None)
-        for option in options:
-            variant = add(
+        options = {}
+        for variant in entry["variants"]:
+            options[variant["name"]] = add(
                 "product_variant",
-                id=fixed_id(f"{entry['photo']}/{option}"),
+                id=fixed_id(f"product/{entry['slug']}/{variant['name']}"),
                 store_id=store_id,
                 product_id=product["id"],
-                name=option,
+                name=variant["name"],
                 sku=None,
-                price_override=None,
-                stock_quantity=STOCK,
+                price_override=None
+                if Decimal(variant["price"]) == price
+                else Decimal(variant["price"]),
+                stock_quantity=variant["stock_quantity"],
                 created_at=created,
             )
-            sellable[(index, option)] = (product, variant)
+        saved.append((product, options))
 
+    delivery_settings = DeliverySettings.model_validate(delivery)
+    discount_settings = DiscountSettings.model_validate(discounts)
+    currency = shop["currency"]
     for number, (name, phone, address, lines, age, status, method, paid, sent) in enumerate(
         EARLIER, start=1001
     ):
@@ -319,13 +408,21 @@ def build_rows(urls: dict[str, str | None], password_hash: str) -> dict[str, lis
             created_at=created,
         )
         order_id = fixed_id(f"order/{number}")
-        items, subtotal = [], Decimal("0.00")
-        for index, option, quantity in lines:
-            product, variant = sellable[(index, option)]
-            total = product["price"] * quantity
-            subtotal += total
-            items.append((product, variant, quantity, total))
-        grand = subtotal + DELIVERY_FEE
+        items = []
+        for place, quantity in lines:
+            entry = products[place % len(products)]
+            product, options = saved[place % len(products)]
+            option = middle_option(entry)
+            variant = option and options[option["name"]]
+            unit = Decimal(option["price"]) if option else product["price"]
+            items.append((product, variant, unit, quantity, line_total(unit, quantity)))
+        totals = order_totals(
+            [item[4] for item in items],
+            item_count=sum(item[3] for item in items),
+            method=DeliveryMethod.SELLER_DELIVERY,
+            delivery=delivery_settings,
+            discounts=discount_settings,
+        )
         add(
             "order",
             id=order_id,
@@ -333,11 +430,11 @@ def build_rows(urls: dict[str, str | None], password_hash: str) -> dict[str, lis
             number=number,
             customer_id=customer_id,
             status=status,
-            currency="USD",
-            subtotal=subtotal,
-            discount=Decimal("0.00"),
-            delivery_fee=DELIVERY_FEE,
-            total=grand,
+            currency=currency,
+            subtotal=totals.subtotal,
+            discount=totals.discount,
+            delivery_fee=totals.delivery_fee,
+            total=totals.total,
             delivery_method="seller_delivery",
             delivery_address=address,
             delivery_lat=None,
@@ -348,7 +445,7 @@ def build_rows(urls: dict[str, str | None], password_hash: str) -> dict[str, lis
             created_at=created,
             updated_at=created + timedelta(minutes=20),
         )
-        for position, (product, variant, quantity, total) in enumerate(items):
+        for position, (product, variant, unit, quantity, total) in enumerate(items):
             add(
                 "order_item",
                 id=fixed_id(f"order/{number}/{position}"),
@@ -358,7 +455,7 @@ def build_rows(urls: dict[str, str | None], password_hash: str) -> dict[str, lis
                 variant_id=variant and variant["id"],
                 product_name_snapshot=product["name"],
                 variant_name_snapshot=variant and variant["name"],
-                unit_price_snapshot=product["price"],
+                unit_price_snapshot=unit,
                 quantity=quantity,
                 line_total=total,
             )
@@ -369,7 +466,7 @@ def build_rows(urls: dict[str, str | None], password_hash: str) -> dict[str, lis
             order_id=order_id,
             method=method,
             status=paid,
-            amount=grand,
+            amount=totals.total,
             reference=None,
             paid_at=created + timedelta(minutes=30) if paid == "paid" else None,
             created_at=created,
@@ -386,7 +483,7 @@ def build_rows(urls: dict[str, str | None], password_hash: str) -> dict[str, lis
             created_at=created,
             updated_at=created + timedelta(minutes=20),
         )
-        # Seen already: only the new order is unread on the bell.
+        # Seen already: only the new orders are unread on the bell.
         add(
             "notification_log",
             id=fixed_id(f"order/{number}/notification"),
@@ -398,9 +495,9 @@ def build_rows(urls: dict[str, str | None], password_hash: str) -> dict[str, lis
                     "id": str(order_id),
                     "number": number,
                     "customer_name": name,
-                    "item_count": sum(item[2] for item in items),
-                    "total": str(grand),
-                    "currency": "USD",
+                    "item_count": sum(item[3] for item in items),
+                    "total": str(totals.total),
+                    "currency": currency,
                     "accepted_automatically": False,
                 }
             },
@@ -411,7 +508,7 @@ def build_rows(urls: dict[str, str | None], password_hash: str) -> dict[str, lis
     return rows
 
 
-async def seed(urls: dict[str, str | None]) -> dict[str, int]:
+async def seed(copy: dict, image_base: str, khqr: dict | None) -> dict[str, int]:
     from sqlalchemy import insert, text
 
     import app.models  # noqa: F401  (registers every table on Base.metadata)
@@ -423,7 +520,7 @@ async def seed(urls: dict[str, str | None]) -> dict[str, int]:
     if engine.url.host not in LOCAL_HOSTS or not str(engine.url.database).endswith("_demo"):
         sys.exit(f"Refusing to empty {engine.url.host}/{engine.url.database}.")
 
-    rows = build_rows(urls, await hash_password(PASSWORD))
+    rows = build_rows(copy, image_base, await hash_password(PASSWORD), khqr)
     async with engine.begin() as connection:
         names = ", ".join(f'"{table}"' for table in Base.metadata.tables)
         await connection.execute(text(f"TRUNCATE {names} CASCADE"))
@@ -436,17 +533,18 @@ async def seed(urls: dict[str, str | None]) -> dict[str, int]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--photos", type=Path, required=True, help="folder with the photos")
-    parser.add_argument("--serve-dir", type=Path, required=True, help="where to put them")
-    parser.add_argument("--image-base", required=True, help="the address serve-dir is served at")
+    parser.add_argument("--copy", type=Path, default=DEFAULT_COPY, help="the live shop's copy")
+    parser.add_argument("--fetch", action="store_true", help="read the live shop into --copy first")
+    parser.add_argument(
+        "--image-base", required=True, help="the address --copy/photos is served at"
+    )
     parser.add_argument("--database", default=DEFAULT_DATABASE, help="a local database, *_demo")
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args()
 
-    if not args.photos.is_dir():
-        sys.exit(f"No such folder: {args.photos}")
     url = database_url(args.database)
-    urls = prepare_photos(args.photos, args.serve_dir, args.image_base)
+    copy = fetch(args.copy) if args.fetch else load(args.copy)
+    khqr, why_not = khqr_settings()
     asyncio.run(create_database(url))
     os.environ["DATABASE_URL"] = url
     # The settings were read with the .env's database: read them again.
@@ -460,11 +558,13 @@ def main() -> None:
         env=os.environ,
         capture_output=args.quiet,
     )
-    counts = asyncio.run(seed(urls))
+    counts = asyncio.run(seed(copy, args.image_base.rstrip("/"), khqr))
     if not args.quiet:
         for table, count in counts.items():
             print(f"{table:>18} {count:>4}")
-        print(f"Log in as {PHONE} / {PASSWORD} (dashboard), shop /shop/{SLUG}")
+        if why_not:
+            print(f"Cash on delivery only: {why_not}")
+        print(f"Log in as {PHONE} / {PASSWORD} (dashboard), shop /shop/{copy['shop']['slug']}")
 
 
 if __name__ == "__main__":

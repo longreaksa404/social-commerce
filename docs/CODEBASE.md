@@ -184,7 +184,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 │   │   ├── schemas/           Pydantic request/response models, one file per domain (+ common, upload)
 │   │   ├── services/          All business logic and queries (see §4)
 │   │   └── api/               Thin FastAPI routers, one per resource; deps.py holds the dependencies
-│   ├── marketing/             Not app code: shots.py (marketing screenshots and MP4s of a demo shop, local only), demo_shop.py (its seed), requirements.txt (Playwright, imageio-ffmpeg); out/ is git-ignored
+│   ├── marketing/             Not app code: shots.py (marketing screenshots and MP4s of a local copy of the live demo shop), demo_shop.py (copies that shop read-only and seeds it), requirements.txt (Playwright, imageio-ffmpeg); out/ is git-ignored
 │   └── tests/
 │       ├── conftest.py        Creates and migrates <db>_test, empties it, fixtures (client, register, auth_headers, make_store)
 │       ├── helpers.py         Direct-DB factories (add_product, ...) and API shortcuts (place_order, set_delivery, ...)
@@ -285,7 +285,7 @@ cd frontend && npm install
 | Founder's commands | `python -m app.admin <command> <login>` (a phone number typed any way, or an older account's email; `auth.login_filter`), commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend), `test-shop [--name]` (a shop with an email login and no phone, for the load test: sign-up needs a phone checked in Telegram, one shop per number), `forget-customer <shop link name> <phone>` (a customer's name becomes "(removed)"; phone, addresses, map pins and notes go from that shop's customer, orders and alert payloads; the orders' items and money stay; the Data deletion page promises it), and `move-photos <old> <new>` (rewrites the R2 address saved in `product.image_urls`, `store.logo_url` and `store.cover_url`, for `images.oaksolve.com`); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
 | Bot on a laptop | `python -m app.telegram_poll` (backend, beside uvicorn): answers your **test** bot by polling, since Telegram's webhook can't reach localhost. Needs the three `TELEGRAM_*` values in `.env` and `PUBLIC_API_URL` empty; refuses a bot that has a webhook (the live one) |
 | Performance audit tools | `backend/loadtest/seed_perf.py` (a local `social_commerce_perf` database with a 500-product shop; refuses anything but a local `*_perf` database) and `measure.py` (every endpoint's time, SQL statements and Postgres round trips), run from `backend/` with its venv; `backend/loadtest/README.md`, results in `docs/PERF_AUDIT.md` |
-| Marketing screenshots | `.venv/bin/python marketing/shots.py --photos <folder> [--video] [--lang km en]` (backend, Postgres running; once: `.venv/bin/pip install -r marketing/requirements.txt && .venv/bin/playwright install --with-deps chromium`). Seeds "Bopha Boutique" (`marketing/demo_shop.py`: 5 Khmer-named products, one with sizes, 3 earlier orders; refuses anything but a local `*_demo` database, `social_commerce_demo`), builds the frontend against its own API (ports 8011 API, 4180 site, 8091 photos; Telegram, R2, Sentry and sign-in providers blanked whatever `.env` says), and drives headless Chromium at 390 × 844 @3x. Output in `backend/marketing/out/` (git-ignored): `km/` and `en/` `01_shop` … `09_notifications.png` (1170 × 2532: shop top, products, product, option chosen, checkout, confirmation, Orders tab, the order, notifications), and with `--video` `video/{km,en}_customer.mp4` and `{km,en}_order_arrives.mp4` (1080 wide, H.264, from Chrome's screencast). The photos folder holds `1.jpg` … `5.jpg` (names in `CATALOG`, edit to match the photos) and optional `logo.*`, `cover.*`. Each picture is checked: no console errors or failed requests, no debug words, nothing loading, Khmer drawn in Noto Sans Khmer. The browser clock is frozen and the new order's API times are pinned (`demo_shop.NOW`, `ORDER_TIME`), so reruns give the same PNGs. The bell shows no number for a new order (UX check #20): the New tab counts it, the notifications page shows it unread |
+| Marketing pictures and clips | `.venv/bin/python marketing/shots.py [--video] [--lang km en]` (backend, Postgres running; once: `.venv/bin/pip install -r marketing/requirements.txt && .venv/bin/playwright install --with-deps chromium`). Copies the founder's live demo shop through its public storefront (`DEMO_SHOP_SLUG`; GET requests only, no login) and seeds it, with six earlier orders, into a local `social_commerce_demo` (`marketing/demo_shop.py`; refuses anything but a local `*_demo` database), builds the frontend against its own API (ports 8011 API, 4180 site, 8091 photos; Telegram, R2, Sentry and sign-in providers blanked whatever `.env` says), and drives headless Chromium at 390 × 844 @3x through every step in "Marketing pictures and clips" below, in Khmer and English, into `backend/marketing/out/` (git-ignored). Each picture is checked: no console errors or failed requests, nothing fetched from outside this machine, no debug words, nothing loading (photos, placeholders, toasts, the order progress bar), Khmer drawn in Noto Sans Khmer. The browser clock is frozen and the new orders' API times, and the two times inside their KHQR, are pinned (`demo_shop.NOW`, `ORDER_TIME`), so reruns give the same PNGs (and the KHQR in them is past its date). The bell shows no number for a new order (UX check #20): the New tab counts it, the notifications page shows it unread |
 | Frontend dev server | `npm run dev`: http://localhost:5173 |
 | Frontend lint | `npm run lint` (oxlint) |
 | Frontend build | `npm run build` (`tsc -b && vite build`, type-checks) |
@@ -319,12 +319,75 @@ blocks the deploy (04).
 | `VITE_GOOGLE_CLIENT_ID` | frontend | The same client ID, for Google's button (`src/lib/google.ts`); empty hides every Google button |
 | `VITE_FACEBOOK_APP_ID` | frontend | The public ID for the Facebook sign-in link (`src/lib/oauth.ts`); empty hides its buttons (empty on the live site until Meta allows it). `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET` and `VITE_TIKTOK_CLIENT_KEY` went with TikTok's login (2026-10-27); nothing reads them |
 | `VITE_SUPPORT_TELEGRAM` | frontend | Oak Order's own Telegram username (no @) for sellers' "Get help" links (`src/lib/support.ts`); empty hides them |
+| `DEMO_SHOP_SLUG`, `DEMO_BAKONG_ID`, `DEMO_KHQR_ACCOUNT` | `backend/marketing` (a laptop only, never Render or Vercel) | The live demo shop to copy (its code in `/shop/<code>`), and the KHQR its customers pay, which isn't public: the Bakong ID, and with ABA's shared ID `abaakhppxxx@abaa` the ABA account number in the QR (`demo_shop.khqr_settings`). Without them the KHQR pictures are skipped |
 | `VITE_USE_POLLING`, `WATCHFILES_FORCE_POLLING` | dev container | File polling (the repo is on a Windows drive mount) |
 | `BACKUP_DATABASE_URL`, `BACKUP_R2_ACCOUNT_ID`, `BACKUP_R2_ACCESS_KEY_ID`, `BACKUP_R2_SECRET_ACCESS_KEY`, `BACKUP_R2_BUCKET` | GitHub Actions secrets | Nightly backup workflow |
 
 The backend reads `.env` from the repo root (`config.py`: `parents[3]`),
 even when started from `backend/`. In production the file doesn't exist and
 real environment variables are used.
+
+### Marketing pictures and clips
+
+What `backend/marketing/shots.py` (the "Marketing pictures and clips" row
+above) makes, in Khmer and in English. Stills are 1170 × 2532 PNGs in
+`out/km/` and `out/en/`. Clips, with `--video`, are 1080 × 2338 H.264 MP4s
+at 30 fps in `out/video/`, named `km_…` and `en_…`; each starts and ends on
+a 1 s still and shows a circle on every tap. Their timing is `PACE` at the
+top of `shots.py` (seconds after the opening still, on each screen, between
+taps, per letter typed, per scroll, on the KHQR, at the end): change it to
+fit a voiceover. One step's clip aims at 5–12 s, and the run prints a note
+for one outside that. The lengths below are with today's `PACE`; a run
+takes about 9 minutes with `--video`, 3 without.
+
+The shop is the live demo shop as it is on the day of the run. The customer
+buys its newest product with options in the middle option, then the next
+one; the chat order takes the product or option with 6 to 8 in stock (now
+the men's slides, Free size: 6) down to the low-stock level, 5. Skipped,
+with a note at the start and the end of the run: 10–12 without
+`DEMO_BAKONG_ID` (and `DEMO_KHQR_ACCOUNT` with ABA's shared ID; the second
+order is then paid in cash, still for 13), 19–20 when nothing has 6 to 8 in
+stock.
+
+| File | What it shows | Length |
+|---|---|---|
+| `01_shop.png` | The shop's top: cover, logo, name, description, the delivery fee, ways to pay, the bill discount | still |
+| `02_products` | The category tabs and the product grid | still |
+| `03_product` | The product the customer opens: photos, price, sizes | still |
+| `04_option` | The middle size picked | still |
+| `05_checkout` | Checkout: name, phone, Delivery, the address, cash on delivery, Place order | still |
+| `06_confirmation` | "Thank you": order A placed, cash on delivery | still |
+| `07_dashboard` | The Orders tab with order A on top, new | still |
+| `08_order` | Order A opened: Reject / Accept | still |
+| `09_notifications` | The bell's list: order A unread | still |
+| `10_khqr_checkout` | The same customer's second order (order B), on the same phone: their details remembered, Delivery, KHQR picked | still |
+| `11_khqr` | Order B's KHQR: the shop's name, the amount, the QR with the founder's Bakong account | still |
+| `12_khqr_paid` | After "I've paid: send receipt": "You told Oak Fashion you paid (10:42 AM)", the QR folded away | still |
+| `13_tracking` | Order B from the truck at the shop's top: on the way, paid (the seller accepted it, marked it paid and sent it, through the API) | still |
+| `14_accepted` | Order A accepted: Send to driver / Delivered, cash received | still |
+| `15_completed` | Order A after "Delivered, cash received": delivered, paid, completed by itself (02 §7.4) | still |
+| `16_share_link` | Share on the product: where it'll be posted (Facebook, TikTok …) | still |
+| `17_chat_order_form` | "+ New order" from a chat: an earlier customer's phone, their name filled in, the low-stock product picked | still |
+| `18_chat_order` | That order saved (order C) | still |
+| `19_low_stock_alert` | The bell's list: "Running low", the product at 5 left, above B's "says paid" and A and B | still |
+| `20_low_stock_product` | That product, opened from the alert: its option at 5 in stock | still |
+| `21_parcel_slip` | Order C's parcel slip (⋯ → Receipt): "COLLECT … CASH" | still |
+| `22_customers` | The Customers tab: seven customers | still |
+| `video/<lang>_00_shop_link.mp4` | The hook: the shop as a link opens it, then a slow scroll down the products (no order on the phone yet) | 10 s |
+| `<lang>_customer.mp4` | The customer's whole first order, 01 to 06, as they'd tap it | 26 s |
+| `<lang>_01_shop.mp4` | Cut from it: the shop, a scroll, the product opened | 9.5 s |
+| `<lang>_03_option` | Cut: the size picked | 5.5 s |
+| `<lang>_05_checkout` | Cut: Buy now, the details typed, Delivery, cash on delivery | 12 s |
+| `<lang>_06_order_placed` | Cut: Place order, "Thank you" | 5 s |
+| `<lang>_order_arrives` | The Orders tab as order A arrives (it checks every 30 s) and the seller opens it | 10.5 s |
+| `<lang>_10_khqr` | 10–12: from the payment choices (Delivery picked off camera): KHQR, Place order, the KHQR, "I've paid" | 11.5 s |
+| `<lang>_13_tracking` | 13: the truck at the shop's top, then order B on its way | 6 s |
+| `<lang>_14_accept_to_complete` | 14–15: Accept, then "Delivered, cash received": completed | 8 s |
+| `<lang>_16_share` | 16: Products → the product → Share → Facebook ("Link copied": the headless browser has no share list to film) | 11 s |
+| `<lang>_17_chat_order` | 17–18: the phone typed, name and address filled in, the product searched and picked, Save order | 11.5 s |
+| `<lang>_19_low_stock` | 19–20: the bell, the alert, the product | 8–9 s |
+| `<lang>_21_parcel_slip` | 21: ⋯ → Receipt, the slip | 6 s |
+| `<lang>_22_customers` | 22: the Customers tab, then a customer's page | 8 s |
 
 ---
 
@@ -1762,7 +1825,7 @@ None (grep for TODO, FIXME, XXX and HACK over `backend/`,
   customers, skipped).
 - `DELETE /seller/store/telegram` has its logic in the router instead of
   a service, unlike the rest of the code.
-- There is no seed script for first-seller data (`backend/loadtest/seed_perf.py` is a local, made-up data set for performance measurements only; `backend/marketing/demo_shop.py` one local demo shop for marketing pictures).
+- There is no seed script for first-seller data (`backend/loadtest/seed_perf.py` is a local, made-up data set for performance measurements only; `backend/marketing/demo_shop.py` a local copy of the founder's live demo shop for marketing pictures).
 
 ---
 

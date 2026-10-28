@@ -379,7 +379,7 @@ always stays navy.
 | Log in | https://order.oaksolve.com/login |
 | Terms, Privacy, Data deletion | https://order.oaksolve.com/terms, /privacy, /data-deletion |
 | A shop's link (the format) | `https://order.oaksolve.com/shop/<6-character code>`. Example format only: `k7m2qx` in 01 isn't a real shop |
-| Demo or example shop | **None on the live site.** Marketing pictures and clips come from a demo shop, "Bopha Boutique", that exists only on the founder's laptop: `backend/marketing/shots.py` makes 9 phone screens in Khmer and English and 4 short MP4s (`docs/CODEBASE.md` §3). The founder's own test shop on the live site isn't a demo to send people to |
+| Demo or example shop | **"Oak Fashion", https://order.oaksolve.com/shop/zdpb5d**: the founder's demo shoe shop on the live site (17 products with sizes, delivery and pickup, KHQR and cash; opened 2026-10-28). It's a real, open shop: an order placed there reaches the founder. Marketing pictures and clips come from a copy of it on the founder's laptop: `backend/marketing/shots.py` makes 22 phone screens and 15 short MP4s in each of Khmer and English (every file in `docs/CODEBASE.md` §3, "Marketing pictures and clips") |
 | Support Telegram | The env var **`VITE_SUPPORT_TELEGRAM`** (set on the live site). In the app: Settings → Get help |
 | Oak Order's Telegram bot (alerts, logins, customer updates) | The env var **`TELEGRAM_BOT_USERNAME`** |
 
