@@ -1003,9 +1003,36 @@ page only checked plan payments (§33.1), from a seller login.
   the app instead of Render or the code (Settings → Plan, the Terms' Fees
   and sign-up read them; a new price applies from the next payment); a
   check of which services are set up (never showing a key).
-- **System:** when the daily jobs last ran, with Run now; the Telegram
-  bot's state and failed sends; the live version and links to the
-  hosting dashboards.
+- **System** (founder 2026-10-28: track on the platforms, show what
+  matters here): six tiles, speed and errors in the last hour (counted
+  by the app itself, starting again when the server restarts), the daily
+  jobs (with Run now), the Telegram bot's state and failed sends, the
+  database's size and speed, which services are set up, and the live
+  version; then "Look deeper", what Sentry, Render, Neon, Cloudflare and
+  cron-job.org each show, with links. The detail (graphs over days,
+  which part of a request was slow) stays on those platforms; Sentry
+  also records the speed of a small share of requests. A down alert
+  comes from cron-job.org's failure email, since the admin is on the
+  same server.
+- **Asking for the password again** (founder 2026-10-28: "for doing
+  criticle thing on some place should require to put password again"):
+  Open as seller, a seller's new password, changing a login phone,
+  removing a Google or Facebook login, changing prices, the trial or the
+  riel rate, and a message to every shop ask for the admin's password,
+  then not again for 10 minutes; Erase shop and removing a customer's
+  details ask for it every time, as well as the typed name. Each of
+  these also sends the admin a Telegram line. Everything else that
+  changes something asks first.
+- **Design** (the founder's picks 2026-10-28, laptop first: "for admin
+  mostly i will use on laptop"): 1A 2A 3B 4B 5D 6A 7A 8A 9B 10C 11A 12B
+  13A 14A 15A from the design page. A menu on the left on a laptop and
+  the bottom bar on a phone; Home with the numbers first; the shop list
+  as a table with each shop's photo; a shop's page beside the list; the
+  Open-as-seller bar across the top; asks first in a sheet (a box on a
+  laptop); a login's own page; payments with the waiting ones first;
+  search from every page (`/`); one Settings page with one Save; the
+  activity log a day at a time; products as a photo grid; a message to
+  every shop sent to the admin first.
 - **Log and tools:** a log of every admin action; a test shop in one tap;
   a Telegram message to every shop (sent to the founder first);
   sign-ups that didn't finish (numbers checked in Telegram that never

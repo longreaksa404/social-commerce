@@ -288,10 +288,10 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | Shop links: a changed link keeps opening the shop (old links forward to the current one and stay that shop's) (founder's pick 2026-10-15; adds `store_old_slug`); a new shop's link is a 6-character code, made at sign-up, not changeable (2026-10-18) | 3 |
 | Customers log in with Telegram (founder, 2026-10-20): the mini app test, Continue with Telegram at checkout, the shop inside Telegram (Open checkout, the cart carried), a receipt and "Sent" alerts, "🛍 <shop>" beside the message box, "Your shops" for OPEN, the customer's Telegram photo (adds `phone_check.cart`, `customer.photo_url`) | 22 |
 | Customer Telegram and payments (founder's picks 1-3, 2026-10-20): "Message on Telegram" from the seller's order to a customer who gets updates there, with a button to reply to the shop's own Telegram; "Received, mark paid" under the seller's "says paid" Telegram alert; a payment reminder to the customer 2 hours after a KHQR or bank order, and "Not paid after 24 h" with Cancel order as the seller's next step (an hourly cron-job.org call) | 11 |
-| Admin panel (founder's picks 2026-10-28, `01_PRODUCT.md` §22.11: D1A D2B D3A D4B D5A; every part but 7, later, and 32, skipped): its own `/admin` area in English, with its own admin account (password, then Telegram; no shop); Home with what needs you and the numbers; shops (list, page, close, reopen, erase); Open as seller (30 minutes, logged, the shop told); people (every login, password, log out, phone, Google/Facebook); money (paid-until date, undo, every payment with Excel, reminder now); orders, customers and products across shops; settings (riel rate, prices, trial length); system (jobs, bot, version); the activity log; test shop, a Telegram message to every shop, sign-ups that didn't finish. Data: `admin_account` (+ `admin_session`), `admin_action`, `platform_setting`, a `void` payment status, unfinished phone checks kept 30 days. A design options page first, then 7 steps | 34 |
+| Admin panel (founder's picks 2026-10-28, `01_PRODUCT.md` §22.11: D1A D2B D3A D4B D5A; every part but 7, later, and 32, skipped): its own `/admin` area in English, with its own admin account (password, then Telegram; no shop); Home with what needs you and the numbers; shops (list, page, close, reopen, erase); Open as seller (30 minutes, logged, the shop told); people (every login, password, log out, phone, Google/Facebook); money (paid-until date, undo, every payment with Excel, reminder now); orders, customers and products across shops; settings (riel rate, prices, trial length); system (jobs, bot, version); the activity log; test shop, a Telegram message to every shop, sign-ups that didn't finish. Data: `admin_account` (+ `admin_session`), `admin_action`, `platform_setting`, a `void` payment status, unfinished phone checks kept 30 days. The founder's design picks (laptop first), speed and errors on the System page, the password again for critical actions. A design options page first, then 7 steps | 37 |
 | Bug-fix buffer | 10 |
 
-**Subtotal:** ~314 hours (**~24 weeks**)
+**Subtotal:** ~317 hours (**~24.5 weeks**)
 
 > **Decided (2026-10-04):** a .com domain bought through Cloudflare (oaksolve.com, bought 2026-10-09); Render
 > stays on the free plan for the first seller (the app says when the
@@ -316,8 +316,8 @@ This order follows the Product Expansion Strategy in `01_PRODUCT.md` §41 (Core 
 | 6 — Telegram | 17 | 1.5 wks |
 | 7 — Notifications/Customers | 11 | 1 wk |
 | 8 — Links/Tracking | 17 | 1.5 wks |
-| 9 — Polish/First Seller | 281 | 21.5 wks |
-| **Total** | **~509 hrs** | **~39 weeks (~9 months)** |
+| 9 — Polish/First Seller | 284 | 22 wks |
+| **Total** | **~512 hrs** | **~39 weeks (~9 months)** |
 
 This is a planning estimate, not a commitment.
 

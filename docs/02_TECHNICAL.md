@@ -323,7 +323,7 @@ A product's price today is the lowest of its price and each active sale's price 
 ### `admin_account` (2026-10-28, admin panel)
 | id, phone (normalized, unique), password_hash, telegram_user_id (bigint, from its Telegram step; its "I've paid" alerts go there), is_active, created_at, last_login_at |
 
-> The system owner's own login for `/admin` (01 §22.11), separate from `seller`: no shop, so the same phone can also own a shop. Only a phone in `ADMIN_PHONES` may have one or log in with it; removing a number from the variable stops it at once. Its sessions are `admin_session` rows (id = the refresh JWT's jti, admin_id FK CASCADE, expires_at, revoked_at, created_at), swapped like `refresh_token` and sent in their own cookie, so a seller login on the same phone isn't touched. Not tenant data: no RLS, no `app_user` grant.
+> The system owner's own login for `/admin` (01 §22.11), separate from `seller`: no shop, so the same phone can also own a shop. Only a phone in `ADMIN_PHONES` may have one or log in with it; removing a number from the variable stops it at once. Its sessions are `admin_session` rows (id = the refresh JWT's jti, admin_id FK CASCADE, expires_at, revoked_at, password_at (when the password was last typed again: the 10-minute window, 01 §22.11), created_at), swapped like `refresh_token` and sent in their own cookie, so a seller login on the same phone isn't touched. Not tenant data: no RLS, no `app_user` grant.
 
 ### `admin_action` (2026-10-28, admin panel)
 | id, admin_id (FK admin_account; SET NULL), store_id (nullable FK store, SET NULL: kept after a shop is erased, with its name in `details`), action (text: e.g. `mark_paid`, `undo_payment`, `paid_until`, `close_shop`, `reopen_shop`, `erase_shop`, `reset_password`, `logout_all`, `change_phone`, `remove_login`, `forget_customer`, `hide_product`, `open_as_seller`, `seller_save`, `setting`, `broadcast`, `run_job`), reason (nullable; the founder's own words), details (JSONB: what changed, before and after), created_at |
@@ -450,6 +450,7 @@ POST   /admin/auth/login        # {phone, password} → a 5-minute step token + 
 POST   /admin/auth/confirm      # {step token, phone_check}: the check's phone is the account's → access + admin cookie
 POST   /admin/auth/setup        # first time: {phone_check, password}; the phone is in ADMIN_PHONES and has no account yet
 POST   /admin/auth/refresh | /admin/auth/logout
+POST   /admin/auth/password      # {password}: the password again; the routes that need it are open for 10 minutes
 ```
 
 The phone must still be in `ADMIN_PHONES` at every step and on each request. Login and setup 10/min. More routes under `/api/v1/admin`, behind that guard, each change logged in `admin_action` in its own transaction; the exact shapes go in `docs/CODEBASE.md` as each is built:
@@ -470,12 +471,14 @@ GET    /admin/payments?month=&status=  (+ /export)
 GET    /admin/orders?q= ; GET /admin/customers?phone= ; POST /admin/customers/forget
 GET    /admin/products?q= ; POST /admin/products/{id}/hide
 GET    /admin/settings ; PUT /admin/settings     # riel rate, prices, trial days
-GET    /admin/system ; POST /admin/jobs/{name}/run
+GET    /admin/system ; POST /admin/jobs/{name}/run   # system: the last hour's requests, speed and errors counted in memory by a middleware (lost on a restart), server start, database size and a timed query
 GET    /admin/log?store_id=
 POST   /admin/broadcast                          # {text, to: me | all | trial | paying}
 GET    /admin/signups                            # phone checks shared with no shop, 30 days
 POST   /admin/test-shop
 ```
+
+The password again: open as seller, a seller's password, phone and logins, the settings, and the message to every shop answer 403 `PASSWORD_AGAIN` unless the session's `password_at` is under 10 minutes old (the app asks for it, calls `/admin/auth/password`, then retries); erasing a shop and forgetting a customer take `password` in the body every time. Each of these sends the admin a Telegram line after the response. Sentry records the speed of a share of requests (`SENTRY_TRACES_SAMPLE_RATE`, default 0).
 
 Open as seller: `POST /admin/shops/{id}/open-as-seller` answers an access token for the shop's owner that also names the admin (claim `act`), lasts 30 minutes and has no refresh token. The seller routes work as for the owner, except the owner's password, phone, logins, Close shop and "I've paid" (403 `NOT_AS_ADMIN`); each seller write made with it is logged. The shop's Telegram gets one line when it starts.
 
