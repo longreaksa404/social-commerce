@@ -84,6 +84,7 @@ PACE = {
     "scroll": 1.0,  # one scroll down a page
     "qr": 1.5,  # on the KHQR, before "I've paid"
     "done": 1.5,  # on the screen a step ends on
+    "placed": 2.0,  # on "Thank you" after the first order (its confetti)
     "hook": 6.0,  # the shop link clip's scroll down the products
 }
 CLIP_SECONDS = (5, 12)  # what the video scripts take for one step
@@ -598,6 +599,9 @@ class Shots:
         if self.moving:
             page.evaluate(GLIDE, [selector, offset, 0, ms("scroll")])
             return
+        # The page finished first: something above still loading would
+        # leave it a few pixels off, a different picture every other run.
+        self.settle(page, selector, toasts=False)
         page.evaluate(
             """([selector, offset]) => {
                 const el = document.querySelector(selector)
@@ -739,7 +743,7 @@ class Shots:
 
             self.tap(page, page.get_by_role("button", name=re.compile(words["place_order"])))
             page.wait_for_url("**/order/**")
-            self.show(page, "06_confirmation", look="done")
+            self.show(page, "06_confirmation", look="placed")
         self.order_a = page.url.rsplit("/", 1)[1]
 
     def seller_login(self, context) -> None:

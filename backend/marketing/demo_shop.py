@@ -20,8 +20,9 @@ options, prices and stock. Not public, so not copied: sales (a product on
 sale keeps its sale price, without the crossed-out one), the low-stock
 level (the app's default, 5) and the KHQR details, which come from the
 .env: DEMO_BAKONG_ID, and with ABA's shared ID (abaakhppxxx@abaa) the
-account number in the QR as DEMO_KHQR_ACCOUNT. Without them the copy
-takes cash on delivery only.
+account number in the QR as DEMO_KHQR_ACCOUNT (from a "dual" QR, the one
+in the shop's currency, as lib/readKhqr.ts picks it). Without them the
+copy takes cash on delivery only.
 """
 
 import argparse

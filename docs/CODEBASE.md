@@ -319,7 +319,7 @@ blocks the deploy (04).
 | `VITE_GOOGLE_CLIENT_ID` | frontend | The same client ID, for Google's button (`src/lib/google.ts`); empty hides every Google button |
 | `VITE_FACEBOOK_APP_ID` | frontend | The public ID for the Facebook sign-in link (`src/lib/oauth.ts`); empty hides its buttons (empty on the live site until Meta allows it). `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET` and `VITE_TIKTOK_CLIENT_KEY` went with TikTok's login (2026-10-27); nothing reads them |
 | `VITE_SUPPORT_TELEGRAM` | frontend | Oak Order's own Telegram username (no @) for sellers' "Get help" links (`src/lib/support.ts`); empty hides them |
-| `DEMO_SHOP_SLUG`, `DEMO_BAKONG_ID`, `DEMO_KHQR_ACCOUNT` | `backend/marketing` (a laptop only, never Render or Vercel) | The live demo shop to copy (its code in `/shop/<code>`), and the KHQR its customers pay, which isn't public: the Bakong ID, and with ABA's shared ID `abaakhppxxx@abaa` the ABA account number in the QR (`demo_shop.khqr_settings`). Without them the KHQR pictures are skipped |
+| `DEMO_SHOP_SLUG`, `DEMO_BAKONG_ID`, `DEMO_KHQR_ACCOUNT` | `backend/marketing` (a laptop only, never Render or Vercel) | The live demo shop to copy (its code in `/shop/<code>`), and the KHQR its customers pay, which isn't public: the Bakong ID, and with ABA's shared ID `abaakhppxxx@abaa` the ABA account number in the QR (`demo_shop.khqr_settings`; from a "dual" QR, the account in the shop's currency: the one that isn't in tag 29 when tag 53 is the other currency). Without them the KHQR pictures are skipped |
 | `VITE_USE_POLLING`, `WATCHFILES_FORCE_POLLING` | dev container | File polling (the repo is on a Windows drive mount) |
 | `BACKUP_DATABASE_URL`, `BACKUP_R2_ACCOUNT_ID`, `BACKUP_R2_ACCESS_KEY_ID`, `BACKUP_R2_SECRET_ACCESS_KEY`, `BACKUP_R2_BUCKET` | GitHub Actions secrets | Nightly backup workflow |
 
@@ -335,7 +335,7 @@ above) makes, in Khmer and in English. Stills are 1170 × 2532 PNGs in
 at 30 fps in `out/video/`, named `km_…` and `en_…`; each starts and ends on
 a 1 s still and shows a circle on every tap. Their timing is `PACE` at the
 top of `shots.py` (seconds after the opening still, on each screen, between
-taps, per letter typed, per scroll, on the KHQR, at the end): change it to
+taps, per letter typed, per scroll, on the KHQR, on "Thank you", at the end): change it to
 fit a voiceover. One step's clip aims at 5–12 s, and the run prints a note
 for one outside that. The lengths below are with today's `PACE`; a run
 takes about 9 minutes with `--video`, 3 without.
@@ -378,7 +378,7 @@ stock.
 | `<lang>_01_shop.mp4` | Cut from it: the shop, a scroll, the product opened | 9.5 s |
 | `<lang>_03_option` | Cut: the size picked | 5.5 s |
 | `<lang>_05_checkout` | Cut: Buy now, the details typed, Delivery, cash on delivery | 12 s |
-| `<lang>_06_order_placed` | Cut: Place order, "Thank you" | 5 s |
+| `<lang>_06_order_placed` | Cut: Place order, "Thank you" | 5.5 s |
 | `<lang>_order_arrives` | The Orders tab as order A arrives (it checks every 30 s) and the seller opens it | 10.5 s |
 | `<lang>_10_khqr` | 10–12: from the payment choices (Delivery picked off camera): KHQR, Place order, the KHQR, "I've paid" | 11.5 s |
 | `<lang>_13_tracking` | 13: the truck at the shop's top, then order B on its way | 6 s |
