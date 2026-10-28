@@ -949,15 +949,58 @@ Potential future analytics:
 
 ## 22.11 Platform Administration
 
-Potential platform administration:
+Decided 2026-10-28 (the founder's picks from the admin plan: D1A D2B D3A
+D4B D5A; every part built except 7, later, and 32, skipped): Oak Order's
+admin panel, its own area of the app at `/admin` with its own menu and a
+"My shop" link back, for the logins in `ADMIN_PHONES` only, in English
+only (the two admin pages built before keep their Khmer). The same app,
+API and login, with no second site or server. Before that, the admin page
+only checked plan payments (§33.1).
 
-- Seller management
-- Tenant management
-- Subscription management
-- Platform settings
-- System monitoring
-- Support tools
-- Audit logs
+- **Home:** what needs the founder ("I've paid" to check, shops ending
+  soon or unpaid, shops not opened 7 days after sign-up, failed Telegram
+  messages, a daily job that didn't run), and the numbers (shops by
+  stage, money this month and year, monthly income if every paying shop
+  renews, orders in all shops today and this week, sign-ups and orders
+  per day for 30 days).
+- **Shops:** the list (search, filters by stage, sort) and a shop's page
+  (owner, dates, link, currency, Telegram, payment and delivery set up,
+  counts, last order, last time the owner used the app, plan and
+  payments, the shop's activity). Close with a reason and reopen; erase a
+  closed shop after typing its link name (the nightly backup still holds
+  it 30 days).
+- **Open as seller:** the founder uses the shop's whole seller app as its
+  owner, with a bar on top and Exit, for 30 minutes. Everything the owner
+  can do, except the owner's password, login phone and logins, Close shop
+  and "I've paid". Each time is logged with what was saved, the shop's
+  Telegram is told ("Oak Order opened your shop to help you"), and the
+  Privacy page says it can happen. Admin screens don't edit a shop's
+  orders, products or settings themselves: they go through this.
+- **People:** every owner and staff login, searchable by phone; reset a
+  password (shown once), log out every phone, change the login phone,
+  remove a Google or Facebook login.
+- **Money:** "I've paid" checks and Mark paid (as before), change a
+  shop's paid-until date with a reason, undo a payment (kept as Undone),
+  every payment with month and year totals and an Excel download, send a
+  plan reminder now.
+- **Orders and customers:** find an order (shop and number, or the
+  customer's phone) or a customer in every shop, look only; remove a
+  customer's details from one shop or every shop; the newest products of
+  every shop with photos, and hiding one.
+- **Settings:** the riel rate, the prices and the trial length, set in
+  the app instead of Render or the code (Settings → Plan, the Terms' Fees
+  and sign-up read them; a new price applies from the next payment); a
+  check of which services are set up (never showing a key).
+- **System:** when the daily jobs last ran, with Run now; the Telegram
+  bot's state and failed sends; the live version and links to the
+  hosting dashboards.
+- **Log and tools:** a log of every admin action; a test shop in one tap;
+  a Telegram message to every shop (sent to the founder first);
+  sign-ups that didn't finish (numbers checked in Telegram that never
+  made a shop), to help them finish.
+- Stays a command: moving photos to a new address (`docs/ADMIN.md`).
+- Later: a shop's orders, products and customers as look-only lists in
+  the admin (Open as seller shows them).
 
 # 23. MVP Scope
 
@@ -1368,7 +1411,11 @@ the founder brought; no early-seller offer):
     7) see it on the Orders tab.
 - **The founder's admin page** (web, only for the founder's login): every
   shop's plan, code and status, the "I've paid" to check, and "mark paid"
-  for any payment made by hand (an amount of 0 gives free time).
+  for any payment made by hand (an amount of 0 gives free time). From the
+  admin panel (§22.11, decided 2026-10-28) the founder also sets the
+  prices and the trial length there (a new price applies from each shop's
+  next payment, and the Terms' Fees follow), moves a shop's paid-until
+  date with a reason, and undoes a payment marked by mistake.
 - **Later plans, not built:** Growth ($15–19 a month: more staff,
   advanced reports, automation) and Business ($29+ a month: several
   shops, more complex operations), when sellers show they need them.
