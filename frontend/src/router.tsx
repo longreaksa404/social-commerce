@@ -93,6 +93,7 @@ export const router = createBrowserRouter([
               // One page: on laptops the list stays beside the open shop (pick 5D).
               { path: 'shops', lazy: async () => ({ Component: (await import('./admin/AdminShops.tsx')).AdminShops }), handle: { page: 'shops' } },
               { path: 'shops/:storeId', lazy: async () => ({ Component: (await import('./admin/AdminShops.tsx')).AdminShops }), handle: { page: 'shops' } },
+              { path: 'log', lazy: async () => ({ Component: (await import('./admin/AdminLog.tsx')).AdminLog }) },
             ],
           },
         ],

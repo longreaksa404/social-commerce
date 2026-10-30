@@ -9,6 +9,7 @@ import type { AdminShop as Shop } from '../lib/types.ts'
 import { AdminShop } from './AdminShop.tsx'
 import { useAdminShops } from './queries.ts'
 import { ago, shortDay } from './shared.ts'
+import { Chip, Chips } from './ui.tsx'
 
 // What needs the founder first, All last (pick 28A, 2026-10-25).
 const FILTERS = ['claimed', 'ending', 'unpaid', 'stopped', 'trial', 'setup', 'closed', 'all'] as const
@@ -83,26 +84,18 @@ export function AdminShops() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
-      <div role="group" aria-label="Show" className="-mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
+      <Chips label="Show">
         {FILTERS.map((key) => (
-          <button
-            key={key}
-            type="button"
-            aria-pressed={filter === key}
-            onClick={() => setPicked(key)}
-            className={`min-h-9 shrink-0 rounded-full px-3.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-navy-600 ${
-              filter === key ? 'bg-brand text-white' : 'bg-slate-100 text-slate-600 hover:text-slate-900'
-            }`}
-          >
+          <Chip key={key} on={filter === key} onClick={() => setPicked(key)}>
             {FILTER_LABEL[key]}
             {shops.data && (
               <span className={`ml-1.5 tabular-nums ${filter === key ? 'text-white/80' : 'text-slate-500'}`}>
                 {shops.data.filter(matches[key]).length}
               </span>
             )}
-          </button>
+          </Chip>
         ))}
-      </div>
+      </Chips>
       {shops.isPending ? (
         <Skeleton className="h-80 w-full rounded-2xl" />
       ) : shops.error ? (

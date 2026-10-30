@@ -207,6 +207,18 @@ export type AdminShopDetail = AdminShop & {
   activity: { sent_at: string; channel: 'web' | 'telegram'; event_type: string; status: 'sent' | 'failed' }[]
 }
 
+/** A line of the admin's log (part 28): `details` holds what changed and
+ * the names as they were (admin/logWords.ts reads them). */
+export type AdminLogLine = {
+  id: string
+  created_at: string
+  action: string
+  store_id: string | null
+  shop: string | null
+  reason: string | null
+  details: Record<string, string | number | boolean | null>
+}
+
 /** A shop on the admin's Home list (founder's pick 3B, 2026-10-28). `day`:
  * when it said it paid (claim), paid until (ending), the last day to pay
  * (unpaid, stopped), the day it signed up (not opened). */

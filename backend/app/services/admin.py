@@ -50,6 +50,7 @@ from app.schemas.plan import (
     PlanPaymentOut,
     PlanStage,
 )
+from app.services import admin_log
 from app.services import plan as plan_service
 from app.services.phone import normalize_phone
 
@@ -345,15 +346,32 @@ async def _locked(db: AsyncSession, store_id: uuid.UUID) -> Store:
     return store
 
 
+def _log_paid(
+    db: AsyncSession, admin_id: uuid.UUID, store: Store, payment: PlanPayment, *, claim: bool
+) -> None:
+    admin_log.record(
+        db,
+        admin_id,
+        "mark_paid",
+        store=store,
+        amount=f"{payment.amount:.2f}",
+        period=payment.period.value,
+        until=payment.covers_until.isoformat(),
+        note=payment.reference,
+        claim=claim,
+    )
+
+
 async def mark_paid(
-    db: AsyncSession, store_id: uuid.UUID, data: AdminPaymentIn
+    db: AsyncSession, admin_id: uuid.UUID, store_id: uuid.UUID, data: AdminPaymentIn
 ) -> AdminShopDetailOut:
     """A payment made by hand: covers the next month or year at once. An
     amount of 0 gives free time."""
     store = await _locked(db, store_id)
-    plan_service.record_payment(
+    payment = plan_service.record_payment(
         db, store, data.period, amount=data.amount, reference=(data.note or "").strip() or None
     )
+    _log_paid(db, admin_id, store, payment, claim=False)
     await db.commit()
     return await shop_detail(db, store_id)
 
@@ -372,7 +390,11 @@ async def _claim(db: AsyncSession, store_id: uuid.UUID, payment_id: uuid.UUID) -
 
 
 async def confirm(
-    db: AsyncSession, store_id: uuid.UUID, payment_id: uuid.UUID, data: AdminConfirmIn
+    db: AsyncSession,
+    admin_id: uuid.UUID,
+    store_id: uuid.UUID,
+    payment_id: uuid.UUID,
+    data: AdminConfirmIn,
 ) -> AdminShopDetailOut:
     """The seller's "I've paid", found: paid, the next month or year covered."""
     store = await _locked(db, store_id)
@@ -381,16 +403,31 @@ async def confirm(
         payment.amount = data.amount
     payment.reference = (data.note or "").strip() or None
     plan_service.mark_paid(payment, store)
+    _log_paid(db, admin_id, store, payment, claim=True)
     await db.commit()
     return await shop_detail(db, store_id)
 
 
 async def reject(
-    db: AsyncSession, store_id: uuid.UUID, payment_id: uuid.UUID, data: AdminRejectIn
+    db: AsyncSession,
+    admin_id: uuid.UUID,
+    store_id: uuid.UUID,
+    payment_id: uuid.UUID,
+    data: AdminRejectIn,
 ) -> AdminShopDetailOut:
     """Not found: the seller sees the note and can say they paid again."""
+    store = await _locked(db, store_id)
     payment = await _claim(db, store_id, payment_id)
     payment.status = PlanPaymentStatus.FAILED
     payment.failure = data.note.strip()
+    admin_log.record(
+        db,
+        admin_id,
+        "claim_not_found",
+        store=store,
+        amount=f"{payment.amount:.2f}",
+        period=payment.period.value,
+        note=payment.failure,
+    )
     await db.commit()
     return await shop_detail(db, store_id)

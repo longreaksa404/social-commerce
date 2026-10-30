@@ -2,10 +2,12 @@
 at once, so unscoped, and only for an admin account (the Admin guard)."""
 
 import uuid
+from datetime import datetime
 
 from fastapi import APIRouter
 
 from app.api.deps import Admin, UnscopedDb
+from app.schemas.admin import AdminLogOut
 from app.schemas.plan import (
     AdminConfirmIn,
     AdminOverviewOut,
@@ -15,6 +17,7 @@ from app.schemas.plan import (
     AdminShopOut,
 )
 from app.services import admin as admin_service
+from app.services import admin_log
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -37,23 +40,35 @@ async def shop_detail(store_id: uuid.UUID, _: Admin, db: UnscopedDb) -> AdminSho
 
 @router.post("/shops/{store_id}/payments", response_model=AdminShopDetailOut)
 async def mark_paid(
-    store_id: uuid.UUID, data: AdminPaymentIn, _: Admin, db: UnscopedDb
+    store_id: uuid.UUID, data: AdminPaymentIn, admin: Admin, db: UnscopedDb
 ) -> AdminShopDetailOut:
     """A payment made by hand (or free time: amount 0)."""
-    return await admin_service.mark_paid(db, store_id, data)
+    return await admin_service.mark_paid(db, admin.admin_id, store_id, data)
 
 
 @router.post("/shops/{store_id}/payments/{payment_id}/confirm", response_model=AdminShopDetailOut)
 async def confirm(
-    store_id: uuid.UUID, payment_id: uuid.UUID, data: AdminConfirmIn, _: Admin, db: UnscopedDb
+    store_id: uuid.UUID, payment_id: uuid.UUID, data: AdminConfirmIn, admin: Admin, db: UnscopedDb
 ) -> AdminShopDetailOut:
     """The seller's "I've paid", found in the bank."""
-    return await admin_service.confirm(db, store_id, payment_id, data)
+    return await admin_service.confirm(db, admin.admin_id, store_id, payment_id, data)
 
 
 @router.post("/shops/{store_id}/payments/{payment_id}/reject", response_model=AdminShopDetailOut)
 async def reject(
-    store_id: uuid.UUID, payment_id: uuid.UUID, data: AdminRejectIn, _: Admin, db: UnscopedDb
+    store_id: uuid.UUID, payment_id: uuid.UUID, data: AdminRejectIn, admin: Admin, db: UnscopedDb
 ) -> AdminShopDetailOut:
     """Not found: the seller sees the note."""
-    return await admin_service.reject(db, store_id, payment_id, data)
+    return await admin_service.reject(db, admin.admin_id, store_id, payment_id, data)
+
+
+@router.get("/log", response_model=list[AdminLogOut])
+async def log(
+    _: Admin,
+    db: UnscopedDb,
+    store_id: uuid.UUID | None = None,
+    before: datetime | None = None,
+) -> list[AdminLogOut]:
+    """Everything done from the admin, newest first, 100 at a time (older:
+    `before` = the last one's created_at); one shop's with `store_id`."""
+    return await admin_log.entries(db, store_id=store_id, before=before)
