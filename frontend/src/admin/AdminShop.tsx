@@ -1,4 +1,4 @@
-import { ChevronLeft, ExternalLink, Lock } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ExternalLink, Lock } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
@@ -220,14 +220,20 @@ function People({ shop }: { shop: AdminShopDetail }) {
   return (
     <ul className={`${cardClass} divide-y divide-slate-100`}>
       {shop.people.map((person) => (
-        <li key={person.id} className="flex items-center gap-3 px-4 py-3 text-sm">
-          <span className="min-w-0 flex-1">
-            <span className="block font-medium text-slate-900">{person.name}</span>
-            <span className="block text-slate-500 tabular-nums">
-              {person.role === 'owner' ? 'Owner' : 'Staff'} · {person.phone ? formatPhone(person.phone) : 'email login'}
+        <li key={person.id}>
+          <Link
+            to={`/admin/people/${person.id}`}
+            className="flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 sm:[li:first-child>&]:rounded-t-2xl sm:[li:last-child>&]:rounded-b-2xl"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block font-medium text-slate-900">{person.name}</span>
+              <span className="block text-slate-500 tabular-nums">
+                {person.role === 'owner' ? 'Owner' : 'Staff'} · {person.phone ? formatPhone(person.phone) : 'email login'}
+              </span>
             </span>
-          </span>
-          <span className="text-right text-xs text-slate-500">{person.last_seen ? `Used ${ago(person.last_seen)}` : 'Not logged in now'}</span>
+            <span className="text-right text-xs text-slate-500">{person.last_seen ? `Used ${ago(person.last_seen)}` : 'Not logged in now'}</span>
+            <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
+          </Link>
         </li>
       ))}
     </ul>

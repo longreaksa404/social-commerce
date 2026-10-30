@@ -224,6 +224,25 @@ export type AdminLogLine = {
   details: Record<string, string | number | boolean | null>
 }
 
+/** A login for the admin (parts 8 to 12): an owner or a helper of a shop. */
+export type AdminSeller = {
+  id: string
+  name: string
+  phone: string | null
+  /** Older accounts log in with it. */
+  email: string | null
+  role: 'owner' | 'staff'
+  store_id: string
+  shop: string
+  /** The shop's code: asked for before changing their phone. */
+  code: string
+  is_open: boolean
+  has_password: boolean
+  /** Google or Facebook accounts that log in to it. */
+  logins: { provider: 'google' | 'facebook'; label: string | null }[]
+  last_seen: string | null
+}
+
 /** A shop on the admin's Home list (founder's pick 3B, 2026-10-28). `day`:
  * when it said it paid (claim), paid until (ending), the last day to pay
  * (unpaid, stopped), the day it signed up (not opened). */

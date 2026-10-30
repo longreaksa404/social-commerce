@@ -3,11 +3,20 @@ at once, so unscoped, and only for an admin account (the Admin guard)."""
 
 import uuid
 from datetime import datetime
+from typing import Literal
 
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 
-from app.api.deps import Admin, UnscopedDb
-from app.schemas.admin import AdminCloseIn, AdminLogOut, AdminReopenIn
+from app.api.deps import Admin, AdminPasswordAgain, UnscopedDb
+from app.models import LoginProvider
+from app.schemas.admin import (
+    AdminCloseIn,
+    AdminLogOut,
+    AdminNewPasswordOut,
+    AdminPhoneIn,
+    AdminReopenIn,
+    AdminSellerOut,
+)
 from app.schemas.plan import (
     AdminConfirmIn,
     AdminOverviewOut,
@@ -17,7 +26,8 @@ from app.schemas.plan import (
     AdminShopOut,
 )
 from app.services import admin as admin_service
-from app.services import admin_log
+from app.services import admin_log, admin_people
+from app.services.telegram import escape
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -89,3 +99,73 @@ async def log(
     """Everything done from the admin, newest first, 100 at a time (older:
     `before` = the last one's created_at); one shop's with `store_id`."""
     return await admin_log.entries(db, store_id=store_id, before=before)
+
+
+@router.get("/sellers", response_model=list[AdminSellerOut])
+async def people(_: Admin, db: UnscopedDb) -> list[AdminSellerOut]:
+    """Everyone who logs in (part 8): owners and staff of every shop."""
+    return await admin_people.list_people(db)
+
+
+@router.get("/sellers/{seller_id}", response_model=AdminSellerOut)
+async def person(seller_id: uuid.UUID, _: Admin, db: UnscopedDb) -> AdminSellerOut:
+    return await admin_people.person(db, seller_id)
+
+
+def _who(person: AdminSellerOut) -> str:
+    return f"{escape(person.name)} ({escape(person.shop)})"
+
+
+@router.post("/sellers/{seller_id}/password", response_model=AdminNewPasswordOut)
+async def new_password(
+    seller_id: uuid.UUID, admin: AdminPasswordAgain, db: UnscopedDb, background: BackgroundTasks
+) -> AdminNewPasswordOut:
+    """Part 9: a new password, shown once; every phone on the login logged
+    out. 403 PASSWORD_AGAIN without the admin's password in 10 minutes."""
+    password = await admin_people.new_password(db, admin.admin_id, seller_id)
+    who = _who(await admin_people.person(db, seller_id))
+    background.add_task(admin_service.tell_admins, f"🔐 Oak Order admin: new password for {who}.")
+    return AdminNewPasswordOut(password=password)
+
+
+@router.post("/sellers/{seller_id}/logout", response_model=AdminSellerOut)
+async def logout_all(seller_id: uuid.UUID, admin: Admin, db: UnscopedDb) -> AdminSellerOut:
+    """Part 10: every phone on the login logged out."""
+    return await admin_people.logout_all(db, admin.admin_id, seller_id)
+
+
+@router.post("/sellers/{seller_id}/phone", response_model=AdminSellerOut)
+async def change_phone(
+    seller_id: uuid.UUID,
+    data: AdminPhoneIn,
+    admin: AdminPasswordAgain,
+    db: UnscopedDb,
+    background: BackgroundTasks,
+) -> AdminSellerOut:
+    """Part 11: a new login number. 409 PHONE_TAKEN, 422 INVALID_PHONE or
+    SAME_PHONE; 403 PASSWORD_AGAIN."""
+    person = await admin_people.change_phone(db, admin.admin_id, seller_id, data.phone)
+    background.add_task(
+        admin_service.tell_admins,
+        f"🔐 Oak Order admin: new login phone for {_who(person)}: {person.phone}.",
+    )
+    return person
+
+
+@router.delete("/sellers/{seller_id}/logins/{provider}", response_model=AdminSellerOut)
+async def remove_login(
+    seller_id: uuid.UUID,
+    provider: Literal["google", "facebook"],
+    admin: AdminPasswordAgain,
+    db: UnscopedDb,
+    background: BackgroundTasks,
+) -> AdminSellerOut:
+    """Part 12: a Google or Facebook login taken off; the phone login
+    stays. 409 LAST_WAY_IN when it's their only way in; 403
+    PASSWORD_AGAIN."""
+    person = await admin_people.remove_login(db, admin.admin_id, seller_id, LoginProvider(provider))
+    background.add_task(
+        admin_service.tell_admins,
+        f"🔐 Oak Order admin: {provider.title()} login removed from {_who(person)}.",
+    )
+    return person

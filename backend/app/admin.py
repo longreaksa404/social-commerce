@@ -48,23 +48,15 @@ from app.models.account import trial_end
 from app.schemas.plan import PlanStage
 from app.services import plan
 from app.services.account import set_shop_logins
+from app.services.admin_people import temporary_password
 from app.services.auth import login_filter
 from app.services.images import delete_file, delete_store_files
 from app.services.phone import normalize_phone
 from app.services.slugs import slugify, unique_store_slug
 
-# No 0/o, 1/l/i: read out over the phone or typed from a Telegram message.
-_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789"
-
 
 class AdminError(Exception):
     """Something the founder should read, not a crash."""
-
-
-def temporary_password() -> str:
-    """Like "k7mx-9qp4-hd2a": 12 random characters in groups of four."""
-    chars = "".join(secrets.choice(_ALPHABET) for _ in range(12))
-    return "-".join(chars[i : i + 4] for i in range(0, 12, 4))
 
 
 async def reset_password(login: str) -> str:

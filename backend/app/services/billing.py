@@ -23,14 +23,12 @@ from datetime import date, timedelta
 
 import httpx
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import clock
 from app.core.config import get_settings
 from app.core.errors import NotFound
 from app.db.session import unscoped_session
 from app.models import (
-    AdminAccount,
     NotificationLog,
     PlanPayment,
     PlanPaymentMethod,
@@ -91,27 +89,11 @@ async def notify_claim(store_id: uuid.UUID, payment_id: uuid.UUID) -> None:
             return
         text = claim_text(store, payment)
         button = _button(f"/admin/shops/{store_id}", "ពិនិត្យ")
-        for chat_id in await admin_chats(db):
+        for chat_id in await admin_service.admin_chats(db):
             try:
                 await telegram.send_message(chat_id, text, button)
             except (TelegramError, httpx.HTTPError) as exc:
                 logger.warning("The admin's \"I've paid\" alert failed: %r", exc)
-
-
-async def admin_chats(db: AsyncSession) -> list[int]:
-    """The Telegram chats of the admin accounts still in ADMIN_PHONES."""
-    phones = admin_service.admin_phones()
-    if not phones:
-        return []
-    return list(
-        await db.scalars(
-            select(AdminAccount.telegram_user_id).where(
-                AdminAccount.phone.in_(phones),
-                AdminAccount.is_active,
-                AdminAccount.telegram_user_id.is_not(None),
-            )
-        )
-    )
 
 
 @dataclass

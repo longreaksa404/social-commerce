@@ -1,3 +1,6 @@
+import { formatPhone } from '../lib/orders.ts'
+import type { AdminSeller } from '../lib/types.ts'
+
 
 /** A calendar day from the API with its year: "Nov 30, 2026" ("" for none:
  * a shop in setup has no paid-until date). */
@@ -23,3 +26,16 @@ export function ago(iso: string, now = Date.now()) {
  * English only): "Fri 31 Oct". */
 export const shortDay = (ymd: string) =>
   new Date(`${ymd}T00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+
+/** "Sokha Chan" → "SC", "Pisey" → "P". */
+export function initials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => [...word][0]?.toUpperCase() ?? '')
+    .join('')
+}
+
+/** A login's phone, or its email for older accounts. */
+export const loginOf = (person: AdminSeller) => (person.phone ? formatPhone(person.phone) : (person.email ?? ''))

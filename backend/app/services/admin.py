@@ -7,18 +7,22 @@ the Admin guard (api/deps.py): a login whose phone number is in
 ADMIN_PHONES.
 """
 
+import logging
 import uuid
 from collections import defaultdict
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
+import httpx
 from sqlalchemy import func, literal_column, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import clock
 from app.core.config import get_settings
 from app.core.errors import AppError, NotFound
+from app.db.session import unscoped_session
 from app.models import (
+    AdminAccount,
     AdminAction,
     Customer,
     NotificationChannel,
@@ -52,10 +56,13 @@ from app.schemas.plan import (
     PlanPaymentOut,
     PlanStage,
 )
-from app.services import admin_log
+from app.services import admin_log, telegram
 from app.services import plan as plan_service
 from app.services.account import set_shop_logins
 from app.services.phone import normalize_phone
+from app.services.telegram import TelegramError
+
+logger = logging.getLogger(__name__)
 
 
 def admin_phones() -> set[str]:
@@ -66,6 +73,37 @@ def admin_phones() -> set[str]:
         except ValueError:
             continue
     return phones
+
+
+async def admin_chats(db: AsyncSession) -> list[int]:
+    """The Telegram chats of the admin accounts still in ADMIN_PHONES."""
+    phones = admin_phones()
+    if not phones:
+        return []
+    return list(
+        await db.scalars(
+            select(AdminAccount.telegram_user_id).where(
+                AdminAccount.phone.in_(phones),
+                AdminAccount.is_active,
+                AdminAccount.telegram_user_id.is_not(None),
+            )
+        )
+    )
+
+
+async def tell_admins(text: str) -> None:
+    """A Telegram line to the admins after a critical action (01_PRODUCT.md
+    §22.11: a new password, a login phone, a login removed), so one done by
+    someone else shows at once. After the response; a failure is logged."""
+    if not get_settings().telegram_configured:
+        return
+    async with unscoped_session() as db:
+        chats = await admin_chats(db)
+    for chat_id in chats:
+        try:
+            await telegram.send_message(chat_id, text)
+        except (TelegramError, httpx.HTTPError) as exc:
+            logger.warning("The admin's Telegram line failed: %r", exc)
 
 
 def _shop(

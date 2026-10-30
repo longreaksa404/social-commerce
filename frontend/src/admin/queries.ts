@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminApi } from '../lib/api.ts'
-import type { AdminLogLine, AdminOverview, AdminShop, AdminShopDetail } from '../lib/types.ts'
+import type { AdminLogLine, AdminOverview, AdminSeller, AdminShop, AdminShopDetail } from '../lib/types.ts'
 
 /** The admin panel's data, on the admin's own session (`adminApi`), under
  * one key so logging out of the admin leaves a shop's login alone. */
@@ -11,6 +11,8 @@ export const adminKeys = {
   shops: ['admin', 'shops'] as const,
   shop: (id: string) => ['admin', 'shops', id] as const,
   log: ['admin', 'log'] as const,
+  people: ['admin', 'people'] as const,
+  person: (id: string) => ['admin', 'people', id] as const,
 }
 
 /** Who is logged in to the admin. */
@@ -104,6 +106,45 @@ export function useCheckClaim(storeId: string) {
       queryClient.setQueryData(adminKeys.shop(storeId), shop)
       queryClient.invalidateQueries({ queryKey: adminKeys.shops, exact: true })
       queryClient.invalidateQueries({ queryKey: adminKeys.overview })
+      queryClient.invalidateQueries({ queryKey: adminKeys.log })
+    },
+  })
+}
+
+/** Everyone who logs in: owners and staff of every shop. */
+export function useAdminPeople() {
+  return useQuery({ queryKey: adminKeys.people, queryFn: () => adminApi<AdminSeller[]>('/admin/sellers') })
+}
+
+export function useAdminPerson(id: string) {
+  return useQuery({ queryKey: adminKeys.person(id), queryFn: () => adminApi<AdminSeller>(`/admin/sellers/${id}`) })
+}
+
+/** The help a seller asks for (parts 9 to 12). The answer is the person
+ * again, except a new password, shown once. */
+export function usePersonAction(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (
+      action: { kind: 'password' } | { kind: 'logout' } | { kind: 'phone'; phone: string } | { kind: 'remove'; provider: string },
+    ): Promise<AdminSeller | { password: string }> => {
+      const url = `/admin/sellers/${id}`
+      switch (action.kind) {
+        case 'password':
+          return adminApi<{ password: string }>(`${url}/password`, { method: 'POST' })
+        case 'logout':
+          return adminApi<AdminSeller>(`${url}/logout`, { method: 'POST' })
+        case 'phone':
+          return adminApi<AdminSeller>(`${url}/phone`, { method: 'POST', body: { phone: action.phone } })
+        case 'remove':
+          return adminApi<AdminSeller>(`${url}/logins/${action.provider}`, { method: 'DELETE' })
+      }
+    },
+    onSuccess: (answer) => {
+      if ('id' in answer) queryClient.setQueryData(adminKeys.person(id), answer)
+      else queryClient.invalidateQueries({ queryKey: adminKeys.person(id) })
+      queryClient.invalidateQueries({ queryKey: adminKeys.people, exact: true })
+      queryClient.invalidateQueries({ queryKey: adminKeys.shops })
       queryClient.invalidateQueries({ queryKey: adminKeys.log })
     },
   })

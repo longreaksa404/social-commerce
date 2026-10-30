@@ -78,7 +78,8 @@ Telegram step still follows each login.
 Sellers whose shop has Telegram connected can reset it themselves:
 "Forgot password?" on the login page sends a link to that Telegram chat
 (every shop starts with it: signing up connects the chat the phone number
-was shared in). For anyone else:
+was shared in). For anyone else: in the admin, **People** → their name →
+**New password** (it asks for your admin password again). Or:
 
 ```bash
 python -m app.admin reset-password 012345678
@@ -93,7 +94,9 @@ comment) and ask them to change it in **Settings → Your account**.
 Sellers close their own shop in **Settings → Close shop** (with their
 password): the shop link and their logins (and their staff's) stop at
 once, and nothing is erased. The commands take the owner's login; they
-close, reopen and erase the staff's logins with the shop. To do it for them:
+close, reopen and erase the staff's logins with the shop. To do it for them,
+in the admin: the shop → **⋯ → Close shop** (asks why, for the log), and
+**Reopen** on a closed shop. Or:
 
 ```bash
 python -m app.admin close-shop 012345678
