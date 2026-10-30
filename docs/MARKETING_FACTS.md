@@ -3,7 +3,9 @@
 > **Last checked: 2026-10-27, against the code at commit `11378ac`** (branch
 > `main`, the same as `origin/main`, so the same as the live site).
 > The live site was checked the same day (section 9). Updated the same day
-> for the sign-up methods: TikTok login was removed.
+> for the sign-up methods: TikTok login was removed. Updated 2026-10-30
+> (commit `d0eb304`): the Telegram handles in section 8 and the video
+> assets in section 10; the features weren't checked again.
 >
 > For whoever writes from this sheet (people or the claude.ai marketing
 > project): **only rows marked Live may be shown, or described as working
@@ -381,8 +383,8 @@ always stays navy.
 | Terms, Privacy, Data deletion | https://order.oaksolve.com/terms, /privacy, /data-deletion |
 | A shop's link (the format) | `https://order.oaksolve.com/shop/<6-character code>`. Example format only: `k7m2qx` in 01 isn't a real shop |
 | Demo or example shop | **"Oak Fashion", https://order.oaksolve.com/shop/zdpb5d**: the founder's demo shoe shop on the live site (17 products with sizes, delivery and pickup, KHQR and cash; opened 2026-10-28). It's a real, open shop: an order placed there reaches the founder. Marketing pictures and clips come from a copy of it on the founder's laptop: `backend/marketing/shots.py` makes 22 phone screens and 15 short MP4s in each of Khmer and English (every file in `docs/CODEBASE.md` §3, "Marketing pictures and clips") |
-| Support Telegram | The env var **`VITE_SUPPORT_TELEGRAM`** (set on the live site). In the app: Settings → Get help |
-| Oak Order's Telegram bot (alerts, logins, customer updates) | The env var **`TELEGRAM_BOT_USERNAME`** |
+| Support Telegram | **@longreaksa**, https://t.me/longreaksa (`VITE_SUPPORT_TELEGRAM`, read from the live site's code 2026-10-30). In the app: Settings → Get help |
+| Oak Order's Telegram bot (alerts, logins, customer updates) | **@OakOrder_bot**, https://t.me/OakOrder_bot (`TELEGRAM_BOT_USERNAME`; made by the founder 2026-10-30, replacing the deleted ReaksaShopAlertBot) |
 
 ## 9. Last checked
 
@@ -404,5 +406,94 @@ always stays navy.
   later that day, after TikTok turned the app down.)
 - **The $0 free-time payment** on the admin page: checked by a test run
   against the code (section 5).
+- **2026-10-30, commit `d0eb304`** (7 commits ahead of `origin/main`):
+  section 8's Telegram handles and section 10's video assets only. The
+  support handle was read from the live site's JavaScript. The bot's
+  username is from the founder (a new bot, the same day). Clip lengths were read from the MP4
+  files, made 2026-10-28. File names were checked in `shots.py`; the tool
+  wasn't run again.
 - **Check again** after any push that changes a feature, a price or a
   login method: compare 04_STATUS.md's "Last updated" with this date.
+
+## 10. Video assets
+
+Made by `backend/marketing/shots.py` (`--video` for the clips) from a copy
+of the demo shop "Oak Fashion" (section 8), last on 2026-10-28. Paths
+are relative to `backend/marketing/out/`. That folder is git-ignored, so
+the files are on the founder's laptop only. `.work/` is the tool's own
+scratch space, not an asset.
+
+- **Pictures:** 1170 × 2532 PNG, an iPhone screen (390 × 844 at 3×).
+  `km/` is the app in Khmer, `en/` the same screen in English.
+- **Clips:** 1080 × 2338 MP4 (H.264, 30 fps), **no sound**. Each starts
+  and ends on a 1-second still, and a circle shows every tap. `km_…` is
+  Khmer, `en_…` English. Lengths differ a little by language, so both
+  are given.
+- **In both languages**, the shop's own words stay as the seller typed
+  them: product names, categories and the description are in Khmer, and
+  so are some customer names.
+- Order A is the customer's first order, paid in cash. Order B is their
+  second, paid by KHQR. Order C is the seller's chat order. The other
+  orders and customers are demo data.
+- **Same names every time (confirmed in the code).** Every file name is
+  fixed text in `shots.py`. None comes from the date, the shop's products
+  or a counter, so a new run writes the same names. What can still
+  change:
+  - **The picture itself.** It shows the live demo shop as it is on the
+    day of the run, so different products give a different picture under
+    the same name.
+  - **Skipped steps.** Without the KHQR settings (`DEMO_BAKONG_ID`), 10–12
+    and the `10_khqr` clips are skipped. If no product has 6–8 in stock,
+    19–20 and the `19_low_stock` clips are skipped. The run prints a note
+    for each.
+  - **Old clips can stay.** `km/` and `en/` are emptied before each run.
+    `video/` isn't: a new clip replaces one with the same name, but a clip
+    the run didn't make stays from an earlier run. That happens with a
+    skipped step or with `--lang km` alone.
+
+**Pictures** (22 per language)
+
+| Files | On screen | Feature (section 3) |
+|---|---|---|
+| `km/01_shop.png`, `en/01_shop.png` | The shop's top: cover, logo, "Oak Fashion", the description, "Delivery $1.50 · free pickup", "Pay by KHQR or cash on delivery", "$2.00 off orders from $30.00", category tabs, the first products | 3.1 shop page, bill discounts; 3.3 delivery fee; 3.2 ways to pay (§4 step 2) |
+| `km/02_products.png`, `en/02_products.png` | The category tabs and the product grid | 3.1 products and categories |
+| `km/03_product.png`, `en/03_product.png` | The product the customer opens: photos, price, sizes | 3.1 products with options |
+| `km/04_option.png`, `en/04_option.png` | The middle size picked | 3.1 options (§4 step 3) |
+| `km/05_checkout.png`, `en/05_checkout.png` | Checkout: name, phone, Delivery, the address, cash on delivery, Place order | 3.3 delivery; 3.2 cash on delivery (§4 step 4) |
+| `km/06_confirmation.png`, `en/06_confirmation.png` | "Thank you": order A placed, pay in cash when it arrives | 3.2 cash on delivery (§4 step 5) |
+| `km/07_dashboard.png`, `en/07_dashboard.png` | The seller's Orders tab, order A on top as new | 3.4 every order in one list |
+| `km/08_order.png`, `en/08_order.png` | Order A opened: Reject / Accept | 3.4 one page per order |
+| `km/09_notifications.png`, `en/09_notifications.png` | The bell's list, order A unread | 3.5 the bell |
+| `km/10_khqr_checkout.png`, `en/10_khqr_checkout.png` | Order B's checkout on the same phone: details remembered, Delivery, KHQR picked | 3.2 KHQR (§4 step 4) |
+| `km/11_khqr.png`, `en/11_khqr.png` | Order B's KHQR: shop name, the exact amount, the QR, Save QR to photos. The QR is the founder's real ABA account, already past its date | 3.2 KHQR for the exact amount |
+| `km/12_khqr_paid.png`, `en/12_khqr_paid.png` | After "I've paid: send receipt": "You told Oak Fashion you paid", the QR folded away | 3.2 "I've paid" |
+| `km/13_tracking.png`, `en/13_tracking.png` | The customer's order B (#1008): "On the way to you", the progress bar with the truck, "A driver is assigned", Paid $16.50, Telegram / Messenger / Call | §4 step 6 (tracking has no row in section 3); 3.1 contact buttons |
+| `km/14_accepted.png`, `en/14_accepted.png` | Order A accepted: Send to driver / Delivered, cash received | 3.3 Send to driver; 3.2 one tap for cash |
+| `km/15_completed.png`, `en/15_completed.png` | Order A after "Delivered, cash received": delivered, paid, complete | 3.2 one tap for cash; 3.3 completes by itself |
+| `km/16_share_link.png`, `en/16_share_link.png` | A product's Share sheet: where it'll be posted (Facebook, TikTok …) | 3.1 share a product to a post |
+| `km/17_chat_order_form.png`, `en/17_chat_order_form.png` | New order from a chat: an earlier customer's phone, their name filled in, the product picked | 3.1 add an order that came by chat |
+| `km/18_chat_order.png`, `en/18_chat_order.png` | That order saved (order C) | 3.1 add an order that came by chat |
+| `km/19_low_stock_alert.png`, `en/19_low_stock_alert.png` | The bell's list: "Running low" (men's slides, Free size: 5 left), "Sreyneang Sok says they paid · $16.50 · Check your bank app", new orders #1008 and #1007 | 3.5 the bell (in the app, not the Telegram alert) |
+| `km/20_low_stock_product.png`, `en/20_low_stock_product.png` | That product, opened from the alert: its option at 5 in stock | 3.1 stock per option; 3.5 low stock |
+| `km/21_parcel_slip.png`, `en/21_parcel_slip.png` | Order C's receipt (⋯ → Receipt): shop, customer, address, items, "COLLECT … CASH" | 3.3 receipt (parcel slip) |
+| `km/22_customers.png`, `en/22_customers.png` | The Customers tab: search box, "7 customers", each with phone, orders and total | 3.4 customers |
+
+**Clips** (15 per language)
+
+| Files | On screen | Length (km · en) | Feature (section 3) |
+|---|---|---|---|
+| `video/km_00_shop_link.mp4`, `video/en_00_shop_link.mp4` | The hook: the shop opens from its link, then a slow scroll down the products. No order yet | 10.3 s · 10.3 s | 3.1 shop page, one link |
+| `video/km_customer.mp4`, `video/en_customer.mp4` | The customer's whole first order, pictures 01–06, tapped as they would | 26.0 s · 25.8 s | 3.1 products and options; 3.3 delivery; 3.2 cash (§4 steps 2–5) |
+| `video/km_01_shop.mp4`, `video/en_01_shop.mp4` | Cut from it: the shop, a scroll, the product opened | 9.4 s · 9.3 s | 3.1 shop page and products |
+| `video/km_03_option.mp4`, `video/en_03_option.mp4` | Cut: the size picked | 5.6 s · 5.5 s | 3.1 options |
+| `video/km_05_checkout.mp4`, `video/en_05_checkout.mp4` | Cut: Buy now, the details typed, Delivery, cash on delivery | 11.6 s · 11.5 s | 3.3 delivery; 3.2 cash (§4 step 4) |
+| `video/km_06_order_placed.mp4`, `video/en_06_order_placed.mp4` | Cut: Place order, "Thank you" | 5.5 s · 5.5 s | 3.2 cash (§4 step 5) |
+| `video/km_order_arrives.mp4`, `video/en_order_arrives.mp4` | The seller's Orders tab as order A arrives (the app checks every 30 s), then the seller opens it | 10.4 s · 10.6 s | 3.4 order list; 3.5 the bell's 30-second check |
+| `video/km_10_khqr.mp4`, `video/en_10_khqr.mp4` | Pictures 10–12: KHQR picked, Place order, the KHQR, "I've paid" | 11.4 s · 11.4 s | 3.2 KHQR and "I've paid" |
+| `video/km_13_tracking.mp4`, `video/en_13_tracking.mp4` | Picture 13: the truck at the shop's top, then order B on its way | 6.4 s · 6.2 s | §4 step 6 (no row in section 3) |
+| `video/km_14_accept_to_complete.mp4`, `video/en_14_accept_to_complete.mp4` | Pictures 14–15: Accept, then "Delivered, cash received": complete | 8.0 s · 8.1 s | 3.4 accept; 3.2 one tap for cash; 3.3 completes by itself |
+| `video/km_16_share.mp4`, `video/en_16_share.mp4` | Picture 16: Products → the product → Share → Facebook, ending on "Link copied" (the phone's own share list can't be filmed here) | 10.6 s · 10.6 s | 3.1 share a product to a post |
+| `video/km_17_chat_order.mp4`, `video/en_17_chat_order.mp4` | Pictures 17–18: the phone typed, name and address filled in, the product searched and picked, Save order | 11.2 s · 11.0 s | 3.1 add an order that came by chat |
+| `video/km_19_low_stock.mp4`, `video/en_19_low_stock.mp4` | Pictures 19–20: the bell, the low-stock alert, the product | 8.1 s · 8.2 s | 3.5 the bell, low stock |
+| `video/km_21_parcel_slip.mp4`, `video/en_21_parcel_slip.mp4` | Picture 21: ⋯ → Receipt, the slip | 6.1 s · 6.1 s | 3.3 receipt (parcel slip) |
+| `video/km_22_customers.mp4`, `video/en_22_customers.mp4` | Picture 22: the Customers tab, then one customer's page | 7.8 s · 7.8 s | 3.4 customers |
