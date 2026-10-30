@@ -211,7 +211,7 @@ function Table({ shops, sort, onSort }: { shops: Shop[]; sort: Sort; onSort: (s:
                   </span>
                 </Link>
               </td>
-              <td className="px-4 py-2.5 font-mono text-xs font-semibold whitespace-nowrap text-slate-700">{shop.code}</td>
+              <td className="px-4 py-2.5 font-semibold tracking-wide whitespace-nowrap text-slate-700">{shop.code}</td>
               <td className="max-w-[12rem] truncate px-4 py-2.5 text-slate-700 tabular-nums">{formatPhone(shop.login)}</td>
               <td className="px-4 py-2.5 whitespace-nowrap">
                 <StageWords shop={shop} />
@@ -235,7 +235,7 @@ function Cards({ shops }: { shops: Shop[] }) {
         <li key={shop.id}>
           <Row shop={shop}>
             <span className="block truncate text-xs text-slate-500">
-              <span className="font-mono font-semibold text-slate-700">{shop.code}</span> · {formatPhone(shop.login)} · {shop.orders} orders
+              <span className="font-semibold tracking-wide text-slate-700">{shop.code}</span> · {formatPhone(shop.login)} · {shop.orders} orders
             </span>
           </Row>
         </li>

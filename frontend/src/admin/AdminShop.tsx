@@ -86,7 +86,7 @@ function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void 
         <div className="min-w-0">
           <h1 className="truncate text-lg font-bold text-slate-900">{shop.name}</h1>
           <p className="truncate text-sm text-slate-500">
-            <span className="font-mono font-semibold text-slate-700">{shop.code}</span> · /shop/{shop.slug}
+            <span className="font-semibold tracking-wide text-slate-700">{shop.code}</span> · /shop/{shop.slug}
           </p>
         </div>
       </div>
@@ -288,7 +288,7 @@ function CheckClaim({ shop, claim }: { shop: AdminShopDetail; claim: PlanPayment
 
   return (
     <Section title={a.claim(usd(claim.amount), period.toLowerCase(), date(claim.created_at))} description={a.checkClaim}>
-      <p className="font-mono text-2xl font-bold tracking-wide text-slate-900">{shop.code}</p>
+      <p className="text-2xl font-bold tracking-wide text-slate-900">{shop.code}</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label={a.amount}>
           <Input type="number" inputMode="decimal" min="0" max="10000" step="0.01" leading="$" placeholder={claim.amount} value={amount} onChange={(e) => setAmount(e.target.value)} />

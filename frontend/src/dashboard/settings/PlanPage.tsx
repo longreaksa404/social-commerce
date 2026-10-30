@@ -209,7 +209,7 @@ function Pay({ plan, store }: { plan: Plan; store: Store }) {
       <div className="flex items-center justify-between gap-3 rounded-xl bg-navy-50 px-4 py-3">
         <div className="min-w-0">
           <p className="text-xs font-medium text-slate-600">{p.yourCode}</p>
-          <p className="font-mono text-lg font-bold tracking-wide text-slate-900">{plan.code}</p>
+          <p className="text-lg font-bold tracking-wide text-slate-900">{plan.code}</p>
         </div>
         <IconButton label={t.common.copied} icon={Copy} onClick={() => copy(plan.code)} />
       </div>
