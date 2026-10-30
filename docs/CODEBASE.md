@@ -1806,7 +1806,8 @@ and policy, endpoint list, JSONB shapes, link and tracking flows) matches
   prefix check (`INVALID_IMAGE`).
 - `*.r2.dev` is blocked on some networks, so photos look broken there
   (images fall back to placeholders).
-- A Telegram bot token is in git history and must be revoked before launch.
+- A Telegram bot token is in git history; its bot (ReaksaShopAlertBot) was
+  deleted 2026-10-30, so it's dead. Oak's bot is now @OakOrder_bot.
 - Anyone can register a store (03 says onboarding is manual for now).
 - The Telegram bot speaks Khmer only (a seller who uses the app in English
   still gets Khmer alerts). The Khmer, in the app and the bot, hasn't been
