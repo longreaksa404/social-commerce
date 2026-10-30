@@ -19,12 +19,13 @@ function paid(details: AdminLogLine['details']) {
 /** A line of the admin's log in words (founder's pick 13A, 2026-10-28):
  * what was done, then the details under it. `withShop`: name the shop
  * (the whole log), or leave it out (a shop's own Activity). */
-export function logWords(line: AdminLogLine, withShop = true): { title: string; lines: string[] } {
+export function logWords(line: AdminLogLine, withShop = true): { title: string; lines: string[]; warn?: string } {
   const d = line.details
   const shop = line.shop ?? 'a shop'
   const person = text(d.person) || 'a login'
   const lines: string[] = []
   let title: string
+  let warn: string | undefined
   switch (line.action) {
     case 'mark_paid':
       title = d.claim ? `Found ${withShop ? `${shop}'s` : 'the'} "I've paid"` : withShop ? `Marked ${shop} paid` : 'Marked paid'
@@ -34,6 +35,18 @@ export function logWords(line: AdminLogLine, withShop = true): { title: string; 
     case 'claim_not_found':
       title = `"I've paid" not found${withShop ? `: ${shop}` : ''}`
       lines.push(`${paid(d)} · ${text(d.note)}`)
+      break
+    case 'paid_until':
+      title = withShop ? `Moved ${shop}'s paid-until date` : 'Moved the paid-until date'
+      lines.push(`${dayMonth(d.before)} → ${dayMonth(d.after)}`)
+      break
+    case 'undo_payment':
+      title = withShop ? `Undid a payment of ${shop}` : 'Undid a payment'
+      lines.push(`${paid(d)} · paid until ${d.after ? dayMonth(d.after) : 'none (setup)'}`)
+      break
+    case 'remind':
+      title = withShop ? `Reminded ${shop} to pay` : 'Reminded them to pay'
+      if (!d.sent) warn = `Not sent${d.error ? `: ${text(d.error)}` : ''}`
       break
     case 'close_shop':
       title = withShop ? `Closed ${shop}` : 'Closed the shop'
@@ -61,7 +74,7 @@ export function logWords(line: AdminLogLine, withShop = true): { title: string; 
   // A login's line names its shop under it.
   if (withShop && d.person && line.shop) lines.push(line.shop)
   if (line.reason) lines.push(line.reason)
-  return { title, lines }
+  return { title, lines, warn }
 }
 
 /** A row of a day list (AdminLog.tsx): what happened, the details under it. */
@@ -69,6 +82,6 @@ export type DayItem = { id: string; at: string; title: string; lines: string[]; 
 
 /** A log line as a day list's row; `withShop`: name the shop and link to it. */
 export function logItem(line: AdminLogLine, withShop = true): DayItem {
-  const { title, lines } = logWords(line, withShop)
-  return { id: line.id, at: line.created_at, title, lines, href: withShop && line.store_id ? `/admin/shops/${line.store_id}` : undefined }
+  const { title, lines, warn } = logWords(line, withShop)
+  return { id: line.id, at: line.created_at, title, lines, warn, href: withShop && line.store_id ? `/admin/shops/${line.store_id}` : undefined }
 }

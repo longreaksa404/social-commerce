@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminApi } from '../lib/api.ts'
-import type { AdminLogLine, AdminOverview, AdminSeller, AdminShop, AdminShopDetail } from '../lib/types.ts'
+import type { AdminLogLine, AdminOverview, AdminPayments, AdminSeller, AdminShop, AdminShopDetail } from '../lib/types.ts'
 
 /** The admin panel's data, on the admin's own session (`adminApi`), under
  * one key so logging out of the admin leaves a shop's login alone. */
@@ -13,6 +13,7 @@ export const adminKeys = {
   log: ['admin', 'log'] as const,
   people: ['admin', 'people'] as const,
   person: (id: string) => ['admin', 'people', id] as const,
+  payments: ['admin', 'payments'] as const,
 }
 
 /** Who is logged in to the admin. */
@@ -56,29 +57,58 @@ export function useAdminLog(storeId: string | null) {
 
 /** Mark a payment made by hand (amount "0": free time). */
 export function useMarkPaid(id: string) {
-  const queryClient = useQueryClient()
+  const changed = useShopChanged(id)
   return useMutation({
     mutationFn: (body: { period: 'month' | 'year'; amount: string | null; note: string | null }) =>
       adminApi<AdminShopDetail>(`/admin/shops/${id}/payments`, { method: 'POST', body }),
-    onSuccess: (shop) => {
-      queryClient.setQueryData(adminKeys.shop(id), shop)
-      queryClient.invalidateQueries({ queryKey: adminKeys.shops, exact: true })
-      queryClient.invalidateQueries({ queryKey: adminKeys.overview })
-      queryClient.invalidateQueries({ queryKey: adminKeys.log })
-    },
+    onSuccess: changed,
   })
 }
 
-/** After an action on a shop: its page from the answer, the list, Home
- * and the log fresh. */
+/** After an action on a shop: its page from the answer, the list, Home,
+ * the payments and the log fresh. */
 function useShopChanged(id: string) {
   const queryClient = useQueryClient()
   return (shop: AdminShopDetail) => {
     queryClient.setQueryData(adminKeys.shop(id), shop)
     queryClient.invalidateQueries({ queryKey: adminKeys.shops, exact: true })
     queryClient.invalidateQueries({ queryKey: adminKeys.overview })
+    queryClient.invalidateQueries({ queryKey: adminKeys.payments })
     queryClient.invalidateQueries({ queryKey: adminKeys.log })
   }
+}
+
+/** Money on a shop (parts 15, 16, 18): its paid-until date moved with
+ * why, its latest payment undone, the plan reminder sent now. The answer
+ * is the shop again; a reminder's log line says whether it reached them. */
+export function useShopMoney(id: string) {
+  const changed = useShopChanged(id)
+  return useMutation({
+    mutationFn: (
+      action: { kind: 'paidUntil'; paidUntil: string; reason: string } | { kind: 'undo'; paymentId: string; reason: string } | { kind: 'remind' },
+    ) => {
+      const url = `/admin/shops/${id}`
+      switch (action.kind) {
+        case 'paidUntil':
+          return adminApi<AdminShopDetail>(`${url}/paid-until`, { method: 'PUT', body: { paid_until: action.paidUntil, reason: action.reason } })
+        case 'undo':
+          return adminApi<AdminShopDetail>(`${url}/payments/${action.paymentId}/undo`, { method: 'POST', body: { reason: action.reason } })
+        case 'remind':
+          return adminApi<AdminShopDetail>(`${url}/remind`, { method: 'POST' })
+      }
+    },
+    onSuccess: changed,
+  })
+}
+
+/** Every shop's payments in a month, or a year (`month` null). Fresh
+ * each visit. */
+export function useAdminPayments(year: number, month: number | null) {
+  return useQuery({
+    queryKey: [...adminKeys.payments, year, month ?? 'year'],
+    queryFn: () => adminApi<AdminPayments>(`/admin/payments?year=${year}${month ? `&month=${month}` : ''}`),
+    staleTime: 0,
+  })
 }
 
 /** Close a shop with a reason (its link stops, its logins are logged
@@ -95,19 +125,14 @@ export function useSetShopOpen(id: string) {
 /** The founder checks a seller's "I've paid": found (paid, with the
  * amount found if different) or not (the seller sees the note). */
 export function useCheckClaim(storeId: string) {
-  const queryClient = useQueryClient()
+  const changed = useShopChanged(storeId)
   return useMutation({
     mutationFn: ({ paymentId, found, amount, note }: { paymentId: string; found: boolean; amount?: string | null; note: string | null }) =>
       adminApi<AdminShopDetail>(`/admin/shops/${storeId}/payments/${paymentId}/${found ? 'confirm' : 'reject'}`, {
         method: 'POST',
         body: found ? { amount: amount ?? null, note } : { note },
       }),
-    onSuccess: (shop) => {
-      queryClient.setQueryData(adminKeys.shop(storeId), shop)
-      queryClient.invalidateQueries({ queryKey: adminKeys.shops, exact: true })
-      queryClient.invalidateQueries({ queryKey: adminKeys.overview })
-      queryClient.invalidateQueries({ queryKey: adminKeys.log })
-    },
+    onSuccess: changed,
   })
 }
 

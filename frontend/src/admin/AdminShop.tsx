@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ExternalLink, Lock } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Lock, Send } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
@@ -8,11 +8,11 @@ import { useT } from '../i18n/useT.ts'
 import { errorText } from '../lib/errors.ts'
 import { formatMoney } from '../lib/money.ts'
 import { formatPhone } from '../lib/orders.ts'
-import type { AdminShopDetail, PlanPayment, PlanPeriod } from '../lib/types.ts'
+import type { AdminPayment, AdminShopDetail, PlanPayment, PlanPeriod } from '../lib/types.ts'
 import { DayList } from './AdminLog.tsx'
 import { logItem, type DayItem } from './logWords.ts'
 import { ShopLogo, StageWords } from './AdminShops.tsx'
-import { useAdminShop, useCheckClaim, useMarkPaid, useSetShopOpen } from './queries.ts'
+import { useAdminShop, useCheckClaim, useMarkPaid, useSetShopOpen, useShopMoney } from './queries.ts'
 import { ago, date, day, shortDay } from './shared.ts'
 import { Sheet } from './ui.tsx'
 
@@ -25,8 +25,9 @@ const TAB_LABEL: Record<Tab, string> = { overview: 'Overview', plan: 'Plan', peo
 /** One shop (founder's picks 5A and 5D, 2026-10-28): who it is and what's
  * wrong at the top with its actions, then Overview, Plan (its "I've paid"
  * to check, Mark paid, every payment), People and Activity. Beside the
- * list on a laptop; its own page on a phone. More actions come with the
- * admin panel's later steps (04_STATUS.md, "Admin panel"). */
+ * list on a laptop; its own page on a phone. Money (parts 15, 16, 18):
+ * Remind in the header while there's something to pay, Change paid-until
+ * date in ⋯ and on Plan, Undo on the latest payment. */
 export function AdminShop({ storeId }: { storeId: string }) {
   const shop = useAdminShop(storeId)
   const [tab, setTab] = useState<Tab>('overview')
@@ -66,6 +67,7 @@ export function AdminShop({ storeId }: { storeId: string }) {
             {tab === 'plan' && (
               <>
                 {shop.data.claim && <CheckClaim shop={shop.data} claim={shop.data.claim} />}
+                <PaidUntil shop={shop.data} />
                 <MarkPaid shop={shop.data} />
                 <Payments shop={shop.data} />
               </>
@@ -79,8 +81,12 @@ export function AdminShop({ storeId }: { storeId: string }) {
   )
 }
 
+// A plan reminder is worth sending while there's something to pay.
+const DUE = new Set(['ending_soon', 'overdue', 'stopped'])
+
 function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void }) {
   const [closing, setClosing] = useState(false)
+  const [moving, setMoving] = useState(false)
   return (
     <div className={`${cardClass} p-4 sm:p-5`}>
       <div className="flex items-center gap-3">
@@ -111,13 +117,21 @@ function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void 
           <ExternalLink aria-hidden className="size-4" />
           View shop
         </a>
+        {shop.is_open && shop.telegram && DUE.has(shop.stage) && <Remind shop={shop} />}
         {shop.is_open ? (
-          <MenuButton label="More" items={[{ label: 'Close shop', icon: Lock, danger: true, onSelect: () => setClosing(true) }]} />
+          <MenuButton
+            label="More"
+            items={[
+              ...(shop.paid_until ? [{ label: 'Change paid-until date', icon: CalendarDays, onSelect: () => setMoving(true) }] : []),
+              { label: 'Close shop', icon: Lock, danger: true, onSelect: () => setClosing(true) },
+            ]}
+          />
         ) : (
           <Reopen shop={shop} />
         )}
       </div>
       <CloseShop shop={shop} open={closing} onClose={() => setClosing(false)} />
+      <MovePaidUntil shop={shop} open={moving} onClose={() => setMoving(false)} />
     </div>
   )
 }
@@ -161,6 +175,116 @@ function CloseShop({ shop, open, onClose }: { shop: AdminShopDetail; open: boole
         </div>
       </form>
     </Sheet>
+  )
+}
+
+/** Part 18: the plan reminder on the owner's Telegram now (asks first);
+ * the day 1 and day 5 ones still go by themselves. */
+function Remind({ shop }: { shop: AdminShopDetail }) {
+  const { confirm, toast } = useFeedback()
+  const money = useShopMoney(shop.id)
+
+  async function ask() {
+    const ok = await confirm({
+      title: `Remind ${shop.name} now?`,
+      message: shop.stage === 'stopped' ? 'Their Telegram is told new orders have stopped until they pay.' : "Their Telegram gets the plan reminder with the day orders stop.",
+      confirmLabel: 'Send reminder',
+    })
+    if (!ok) return
+    money.mutate(
+      { kind: 'remind' },
+      {
+        onSuccess: (updated) => {
+          const line = updated.log[0]
+          if (line?.details.sent) toast('Reminder sent · in the log')
+          else toast(`Not sent${line?.details.error ? `: ${line.details.error}` : ''}`, 'error')
+        },
+        onError: (error) => toast(errorText(error), 'error'),
+      },
+    )
+  }
+
+  return (
+    <Button variant="secondary" loading={money.isPending} onClick={ask}>
+      <Send aria-hidden className="size-4" />
+      Remind
+    </Button>
+  )
+}
+
+/** Part 15: a longer trial or a few free days, any day, with why for the
+ * log. The next payment carries on from it. */
+function MovePaidUntil({ shop, open, onClose }: { shop: AdminShopDetail; open: boolean; onClose: () => void }) {
+  const { toast } = useFeedback()
+  const money = useShopMoney(shop.id)
+  const [paidUntil, setPaidUntil] = useState(shop.paid_until ?? '')
+  const [reason, setReason] = useState('')
+
+  function close() {
+    setPaidUntil(shop.paid_until ?? '')
+    setReason('')
+    money.reset()
+    onClose()
+  }
+
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    money.mutate(
+      { kind: 'paidUntil', paidUntil, reason: reason.trim() },
+      {
+        onSuccess: (updated) => {
+          toast(`Paid until ${shortDay(updated.paid_until ?? paidUntil)} · in the log`)
+          setReason('')
+          onClose()
+        },
+      },
+    )
+  }
+
+  return (
+    <Sheet open={open} onClose={close} title="Change paid-until date">
+      <form onSubmit={submit}>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Now {shop.paid_until ? shortDay(shop.paid_until) : 'none'}. The next payment carries on from the new date.
+        </p>
+        <Field label="Paid until" className="mt-4">
+          <Input type="date" required value={paidUntil} onChange={(e) => setPaidUntil(e.target.value)} />
+        </Field>
+        <Field label="Why" className="mt-4">
+          <TextArea rows={2} maxLength={300} required placeholder="7 days while they fix their KHQR" value={reason} onChange={(e) => setReason(e.target.value)} />
+        </Field>
+        <ErrorMessage error={money.error} />
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="secondary" onClick={close}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={money.isPending} disabled={!paidUntil || paidUntil === shop.paid_until || !reason.trim()}>
+            Save date
+          </Button>
+        </div>
+      </form>
+    </Sheet>
+  )
+}
+
+/** On Plan: the paid-until date and its Change button. */
+function PaidUntil({ shop }: { shop: AdminShopDetail }) {
+  const [moving, setMoving] = useState(false)
+  if (!shop.paid_until) return null
+  return (
+    <div className={`${cardClass} flex items-center gap-3 px-4 py-3 text-sm`}>
+      <span className="flex-1">
+        <span className="block text-slate-500">Paid until</span>
+        <span className="block font-semibold text-slate-900">
+          {shortDay(shop.paid_until)} {new Date(`${shop.paid_until}T00:00`).getFullYear()}
+          {shop.on_trial && <span className="font-normal text-slate-500"> · free trial</span>}
+        </span>
+      </span>
+      <Button variant="secondary" onClick={() => setMoving(true)}>
+        Change
+      </Button>
+      <MovePaidUntil shop={shop} open={moving} onClose={() => setMoving(false)} />
+    </div>
   )
 }
 
@@ -382,32 +506,97 @@ function MarkPaid({ shop }: { shop: AdminShopDetail }) {
   )
 }
 
+const STATUS: Record<AdminPayment['status'], string> = { paid: 'Paid', pending: 'Says paid', failed: 'Not found', void: 'Undone' }
+
+/** Every payment, newest first; Undo (part 16) on the latest paid one. */
 function Payments({ shop }: { shop: AdminShopDetail }) {
-  const a = useT().admin
+  const [undoing, setUndoing] = useState<AdminPayment | null>(null)
+  const latest = shop.payments
+    .filter((p) => p.status === 'paid')
+    .sort((a, b) => (b.covers_until ?? '').localeCompare(a.covers_until ?? '') || b.created_at.localeCompare(a.created_at))[0]
   return (
-    <Section title={a.payments}>
+    <Section title="Payments">
       {shop.payments.length === 0 ? (
-        <p className="text-sm text-slate-500">{a.noPayments}</p>
+        <p className="text-sm text-slate-500">No payments yet.</p>
       ) : (
         <ul className="-my-3 divide-y divide-slate-100">
-          {shop.payments.map((payment) => (
-            <li key={payment.id} className="space-y-0.5 py-3 text-sm">
-              <p className="flex flex-wrap items-center gap-1.5 font-medium text-slate-900">
-                {usd(payment.amount)} · {payment.period === 'month' ? a.month : a.year}
-                <Badge tone={payment.status === 'paid' ? 'green' : payment.status === 'failed' ? 'amber' : 'blue'}>
-                  {a.status[payment.status]}
-                </Badge>
-              </p>
-              <p className="text-slate-500">
-                {date(payment.created_at)}
-                {payment.covers_from && payment.covers_until && ` · ${a.covers(day(payment.covers_from), day(payment.covers_until))}`}
-              </p>
-              {payment.failure && <p className="text-amber-800">{payment.failure}</p>}
-              {payment.reference && <p className="text-slate-600">{payment.reference}</p>}
-            </li>
-          ))}
+          {shop.payments.map((payment) => {
+            const undone = payment.status === 'void'
+            return (
+              <li key={payment.id} className="flex items-start gap-3 py-3 text-sm">
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <p className="flex flex-wrap items-center gap-1.5 font-medium text-slate-900">
+                    <span className={undone ? 'text-slate-500 line-through' : ''}>{usd(payment.amount)}</span> · {payment.period === 'month' ? 'Month' : 'Year'}
+                    <Badge tone={payment.status === 'paid' ? 'green' : payment.status === 'failed' ? 'amber' : payment.status === 'pending' ? 'blue' : 'neutral'}>
+                      {STATUS[payment.status]}
+                    </Badge>
+                  </p>
+                  <p className="text-slate-500">
+                    {date(payment.created_at)}
+                    {payment.covers_from && payment.covers_until && ` · ${undone ? 'was ' : ''}${day(payment.covers_from)} to ${day(payment.covers_until)}`}
+                  </p>
+                  {payment.failure && <p className={undone ? 'text-slate-600' : 'text-amber-800'}>{payment.failure}</p>}
+                  {payment.reference && <p className="text-slate-600">{payment.reference}</p>}
+                </div>
+                {payment.id === latest?.id && (
+                  <Button variant="secondary" onClick={() => setUndoing(payment)}>
+                    Undo
+                  </Button>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
+      <UndoPayment shop={shop} payment={undoing} onClose={() => setUndoing(null)} />
     </Section>
+  )
+}
+
+/** Marked paid by mistake: Undo asks why, takes its time back off and
+ * keeps it in the list as Undone. */
+function UndoPayment({ shop, payment, onClose }: { shop: AdminShopDetail; payment: AdminPayment | null; onClose: () => void }) {
+  const { toast } = useFeedback()
+  const money = useShopMoney(shop.id)
+  const [reason, setReason] = useState('')
+
+  function close() {
+    setReason('')
+    money.reset()
+    onClose()
+  }
+
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    if (!payment) return
+    money.mutate(
+      { kind: 'undo', paymentId: payment.id, reason: reason.trim() },
+      {
+        onSuccess: (updated) => {
+          toast(updated.paid_until ? `Undone · paid until ${shortDay(updated.paid_until)}` : 'Undone · back in setup')
+          close()
+        },
+      },
+    )
+  }
+
+  return (
+    <Sheet open={payment !== null} onClose={close} title={payment ? `Undo ${usd(payment.amount)} from ${shop.name}?` : ''}>
+      <form onSubmit={submit}>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Its time comes off, back to the date before it. It stays in the list as Undone.</p>
+        <Field label="Why" className="mt-4">
+          <TextArea rows={2} maxLength={300} required placeholder="Marked the wrong shop" value={reason} onChange={(e) => setReason(e.target.value)} />
+        </Field>
+        <ErrorMessage error={money.error} />
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="secondary" onClick={close}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="danger" loading={money.isPending} disabled={!reason.trim()}>
+            Undo payment
+          </Button>
+        </div>
+      </form>
+    </Sheet>
   )
 }

@@ -192,8 +192,13 @@ export type AdminShop = {
   last_order_at: string | null
 }
 
+/** A payment as the admin sees it: also "void" (Undone: marked paid by
+ * mistake, its time taken off; `failure` says why), and the founder's own
+ * note. */
+export type AdminPayment = Omit<PlanPayment, 'status'> & { status: PlanPaymentStatus | 'void'; reference: string | null }
+
 export type AdminShopDetail = AdminShop & {
-  payments: (PlanPayment & { reference: string | null })[]
+  payments: AdminPayment[]
   currency: Currency
   /** How customers can pay: cod, khqr. */
   pays_by: string[]
@@ -210,6 +215,24 @@ export type AdminShopDetail = AdminShop & {
   closed_reason: string | null
   /** What was done on it from the admin: the newest 20 log lines. */
   log: AdminLogLine[]
+}
+
+/** Every shop's payments in a month or a year (part 17, pick 9B). `day`:
+ * when it was paid (paid, undone), or said (waiting, not found). */
+export type AdminPaymentRow = AdminPayment & { store_id: string; shop: string; code: string; day: string }
+
+export type AdminPayments = {
+  year: number
+  /** null: the whole year. */
+  month: number | null
+  /** Paid in it, US dollars; undone ones left out. */
+  collected: string
+  paid: number
+  collected_year: string
+  /** Every "I've paid" waiting, oldest first, whatever its day. */
+  waiting: AdminPaymentRow[]
+  /** Paid, not found and undone in it, newest first. */
+  payments: AdminPaymentRow[]
 }
 
 /** A line of the admin's log (part 28): `details` holds what changed and

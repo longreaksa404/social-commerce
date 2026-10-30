@@ -174,3 +174,8 @@ export const adminApi = admin.api
 export async function apiBlob(path: string): Promise<Blob> {
   return (await seller.authorizedFetch(path, {})).blob()
 }
+
+/** The same, as the admin. */
+export async function adminBlob(path: string): Promise<Blob> {
+  return (await admin.authorizedFetch(path, {})).blob()
+}

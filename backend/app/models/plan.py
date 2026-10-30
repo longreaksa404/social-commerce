@@ -33,6 +33,10 @@ class PlanPaymentStatus(enum.StrEnum):
     PAID = "paid"
     # The founder didn't find it (the note says why).
     FAILED = "failed"
+    # "Undone" (admin panel, 2026-10-28): marked paid by mistake. Kept with
+    # its dates, left out of the totals and the seller's list; the shop's
+    # paid-until date went back (services/admin_money.py).
+    VOID = "void"
 
 
 class PlanPayment(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
@@ -53,7 +57,7 @@ class PlanPayment(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
         CheckConstraint("amount >= 0", name="amount_not_negative"),
         CheckConstraint("covers_from <= covers_until", name="covers_in_order"),
         CheckConstraint(
-            "(status = 'paid') = (paid_on IS NOT NULL AND covers_from IS NOT NULL"
+            "(status IN ('paid', 'void')) = (paid_on IS NOT NULL AND covers_from IS NOT NULL"
             " AND covers_until IS NOT NULL)",
             name="paid_has_dates",
         ),
@@ -68,7 +72,8 @@ class PlanPayment(UUIDPrimaryKeyMixin, TenantMixin, CreatedAtMixin, Base):
         default=PlanPaymentStatus.PAID,
         server_default="paid",
     )
-    # Why it failed: the founder's words to the seller ("Not in my account").
+    # Why it failed: the founder's words to the seller ("Not in my account");
+    # once undone, why (the founder's own words, not shown to the seller).
     failure: Mapped[str | None] = mapped_column(Text)
     # The founder's note, e.g. "ABA transfer, ref 4821".
     reference: Mapped[str | None] = mapped_column(Text)

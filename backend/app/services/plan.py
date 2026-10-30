@@ -244,9 +244,10 @@ async def get_plan(db: AsyncSession, store_id: uuid.UUID) -> PlanOut:
         code=code,
         pay_to=pay_to(code),
         claim=PlanPaymentOut.model_validate(claim) if claim else None,
+        # An undone payment was the founder's mistake, never the seller's.
         payments=[
             PlanPaymentOut.model_validate(p)
             for p in payments
-            if p.status is not PlanPaymentStatus.PENDING
+            if p.status in (PlanPaymentStatus.PAID, PlanPaymentStatus.FAILED)
         ],
     )

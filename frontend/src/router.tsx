@@ -95,6 +95,7 @@ export const router = createBrowserRouter([
               { path: 'shops/:storeId', lazy: async () => ({ Component: (await import('./admin/AdminShops.tsx')).AdminShops }), handle: { page: 'shops' } },
               { path: 'people', lazy: async () => ({ Component: (await import('./admin/AdminPeople.tsx')).AdminPeople }), handle: { page: 'people' } },
               { path: 'people/:sellerId', lazy: async () => ({ Component: (await import('./admin/AdminPeople.tsx')).AdminPeople }), handle: { page: 'people' } },
+              { path: 'money', lazy: async () => ({ Component: (await import('./admin/AdminMoney.tsx')).AdminMoney }) },
               { path: 'log', lazy: async () => ({ Component: (await import('./admin/AdminLog.tsx')).AdminLog }) },
             ],
           },

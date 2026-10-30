@@ -1,4 +1,4 @@
-import { Home, LogOut, Menu, ScrollText, Store, Users, type LucideIcon } from 'lucide-react'
+import { Home, LogOut, Menu, ScrollText, Store, Users, Wallet, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, NavLink, useLocation } from 'react-router'
 import { OakMark } from '../components/OakMark.tsx'
@@ -15,6 +15,7 @@ const places: { to: string; label: string; icon: LucideIcon; end?: boolean }[] =
   { to: '/admin', label: 'Home', icon: Home, end: true },
   { to: '/admin/shops', label: 'Shops', icon: Store },
   { to: '/admin/people', label: 'People', icon: Users },
+  { to: '/admin/money', label: 'Money', icon: Wallet },
   { to: '/admin/log', label: 'Log', icon: ScrollText },
 ]
 const TAB_COUNT = 4

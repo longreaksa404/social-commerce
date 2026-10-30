@@ -23,6 +23,7 @@ from datetime import date, timedelta
 
 import httpx
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import clock
 from app.core.config import get_settings
@@ -37,6 +38,7 @@ from app.models import (
     Seller,
     Store,
 )
+from app.schemas.plan import PlanStage
 from app.services import admin as admin_service
 from app.services import notifications, telegram
 from app.services import plan as plan_service
@@ -48,6 +50,9 @@ PLAN_REMINDER = "plan_reminder"  # to the seller: time to pay
 # Reminders on day 1 (the start day) and day 5 of the 7 days to pay
 # (founder, 2026-10-14). A run missed is made up the next day.
 REMINDERS = {"start": range(1, 5), "day5": range(5, 8)}
+# The admin's "Send a reminder now" (part 18) is logged as its own kind,
+# so the day 1 and day 5 ones still go by themselves.
+NOW = "now"
 
 
 async def claim(store_id: uuid.UUID, period: PlanPeriod) -> uuid.UUID | None:
@@ -194,6 +199,45 @@ def _price(amount) -> str:
     return f"${amount:.2f}".replace(".00", "")
 
 
+def kind_now(store: Store, today: date) -> str | None:
+    """Which reminder the admin's "Send a reminder now" sends: the start
+    day's while the plan is ending or in its first days unpaid, day 5's
+    after that, and once new orders have stopped, that they have. None
+    when there's nothing to pay yet (in setup, or paid well ahead)."""
+    stage = plan_service.stage(store.paid_until, today)
+    if stage is PlanStage.STOPPED:
+        return "stopped"
+    if stage is PlanStage.OVERDUE:
+        return "day5" if (today - store.paid_until).days >= 5 else "start"
+    if stage is PlanStage.ENDING_SOON:
+        return "start"
+    return None
+
+
+async def remind_now(db: AsyncSession, store: Store, kind: str) -> NotificationLog | None:
+    """The admin's reminder (part 18), sent today on the admin's session
+    (commits). The message as logged, or None when Telegram isn't set up
+    or the shop has no chat."""
+    await notifications.send_to_seller(
+        db,
+        store,
+        PLAN_REMINDER,
+        {"paid_until": store.paid_until.isoformat(), "kind": NOW},
+        reminder_text(store, kind),
+        _button("/dashboard/settings/plan", "បង់ប្រាក់"),
+    )
+    return await db.scalar(
+        select(NotificationLog)
+        .where(
+            NotificationLog.store_id == store.id,
+            NotificationLog.event_type == PLAN_REMINDER,
+            NotificationLog.payload["kind"].astext == NOW,
+        )
+        .order_by(NotificationLog.sent_at.desc())
+        .limit(1)
+    )
+
+
 def reminder_text(store: Store, kind: str) -> str:
     """Khmer only, like every bot message (2026-10-09)."""
     pay_by = plan_service.pay_by(store.paid_until)
@@ -205,6 +249,13 @@ def reminder_text(store: Store, kind: str) -> str:
         f"បង់ {month} ក្នុងមួយខែ ឬ {year} ក្នុងមួយឆ្នាំ តាម KHQR ឬផ្ទេរប្រាក់ "
         f"ក្នុង ការកំណត់ → គម្រោង ដោយដាក់លេខកូដ <b>{code}</b> ហើយចុច «ខ្ញុំបានបង់»។"
     )
+    if kind == "stopped":
+        # Settings → Plan's own words for a stopped shop.
+        return (
+            f"⛔ <b>Oak Order</b> · {escape(store.name)}\n"
+            "ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ថ្មីទេ។ សូមបង់ ដើម្បីបើកវិញភ្លាមៗ។\n"
+            f"{how}"
+        )
     if kind == "start":
         return (
             f"🔔 <b>Oak Order</b> · {escape(store.name)}\n"

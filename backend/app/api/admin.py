@@ -3,11 +3,12 @@ at once, so unscoped, and only for an admin account (the Admin guard)."""
 
 import uuid
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Query, Response
 
 from app.api.deps import Admin, AdminPasswordAgain, UnscopedDb
+from app.core import clock
 from app.models import LoginProvider
 from app.schemas.admin import (
     AdminCloseIn,
@@ -20,13 +21,16 @@ from app.schemas.admin import (
 from app.schemas.plan import (
     AdminConfirmIn,
     AdminOverviewOut,
+    AdminPaidUntilIn,
     AdminPaymentIn,
+    AdminPaymentsOut,
     AdminRejectIn,
     AdminShopDetailOut,
     AdminShopOut,
+    AdminUndoIn,
 )
 from app.services import admin as admin_service
-from app.services import admin_log, admin_people
+from app.services import admin_log, admin_money, admin_people
 from app.services.telegram import escape
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -70,6 +74,73 @@ async def reject(
 ) -> AdminShopDetailOut:
     """Not found: the seller sees the note."""
     return await admin_service.reject(db, admin.admin_id, store_id, payment_id, data)
+
+
+@router.put("/shops/{store_id}/paid-until", response_model=AdminShopDetailOut)
+async def set_paid_until(
+    store_id: uuid.UUID, data: AdminPaidUntilIn, admin: Admin, db: UnscopedDb
+) -> AdminShopDetailOut:
+    """Part 15: a longer trial or a few free days, with why. 409
+    SHOP_IN_SETUP; 422 SAME_DATE, DATE_OUT_OF_RANGE."""
+    return await admin_money.set_paid_until(
+        db, admin.admin_id, store_id, data.paid_until, data.reason
+    )
+
+
+@router.post("/shops/{store_id}/payments/{payment_id}/undo", response_model=AdminShopDetailOut)
+async def undo_payment(
+    store_id: uuid.UUID, payment_id: uuid.UUID, data: AdminUndoIn, admin: Admin, db: UnscopedDb
+) -> AdminShopDetailOut:
+    """Part 16: the shop's latest paid payment becomes Undone and its time
+    comes off. 409 PAYMENT_NOT_PAID, NOT_LATEST_PAYMENT."""
+    return await admin_money.undo_payment(db, admin.admin_id, store_id, payment_id, data.reason)
+
+
+@router.post("/shops/{store_id}/remind", response_model=AdminShopDetailOut)
+async def remind(store_id: uuid.UUID, admin: Admin, db: UnscopedDb) -> AdminShopDetailOut:
+    """Part 18: the plan reminder on the owner's Telegram now; the log line
+    says whether it reached them. 409 SHOP_CLOSED, NO_TELEGRAM,
+    NOTHING_DUE; 503 TELEGRAM_NOT_SET_UP."""
+    return await admin_money.remind(db, admin.admin_id, store_id)
+
+
+Year = Annotated[int | None, Query(ge=2024, le=2100)]
+Month = Annotated[int | None, Query(ge=1, le=12)]
+
+
+def _when(year: int | None, month: int | None) -> tuple[int, int | None]:
+    """This month by default; `year` alone is the whole year."""
+    if year is None:
+        today = clock.today()
+        return today.year, month or today.month
+    return year, month
+
+
+@router.get("/payments", response_model=AdminPaymentsOut)
+async def payments(
+    _: Admin, db: UnscopedDb, year: Year = None, month: Month = None
+) -> AdminPaymentsOut:
+    """Part 17: every "I've paid" waiting, then a month's (or with `year`
+    alone, a year's) payments, with what was collected in it and its year."""
+    return await admin_money.payments(db, *_when(year, month))
+
+
+XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+@router.get("/payments/export", response_class=Response, responses={200: {"content": {XLSX: {}}}})
+async def export_payments(
+    _: Admin, db: UnscopedDb, year: Year = None, month: Month = None
+) -> Response:
+    """The same payments as an Excel file, for the founder's accounts."""
+    year, month = _when(year, month)
+    data = await admin_money.payments(db, year, month)
+    name = f"oak-payments-{year}" + (f"-{month:02d}" if month else "")
+    return Response(
+        admin_money.workbook(data),
+        media_type=XLSX,
+        headers={"Content-Disposition": f'attachment; filename="{name}.xlsx"'},
+    )
 
 
 @router.post("/shops/{store_id}/close", response_model=AdminShopDetailOut)

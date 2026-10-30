@@ -139,6 +139,45 @@ class AdminPaymentOut(PlanPaymentOut):
     reference: str | None  # the founder's note
 
 
+class AdminPaidUntilIn(BaseModel):
+    """Move a shop's paid-until date (part 15): any day, with why."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+    paid_until: date
+    reason: str = Field(min_length=1, max_length=300)
+
+
+class AdminUndoIn(BaseModel):
+    """Undo a payment marked by mistake (part 16): why, for the log."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+    reason: str = Field(min_length=1, max_length=300)
+
+
+class AdminPaymentRowOut(AdminPaymentOut):
+    """A payment in the admin's list of every shop's (part 17)."""
+
+    store_id: uuid.UUID
+    shop: str
+    code: str
+    # Paid or undone: the day it was paid; waiting or not found: the day
+    # the seller said it (Phnom Penh).
+    day: date
+
+
+class AdminPaymentsOut(BaseModel):
+    """Every shop's payments in a month or a year (founder's pick 9B,
+    2026-10-28): the waiting ones first, whatever their day."""
+
+    year: int
+    month: int | None  # None: the whole year
+    collected: Decimal  # paid in it, US dollars (undone ones left out)
+    paid: int  # how many paid in it
+    collected_year: Decimal
+    waiting: list[AdminPaymentRowOut]  # every "I've paid" to check, oldest first
+    payments: list[AdminPaymentRowOut]  # paid, not found and undone in it, newest first
+
+
 class AdminPersonOut(BaseModel):
     """A login of the shop: its owner or a helper."""
 

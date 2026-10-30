@@ -393,7 +393,7 @@ async def shop_detail(db: AsyncSession, store_id: uuid.UUID) -> AdminShopDetailO
     )
 
 
-async def _locked(db: AsyncSession, store_id: uuid.UUID) -> Store:
+async def locked_store(db: AsyncSession, store_id: uuid.UUID) -> Store:
     store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
     if store is None:
         raise NotFound("STORE_NOT_FOUND", "Shop not found.")
@@ -401,8 +401,16 @@ async def _locked(db: AsyncSession, store_id: uuid.UUID) -> Store:
 
 
 def _log_paid(
-    db: AsyncSession, admin_id: uuid.UUID, store: Store, payment: PlanPayment, *, claim: bool
+    db: AsyncSession,
+    admin_id: uuid.UUID,
+    store: Store,
+    payment: PlanPayment,
+    before: date | None,
+    *,
+    claim: bool,
 ) -> None:
+    """`before`: the paid-until date the payment moved on, so undoing it
+    puts back exactly that (services/admin_money.py)."""
     admin_log.record(
         db,
         admin_id,
@@ -413,6 +421,8 @@ def _log_paid(
         until=payment.covers_until.isoformat(),
         note=payment.reference,
         claim=claim,
+        payment=str(payment.id),
+        before=before.isoformat() if before else None,
     )
 
 
@@ -421,11 +431,13 @@ async def mark_paid(
 ) -> AdminShopDetailOut:
     """A payment made by hand: covers the next month or year at once. An
     amount of 0 gives free time."""
-    store = await _locked(db, store_id)
+    store = await locked_store(db, store_id)
+    before = store.paid_until
     payment = plan_service.record_payment(
         db, store, data.period, amount=data.amount, reference=(data.note or "").strip() or None
     )
-    _log_paid(db, admin_id, store, payment, claim=False)
+    await db.flush()  # its id, for the log
+    _log_paid(db, admin_id, store, payment, before, claim=False)
     await db.commit()
     return await shop_detail(db, store_id)
 
@@ -451,13 +463,14 @@ async def confirm(
     data: AdminConfirmIn,
 ) -> AdminShopDetailOut:
     """The seller's "I've paid", found: paid, the next month or year covered."""
-    store = await _locked(db, store_id)
+    store = await locked_store(db, store_id)
     payment = await _claim(db, store_id, payment_id)
     if data.amount is not None:
         payment.amount = data.amount
     payment.reference = (data.note or "").strip() or None
+    before = store.paid_until
     plan_service.mark_paid(payment, store)
-    _log_paid(db, admin_id, store, payment, claim=True)
+    _log_paid(db, admin_id, store, payment, before, claim=True)
     await db.commit()
     return await shop_detail(db, store_id)
 
@@ -470,7 +483,7 @@ async def reject(
     data: AdminRejectIn,
 ) -> AdminShopDetailOut:
     """Not found: the seller sees the note and can say they paid again."""
-    store = await _locked(db, store_id)
+    store = await locked_store(db, store_id)
     payment = await _claim(db, store_id, payment_id)
     payment.status = PlanPaymentStatus.FAILED
     payment.failure = data.note.strip()
@@ -498,7 +511,7 @@ async def set_open(
     """Close a shop (part 5): its link stops, the owner and staff are
     logged out, nothing is erased. Reopen brings it all back, also after
     the seller closed it themselves (Settings → Close shop)."""
-    store = await _locked(db, store_id)
+    store = await locked_store(db, store_id)
     owner = await db.get(Seller, store.seller_id)
     if owner.is_active == is_open:
         raise AppError(
