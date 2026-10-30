@@ -16,6 +16,28 @@ function paid(details: AdminLogLine['details']) {
   return amount === 0 ? `Free ${details.period}` : `${formatMoney(amount, 'USD')} ${details.period}`
 }
 
+// What a save made as the seller was, from its address (services/as_seller.py).
+const SAVED: [RegExp, string][] = [
+  [/^\/seller\/products/, 'a product'],
+  [/^\/seller\/categories/, 'a category'],
+  [/^\/seller\/orders/, 'an order'],
+  [/^\/seller\/customers/, 'a customer'],
+  [/^\/seller\/sales/, 'a sale'],
+  [/^\/seller\/links/, 'a link'],
+  [/^\/seller\/staff/, 'staff'],
+  [/^\/seller\/store\/(logo|cover)/, 'a shop photo'],
+  [/^\/seller\/store\/telegram/, 'Telegram alerts'],
+  [/^\/seller\/store/, 'the shop settings'],
+  [/^\/seller\/plan\/open/, 'opened the shop'],
+  [/^\/seller\/account/, 'the owner\'s name'],
+  [/^\/seller\/notifications/, 'notifications read'],
+]
+
+function saved(method: string, path: string) {
+  const what = SAVED.find(([pattern]) => pattern.test(path))?.[1] ?? path
+  return method === 'DELETE' ? `removed ${what}` : what
+}
+
 /** A line of the admin's log in words (founder's pick 13A, 2026-10-28):
  * what was done, then the details under it. `withShop`: name the shop
  * (the whole log), or leave it out (a shop's own Activity). */
@@ -47,6 +69,12 @@ export function logWords(line: AdminLogLine, withShop = true): { title: string; 
     case 'remind':
       title = withShop ? `Reminded ${shop} to pay` : 'Reminded them to pay'
       if (!d.sent) warn = `Not sent${d.error ? `: ${text(d.error)}` : ''}`
+      break
+    case 'open_as_seller':
+      title = withShop ? `Opened ${shop} as seller` : 'Opened the shop as seller'
+      break
+    case 'seller_save':
+      title = `Saved as the seller: ${saved(text(d.method), text(d.path))}`
       break
     case 'close_shop':
       title = withShop ? `Closed ${shop}` : 'Closed the shop'

@@ -1,5 +1,5 @@
 import { createContext, use } from 'react'
-import type { AccessToken } from '../lib/api.ts'
+import type { AccessToken, Acting } from '../lib/api.ts'
 
 // 'unreachable': a stored session couldn't be restored because the server
 // didn't answer (offline, or the API isn't running); not a logout.
@@ -24,6 +24,9 @@ type AuthValue = {
   /** Logged in by another way than the login form (a password reset link). */
   startSession: (token: AccessToken) => void
   logout: () => Promise<void>
+  /** Open as seller (D1A): the admin in this shop's app, null for the
+   * seller themselves. Logging out is Exit, back to the admin. */
+  acting: Acting | null
 }
 
 export const AuthContext = createContext<AuthValue | null>(null)

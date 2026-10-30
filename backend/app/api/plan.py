@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 
-from app.api.deps import Owner, Seller, TenantDb
+from app.api.deps import Owner, Seller, TenantDb, current_seller_themselves
 from app.core.ratelimit import check_limit
 from app.schemas.plan import PaidClaimIn, PlanOut
 from app.services import billing
@@ -30,7 +30,12 @@ def _claim_rate_limit(request: Request) -> None:
     check_limit("10/minute", "plan-paid", request)
 
 
-@router.post("/paid", response_model=PlanOut, dependencies=[Depends(_claim_rate_limit)])
+# Paying is the seller's own, never Oak Order's while it has the shop open.
+@router.post(
+    "/paid",
+    response_model=PlanOut,
+    dependencies=[Depends(current_seller_themselves), Depends(_claim_rate_limit)],
+)
 async def say_paid(
     data: PaidClaimIn, seller: Owner, db: TenantDb, background: BackgroundTasks
 ) -> PlanOut:

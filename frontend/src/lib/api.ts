@@ -63,13 +63,61 @@ function withRefreshLock<T>(name: string, task: () => Promise<T>): Promise<T> {
   return task()
 }
 
-function createSession({ refreshPath, sessionKey, lockName }: { refreshPath: string; sessionKey: string; lockName: string }) {
-  let accessToken: string | null = null
+/** Open as seller (01_PRODUCT.md §22.11, D1A): the admin's 30-minute
+ * token for a shop's owner, in this tab only (sessionStorage, so a reload
+ * keeps it and other tabs never see it). While it's set the shop's session
+ * uses it and nothing else: no refresh, and the browser's own shop login
+ * (its cookie and the localStorage flag) is left as it was. */
+export type Acting = { access_token: string; expires_at: string; store_id: string; shop: string }
+const ACTING_KEY = 'sc.acting'
+
+export function readActing(): Acting | null {
+  try {
+    const raw = sessionStorage.getItem(ACTING_KEY)
+    return raw ? (JSON.parse(raw) as Acting) : null
+  } catch {
+    return null
+  }
+}
+
+export function startActing(acting: Acting) {
+  sessionStorage.setItem(ACTING_KEY, JSON.stringify(acting))
+}
+
+export function stopActing() {
+  try {
+    sessionStorage.removeItem(ACTING_KEY)
+  } catch {
+    // ignore
+  }
+}
+
+/** Leave Open as seller: back to the shop's page in the admin, on a
+ * fresh page so nothing of the shop's stays in memory. */
+export function exitActing() {
+  const acting = readActing()
+  stopActing()
+  window.location.assign(acting ? `/admin/shops/${acting.store_id}` : '/admin')
+}
+
+function createSession({
+  refreshPath,
+  sessionKey,
+  lockName,
+  acting = () => null,
+}: {
+  refreshPath: string
+  sessionKey: string
+  lockName: string
+  acting?: () => Acting | null
+}) {
+  let accessToken: string | null = acting()?.access_token ?? null
   let onSessionEnded: () => void = () => {}
   let refreshing: Promise<boolean> | null = null
 
   function saveTokens(token: AccessToken) {
     accessToken = token.access_token
+    if (acting()) return
     try {
       localStorage.setItem(sessionKey, '1')
     } catch {
@@ -79,6 +127,7 @@ function createSession({ refreshPath, sessionKey, lockName }: { refreshPath: str
 
   function clearTokens() {
     accessToken = null
+    if (acting()) return
     try {
       localStorage.removeItem(sessionKey)
     } catch {
@@ -87,6 +136,7 @@ function createSession({ refreshPath, sessionKey, lockName }: { refreshPath: str
   }
 
   function hasStoredSession() {
+    if (acting()) return true
     try {
       return localStorage.getItem(sessionKey) !== null
     } catch {
@@ -107,6 +157,8 @@ function createSession({ refreshPath, sessionKey, lockName }: { refreshPath: str
    * Web Locks API, across tabs; each one sends the cookie the last one set.
    */
   function refreshTokens(): Promise<boolean> {
+    // Opened as a seller: no refresh, the 30 minutes are the 30 minutes.
+    if (acting()) return Promise.resolve(false)
     refreshing ??= withRefreshLock(lockName, async () => {
       if (!hasStoredSession()) return false
       const response = await send(refreshPath, { method: 'POST' })
@@ -162,7 +214,7 @@ function createSession({ refreshPath, sessionKey, lockName }: { refreshPath: str
   return { saveTokens, clearTokens, hasStoredSession, setSessionEndedHandler, refreshTokens, authorizedFetch, api }
 }
 
-const seller = createSession({ refreshPath: '/auth/refresh', sessionKey: SESSION_KEY, lockName: 'sc-token-refresh' })
+const seller = createSession({ refreshPath: '/auth/refresh', sessionKey: SESSION_KEY, lockName: 'sc-token-refresh', acting: readActing })
 
 export const { saveTokens, clearTokens, hasStoredSession, setSessionEndedHandler, refreshTokens, api } = seller
 

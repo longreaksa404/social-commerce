@@ -11,9 +11,11 @@ from app.api.deps import Admin, AdminPasswordAgain, UnscopedDb
 from app.core import clock
 from app.models import LoginProvider
 from app.schemas.admin import (
+    AdminActingOut,
     AdminCloseIn,
     AdminLogOut,
     AdminNewPasswordOut,
+    AdminOpenIn,
     AdminPhoneIn,
     AdminReopenIn,
     AdminSellerOut,
@@ -30,7 +32,7 @@ from app.schemas.plan import (
     AdminUndoIn,
 )
 from app.services import admin as admin_service
-from app.services import admin_log, admin_money, admin_people
+from app.services import admin_log, admin_money, admin_people, as_seller
 from app.services.telegram import escape
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -141,6 +143,26 @@ async def export_payments(
         media_type=XLSX,
         headers={"Content-Disposition": f'attachment; filename="{name}.xlsx"'},
     )
+
+
+@router.post("/shops/{store_id}/open-as-seller", response_model=AdminActingOut)
+async def open_as_seller(
+    store_id: uuid.UUID,
+    data: AdminOpenIn,
+    admin: AdminPasswordAgain,
+    db: UnscopedDb,
+    background: BackgroundTasks,
+) -> AdminActingOut:
+    """D1A: the shop's whole seller app as its owner for 30 minutes, with
+    why; logged, the shop's Telegram and the admins told. 409 SHOP_CLOSED;
+    403 PASSWORD_AGAIN."""
+    acting = await as_seller.open_as_seller(db, admin.admin_id, store_id, data.reason)
+    background.add_task(as_seller.tell_shop, store_id)
+    background.add_task(
+        admin_service.tell_admins,
+        f"🔐 Oak Order admin: opened {escape(acting.shop)} as seller. {escape(data.reason)}",
+    )
+    return acting
 
 
 @router.post("/shops/{store_id}/close", response_model=AdminShopDetailOut)

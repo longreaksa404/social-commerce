@@ -1,5 +1,6 @@
 import { Check, ChevronDown, CircleCheck, Copy, Download, Send } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useAuth } from '../../auth/useAuth.ts'
 import { useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card, ErrorMessage, ErrorState, IconButton, Section, Skeleton } from '../../components/ui.tsx'
@@ -10,6 +11,7 @@ import { formatDate } from '../../lib/orders.ts'
 import { SUPPORT_TELEGRAM, supportLink } from '../../lib/support.ts'
 import type { Plan, PlanPeriod, Store } from '../../lib/types.ts'
 import { OpenShopButton } from '../OpenShop.tsx'
+import { OnlyTheSeller } from '../ActingBar.tsx'
 import { usePlan, useSayPaid, useStore } from '../queries.ts'
 
 /** "9.99" → "$9.99", "99.00" → "$99": prices read better without ".00". */
@@ -172,6 +174,7 @@ function Pay({ plan, store }: { plan: Plan; store: Store }) {
   const { toast } = useFeedback()
   const [period, setPeriod] = useState<PlanPeriod>('month')
   const sayPaid = useSayPaid()
+  const { acting } = useAuth()
   const price = usd(plan.prices[period])
   const khqr = period === 'month' ? plan.pay_to.khqr_month : plan.pay_to.khqr_year
   const bank = plan.pay_to.bank
@@ -256,6 +259,8 @@ function Pay({ plan, store }: { plan: Plan; store: Store }) {
           <CircleCheck aria-hidden className="mt-1 size-4 shrink-0 text-emerald-600" />
           {p.waiting(usd(claim.amount), claim.period === 'month' ? p.aMonth : p.aYear, formatDate(claim.created_at))}
         </p>
+      ) : acting ? (
+        <OnlyTheSeller>Only the seller says "I've paid". Mark a payment in the admin.</OnlyTheSeller>
       ) : (
         <div className="space-y-2">
           <ErrorMessage error={sayPaid.error} />

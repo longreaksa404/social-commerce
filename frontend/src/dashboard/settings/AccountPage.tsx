@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useState, type FormEvent } from 'react'
 import { CircleCheck } from 'lucide-react'
 import { GoogleButton } from '../../auth/GoogleButton.tsx'
+import { useAuth } from '../../auth/useAuth.ts'
 import { ProviderButton, ProviderLogo } from '../../auth/ProviderLogo.tsx'
 import { PhoneCheck } from '../../auth/PhoneCheck.tsx'
 import { useFeedback } from '../../components/feedback.ts'
@@ -13,6 +14,7 @@ import { GOOGLE_CLIENT_ID } from '../../lib/google.ts'
 import { oauthAvailable, PROVIDER_NAMES, startOAuth } from '../../lib/oauth.ts'
 import { formatPhone } from '../../lib/orders.ts'
 import type { Account, PhoneCheck as PhoneCheckState } from '../../lib/types.ts'
+import { OnlyTheSeller } from '../ActingBar.tsx'
 import { keys, useAccount } from '../queries.ts'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
 
@@ -21,8 +23,17 @@ import { useUnsavedChanges } from '../useUnsavedChanges.ts'
  * password. Not the store's settings. */
 export function AccountPage() {
   const account = useAccount()
+  const { acting } = useAuth()
   if (account.isPending) return <Skeleton className="h-96 w-full rounded-2xl" />
   if (account.error) return <ErrorState error={account.error} onRetry={() => account.refetch()} />
+  if (acting) {
+    return (
+      <div className="space-y-4">
+        <DetailsForm account={account.data} />
+        <OnlyTheSeller>The login phone, other logins and the password: only the seller can change these, not Oak Order.</OnlyTheSeller>
+      </div>
+    )
+  }
   return (
     <div className="space-y-4">
       <DetailsForm account={account.data} />

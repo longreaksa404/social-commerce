@@ -14,7 +14,7 @@ export type Block = string | string[]
 export type LegalPage = { title: string; intro: string; sections: { heading: string; body: Block[] }[] }
 
 // Change it with the text.
-export const UPDATED = '2026-10-27'
+export const UPDATED = '2026-10-30'
 
 const en: Record<LegalDoc, LegalPage> = {
   privacy: {
@@ -49,6 +49,7 @@ const en: Record<LegalDoc, LegalPage> = {
         heading: 'Why we keep it',
         body: [
           "To run the shops: show products, take and deliver orders, send alerts, and let you log in. We don't use your data for advertising, and we don't sell it or give it to advertisers.",
+          "Oak Order may open your shop's app to help you, for up to 30 minutes. Your Telegram is told each time and what we save is recorded.",
         ],
       },
       {
@@ -230,6 +231,7 @@ const km: Record<LegalDoc, LegalPage> = {
         heading: 'ហេតុអ្វីយើងរក្សាទុក',
         body: [
           'ដើម្បីដំណើរការហាង៖ បង្ហាញទំនិញ ទទួល និងដឹកការកុម្ម៉ង់ ផ្ញើការជូនដំណឹង និងឱ្យអ្នកចូលគណនីបាន។ យើងមិនប្រើទិន្នន័យរបស់អ្នកសម្រាប់ការផ្សាយពាណិជ្ជកម្មទេ ហើយយើងមិនលក់ ឬផ្ដល់វាទៅអ្នកផ្សាយពាណិជ្ជកម្មឡើយ។',
+          'Oak Order អាចបើកកម្មវិធីហាងរបស់អ្នក ដើម្បីជួយអ្នក រហូតដល់ 30 នាទី។ យើងប្រាប់អ្នកតាម Telegram រាល់ពេល ហើយកត់ត្រាអ្វីដែលយើងរក្សាទុក។',
         ],
       },
       {

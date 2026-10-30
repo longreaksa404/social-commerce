@@ -1,10 +1,11 @@
-import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Lock, Send } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Eye, Lock, Send } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import { buttonClass, cardClass } from '../components/styles.ts'
 import { Badge, Button, ErrorMessage, ErrorState, Field, Input, MenuButton, Section, Skeleton, TextArea } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
+import { adminApi, startActing, type Acting } from '../lib/api.ts'
 import { errorText } from '../lib/errors.ts'
 import { formatMoney } from '../lib/money.ts'
 import { formatPhone } from '../lib/orders.ts'
@@ -14,7 +15,8 @@ import { logItem, type DayItem } from './logWords.ts'
 import { ShopLogo, StageWords } from './AdminShops.tsx'
 import { useAdminShop, useCheckClaim, useMarkPaid, useSetShopOpen, useShopMoney } from './queries.ts'
 import { ago, date, day, shortDay } from './shared.ts'
-import { Sheet } from './ui.tsx'
+import { Chip, Sheet } from './ui.tsx'
+import { usePasswordAgain } from './usePasswordAgain.tsx'
 
 const usd = (amount: string | number) => formatMoney(amount, 'USD')
 
@@ -87,6 +89,7 @@ const DUE = new Set(['ending_soon', 'overdue', 'stopped'])
 function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void }) {
   const [closing, setClosing] = useState(false)
   const [moving, setMoving] = useState(false)
+  const [opening, setOpening] = useState(false)
   return (
     <div className={`${cardClass} p-4 sm:p-5`}>
       <div className="flex items-center gap-3">
@@ -113,6 +116,12 @@ function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void 
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         {shop.claim && <Button onClick={onCheck}>Check "I've paid"</Button>}
+        {shop.is_open && (
+          <Button variant={shop.claim ? 'secondary' : 'primary'} onClick={() => setOpening(true)}>
+            <Eye aria-hidden className="size-4" />
+            Open as seller
+          </Button>
+        )}
         <a href={`/shop/${shop.slug}`} target="_blank" rel="noreferrer" className={buttonClass('secondary')}>
           <ExternalLink aria-hidden className="size-4" />
           View shop
@@ -132,6 +141,7 @@ function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void 
       </div>
       <CloseShop shop={shop} open={closing} onClose={() => setClosing(false)} />
       <MovePaidUntil shop={shop} open={moving} onClose={() => setMoving(false)} />
+      <OpenAsSeller shop={shop} open={opening} onClose={() => setOpening(false)} />
     </div>
   )
 }
@@ -175,6 +185,69 @@ function CloseShop({ shop, open, onClose }: { shop: AdminShopDetail; open: boole
         </div>
       </form>
     </Sheet>
+  )
+}
+
+const REASONS = ['Setup help', 'Fix a problem', 'Check an order']
+
+/** Open as seller (D1A, the bar is pick 6A): why (a tap fills it in), then
+ * the admin's password again; this tab becomes the shop's app as its
+ * owner for 30 minutes (lib/api.ts `startActing`), Exit comes back here. */
+function OpenAsSeller({ shop, open, onClose }: { shop: AdminShopDetail; open: boolean; onClose: () => void }) {
+  const { guard, sheet } = usePasswordAgain()
+  const [reason, setReason] = useState(REASONS[0])
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<unknown>(null)
+
+  async function submit(event: FormEvent) {
+    event.preventDefault()
+    setBusy(true)
+    setError(null)
+    try {
+      const acting = await guard(() =>
+        adminApi<Acting>(`/admin/shops/${shop.id}/open-as-seller`, { method: 'POST', body: { reason: reason.trim() } }),
+      )
+      if (acting) {
+        startActing(acting)
+        window.location.assign('/dashboard/orders')
+        return
+      }
+    } catch (err) {
+      setError(err)
+    }
+    setBusy(false)
+  }
+
+  return (
+    <>
+      <Sheet open={open} onClose={onClose} title={`Open ${shop.name} as seller`}>
+        <form onSubmit={submit}>
+          <div role="group" aria-label="Why" className="mt-4 flex flex-wrap gap-2">
+            {REASONS.map((r) => (
+              <Chip key={r} on={reason === r} onClick={() => setReason(r)}>
+                {r}
+              </Chip>
+            ))}
+          </div>
+          <Field label="Why" className="mt-4">
+            <TextArea rows={2} maxLength={300} required value={reason} onChange={(e) => setReason(e.target.value)} />
+          </Field>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            30 minutes. Each save goes in the log. Their Telegram gets "Oak Order opened your shop to help you."
+          </p>
+          <ErrorMessage error={error} />
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={busy} disabled={!reason.trim()}>
+              Open as seller
+            </Button>
+          </div>
+        </form>
+      </Sheet>
+      {sheet}
+    </>
   )
 }
 
@@ -370,6 +443,7 @@ const EVENT: Record<string, string> = {
   payment_claimed: 'A customer says paid',
   plan_reminder: 'Plan reminder',
   plan_claimed: '"I\'ve paid" to Oak Order',
+  opened_by_oak: 'Told Oak Order opened the shop',
 }
 
 /** A shop's Activity (part 6): the messages it was sent (alerts, plan

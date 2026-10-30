@@ -4,9 +4,11 @@ import {
   api,
   clearTokens,
   hasStoredSession,
+  readActing,
   refreshTokens,
   saveTokens,
   setSessionEndedHandler,
+  exitActing,
   type AccessToken,
 } from '../lib/api.ts'
 
@@ -14,8 +16,10 @@ import { AuthContext, type RegisterInput, type Status } from './useAuth.ts'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
+  // Opened by the admin (D1A): signed in from the start with its token.
+  const [acting] = useState(readActing)
   const [status, setStatus] = useState<Status>(() =>
-    hasStoredSession() ? 'loading' : 'anonymous',
+    acting ? 'authenticated' : hasStoredSession() ? 'loading' : 'anonymous',
   )
   const [restoreError, setRestoreError] = useState<unknown>(null)
 
@@ -38,12 +42,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [restore])
 
   useEffect(() => {
+    // The admin's 30 minutes ran out: the bar says so (ActingBar).
+    if (acting) return
     setSessionEndedHandler(() => {
       queryClient.clear()
       setStatus('anonymous')
     })
     if (hasStoredSession()) restore()
-  }, [queryClient, restore])
+  }, [acting, queryClient, restore])
 
   const login = useCallback(async (login: string, password: string) => {
     saveTokens(await api<AccessToken>('/auth/login', { method: 'POST', body: { login, password }, auth: false }))
@@ -65,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(async () => {
+    if (acting) return exitActing()
     if (hasStoredSession()) {
       // Best effort: the server revokes the cookie's token and drops the
       // cookie; we log out locally either way.
@@ -73,11 +80,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearTokens()
     queryClient.clear()
     setStatus('anonymous')
-  }, [queryClient])
+  }, [acting, queryClient])
 
   const value = useMemo(
-    () => ({ status, restoreError, retryRestore, login, register, startSession, logout }),
-    [status, restoreError, retryRestore, login, register, startSession, logout],
+    () => ({ status, restoreError, retryRestore, login, register, startSession, logout, acting }),
+    [status, restoreError, retryRestore, login, register, startSession, logout, acting],
   )
   return <AuthContext value={value}>{children}</AuthContext>
 }

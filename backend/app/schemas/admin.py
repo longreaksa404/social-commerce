@@ -60,6 +60,22 @@ class AdminPhoneIn(BaseModel):
     phone: str = Field(min_length=6, max_length=30)
 
 
+class AdminOpenIn(BaseModel):
+    """Open as seller (D1A): why, for the log."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+    reason: str = Field(min_length=1, max_length=300)
+
+
+class AdminActingOut(BaseModel):
+    """The owner's access for 30 minutes, naming the admin; no refresh."""
+
+    access_token: str
+    expires_at: datetime
+    store_id: uuid.UUID
+    shop: str
+
+
 class AdminNewPasswordOut(BaseModel):
     """Shown once, for the admin to send or read out."""
 

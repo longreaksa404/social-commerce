@@ -59,7 +59,7 @@ export function OrdersPage() {
           <OrderList selectedId={orderId} />
         </div>
         {orderId ? (
-          <div className="lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto lg:rounded-2xl lg:pb-2">
+          <div className="lg:sticky lg:top-[calc(2rem+var(--acting-bar,0px))] lg:max-h-[calc(100dvh-4rem-var(--acting-bar,0px))] lg:overflow-y-auto lg:rounded-2xl lg:pb-2">
             <OrderDetail
               key={orderId}
               nextNew={next ? { id: next, count: newLeft } : undefined}

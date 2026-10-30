@@ -2,7 +2,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import sentry_sdk
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
@@ -30,6 +30,7 @@ from app.api import (
 from app.core.config import get_settings
 from app.core.errors import install_error_handlers
 from app.core.ratelimit import limiter
+from app.services import as_seller
 from app.services.telegram import register_webhook
 
 settings = get_settings()
@@ -51,6 +52,19 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(title="Oak Order API", lifespan=lifespan)
 app.state.limiter = limiter
 install_error_handlers(app)
+
+
+@app.middleware("http")
+async def log_saves_as_seller(request: Request, call_next):
+    """Open as seller (D1A): each save the admin makes in a shop's app is
+    logged once it has worked (services/as_seller.py)."""
+    response = await call_next(request)
+    if request.method in as_seller.WRITES and 200 <= response.status_code < 300:
+        acting = as_seller.acting(request.headers.get("authorization"))
+        if acting is not None:
+            await as_seller.record_save(*acting, request.method, request.url.path)
+    return response
+
 
 app.add_middleware(
     CORSMiddleware,

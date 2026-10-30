@@ -1,8 +1,8 @@
 from typing import Literal
 
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Depends, Response, status
 
-from app.api.deps import Owner, Seller, UnscopedDb
+from app.api.deps import Owner, Seller, SellerThemselves, UnscopedDb, current_seller_themselves
 from app.api.session_cookie import start_session
 from app.core import google, oauth
 from app.schemas.account import (
@@ -36,7 +36,7 @@ async def update_account(data: AccountUpdate, seller: Seller, db: UnscopedDb) ->
 
 
 @router.post("/phone", response_model=AccountOut)
-async def change_phone(data: PhoneChange, seller: Seller, db: UnscopedDb) -> AccountOut:
+async def change_phone(data: PhoneChange, seller: SellerThemselves, db: UnscopedDb) -> AccountOut:
     """The login number, from a phone check (POST /auth/phone-checks)."""
     return await account_service.describe(
         db, await account_service.change_phone(db, seller.seller_id, data.phone_check)
@@ -44,7 +44,7 @@ async def change_phone(data: PhoneChange, seller: Seller, db: UnscopedDb) -> Acc
 
 
 @router.post("/google", response_model=AccountOut)
-async def connect_google(data: GoogleIn, seller: Seller, db: UnscopedDb) -> AccountOut:
+async def connect_google(data: GoogleIn, seller: SellerThemselves, db: UnscopedDb) -> AccountOut:
     """Log in with this Google account too ("Continue with Google")."""
     await social_service.connect(db, seller.seller_id, await google.verify(data.credential))
     return await account_service.describe(
@@ -54,7 +54,7 @@ async def connect_google(data: GoogleIn, seller: Seller, db: UnscopedDb) -> Acco
 
 @router.post("/oauth/{provider}", response_model=AccountOut)
 async def connect_oauth(
-    provider: Literal["facebook"], data: OAuthIn, seller: Seller, db: UnscopedDb
+    provider: Literal["facebook"], data: OAuthIn, seller: SellerThemselves, db: UnscopedDb
 ) -> AccountOut:
     """Log in with this Facebook account too: the code it sent the browser
     back with (/auth/facebook/callback)."""
@@ -67,14 +67,19 @@ async def connect_oauth(
 
 @router.post("/password", response_model=AccessOut)
 async def change_password(
-    data: PasswordChange, seller: Seller, response: Response, db: UnscopedDb
+    data: PasswordChange, seller: SellerThemselves, response: Response, db: UnscopedDb
 ) -> AccessOut:
     """Logs out every other phone; this one carries on with the new pair."""
     tokens = await account_service.change_password(db, seller.seller_id, seller.store_id, data)
     return start_session(response, tokens)
 
 
-@router.post("/close-shop", status_code=status.HTTP_204_NO_CONTENT)
+# Never while Oak Order has the shop open (Open as seller, D1A).
+@router.post(
+    "/close-shop",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(current_seller_themselves)],
+)
 async def close_shop(data: CloseShopIn, seller: Owner, db: UnscopedDb) -> None:
     """Closes the shop and logs out everywhere; nothing is erased."""
     await account_service.close_shop(db, seller.seller_id, seller.store_id, data.password)
