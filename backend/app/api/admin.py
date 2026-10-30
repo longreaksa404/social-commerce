@@ -13,10 +13,16 @@ from app.models import LoginProvider
 from app.schemas.admin import (
     AdminActingOut,
     AdminCloseIn,
+    AdminCustomerOut,
+    AdminForgetIn,
+    AdminForgetOut,
+    AdminHideIn,
     AdminLogOut,
     AdminNewPasswordOut,
     AdminOpenIn,
+    AdminOrderOut,
     AdminPhoneIn,
+    AdminProductOut,
     AdminReopenIn,
     AdminSellerOut,
 )
@@ -32,7 +38,8 @@ from app.schemas.plan import (
     AdminUndoIn,
 )
 from app.services import admin as admin_service
-from app.services import admin_log, admin_money, admin_people, as_seller
+from app.services import admin_find, admin_log, admin_money, admin_people, as_seller
+from app.services.images import delete_file
 from app.services.telegram import escape
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -180,6 +187,58 @@ async def reopen_shop(
 ) -> AdminShopDetailOut:
     """The link and the logins work again. 409 SHOP_ALREADY_OPEN."""
     return await admin_service.set_open(db, admin.admin_id, store_id, data, is_open=True)
+
+
+Search = Annotated[str, Query(min_length=1, max_length=100)]
+
+
+@router.get("/orders", response_model=list[AdminOrderOut])
+async def find_orders(q: Search, _: Admin, db: UnscopedDb) -> list[AdminOrderOut]:
+    """Part 19: "sokha 1043", "1043" or the customer's phone; look only."""
+    return await admin_find.find_orders(db, q)
+
+
+@router.get("/customers", response_model=list[AdminCustomerOut])
+async def find_customers(q: Search, _: Admin, db: UnscopedDb) -> list[AdminCustomerOut]:
+    """Part 20: a phone (typed any way) or a name, in every shop."""
+    return await admin_find.find_customers(db, q)
+
+
+@router.post("/customers/forget", response_model=AdminForgetOut)
+async def forget_customer(
+    data: AdminForgetIn, admin: Admin, db: UnscopedDb, background: BackgroundTasks
+) -> AdminForgetOut:
+    """Part 21: a customer's details removed from one shop or every shop;
+    REMOVE typed and the admin's password every time. 422 WRONG_PASSWORD,
+    INVALID_PHONE; 404 CUSTOMER_NOT_FOUND."""
+    done, photos = await admin_find.forget_customer(db, admin.admin_id, data)
+    for photo in photos:
+        background.add_task(delete_file, photo)
+    shops = "1 shop" if done.shops == 1 else f"{done.shops} shops"
+    background.add_task(
+        admin_service.tell_admins, f"🔐 Oak Order admin: a customer's details removed from {shops}."
+    )
+    return done
+
+
+@router.get("/products", response_model=list[AdminProductOut])
+async def products(
+    _: Admin,
+    db: UnscopedDb,
+    q: Annotated[str | None, Query(max_length=100)] = None,
+    before: datetime | None = None,
+) -> list[AdminProductOut]:
+    """Part 22: the newest products of every shop, 40 at a time."""
+    return await admin_find.products(db, q, before)
+
+
+@router.post("/products/{product_id}/hide", response_model=AdminProductOut)
+async def hide_product(
+    product_id: uuid.UUID, data: AdminHideIn, admin: Admin, db: UnscopedDb
+) -> AdminProductOut:
+    """Part 22: hidden from its shop; the seller can show it again. 409
+    PRODUCT_ALREADY_HIDDEN."""
+    return await admin_find.hide_product(db, admin.admin_id, product_id, data.reason)
 
 
 @router.get("/log", response_model=list[AdminLogOut])

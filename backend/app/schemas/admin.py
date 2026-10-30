@@ -4,7 +4,8 @@ schemas/plan.py, where they began."""
 
 import uuid
 from datetime import datetime
-from typing import Any
+from decimal import Decimal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -80,3 +81,76 @@ class AdminNewPasswordOut(BaseModel):
     """Shown once, for the admin to send or read out."""
 
     password: str
+
+
+class AdminOrderOut(BaseModel):
+    """An order found from the admin (part 19): look only."""
+
+    id: uuid.UUID
+    store_id: uuid.UUID
+    shop: str
+    number: int
+    created_at: datetime
+    customer_name: str
+    customer_phone: str
+    items: list[str]  # "Clear case iPhone 15 (Black) × 1"
+    currency: str
+    delivery_fee: Decimal
+    total: Decimal
+    status: str  # the order's own
+    payment_method: str
+    payment_status: str
+    delivery_method: str
+    delivery_status: str
+    seller: str  # the owner's name
+    seller_phone: str | None
+
+
+class AdminCustomerShopOut(BaseModel):
+    store_id: uuid.UUID
+    shop: str
+    customer_id: uuid.UUID
+    orders: int
+    last_order_at: datetime | None
+    telegram: bool  # gets updates on Telegram
+
+
+class AdminCustomerOut(BaseModel):
+    """One phone number in every shop it ordered from (part 20)."""
+
+    phone: str
+    name: str  # their newest name
+    shops: list[AdminCustomerShopOut]
+
+
+class AdminForgetIn(BaseModel):
+    """Remove a customer's details (part 21): from one shop or every shop,
+    with REMOVE typed and the admin's password, every time."""
+
+    phone: str = Field(min_length=6, max_length=30)
+    store_id: uuid.UUID | None = None  # None: every shop
+    confirm: Literal["REMOVE"]
+    password: str = Field(min_length=1, max_length=200)
+
+
+class AdminForgetOut(BaseModel):
+    shops: int
+    orders: int
+
+
+class AdminProductOut(BaseModel):
+    """A product of any shop (part 22, pick 14A)."""
+
+    id: uuid.UUID
+    store_id: uuid.UUID
+    shop: str
+    name: str
+    price: Decimal
+    currency: str
+    image_url: str | None
+    status: str  # active, inactive (hidden)
+    created_at: datetime
+
+
+class AdminHideIn(BaseModel):
+    reason: str | None = Field(default=None, max_length=300)

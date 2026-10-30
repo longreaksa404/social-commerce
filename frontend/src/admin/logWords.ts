@@ -76,6 +76,14 @@ export function logWords(line: AdminLogLine, withShop = true): { title: string; 
     case 'seller_save':
       title = `Saved as the seller: ${saved(text(d.method), text(d.path))}`
       break
+    case 'forget_customer':
+      title = withShop ? `Removed a customer's details from ${shop}` : "Removed a customer's details"
+      lines.push(d.orders === 1 ? 'Its order kept, without them' : `${d.orders} orders kept, without them`)
+      break
+    case 'hide_product':
+      title = withShop ? `Hid a product of ${shop}` : 'Hid a product'
+      lines.push(text(d.product))
+      break
     case 'close_shop':
       title = withShop ? `Closed ${shop}` : 'Closed the shop'
       break

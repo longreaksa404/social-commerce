@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
-from sqlalchemy import delete, exists, func, select, text, update
+from sqlalchemy import delete, exists, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import clock, security
@@ -46,6 +46,7 @@ from app.models import (
 )
 from app.models.account import trial_end
 from app.schemas.plan import PlanStage
+from app.services import customer as customer_service
 from app.services import plan
 from app.services.account import set_shop_logins
 from app.services.admin_people import temporary_password
@@ -308,7 +309,6 @@ async def make_test_shop(name: str) -> MadeShop:
 
 
 # What a forgotten customer's name becomes in the shop's lists.
-REMOVED = "(removed)"
 
 
 async def forget_customer(slug: str, phone: str) -> int:
@@ -329,39 +329,11 @@ async def forget_customer(slug: str, phone: str) -> int:
         )
         if customer is None:
             raise AdminError(f"/shop/{store.slug} has no customer with the phone {phone}.")
-        order_ids = list(await db.scalars(select(Order.id).where(Order.customer_id == customer.id)))
-        customer.name = REMOVED
-        # Unique per shop, and no longer anyone's number.
-        customer.phone = f"removed-{customer.id.hex[:8]}"
-        customer.address = None
-        customer.telegram_user_id = None
-        customer.telegram_phone = None
-        photo, customer.photo_url = customer.photo_url, None
-        await db.execute(
-            update(Order)
-            .where(Order.customer_id == customer.id)
-            .values(
-                delivery_address=None,
-                delivery_lat=None,
-                delivery_lng=None,
-                delivery_address_note=None,
-                notes=None,
-            )
-        )
-        # The bell's alerts keep the name the order had.
-        await db.execute(
-            text(
-                "UPDATE notification_log SET payload = jsonb_set(payload,"
-                " '{order,customer_name}', to_jsonb(CAST(:removed AS text)))"
-                " WHERE store_id = :store_id"
-                " AND payload->'order'->>'id' = ANY(CAST(:ids AS text[]))"
-            ),
-            {"removed": REMOVED, "store_id": store.id, "ids": [str(i) for i in order_ids]},
-        )
+        count, photo = await customer_service.forget(db, customer)
         await db.commit()
     if photo:
         delete_file(photo)
-    return len(order_ids)
+    return count
 
 
 @dataclass(frozen=True)

@@ -1,6 +1,16 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminApi } from '../lib/api.ts'
-import type { AdminLogLine, AdminOverview, AdminPayments, AdminSeller, AdminShop, AdminShopDetail } from '../lib/types.ts'
+import type {
+  AdminCustomer,
+  AdminLogLine,
+  AdminOrder,
+  AdminOverview,
+  AdminPayments,
+  AdminProduct,
+  AdminSeller,
+  AdminShop,
+  AdminShopDetail,
+} from '../lib/types.ts'
 
 /** The admin panel's data, on the admin's own session (`adminApi`), under
  * one key so logging out of the admin leaves a shop's login alone. */
@@ -14,6 +24,9 @@ export const adminKeys = {
   people: ['admin', 'people'] as const,
   person: (id: string) => ['admin', 'people', id] as const,
   payments: ['admin', 'payments'] as const,
+  orders: (q: string) => ['admin', 'orders', q] as const,
+  customers: ['admin', 'customers'] as const,
+  products: ['admin', 'products'] as const,
 }
 
 /** Who is logged in to the admin. */
@@ -170,6 +183,70 @@ export function usePersonAction(id: string) {
       else queryClient.invalidateQueries({ queryKey: adminKeys.person(id) })
       queryClient.invalidateQueries({ queryKey: adminKeys.people, exact: true })
       queryClient.invalidateQueries({ queryKey: adminKeys.shops })
+      queryClient.invalidateQueries({ queryKey: adminKeys.log })
+    },
+  })
+}
+
+/** Part 19: orders by "sokha 1043", "1043" or a customer's phone. */
+export function useAdminOrders(q: string) {
+  return useQuery({
+    queryKey: adminKeys.orders(q),
+    queryFn: () => adminApi<AdminOrder[]>(`/admin/orders?q=${encodeURIComponent(q)}`),
+    enabled: q.length > 0,
+  })
+}
+
+/** Part 20: a phone or a name in every shop, one entry per phone. */
+export function useAdminCustomers(q: string) {
+  return useQuery({
+    queryKey: [...adminKeys.customers, q],
+    queryFn: () => adminApi<AdminCustomer[]>(`/admin/customers?q=${encodeURIComponent(q)}`),
+    enabled: q.length > 1,
+  })
+}
+
+/** Part 21: a customer's details removed from one shop (`storeId`) or
+ * every shop; REMOVE typed and the admin's password every time. */
+export function useForgetCustomer() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { phone: string; store_id: string | null; password: string }) =>
+      adminApi<{ shops: number; orders: number }>('/admin/customers/forget', { method: 'POST', body: { ...body, confirm: 'REMOVE' } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.customers })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: adminKeys.log })
+    },
+  })
+}
+
+// The API's page of products.
+const PRODUCTS_PAGE = 40
+
+/** Part 22: the newest products of every shop, 40 at a time. */
+export function useAdminProducts(q: string) {
+  return useInfiniteQuery({
+    queryKey: [...adminKeys.products, q],
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams()
+      if (q) params.set('q', q)
+      if (pageParam) params.set('before', pageParam)
+      return adminApi<AdminProduct[]>(`/admin/products?${params}`)
+    },
+    initialPageParam: '',
+    getNextPageParam: (page) => (page.length === PRODUCTS_PAGE ? page[page.length - 1].created_at : undefined),
+  })
+}
+
+/** Hide a product from its shop; the seller can show it again. */
+export function useHideProduct() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string | null }) =>
+      adminApi<AdminProduct>(`/admin/products/${id}/hide`, { method: 'POST', body: { reason } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.products })
       queryClient.invalidateQueries({ queryKey: adminKeys.log })
     },
   })

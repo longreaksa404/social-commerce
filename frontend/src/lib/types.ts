@@ -235,6 +235,50 @@ export type AdminPayments = {
   payments: AdminPaymentRow[]
 }
 
+/** An order found from the admin (part 19): look only. */
+export type AdminOrder = {
+  id: string
+  store_id: string
+  shop: string
+  number: number
+  created_at: string
+  customer_name: string
+  customer_phone: string
+  /** "Clear case iPhone 15 (Black) × 1" */
+  items: string[]
+  currency: Currency
+  delivery_fee: string
+  total: string
+  status: OrderStatus
+  payment_method: PaymentMethod
+  payment_status: PaymentStatus
+  delivery_method: DeliveryMethod
+  delivery_status: DeliveryStatus
+  /** The owner. */
+  seller: string
+  seller_phone: string | null
+}
+
+/** One phone number in every shop it ordered from (part 20). */
+export type AdminCustomer = {
+  phone: string
+  name: string
+  shops: { store_id: string; shop: string; customer_id: string; orders: number; last_order_at: string | null; telegram: boolean }[]
+}
+
+/** A product of any shop (part 22); status inactive = hidden. */
+export type AdminProduct = {
+  id: string
+  store_id: string
+  shop: string
+  name: string
+  price: string
+  currency: Currency
+  image_url: string | null
+  status: 'active' | 'inactive'
+  created_at: string
+}
+
 /** A line of the admin's log (part 28): `details` holds what changed and
  * the names as they were (admin/logWords.ts reads them). */
 export type AdminLogLine = {

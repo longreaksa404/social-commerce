@@ -1,10 +1,11 @@
-import { Home, LogOut, Menu, ScrollText, Store, Users, Wallet, type LucideIcon } from 'lucide-react'
+import { Home, Inbox, LogOut, Menu, Package, ScrollText, Store, Users, Wallet, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, NavLink, useLocation } from 'react-router'
 import { OakMark } from '../components/OakMark.tsx'
 import { ErrorState, PageOutlet, Spinner } from '../components/ui.tsx'
 import { formatPhone } from '../lib/orders.ts'
 import { useAdminMe } from './queries.ts'
+import { SearchBox } from './Search.tsx'
 import { useAdminSession } from './useAdminSession.ts'
 
 // The admin panel's places (founder's pick 1A, 2026-10-28): the menu on the
@@ -16,6 +17,8 @@ const places: { to: string; label: string; icon: LucideIcon; end?: boolean }[] =
   { to: '/admin/shops', label: 'Shops', icon: Store },
   { to: '/admin/people', label: 'People', icon: Users },
   { to: '/admin/money', label: 'Money', icon: Wallet },
+  { to: '/admin/orders', label: 'Orders', icon: Inbox },
+  { to: '/admin/products', label: 'Products', icon: Package },
   { to: '/admin/log', label: 'Log', icon: ScrollText },
 ]
 const TAB_COUNT = 4
@@ -38,7 +41,10 @@ export function AdminLayout() {
       <Sidebar />
       <MobileTopBar />
       <div className="min-w-0 lg:flex-1">
-        <main className="mx-auto w-full max-w-3xl px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] lg:mx-0 lg:max-w-7xl lg:px-8 lg:pt-8 lg:pb-10">
+        <main className="mx-auto w-full max-w-3xl px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] lg:mx-0 lg:max-w-7xl lg:px-8 lg:pt-5 lg:pb-10">
+          <div className="mb-3 hidden justify-end lg:flex">
+            <SearchBox wide />
+          </div>
           <PageOutlet depth={3} />
         </main>
       </div>
@@ -96,8 +102,9 @@ function Sidebar() {
 function MobileTopBar() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
-      <div className="flex h-14 items-center px-4">
+      <div className="flex h-14 items-center justify-between pr-2 pl-4">
         <AdminBrand />
+        <SearchBox />
       </div>
     </header>
   )

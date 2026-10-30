@@ -163,6 +163,14 @@ async def password_again(
     await db.commit()
 
 
+async def check_password(db: AsyncSession, admin_id: uuid.UUID, password: str) -> None:
+    """The password in the request itself, for what asks every time
+    (removing a customer's details, erasing a shop): 422 WRONG_PASSWORD."""
+    account = await db.get(AdminAccount, admin_id)
+    if account is None or not await security.verify_password(password, account.password_hash):
+        raise AppError(422, "WRONG_PASSWORD", "That's not your password.", "password")
+
+
 def password_recent(session: AdminSession | None) -> bool:
     return (
         session is not None
