@@ -19,6 +19,7 @@ from app.core import clock
 from app.core.config import get_settings
 from app.core.errors import AppError, NotFound
 from app.models import (
+    AdminAction,
     Customer,
     NotificationChannel,
     NotificationLog,
@@ -33,6 +34,7 @@ from app.models import (
     SellerRole,
     Store,
 )
+from app.schemas.admin import AdminCloseIn, AdminReopenIn
 from app.schemas.payment import PaymentSettings
 from app.schemas.plan import (
     AdminActivityOut,
@@ -52,6 +54,7 @@ from app.schemas.plan import (
 )
 from app.services import admin_log
 from app.services import plan as plan_service
+from app.services.account import set_shop_logins
 from app.services.phone import normalize_phone
 
 
@@ -307,6 +310,16 @@ async def shop_detail(db: AsyncSession, store_id: uuid.UUID) -> AdminShopDetailO
         .order_by(NotificationLog.sent_at.desc())
         .limit(20)
     )
+    closed = (
+        None
+        if owner.is_active
+        else await db.scalar(
+            select(AdminAction)
+            .where(AdminAction.store_id == store_id, AdminAction.action == "close_shop")
+            .order_by(AdminAction.created_at.desc())
+            .limit(1)
+        )
+    )
     methods = PaymentSettings.model_validate(store.payment_config).enabled_methods()
     return AdminShopDetailOut(
         **shop.model_dump(),
@@ -336,6 +349,8 @@ async def shop_detail(db: AsyncSession, store_id: uuid.UUID) -> AdminShopDetailO
             )
             for a in activity
         ],
+        closed_at=closed.created_at if closed else None,
+        closed_reason=closed.reason if closed else None,
     )
 
 
@@ -428,6 +443,37 @@ async def reject(
         amount=f"{payment.amount:.2f}",
         period=payment.period.value,
         note=payment.failure,
+    )
+    await db.commit()
+    return await shop_detail(db, store_id)
+
+
+async def set_open(
+    db: AsyncSession,
+    admin_id: uuid.UUID,
+    store_id: uuid.UUID,
+    data: AdminCloseIn | AdminReopenIn,
+    *,
+    is_open: bool,
+) -> AdminShopDetailOut:
+    """Close a shop (part 5): its link stops, the owner and staff are
+    logged out, nothing is erased. Reopen brings it all back, also after
+    the seller closed it themselves (Settings → Close shop)."""
+    store = await _locked(db, store_id)
+    owner = await db.get(Seller, store.seller_id)
+    if owner.is_active == is_open:
+        raise AppError(
+            409,
+            "SHOP_ALREADY_OPEN" if is_open else "SHOP_ALREADY_CLOSED",
+            "This shop is open already." if is_open else "This shop is closed already.",
+        )
+    await set_shop_logins(db, owner.id, store.id, active=is_open)
+    admin_log.record(
+        db,
+        admin_id,
+        "reopen_shop" if is_open else "close_shop",
+        store=store,
+        reason=(data.reason or "").strip() or None,
     )
     await db.commit()
     return await shop_detail(db, store_id)

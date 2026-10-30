@@ -67,6 +67,29 @@ export function useMarkPaid(id: string) {
   })
 }
 
+/** After an action on a shop: its page from the answer, the list, Home
+ * and the log fresh. */
+function useShopChanged(id: string) {
+  const queryClient = useQueryClient()
+  return (shop: AdminShopDetail) => {
+    queryClient.setQueryData(adminKeys.shop(id), shop)
+    queryClient.invalidateQueries({ queryKey: adminKeys.shops, exact: true })
+    queryClient.invalidateQueries({ queryKey: adminKeys.overview })
+    queryClient.invalidateQueries({ queryKey: adminKeys.log })
+  }
+}
+
+/** Close a shop with a reason (its link stops, its logins are logged
+ * out), or open it again. */
+export function useSetShopOpen(id: string) {
+  const changed = useShopChanged(id)
+  return useMutation({
+    mutationFn: ({ open, reason }: { open: boolean; reason: string | null }) =>
+      adminApi<AdminShopDetail>(`/admin/shops/${id}/${open ? 'reopen' : 'close'}`, { method: 'POST', body: { reason } }),
+    onSuccess: changed,
+  })
+}
+
 /** The founder checks a seller's "I've paid": found (paid, with the
  * amount found if different) or not (the seller sees the note). */
 export function useCheckClaim(storeId: string) {

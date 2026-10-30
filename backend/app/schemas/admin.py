@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AdminLogOut(BaseModel):
@@ -19,3 +19,14 @@ class AdminLogOut(BaseModel):
     shop: str | None  # its name now; as it was, once the shop is gone
     reason: str | None
     details: dict[str, Any]
+
+
+class AdminCloseIn(BaseModel):
+    """Close a shop (part 5): why, for the log."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+    reason: str = Field(min_length=1, max_length=300)
+
+
+class AdminReopenIn(BaseModel):
+    reason: str | None = Field(default=None, max_length=300)

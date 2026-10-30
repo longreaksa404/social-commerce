@@ -7,7 +7,7 @@ from datetime import datetime
 from fastapi import APIRouter
 
 from app.api.deps import Admin, UnscopedDb
-from app.schemas.admin import AdminLogOut
+from app.schemas.admin import AdminCloseIn, AdminLogOut, AdminReopenIn
 from app.schemas.plan import (
     AdminConfirmIn,
     AdminOverviewOut,
@@ -60,6 +60,23 @@ async def reject(
 ) -> AdminShopDetailOut:
     """Not found: the seller sees the note."""
     return await admin_service.reject(db, admin.admin_id, store_id, payment_id, data)
+
+
+@router.post("/shops/{store_id}/close", response_model=AdminShopDetailOut)
+async def close_shop(
+    store_id: uuid.UUID, data: AdminCloseIn, admin: Admin, db: UnscopedDb
+) -> AdminShopDetailOut:
+    """The link stops and every login of the shop is logged out; nothing
+    is erased. 409 SHOP_ALREADY_CLOSED."""
+    return await admin_service.set_open(db, admin.admin_id, store_id, data, is_open=False)
+
+
+@router.post("/shops/{store_id}/reopen", response_model=AdminShopDetailOut)
+async def reopen_shop(
+    store_id: uuid.UUID, data: AdminReopenIn, admin: Admin, db: UnscopedDb
+) -> AdminShopDetailOut:
+    """The link and the logins work again. 409 SHOP_ALREADY_OPEN."""
+    return await admin_service.set_open(db, admin.admin_id, store_id, data, is_open=True)
 
 
 @router.get("/log", response_model=list[AdminLogOut])

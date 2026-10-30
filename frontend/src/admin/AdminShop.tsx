@@ -1,16 +1,18 @@
-import { ChevronLeft, ExternalLink } from 'lucide-react'
+import { ChevronLeft, ExternalLink, Lock } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import { buttonClass, cardClass } from '../components/styles.ts'
-import { Badge, Button, ErrorMessage, ErrorState, Field, Input, Section, Skeleton } from '../components/ui.tsx'
+import { Badge, Button, ErrorMessage, ErrorState, Field, Input, MenuButton, Section, Skeleton, TextArea } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
+import { errorText } from '../lib/errors.ts'
 import { formatMoney } from '../lib/money.ts'
 import { formatPhone } from '../lib/orders.ts'
 import type { AdminShopDetail, PlanPayment, PlanPeriod } from '../lib/types.ts'
 import { ShopLogo, StageWords } from './AdminShops.tsx'
-import { useAdminShop, useCheckClaim, useMarkPaid } from './queries.ts'
+import { useAdminShop, useCheckClaim, useMarkPaid, useSetShopOpen } from './queries.ts'
 import { ago, date, day, shortDay } from './shared.ts'
+import { Sheet } from './ui.tsx'
 
 const usd = (amount: string | number) => formatMoney(amount, 'USD')
 
@@ -76,6 +78,7 @@ export function AdminShop({ storeId }: { storeId: string }) {
 }
 
 function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void }) {
+  const [closing, setClosing] = useState(false)
   return (
     <div className={`${cardClass} p-4 sm:p-5`}>
       <div className="flex items-center gap-3">
@@ -89,6 +92,12 @@ function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void 
       </div>
       <p className="mt-3 text-sm">
         <StageWords shop={shop} />
+        {!shop.is_open && (
+          <span className="text-slate-500">
+            {shop.closed_at ? ` ${new Date(shop.closed_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}` : ' by the seller'}
+            {shop.closed_reason && ` · ${shop.closed_reason}`}
+          </span>
+        )}
         {shop.is_open && shop.paid_until && shop.stage !== 'overdue' && shop.stage !== 'ending_soon' && (
           <span className="text-slate-500"> · paid until {shortDay(shop.paid_until)}</span>
         )}
@@ -100,8 +109,73 @@ function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void 
           <ExternalLink aria-hidden className="size-4" />
           View shop
         </a>
+        {shop.is_open ? (
+          <MenuButton label="More" items={[{ label: 'Close shop', icon: Lock, danger: true, onSelect: () => setClosing(true) }]} />
+        ) : (
+          <Reopen shop={shop} />
+        )}
       </div>
+      <CloseShop shop={shop} open={closing} onClose={() => setClosing(false)} />
     </div>
+  )
+}
+
+/** Close (part 5) asks why, for the log: the link stops and every login
+ * of the shop is logged out; nothing is erased. */
+function CloseShop({ shop, open, onClose }: { shop: AdminShopDetail; open: boolean; onClose: () => void }) {
+  const { toast } = useFeedback()
+  const close = useSetShopOpen(shop.id)
+  const [reason, setReason] = useState('')
+
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    close.mutate(
+      { open: false, reason: reason.trim() },
+      {
+        onSuccess: () => {
+          toast(`${shop.name} closed · in the log`)
+          setReason('')
+          onClose()
+        },
+      },
+    )
+  }
+
+  return (
+    <Sheet open={open} onClose={onClose} title={`Close ${shop.name}?`}>
+      <form onSubmit={submit}>
+        <p className="mt-2 text-sm leading-6 text-slate-600">The link stops and the owner and staff are logged out. Nothing is erased.</p>
+        <Field label="Why" className="mt-4">
+          <TextArea rows={2} maxLength={300} required placeholder="Seller asked: rainy season" value={reason} onChange={(e) => setReason(e.target.value)} />
+        </Field>
+        <ErrorMessage error={close.error} />
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="danger" loading={close.isPending} disabled={!reason.trim()}>
+            Close shop
+          </Button>
+        </div>
+      </form>
+    </Sheet>
+  )
+}
+
+function Reopen({ shop }: { shop: AdminShopDetail }) {
+  const { confirm, toast } = useFeedback()
+  const reopen = useSetShopOpen(shop.id)
+
+  async function ask() {
+    const ok = await confirm({ title: `Reopen ${shop.name}?`, message: 'Its link and logins work again.', confirmLabel: 'Reopen' })
+    if (!ok) return
+    reopen.mutate({ open: true, reason: null }, { onSuccess: () => toast(`${shop.name} reopened`), onError: (error) => toast(errorText(error), 'error') })
+  }
+
+  return (
+    <Button variant="secondary" loading={reopen.isPending} onClick={ask}>
+      Reopen
+    </Button>
   )
 }
 

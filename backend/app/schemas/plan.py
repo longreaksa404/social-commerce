@@ -168,6 +168,9 @@ class AdminShopDetailOut(AdminShopOut):
     customers: int = 0
     people: list[AdminPersonOut] = []  # the owner first, then staff
     activity: list[AdminActivityOut] = []  # the newest 20
+    # Closed from the admin: when and why (null when the seller closed it).
+    closed_at: datetime | None = None
+    closed_reason: str | None = None
 
 
 class AdminShopsCount(BaseModel):

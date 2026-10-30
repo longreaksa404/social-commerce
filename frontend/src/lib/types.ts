@@ -205,6 +205,9 @@ export type AdminShopDetail = AdminShop & {
   people: { id: string; name: string; phone: string | null; role: 'owner' | 'staff'; last_seen: string | null }[]
   /** The newest 20 messages the shop was sent. */
   activity: { sent_at: string; channel: 'web' | 'telegram'; event_type: string; status: 'sent' | 'failed' }[]
+  /** Closed from the admin: when and why (null when the seller closed it). */
+  closed_at: string | null
+  closed_reason: string | null
 }
 
 /** A line of the admin's log (part 28): `details` holds what changed and

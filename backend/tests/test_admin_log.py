@@ -37,3 +37,38 @@ async def test_marking_paid_is_logged_and_the_log_filters_by_shop(client, regist
 async def test_a_seller_login_cannot_read_the_log(client, register, admin):
     seller = await register()
     assert (await client.get(LOG, headers=bearer(seller))).status_code == 401
+
+
+async def test_close_and_reopen_from_the_admin_logs_out_only_that_shop(client, register, admin):
+    seller, other = await register(), await register()
+    store = (await client.get("/api/v1/seller/store", headers=bearer(seller))).json()
+    shop = f"/api/v1/admin/shops/{store['id']}"
+    login = {"login": seller["phone"], "password": "correct-horse"}
+
+    blank = await client.post(f"{shop}/close", headers=bearer(admin), json={"reason": "  "})
+    closed = await client.post(
+        f"{shop}/close", headers=bearer(admin), json={"reason": "rainy season"}
+    )
+    again = await client.post(f"{shop}/close", headers=bearer(admin), json={"reason": "x"})
+    refused = await client.post("/api/v1/auth/login", json=login)
+    page = await client.get(f"/api/v1/shop/{store['slug']}")
+    other_store = await client.get("/api/v1/seller/store", headers=bearer(other))
+
+    assert blank.status_code == 422
+    assert closed.status_code == 200
+    assert closed.json()["is_open"] is False
+    assert closed.json()["closed_reason"] == "rainy season"
+    assert again.status_code == 409
+    assert refused.status_code == 403
+    assert page.status_code == 404
+    assert other_store.status_code == 200
+
+    reopened = await client.post(f"{shop}/reopen", headers=bearer(admin), json={})
+    assert reopened.json()["is_open"] is True
+    assert reopened.json()["closed_reason"] is None
+    assert (await client.post("/api/v1/auth/login", json=login)).status_code == 200
+    lines = (await client.get(LOG, params={"store_id": store["id"]}, headers=bearer(admin))).json()
+    assert [(line["action"], line["reason"]) for line in lines] == [
+        ("reopen_shop", None),
+        ("close_shop", "rainy season"),
+    ]
