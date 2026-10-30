@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models import PlanPaymentMethod, PlanPaymentStatus, PlanPeriod
+from app.schemas.admin import AdminLogOut
 
 
 class PlanStage(enum.StrEnum):
@@ -171,6 +172,8 @@ class AdminShopDetailOut(AdminShopOut):
     # Closed from the admin: when and why (null when the seller closed it).
     closed_at: datetime | None = None
     closed_reason: str | None = None
+    # What was done on it from the admin (part 6): the newest 20 log lines.
+    log: list[AdminLogOut] = []
 
 
 class AdminShopsCount(BaseModel):

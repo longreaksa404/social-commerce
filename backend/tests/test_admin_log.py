@@ -72,3 +72,6 @@ async def test_close_and_reopen_from_the_admin_logs_out_only_that_shop(client, r
         ("reopen_shop", None),
         ("close_shop", "rainy season"),
     ]
+    # The shop's Activity carries the same lines.
+    detail = (await client.get(shop, headers=bearer(admin))).json()
+    assert [line["id"] for line in detail["log"]] == [line["id"] for line in lines]

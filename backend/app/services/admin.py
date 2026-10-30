@@ -351,6 +351,7 @@ async def shop_detail(db: AsyncSession, store_id: uuid.UUID) -> AdminShopDetailO
         ],
         closed_at=closed.created_at if closed else None,
         closed_reason=closed.reason if closed else None,
+        log=await admin_log.entries(db, store_id=store_id, limit=20),
     )
 
 

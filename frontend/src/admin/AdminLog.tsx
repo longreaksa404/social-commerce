@@ -2,8 +2,7 @@ import { ScrollText } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Button, Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../components/ui.tsx'
-import type { AdminLogLine } from '../lib/types.ts'
-import { logWords } from './logWords.ts'
+import { logItem, type DayItem } from './logWords.ts'
 import { useAdminLog } from './queries.ts'
 import { Chip, Chips } from './ui.tsx'
 
@@ -46,7 +45,7 @@ export function AdminLog() {
           <EmptyState icon={ScrollText} title="Nothing done from the admin yet" />
         ) : (
           <>
-            <LogDays lines={log.data.pages.flat()} withShop={storeId === null} />
+            <DayList items={log.data.pages.flat().map((line) => logItem(line, storeId === null))} />
             {log.hasNextPage && (
               <Button variant="secondary" loading={log.isFetchingNextPage} onClick={() => log.fetchNextPage()}>
                 Show older
@@ -75,23 +74,22 @@ function dayTitle(key: string) {
   })
 }
 
-/** Lines under their day, newest first; each shop's name links to it.
- * Also a shop's Activity (withShop false). */
-export function LogDays({ lines, withShop = true }: { lines: AdminLogLine[]; withShop?: boolean }) {
-  const days = new Map<string, AdminLogLine[]>()
-  for (const line of lines) {
-    const key = new Date(line.created_at).toDateString()
-    days.set(key, [...(days.get(key) ?? []), line])
+/** Items under their day, newest first: the log, and a shop's Activity. */
+export function DayList({ items }: { items: DayItem[] }) {
+  const days = new Map<string, DayItem[]>()
+  for (const item of items) {
+    const key = new Date(item.at).toDateString()
+    days.set(key, [...(days.get(key) ?? []), item])
   }
   return (
     <div className="space-y-5">
-      {[...days].map(([key, dayLines]) => (
+      {[...days].map(([key, dayItems]) => (
         <section key={key} aria-label={dayTitle(key)}>
           <h2 className="mb-2 text-sm font-semibold text-slate-500 sm:px-1">{dayTitle(key)}</h2>
           <Card className="overflow-hidden">
             <ul className="divide-y divide-slate-100">
-              {dayLines.map((line) => (
-                <LogRow key={line.id} line={line} withShop={withShop} />
+              {dayItems.map((item) => (
+                <DayRow key={item.id} item={item} />
               ))}
             </ul>
           </Card>
@@ -101,26 +99,26 @@ export function LogDays({ lines, withShop = true }: { lines: AdminLogLine[]; wit
   )
 }
 
-function LogRow({ line, withShop }: { line: AdminLogLine; withShop: boolean }) {
-  const { title, lines } = logWords(line, withShop)
-  const time = new Date(line.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+function DayRow({ item }: { item: DayItem }) {
+  const time = new Date(item.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
   return (
     <li className="flex gap-3 px-4 py-3 text-sm">
       <span className="w-11 shrink-0 text-slate-500 tabular-nums">{time}</span>
       <span className="min-w-0 flex-1">
-        {withShop && line.store_id ? (
-          <Link to={`/admin/shops/${line.store_id}`} className="block font-medium text-slate-900 hover:underline">
-            {title}
+        {item.href ? (
+          <Link to={item.href} className="block font-medium text-slate-900 hover:underline">
+            {item.title}
           </Link>
         ) : (
-          <span className="block font-medium text-slate-900">{title}</span>
+          <span className="block font-medium text-slate-900">{item.title}</span>
         )}
-        {lines.map((text, i) => (
+        {item.lines.map((text, i) => (
           <span key={i} className="block break-words text-slate-500">
             {text}
           </span>
         ))}
       </span>
+      {item.warn && <span className="shrink-0 font-semibold text-amber-700">{item.warn}</span>}
     </li>
   )
 }

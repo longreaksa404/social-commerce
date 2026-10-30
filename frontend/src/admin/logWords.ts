@@ -63,3 +63,12 @@ export function logWords(line: AdminLogLine, withShop = true): { title: string; 
   if (line.reason) lines.push(line.reason)
   return { title, lines }
 }
+
+/** A row of a day list (AdminLog.tsx): what happened, the details under it. */
+export type DayItem = { id: string; at: string; title: string; lines: string[]; href?: string; warn?: string }
+
+/** A log line as a day list's row; `withShop`: name the shop and link to it. */
+export function logItem(line: AdminLogLine, withShop = true): DayItem {
+  const { title, lines } = logWords(line, withShop)
+  return { id: line.id, at: line.created_at, title, lines, href: withShop && line.store_id ? `/admin/shops/${line.store_id}` : undefined }
+}

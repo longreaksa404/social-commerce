@@ -208,6 +208,8 @@ export type AdminShopDetail = AdminShop & {
   /** Closed from the admin: when and why (null when the seller closed it). */
   closed_at: string | null
   closed_reason: string | null
+  /** What was done on it from the admin: the newest 20 log lines. */
+  log: AdminLogLine[]
 }
 
 /** A line of the admin's log (part 28): `details` holds what changed and

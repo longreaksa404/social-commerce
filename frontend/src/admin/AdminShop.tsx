@@ -9,6 +9,8 @@ import { errorText } from '../lib/errors.ts'
 import { formatMoney } from '../lib/money.ts'
 import { formatPhone } from '../lib/orders.ts'
 import type { AdminShopDetail, PlanPayment, PlanPeriod } from '../lib/types.ts'
+import { DayList } from './AdminLog.tsx'
+import { logItem, type DayItem } from './logWords.ts'
 import { ShopLogo, StageWords } from './AdminShops.tsx'
 import { useAdminShop, useCheckClaim, useMarkPaid, useSetShopOpen } from './queries.ts'
 import { ago, date, day, shortDay } from './shared.ts'
@@ -240,23 +242,22 @@ const EVENT: Record<string, string> = {
   plan_claimed: '"I\'ve paid" to Oak Order',
 }
 
+/** A shop's Activity (part 6): the messages it was sent (alerts, plan
+ * reminders, failed ones amber) and what Oak Order did on it, from the
+ * log, in one list a day at a time. */
 function Activity({ shop }: { shop: AdminShopDetail }) {
-  if (shop.activity.length === 0) return <p className="text-sm text-slate-500 sm:px-1">No messages yet.</p>
-  return (
-    <ul className={`${cardClass} divide-y divide-slate-100`}>
-      {shop.activity.map((item, i) => (
-        <li key={`${item.sent_at}-${i}`} className="flex items-center gap-3 px-4 py-3 text-sm">
-          <span className="min-w-0 flex-1">
-            <span className="block font-medium text-slate-900">{EVENT[item.event_type] ?? item.event_type}</span>
-            <span className="block text-slate-500">
-              {item.channel === 'telegram' ? 'Telegram' : 'In the app'} · {ago(item.sent_at)}
-            </span>
-          </span>
-          {item.status === 'failed' && <span className="text-sm font-semibold text-amber-700">Failed</span>}
-        </li>
-      ))}
-    </ul>
-  )
+  const items: DayItem[] = [
+    ...shop.log.map((line) => logItem(line, false)),
+    ...shop.activity.map((item, i) => ({
+      id: `message-${i}`,
+      at: item.sent_at,
+      title: EVENT[item.event_type] ?? item.event_type,
+      lines: [item.channel === 'telegram' ? 'Telegram' : 'In the app'],
+      warn: item.status === 'failed' ? 'Failed' : undefined,
+    })),
+  ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
+  if (items.length === 0) return <p className="text-sm text-slate-500 sm:px-1">Nothing yet.</p>
+  return <DayList items={items} />
 }
 
 /** The seller said "I've paid": found in the bank (mark paid, the amount
