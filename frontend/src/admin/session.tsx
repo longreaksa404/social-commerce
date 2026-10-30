@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { PageOutlet } from '../components/ui.tsx'
-import { MESSAGES } from '../i18n/core.ts'
+import { forceLang, MESSAGES } from '../i18n/core.ts'
 import { LanguageContext } from '../i18n/useT.ts'
 import { admin, adminApi, type AccessToken } from '../lib/api.ts'
 import { adminKeys } from './queries.ts'
@@ -14,6 +14,12 @@ export function AdminRoot() {
   const queryClient = useQueryClient()
   const [status, setStatus] = useState<AdminStatus>(() => (admin.hasStoredSession() ? 'loading' : 'out'))
   const [restoreError, setRestoreError] = useState<unknown>(null)
+
+  // Errors and dates outside components (lib/errors.ts) in English too.
+  useEffect(() => {
+    forceLang('en')
+    return () => forceLang(null)
+  }, [])
 
   const restore = useCallback(() => {
     admin.refreshTokens().then(

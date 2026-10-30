@@ -50,7 +50,15 @@ document.documentElement.lang = current
 /** For code outside components (date formats, API error text). Components
  * use useT(), which also re-renders them when the language changes. */
 export function currentLang(): Lang {
-  return current
+  return forced ?? current
+}
+
+// The admin is English whatever the app's language (founder's pick D5A,
+// 2026-10-28): set while /admin is open, so API errors read in English.
+let forced: Lang | null = null
+
+export function forceLang(lang: Lang | null) {
+  forced = lang
 }
 
 export function setCurrentLang(lang: Lang) {
