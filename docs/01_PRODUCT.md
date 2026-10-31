@@ -1018,7 +1018,8 @@ page only checked plan payments (§33.1), from a seller login.
   criticle thing on some place should require to put password again"):
   Open as seller, a seller's new password, changing a login phone,
   removing a Google or Facebook login, changing prices, the trial or the
-  riel rate, and a message to every shop ask for the admin's password,
+  riel rate, a message to every shop, and the bot's words going live or
+  its profile ask for the admin's password,
   then not again for 10 minutes; Erase shop and removing a customer's
   details ask for it every time, as well as the typed name. Each of
   these also sends the admin a Telegram line. Everything else that
@@ -1037,6 +1038,28 @@ page only checked plan payments (§33.1), from a seller login.
   a Telegram message to every shop (sent to the founder first);
   sign-ups that didn't finish (numbers checked in Telegram that never
   made a shop), to help them finish.
+- **Bot** (founder, 2026-10-31: "i want feature to control telegram bot
+  on admin panel. e.g. can change every message text in telegram bot and
+  others"; picks B1B and turning a message off, design 1A 2A 3A 4B 5A 6A
+  7A 8A 9B 10A 11A): its own item in the admin menu. Every message the
+  bot sends is in a list (to sellers, to customers, to the founder),
+  the open one beside it, its whole text in one box with tags that fill
+  in by themselves ({shop}, {total}, {items}…) and **bold**. A line
+  whose tags are all empty is left out (no discount, no discount line).
+  The small words inside tags (how they pay, the order status headlines,
+  button labels) are under each message that uses them; one change
+  reaches every message. A preview under the box shows an example
+  order. Save sends the new words to the founder's own Telegram first;
+  Go live, with the password again, makes them the bot's. Back to
+  original puts the first words back. A message the bot sends by itself
+  (new order, receipt, reminders…) can be turned off for everyone;
+  replies to someone's own tap, and "Oak Order opened your shop"
+  (promised on the Privacy page), stay on. The bot's profile (its name,
+  the text before Start, About) is one text for everyone; its photo and
+  the OPEN app stay in BotFather. Each change is logged. Messages stay
+  in Khmer only. If Telegram refuses a changed message, the bot sends
+  the original words instead. System has "Connect the bot again" for
+  when Telegram has stopped reaching the server.
 - Stays a command: moving photos to a new address (`docs/ADMIN.md`).
 - Later: a shop's orders, products and customers as look-only lists in
   the admin (Open as seller shows them).

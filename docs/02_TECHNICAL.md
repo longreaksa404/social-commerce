@@ -333,7 +333,7 @@ A product's price today is the lowest of its price and each active sale's price 
 ### `platform_setting` (2026-10-28, admin panel)
 | key (text, primary key), value (JSONB), updated_at, updated_by (nullable FK admin_account) |
 
-> Oak Order's own settings changed from the admin panel without a redeploy (founder's pick D2B). Keys: `khr_per_usd` (replaces the `KHR_PER_USD` variable, which stays the default until saved once), `prices` (`{month, year}` in US dollars), `trial_days` (30), and the last run of each job (`job:billing`, `job:reminders`: when, how many sent). A missing key reads as today's default. Each change is logged in `admin_action`. Not tenant data: `app_user` may only SELECT (sellers' pages and the shop read the prices and the rate).
+> Oak Order's own settings changed from the admin panel without a redeploy (founder's pick D2B). Keys: `khr_per_usd` (replaces the `KHR_PER_USD` variable, which stays the default until saved once), `prices` (`{month, year}` in US dollars), `trial_days` (30), and the last run of each job (`job:billing`, `job:reminders`: when, how many sent), and `bot_text` (2026-10-31, the admin's Bot page, §12.7: `{texts: {message: words}, words: {word: words}, off: [message]}`, only what differs from the code's words). A missing key reads as today's default. Each change is logged in `admin_action`. Not tenant data: `app_user` may only SELECT (sellers' pages and the shop read the prices and the rate).
 
 ## 5.3 Entity-Relationship Summary
 
@@ -477,9 +477,15 @@ GET    /admin/log?store_id=
 POST   /admin/broadcast                          # {text, to: me | all | trial | paying}
 GET    /admin/signups                            # phone checks shared with no shop, 30 days
 POST   /admin/test-shop
+GET    /admin/bot                                # every bot message: its words now, the code's, tags, small words, on/off
+POST   /admin/bot/preview                        # {key, text, words} → checks and the message with example orders
+POST   /admin/bot/test                           # the same draft to the admin's own Telegram
+PUT    /admin/bot/messages/{key}                 # {text, words, on}: Go live
+GET    /admin/bot/profile ; PUT /admin/bot/profile   # the bot's name, text before Start, About
+POST   /admin/system/webhook                     # point Telegram at this API again
 ```
 
-The password again: open as seller, a seller's password, phone and logins, the settings, and the message to every shop answer 403 `PASSWORD_AGAIN` unless the session's `password_at` is under 10 minutes old (the app asks for it, calls `/admin/auth/password`, then retries); erasing a shop and forgetting a customer take `password` in the body every time. Each of these sends the admin a Telegram line after the response. Sentry records the speed of a share of requests (`SENTRY_TRACES_SAMPLE_RATE`, default 0).
+The password again: open as seller, a seller's password, phone and logins, the settings, the message to every shop, and the bot's words and profile answer 403 `PASSWORD_AGAIN` unless the session's `password_at` is under 10 minutes old (the app asks for it, calls `/admin/auth/password`, then retries); erasing a shop and forgetting a customer take `password` in the body every time. Each of these sends the admin a Telegram line after the response. Sentry records the speed of a share of requests (`SENTRY_TRACES_SAMPLE_RATE`, default 0).
 
 Open as seller: `POST /admin/shops/{id}/open-as-seller` answers an access token for the shop's owner that also names the admin (claim `act`), lasts 30 minutes and has no refresh token. The seller routes work as for the owner, except the owner's password, phone, logins, Close shop and "I've paid" (403 `NOT_AS_ADMIN`); each seller write made with it is logged. The shop's Telegram gets one line when it starts.
 
@@ -807,6 +813,13 @@ Customer taps "Ask seller on Telegram" on the product page
 ## 12.5 Oak Order's Billing Messages (2026-10-14)
 - **To the seller, payment reminders:** a daily run (cron-job.org calls `POST /api/v1/billing/run`) sends a Khmer reminder on day 1 and day 5 after a shop's paid time ends ("pay by hand with your code; new orders stop on day 8"), once each per paid-until date (logged as `plan_reminder`), and not while an "I've paid" waits. Telegram is optional (01 §32 Rule 7): shops without it see the reminder on the Orders tab instead.
 - **To the founder:** "I've paid" sends the shop's name, code and amount to the Telegram chat of each shop whose owner is in `ADMIN_PHONES` (their own shop's alerts chat), with a button to the admin page. From the admin panel (2026-10-28): to each admin account's own Telegram chat (`admin_account.telegram_user_id`) instead, with a button to `/admin`.
+
+## 12.7 The Bot's Words (2026-10-31, admin Bot page)
+- Every message's Khmer words are written once in the code (`app/services/bot_texts.py`) as a template: plain text with `{tags}` and `**bold**`. Rendering escapes everything, turns `**…**` into `<b>…</b>` (open and closed on one line), fills the tags, and leaves out a line whose tags are all empty. The small words inside tags (payment methods, status headlines, button labels, tap answers) are templates too.
+- The founder's changes are kept in `platform_setting.bot_text` (only what differs), read once for each message sent, so a change reaches every server at once. Going live checks each template: only its own tags, bold closed on its line, not empty, at most 4,096 characters (a button 64, a tap answer 200 and no bold).
+- **Off:** a message the bot sends by itself can be off for everyone; its sender then skips it (nothing logged). Replies to someone's own tap, "Oak Order opened your shop" and the seller's own "Message on Telegram" can't be off.
+- **Refused:** if Telegram answers 400 to a changed message, the same message goes again with the code's words, counted for the System page. A reply given in the webhook's response can't be retried; the checks above keep it valid.
+- **Profile:** `setMyName`, `setMyDescription` and `setMyShortDescription` with no language code (one text for everyone: Telegram's app has no Khmer).
 
 ---
 
