@@ -318,7 +318,7 @@ A product's price today is the lowest of its price and each active sale's price 
 ### `plan_payment` (2026-10-14)
 | id, store_id (FK, tenant scope), period (`month`, `year`), amount (numeric(12,2), US dollars: $9.99 a month, $99 a year unless the founder records another amount), method (`manual`: KHQR or transfer to Oak's account), status (`pending`: the seller said "I've paid"; `paid`; `failed`: the founder didn't find it; `void`: undone by the founder, 2026-10-28), failure (nullable; the founder's note to the seller), reference (nullable; the founder's own note), paid_on (date), covers_from / covers_until (dates, both included; the three set once paid), created_at |
 
-> One payment a shop made, or says it made, to Oak Order (01 §33.1). Once paid it sets `store.paid_until` to `covers_until`. A payment carries on from the day after `paid_until`; once the shop has stopped taking orders, from the day it's paid. Only the founder marks one paid (§6.2 Admin). RLS like every tenant table, but `app_user` may only SELECT: billing writes the seller's "I've paid" on its own session. The ABA PayWay version (transactions, saved tokens) is parked on the `payway` branch. Admin panel (2026-10-28): a fourth status, `void` ("Undone": marked paid by mistake); undoing a shop's latest paid payment moves `paid_until` back to the day before its `covers_from`, keeps the row, and leaves it out of the money totals. The prices come from `platform_setting` instead of the code.
+> One payment a shop made, or says it made, to Oak Order (01 §33.1). Once paid it sets `store.paid_until` to `covers_until`. A payment carries on from the day after `paid_until`; once the shop has stopped taking orders, from the day it's paid. Only the founder marks one paid (§6.2 Admin). RLS like every tenant table, but `app_user` may only SELECT: billing writes the seller's "I've paid" on its own session. The ABA PayWay version (transactions, saved tokens) is parked on the `payway` branch. Admin panel (2026-10-28): a fourth status, `void` ("Undone": marked paid by mistake); undoing a shop's latest paid payment moves `paid_until` back to what it was before that payment (kept in the payment's log line), or, for one marked before 2026-10-30, the day before its `covers_from`; `failure` holds why it was undone; it keeps the row and leaves it out of the money totals. The prices come from `platform_setting` instead of the code.
 
 ### `admin_account` (2026-10-28, admin panel)
 | id, phone (normalized, unique), password_hash, telegram_user_id (bigint, from its Telegram step; its "I've paid" alerts go there), is_active, created_at, last_login_at |
@@ -420,6 +420,7 @@ DELETE /api/v1/seller/store/telegram          # disconnect the seller's chat
 ```
 GET    /api/v1/seller/plan                    # the shop's plan with Oak Order: stage, free trial or not, paid-until date, prices, payments; staff may read it
 POST   /api/v1/seller/plan/open               # owner; opens a shop in setup: its 30-day free trial starts today
+GET    /api/v1/plan/prices                    # public, 60/min: the month and year prices, the trial's days and the day they last changed (the Terms' Fees read them)
 ```
 
 Stages from `store.paid_until` (01 §33.1): `setup` (none yet: until the owner opens the shop; customers see "Opening soon" (`opening_soon`), checkout answers 409 `ORDERS_PAUSED` and an order from a chat 409 `SHOP_NOT_OPEN`; 2026-10-16); `active`; `ending_soon` (its last 6 days; the dashboard reminds the seller); `overdue` (1–7 days after; orders still come); `stopped` (from the 8th day). A stopped shop shows customers the paused notice with no reopening day, checkout answers 409 `ORDERS_PAUSED` (nothing about payment) and an order from a chat 409 `PLAN_UNPAID`; orders already placed carry on. Paying Oak Order by hand (founder, 2026-10-14; ABA PayWay later, parked on the `payway` branch):
@@ -467,8 +468,8 @@ POST   /admin/shops/{id}/remind                 # the plan reminder on Telegram 
 POST   /admin/shops/{id}/open-as-seller         # {reason} → a 30-minute access token
 GET    /admin/sellers?q=                         # every owner and staff login
 POST   /admin/sellers/{id}/password | /logout | /phone ; DELETE /admin/sellers/{id}/logins/{provider}
-GET    /admin/payments?month=&status=  (+ /export)
-GET    /admin/orders?q= ; GET /admin/customers?phone= ; POST /admin/customers/forget
+GET    /admin/payments?year=&month=  (+ /export)   # year alone: the whole year
+GET    /admin/orders?q= ; GET /admin/customers?q= (a phone or a name) ; POST /admin/customers/forget
 GET    /admin/products?q= ; POST /admin/products/{id}/hide
 GET    /admin/settings ; PUT /admin/settings     # riel rate, prices, trial days
 GET    /admin/system ; POST /admin/jobs/{name}/run   # system: the last hour's requests, speed and errors counted in memory by a middleware (lost on a restart), server start, database size and a timed query
