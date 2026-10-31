@@ -17,3 +17,13 @@ Picked by the founder on 2026-10-15. Navy is #1f3350.
 
 The text is Kantumruy Pro, the logo's letters (the app's own text is Noto
 Sans Khmer and Inter since 2026-10-17; the name keeps Kantumruy Pro).
+
+For the CapCut video template (docs/02_video_playbook.md, "CapCut template"),
+which points at these files by their full path on the laptop, so don't move
+them:
+
+- `fonts/NotoSansKhmer-Bold.ttf`: the captions' font. CapCut's own font list
+  has no Noto Sans Khmer. From notofonts/khmer, SIL Open Font License
+  (`fonts/OFL.txt`).
+- `video/silence-1s.mp3`: one second of silence, the template's sample audio
+  clip (the voice MP3s are laid out from its settings).
