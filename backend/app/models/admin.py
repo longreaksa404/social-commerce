@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, Text
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -65,3 +65,22 @@ class AdminAction(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     reason: Mapped[str | None] = mapped_column(Text)
     # What changed, before and after, and the names to show once they're gone.
     details: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, server_default="{}")
+
+
+class PlatformSetting(Base):
+    """Oak Order's own settings, changed from the admin panel without a
+    redeploy (founder's pick D2B): the riel rate, the prices, the trial
+    length, and when each job last ran (services/platform.py). A missing
+    key reads as today's default. Sellers' pages and the shop read it:
+    app_user may only SELECT."""
+
+    __tablename__ = "platform_setting"
+
+    key: Mapped[str] = mapped_column(Text, primary_key=True)
+    value: Mapped[Any] = mapped_column(JSONB)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    updated_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("admin_account.id", ondelete="SET NULL")
+    )

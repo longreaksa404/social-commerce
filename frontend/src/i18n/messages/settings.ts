@@ -326,9 +326,10 @@ export const settings = {
     // The same list on Orders while the shop isn't ready (UX check #3,
     // 2026-10-17).
     readyTitle: { en: 'Get your shop ready', km: 'រៀបចំហាងរបស់អ្នកឱ្យរួចរាល់' },
+    // `days`: the trial's length, set in the admin (D2B, 2026-10-30).
     readyHint: {
-      en: 'Do these to start taking orders. Opening starts your 30-day free trial.',
-      km: 'ធ្វើជំហានទាំងនេះ ដើម្បីទទួលការកុម្ម៉ង់។ ការបើកហាងចាប់ផ្ដើមការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃ។',
+      en: (days: number) => `Do these to start taking orders. Opening starts your ${days}-day free trial.`,
+      km: (days: number) => `ធ្វើជំហានទាំងនេះ ដើម្បីទទួលការកុម្ម៉ង់។ ការបើកហាងចាប់ផ្ដើមការសាកល្បងឥតគិតថ្លៃ ${days} ថ្ងៃ។`,
     },
     // The button on the next step's row.
     action: {
@@ -382,10 +383,10 @@ export const settings = {
     // In setup: the trial starts when the shop opens.
     notOpen: { en: 'Your shop isn’t open yet', km: 'ហាងរបស់អ្នកមិនទាន់បើកនៅឡើយទេ' },
     notOpenText: {
-      en: (month: string, year: string) =>
-        `Your 30-day free trial starts when you open your shop, then it's ${month} a month or ${year} a year.`,
-      km: (month: string, year: string) =>
-        `ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃចាប់ផ្ដើមពេលអ្នកបើកហាង បន្ទាប់មក ${month} ក្នុងមួយខែ ឬ ${year} ក្នុងមួយឆ្នាំ។`,
+      en: (days: number, month: string, year: string) =>
+        `Your ${days}-day free trial starts when you open your shop, then it's ${month} a month or ${year} a year.`,
+      km: (days: number, month: string, year: string) =>
+        `ការសាកល្បងឥតគិតថ្លៃ ${days} ថ្ងៃចាប់ផ្ដើមពេលអ្នកបើកហាង បន្ទាប់មក ${month} ក្នុងមួយខែ ឬ ${year} ក្នុងមួយឆ្នាំ។`,
     },
     standard: { en: 'Oak Order Standard', km: 'Oak Order Standard' },
     // The status card (pick 23A, 2026-10-25).

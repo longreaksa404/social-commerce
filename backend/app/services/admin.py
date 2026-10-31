@@ -56,7 +56,7 @@ from app.schemas.plan import (
     PlanPaymentOut,
     PlanStage,
 )
-from app.services import admin_log, telegram
+from app.services import admin_log, platform, telegram
 from app.services import plan as plan_service
 from app.services.account import set_shop_logins
 from app.services.phone import normalize_phone
@@ -434,7 +434,12 @@ async def mark_paid(
     store = await locked_store(db, store_id)
     before = store.paid_until
     payment = plan_service.record_payment(
-        db, store, data.period, amount=data.amount, reference=(data.note or "").strip() or None
+        db,
+        store,
+        data.period,
+        price=(await platform.load(db)).price(data.period),
+        amount=data.amount,
+        reference=(data.note or "").strip() or None,
     )
     await db.flush()  # its id, for the log
     _log_paid(db, admin_id, store, payment, before, claim=False)

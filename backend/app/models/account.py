@@ -77,9 +77,10 @@ class ShopColor(enum.StrEnum):
 TRIAL_DAYS = 30
 
 
-def trial_end() -> date:
-    """The last day of a free trial that starts today (Phnom Penh)."""
-    return clock.today() + timedelta(days=TRIAL_DAYS - 1)
+def trial_end(days: int = TRIAL_DAYS) -> date:
+    """The last day of a free trial of `days` that starts today (Phnom
+    Penh). The length is set in the admin (services/platform.py)."""
+    return clock.today() + timedelta(days=days - 1)
 
 
 def str_enum(enum_cls: type[enum.StrEnum], name: str) -> Enum:

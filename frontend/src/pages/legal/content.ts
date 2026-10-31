@@ -13,6 +13,13 @@ export type LegalDoc = 'privacy' | 'terms' | 'data-deletion'
 export type Block = string | string[]
 export type LegalPage = { title: string; intro: string; sections: { heading: string; body: Block[] }[] }
 
+/** The Terms' Fees name the trial's length and the prices set in the
+ * admin (D2B, 2026-10-30) as {trial}, {month} and {year}; the page fills
+ * them in from /plan/prices. */
+export type Prices = { trial: string; month: string; year: string }
+export const fill = (text: string, prices: Prices) =>
+  text.replace(/\{(trial|month|year)\}/g, (_, key: keyof Prices) => prices[key])
+
 // Change it with the text.
 export const UPDATED = '2026-10-30'
 
@@ -132,7 +139,7 @@ const en: Record<LegalDoc, LegalPage> = {
       {
         heading: 'Fees',
         body: [
-          "Every new shop gets a free trial of 1 month (30 days), starting the day you open your shop in the app, not the day you sign up. Until then customers can see your shop but can't order. After the trial, Oak Order Standard costs $9.99 a month or $99 a year for each shop, in US dollars, hosting included.",
+          "Every new shop gets a free trial of {trial} days, starting the day you open your shop in the app, not the day you sign up. Until then customers can see your shop but can't order. After the trial, Oak Order Standard costs {month} a month or {year} a year for each shop, in US dollars, hosting included.",
           "You pay Oak Order from your own bank app. Settings → Plan shows your shop's code and Oak Order's KHQR or bank account. Pay with the code in the transfer note (the KHQR adds it for you), then tap \"I've paid\". We check each payment by hand, usually within a day. A new month or year starts where your trial or your last payment ends, so paying early loses no days.",
           "If your trial or your paid time runs out, you have 7 more days to pay, and your shop keeps taking orders. After that it stops taking new orders until you pay, and paying opens it again at once. Customers can still see your shop, and you can still finish and download the orders you have. Nothing is deleted.",
           'You will see the price before you pay. No card is needed, and nothing is charged automatically.',
@@ -314,7 +321,7 @@ const km: Record<LegalDoc, LegalPage> = {
       {
         heading: 'ថ្លៃសេវា',
         body: [
-          'ហាងថ្មីនីមួយៗទទួលបានការសាកល្បងឥតគិតថ្លៃ 1 ខែ (30 ថ្ងៃ) ចាប់ពីថ្ងៃដែលអ្នកបើកហាងក្នុងកម្មវិធី មិនមែនថ្ងៃចុះឈ្មោះទេ។ រហូតដល់ពេលនោះ អតិថិជនអាចមើលហាងរបស់អ្នកបាន ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។ បន្ទាប់ពីការសាកល្បង Oak Order Standard មានតម្លៃ $9.99 ក្នុងមួយខែ ឬ $99 ក្នុងមួយឆ្នាំ សម្រាប់ហាងនីមួយៗ ជាដុល្លារអាមេរិក រួមទាំងសេវាបង្ហោះ។',
+          'ហាងថ្មីនីមួយៗទទួលបានការសាកល្បងឥតគិតថ្លៃ {trial} ថ្ងៃ ចាប់ពីថ្ងៃដែលអ្នកបើកហាងក្នុងកម្មវិធី មិនមែនថ្ងៃចុះឈ្មោះទេ។ រហូតដល់ពេលនោះ អតិថិជនអាចមើលហាងរបស់អ្នកបាន ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។ បន្ទាប់ពីការសាកល្បង Oak Order Standard មានតម្លៃ {month} ក្នុងមួយខែ ឬ {year} ក្នុងមួយឆ្នាំ សម្រាប់ហាងនីមួយៗ ជាដុល្លារអាមេរិក រួមទាំងសេវាបង្ហោះ។',
           'អ្នកបង់ឱ្យ Oak Order ពីកម្មវិធីធនាគាររបស់អ្នកផ្ទាល់។ ការកំណត់ → គម្រោង បង្ហាញលេខកូដហាងរបស់អ្នក និង KHQR ឬគណនីធនាគាររបស់ Oak Order។ សូមបង់ដោយដាក់លេខកូដនោះក្នុងកំណត់ចំណាំនៃការផ្ទេរប្រាក់ (KHQR ដាក់វាឱ្យអ្នកស្រាប់) រួចចុច “ខ្ញុំបានបង់”។ យើងពិនិត្យការបង់ប្រាក់នីមួយៗដោយដៃ ជាធម្មតារួចក្នុងមួយថ្ងៃ។ ខែ ឬឆ្នាំថ្មីចាប់ផ្ដើមនៅពេលការសាកល្បង ឬការបង់ប្រាក់ចុងក្រោយរបស់អ្នកបញ្ចប់ ដូច្នេះការបង់មុនមិនបាត់បង់ថ្ងៃទេ។',
           'បើការសាកល្បង ឬពេលវេលាដែលអ្នកបានបង់អស់ អ្នកនៅមាន 7 ថ្ងៃទៀតដើម្បីបង់ ហើយហាងរបស់អ្នកនៅតែទទួលការកុម្ម៉ង់។ បន្ទាប់ពីនោះ ហាងឈប់ទទួលការកុម្ម៉ង់ថ្មី រហូតដល់អ្នកបង់ ហើយពេលបង់ ហាងបើកវិញភ្លាមៗ។ អតិថិជននៅតែអាចមើលហាងរបស់អ្នកបាន ហើយអ្នកនៅតែអាចបញ្ចប់ និងទាញយកការកុម្ម៉ង់ដែលមានស្រាប់បាន។ គ្មានអ្វីត្រូវបានលុបទេ។',
           'អ្នកនឹងឃើញតម្លៃមុនពេលបង់។ មិនត្រូវការកាត និងមិនកាត់ប្រាក់ដោយស្វ័យប្រវត្តិទេ។',

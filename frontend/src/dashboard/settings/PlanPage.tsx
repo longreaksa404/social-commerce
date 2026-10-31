@@ -71,7 +71,7 @@ function Status({ plan }: { plan: Plan }) {
         <>
           <div>
             <p className="text-lg font-semibold text-slate-900">{p.notOpen}</p>
-            <p className="mt-1 text-sm text-slate-600">{p.notOpenText(usd(plan.prices.month), usd(plan.prices.year))}</p>
+            <p className="mt-1 text-sm text-slate-600">{p.notOpenText(plan.trial_days, usd(plan.prices.month), usd(plan.prices.year))}</p>
           </div>
           <OpenShopButton />
         </>

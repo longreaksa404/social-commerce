@@ -13,18 +13,19 @@ const usd = (amount: string) => formatMoney(amount, 'USD').replace(/\.00$/, '')
 /** The Open shop button (founder, 2026-10-16; 01_PRODUCT.md §33.1): a new
  * shop is in setup, where customers see "Opening soon" and nothing can be
  * ordered, until its owner opens it. It asks first, with the trial's end
- * and the price after it, then starts the 30-day free trial. */
+ * and the price after it, then starts the free trial (its length set in
+ * the admin). */
 export function OpenShopButton() {
   const plan = usePlan()
   const open = useOpenShop()
   const { confirm, toast } = useFeedback()
   const o = useT().orders.opening
   if (plan.data?.stage !== 'setup') return null
-  const { trial_until: trialUntil, prices } = plan.data
+  const { trial_until: trialUntil, trial_days: trialDays, prices } = plan.data
 
   async function ask() {
     const ok = await confirm({
-      title: o.confirmTitle,
+      title: o.confirmTitle(trialDays),
       message: o.confirmMessage(trialUntil ? formatDate(`${trialUntil}T00:00`) : '', usd(prices.month), usd(prices.year)),
       confirmLabel: o.confirm,
     })
@@ -47,6 +48,7 @@ export function OpenShopButton() {
 export function NotOpenYet({ title, text, extra }: { title?: string; text?: string; extra?: ReactNode }) {
   const role = useRole()
   const o = useT().orders.opening
+  const days = usePlan().data?.trial_days ?? 30
   const owner = role === 'owner'
   return (
     <EmptyState
@@ -59,7 +61,7 @@ export function NotOpenYet({ title, text, extra }: { title?: string; text?: stri
         </div>
       }
     >
-      {owner ? (text ?? o.text) : o.staff}
+      {owner ? (text ?? o.text(days)) : o.staff}
     </EmptyState>
   )
 }

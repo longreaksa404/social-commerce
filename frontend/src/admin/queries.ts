@@ -8,6 +8,7 @@ import type {
   AdminPayments,
   AdminProduct,
   AdminSeller,
+  AdminSettings,
   AdminShop,
   AdminShopDetail,
 } from '../lib/types.ts'
@@ -27,6 +28,7 @@ export const adminKeys = {
   orders: (q: string) => ['admin', 'orders', q] as const,
   customers: ['admin', 'customers'] as const,
   products: ['admin', 'products'] as const,
+  settings: ['admin', 'settings'] as const,
 }
 
 /** Who is logged in to the admin. */
@@ -247,6 +249,24 @@ export function useHideProduct() {
       adminApi<AdminProduct>(`/admin/products/${id}/hide`, { method: 'POST', body: { reason } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.products })
+      queryClient.invalidateQueries({ queryKey: adminKeys.log })
+    },
+  })
+}
+
+/** Oak Order's own settings (D2B): the riel rate, the prices, the trial. */
+export function useAdminSettings() {
+  return useQuery({ queryKey: adminKeys.settings, queryFn: () => adminApi<AdminSettings>('/admin/settings') })
+}
+
+/** One Save for all of them (pick 11A); asks for the password again. */
+export function useSaveSettings() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: Pick<AdminSettings, 'khr_per_usd' | 'month' | 'year' | 'trial_days'>) =>
+      adminApi<AdminSettings>('/admin/settings', { method: 'PUT', body }),
+    onSuccess: (settings) => {
+      queryClient.setQueryData(adminKeys.settings, settings)
       queryClient.invalidateQueries({ queryKey: adminKeys.log })
     },
   })

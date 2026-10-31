@@ -1,5 +1,6 @@
 """The shop's plan with Oak Order (01_PRODUCT.md §33.1): a 30-day free
-trial, then $9.99 a month or $99 a year.
+trial, then $9.99 a month or $99 a year (the prices and the trial's
+length are set in the admin since 2026-10-30, services/platform.py).
 
 Everything follows from one date, store.paid_until, the last day the shop
 is covered, worked out whenever it's read (like a paused shop reopening by
@@ -43,11 +44,11 @@ from app.schemas.plan import (
     PlanStage,
 )
 from app.services import khqr as khqr_service
+from app.services import platform
 from app.services import store as store_service
 
 REMIND_DAYS = 6
 GRACE_DAYS = 7
-PRICES = {PlanPeriod.MONTH: Decimal("9.99"), PlanPeriod.YEAR: Decimal("99.00")}
 MONTHS = {PlanPeriod.MONTH: 1, PlanPeriod.YEAR: 12}
 
 
@@ -107,7 +108,7 @@ async def open_shop(db: AsyncSession, store_id: uuid.UUID) -> PlanOut:
     store = await db.scalar(select(Store).where(Store.id == store_id).with_for_update())
     assert store is not None  # the signed-in seller's own shop
     if store.paid_until is None:
-        store.paid_until = trial_end()
+        store.paid_until = trial_end((await platform.load(db)).trial_days)
         await db.commit()
     return await get_plan(db, store_id)
 
@@ -129,15 +130,17 @@ def record_payment(
     store: Store,
     period: PlanPeriod,
     *,
+    price: Decimal,
     amount: Decimal | None = None,
     reference: str | None = None,
 ) -> PlanPayment:
-    """A payment made by hand (the founder's command or admin page). Added
-    to the session, not committed."""
+    """A payment made by hand (the founder's command or admin page), of
+    `amount`, or the period's `price` today. Added to the session, not
+    committed."""
     payment = PlanPayment(
         store_id=store.id,
         period=period,
-        amount=PRICES[period] if amount is None else amount,
+        amount=price if amount is None else amount,
         method=PlanPaymentMethod.MANUAL,
         reference=reference,
     )
@@ -178,7 +181,7 @@ def khqr_name(code: str) -> str:
     return f"{base} {code}".strip()
 
 
-def pay_to(code: str) -> PayToOut:
+def pay_to(code: str, prices: platform.Platform) -> PayToOut:
     """Oak's own KHQR (with the shop's code as the bill number) and bank
     account, from the OAK_* settings. A KHQR with an amount expires in a
     day: a fresh one is made each time the page asks."""
@@ -190,7 +193,7 @@ def pay_to(code: str) -> PayToOut:
                 bakong_account_id=settings.oak_khqr_account,
                 merchant_name=khqr_name(code),
                 currency=Currency.USD,
-                amount=PRICES[period],
+                amount=prices.price(period),
                 bill_number=code,
                 now=datetime.now(UTC),
                 account_information=settings.oak_khqr_account_info,
@@ -229,6 +232,7 @@ async def payments_of(db: AsyncSession, store_id: uuid.UUID) -> list[PlanPayment
 async def get_plan(db: AsyncSession, store_id: uuid.UUID) -> PlanOut:
     store = await store_service.get_store(db, store_id)
     payments = await payments_of(db, store_id)
+    settings = await platform.load(db)
     today = clock.today()
     claim = open_claim(payments)
     code = shop_code(store_id)
@@ -239,10 +243,11 @@ async def get_plan(db: AsyncSession, store_id: uuid.UUID) -> PlanOut:
         paid_until=paid_until,
         pay_by=pay_by(paid_until),
         days_left=None if paid_until is None else max((paid_until - today).days + 1, 0),
-        trial_until=trial_end() if paid_until is None else None,
-        prices=PlanPricesOut(month=PRICES[PlanPeriod.MONTH], year=PRICES[PlanPeriod.YEAR]),
+        trial_until=trial_end(settings.trial_days) if paid_until is None else None,
+        trial_days=settings.trial_days,
+        prices=PlanPricesOut(month=settings.month, year=settings.year),
         code=code,
-        pay_to=pay_to(code),
+        pay_to=pay_to(code, settings),
         claim=PlanPaymentOut.model_validate(claim) if claim else None,
         # An undone payment was the founder's mistake, never the seller's.
         payments=[

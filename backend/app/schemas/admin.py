@@ -3,7 +3,7 @@ and logins, closing a shop. Home, the shop list and a shop's page are in
 schemas/plan.py, where they began."""
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Literal
 
@@ -154,3 +154,26 @@ class AdminProductOut(BaseModel):
 
 class AdminHideIn(BaseModel):
     reason: str | None = Field(default=None, max_length=300)
+
+
+class AdminSettingsIn(BaseModel):
+    """Oak Order's own settings (D2B, pick 11A): one Save for all."""
+
+    khr_per_usd: int = Field(ge=1000, le=10000)
+    month: Decimal = Field(gt=0, le=1000, decimal_places=2)
+    year: Decimal = Field(gt=0, le=10000, decimal_places=2)
+    trial_days: int = Field(ge=1, le=365)
+
+
+class AdminSettingsOut(AdminSettingsIn):
+    paying_shops: int  # who pays a new price from their next payment
+    updated_at: datetime | None  # the last change
+
+
+class PlanPricesPublicOut(BaseModel):
+    """For the Terms' Fees (public): the prices and the trial today."""
+
+    month: Decimal
+    year: Decimal
+    trial_days: int
+    changed_on: date | None  # the day they last changed

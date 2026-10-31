@@ -13,7 +13,7 @@ import type { AdminPayment, AdminShopDetail, PlanPayment, PlanPeriod } from '../
 import { DayList } from './AdminLog.tsx'
 import { logItem, type DayItem } from './logWords.ts'
 import { ShopLogo, StageWords } from './AdminShops.tsx'
-import { useAdminShop, useCheckClaim, useMarkPaid, useSetShopOpen, useShopMoney } from './queries.ts'
+import { useAdminSettings, useAdminShop, useCheckClaim, useMarkPaid, useSetShopOpen, useShopMoney } from './queries.ts'
 import { ago, date, day, shortDay } from './shared.ts'
 import { Chip, Sheet } from './ui.tsx'
 import { usePasswordAgain } from './usePasswordAgain.tsx'
@@ -522,7 +522,8 @@ function MarkPaid({ shop }: { shop: AdminShopDetail }) {
   const [period, setPeriod] = useState<PlanPeriod>('month')
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
-  const price = period === 'month' ? '9.99' : '99.00'
+  const prices = useAdminSettings().data
+  const price = (period === 'month' ? prices?.month : prices?.year) ?? (period === 'month' ? '9.99' : '99.00')
 
   async function submit(event: FormEvent) {
     event.preventDefault()

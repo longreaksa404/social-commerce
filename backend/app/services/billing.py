@@ -40,7 +40,7 @@ from app.models import (
 )
 from app.schemas.plan import PlanStage
 from app.services import admin as admin_service
-from app.services import notifications, telegram
+from app.services import notifications, platform, telegram
 from app.services import plan as plan_service
 from app.services.telegram import TelegramError, escape
 
@@ -73,7 +73,7 @@ async def claim(store_id: uuid.UUID, period: PlanPeriod) -> uuid.UUID | None:
         payment = PlanPayment(
             store_id=store_id,
             period=period,
-            amount=plan_service.PRICES[period],
+            amount=(await platform.load(db)).price(period),
             method=PlanPaymentMethod.MANUAL,
             status=PlanPaymentStatus.PENDING,
         )
@@ -162,7 +162,7 @@ async def remind(store_id: uuid.UUID, today: date) -> bool:
         )
         if sent is not None:
             return False
-        text = reminder_text(store, kind)
+        text = reminder_text(store, kind, await platform.load(db))
         await notifications.send_to_seller(
             db,
             store,
@@ -223,7 +223,7 @@ async def remind_now(db: AsyncSession, store: Store, kind: str) -> NotificationL
         store,
         PLAN_REMINDER,
         {"paid_until": store.paid_until.isoformat(), "kind": NOW},
-        reminder_text(store, kind),
+        reminder_text(store, kind, await platform.load(db)),
         _button("/dashboard/settings/plan", "បង់ប្រាក់"),
     )
     return await db.scalar(
@@ -238,13 +238,14 @@ async def remind_now(db: AsyncSession, store: Store, kind: str) -> NotificationL
     )
 
 
-def reminder_text(store: Store, kind: str) -> str:
-    """Khmer only, like every bot message (2026-10-09)."""
+def reminder_text(store: Store, kind: str, prices: platform.Platform) -> str:
+    """Khmer only, like every bot message (2026-10-09), with today's
+    prices."""
     pay_by = plan_service.pay_by(store.paid_until)
     stop = khmer_day(pay_by + timedelta(days=1))
     code = plan_service.shop_code(store.id)
-    month = _price(plan_service.PRICES[PlanPeriod.MONTH])
-    year = _price(plan_service.PRICES[PlanPeriod.YEAR])
+    month = _price(prices.month)
+    year = _price(prices.year)
     how = (
         f"បង់ {month} ក្នុងមួយខែ ឬ {year} ក្នុងមួយឆ្នាំ តាម KHQR ឬផ្ទេរប្រាក់ "
         f"ក្នុង ការកំណត់ → គម្រោង ដោយដាក់លេខកូដ <b>{code}</b> ហើយចុច «ខ្ញុំបានបង់»។"

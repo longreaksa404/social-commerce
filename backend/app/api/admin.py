@@ -25,6 +25,8 @@ from app.schemas.admin import (
     AdminProductOut,
     AdminReopenIn,
     AdminSellerOut,
+    AdminSettingsIn,
+    AdminSettingsOut,
 )
 from app.schemas.plan import (
     AdminConfirmIn,
@@ -38,7 +40,7 @@ from app.schemas.plan import (
     AdminUndoIn,
 )
 from app.services import admin as admin_service
-from app.services import admin_find, admin_log, admin_money, admin_people, as_seller
+from app.services import admin_find, admin_log, admin_money, admin_people, admin_settings, as_seller
 from app.services.images import delete_file
 from app.services.telegram import escape
 
@@ -239,6 +241,28 @@ async def hide_product(
     """Part 22: hidden from its shop; the seller can show it again. 409
     PRODUCT_ALREADY_HIDDEN."""
     return await admin_find.hide_product(db, admin.admin_id, product_id, data.reason)
+
+
+@router.get("/settings", response_model=AdminSettingsOut)
+async def settings(_: Admin, db: UnscopedDb) -> AdminSettingsOut:
+    """Part 23 and D2B: the riel rate, the prices and the trial length."""
+    return await admin_settings.get(db)
+
+
+@router.put("/settings", response_model=AdminSettingsOut)
+async def save_settings(
+    data: AdminSettingsIn, admin: AdminPasswordAgain, db: UnscopedDb, background: BackgroundTasks
+) -> AdminSettingsOut:
+    """One Save (pick 11A): what changed is logged and the admins get a
+    Telegram line. A new price applies from each shop's next payment, a
+    new trial to shops opened from now. 403 PASSWORD_AGAIN."""
+    page, changes = await admin_settings.save(db, admin.admin_id, data)
+    if changes:
+        background.add_task(
+            admin_service.tell_admins,
+            f"🔐 Oak Order admin: settings saved: {admin_settings.changes_text(changes)}.",
+        )
+    return page
 
 
 @router.get("/log", response_model=list[AdminLogOut])

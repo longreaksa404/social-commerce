@@ -51,17 +51,14 @@ class StoreOut(BaseModel):
     # Order alerts: is a chat connected (the chat id itself stays private).
     telegram_connected: bool = Field(validation_alias="telegram_chat_id")
     created_at: datetime
+    # The rate a currency switch converts at, for Settings to show (set by
+    # api/store.py from services/platform.py).
+    khr_per_usd: int = 4100
 
     @field_validator("telegram_connected", mode="before")
     @classmethod
     def _has_chat(cls, chat_id: str | None) -> bool:
         return chat_id is not None
-
-    @computed_field
-    @property
-    def khr_per_usd(self) -> int:
-        """The rate a currency switch converts at, for Settings to show."""
-        return get_settings().khr_per_usd
 
     @computed_field
     @property

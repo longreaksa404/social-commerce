@@ -72,6 +72,7 @@ class PlanOut(BaseModel):
     days_left: int | None  # covered days left, today included; 0 once it has run out
     # In setup: the trial's last day if the shop opens today (the pop-up).
     trial_until: date | None
+    trial_days: int  # the free trial's length for a shop opened today
     prices: PlanPricesOut
     # The shop's code ("OAK-K7Q2MX"): in the transfer's note, so Oak Order
     # can tell whose money it is; the KHQR's bill number.

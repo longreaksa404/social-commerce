@@ -2,13 +2,31 @@
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 
-from app.api.deps import Owner, Seller, TenantDb, current_seller_themselves
+from app.api.deps import Owner, Seller, TenantDb, UnscopedDb, current_seller_themselves
 from app.core.ratelimit import check_limit
+from app.schemas.admin import PlanPricesPublicOut
 from app.schemas.plan import PaidClaimIn, PlanOut
-from app.services import billing
+from app.services import billing, platform
 from app.services import plan as plan_service
 
 router = APIRouter(prefix="/seller/plan", tags=["plan"])
+# Oak Order's prices for anyone (the Terms' Fees read them, 2026-10-30).
+public_router = APIRouter(prefix="/plan", tags=["plan"])
+
+
+def _prices_rate_limit(request: Request) -> None:
+    check_limit("60/minute", "plan-prices", request)
+
+
+@public_router.get(
+    "/prices", response_model=PlanPricesPublicOut, dependencies=[Depends(_prices_rate_limit)]
+)
+async def prices(db: UnscopedDb) -> PlanPricesPublicOut:
+    """The prices and the trial length set in the admin (D2B)."""
+    now = await platform.load(db)
+    return PlanPricesPublicOut(
+        month=now.month, year=now.year, trial_days=now.trial_days, changed_on=now.terms_changed_on
+    )
 
 
 # Staff may read it too: the Orders tab tells them when the shop has

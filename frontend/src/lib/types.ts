@@ -147,6 +147,8 @@ export type Plan = {
   days_left: number | null
   /** In setup: the trial's last day if the shop opens today. */
   trial_until: string | null
+  /** The free trial's length for a shop opened today (set in the admin). */
+  trial_days: number
   /** Oak Order Standard, US dollars. */
   prices: { month: string; year: string }
   /** The shop's code ("OAK-K7Q2MX"): in the transfer's note, so Oak
@@ -277,6 +279,17 @@ export type AdminProduct = {
   image_url: string | null
   status: 'active' | 'inactive'
   created_at: string
+}
+
+/** Oak Order's own settings (D2B, pick 11A). Prices in US dollars. */
+export type AdminSettings = {
+  khr_per_usd: number
+  month: string
+  year: string
+  trial_days: number
+  /** Who pays a new price from their next payment. */
+  paying_shops: number
+  updated_at: string | null
 }
 
 /** A line of the admin's log (part 28): `details` holds what changed and

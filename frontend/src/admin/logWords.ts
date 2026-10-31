@@ -16,6 +16,9 @@ function paid(details: AdminLogLine['details']) {
   return amount === 0 ? `Free ${details.period}` : `${formatMoney(amount, 'USD')} ${details.period}`
 }
 
+// The admin's Settings in the log (services/admin_settings.py).
+const SETTING: Record<string, string> = { khr_per_usd: 'Riel rate', month: 'Month price', year: 'Year price', trial_days: 'Free trial days' }
+
 // What a save made as the seller was, from its address (services/as_seller.py).
 const SAVED: [RegExp, string][] = [
   [/^\/seller\/products/, 'a product'],
@@ -83,6 +86,13 @@ export function logWords(line: AdminLogLine, withShop = true): { title: string; 
     case 'hide_product':
       title = withShop ? `Hid a product of ${shop}` : 'Hid a product'
       lines.push(text(d.product))
+      break
+    case 'setting':
+      title = 'Changed the settings'
+      for (const [key, words] of Object.entries(SETTING)) {
+        const pair = d[key] as unknown
+        if (Array.isArray(pair)) lines.push(`${words} ${words.endsWith('price') ? `$${pair[0]} → $${pair[1]}` : `${pair[0]} → ${pair[1]}`}`)
+      }
       break
     case 'close_shop':
       title = withShop ? `Closed ${shop}` : 'Closed the shop'

@@ -16,7 +16,7 @@ export const orders = {
     km: (day: string) => `ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់រហូតដល់ ${day}។`,
   },
   // A new shop in setup: nothing can be ordered until the owner opens it,
-  // which starts the 30-day free trial (dashboard/OpenShop.tsx).
+  // which starts the free trial (dashboard/OpenShop.tsx).
   // No orders yet, with the setup list above (UX check #3).
   emptyInSetup: {
     en: 'Orders show up here once your shop is open.',
@@ -25,9 +25,10 @@ export const orders = {
   opening: {
     button: { en: 'Open shop', km: 'បើកហាង' },
     title: { en: "Your shop isn't open yet", km: 'ហាងរបស់អ្នកមិនទាន់បើកនៅឡើយទេ' },
+    // `days`: the trial's length, set in the admin (D2B, 2026-10-30).
     text: {
-      en: "Customers can look but can't order yet. Your 30-day free trial starts when you open.",
-      km: 'អតិថិជនអាចមើលបាន ប៉ុន្តែមិនទាន់អាចកុម្ម៉ង់ទេ។ ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃចាប់ផ្ដើមពេលអ្នកបើក។',
+      en: (days: number) => `Customers can look but can't order yet. Your ${days}-day free trial starts when you open.`,
+      km: (days: number) => `អតិថិជនអាចមើលបាន ប៉ុន្តែមិនទាន់អាចកុម្ម៉ង់ទេ។ ការសាកល្បងឥតគិតថ្លៃ ${days} ថ្ងៃចាប់ផ្ដើមពេលអ្នកបើក។`,
     },
     staff: {
       en: "The owner hasn't opened the shop yet.",
@@ -36,11 +37,14 @@ export const orders = {
     // New order while in setup.
     newOrderTitle: { en: 'Open your shop first', km: 'សូមបើកហាងរបស់អ្នកជាមុនសិន' },
     newOrderText: {
-      en: 'Orders start once your shop is open. Your 30-day free trial starts then.',
-      km: 'ការកុម្ម៉ង់ចាប់ផ្ដើមពេលហាងបើក។ ការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃចាប់ផ្ដើមពេលនោះ។',
+      en: (days: number) => `Orders start once your shop is open. Your ${days}-day free trial starts then.`,
+      km: (days: number) => `ការកុម្ម៉ង់ចាប់ផ្ដើមពេលហាងបើក។ ការសាកល្បងឥតគិតថ្លៃ ${days} ថ្ងៃចាប់ផ្ដើមពេលនោះ។`,
     },
     // The pop-up.
-    confirmTitle: { en: 'Start your 30-day free trial', km: 'ចាប់ផ្ដើមការសាកល្បងឥតគិតថ្លៃ 30 ថ្ងៃ' },
+    confirmTitle: {
+      en: (days: number) => `Start your ${days}-day free trial`,
+      km: (days: number) => `ចាប់ផ្ដើមការសាកល្បងឥតគិតថ្លៃ ${days} ថ្ងៃ`,
+    },
     confirmMessage: {
       en: (day: string, month: string, year: string) =>
         `Customers can order from today. Free until ${day}, then ${month} a month or ${year} a year. No card, no automatic charges.`,

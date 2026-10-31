@@ -47,7 +47,7 @@ from app.models import (
 from app.models.account import trial_end
 from app.schemas.plan import PlanStage
 from app.services import customer as customer_service
-from app.services import plan
+from app.services import plan, platform
 from app.services.account import set_shop_logins
 from app.services.admin_people import temporary_password
 from app.services.auth import login_filter
@@ -138,7 +138,7 @@ async def preview_payment(login: str, period: PlanPeriod, amount: Decimal | None
         return PaymentPreview(
             store.name,
             store.slug,
-            plan.PRICES[period] if amount is None else amount,
+            (await platform.load(db)).price(period) if amount is None else amount,
             covers_from,
             covers_until,
             plan.stage(store.paid_until, today) in (PlanStage.STOPPED, PlanStage.SETUP),
@@ -153,7 +153,14 @@ async def record_payment(
     new paid-until date."""
     async with unscoped_session() as db:
         _, store = await _owner_and_shop(db, login)
-        plan.record_payment(db, store, period, amount=amount, reference=note)
+        plan.record_payment(
+            db,
+            store,
+            period,
+            price=(await platform.load(db)).price(period),
+            amount=amount,
+            reference=note,
+        )
         await db.commit()
         return store.paid_until
 

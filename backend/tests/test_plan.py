@@ -125,6 +125,7 @@ async def test_a_new_shop_is_in_setup_until_opened(client, register, today, monk
         "pay_by": None,
         "days_left": None,
         "trial_until": "2026-12-19",  # if opened today
+        "trial_days": 30,
         "prices": {"month": "9.99", "year": "99.00"},
         # No OAK_* settings in tests: Settings → Plan says to message Oak Order.
         "pay_to": {"khqr_month": None, "khqr_year": None, "khqr_name": None, "bank": None},
@@ -362,7 +363,9 @@ async def test_a_shop_reads_only_its_own_payments_and_cannot_add_any(two_stores,
     a, b = two_stores
     async with unscoped_session() as db:
         for ref in (a, b):
-            record_payment(db, await db.get(Store, ref.store_id), PlanPeriod.MONTH)
+            record_payment(
+                db, await db.get(Store, ref.store_id), PlanPeriod.MONTH, price=Decimal("9.99")
+            )
         await db.commit()
 
     async with tenant_session(a.store_id) as db:
