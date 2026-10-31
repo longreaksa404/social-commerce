@@ -216,6 +216,9 @@ class AdminBotOut(BaseModel):
     webhook: bool = False
     failed: int  # sends that failed in 24 hours
     recent: list[AdminFailedSendOut]
+    # Changed words Telegram refused in 24 hours, sent in the code's
+    # instead (counted by this server since it started).
+    refused: int = 0
 
 
 class AdminServiceOut(BaseModel):
@@ -284,3 +287,82 @@ class AdminSignupOut(BaseModel):
     phone: str
     telegram_name: str | None
     checked_at: datetime
+
+
+# The Bot page (02_TECHNICAL.md §12.7; founder 2026-10-31)
+
+
+class AdminBotTagOut(BaseModel):
+    name: str
+    label: str
+
+
+class AdminBotMessageOut(BaseModel):
+    key: str
+    group: Literal["sellers", "customers", "you"]
+    name: str
+    about: str
+    text: str  # in use now
+    default: str  # the code's
+    tags: list[AdminBotTagOut]
+    words: list[str]  # the small words shown under it
+    on: bool
+    can_off: bool
+    stays_on: str | None  # why it can't be turned off
+
+
+class AdminBotWordOut(BaseModel):
+    key: str
+    label: str
+    kind: Literal["text", "button", "note"]
+    text: str
+    default: str
+    tags: list[AdminBotTagOut]
+    used_in: list[str]  # the messages' names
+
+
+class AdminBotWordsOut(BaseModel):
+    messages: list[AdminBotMessageOut]
+    words: list[AdminBotWordOut]
+    updated_at: datetime | None
+
+
+class AdminBotDraftIn(BaseModel):
+    """A message's words as typed, not live yet: its text, the small words
+    changed under it, and whether it's sent."""
+
+    key: str
+    text: str = Field(max_length=6000)
+    words: dict[str, str] = Field(default_factory=dict, max_length=60)
+    on: bool = True
+    example: int = Field(default=0, ge=0, le=10)  # which one Send me a test sends
+
+
+class AdminBotExampleOut(BaseModel):
+    label: str
+    html: str  # Telegram HTML: escaped text and <b>
+    buttons: list[str]
+
+
+class AdminBotPreviewOut(BaseModel):
+    errors: list[str]  # Go live refuses these
+    warnings: list[str]  # tags taken out
+    examples: list[AdminBotExampleOut]
+
+
+class AdminBotTestOut(BaseModel):
+    sent: int
+    failed: int
+    error: str | None = None  # what Telegram said
+
+
+class AdminBotProfileIn(BaseModel):
+    """Telegram's limits: name 64, description 512, about 120."""
+
+    name: str = Field(min_length=1, max_length=64)
+    description: str = Field(max_length=512)
+    short_description: str = Field(max_length=120)
+
+
+class AdminBotProfileOut(AdminBotProfileIn):
+    username: str

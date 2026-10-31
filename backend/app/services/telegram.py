@@ -128,19 +128,25 @@ def refused_since(since: float) -> int:
     return sum(at >= since for at in _refused)
 
 
-async def register_webhook() -> None:
-    """Point the bot at this API. Run at startup when PUBLIC_API_URL is set;
-    calling it again with the same values is harmless."""
+async def point_webhook() -> None:
+    """Point the bot at this API (PUBLIC_API_URL); calling it again with
+    the same values is harmless. Raises what Telegram says."""
     settings = get_settings()
+    await call(
+        "setWebhook",
+        {
+            "url": settings.public_api_url.rstrip("/") + WEBHOOK_PATH,
+            "secret_token": settings.telegram_webhook_secret,
+            "allowed_updates": ALLOWED_UPDATES,
+        },
+    )
+
+
+async def register_webhook() -> None:
+    """At startup when PUBLIC_API_URL is set; also the admin's Connect the
+    bot again (System). A failure is logged."""
     try:
-        await call(
-            "setWebhook",
-            {
-                "url": settings.public_api_url.rstrip("/") + WEBHOOK_PATH,
-                "secret_token": settings.telegram_webhook_secret,
-                "allowed_updates": ALLOWED_UPDATES,
-            },
-        )
+        await point_webhook()
     except (TelegramError, httpx.HTTPError):
         logger.exception("Registering the Telegram webhook failed")
 

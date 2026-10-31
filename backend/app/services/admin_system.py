@@ -66,6 +66,7 @@ async def _bot(db: AsyncSession) -> AdminBotOut:
         )
         for row, shop in failed[:5]
     ]
+    refused = telegram.refused_since(time.time() - 24 * 3600)
     if not get_settings().telegram_configured:
         return AdminBotOut(set_up=False, working=False, failed=len(failed), recent=recent)
     # Telegram's own view of the bot: messages waiting, the last error.
@@ -78,6 +79,7 @@ async def _bot(db: AsyncSession) -> AdminBotOut:
             problem=str(exc) or type(exc).__name__,
             failed=len(failed),
             recent=recent,
+            refused=refused,
         )
     error_at = info.get("last_error_date")
     recent_error = error_at is not None and time.time() - error_at < 3600
@@ -89,6 +91,7 @@ async def _bot(db: AsyncSession) -> AdminBotOut:
         webhook=bool(info.get("url")),
         failed=len(failed),
         recent=recent,
+        refused=refused,
     )
 
 

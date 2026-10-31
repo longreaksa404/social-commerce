@@ -12,6 +12,12 @@ from app.core import clock
 from app.models import LoginProvider
 from app.schemas.admin import (
     AdminActingOut,
+    AdminBotDraftIn,
+    AdminBotPreviewOut,
+    AdminBotProfileIn,
+    AdminBotProfileOut,
+    AdminBotTestOut,
+    AdminBotWordsOut,
     AdminBroadcastIn,
     AdminBroadcastOut,
     AdminCloseIn,
@@ -50,6 +56,7 @@ from app.schemas.plan import (
 )
 from app.services import admin as admin_service
 from app.services import (
+    admin_bot,
     admin_find,
     admin_log,
     admin_money,
@@ -351,6 +358,75 @@ async def broadcast(
             admin_service.tell_admins, f"🔐 Oak Order admin: a message sent to {shops}."
         )
     return done
+
+
+@router.post("/system/webhook", response_model=AdminSystemOut)
+async def connect_bot_again(admin: Admin, db: UnscopedDb) -> AdminSystemOut:
+    """System's Connect the bot again: point Telegram at this API; logged."""
+    await admin_bot.connect_again(db, admin.admin_id)
+    return await admin_system.system(db)
+
+
+# The Bot page (02_TECHNICAL.md §12.7; founder 2026-10-31)
+
+
+@router.get("/bot", response_model=AdminBotWordsOut)
+async def bot_words(_: Admin, db: UnscopedDb) -> AdminBotWordsOut:
+    """Every message the bot sends and its small words, as in use now."""
+    return await admin_bot.page(db)
+
+
+@router.post("/bot/preview", response_model=AdminBotPreviewOut)
+async def bot_preview(data: AdminBotDraftIn, _: Admin, db: UnscopedDb) -> AdminBotPreviewOut:
+    """A draft's checks and the message with example orders."""
+    return await admin_bot.preview(db, data)
+
+
+@router.post("/bot/test", response_model=AdminBotTestOut)
+async def bot_test(data: AdminBotDraftIn, _: Admin, db: UnscopedDb) -> AdminBotTestOut:
+    """Save, step one (pick 9B): the draft to the admin's own Telegram.
+    422 BOT_TEXT_INVALID, 503 TELEGRAM_NOT_SET_UP."""
+    return await admin_bot.send_test(db, data)
+
+
+@router.put("/bot/messages/{key}", response_model=AdminBotWordsOut)
+async def bot_go_live(
+    key: str,
+    data: AdminBotDraftIn,
+    admin: AdminPasswordAgain,
+    db: UnscopedDb,
+    background: BackgroundTasks,
+) -> AdminBotWordsOut:
+    """Go live: the draft becomes the bot's words; logged, the admins
+    told. 403 PASSWORD_AGAIN, 422 BOT_TEXT_INVALID."""
+    data = data.model_copy(update={"key": key})
+    words, changes = await admin_bot.go_live(db, admin.admin_id, data)
+    if changes:
+        name = next(m.name for m in words.messages if m.key == key)
+        background.add_task(
+            admin_service.tell_admins, f"🔐 Oak Order admin: the bot's words went live: {name}."
+        )
+    return words
+
+
+@router.get("/bot/profile", response_model=AdminBotProfileOut)
+async def bot_profile(_: Admin) -> AdminBotProfileOut:
+    """The bot's name, text before Start and About, from Telegram."""
+    return await admin_bot.profile()
+
+
+@router.put("/bot/profile", response_model=AdminBotProfileOut)
+async def save_bot_profile(
+    data: AdminBotProfileIn, admin: AdminPasswordAgain, db: UnscopedDb, background: BackgroundTasks
+) -> AdminBotProfileOut:
+    """Pick 11A: one text for everyone. 403 PASSWORD_AGAIN, 502
+    TELEGRAM_FAILED."""
+    saved, changes = await admin_bot.save_profile(db, admin.admin_id, data)
+    if changes:
+        background.add_task(
+            admin_service.tell_admins, "🔐 Oak Order admin: the bot's profile was changed."
+        )
+    return saved
 
 
 @router.get("/signups", response_model=list[AdminSignupOut])
