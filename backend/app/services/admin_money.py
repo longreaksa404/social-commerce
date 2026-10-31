@@ -26,7 +26,7 @@ from app.models import (
     Store,
 )
 from app.schemas.plan import AdminPaymentRowOut, AdminPaymentsOut, AdminShopDetailOut
-from app.services import admin_log, billing
+from app.services import admin_log, billing, bot_texts
 from app.services import plan as plan_service
 from app.services.admin import locked_store, shop_detail
 
@@ -154,6 +154,8 @@ async def remind(db: AsyncSession, admin_id: uuid.UUID, store_id: uuid.UUID) -> 
     kind = billing.kind_now(store, clock.today())
     if kind is None:
         raise AppError(409, "NOTHING_DUE", "Nothing to pay yet.")
+    if not (await bot_texts.load(db)).on(f"plan_{kind}"):
+        raise AppError(409, "MESSAGE_OFF", "This reminder is turned off on the Bot page.")
     message = await billing.remind_now(db, store, kind)
     sent = message is not None and message.status is NotificationStatus.SENT
     admin_log.record(

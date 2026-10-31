@@ -40,34 +40,11 @@ from app.schemas.customer_login import (
     TelegramLoginIn,
     TelegramLoginOut,
 )
-from app.services import phone_check, telegram
+from app.services import bot_texts, phone_check, telegram
 
 CODE_PREFIX = phone_check.LOGIN_PREFIX
 
-# What the customer reads in the bot, in Khmer like every bot message. The
-# shop's button is បន្តជាមួយ Telegram (Continue with Telegram).
-# "To log in at <shop>, tap Share my phone number below. <shop> will see
-# the number, to reach you about your orders."
-ASK_TEXT = (
-    "📱 ដើម្បីចូលនៅ <b>{shop}</b> សូមចុចប៊ូតុង “ចែករំលែកលេខទូរស័ព្ទ” ខាងក្រោម។\n\n"
-    "<b>{shop}</b> នឹងឃើញលេខនេះ ដើម្បីទាក់ទងអ្នកអំពីការកុម្ម៉ង់។"
-)
-# "Done. You're logged in with <phone>. Go back to the shop to finish your
-# order. News of your orders will come here."
-DONE_TEXT = (
-    "✅ រួចរាល់។ អ្នកបានចូលដោយលេខ <b>{phone}</b>។\n\n"
-    "សូមត្រឡប់ទៅហាងវិញ ដើម្បីបញ្ចប់ការកុម្ម៉ង់។ ដំណឹងអំពីការកុម្ម៉ង់របស់អ្នកនឹងមកទីនេះ។"
-)
-# With the mini app (an https address): "Done. You're logged in with
-# <phone>. News of your orders will come here.", then "Finish your order at
-# <shop> here, or go back to the shop page you were on." [Open checkout]
-DONE_SHORT_TEXT = "✅ រួចរាល់។ អ្នកបានចូលដោយលេខ <b>{phone}</b>។ ដំណឹងអំពីការកុម្ម៉ង់របស់អ្នកនឹងមកទីនេះ។"
-OPEN_TEXT = "🛍 បញ្ចប់ការកុម្ម៉ង់នៅ <b>{shop}</b> នៅទីនេះ ឬត្រឡប់ទៅទំព័រហាងដែលអ្នកកំពុងបើកវិញ។"
-OPEN_BUTTON = "🛍 បើកការកុម្ម៉ង់"  # Open checkout
 _NOT_TELEGRAM = "This didn't come from Telegram."
-# "This link has expired. Go back to the shop and tap Continue with
-# Telegram again."
-EXPIRED_TEXT = "តំណនេះផុតកំណត់ហើយ។ សូមត្រឡប់ទៅហាងវិញ ហើយចុច “បន្តជាមួយ Telegram” ម្ដងទៀត។"
 
 _EXPIRED = "This has expired. Tap Continue with Telegram again."
 
@@ -180,8 +157,8 @@ async def describe(shop_db: AsyncSession, store: Store, check: PhoneCheck) -> Te
 
 
 async def opened(code: str, telegram_user_id: int) -> str | None:
-    """/start login_<code>: remember who opened it, and the text asking for
-    their phone. None if it's unknown, done or expired."""
+    """/start login_<code>: remember who opened it, and answer the shop's
+    name (for asking their phone). None if it's unknown, done or expired."""
     async with unscoped_session() as db:
         check = await db.scalar(select(PhoneCheck).where(PhoneCheck.code == code))
         if (
@@ -196,16 +173,16 @@ async def opened(code: str, telegram_user_id: int) -> str | None:
         await db.commit()
     async with tenant_session(store_id) as db:
         store = await db.get(Store, store_id)
-        return ASK_TEXT.format(shop=telegram.escape(store.name)) if store else None
+        return store.name if store else None
 
 
-async def finished(check: PhoneCheck) -> list[dict]:
+async def finished(check: PhoneCheck, texts: bot_texts.Texts) -> list[dict]:
     """The bot's answers once the phone is shared, as Bot API method calls
     in order: "Done" (and the share button goes), then "Open checkout",
     which opens the same checkout inside Telegram as a mini app, logged in
     and with the cart. Without an https address (a laptop), only "Done"
     with "go back to the shop"."""
-    phone = telegram.escape(check.phone or "")
+    phone = check.phone or ""
     remove = {"remove_keyboard": True}
     app_url = get_settings().public_app_url.rstrip("/")
     store = None
@@ -218,7 +195,7 @@ async def finished(check: PhoneCheck) -> list[dict]:
         return [
             {
                 "method": "sendMessage",
-                **telegram.message(chat_id, DONE_TEXT.format(phone=phone)),
+                **telegram.message(chat_id, texts.html("login_done", phone=phone)),
                 "reply_markup": remove,
             }
         ]
@@ -232,13 +209,17 @@ async def finished(check: PhoneCheck) -> list[dict]:
         },
         {
             "method": "sendMessage",
-            **telegram.message(chat_id, DONE_SHORT_TEXT.format(phone=phone)),
+            **telegram.message(chat_id, texts.html("login_done_app", phone=phone)),
             "reply_markup": remove,
         },
         {
             "method": "sendMessage",
-            **telegram.message(chat_id, OPEN_TEXT.format(shop=telegram.escape(store.name))),
-            "reply_markup": {"inline_keyboard": [[{"text": OPEN_BUTTON, "web_app": {"url": url}}]]},
+            **telegram.message(chat_id, texts.html("login_open", shop=store.name)),
+            "reply_markup": {
+                "inline_keyboard": [
+                    [{"text": texts.plain("button.open_checkout"), "web_app": {"url": url}}]
+                ]
+            },
         },
     ]
 

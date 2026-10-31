@@ -10,7 +10,8 @@ seller" doesn't use it: the shop links straight to the seller's own
 Telegram account (decided 2026-10-03).
 
 Plain HTTPS calls to the Bot API with httpx; no bot framework needed for
-sendMessage, /start, a shared contact and a button tap.
+sendMessage, /start, a shared contact and a button tap. What it says is
+in app/services/bot_texts.py, which the admin can change.
 """
 
 import base64
@@ -21,6 +22,7 @@ import logging
 import struct
 import time
 import uuid
+from collections import deque
 from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import parse_qsl
@@ -30,7 +32,7 @@ import httpx
 from app.core.config import get_settings
 from app.db.session import tenant_session
 from app.models import Store
-from app.services import customer_login, customer_updates, phone_check
+from app.services import bot_texts, customer_login, customer_updates, phone_check
 
 logger = logging.getLogger(__name__)
 
@@ -102,8 +104,28 @@ def message(chat_id: int | str, text: str, button: Buttons = None) -> dict:
     return payload
 
 
+# When Telegram refused a message in the admin's words and the code's went
+# instead (the System page counts them; kept in memory like monitor.py).
+_refused: deque[float] = deque(maxlen=1000)
+
+
 async def send_message(chat_id: int | str, text: str, button: Buttons = None) -> None:
-    await call("sendMessage", message(chat_id, text, button))
+    """A message from bot_texts that Telegram refuses (400) in the
+    admin's words goes again in the code's (02_TECHNICAL.md §12.7)."""
+    try:
+        await call("sendMessage", message(chat_id, text, button))
+    except TelegramError as exc:
+        original = getattr(text, "original", None)
+        if exc.status_code != 400 or exc.chat_gone or not original:
+            raise
+        logger.error("Telegram refused the admin's words, sending the original: %s", exc)
+        _refused.append(time.time())
+        await call("sendMessage", message(chat_id, original, button))
+
+
+def refused_since(since: float) -> int:
+    """How many messages went in the code's words since `since`."""
+    return sum(at >= since for at in _refused)
 
 
 async def register_webhook() -> None:
@@ -168,39 +190,10 @@ def connect_link(store_id: uuid.UUID) -> tuple[str, datetime]:
     return f"https://t.me/{get_settings().telegram_bot_username}?start={code}", expires_at
 
 
-# The bot speaks Khmer, the app's default language (decided 2026-10-09),
-# with the same words as the app's Khmer (Settings → Alerts is
-# ការកំណត់ → ការជូនដំណឹង, its button ភ្ជាប់ Telegram).
-HELP_TEXT = (
-    "បូតនេះផ្ញើដំណឹងទៅម្ចាស់ហាង រាល់ពេលមានការកុម្ម៉ង់ថ្មី។\n\n"
-    "ដើម្បីភ្ជាប់ហាងរបស់អ្នក សូមបើក Oak Order ចូលទៅ ការកំណត់ → ការជូនដំណឹង "
-    "ហើយចុច “ភ្ជាប់ Telegram”។"
-)
-EXPIRED_TEXT = (
-    "តំណនេះផុតកំណត់ ឬមិនត្រឹមត្រូវ។ នៅក្នុង Oak Order សូមបើក ការកំណត់ → ការជូនដំណឹង ហើយចុច “ភ្ជាប់ Telegram” ម្ដងទៀត។"
-)
-
-
-# Proving a phone number (app/services/phone_check.py). The page's button
-# is ផ្ទៀងផ្ទាត់ជាមួយ Telegram.
-PHONE_ASK_TEXT = (
-    "📱 ដើម្បីផ្ទៀងផ្ទាត់លេខទូរស័ព្ទរបស់អ្នកសម្រាប់ Oak Order "
-    "សូមចុចប៊ូតុង “ចែករំលែកលេខទូរស័ព្ទ” ខាងក្រោម។\n\n"
-    "សូមចុចតែពេលដែលអ្នកទើបតែចុច “ផ្ទៀងផ្ទាត់ជាមួយ Telegram” នៅក្នុង Oak Order ដោយខ្លួនឯងប៉ុណ្ណោះ។"
-)
-PHONE_BUTTON = "📱 ចែករំលែកលេខទូរស័ព្ទ"
-PHONE_EXPIRED_TEXT = "តំណនេះផុតកំណត់ហើយ។ សូមត្រឡប់ទៅ Oak Order ហើយចុច “ផ្ទៀងផ្ទាត់ជាមួយ Telegram” ម្ដងទៀត។"
-PHONE_NOT_OWN_TEXT = "សូមចុចប៊ូតុង “ចែករំលែកលេខទូរស័ព្ទ” ខាងក្រោម ដើម្បីផ្ញើលេខរបស់អ្នកផ្ទាល់។"
-
-
-def phone_done_text(phone: str) -> str:
-    return f"✅ បានផ្ទៀងផ្ទាត់លេខ <b>{escape(phone)}</b>។ សូមត្រឡប់ទៅ Oak Order វិញ ដើម្បីបន្ត។"
-
-
-def _share_keyboard() -> dict[str, Any]:
+def _share_keyboard(texts: bot_texts.Texts) -> dict[str, Any]:
     """A button under the chat that sends the account's own number."""
     return {
-        "keyboard": [[{"text": PHONE_BUTTON, "request_contact": True}]],
+        "keyboard": [[{"text": texts.plain("button.share_phone"), "request_contact": True}]],
         "resize_keyboard": True,
         "one_time_keyboard": True,
     }
@@ -222,36 +215,40 @@ async def handle_update(update: dict[str, Any]) -> dict[str, Any] | None:
     # Only private chats: in a group the bot stays silent.
     if chat.get("type") != "private" or "id" not in chat:
         return None
+    texts = await bot_texts.load()
     if "contact" in msg:
-        return await _phone_shared(chat["id"], msg)
-    reply = HELP_TEXT
+        return await _phone_shared(chat["id"], msg, texts)
+    reply = texts.html("help")
     command, _, argument = text.strip().partition(" ")
     argument = argument.strip()
     if command.split("@")[0] == "/start" and argument.startswith(phone_check.CODE_PREFIX):
         # In a private chat the chat's id is the user's.
         if await phone_check.opened(argument, chat["id"]):
-            return _reply(chat["id"], PHONE_ASK_TEXT, _share_keyboard())
-        reply = PHONE_EXPIRED_TEXT
+            return _reply(chat["id"], texts.html("signup_ask"), _share_keyboard(texts))
+        reply = texts.html("signup_expired")
     elif command.split("@")[0] == "/start" and argument.startswith(customer_login.CODE_PREFIX):
         # A customer's "Continue with Telegram".
-        ask = await customer_login.opened(argument, chat["id"])
-        if ask is not None:
-            return _reply(chat["id"], ask, _share_keyboard())
-        reply = customer_login.EXPIRED_TEXT
+        shop = await customer_login.opened(argument, chat["id"])
+        if shop is not None:
+            ask = texts.html("login_ask", shop=shop)
+            return _reply(chat["id"], ask, _share_keyboard(texts))
+        reply = texts.html("login_expired")
     elif command.split("@")[0] == "/start" and customer_updates.read_code(
         argument, check_expiry=False
     ):
         # A customer's "Get updates on Telegram".
-        ask = await customer_updates.opened(argument, chat["id"])
-        if ask is not None:
-            return _reply(chat["id"], ask, _share_keyboard())
-        reply = customer_updates.EXPIRED_TEXT
+        shop = await customer_updates.opened(argument, chat["id"])
+        if shop is not None:
+            ask = texts.html("updates_ask", shop=shop)
+            return _reply(chat["id"], ask, _share_keyboard(texts))
+        reply = texts.html("updates_expired")
     elif command.split("@")[0] == "/start" and argument:
         store_id = read_link_code(argument)
-        reply = await _connect(store_id, chat["id"]) if store_id else EXPIRED_TEXT
+        reply = await _connect(store_id, chat["id"], texts) if store_id else None
+        reply = reply or texts.html("link_expired")
     elif not text.startswith("/") and await customer_updates.is_customer_chat(chat["id"]):
         # A customer answering a shop's message here: the bot can't pass it on.
-        reply = customer_updates.HELP_TEXT
+        reply = texts.html("customer_help")
     return _reply(chat["id"], reply)
 
 
@@ -262,25 +259,27 @@ def _reply(chat_id: int, text: str, keyboard: dict[str, Any] | None = None) -> d
     return payload
 
 
-async def _phone_shared(chat_id: int, msg: dict[str, Any]) -> dict[str, Any]:
+async def _phone_shared(
+    chat_id: int, msg: dict[str, Any], texts: bot_texts.Texts
+) -> dict[str, Any]:
     """A contact sent in the chat. Only the account's own number counts:
     the share button sends that, but anyone can also attach someone
     else's contact card, which carries another user_id (or none)."""
     contact = msg.get("contact") or {}
     sender = (msg.get("from") or {}).get("id", chat_id)
     if contact.get("user_id") != sender or not contact.get("phone_number"):
-        return _reply(chat_id, PHONE_NOT_OWN_TEXT, _share_keyboard())
+        return _reply(chat_id, texts.html("not_own_phone"), _share_keyboard(texts))
     # The account's own name (Telegram always has a first name).
     name = " ".join(filter(None, (contact.get("first_name"), contact.get("last_name"))))
     check = await phone_check.shared(sender, str(contact["phone_number"]), name)
     if check is None:
-        text = PHONE_EXPIRED_TEXT
+        text = texts.html("signup_expired")
     elif check.code.startswith(phone_check.CODE_PREFIX):
-        text = phone_done_text(check.phone)
+        text = texts.html("signup_done", phone=check.phone)
     elif check.code.startswith(customer_login.CODE_PREFIX):
         # "Done", then "Open checkout": all but the last sent now, in order;
         # the last goes back in the webhook's answer.
-        *first, last = await customer_login.finished(check)
+        *first, last = await customer_login.finished(check, texts)
         for answer in first:
             try:
                 await call(answer.pop("method"), answer)
@@ -288,25 +287,20 @@ async def _phone_shared(chat_id: int, msg: dict[str, Any]) -> dict[str, Any]:
                 logger.warning("A login answer failed: %r", exc)
         return last
     else:
-        text = await customer_updates.confirmed(check)
+        text = await customer_updates.confirmed(check, texts)
     return _reply(chat_id, text, {"remove_keyboard": True})
 
 
-async def _connect(store_id: uuid.UUID, chat_id: int) -> str:
+async def _connect(store_id: uuid.UUID, chat_id: int, texts: bot_texts.Texts) -> str | None:
     """Send this store's alerts to this chat from now on (replacing any
-    earlier chat)."""
+    earlier chat). None if the store is gone."""
     async with tenant_session(store_id) as db:
         store = await db.get(Store, store_id)
         if store is None:
-            return EXPIRED_TEXT
+            return None
         store.telegram_chat_id = str(chat_id)
         await db.commit()
-        name = escape(store.name)
-    return (
-        f"✅ បានភ្ជាប់ជាមួយ <b>{name}</b>។\n\n"
-        "អ្នកនឹងទទួលបានសារនៅទីនេះ រាល់ពេលមានការកុម្ម៉ង់ថ្មី និងពេលទំនិញជិតអស់ស្តុក។ "
-        "ដើម្បីបញ្ឈប់ សូមចុច “ផ្ដាច់” នៅក្នុង ការកំណត់ → ការជូនដំណឹង។"
-    )
+        return texts.html("connected", shop=store.name)
 
 
 # The button beside the message box, like a shop's own bot's "Go Shopping"
@@ -381,6 +375,4 @@ def read_mini_app_data(
     return {**user, "auth_date": signed_at}
 
 
-def escape(text: str) -> str:
-    """For Telegram HTML: only &, < and > need escaping."""
-    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+escape = bot_texts.escape

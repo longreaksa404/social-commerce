@@ -40,9 +40,10 @@ from app.models import (
 )
 from app.schemas.plan import PlanStage
 from app.services import admin as admin_service
-from app.services import notifications, platform, telegram
+from app.services import bot_texts, notifications, platform, telegram
 from app.services import plan as plan_service
-from app.services.telegram import TelegramError, escape
+from app.services.bot_texts import word
+from app.services.telegram import TelegramError
 
 logger = logging.getLogger(__name__)
 
@@ -92,8 +93,11 @@ async def notify_claim(store_id: uuid.UUID, payment_id: uuid.UUID) -> None:
         payment = await db.get(PlanPayment, payment_id)
         if store is None or payment is None:
             return
-        text = claim_text(store, payment)
-        button = _button(f"/admin/shops/{store_id}", "ពិនិត្យ")
+        texts = await bot_texts.load(db)
+        if not texts.on("plan_claim"):
+            return
+        text = claim_text(store, payment, texts)
+        button = _button(f"/admin/shops/{store_id}", texts.plain("button.check"))
         for chat_id in await admin_service.admin_chats(db):
             try:
                 await telegram.send_message(chat_id, text, button)
@@ -162,14 +166,17 @@ async def remind(store_id: uuid.UUID, today: date) -> bool:
         )
         if sent is not None:
             return False
-        text = reminder_text(store, kind, await platform.load(db))
+        texts = await bot_texts.load(db)
+        if not texts.on(f"plan_{kind}"):
+            return False
+        text = reminder_text(store, kind, await platform.load(db), texts)
         await notifications.send_to_seller(
             db,
             store,
             PLAN_REMINDER,
             {"paid_until": store.paid_until.isoformat(), "kind": kind},
             text,
-            _button("/dashboard/settings/plan", "បង់ប្រាក់"),
+            _button("/dashboard/settings/plan", texts.plain("button.plan_pay")),
         )
         return True
 
@@ -217,14 +224,16 @@ def kind_now(store: Store, today: date) -> str | None:
 async def remind_now(db: AsyncSession, store: Store, kind: str) -> NotificationLog | None:
     """The admin's reminder (part 18), sent today on the admin's session
     (commits). The message as logged, or None when Telegram isn't set up
-    or the shop has no chat."""
+    or the shop has no chat. The admin's page says so first when this
+    kind is turned off on the Bot page."""
+    texts = await bot_texts.load(db)
     await notifications.send_to_seller(
         db,
         store,
         PLAN_REMINDER,
         {"paid_until": store.paid_until.isoformat(), "kind": NOW},
-        reminder_text(store, kind, await platform.load(db)),
-        _button("/dashboard/settings/plan", "បង់ប្រាក់"),
+        reminder_text(store, kind, await platform.load(db), texts),
+        _button("/dashboard/settings/plan", texts.plain("button.plan_pay")),
     )
     return await db.scalar(
         select(NotificationLog)
@@ -238,44 +247,30 @@ async def remind_now(db: AsyncSession, store: Store, kind: str) -> NotificationL
     )
 
 
-def reminder_text(store: Store, kind: str, prices: platform.Platform) -> str:
-    """Khmer only, like every bot message (2026-10-09), with today's
+def reminder_text(
+    store: Store, kind: str, prices: platform.Platform, texts: bot_texts.Texts
+) -> bot_texts.Rendered:
+    """The bot's plan_start, plan_day5 or plan_stopped, with today's
     prices."""
     pay_by = plan_service.pay_by(store.paid_until)
-    stop = khmer_day(pay_by + timedelta(days=1))
-    code = plan_service.shop_code(store.id)
-    month = _price(prices.month)
-    year = _price(prices.year)
-    how = (
-        f"បង់ {month} ក្នុងមួយខែ ឬ {year} ក្នុងមួយឆ្នាំ តាម KHQR ឬផ្ទេរប្រាក់ "
-        f"ក្នុង ការកំណត់ → គម្រោង ដោយដាក់លេខកូដ <b>{code}</b> ហើយចុច «ខ្ញុំបានបង់»។"
-    )
-    if kind == "stopped":
-        # Settings → Plan's own words for a stopped shop.
-        return (
-            f"⛔ <b>Oak Order</b> · {escape(store.name)}\n"
-            "ហាងរបស់អ្នកមិនទទួលការកុម្ម៉ង់ថ្មីទេ។ សូមបង់ ដើម្បីបើកវិញភ្លាមៗ។\n"
-            f"{how}"
-        )
-    if kind == "start":
-        return (
-            f"🔔 <b>Oak Order</b> · {escape(store.name)}\n"
-            f"ដល់ពេលបង់ប្រាក់សម្រាប់គម្រោងរបស់អ្នកហើយ។ {how}\n"
-            f"បើមិនទាន់បង់ត្រឹម {khmer_day(pay_by)} ទេ ហាងរបស់អ្នកនឹងឈប់ទទួលការកុម្ម៉ង់ថ្មីនៅ {stop}។"
-        )
-    return (
-        f"⚠️ <b>Oak Order</b> · {escape(store.name)}\n"
-        f"យើងមិនទាន់ទទួលបានការបង់ប្រាក់របស់អ្នកនៅឡើយ។ {how}\n"
-        f"សូមបង់ត្រឹម {khmer_day(pay_by)}៖ ហាងរបស់អ្នកនឹងឈប់ទទួលការកុម្ម៉ង់ថ្មីនៅ {stop}។"
+    return texts.html(
+        f"plan_{kind}",
+        shop=store.name,
+        month_price=_price(prices.month),
+        year_price=_price(prices.year),
+        code=plan_service.shop_code(store.id),
+        pay_by=khmer_day(pay_by),
+        stop_day=khmer_day(pay_by + timedelta(days=1)),
     )
 
 
-def claim_text(store: Store, payment: PlanPayment) -> str:
-    period = "មួយខែ" if payment.period is PlanPeriod.MONTH else "មួយឆ្នាំ"
-    return (
-        f"💰 <b>{escape(store.name)}</b> ({plan_service.shop_code(store.id)}) "
-        f"និយាយថាបានបង់ {_price(payment.amount)} សម្រាប់{period}។\n"
-        "ពិនិត្យគណនីរបស់អ្នក ហើយកត់ថាបានបង់ ក្នុងទំព័រគ្រប់គ្រង។"
+def claim_text(store: Store, payment: PlanPayment, texts: bot_texts.Texts) -> bot_texts.Rendered:
+    return texts.html(
+        "plan_claim",
+        shop=store.name,
+        code=plan_service.shop_code(store.id),
+        amount=_price(payment.amount),
+        period=word("period.month" if payment.period is PlanPeriod.MONTH else "period.year"),
     )
 
 

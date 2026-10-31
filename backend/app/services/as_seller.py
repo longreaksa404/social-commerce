@@ -23,9 +23,8 @@ from app.core.errors import AppError
 from app.db.session import unscoped_session
 from app.models import Seller, Store
 from app.schemas.admin import AdminActingOut
-from app.services import admin_log, notifications
+from app.services import admin_log, bot_texts, notifications
 from app.services.admin import locked_store
-from app.services.telegram import escape
 
 OPENED = "opened_by_oak"  # the shop's Telegram is told
 WRITES = frozenset({"POST", "PUT", "PATCH", "DELETE"})
@@ -50,10 +49,10 @@ async def open_as_seller(
     )
 
 
-def opened_text(store: Store) -> str:
-    """Khmer only, like every bot message: "Oak Order opened your shop to
-    help you" (01_PRODUCT.md §22.11)."""
-    return f"🛟 <b>Oak Order</b> · {escape(store.name)}\nOak Order បានបើកហាងរបស់អ្នក ដើម្បីជួយអ្នក។"
+def opened_text(store: Store, texts: bot_texts.Texts) -> bot_texts.Rendered:
+    """ "Oak Order opened your shop to help you" (01_PRODUCT.md §22.11); it
+    can't be turned off, the Privacy page promises it."""
+    return texts.html("opened_shop", shop=store.name)
 
 
 async def tell_shop(store_id: uuid.UUID) -> None:
@@ -62,7 +61,8 @@ async def tell_shop(store_id: uuid.UUID) -> None:
     async with unscoped_session() as db:
         store = await db.get(Store, store_id)
         if store is not None:
-            await notifications.send_to_seller(db, store, OPENED, {}, opened_text(store))
+            text = opened_text(store, await bot_texts.load(db))
+            await notifications.send_to_seller(db, store, OPENED, {}, text)
 
 
 def acting(authorization: str | None) -> tuple[uuid.UUID, uuid.UUID] | None:

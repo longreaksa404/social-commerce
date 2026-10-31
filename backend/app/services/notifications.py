@@ -39,9 +39,9 @@ from app.models import (
     Store,
 )
 from app.schemas.notification import NotificationListOut, NotificationOut
-from app.services import customer_updates, telegram
+from app.services import bot_texts, customer_updates, telegram
 from app.services import payment as payment_service
-from app.services.telegram import escape
+from app.services.bot_texts import word
 
 logger = logging.getLogger(__name__)
 
@@ -49,14 +49,18 @@ logger = logging.getLogger(__name__)
 # Alerts); also where the shop starts saying "Only N left" to customers.
 DEFAULT_LOW_STOCK = 5
 
-# Telegram alerts are in Khmer, the app's default language (decided
-# 2026-10-09), in the app's own Khmer words. The web notifications are
-# saved as data and worded by the app in the seller's chosen language.
-PAYMENT_LABELS = {
-    PaymentMethod.COD: "បង់ប្រាក់ពេលទទួលទំនិញ",  # Cash on delivery
-    PaymentMethod.BANK_TRANSFER: "ផ្ទេរតាមធនាគារ",  # Bank transfer
-    PaymentMethod.KHQR: "KHQR",
+# Telegram alerts are in the bot's words (app/services/bot_texts.py,
+# Khmer). The web notifications are saved as data and worded by the app
+# in the seller's chosen language.
+PAYMENT_WORDS = {
+    PaymentMethod.COD: "payment.cod",
+    PaymentMethod.BANK_TRANSFER: "payment.bank_transfer",
+    PaymentMethod.KHQR: "payment.khqr",
 }
+
+
+def payment_word(method: PaymentMethod) -> bot_texts.WordRef:
+    return word(PAYMENT_WORDS[method])
 
 
 @dataclass(frozen=True)
@@ -245,65 +249,71 @@ def format_money(amount: Decimal, currency: Currency) -> str:
     return f"${amount:,.2f}"
 
 
-def new_order_text(order: Order) -> str:
+def new_order_text(order: Order, texts: bot_texts.Texts) -> bot_texts.Rendered:
     money = lambda amount: format_money(amount, order.currency)  # noqa: E731
-    heading = f"🛒 <b>ការកុម្ម៉ង់ថ្មី #{order.number}</b>"  # New order
-    if order.status is OrderStatus.ACCEPTED:
-        heading += " (បានទទួលដោយស្វ័យប្រវត្តិ)"  # accepted automatically
-    lines = [heading, ""]
+    items = []
     for item in order.items:
         name = item.product_name_snapshot
         if item.variant_name_snapshot:
             name += f" ({item.variant_name_snapshot})"
-        lines.append(f"{item.quantity} × {escape(name)}: {money(item.line_total)}")
-    if order.discount:
-        lines.append(f"បញ្ចុះតម្លៃ: −{money(order.discount)}")  # Discount
-    if order.delivery_method is not DeliveryMethod.PICKUP:
-        fee = money(order.delivery_fee) if order.delivery_fee else "ឥតគិតថ្លៃ"  # free
-        lines.append(f"ថ្លៃដឹក: {fee}")  # Delivery
-    lines.append(f"<b>សរុប: {money(order.total)}</b>")  # Total
-    lines.append("")
-    lines.append(f"💳 {PAYMENT_LABELS[order.payment.method]}")
-    if order.delivery_method is DeliveryMethod.PICKUP:
-        lines.append("🏪 មកយកផ្ទាល់")  # Pickup
+        items.append(f"{item.quantity} × {name}: {money(item.line_total)}")
+    pickup = order.delivery_method is DeliveryMethod.PICKUP
+    if pickup:
+        delivery = word("delivery.pickup")
+    elif order.delivery.courier:
+        delivery = word("delivery.courier", courier=order.delivery.courier)
     else:
-        lines.append(f"🚚 {escape(order.delivery.courier or 'ដឹកដោយខ្លួនឯង')}")  # Your own delivery
-    lines.append(f"👤 {escape(order.customer.name)}, {order.customer.phone}")
+        delivery = word("delivery.own")
     if order.delivery_address:
-        lines.append(f"📍 {escape(order.delivery_address)}")
+        address: bot_texts.Value = order.delivery_address
     elif order.delivery_lat is not None:
-        # Location pinned (open the order for the map)
-        lines.append("📍 បានដៅទីតាំង (បើកការកុម្ម៉ង់ ដើម្បីមើលផែនទី)")
-    if order.notes:
-        lines.append(f"📝 {escape(order.notes)}")
-    return "\n".join(lines)
+        address = word("location_pinned")  # open the order for the map
+    else:
+        address = ""
+    if pickup:
+        fee: bot_texts.Value = ""
+    else:
+        fee = money(order.delivery_fee) if order.delivery_fee else word("free")
+    return texts.html(
+        "new_order",
+        number=order.number,
+        auto=word("auto_accepted") if order.status is OrderStatus.ACCEPTED else "",
+        items="\n".join(items),
+        discount=money(order.discount) if order.discount else "",
+        delivery_fee=fee,
+        total=money(order.total),
+        payment=payment_word(order.payment.method),
+        delivery=delivery,
+        customer=order.customer.name,
+        phone=order.customer.phone,
+        address=address,
+        notes=order.notes or "",
+    )
 
 
-def low_stock_text(alerts: list[StockAlert]) -> str:
-    lines = ["⚠️ <b>ជិតអស់ស្តុក</b>", ""]  # Running low
-    for alert in alerts:
-        # Sold out / Only N left
-        left = "អស់ស្តុក" if alert.left == 0 else f"នៅសល់តែ {alert.left} ទៀត"
-        lines.append(f"{escape(alert.name)}: {left}")
-    return "\n".join(lines)
+def low_stock_text(alerts: list[StockAlert], texts: bot_texts.Texts) -> bot_texts.Rendered:
+    rows = [
+        [
+            alert.name,
+            ": ",
+            word("stock.sold_out") if alert.left == 0 else word("stock.only_left", left=alert.left),
+        ]
+        for alert in alerts
+    ]
+    return texts.html("low_stock", items=bot_texts.lines(rows))
 
 
-def payment_claimed_text(order: Order) -> str:
+def payment_claimed_text(order: Order, texts: bot_texts.Texts) -> bot_texts.Rendered:
     """Once the payment is marked paid (from its button or the app), the
     last line says so instead of what to do."""
-    money = format_money(order.payment.amount, order.currency)
-    name = escape(order.customer.name)
-    return "\n".join(
-        [
-            # "<name> says they paid order #1001"
-            f"💰 <b>{name} ថាបានបង់ការកុម្ម៉ង់ #{order.number}</b> · {money}",
-            f"💳 {PAYMENT_LABELS[order.payment.method]}",
-            "",
-            MARKED_PAID
-            if order.payment.status is PaymentStatus.PAID
-            # "Check your bank app, then tap Received, mark paid."
-            else f"សូមពិនិត្យកម្មវិធីធនាគាររបស់អ្នក រួចចុច “{MARK_PAID_BUTTON}”។",
-        ]
+    paid = order.payment.status is PaymentStatus.PAID
+    return texts.html(
+        "payment_claimed",
+        customer=order.customer.name,
+        number=order.number,
+        amount=format_money(order.payment.amount, order.currency),
+        payment=payment_word(order.payment.method),
+        next=word("claim.marked") if paid else word("claim.check"),
     )
 
 
@@ -312,27 +322,26 @@ def payment_claimed_text(order: Order) -> str:
 # The tap's data is "paid:<order id>"; button_tapped checks it came from
 # the order's own shop chat.
 MARK_PAID_DATA = "paid:"
-MARK_PAID_BUTTON = "✅ បានទទួល កត់ថាបានបង់"  # Received, mark paid
-MARKED_PAID = "✅ បានកត់ថាបានបង់"  # Marked paid
 
 
-def payment_claimed_buttons(order: Order) -> list[dict[str, str]]:
+def payment_claimed_buttons(order: Order, texts: bot_texts.Texts) -> list[dict[str, str]]:
     """Received, mark paid (while it's pending), then Open order."""
     row = []
     if order.payment.status is PaymentStatus.PENDING:
-        row.append(telegram.tap_button(MARK_PAID_BUTTON, f"{MARK_PAID_DATA}{order.id}"))
-    if (link := order_button(order)) is not None:
+        label = texts.plain("button.mark_paid")
+        row.append(telegram.tap_button(label, f"{MARK_PAID_DATA}{order.id}"))
+    if (link := order_button(order, texts)) is not None:
         row.append(telegram.url_button(*link))
     return row
 
 
-def order_button(order: Order) -> tuple[str, str] | None:
+def order_button(order: Order, texts: bot_texts.Texts) -> tuple[str, str] | None:
     """ "Open order" in the dashboard. Telegram refuses buttons to non-https
     addresses such as localhost, so none then."""
     app_url = get_settings().public_app_url.rstrip("/")
     if not app_url.startswith("https://"):
         return None
-    return "បើកការកុម្ម៉ង់", f"{app_url}/dashboard/orders/{order.id}"
+    return texts.plain("button.open_order"), f"{app_url}/dashboard/orders/{order.id}"
 
 
 async def notify_new_order(
@@ -347,6 +356,12 @@ async def notify_new_order(
     async with tenant_session(store_id) as db:
         store = await db.get(Store, store_id)
         if store is None or store.telegram_chat_id is None:
+            return
+        texts = await bot_texts.load(db)
+        new_order = new_order and texts.on("new_order")
+        if not texts.on("low_stock"):
+            alerts = []
+        if not new_order and not alerts:
             return
         order = await db.scalar(
             select(Order)
@@ -364,12 +379,14 @@ async def notify_new_order(
             (
                 "new_order",
                 {"order_id": str(order.id), "order_number": order.number},
-                new_order_text(order),
-                order_button(order),
+                new_order_text(order, texts),
+                order_button(order, texts),
             )
         ][: 1 if new_order else 0]
         if alerts:
-            messages.append(("low_stock", _stock_payload(alerts), low_stock_text(alerts), None))
+            messages.append(
+                ("low_stock", _stock_payload(alerts), low_stock_text(alerts, texts), None)
+            )
         await _send_all(db, store, messages)
 
 
@@ -381,6 +398,9 @@ async def notify_payment_claimed(store_id: uuid.UUID, order_id: uuid.UUID) -> No
     async with tenant_session(store_id) as db:
         store = await db.get(Store, store_id)
         if store is None or store.telegram_chat_id is None:
+            return
+        texts = await bot_texts.load(db)
+        if not texts.on(PAYMENT_CLAIMED):
             return
         order = await db.scalar(
             select(Order)
@@ -396,24 +416,16 @@ async def notify_payment_claimed(store_id: uuid.UUID, order_id: uuid.UUID) -> No
                 (
                     PAYMENT_CLAIMED,
                     {"order_id": str(order.id), "order_number": order.number},
-                    payment_claimed_text(order),
-                    payment_claimed_buttons(order),
+                    payment_claimed_text(order, texts),
+                    payment_claimed_buttons(order, texts),
                 )
             ],
         )
 
 
-# What a tap answers (a small note at the top of the seller's chat).
-TAP_DONE = "បានកត់ថាបានបង់ #{number}"  # Marked #1001 paid
-TAP_ALREADY = "ការកុម្ម៉ង់ #{number} បានបង់រួចហើយ"  # Order #1001 is paid already
-# "Order #1001 is marked "payment failed". Open the order to change it."
-TAP_FAILED = "ការកុម្ម៉ង់ #{number} ត្រូវបានកត់ថា បង់ប្រាក់មិនបាន។ សូមបើកការកុម្ម៉ង់ ដើម្បីប្ដូរ។"
-TAP_CLOSED = {
-    OrderStatus.REJECTED: "អ្នកបានបដិសេធការកុម្ម៉ង់ #{number} រួចហើយ។",  # You rejected order #1001
-    OrderStatus.CANCELLED: "ការកុម្ម៉ង់ #{number} ត្រូវបានលុបចោលរួចហើយ។",  # Order #1001 is cancelled
-}
-# "This button doesn't work any more. Open the order in Oak Order."
-TAP_GONE = "ប៊ូតុងនេះលែងដំណើរការហើយ។ សូមបើកការកុម្ម៉ង់នៅក្នុង Oak Order។"
+# What a tap answers (a small note at the top of the seller's chat): the
+# words tap.done, tap.already, tap.failed, these two and tap.gone.
+TAP_CLOSED = {OrderStatus.REJECTED: "tap.rejected", OrderStatus.CANCELLED: "tap.cancelled"}
 
 
 async def button_tapped(query: dict[str, Any]) -> dict[str, Any] | None:
@@ -427,7 +439,8 @@ async def button_tapped(query: dict[str, Any]) -> dict[str, Any] | None:
     chat_id = ((query.get("message") or {}).get("chat") or {}).get("id")
     if not data.startswith(MARK_PAID_DATA) or chat_id is None:
         return None
-    note, recorded, edit = await _mark_paid(data[len(MARK_PAID_DATA) :], str(chat_id))
+    texts = await bot_texts.load()
+    note, recorded, edit = await _mark_paid(data[len(MARK_PAID_DATA) :], str(chat_id), texts)
     if edit is not None:
         text, buttons = edit
         try:
@@ -452,23 +465,24 @@ async def button_tapped(query: dict[str, Any]) -> dict[str, Any] | None:
 
 
 async def _mark_paid(
-    raw_id: str, chat_id: str
+    raw_id: str, chat_id: str, texts: bot_texts.Texts
 ) -> tuple[str, tuple[uuid.UUID, uuid.UUID] | None, tuple[str, list[dict[str, str]]] | None]:
     """(the note to show, (store, order) when recorded, the alert's new
     text and buttons if it should change)."""
+    gone = texts.plain("tap.gone")
     try:
         order_id = uuid.UUID(raw_id)
     except ValueError:
-        return TAP_GONE, None, None
+        return gone, None, None
     # Which shop: the tap has no tenant. Read nothing else unscoped.
     async with unscoped_session() as db:
         store_id = await db.scalar(select(Order.store_id).where(Order.id == order_id))
     if store_id is None:
-        return TAP_GONE, None, None
+        return gone, None, None
     async with tenant_session(store_id) as db:
         store = await db.get(Store, store_id)
         if store is None or store.telegram_chat_id != chat_id:
-            return TAP_GONE, None, None
+            return gone, None, None
         # Locked like the app's Mark paid, so two taps can't both record it.
         order = await db.scalar(
             select(Order)
@@ -477,22 +491,23 @@ async def _mark_paid(
             .with_for_update()
         )
         if order is None:
-            return TAP_GONE, None, None
+            return gone, None, None
         number = order.number
         payment = order.payment
         if payment.status is PaymentStatus.PAID:
-            return TAP_ALREADY.format(number=number), None, _paid_alert(order)
+            return texts.plain("tap.already", number=number), None, _paid_alert(order, texts)
         if order.status in TAP_CLOSED:
-            return TAP_CLOSED[order.status].format(number=number), None, None
+            return texts.plain(TAP_CLOSED[order.status], number=number), None, None
         if payment.status is not PaymentStatus.PENDING:
-            return TAP_FAILED.format(number=number), None, None
+            return texts.plain("tap.failed", number=number), None, None
         payment_service.record(payment, PaymentStatus.PAID, None)
         await db.commit()
-        return TAP_DONE.format(number=number), (store_id, order_id), _paid_alert(order)
+        done = texts.plain("tap.done", number=number)
+        return done, (store_id, order_id), _paid_alert(order, texts)
 
 
-def _paid_alert(order: Order) -> tuple[str, list[dict[str, str]]]:
-    return payment_claimed_text(order), payment_claimed_buttons(order)
+def _paid_alert(order: Order, texts: bot_texts.Texts) -> tuple[str, list[dict[str, str]]]:
+    return payment_claimed_text(order, texts), payment_claimed_buttons(order, texts)
 
 
 async def send_to_seller(

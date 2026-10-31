@@ -43,7 +43,7 @@ from app.models import (
     Seller,
     Store,
 )
-from app.services import customer_updates, notifications, telegram
+from app.services import bot_texts, customer_updates, notifications, telegram
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,6 @@ REMIND_UNTIL = timedelta(hours=24)
 QUIET_FROM, QUIET_UNTIL = 22, 7
 PAYMENT_REMINDER = "payment_reminder"
 OFF = (OrderStatus.REJECTED, OrderStatus.CANCELLED, OrderStatus.COMPLETED)
-PAY = "💳 បង់ប្រាក់"  # Pay
 
 
 def quiet(now: datetime) -> bool:
@@ -61,20 +60,17 @@ def quiet(now: datetime) -> bool:
     return hour >= QUIET_FROM or hour < QUIET_UNTIL
 
 
-def reminder_text(store: Store, order: Order) -> str:
+def reminder_text(store: Store, order: Order, texts: bot_texts.Texts) -> bot_texts.Rendered:
+    """ "Waiting for your payment of $12.00. Paid already? Tap "I've paid" on
+    your order page." The page's button is ខ្ញុំបានបង់ហើយ."""
     money = notifications.format_money(order.payment.amount, order.currency)
-    # "Waiting for your payment of $12.00. Paid already? Tap "I've paid" on
-    # your order page." The page's button is ខ្ញុំបានបង់ហើយ.
-    line = (
-        f"⏳ កំពុងរង់ចាំការបង់ប្រាក់ {money} របស់អ្នក។ បើបានបង់រួចហើយ សូមចុច “ខ្ញុំបានបង់ហើយ” នៅក្នុងទំព័រការកុម្ម៉ង់របស់អ្នក។"
-    )
-    return customer_updates.message_text(store, order, line)
+    return texts.html("payment_reminder", shop=store.name, number=order.number, amount=money)
 
 
-def pay_button(store: Store, order: Order) -> tuple[str, str] | None:
+def pay_button(store: Store, order: Order, texts: bot_texts.Texts) -> tuple[str, str] | None:
     """The order page, labelled Pay (none for a non-https address)."""
-    view = customer_updates.order_button(store, order)
-    return (PAY, view[1]) if view else None
+    view = customer_updates.order_button(store, order, texts)
+    return (texts.plain("button.pay"), view[1]) if view else None
 
 
 @dataclass
@@ -88,8 +84,11 @@ async def run(now: datetime | None = None) -> RunSummary:
     now = now or datetime.now(UTC)
     if not get_settings().telegram_configured or quiet(now):
         return summary
+    texts = await bot_texts.load()
+    if not texts.on(PAYMENT_REMINDER):
+        return summary
     for store_id, order_id in await due(now):
-        if await remind(store_id, order_id):
+        if await remind(store_id, order_id, texts):
             summary.reminders += 1
     logger.info("Reminders run: %s", summary)
     return summary
@@ -142,7 +141,9 @@ async def due(now: datetime) -> list[tuple[uuid.UUID, uuid.UUID]]:
         return [(store_id, oid) for store_id, oid in rows.all()]
 
 
-async def remind(store_id: uuid.UUID, order_id: uuid.UUID) -> bool:
+async def remind(
+    store_id: uuid.UUID, order_id: uuid.UUID, texts: bot_texts.Texts = bot_texts.DEFAULT
+) -> bool:
     """Sends this order's reminder, logged either way. False if it went
     since it was found (paid, closed, the chat gone) or failed."""
     async with tenant_session(store_id) as db:
@@ -163,7 +164,7 @@ async def remind(store_id: uuid.UUID, order_id: uuid.UUID) -> bool:
         status = NotificationStatus.SENT
         try:
             await telegram.send_message(
-                chat_id, reminder_text(store, order), pay_button(store, order)
+                chat_id, reminder_text(store, order, texts), pay_button(store, order, texts)
             )
         except telegram.TelegramError as exc:
             status = NotificationStatus.FAILED

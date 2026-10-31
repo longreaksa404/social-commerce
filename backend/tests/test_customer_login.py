@@ -15,7 +15,7 @@ import pytest
 from app.core.config import get_settings
 from app.db.session import unscoped_session
 from app.models import PhoneCheck
-from app.services import customer_login, telegram
+from app.services import bot_texts, customer_login, telegram
 from tests.helpers import add_product, place_order, registered_seller, track
 
 LINE = {
@@ -187,7 +187,7 @@ async def test_the_cart_can_be_updated_as_the_page_leaves(client, bot, auth_head
 
 async def test_an_expired_or_unknown_login_link_explains(client, bot, sokha):
     reply = await telegram.handle_update(message(sokha, text="/start login_nothing"))
-    assert reply["text"] == customer_login.EXPIRED_TEXT
+    assert reply["text"] == bot_texts.DEFAULT.html("login_expired")
 
 
 async def test_a_customer_token_is_no_seller_login(client, bot, auth_headers, sokha):
