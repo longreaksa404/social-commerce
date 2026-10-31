@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     cors_origins: list[str] = []
     # Error tracking is off unless a DSN is set (production only).
     sentry_dsn: str = ""
+    # A share of requests whose speed Sentry records (0 to 1; 0 = errors
+    # only, the free quota), for the System page's "Look deeper".
+    sentry_traces_sample_rate: float = Field(default=0, ge=0, le=1)
 
     # Auth (02_TECHNICAL.md section 13)
     jwt_secret: str = Field(min_length=32)

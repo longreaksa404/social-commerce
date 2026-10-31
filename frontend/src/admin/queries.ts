@@ -11,6 +11,7 @@ import type {
   AdminSettings,
   AdminShop,
   AdminShopDetail,
+  AdminSystem,
 } from '../lib/types.ts'
 
 /** The admin panel's data, on the admin's own session (`adminApi`), under
@@ -29,6 +30,7 @@ export const adminKeys = {
   customers: ['admin', 'customers'] as const,
   products: ['admin', 'products'] as const,
   settings: ['admin', 'settings'] as const,
+  system: ['admin', 'system'] as const,
 }
 
 /** Who is logged in to the admin. */
@@ -267,6 +269,23 @@ export function useSaveSettings() {
       adminApi<AdminSettings>('/admin/settings', { method: 'PUT', body }),
     onSuccess: (settings) => {
       queryClient.setQueryData(adminKeys.settings, settings)
+      queryClient.invalidateQueries({ queryKey: adminKeys.log })
+    },
+  })
+}
+
+/** The System page: fresh each visit, and every 30 seconds while open. */
+export function useAdminSystem() {
+  return useQuery({ queryKey: adminKeys.system, queryFn: () => adminApi<AdminSystem>('/admin/system'), staleTime: 0, refetchInterval: 30_000 })
+}
+
+/** Run a job now (part 25), as cron-job.org would. */
+export function useRunJob() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (name: 'billing' | 'reminders') => adminApi<{ sent: number }>(`/admin/jobs/${name}/run`, { method: 'POST' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.system })
       queryClient.invalidateQueries({ queryKey: adminKeys.log })
     },
   })

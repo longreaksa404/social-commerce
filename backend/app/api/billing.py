@@ -6,7 +6,7 @@ import hmac
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException
 
 from app.core.config import get_settings
-from app.services import billing
+from app.services import jobs
 
 router = APIRouter(tags=["billing"], include_in_schema=False)
 
@@ -21,5 +21,5 @@ async def billing_run(
     secret = get_settings().billing_cron_secret
     if not secret or not hmac.compare_digest(x_cron_secret, secret):
         raise HTTPException(status_code=404)
-    background.add_task(billing.run_daily)
+    background.add_task(jobs.run, "billing")
     return {"started": True}

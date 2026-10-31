@@ -292,6 +292,35 @@ export type AdminSettings = {
   updated_at: string | null
 }
 
+/** The admin's System page (parts 24 to 27, pick 12B). */
+export type AdminSystem = {
+  /** Counted in memory by the server: since it started, at most an hour. */
+  speed: {
+    requests: number
+    typical_ms: number | null
+    /** The slowest 1 in 20, and the route most often that slow. */
+    slow_ms: number | null
+    slow_route: string | null
+    errors_hour: number
+    errors_today: number
+    started_at: string
+  }
+  jobs: { name: 'billing' | 'reminders'; title: string; every: string; last_at: string | null; last_sent: number | null; late: boolean }[]
+  bot: {
+    set_up: boolean
+    working: boolean
+    problem: string | null
+    waiting: number
+    webhook: boolean
+    failed: number
+    recent: { store_id: string; shop: string; event_type: string; error: string; sent_at: string }[]
+  }
+  database_bytes: number
+  database_ms: number
+  services: { name: string; set: boolean }[]
+  version: string | null
+}
+
 /** A line of the admin's log (part 28): `details` holds what changed and
  * the names as they were (admin/logWords.ts reads them). */
 export type AdminLogLine = {

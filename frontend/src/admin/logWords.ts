@@ -94,6 +94,10 @@ export function logWords(line: AdminLogLine, withShop = true): { title: string; 
         if (Array.isArray(pair)) lines.push(`${words} ${words.endsWith('price') ? `$${pair[0]} → $${pair[1]}` : `${pair[0]} → ${pair[1]}`}`)
       }
       break
+    case 'run_job':
+      title = `Ran ${d.job === 'billing' ? 'the plan reminders' : 'the customer reminders'} now`
+      lines.push(d.sent === 1 ? '1 sent' : `${d.sent} sent`)
+      break
     case 'close_shop':
       title = withShop ? `Closed ${shop}` : 'Closed the shop'
       break

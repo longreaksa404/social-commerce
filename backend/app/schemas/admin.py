@@ -177,3 +177,63 @@ class PlanPricesPublicOut(BaseModel):
     year: Decimal
     trial_days: int
     changed_on: date | None  # the day they last changed
+
+
+class AdminSpeedOut(BaseModel):
+    """Counted by the server in memory: since it started, at most an hour."""
+
+    requests: int
+    typical_ms: float | None
+    slow_ms: float | None  # the slowest 1 in 20
+    slow_route: str | None
+    errors_hour: int
+    errors_today: int
+    started_at: datetime
+
+
+class AdminJobOut(BaseModel):
+    name: str  # billing, reminders
+    title: str
+    every: str  # daily, hourly
+    last_at: datetime | None
+    last_sent: int | None
+    late: bool  # never ran, or not within its time
+
+
+class AdminFailedSendOut(BaseModel):
+    store_id: uuid.UUID
+    shop: str
+    event_type: str
+    error: str
+    sent_at: datetime
+
+
+class AdminBotOut(BaseModel):
+    set_up: bool
+    working: bool  # no error from Telegram in the last hour
+    problem: str | None = None
+    waiting: int = 0  # updates Telegram hasn't delivered yet
+    webhook: bool = False
+    failed: int  # sends that failed in 24 hours
+    recent: list[AdminFailedSendOut]
+
+
+class AdminServiceOut(BaseModel):
+    name: str
+    set: bool
+
+
+class AdminSystemOut(BaseModel):
+    """The System page (parts 24 to 27, pick 12B)."""
+
+    speed: AdminSpeedOut
+    jobs: list[AdminJobOut]
+    bot: AdminBotOut
+    database_bytes: int
+    database_ms: float
+    services: list[AdminServiceOut]
+    version: str | None  # the live commit (Render's RENDER_GIT_COMMIT)
+
+
+class AdminJobRunOut(BaseModel):
+    sent: int

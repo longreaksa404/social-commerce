@@ -17,6 +17,7 @@ from app.schemas.admin import (
     AdminForgetIn,
     AdminForgetOut,
     AdminHideIn,
+    AdminJobRunOut,
     AdminLogOut,
     AdminNewPasswordOut,
     AdminOpenIn,
@@ -27,6 +28,7 @@ from app.schemas.admin import (
     AdminSellerOut,
     AdminSettingsIn,
     AdminSettingsOut,
+    AdminSystemOut,
 )
 from app.schemas.plan import (
     AdminConfirmIn,
@@ -40,7 +42,16 @@ from app.schemas.plan import (
     AdminUndoIn,
 )
 from app.services import admin as admin_service
-from app.services import admin_find, admin_log, admin_money, admin_people, admin_settings, as_seller
+from app.services import (
+    admin_find,
+    admin_log,
+    admin_money,
+    admin_people,
+    admin_settings,
+    admin_system,
+    as_seller,
+    jobs,
+)
 from app.services.images import delete_file
 from app.services.telegram import escape
 
@@ -263,6 +274,24 @@ async def save_settings(
             f"🔐 Oak Order admin: settings saved: {admin_settings.changes_text(changes)}.",
         )
     return page
+
+
+@router.get("/system", response_model=AdminSystemOut)
+async def system(_: Admin, db: UnscopedDb) -> AdminSystemOut:
+    """Parts 24 to 27 (pick 12B): speed and errors, the jobs, the bot, the
+    database, the services, the version."""
+    return await admin_system.system(db)
+
+
+@router.post("/jobs/{name}/run", response_model=AdminJobRunOut)
+async def run_job(
+    name: Literal["billing", "reminders"], admin: Admin, db: UnscopedDb
+) -> AdminJobRunOut:
+    """Part 25: Run now, as cron-job.org would; logged."""
+    sent = await jobs.run(name)
+    admin_log.record(db, admin.admin_id, "run_job", job=name, sent=sent)
+    await db.commit()
+    return AdminJobRunOut(sent=sent)
 
 
 @router.get("/log", response_model=list[AdminLogOut])
