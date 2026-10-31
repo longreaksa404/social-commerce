@@ -1,6 +1,10 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminApi } from '../lib/api.ts'
 import type {
+  AdminBotDraft,
+  AdminBotPreview,
+  AdminBotProfile,
+  AdminBotWords,
   AdminCustomer,
   AdminLogLine,
   AdminOrder,
@@ -31,6 +35,8 @@ export const adminKeys = {
   products: ['admin', 'products'] as const,
   settings: ['admin', 'settings'] as const,
   system: ['admin', 'system'] as const,
+  bot: ['admin', 'bot'] as const,
+  botProfile: ['admin', 'bot', 'profile'] as const,
 }
 
 /** Who is logged in to the admin. */
@@ -340,5 +346,69 @@ export function useSignups() {
     queryKey: ['admin', 'signups'],
     queryFn: () => adminApi<{ phone: string; telegram_name: string | null; checked_at: string }[]>('/admin/signups'),
     staleTime: 0,
+  })
+}
+
+/** System's Connect the bot again: point Telegram at this server. */
+export function useConnectBotAgain() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => adminApi<AdminSystem>('/admin/system/webhook', { method: 'POST' }),
+    onSuccess: (system) => {
+      queryClient.setQueryData(adminKeys.system, system)
+      queryClient.invalidateQueries({ queryKey: adminKeys.log })
+    },
+  })
+}
+
+/** The Bot page: every message the bot sends and its small words. */
+export function useAdminBot() {
+  return useQuery({ queryKey: adminKeys.bot, queryFn: () => adminApi<AdminBotWords>('/admin/bot'), staleTime: 0 })
+}
+
+/** A draft checked and shown with example orders (4B); the last answer
+ * stays while the next one comes. */
+export function useBotPreview(draft: AdminBotDraft) {
+  return useQuery({
+    queryKey: [...adminKeys.bot, 'preview', draft],
+    queryFn: () => adminApi<AdminBotPreview>('/admin/bot/preview', { method: 'POST', body: draft }),
+    placeholderData: (previous) => previous,
+    staleTime: Infinity,
+  })
+}
+
+/** Save, step one (9B): the draft to the admin's own Telegram. */
+export function useBotTest() {
+  return useMutation({
+    mutationFn: (draft: AdminBotDraft) =>
+      adminApi<{ sent: number; failed: number; error: string | null }>('/admin/bot/test', { method: 'POST', body: draft }),
+  })
+}
+
+/** Go live: the draft becomes the bot's words; asks for the password again. */
+export function useBotGoLive() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (draft: AdminBotDraft) => adminApi<AdminBotWords>(`/admin/bot/messages/${draft.key}`, { method: 'PUT', body: draft }),
+    onSuccess: (words) => {
+      queryClient.setQueryData(adminKeys.bot, words)
+      queryClient.invalidateQueries({ queryKey: adminKeys.log })
+    },
+  })
+}
+
+/** The bot's name, text before Start and About, from Telegram. */
+export function useBotProfile() {
+  return useQuery({ queryKey: adminKeys.botProfile, queryFn: () => adminApi<AdminBotProfile>('/admin/bot/profile'), retry: false })
+}
+
+export function useSaveBotProfile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: Omit<AdminBotProfile, 'username'>) => adminApi<AdminBotProfile>('/admin/bot/profile', { method: 'PUT', body }),
+    onSuccess: (profile) => {
+      queryClient.setQueryData(adminKeys.botProfile, profile)
+      queryClient.invalidateQueries({ queryKey: adminKeys.log })
+    },
   })
 }

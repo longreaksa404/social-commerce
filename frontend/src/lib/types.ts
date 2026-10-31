@@ -314,12 +314,59 @@ export type AdminSystem = {
     webhook: boolean
     failed: number
     recent: { store_id: string; shop: string; event_type: string; error: string; sent_at: string }[]
+    /** Changed words Telegram refused in 24 h, sent in the original. */
+    refused: number
   }
   database_bytes: number
   database_ms: number
   services: { name: string; set: boolean }[]
   version: string | null
 }
+
+/** The Bot page (founder 2026-10-31): a message the bot sends, its
+ * words now (`text`) and the code's (`default`), with {tags} and **bold**. */
+export type AdminBotMessage = {
+  key: string
+  group: 'sellers' | 'customers' | 'you'
+  name: string
+  about: string
+  text: string
+  default: string
+  tags: { name: string; label: string }[]
+  /** Its small words (AdminBotWord keys), shown under it. */
+  words: string[]
+  on: boolean
+  can_off: boolean
+  stays_on: string | null
+}
+
+/** A small word inside a tag: a payment method, a status, a button. */
+export type AdminBotWord = {
+  key: string
+  label: string
+  kind: 'text' | 'button' | 'note'
+  text: string
+  default: string
+  tags: { name: string; label: string }[]
+  /** The names of the messages that use it. */
+  used_in: string[]
+}
+
+export type AdminBotWords = { messages: AdminBotMessage[]; words: AdminBotWord[]; updated_at: string | null }
+
+/** A message's words as typed, not live yet. */
+export type AdminBotDraft = { key: string; text: string; words: Record<string, string>; on: boolean; example?: number }
+
+export type AdminBotPreview = {
+  /** Go live refuses these. */
+  errors: string[]
+  /** Tags taken out. */
+  warnings: string[]
+  /** `html`: Telegram's, escaped text and <b> only. */
+  examples: { label: string; html: string; buttons: string[] }[]
+}
+
+export type AdminBotProfile = { name: string; description: string; short_description: string; username: string }
 
 /** A line of the admin's log (part 28): `details` holds what changed and
  * the names as they were (admin/logWords.ts reads them). */

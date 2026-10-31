@@ -19,6 +19,9 @@ function paid(details: AdminLogLine['details']) {
 // The admin's Settings in the log (services/admin_settings.py).
 const SETTING: Record<string, string> = { khr_per_usd: 'Riel rate', month: 'Month price', year: 'Year price', trial_days: 'Free trial days' }
 
+// The bot's profile in the log (services/admin_bot.py).
+const BOT_PROFILE: Record<string, string> = { name: 'Name', description: 'Before Start', short_description: 'About' }
+
 // What a save made as the seller was, from its address (services/as_seller.py).
 const SAVED: [RegExp, string][] = [
   [/^\/seller\/products/, 'a product'],
@@ -110,6 +113,26 @@ export function logWords(line: AdminLogLine, withShop = true): { title: string; 
       title = `Sent a message to ${d.sent === 1 ? '1 shop' : `${d.sent} shops`}`
       lines.push(text(d.text))
       if (d.failed) warn = `${d.failed} failed`
+      break
+    case 'bot_text':
+      title = `Changed the bot's ${text(d.message)}`
+      if (Array.isArray(d.on)) lines.push(d.on[1] ? 'Turned on' : 'Turned off for everyone')
+      if (Array.isArray(d.text)) lines.push(text(d.text[1]))
+      if (d.words && typeof d.words === 'object') {
+        for (const pair of Object.values(d.words as Record<string, unknown>)) {
+          if (Array.isArray(pair)) lines.push(`${text(pair[0])} → ${text(pair[1])}`)
+        }
+      }
+      break
+    case 'bot_profile':
+      title = "Changed the bot's profile"
+      for (const [key, words] of Object.entries(BOT_PROFILE)) {
+        const pair = d[key] as unknown
+        if (Array.isArray(pair)) lines.push(`${words}: ${text(pair[1])}`)
+      }
+      break
+    case 'bot_webhook':
+      title = 'Connected the bot again'
       break
     case 'close_shop':
       title = withShop ? `Closed ${shop}` : 'Closed the shop'

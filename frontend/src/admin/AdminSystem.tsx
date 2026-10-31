@@ -7,7 +7,7 @@ import { Button, ErrorState, PageHeader, Skeleton } from '../components/ui.tsx'
 import { errorText } from '../lib/errors.ts'
 import { SUPPORT_TELEGRAM } from '../lib/support.ts'
 import type { AdminSystem as System } from '../lib/types.ts'
-import { useAdminSystem, useRunJob } from './queries.ts'
+import { useAdminSystem, useConnectBotAgain, useRunJob } from './queries.ts'
 import { ago } from './shared.ts'
 
 const ms = (value: number) => (value >= 1000 ? `${(value / 1000).toFixed(1)} s` : `${Math.round(value)} ms`)
@@ -117,8 +117,12 @@ function Page({ system }: { system: System }) {
             ['State', !bot.set_up ? 'Not set up on this server' : bot.working ? 'Working' : <span key="p" className="text-amber-700">{bot.problem ?? 'Not answering'}</span>],
             ...(bot.set_up ? ([['Waiting at Telegram', String(bot.waiting)]] as [string, ReactNode][]) : []),
             ['Failed sends, 24 h', String(bot.failed)],
+            ...(bot.refused > 0
+              ? ([['Changed words refused, 24 h', <span key="r" className="text-amber-700">{bot.refused}, sent in the original words</span>]] as [string, ReactNode][])
+              : []),
           ]}
         />
+        {bot.set_up && !bot.webhook && <ConnectAgain />}
         {bot.recent.length > 0 && (
           <ul className={`${cardClass} mt-3 divide-y divide-slate-100`}>
             {bot.recent.map((send, i) => (
@@ -217,6 +221,30 @@ function Rows({ rows }: { rows: [string, ReactNode][] }) {
         </div>
       ))}
     </dl>
+  )
+}
+
+/** Telegram has stopped sending the bot's messages to this server (no
+ * webhook): point it here again (Bot page, 2026-10-31). */
+function ConnectAgain() {
+  const { toast } = useFeedback()
+  const connect = useConnectBotAgain()
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-3 sm:px-1">
+      <span className="flex-1 text-sm text-amber-700">Telegram isn't sending the bot's messages here.</span>
+      <Button
+        variant="secondary"
+        loading={connect.isPending}
+        onClick={() =>
+          connect.mutate(undefined, {
+            onSuccess: () => toast('Connected · in the log'),
+            onError: (error) => toast(errorText(error), 'error'),
+          })
+        }
+      >
+        Connect the bot again
+      </Button>
+    </div>
   )
 }
 

@@ -1,4 +1,4 @@
-import { Activity, Home, Inbox, LogOut, Menu, Package, ScrollText, SlidersHorizontal, Store, Users, Wallet, Wrench, type LucideIcon } from 'lucide-react'
+import { Activity, Bot, Home, Inbox, LogOut, Menu, Package, ScrollText, SlidersHorizontal, Store, Users, Wallet, Wrench, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, NavLink, useLocation } from 'react-router'
 import { OakMark } from '../components/OakMark.tsx'
@@ -21,6 +21,7 @@ const places: { to: string; label: string; icon: LucideIcon; end?: boolean }[] =
   { to: '/admin/products', label: 'Products', icon: Package },
   { to: '/admin/settings', label: 'Settings', icon: SlidersHorizontal },
   { to: '/admin/system', label: 'System', icon: Activity },
+  { to: '/admin/bot', label: 'Bot', icon: Bot },
   { to: '/admin/tools', label: 'Tools', icon: Wrench },
   { to: '/admin/log', label: 'Log', icon: ScrollText },
 ]
