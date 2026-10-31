@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, BackgroundTasks, Query, Response
+from fastapi import APIRouter, BackgroundTasks, Query, Response, status
 
 from app.api.deps import Admin, AdminPasswordAgain, UnscopedDb
 from app.core import clock
@@ -14,6 +14,8 @@ from app.schemas.admin import (
     AdminActingOut,
     AdminCloseIn,
     AdminCustomerOut,
+    AdminErasedOut,
+    AdminEraseIn,
     AdminForgetIn,
     AdminForgetOut,
     AdminHideIn,
@@ -29,6 +31,8 @@ from app.schemas.admin import (
     AdminSettingsIn,
     AdminSettingsOut,
     AdminSystemOut,
+    AdminTestShopIn,
+    AdminTestShopOut,
 )
 from app.schemas.plan import (
     AdminConfirmIn,
@@ -49,10 +53,11 @@ from app.services import (
     admin_people,
     admin_settings,
     admin_system,
+    admin_tools,
     as_seller,
     jobs,
 )
-from app.services.images import delete_file
+from app.services.images import delete_file, delete_store_files
 from app.services.telegram import escape
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -183,6 +188,39 @@ async def open_as_seller(
         f"🔐 Oak Order admin: opened {escape(acting.shop)} as seller. {escape(data.reason)}",
     )
     return acting
+
+
+@router.delete("/shops/{store_id}", response_model=AdminErasedOut)
+async def erase_shop(
+    store_id: uuid.UUID,
+    data: AdminEraseIn,
+    admin: Admin,
+    db: UnscopedDb,
+    background: BackgroundTasks,
+) -> AdminErasedOut:
+    """D4B: a closed shop and everything in it, for good, after its link
+    name and the admin's password (every time); its photos go after the
+    response. 409 SHOP_NOT_CLOSED; 422 SLUG_MISMATCH, WRONG_PASSWORD."""
+    store = await admin_tools.erase(db, admin.admin_id, store_id, data.slug, data.password)
+    background.add_task(delete_store_files, store_id)
+    background.add_task(
+        admin_service.tell_admins, f"🔐 Oak Order admin: erased {escape(store.name)}."
+    )
+    return AdminErasedOut(shop=store.name)
+
+
+@router.post("/test-shop", response_model=AdminTestShopOut, status_code=status.HTTP_201_CREATED)
+async def test_shop(data: AdminTestShopIn, admin: Admin, db: UnscopedDb) -> AdminTestShopOut:
+    """Part 29: a shop to try things on, open at once, with an email login
+    and its password shown once; logged."""
+    made = await admin_tools.test_shop(db, admin.admin_id, data.name)
+    return AdminTestShopOut(
+        store_id=made.store.id,
+        shop=made.store.name,
+        slug=made.store.slug,
+        login=made.email,
+        password=made.password,
+    )
 
 
 @router.post("/shops/{store_id}/close", response_model=AdminShopDetailOut)

@@ -98,6 +98,14 @@ export function logWords(line: AdminLogLine, withShop = true): { title: string; 
       title = `Ran ${d.job === 'billing' ? 'the plan reminders' : 'the customer reminders'} now`
       lines.push(d.sent === 1 ? '1 sent' : `${d.sent} sent`)
       break
+    case 'test_shop':
+      title = withShop ? `Made a test shop: ${shop}` : 'Made as a test shop'
+      lines.push(text(d.login))
+      break
+    case 'erase_shop':
+      title = `Erased ${shop}`
+      lines.push(`${d.products} products · ${d.orders} orders · ${d.customers} customers`)
+      break
     case 'close_shop':
       title = withShop ? `Closed ${shop}` : 'Closed the shop'
       break

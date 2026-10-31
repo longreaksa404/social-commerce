@@ -1,9 +1,9 @@
-import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Eye, Lock, Send } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Eye, Lock, Send, Trash2 } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import { buttonClass, cardClass } from '../components/styles.ts'
-import { Badge, Button, ErrorMessage, ErrorState, Field, Input, MenuButton, Section, Skeleton, TextArea } from '../components/ui.tsx'
+import { Badge, Button, ErrorMessage, ErrorState, Field, Input, MenuButton, PasswordInput, Section, Skeleton, TextArea } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
 import { adminApi, startActing, type Acting } from '../lib/api.ts'
 import { errorText } from '../lib/errors.ts'
@@ -13,7 +13,7 @@ import type { AdminPayment, AdminShopDetail, PlanPayment, PlanPeriod } from '../
 import { DayList } from './AdminLog.tsx'
 import { logItem, type DayItem } from './logWords.ts'
 import { ShopLogo, StageWords } from './AdminShops.tsx'
-import { useAdminSettings, useAdminShop, useCheckClaim, useMarkPaid, useSetShopOpen, useShopMoney } from './queries.ts'
+import { useAdminSettings, useAdminShop, useCheckClaim, useEraseShop, useMarkPaid, useSetShopOpen, useShopMoney } from './queries.ts'
 import { ago, date, day, shortDay } from './shared.ts'
 import { Chip, Sheet } from './ui.tsx'
 import { usePasswordAgain } from './usePasswordAgain.tsx'
@@ -90,6 +90,7 @@ function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void 
   const [closing, setClosing] = useState(false)
   const [moving, setMoving] = useState(false)
   const [opening, setOpening] = useState(false)
+  const [erasing, setErasing] = useState(false)
   return (
     <div className={`${cardClass} p-4 sm:p-5`}>
       <div className="flex items-center gap-3">
@@ -136,12 +137,16 @@ function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void 
             ]}
           />
         ) : (
-          <Reopen shop={shop} />
+          <>
+            <Reopen shop={shop} />
+            <MenuButton label="More" items={[{ label: 'Erase shop', icon: Trash2, danger: true, onSelect: () => setErasing(true) }]} />
+          </>
         )}
       </div>
       <CloseShop shop={shop} open={closing} onClose={() => setClosing(false)} />
       <MovePaidUntil shop={shop} open={moving} onClose={() => setMoving(false)} />
       <OpenAsSeller shop={shop} open={opening} onClose={() => setOpening(false)} />
+      <EraseShop shop={shop} open={erasing} onClose={() => setErasing(false)} />
     </div>
   )
 }
@@ -358,6 +363,62 @@ function PaidUntil({ shop }: { shop: AdminShopDetail }) {
       </Button>
       <MovePaidUntil shop={shop} open={moving} onClose={() => setMoving(false)} />
     </div>
+  )
+}
+
+/** D4B: a closed shop erased for good (pick 7A's sheet), after typing its
+ * link name and the admin's password, every time. */
+function EraseShop({ shop, open, onClose }: { shop: AdminShopDetail; open: boolean; onClose: () => void }) {
+  const { toast } = useFeedback()
+  const navigate = useNavigate()
+  const erase = useEraseShop(shop.id)
+  const [typed, setTyped] = useState('')
+  const [password, setPassword] = useState('')
+
+  function close() {
+    setTyped('')
+    setPassword('')
+    erase.reset()
+    onClose()
+  }
+
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    erase.mutate(
+      { slug: typed.trim(), password },
+      {
+        onSuccess: () => {
+          toast(`${shop.name} erased · in the log`)
+          navigate('/admin/shops')
+        },
+      },
+    )
+  }
+
+  return (
+    <Sheet open={open} onClose={close} title={`Erase ${shop.name}?`}>
+      <form onSubmit={submit}>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Its {count(shop.products, 'product')}, {count(shop.orders, 'order')}, {count(shop.customers, 'customer')} and photos go for good. The nightly
+          backup keeps it 30 days.
+        </p>
+        <Field label={`Type ${shop.slug} to erase`} className="mt-4">
+          <Input autoComplete="off" placeholder={shop.slug} value={typed} onChange={(e) => setTyped(e.target.value)} />
+        </Field>
+        <Field label="Your admin password" className="mt-4">
+          <PasswordInput autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+        </Field>
+        <ErrorMessage error={erase.error} />
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="secondary" onClick={close}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="danger" loading={erase.isPending} disabled={typed.trim() !== shop.slug || !password}>
+            Erase shop
+          </Button>
+        </div>
+      </form>
+    </Sheet>
   )
 }
 

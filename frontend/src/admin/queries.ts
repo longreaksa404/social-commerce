@@ -290,3 +290,33 @@ export function useRunJob() {
     },
   })
 }
+
+/** Part 29: a test shop, open at once; its password comes once. */
+export function useMakeTestShop() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () =>
+      adminApi<{ store_id: string; shop: string; slug: string; login: string; password: string }>('/admin/test-shop', { method: 'POST', body: {} }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.shops, exact: true })
+      queryClient.invalidateQueries({ queryKey: adminKeys.overview })
+      queryClient.invalidateQueries({ queryKey: adminKeys.log })
+    },
+  })
+}
+
+/** D4B: a closed shop erased for good, after its link name and the
+ * admin's password. */
+export function useEraseShop(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { slug: string; password: string }) => adminApi<{ shop: string }>(`/admin/shops/${id}`, { method: 'DELETE', body }),
+    // The shop's own page is left: it's gone, and asking again would 404.
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.shops, exact: true })
+      queryClient.invalidateQueries({ queryKey: adminKeys.overview })
+      queryClient.invalidateQueries({ queryKey: adminKeys.people })
+      queryClient.invalidateQueries({ queryKey: adminKeys.log })
+    },
+  })
+}

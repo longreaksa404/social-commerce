@@ -22,7 +22,6 @@ step; admin-password is for its own login.
 
 import argparse
 import asyncio
-import secrets
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, InvalidOperation
@@ -44,16 +43,14 @@ from app.models import (
     Seller,
     Store,
 )
-from app.models.account import trial_end
 from app.schemas.plan import PlanStage
+from app.services import admin_tools, plan, platform
 from app.services import customer as customer_service
-from app.services import plan, platform
 from app.services.account import set_shop_logins
 from app.services.admin_people import temporary_password
 from app.services.auth import login_filter
 from app.services.images import delete_file, delete_store_files
 from app.services.phone import normalize_phone
-from app.services.slugs import slugify, unique_store_slug
 
 
 class AdminError(Exception):
@@ -279,10 +276,7 @@ async def erase_shop(login: str, typed_slug: str) -> int:
         if store is None or typed_slug.strip() != store.slug:
             raise AdminError("That isn't the shop's link name. Nothing was erased.")
         store_id = store.id
-        # A plain DELETE, so Postgres cascades it: store from seller, every
-        # tenant table from store. (session.delete() would try to blank
-        # store.seller_id instead.)
-        await db.execute(delete(Seller).where(Seller.id == seller.id))
+        await admin_tools.erase_store(db, seller.id)
         await db.commit()
     return delete_store_files(store_id)
 
@@ -295,24 +289,12 @@ class MadeShop:
 
 
 async def make_test_shop(name: str) -> MadeShop:
-    """A shop to try things on, like the load test (backend/loadtest). It
-    logs in with an email and has no phone: signing up through the app
-    needs a phone number checked in Telegram, one shop per number."""
-    email = f"test-{secrets.token_hex(4)}@example.com"
-    password = temporary_password()
+    """A shop to try things on, like the load test (backend/loadtest),
+    open at once (services/admin_tools.py; also the admin's Tools)."""
     async with unscoped_session() as db:
-        seller = Seller(
-            email=email,
-            password_hash=await security.hash_password(password),
-            full_name="Test",
-        )
-        db.add(seller)
-        await db.flush()
-        slug = await unique_store_slug(db, slugify(name))
-        # Open at once: the load test places orders.
-        db.add(Store(seller_id=seller.id, name=name, slug=slug, paid_until=trial_end()))
+        made = await admin_tools.create_test_shop(db, name)
         await db.commit()
-    return MadeShop(email, password, slug)
+    return MadeShop(made.email, made.password, made.store.slug)
 
 
 # What a forgotten customer's name becomes in the shop's lists.

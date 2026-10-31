@@ -237,3 +237,29 @@ class AdminSystemOut(BaseModel):
 
 class AdminJobRunOut(BaseModel):
     sent: int
+
+
+class AdminTestShopIn(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+    name: str | None = Field(default=None, max_length=80)
+
+
+class AdminTestShopOut(BaseModel):
+    """Part 29: the new shop and its login, the password shown once."""
+
+    store_id: uuid.UUID
+    shop: str
+    slug: str
+    login: str
+    password: str
+
+
+class AdminEraseIn(BaseModel):
+    """D4B: the shop's link name typed, and the admin's password."""
+
+    slug: str = Field(min_length=1, max_length=64)
+    password: str = Field(min_length=1, max_length=200)
+
+
+class AdminErasedOut(BaseModel):
+    shop: str

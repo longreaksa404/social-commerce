@@ -101,6 +101,7 @@ export const router = createBrowserRouter([
               { path: 'products', lazy: async () => ({ Component: (await import('./admin/AdminProducts.tsx')).AdminProducts }) },
               { path: 'settings', lazy: async () => ({ Component: (await import('./admin/AdminSettings.tsx')).AdminSettings }) },
               { path: 'system', lazy: async () => ({ Component: (await import('./admin/AdminSystem.tsx')).AdminSystem }) },
+              { path: 'tools', lazy: async () => ({ Component: (await import('./admin/AdminTools.tsx')).AdminTools }) },
               { path: 'log', lazy: async () => ({ Component: (await import('./admin/AdminLog.tsx')).AdminLog }) },
             ],
           },
