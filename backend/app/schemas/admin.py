@@ -263,3 +263,24 @@ class AdminEraseIn(BaseModel):
 
 class AdminErasedOut(BaseModel):
     shop: str
+
+
+class AdminBroadcastIn(BaseModel):
+    """Part 30: a Telegram message, to the admin first (me), then to every
+    open shop with Telegram, or those on trial, or those paying."""
+
+    text: str = Field(min_length=1, max_length=1000)
+    to: Literal["me", "all", "trial", "paying"]
+
+
+class AdminBroadcastOut(BaseModel):
+    sent: int
+    failed: int
+
+
+class AdminSignupOut(BaseModel):
+    """Part 31: a number checked in Telegram that never made a shop."""
+
+    phone: str
+    telegram_name: str | None
+    checked_at: datetime

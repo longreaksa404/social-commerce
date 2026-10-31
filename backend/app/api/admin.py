@@ -7,11 +7,13 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, BackgroundTasks, Query, Response, status
 
-from app.api.deps import Admin, AdminPasswordAgain, UnscopedDb
+from app.api.deps import Admin, AdminPasswordAgain, UnscopedDb, current_admin_password_again
 from app.core import clock
 from app.models import LoginProvider
 from app.schemas.admin import (
     AdminActingOut,
+    AdminBroadcastIn,
+    AdminBroadcastOut,
     AdminCloseIn,
     AdminCustomerOut,
     AdminErasedOut,
@@ -30,6 +32,7 @@ from app.schemas.admin import (
     AdminSellerOut,
     AdminSettingsIn,
     AdminSettingsOut,
+    AdminSignupOut,
     AdminSystemOut,
     AdminTestShopIn,
     AdminTestShopOut,
@@ -330,6 +333,30 @@ async def run_job(
     admin_log.record(db, admin.admin_id, "run_job", job=name, sent=sent)
     await db.commit()
     return AdminJobRunOut(sent=sent)
+
+
+@router.post("/broadcast", response_model=AdminBroadcastOut)
+async def broadcast(
+    data: AdminBroadcastIn, admin: Admin, db: UnscopedDb, background: BackgroundTasks
+) -> AdminBroadcastOut:
+    """Part 30 (pick 15A): `me` to read it in the admin's own Telegram
+    first; then to the shops, after the password again (403
+    PASSWORD_AGAIN), logged, the admins told. 503 TELEGRAM_NOT_SET_UP."""
+    if data.to != "me":
+        await current_admin_password_again(admin)
+    done = await admin_tools.broadcast(db, admin.admin_id, data.text, data.to)
+    if data.to != "me":
+        shops = "1 shop" if done.sent == 1 else f"{done.sent} shops"
+        background.add_task(
+            admin_service.tell_admins, f"🔐 Oak Order admin: a message sent to {shops}."
+        )
+    return done
+
+
+@router.get("/signups", response_model=list[AdminSignupOut])
+async def signups(_: Admin, db: UnscopedDb) -> list[AdminSignupOut]:
+    """Part 31: numbers checked in Telegram in 30 days with no shop."""
+    return await admin_tools.unfinished_signups(db)
 
 
 @router.get("/log", response_model=list[AdminLogOut])

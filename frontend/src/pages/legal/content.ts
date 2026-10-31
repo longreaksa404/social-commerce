@@ -21,7 +21,7 @@ export const fill = (text: string, prices: Prices) =>
   text.replace(/\{(trial|month|year)\}/g, (_, key: keyof Prices) => prices[key])
 
 // Change it with the text.
-export const UPDATED = '2026-10-30'
+export const UPDATED = '2026-10-31'
 
 const en: Record<LegalDoc, LegalPage> = {
   privacy: {
@@ -37,6 +37,7 @@ const en: Record<LegalDoc, LegalPage> = {
             "If you log in with Google or Facebook: that account's ID, and the name and email it gives us. We never get your password there, your posts or your friends.",
             "Your shop: its name, link, logo and description, your products, photos and prices, your delivery and payment details (such as a bank account number or KHQR account, which customers see so they can pay you), your contact buttons, and your staff's names and phone numbers.",
             'Your chat with our Telegram bot, so we can send you order alerts and "choose a new password" links.',
+            'A phone number checked with our bot that never made a shop is kept 30 days, then deleted.',
             "Your shop's orders and customers (below).",
           ],
         ],
@@ -219,6 +220,7 @@ const km: Record<LegalDoc, LegalPage> = {
             'បើអ្នកចូលដោយ Google ឬ Facebook៖ លេខសម្គាល់គណនីនោះ និងឈ្មោះ និងអ៊ីមែលដែលវាផ្ដល់ឱ្យយើង។ យើងមិនដែលទទួលបានពាក្យសម្ងាត់ ការបង្ហោះ ឬមិត្តភក្តិរបស់អ្នកនៅទីនោះឡើយ។',
             'ហាងរបស់អ្នក៖ ឈ្មោះ តំណ ឡូហ្គោ និងការពិពណ៌នា ទំនិញ រូបថត និងតម្លៃ ព័ត៌មានដឹកជញ្ជូន និងបង់ប្រាក់ (ដូចជាលេខគណនីធនាគារ ឬគណនី KHQR ដែលអតិថិជនឃើញ ដើម្បីបង់ប្រាក់ឱ្យអ្នក) ប៊ូតុងទំនាក់ទំនង និងឈ្មោះ និងលេខទូរស័ព្ទរបស់បុគ្គលិកអ្នក។',
             'ការឆាតរបស់អ្នកជាមួយ bot Telegram របស់យើង ដើម្បីផ្ញើការជូនដំណឹងការកុម្ម៉ង់ និងតំណ “ជ្រើសពាក្យសម្ងាត់ថ្មី”។',
+            'លេខទូរស័ព្ទដែលបានផ្ទៀងផ្ទាត់ជាមួយ bot ប៉ុន្តែមិនបានបង្កើតហាង ត្រូវរក្សាទុក 30 ថ្ងៃ បន្ទាប់មកលុបចោល។',
             'ការកុម្ម៉ង់ និងអតិថិជនរបស់ហាងអ្នក (ខាងក្រោម)។',
           ],
         ],

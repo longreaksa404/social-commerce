@@ -320,3 +320,25 @@ export function useEraseShop(id: string) {
     },
   })
 }
+
+/** Part 30: a Telegram message, to the admin first (`me`), then to the
+ * shops (the password again). */
+export function useBroadcast() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { text: string; to: 'me' | 'all' | 'trial' | 'paying' }) =>
+      adminApi<{ sent: number; failed: number }>('/admin/broadcast', { method: 'POST', body }),
+    onSuccess: (_, { to }) => {
+      if (to !== 'me') queryClient.invalidateQueries({ queryKey: adminKeys.log })
+    },
+  })
+}
+
+/** Part 31: numbers checked in Telegram in 30 days that never made a shop. */
+export function useSignups() {
+  return useQuery({
+    queryKey: ['admin', 'signups'],
+    queryFn: () => adminApi<{ phone: string; telegram_name: string | null; checked_at: string }[]>('/admin/signups'),
+    staleTime: 0,
+  })
+}

@@ -52,7 +52,7 @@ from app.models import (
     PhoneCheck,
     Store,
 )
-from app.services import customer_photos, telegram
+from app.services import customer_photos, phone_check, telegram
 
 logger = logging.getLogger(__name__)
 
@@ -255,7 +255,7 @@ async def opened(code: str, telegram_user_id: int) -> str | None:
         shop = found[0].name
     now = datetime.now(UTC)
     async with unscoped_session() as db:
-        await db.execute(delete(PhoneCheck).where(PhoneCheck.expires_at < now))
+        await db.execute(delete(PhoneCheck).where(phone_check.stale(now)))
         check = await db.scalar(select(PhoneCheck).where(PhoneCheck.code == code))
         if check is None:
             check = PhoneCheck(code=code)

@@ -505,6 +505,7 @@ const EVENT: Record<string, string> = {
   plan_reminder: 'Plan reminder',
   plan_claimed: '"I\'ve paid" to Oak Order',
   opened_by_oak: 'Told Oak Order opened the shop',
+  broadcast: 'A message from Oak Order',
 }
 
 /** A shop's Activity (part 6): the messages it was sent (alerts, plan

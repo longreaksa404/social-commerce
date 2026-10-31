@@ -108,7 +108,7 @@ async def create(store: Store, data: TelegramLoginIn) -> PhoneCheck:
         raise AppError(503, "TELEGRAM_NOT_CONFIGURED", "Updates on Telegram are off.")
     now = datetime.now(UTC)
     async with unscoped_session() as db:
-        await db.execute(delete(PhoneCheck).where(PhoneCheck.expires_at < now))
+        await db.execute(delete(PhoneCheck).where(phone_check.stale(now)))
         check = PhoneCheck(
             code=CODE_PREFIX + secrets.token_urlsafe(16),
             expires_at=now + timedelta(minutes=phone_check.CHECK_MINUTES),

@@ -106,6 +106,11 @@ export function logWords(line: AdminLogLine, withShop = true): { title: string; 
       title = `Erased ${shop}`
       lines.push(`${d.products} products · ${d.orders} orders · ${d.customers} customers`)
       break
+    case 'broadcast':
+      title = `Sent a message to ${d.sent === 1 ? '1 shop' : `${d.sent} shops`}`
+      lines.push(text(d.text))
+      if (d.failed) warn = `${d.failed} failed`
+      break
     case 'close_shop':
       title = withShop ? `Closed ${shop}` : 'Closed the shop'
       break
