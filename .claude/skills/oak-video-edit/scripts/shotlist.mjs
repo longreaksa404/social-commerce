@@ -37,6 +37,7 @@ export function parseShotList(text) {
       plan.shots.push({
         n: +head.match(/\d+/)[0], start, end, src: (src || '').trim(),
         anim: (f.anim || 'none').toLowerCase(), sfx: (f.sfx || 'none').toLowerCase(), caption: f.caption || '',
+        from: f.from ? toSec(f.from) : 0, // a clip's in-point, seconds into the file
       });
     } else if (/^END\s*CARD/i.test(head)) plan.endCard = true;
     else throw new Error(`can't read this line: ${line}`);

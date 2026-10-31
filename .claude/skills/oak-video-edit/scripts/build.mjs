@@ -76,7 +76,7 @@ for (const s of plan.shots) {
 if (shots.length) shots.at(-1).durUs = ecStartUs - shots.at(-1).atUs; // the last shot runs up to the end card
 
 console.log(`${draftName}: voice ${lens.map(l => l.toFixed(2)).join(' + ')} s, end card ${(ecStartUs / US).toFixed(2)}–${(ecEndUs / US).toFixed(2)} s`);
-for (const s of shots) console.log(`  SHOT ${String(s.n).padStart(2)}  ${(s.start).toFixed(1)}–${(s.end).toFixed(1)} → ${(s.atUs / US).toFixed(2)}–${((s.atUs + s.durUs) / US).toFixed(2)}  ${s.kind === 'stock' ? 'stock: ' + s.words : path.basename(s.file)}  ${s.anim}  ${s.sfx}`);
+for (const s of shots) console.log(`  SHOT ${String(s.n).padStart(2)}  ${(s.start).toFixed(1)}–${(s.end).toFixed(1)} → ${(s.atUs / US).toFixed(2)}–${((s.atUs + s.durUs) / US).toFixed(2)}  ${s.kind === 'stock' ? 'stock: ' + s.words : path.basename(s.file)}${s.from ? ` from ${s.from}s` : ''}  ${s.anim}  ${s.sfx}`);
 if (checkOnly) process.exit(0);
 
 // ---- build on a copy of the template ----
@@ -110,8 +110,10 @@ for (const s of shots) {
   }
   let seg;
   if (s.kind === 'clip') {
-    seg = d.addVideo(file, { atUs: s.atUs, durUs: s.durUs, trackIndex: main }).segmentId;
-    const clipUs = Math.round(seconds(file) * US);
+    const fromUs = Math.round(s.from * US);
+    const clipUs = Math.round(seconds(file) * US) - fromUs;
+    if (clipUs <= 0) throw new Error(`SHOT ${s.n}: from ${s.from}s is past the end of ${path.basename(file)}`);
+    seg = d.addVideo(file, { atUs: s.atUs, durUs: s.durUs, srcStartUs: fromUs, trackIndex: main }).segmentId;
     if (clipUs < s.durUs) { // slow the clip down to fill the shot
       const speed = clipUs / s.durUs;
       d.setProps(seg, { speed });

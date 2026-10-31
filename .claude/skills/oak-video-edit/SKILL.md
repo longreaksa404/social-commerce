@@ -57,6 +57,10 @@ END CARD | template end card
   video's folder with that file name (any of png/jpg/mp4); `stock: <words>`
   = a navy placeholder labelled with the words, for the founder to replace
   by hand in CapCut. Shots follow each other from 0 with no gaps.
+- `from: <seconds>` (optional, clips only) starts the clip that far in.
+  shots.py clips open on a 1-second still, and the action you want is
+  often later: look at the frames first (ffmpeg `fps=1,tile`), then pick.
+  A clip too short for its shot is slowed down to fill it.
 - `AUDIO a.mp3 | b.mp3 | c.mp3 | d.mp3` instead of VOICE lines uses MP3s
   already in the video's folder (shots are then scaled to the total).
 - A `|` can't appear inside a caption.
