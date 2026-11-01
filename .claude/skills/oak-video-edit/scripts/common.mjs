@@ -7,6 +7,7 @@ import { execFileSync } from 'child_process';
 export const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 export const VIDEO_ROOT = process.env.OAK_VIDEO_DIR || path.join(process.env.USERPROFILE, 'Documents/Video Marketing/Oak Order');
 export const SFX_DIR = path.join(VIDEO_ROOT, 'Sound effects');
+export const MUSIC_DIR = path.join(VIDEO_ROOT, 'Music');
 export const ASSETS = path.join(REPO, 'backend/marketing/out'); // shots.py's pictures and clips
 export const MCP_DIR = process.env.CAPCUT_MCP_DIR || path.join(process.env.USERPROFILE, 'mcp/capcut-mcp');
 export const DRAFTS_DIR = (process.env.CAPCUT_DRAFTS_DIR ||= path.join(process.env.LOCALAPPDATA, 'CapCut/User Data/Projects/com.lveditor.draft').replace(/\\/g, '/'));

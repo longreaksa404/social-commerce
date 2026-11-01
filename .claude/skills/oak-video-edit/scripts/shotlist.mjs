@@ -58,7 +58,7 @@ export function parseShotList(text) {
       vt = v.end;
     }
   }
-  if (!plan.shots.length) errors.push('no SHOT lines');
+  // no SHOT lines is fine for a HyperFrames film (its film.mjs holds the shots); build.mjs needs them
   plan.shots.sort((a, b) => a.start - b.start);
   // shots must tile the timeline from 0: small slips are snapped to the previous end
   let t = 0;

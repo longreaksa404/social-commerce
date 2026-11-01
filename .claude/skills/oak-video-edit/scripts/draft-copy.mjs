@@ -12,11 +12,19 @@ export function copyDraft(srcName, dstName) {
   if (/[\\/:*?"<>|]/.test(dstName)) throw new Error(`bad draft name: ${dstName}`);
   if (capcutRunning()) throw new Error('CapCut is running: close it first');
   const root = DRAFTS_DIR.replace(/\\/g, '/');
-  const src = `${root}/${srcName}`, dst = `${root}/${dstName}`;
+  let src = `${root}/${srcName}`;
+  const dst = `${root}/${dstName}`;
   const rootPath = `${root}/root_meta_info.json`;
   const rootMeta = JSON.parse(fs.readFileSync(rootPath, 'utf8'));
-  const srcEntry = rootMeta.all_draft_store.find(e => e.draft_fold_path === src);
-  if (!srcEntry) throw new Error(`source draft not in CapCut's list: ${srcName}`);
+  let srcEntry = rootMeta.all_draft_store.find(e => e.draft_fold_path === src);
+  if (!srcEntry) { // deleted in CapCut: it waits in CapCut's recycle bin, which keeps its own list
+    const bin = `${root}/.recycle_bin`;
+    const binList = `${bin}/root_meta_info.json`;
+    srcEntry = fs.existsSync(binList) && JSON.parse(fs.readFileSync(binList, 'utf8')).all_draft_store.find(e => e.draft_name === srcName);
+    if (!srcEntry || !fs.existsSync(`${bin}/${srcName}`)) throw new Error(`source draft not in CapCut's list or its recycle bin: ${srcName}`);
+    src = `${bin}/${srcName}`;
+    console.log(`note: ${srcName} is in CapCut's recycle bin; copied from there. Restore it in CapCut to keep it.`);
+  }
   if (fs.existsSync(dst) || rootMeta.all_draft_store.some(e => e.draft_name === dstName)) throw new Error(`draft already exists: ${dstName}`);
 
   const skip = /(^\.locked$|\.mcpbak$|\.after-mcp$)/;

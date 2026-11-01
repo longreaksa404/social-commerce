@@ -1,133 +1,178 @@
 ---
 name: oak-video-edit
-description: Make an Oak Order marketing video as a CapCut draft, the founder's way. Takes a shot-list block (or writes the script and shot list first), makes the four Khmer voice MP3s with Gemini, and builds a CapCut draft from the oak-template draft with the shots fitted to the real voice lengths, captions, keyframe animations, sound effects and the end card. Use whenever the founder asks for a video, a script, a voice-over, a CapCut draft, a fix to a video draft, or says "video 2", "next video", "make the draft", "/oak-video-edit". Windows laptop only (CapCut desktop), not the dev container.
+description: Make an Oak Order marketing video the founder's way, with HyperFrames (HTML rendered to MP4): writes the Khmer script and shot list, makes the four voice MP3s with Gemini, turns a film template into a HyperFrames project timed to the real voice (iPhone with the app's screens, a clicking cursor, word-by-word titles, sounds on the exact frame, music), checks and reviews it frame by frame, opens the preview, and renders the MP4 once the founder approves. Use whenever the founder asks for a video, a script, a voice-over, a fix to a video, a render, or says "video 3", "next video", "make the video", "/oak-video-edit". Windows laptop only, not the dev container. (Older CapCut-draft builds are kept as an option.)
 ---
 
 # Make an Oak Order video
 
-The founder makes 3 short videos a week (TikTok, Facebook Reels, Instagram
-Reels), part-time, and reviews every draft in CapCut before exporting. The
-whole workflow happens here in Claude Code (founder, 2026-11-01): script,
-voice, edit. The founder watches, asks for fixes, exports and posts.
+The founder makes short videos for TikTok, Facebook Reels and Instagram Reels,
+part-time. Everything happens here in Claude Code: script, voice, edit. Since
+2026-11-02 the edit is **HyperFrames** (HeyGen's open-source HTML-to-video
+renderer, the founder's pick): Claude Code writes the film, checks it, and
+gives the founder a preview link; they watch, ask for changes, approve; Claude
+Code renders the MP4; they post it.
 
-Read first: `docs/02_video_playbook.md` (tools, voice recipe, visuals,
-CapCut template, words to avoid, pronunciation fixes),
-`docs/MARKETING_FACTS.md` (what's true, section 6 "Don't claim", section 10
-every picture and clip), `docs/04_content_log.md` (what's been made).
+Read first: `docs/02_video_playbook.md` (tools, voice recipe, looks, words to
+avoid, pronunciation fixes), `docs/MARKETING_FACTS.md` (what's true, section 6
+"Don't claim", section 10 every app picture), `docs/04_content_log.md` (what's
+been made). For a new film also read the plugin's `hyperframes` skill and its
+`references/types/vertical.md`, `types/launch.md`, `motion.md`, `sound.md`,
+`spec.md` and `review.md` (plugin root below).
 
 ## Where things are
 
 | What | Where |
 |---|---|
-| A video's own files (shot list, voice MP3s, phone screenshots) | `C:\Users\reaksa\Documents\Video Marketing\Oak Order\<VIDEO name>\` |
-| Sound effects (`sfx: <name>` = file name) | `...\Oak Order\Sound effects\` (`sources.txt`: Mixkit licence and ids) |
-| App pictures and clips | `backend/marketing/out/` (`km/…png`, `video/km_…mp4`), made by `shots.py` |
-| Template draft (never edit it) | CapCut draft `oak-template` |
-| CapCut drafts | `%LOCALAPPDATA%\CapCut\User Data\Projects\com.lveditor.draft` |
-| capcut-mcp fork the build uses | `%USERPROFILE%\mcp\capcut-mcp`, branch `oak` |
+| A video's folder (`shotlist.txt`, `film.mjs`, `timing.json`, the voice MP3s, `hf/`, the final MP4) | `C:\Users\reaksa\Documents\Video Marketing\Oak Order\<VIDEO>\` |
+| Its HyperFrames project (generated, plus `SPEC.md` and `REVIEW.md` written by hand) | `<VIDEO>\hf\` |
+| Film templates | `.claude\skills\oak-video-edit\hyperframes\films\` (`pain-fix-flow.mjs` = video 002 v2) |
+| Music beds / sound effects / style references | `...\Oak Order\Music\`, `Sound effects\` (Mixkit; `sources.txt` each), `Style references\` |
+| App pictures (Khmer) | `backend/marketing/out/km/*.png` (MARKETING_FACTS section 10; `shots.py` makes them) |
+| Brand files | `brand/` (`navy_<file>`/`white_<file>` in a film = that file recoloured on a transparent ground) |
+| HyperFrames plugin | `%USERPROFILE%\.claude\plugins\cache\hyperframes\hyperframes\<version>\` (`hf.mjs` finds it) |
 | Gemini key | `GEMINI_API_KEY` in the repo's `.env` (git-ignored); never print it |
 
-Run the scripts with the Windows `node` (PowerShell), from anywhere:
-`node .claude\skills\oak-video-edit\scripts\<script> ...`
+Scripts run with the Windows `node`, from the repo root:
+`node .claude\skills\oak-video-edit\hyperframes\<script> <video folder>` (and
+`scripts\voice.mjs <shotlist.txt>` for the voice).
 
-## The shot-list block
+## The house look (the founder's notes, 2026-11-01/02)
 
-```
-VIDEO <log#>_<type>_<topic>
-VOICE 1 | <start>–<end> | hook | <voice text>
-VOICE 2 | <start>–<end> | pain | <voice text>
-VOICE 3 | <start>–<end> | fix  | <voice text>
-VOICE 4 | <start>–<end> | cta  | <voice text>
-SHOT <n> | <start>–<end> | <file, "phone: name" or "stock: search words"> | anim: <none / slide-in / zoom-in / zoom-out> | sfx: <none / name> | caption: <Khmer text>
-END CARD | template end card
-```
-
-- **VOICE times** are the plan; the real MP3 lengths decide the video.
-  Each block's shots are stretched or squeezed onto that block's real
-  length, so a shot planned at the hook's end stays at the hook's end.
-- **Voice text vs caption** (founder, 2026-11-01): in VOICE text, English
-  words are spelled in Khmer letters (Order → អូឌ័រ, chat → ឆាត, Oak Order →
-  អូក អូឌ័រ, Telegram → តេឡេក្រាម) or the voice mispronounces them; captions
-  keep the English. Add new spellings to the playbook's "Pronunciation fixes".
-- Inline tags in VOICE text, in English: `<short pause>`, `<long pause>`,
-  one expression tag per video at most (`<sigh>`, `<laugh>`…). An optional
-  5th field `style: …` overrides the playbook's style line for that block.
-- **SHOT files**: a path under `backend/marketing/out/` (`km/07_dashboard.png`,
-  `video/km_order_arrives.mp4`); `phone: <name>` = a screenshot in the
-  video's folder with that file name (any of png/jpg/mp4); `stock: <words>`
-  = a navy placeholder labelled with the words, for the founder to replace
-  by hand in CapCut. Shots follow each other from 0 with no gaps.
-- `from: <seconds>` (optional, clips only) starts the clip that far in.
-  shots.py clips open on a 1-second still, and the action you want is
-  often later: look at the frames first (ffmpeg `fps=1,tile`), then pick.
-  A clip too short for its shot is slowed down to fill it.
-- `AUDIO a.mp3 | b.mp3 | c.mp3 | d.mp3` instead of VOICE lines uses MP3s
-  already in the video's folder (shots are then scaled to the total).
-- A `|` can't appear inside a caption.
+- 9:16, 1080 × 1920. Every word and the product between y 168 and 1330 (TikTok's
+  tabs above, caption and buttons below); nothing to read under the right rail.
+- Frame 0 is the thumbnail: the hook line already on screen over something
+  busy, ideally a pain sellers feel (video 2: "Stop answering 'How much?'
+  one by one").
+- The app is real: shots.py screens in a current iPhone Pro (Cosmic Orange),
+  straight on; pieces lift out at 2× as the voice names them; an arrow cursor
+  clicks and its click causes the next thing on the same frame (no rings).
+- Titles land word by word (blur in) on the word the voice says, then hold still.
+- Colour: one ground per act, never muddy. Problem: crimson `#420c12`. Fix:
+  bright teal `#0c8063`, key words yellow `#ffe45c`. Offer: white words on Oak
+  navy `#1f3350`. End: the navy brand on light grey `#f3f5f7` with a dot grid.
+  **No yellow grounds; navy never next to yellow** (founder, 2026-11-02). The
+  closest model is the reference IMG_4465 (Prodigis): claims in white on navy,
+  the logo in navy on light.
+- Energetic music (Mixkit), its drop on the fix; a sound on every visible action,
+  peaking one frame after it; no chimes or dings; music lifts on the end card.
+- About 25 s: voice ~22 s plus a 3 s end card (acorn, wordmark, the offer line,
+  a Telegram button, t.me/longreaksa).
 
 ## Steps
 
-1. **Script and shot list.** If the founder gives a block, use it. If they
-   ask for a video on a topic, write it (see "Writing the script") and show
-   it before making anything. Save the agreed block as `shotlist.txt` in
-   `...\Oak Order\<VIDEO name>\` (create the folder).
-2. **Check the files**: `node build.mjs <shotlist.txt> --check`. It lists
-   anything MISSING (a picture, a phone screenshot, a sound) and the planned
-   timing; nothing is built. If a phone screenshot is missing, ask the
-   founder to put it in the video's folder under that name.
-3. **Voice**: `node voice.mjs <shotlist.txt> --check`. Makes
-   `<log#>_1_hook.mp3` … `<log#>_4_cta.mp3` in the video's folder (trimmed,
-   evened to -16 LUFS), keeps ones that exist; `--only 3` redoes one block,
-   `--force` all. `--check` has Gemini transcribe each block: if a line says
-   `[INSTRUCTION SPOKEN]` or "much longer than planned", redo that block.
-   Busy errors are retried by the script.
-4. **Build**: ask the founder to close CapCut if it's open, then
-   `node build.mjs <shotlist.txt>`. It copies `oak-template` to a draft
-   named after VIDEO and saves it in one go. If the name exists, it stops:
-   use `--name <VIDEO>-v2`. It prints every shot's planned → real times.
-5. **Hand over**: tell the founder the draft name, the length, any notes
-   (stock placeholders, slowed clips, shots left under the end card), and
-   ask them to open it in CapCut, watch, and say what to fix. They close
-   CapCut before you change anything.
-6. **Fixes**: small ones with the `capcut_*` MCP tools on that draft
-   (`capcut_read_timeline` first; times in seconds; `capcut_set_keyframes`
-   for zooms and slides; `capcut_save`, never `force`). Bigger ones (new
-   order, new voice, different shots): edit `shotlist.txt`, redo voice
-   blocks if their text changed, and rebuild with `--name <VIDEO>-v2`.
-7. **After export**: the founder writes the edit time in the content log's
-   Edit column (e.g. "MCP, 25"); offer to fill in the row.
+1. **Script.** If the founder gives one, use it; otherwise write it (see
+   "Writing the script") and show it before making anything. Save
+   `shotlist.txt` in the video's folder: `VIDEO <log#>_<type>_<topic>` and four
+   `VOICE n | <start>–<end> | <name> | <voice text> [| style: …]` lines (the
+   format in "The voice"). No SHOT lines: the film holds the shots.
+2. **Film.** Copy a template from `hyperframes\films\` to `<VIDEO>\film.mjs` and
+   change it: the words, the screens, the beats, which phrase each beat lands on.
+   For a new story write `hf\SPEC.md` first (the plugin's `references/spec.md`;
+   video 002's `hf\SPEC.md` is a model). See "How a film works".
+3. **Timing**: `node hyperframes\timing.mjs <folder>`. With the voice MP3s it
+   measures each block and its phrases; without them it estimates from the shot
+   list (and keeps an existing timing.json). Every beat follows this file.
+4. **Voice**: `node scripts\voice.mjs <folder>\shotlist.txt --check`, then
+   timing.mjs again. Gemini's free tier makes **10 clips a day**: plan
+   retakes; AI Studio is the backup (save the MP3s as `<log#>_<n>_<name>.mp3`).
+5. **Make**: `node hyperframes\make.mjs <folder>`. Writes `hf\index.html` and one
+   file per scene, copies every screen, font, brand mark, sound, the music and
+   the voice into `hf\assets` (it scaffolds `hf\` with HyperFrames the first
+   time). It overwrites the generated files.
+6. **Check and look** (`node hyperframes\hf.mjs <folder> <command>`):
+   `check --json` until 0 errors (weigh each warning; keep a deliberate one and
+   say why in REVIEW.md); `snapshot --review` and read the beat, seam and phone
+   sheets; `snapshot --range a,b --frames 8` around every move and payoff. Fix in
+   film.mjs, make again. Write `hf\REVIEW.md` (the plugin's `references/review.md`).
+7. **Preview**: `hf.mjs <folder> preview --background`, confirm the URL answers,
+   give the founder `http://localhost:<port>/#project/hf` and wait. Their notes
+   go into film.mjs (or timing / the voice), then make, check, look again.
+8. **Render** only when they approve (or ask for the file):
+   `hf.mjs <folder> render --quality delivery -o ..\<VIDEO>.mp4`; check its
+   length with ffprobe and its sound with `hf.mjs <folder> audio ..\<VIDEO>.mp4 --json`
+   (about -16 to -14 LUFS; say the sound was measured, not heard). Don't send
+   HyperFrames feedback or publish without asking.
+9. **After posting**: offer to fill in the content log row.
+
+## How a film works
+
+`make.mjs` loads `film.mjs` and calls its default export with the kit
+(`hyperframes\kit.mjs`) plus `T` (timing.json), `ph` and `span`. The film
+returns `{ END, scenes: [{ id, start, duration, html }], ground, music, cues }`;
+the kit's `rootIndex` turns that into the root composition.
+
+- **Timing**: `ph(block, i, n)` = when phrase i of n starts (`ph(.., true)` its
+  end), `span(block, i, n)` its length. If the voice split into a different
+  number of phrases than planned, they fall back to even spacing: snapshot the
+  beats after every new take.
+- **Scenes**: `scene(id, css, body, js)` gives a `<template>` with the fonts and
+  a paused timeline with `land(sel, at)`, `leave(sel, at)`, `move(cursor, x, y, at, d)`,
+  `press(cursor, at)`. Prefix every id by scene (`a2-…`); scene time starts at 0.
+- **Pieces**: `words()` (a title), `CURSOR()`, `iphone({ id })` (geometry, `at(x, y)`
+  for an app point on the stage, `shot`/`crop`/`lift`/`liftBox`, `html({ view, overlay })`),
+  `linkCard()` (the shop link's preview card), `TELEGRAM_ICON()`, `rng(seed)`.
+- **Sounds**: `const { cue, cues } = sounds(END)`; `cue(at, 'click'|'pop'|'whoosh'|<name>, gain)`
+  rotates takes and lands the peak a frame after `at`. A new file needs its row
+  in `SFX` (peak, volume, length from `hf.mjs <folder> audio <file> --json`):
+  `hf-<name>` = HyperFrames' bundled sounds, `mx-<name>` = `Sound effects\<name>.mp3`.
+- **Music**: `{ file, mediaStart, points }`; `mediaStart` = the track's drop
+  minus the beat it should land on; `points` = the volume envelope (about 0.16
+  under the voice, more in the gaps).
+- **HyperFrames rules that bite** (lint catches most): `fromTo`, never CSS
+  `transform` on a tweened element, a fade-in's destination says `opacity: 1`,
+  texture text gets `data-layout-ignore`, about 30+ blurred/clipped elements in
+  one scene can render black frames, `<audio>` needs an id and a duration.
+
+## The voice
+
+- **VOICE times** are the plan; the real MP3 lengths decide the film.
+- In VOICE text, English words are spelled in Khmer letters (Order → អូឌ័រ,
+  chat → ឆាត, Telegram → តេឡេក្រាម, KHQR → ខេអេចឃ្យូអា) or the voice mispronounces
+  them; on-screen titles keep the English. New spellings go in the playbook's
+  "Pronunciation fixes". "Oak Order" in English letters works; check by ear.
+- Tags in English: `<short pause>`, `<long pause>`, at most one expression tag
+  per video. A 5th field `style: …` overrides the playbook's style line.
+- `voice.mjs`: `--only 3` redoes one block, `--force` all; `--check` transcribes
+  each new block: redo it if a line says `[INSTRUCTION SPOKEN]` or "much longer
+  than planned". A plain transcript can mishear "Oak" as "Book": ask about the
+  name directly before redoing.
 
 ## Writing the script
 
-- 30–40 s, four blocks: hook (one punchy line, ≤3 s), pain / setup, fix
-  (Oak Order doing it, shown with the app's pictures and clips), offer + CTA
-  (message on Telegram; the end card shows `t.me/longreaksa`).
-- Facts only from `MARKETING_FACTS.md`; never anything in its "Don't
-  claim". The demo shop Oak Fashion is an example: never present its orders
-  as real sales. No private seller or customer data (it goes to Gemini's
-  free tier).
+- 20–30 s, four blocks: hook (one punchy line, ≤3 s, on screen at frame 0),
+  pain, fix (Oak Order doing it, with the app's screens), offer + CTA (message
+  on Telegram; the end card shows `t.me/longreaksa`).
+- Facts only from `MARKETING_FACTS.md` rows marked Live; never anything in its
+  "Don't claim". The demo shop Oak Fashion is an example: never present its
+  orders as real sales. No private seller or customer data (Gemini's free tier).
 - Check the content log so hooks, angles and features don't repeat, and the
   playbook's "Words to avoid" and "Winning hooks".
-- Every shot uses a file that exists (MARKETING_FACTS section 10) or is
-  marked `phone:` / `stock:`; flag anything that doesn't exist as MISSING.
-- Captions: short Khmer lines (one or two lines on screen), the English
-  product words kept in English. The first scripts are read aloud by a Khmer
-  speaker before posting (playbook).
+- On-screen words: short Khmer lines, the English product words in English.
+  The scripts are read by a Khmer speaker before posting.
 - Add the video's row to `docs/04_content_log.md` as Draft.
 
-## Rules
+## Setup and HyperFrames notes
 
-- **Never edit `oak-template` or any draft the founder made**: only drafts
-  this skill built. The build always works on a fresh copy.
-- **CapCut must be closed** whenever a draft is written (build, MCP save).
-  CapCut's autosave overwrites edits made while it's open. Never pass
-  `force: true`.
-- Don't use `capcut_clone_draft` (it skips subfolders and keeps the
-  original's id); copies go through `scripts/draft-copy.mjs`.
-- Full Windows paths for every media file; drafts point at files where they
-  are, so don't move or rename them after building.
-- Look and timing constants (zoom amount, end card length, sound volume…)
-  are at the top of `scripts/build.mjs`. If the founder changes one, update
-  the playbook's "CapCut template" section too.
-- If a CapCut update breaks a draft (it won't open, layers missing), stop
-  and tell the founder: the fallback is editing by hand from `oak-template`.
+- The plugin: `claude plugin marketplace add heygen-com/hyperframes` and
+  `claude plugin install hyperframes@hyperframes` (the `/plugin` command doesn't
+  work in the VS Code chat; the `claude` CLI does). Its skills show as
+  `/hyperframes:…` after a window reload; run its CLI only through `hf.mjs` (the
+  plugin's launcher, pinned version). Don't update it during a video.
+- It needs Node 22+, FFmpeg and Chrome (all on the laptop). It sends anonymous
+  usage data (`hf.mjs <folder> telemetry disable` stops it). No HeyGen account is
+  needed; its voice and music catalog need a sign-in we don't use (no Khmer voice).
+- The preview page has an **Edit with Framey** button for HyperFrames' desktop
+  app. If the founder edits there, run `hf.mjs <folder> catch-up` and port their
+  changes into film.mjs before the next make.
+
+## CapCut drafts (optional, the older way)
+
+`scripts\build.mjs` still builds a CapCut draft from `oak-template` for a shot
+list with SHOT lines (`SHOT n | start–end | <file or phone:/stock:> | anim: … | sfx: … | caption: …`,
+`from:` for a clip's in-point, `AUDIO a|b|c|d` for ready-made MP3s,
+`END CARD | template end card`): `--check` first, CapCut closed, `--name <VIDEO>-v2`
+if the draft exists. Rules: never edit `oak-template` or a draft the founder
+made; CapCut closed whenever a draft is written (`capcut_*` MCP tools, never
+`force`); copies only through `scripts\draft-copy.mjs` (it finds `oak-template`
+in CapCut's recycle bin if it was deleted). A rendered HyperFrames MP4 can also
+just be dropped into CapCut for small touches.

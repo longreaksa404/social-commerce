@@ -26,6 +26,7 @@ const checkOnly = args.includes('--check');
 if (!listFile) { console.error('usage: node build.mjs <shotlist.txt> [--name <draft>] [--check]'); process.exit(2); }
 const dir = path.dirname(path.resolve(listFile));
 const plan = parseShotList(fs.readFileSync(listFile, 'utf8'));
+if (!plan.shots.length) { console.error('no SHOT lines: a shot list without them is a HyperFrames film (hyperframes/make.mjs)'); process.exit(1); }
 const draftName = args.includes('--name') ? args[args.indexOf('--name') + 1] : plan.video;
 const snap = t => Math.round(Math.round(t * FPS) * US / FPS); // seconds -> µs on a frame
 

@@ -1,13 +1,13 @@
 # Oak Order: Video Playbook
 
-Last updated: 2026-10-30
+Last updated: 2026-11-02
 
 ## Tools ($0/month)
 | Step | Tool | Notes |
 |---|---|---|
-| Ideas + script | Claude Code, `oak-video-edit` skill (since 2026-11-01; was a claude.ai project) | Everything happens in Claude Code: script, voice, edit. A Khmer speaker reads the first scripts aloud before posting. Every script ends with a shot-list block. |
-| Voice | Gemini 3.8 Flash TTS, called by Claude Code (Gemini API free tier, key in `.env`) | Khmer supported, sounds natural. Free with daily limits. Never put private seller or customer data in a script (free tier input may be used by Google). AI Studio still works as a backup: save the MP3s in the video's folder and use an AUDIO line. |
-| Edit | CapCut desktop, edited by Claude Code with the `oak-video-edit` skill (capcut-mcp fork) | Claude Code builds the draft from the template and the shot-list block. I watch every draft and ask Claude Code for fixes before export. Fallback if it breaks: edit by hand from the template. Sound effects from Mixkit (free licence, in the "Sound effects" folder). Don't use CapCut auto captions or AI auto-edit. |
+| Ideas + script | Claude Code, `oak-video-edit` skill (since 2026-11-01; was a claude.ai project) | Everything happens in Claude Code: script, voice, edit. A Khmer speaker reads the first scripts aloud before posting. Every script is saved as a shot list (`shotlist.txt`: the VIDEO and its four VOICE lines). |
+| Voice | Gemini 3.8 Flash TTS, called by Claude Code (Gemini API free tier, key in `.env`) | Khmer supported, sounds natural. Free with daily limits: 10 clips a day (one video's 4 blocks plus retakes). Never put private seller or customer data in a script (free tier input may be used by Google). AI Studio still works as a backup: save the MP3s in the video's folder under the block names (`002_1_hook.mp3` …). |
+| Edit | HyperFrames by HeyGen (open source, free; a Claude Code plugin), driven by Claude Code with the `oak-video-edit` skill (since 2026-11-02) | Claude Code writes the film from a template (`film.mjs`), times every beat from the real voice, checks and reviews the frames itself, and gives me a preview link (my browser, with sound). I ask for changes there; when I approve, Claude Code renders the MP4 with the voice, music and sounds mixed in. Sound effects and music beds from Mixkit and HyperFrames' bundled sounds (free licences). CapCut is optional now: the older draft builder still works, and a rendered MP4 can go into CapCut for small touches. |
 | Post | Meta Business Suite (FB/IG), TikTok scheduler | Scheduling is my approval step. |
 
 Backup voice: SpeechGen (Microsoft Sreymom / Piseth), more robotic. ElevenLabs has no Khmer.
@@ -28,7 +28,7 @@ Status: in progress. Tick each step when done.
 
 ## Weekly rhythm
 1. **Plan (Claude Code, ~45 min).** REVIEW with the filled-in log (from week 2), then BATCH 3 scripts with shot lists. Check the fact-check lists. FIX with Khmer corrections.
-2. **Produce (one sitting).** Phone screenshots if needed, into each video's folder. Claude Code makes the voice and builds the 3 drafts; I watch, ask for fixes, export, schedule.
+2. **Produce (one sitting).** Phone screenshots if needed, into each video's folder. Claude Code makes the voice and the 3 films; I watch each preview, ask for changes, approve; Claude Code renders the MP4s; I schedule.
 3. **Results (~10 min, 3 days after each post).** Fill in the content log. Ask every new lead where they heard about Oak Order.
 
 ## Voice recipe (Gemini, AI Studio)
@@ -40,7 +40,7 @@ Status: in progress. Tick each step when done.
   4. Offer + CTA: `Warm and inviting, a little excited, slow down slightly on the offer`
 - `<short pause>` after the hook, after the product name reveal, before the CTA.
 - At most one expression tag per video.
-- Target 30–40 s.
+- Target about 20–25 s of voice (about 25–28 s with the end card; video 1's CapCut drafts were 30–40 s).
 - If the voice mispronounces an English word, write it in Khmer letters in the voice text only (Oak Order → អូក អូឌ័រ). Captions keep the English.
 - Save one MP3 per block, named by content-log number: `001_1_hook.mp3`, `001_2_pain.mp3`, `001_3_fix.mp3`, `001_4_cta.mp3`.
 
@@ -55,13 +55,17 @@ Status: in progress. Tick each step when done.
 - My own Telegram, phone number and KHQR may be shown; no blurring needed.
 - Bank screenshots: keep the bank's logo incidental; never imply a partnership with a bank.
 
+## Looks
+- **The look now** (video 2 v2, HyperFrames, 2026-11-02): the hook line already on screen at frame 0; the app's real screens in an iPhone Pro (Cosmic Orange), straight on; an arrow cursor that clicks, each click causing the next thing; pieces of the screen lift out at 2× as the voice names them; titles land word by word on the spoken word and hold still; a sound on every visible action, on its frame; energetic music with its drop on the fix; about 25 s. Colour, one ground per part: crimson for the problem, bright teal for the fix (key words yellow), the offer in white on Oak navy, the end card in navy on light grey (acorn, wordmark, the offer line, a Telegram button, t.me/longreaksa). No yellow backgrounds; navy only with white and light grey. My closest reference: IMG_4465 (Prodigis) in `Style references\`. Titles are in the picture: ask Claude Code for word changes.
+- Before: the template look (video 1: the app screen on navy, a caption box, the acorn top left) and the stage look (video 2 v1: a glowing dark navy stage). Both CapCut drafts.
+
 ## Where files live
 - Tool pictures and clips: `backend/marketing/out/` on the laptop (`km/`, `en/`, `video/`; `.work/` is the tool's scratch space). Re-made by one command; not backed up. Claude Code uses them from there.
-- On the laptop: `Documents\Video Marketing\Oak Order\`, one folder per video named by VIDEO (e.g. `001_pain-fix_lost-order\`: `shotlist.txt`, the 4 voice MP3s, phone screenshots, the finished export), and `Sound effects\`. Not synced to Google Drive (no Drive for desktop on this laptop); drafts point at these files, so don't move them.
+- On the laptop: `Documents\Video Marketing\Oak Order\`, one folder per video named by VIDEO (e.g. `002_pain-fix_how-much\`: `shotlist.txt`, `film.mjs`, `timing.json`, the 4 voice MP3s, `hf\` (the HyperFrames project, with `SPEC.md` and `REVIEW.md`), phone screenshots, the rendered MP4), `Sound effects\`, `Music\` (Mixkit music beds, `sources.txt` has the licence and ids) and `Style references\` (sample videos whose look we copy, not their content). Not synced to Google Drive (no Drive for desktop on this laptop); drafts point at these files, so don't move them.
 - Brand files and the captions' font: `brand/` in the repo.
 
-## CapCut template
-Built by Claude Code as a template draft: 9:16 · Noto Sans Khmer captions, large · Oak navy (#1f3350) and the acorn logo · end card with the acorn (`brand/oak-acorn-on-navy-1024.png`) and https://t.me/longreaksa. Template draft name: **`oak-template`** (built 2026-11-01; never edited, every video starts from a copy).
+## CapCut template (optional, the older way)
+Used only when a video is built as a CapCut draft. Built by Claude Code as a template draft: 9:16 · Noto Sans Khmer captions, large · Oak navy (#1f3350) and the acorn logo · end card with the acorn (`brand/oak-acorn-on-navy-1024.png`) and https://t.me/longreaksa. Template draft name: **`oak-template`** (built 2026-11-01; never edited, every video starts from a copy).
 - Tracks: `main` (pictures and clips, then the end card), `captions`, `logo`, `endcard`, `voice`.
 - Background: navy behind every picture and clip, so the strips beside a phone screenshot at 100% are navy, not black.
 - Captions: white Noto Sans Khmer **Bold** (`brand/fonts/NotoSansKhmer-Bold.ttf`; CapCut's font list has no Noto Sans Khmer), size 15, on a rounded navy box, about 70% down the screen, at most 78% of the width.
@@ -76,8 +80,9 @@ Built by Claude Code as a template draft: 9:16 · Noto Sans Khmer captions, larg
 English words are spelled in Khmer letters in the voice text only; captions keep the English (picked 2026-11-01 from a test).
 - Order → អូឌ័រ
 - chat → ឆាត
-- Oak Order → អូក អូឌ័រ (check by ear: a test transcript heard "All Go Order")
+- Oak Order → អូក អូឌ័រ (check by ear: a test transcript heard "All Go Order"). Video 2 tried "Oak Order" in English letters at the start of a block: the plain check wrote "Book order", but asked about the name directly it heard "Oak". Listen to it before posting.
 - Telegram → តេឡេក្រាម
+- KHQR → ខេអេចឃ្យូអា (heard back as "KHQR", 2026-11-01)
 
 ## Winning hooks (update from REVIEW)
 - (none yet)
