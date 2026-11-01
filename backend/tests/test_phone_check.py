@@ -12,7 +12,9 @@ from app.core.config import get_settings
 from app.core.errors import AppError
 from app.db.session import unscoped_session
 from app.models import PhoneCheck, Seller
-from app.services import phone_check, telegram
+from app.services import bot_texts, phone_check, telegram
+
+SAYS = bot_texts.DEFAULT
 
 CHECKS = "/api/v1/auth/phone-checks"
 
@@ -95,14 +97,14 @@ async def test_whole_check(client, bot, sokha):
 
     # Opening the link: the bot asks for the number with a share button.
     reply = await telegram.handle_update(start(sokha, code_of(check)))
-    assert reply["text"] == telegram.PHONE_ASK_TEXT
+    assert reply["text"] == SAYS.html("signup_ask")
     [[button]] = reply["reply_markup"]["keyboard"]
     assert button["request_contact"] is True
     assert (await client.get(f"{CHECKS}/{check['id']}")).json()["phone"] is None
 
     # Sharing it: done, the button goes away, the page sees the number.
     reply = await telegram.handle_update(contact(sokha, "85512345678"))
-    assert reply["text"] == telegram.phone_done_text("012345678")
+    assert reply["text"] == SAYS.html("signup_done", phone="012345678")
     assert reply["reply_markup"] == {"remove_keyboard": True}
     read = (await client.get(f"{CHECKS}/{check['id']}")).json()
     assert read["phone"] == "012345678"
@@ -118,11 +120,11 @@ async def test_someone_elses_contact_card_doesnt_count(client, bot, sokha):
     await telegram.handle_update(start(sokha, code_of(check)))
 
     reply = await telegram.handle_update(contact(sokha, "85599888777", owner_id=999))
-    assert reply["text"] == telegram.PHONE_NOT_OWN_TEXT
+    assert reply["text"] == SAYS.html("not_own_phone")
     # A card for someone without Telegram has no user_id at all.
     card_without_id = contact(sokha, "85599888777")
     del card_without_id["message"]["contact"]["user_id"]
-    assert (await telegram.handle_update(card_without_id))["text"] == telegram.PHONE_NOT_OWN_TEXT
+    assert (await telegram.handle_update(card_without_id))["text"] == SAYS.html("not_own_phone")
 
     assert (await client.get(f"{CHECKS}/{check['id']}")).json()["phone"] is None
 
@@ -140,7 +142,7 @@ async def test_number_goes_only_to_the_check_that_account_opened(client, bot, so
 
 async def test_sharing_without_an_open_check(client, bot, sokha):
     reply = await telegram.handle_update(contact(sokha, "85512345678"))
-    assert reply["text"] == telegram.PHONE_EXPIRED_TEXT
+    assert reply["text"] == SAYS.html("signup_expired")
 
 
 async def test_done_check_cant_be_opened_again(client, bot, sokha):
@@ -149,7 +151,7 @@ async def test_done_check_cant_be_opened_again(client, bot, sokha):
     await telegram.handle_update(contact(sokha, "85512345678"))
 
     reply = await telegram.handle_update(start(sokha + 1, code_of(check)))
-    assert reply["text"] == telegram.PHONE_EXPIRED_TEXT
+    assert reply["text"] == SAYS.html("signup_expired")
 
 
 async def test_expired_check(client, bot, sokha):
@@ -163,7 +165,7 @@ async def test_expired_check(client, bot, sokha):
         await db.commit()
 
     reply = await telegram.handle_update(start(sokha, code_of(check)))
-    assert reply["text"] == telegram.PHONE_EXPIRED_TEXT
+    assert reply["text"] == SAYS.html("signup_expired")
     response = await client.get(f"{CHECKS}/{check['id']}")
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "PHONE_CHECK_EXPIRED"
@@ -173,7 +175,7 @@ async def test_unknown_check(client, bot, sokha):
     response = await client.get(f"{CHECKS}/{uuid.uuid4()}")
     assert response.status_code == 404
     reply = await telegram.handle_update(start(sokha, "phone_nope"))
-    assert reply["text"] == telegram.PHONE_EXPIRED_TEXT
+    assert reply["text"] == SAYS.html("signup_expired")
 
 
 async def test_says_when_the_number_has_an_account(client, bot, make_store, sokha):

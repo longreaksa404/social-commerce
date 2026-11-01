@@ -67,6 +67,31 @@ def create_access_token(seller_id: uuid.UUID, store_id: uuid.UUID, role: str = "
     )
 
 
+# Open as seller (01_PRODUCT.md §22.11, D1A): how long the admin's token
+# for a shop's owner lasts. It has no refresh token.
+ACTING_MINUTES = 30
+
+
+def create_acting_token(
+    owner_id: uuid.UUID, store_id: uuid.UUID, admin_id: uuid.UUID
+) -> tuple[str, datetime]:
+    """The owner's access as the admin uses it: `act` names the admin, so
+    the seller routes know who is really there (api/deps.py) and each save
+    is logged. Answers the token and when it ends."""
+    expires_at = datetime.now(UTC) + timedelta(minutes=ACTING_MINUTES)
+    token = _encode(
+        {
+            "type": "access",
+            "sub": str(owner_id),
+            "store_id": str(store_id),
+            "role": "owner",
+            "act": str(admin_id),
+        },
+        timedelta(minutes=ACTING_MINUTES),
+    )
+    return token, expires_at
+
+
 def create_refresh_token(seller_id: uuid.UUID, token_id: uuid.UUID) -> str:
     settings = get_settings()
     return _encode(

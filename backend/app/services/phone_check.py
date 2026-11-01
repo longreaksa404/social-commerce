@@ -18,7 +18,7 @@ import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import delete, select
+from sqlalchemy import ColumnElement, and_, delete, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -42,6 +42,23 @@ NAME_LENGTH = 100
 _EXPIRED = "This check has expired. Verify your phone number again."
 
 
+# A seller's check that got a number but was never used (a sign-up that
+# didn't finish) is kept this long after it expires, for the admin's
+# "Sign-ups that didn't finish" (01_PRODUCT.md §22.11, part 31); the
+# Privacy page says so.
+KEEP_UNFINISHED = timedelta(days=30)
+
+
+def stale(now: datetime) -> ColumnElement[bool]:
+    """Checks to tidy away: expired, except an unfinished sign-up's,
+    kept KEEP_UNFINISHED."""
+    unfinished = and_(PhoneCheck.code.startswith(CODE_PREFIX), PhoneCheck.phone.is_not(None))
+    return and_(
+        PhoneCheck.expires_at < now,
+        or_(~unfinished, PhoneCheck.expires_at < now - KEEP_UNFINISHED),
+    )
+
+
 def _expired() -> AppError:
     return AppError(404, "PHONE_CHECK_EXPIRED", _EXPIRED)
 
@@ -53,7 +70,7 @@ async def create(db: AsyncSession) -> PhoneCheck:
         )
     now = datetime.now(UTC)
     # Old checks are of no use to anyone: tidy up as new ones come.
-    await db.execute(delete(PhoneCheck).where(PhoneCheck.expires_at < now))
+    await db.execute(delete(PhoneCheck).where(stale(now)))
     check = PhoneCheck(
         code=CODE_PREFIX + secrets.token_urlsafe(16),
         expires_at=now + timedelta(minutes=CHECK_MINUTES),

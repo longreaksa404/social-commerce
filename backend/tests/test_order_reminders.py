@@ -13,7 +13,7 @@ from sqlalchemy import select, update
 from app.core.config import get_settings
 from app.db.session import tenant_session
 from app.models import NotificationLog, Order, Store
-from app.services import order_reminders, telegram
+from app.services import bot_texts, order_reminders, telegram
 from tests.helpers import KHQR, add_product, place_order, registered_seller, set_payments
 
 ORDERS = "/api/v1/seller/orders"
@@ -77,7 +77,7 @@ async def test_reminds_once_after_two_hours(client, bot, auth_headers, placed_at
     assert "#1001" in reminder["text"] and "$10.00" in reminder["text"]
     assert "ខ្ញុំបានបង់ហើយ" in reminder["text"]  # I've paid
     assert reminder["button"] == (
-        order_reminders.PAY,
+        bot_texts.WORDS["button.pay"].text,
         f"https://app.example.com/shop/{slug}/order/{order_id}",
     )
     async with tenant_session(store_id) as db:

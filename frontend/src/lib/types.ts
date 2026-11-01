@@ -147,6 +147,8 @@ export type Plan = {
   days_left: number | null
   /** In setup: the trial's last day if the shop opens today. */
   trial_until: string | null
+  /** The free trial's length for a shop opened today (set in the admin). */
+  trial_days: number
   /** Oak Order Standard, US dollars. */
   prices: { month: string; year: string }
   /** The shop's code ("OAK-K7Q2MX"): in the transfer's note, so Oak
@@ -192,8 +194,13 @@ export type AdminShop = {
   last_order_at: string | null
 }
 
+/** A payment as the admin sees it: also "void" (Undone: marked paid by
+ * mistake, its time taken off; `failure` says why), and the founder's own
+ * note. */
+export type AdminPayment = Omit<PlanPayment, 'status'> & { status: PlanPaymentStatus | 'void'; reference: string | null }
+
 export type AdminShopDetail = AdminShop & {
-  payments: (PlanPayment & { reference: string | null })[]
+  payments: AdminPayment[]
   currency: Currency
   /** How customers can pay: cod, khqr. */
   pays_by: string[]
@@ -211,6 +218,155 @@ export type AdminShopDetail = AdminShop & {
   /** What was done on it from the admin: the newest 20 log lines. */
   log: AdminLogLine[]
 }
+
+/** Every shop's payments in a month or a year (part 17, pick 9B). `day`:
+ * when it was paid (paid, undone), or said (waiting, not found). */
+export type AdminPaymentRow = AdminPayment & { store_id: string; shop: string; code: string; day: string }
+
+export type AdminPayments = {
+  year: number
+  /** null: the whole year. */
+  month: number | null
+  /** Paid in it, US dollars; undone ones left out. */
+  collected: string
+  paid: number
+  collected_year: string
+  /** Every "I've paid" waiting, oldest first, whatever its day. */
+  waiting: AdminPaymentRow[]
+  /** Paid, not found and undone in it, newest first. */
+  payments: AdminPaymentRow[]
+}
+
+/** An order found from the admin (part 19): look only. */
+export type AdminOrder = {
+  id: string
+  store_id: string
+  shop: string
+  number: number
+  created_at: string
+  customer_name: string
+  customer_phone: string
+  /** "Clear case iPhone 15 (Black) × 1" */
+  items: string[]
+  currency: Currency
+  delivery_fee: string
+  total: string
+  status: OrderStatus
+  payment_method: PaymentMethod
+  payment_status: PaymentStatus
+  delivery_method: DeliveryMethod
+  delivery_status: DeliveryStatus
+  /** The owner. */
+  seller: string
+  seller_phone: string | null
+}
+
+/** One phone number in every shop it ordered from (part 20). */
+export type AdminCustomer = {
+  phone: string
+  name: string
+  shops: { store_id: string; shop: string; customer_id: string; orders: number; last_order_at: string | null; telegram: boolean }[]
+}
+
+/** A product of any shop (part 22); status inactive = hidden. */
+export type AdminProduct = {
+  id: string
+  store_id: string
+  shop: string
+  name: string
+  price: string
+  currency: Currency
+  image_url: string | null
+  status: 'active' | 'inactive'
+  created_at: string
+}
+
+/** Oak Order's own settings (D2B, pick 11A). Prices in US dollars. */
+export type AdminSettings = {
+  khr_per_usd: number
+  month: string
+  year: string
+  trial_days: number
+  /** Who pays a new price from their next payment. */
+  paying_shops: number
+  updated_at: string | null
+}
+
+/** The admin's System page (parts 24 to 27, pick 12B). */
+export type AdminSystem = {
+  /** Counted in memory by the server: since it started, at most an hour. */
+  speed: {
+    requests: number
+    typical_ms: number | null
+    /** The slowest 1 in 20, and the route most often that slow. */
+    slow_ms: number | null
+    slow_route: string | null
+    errors_hour: number
+    errors_today: number
+    started_at: string
+  }
+  jobs: { name: 'billing' | 'reminders'; title: string; every: string; last_at: string | null; last_sent: number | null; late: boolean }[]
+  bot: {
+    set_up: boolean
+    working: boolean
+    problem: string | null
+    waiting: number
+    webhook: boolean
+    failed: number
+    recent: { store_id: string; shop: string; event_type: string; error: string; sent_at: string }[]
+    /** Changed words Telegram refused in 24 h, sent in the original. */
+    refused: number
+  }
+  database_bytes: number
+  database_ms: number
+  services: { name: string; set: boolean }[]
+  version: string | null
+}
+
+/** The Bot page (founder 2026-10-31): a message the bot sends, its
+ * words now (`text`) and the code's (`default`), with {tags} and **bold**. */
+export type AdminBotMessage = {
+  key: string
+  group: 'sellers' | 'customers' | 'you'
+  name: string
+  about: string
+  text: string
+  default: string
+  tags: { name: string; label: string }[]
+  /** Its small words (AdminBotWord keys), shown under it. */
+  words: string[]
+  on: boolean
+  can_off: boolean
+  stays_on: string | null
+}
+
+/** A small word inside a tag: a payment method, a status, a button. */
+export type AdminBotWord = {
+  key: string
+  label: string
+  kind: 'text' | 'button' | 'note'
+  text: string
+  default: string
+  tags: { name: string; label: string }[]
+  /** The names of the messages that use it. */
+  used_in: string[]
+}
+
+export type AdminBotWords = { messages: AdminBotMessage[]; words: AdminBotWord[]; updated_at: string | null }
+
+/** A message's words as typed, not live yet. */
+export type AdminBotDraft = { key: string; text: string; words: Record<string, string>; on: boolean; example?: number }
+
+export type AdminBotPreview = {
+  /** Go live refuses these. */
+  errors: string[]
+  /** Tags taken out. */
+  warnings: string[]
+  /** `html`: Telegram's, escaped text and <b> only. */
+  examples: { label: string; html: string; buttons: string[] }[]
+}
+
+export type AdminBotProfile = { name: string; description: string; short_description: string; username: string }
 
 /** A line of the admin's log (part 28): `details` holds what changed and
  * the names as they were (admin/logWords.ts reads them). */

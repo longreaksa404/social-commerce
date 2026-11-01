@@ -23,6 +23,9 @@ class CurrentSeller:
     store_id: uuid.UUID
     # Tokens from before staff logins existed have no role: only owners did.
     role: SellerRole = SellerRole.OWNER
+    # Open as seller (01_PRODUCT.md §22.11, D1A): the admin using the
+    # owner's app; None for the seller themselves.
+    admin_id: uuid.UUID | None = None
 
 
 async def current_seller(
@@ -36,9 +39,20 @@ async def current_seller(
             uuid.UUID(payload["sub"]),
             uuid.UUID(payload["store_id"]),
             SellerRole(payload.get("role", SellerRole.OWNER)),
+            uuid.UUID(payload["act"]) if "act" in payload else None,
         )
     except (KeyError, ValueError) as exc:
         raise AppError(401, "INVALID_TOKEN", "Invalid authentication token.") from exc
+
+
+async def current_seller_themselves(
+    seller: Annotated[CurrentSeller, Depends(current_seller)],
+) -> CurrentSeller:
+    """The owner's own password, login phone and logins, Close shop and
+    "I've paid": never while the admin has the shop open (D1A)."""
+    if seller.admin_id is not None:
+        raise AppError(403, "NOT_AS_ADMIN", "Only the seller can do this, not Oak Order.")
+    return seller
 
 
 async def current_owner(
@@ -111,6 +125,7 @@ async def get_shop_db(shop: Annotated[Store, Depends(get_shop)]) -> AsyncIterato
 
 
 Seller = Annotated[CurrentSeller, Depends(current_seller)]
+SellerThemselves = Annotated[CurrentSeller, Depends(current_seller_themselves)]
 Owner = Annotated[CurrentSeller, Depends(current_owner)]
 Admin = Annotated[CurrentAdmin, Depends(current_admin)]
 AdminPasswordAgain = Annotated[CurrentAdmin, Depends(current_admin_password_again)]

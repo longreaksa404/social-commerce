@@ -6,6 +6,7 @@ from sqlalchemy import select
 from app import admin
 from app.db.session import unscoped_session
 from app.models import Customer, Delivery, Order, OrderItem, Payment, Product, Seller, Store
+from app.services.customer import REMOVED
 from tests.helpers import add_product, place_order, refresh, registered_seller, track
 
 
@@ -176,7 +177,7 @@ async def test_forget_customer_removes_them_but_keeps_the_orders(client, auth_he
 
     assert count == 1
     order = (await client.get(f"/api/v1/seller/orders/{order_id}", headers=headers)).json()
-    assert order["customer"]["name"] == admin.REMOVED
+    assert order["customer"]["name"] == REMOVED
     assert order["customer"]["phone"].startswith("removed-")
     assert (order["delivery_address"], order["delivery_lat"], order["delivery_address_note"]) == (
         None,
@@ -186,7 +187,7 @@ async def test_forget_customer_removes_them_but_keeps_the_orders(client, auth_he
     assert order["total"] == "10.00"  # the sale itself stays
     alerts = (await client.get("/api/v1/seller/notifications", headers=headers)).json()
     names = [n["order"]["customer_name"] for n in alerts["notifications"] if n["order"]]
-    assert names and set(names) == {admin.REMOVED}
+    assert names and set(names) == {REMOVED}
     # The tracking page no longer finds it with their phone.
     assert (await track(client, slug, order_id, phone="0971112222")).status_code == 404
 

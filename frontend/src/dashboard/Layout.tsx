@@ -1,11 +1,12 @@
 import { Bell, Inbox, Link2, Package, Settings, Store, Tags, Users } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { Link, NavLink, Navigate, useLocation, useMatch } from 'react-router'
 import { useAuth } from '../auth/useAuth.ts'
 import { ErrorState, PageOutlet, Skeleton, Spinner } from '../components/ui.tsx'
 import { useBump } from '../components/useBump.ts'
 import type { Messages } from '../i18n/core.ts'
 import { useT } from '../i18n/useT.ts'
+import { ActingBar } from './ActingBar.tsx'
 import { useShopColor } from '../shop/colors.ts'
 import { useStore, useUnreadNotifications } from './queries.ts'
 import { useSetup } from './settings/setup.ts'
@@ -43,6 +44,7 @@ export function DashboardLayout() {
 }
 
 function Shell() {
+  const { acting } = useAuth()
   // The seller sees their shop's colour too (founder, 2026-10-15).
   useShopColor(useStore().data?.color)
   // Product create/edit, an order and a settings page are focused task
@@ -71,21 +73,26 @@ function Shell() {
           ? 'max-w-3xl lg:max-w-5xl'
           : 'max-w-3xl'
 
+  // Opened by the admin (D1A): its bar across the top, the sticky bars
+  // under it.
   return (
-    <div className="min-h-dvh lg:flex">
-      <Sidebar />
-      {!focused && <MobileTopBar />}
-      <div className="min-w-0 lg:flex-1">
-        <LaptopTopBar />
-        <main
-          className={`mx-auto w-full px-4 lg:mx-0 lg:px-8 lg:pt-2 lg:pb-8 ${width} ${
-            focused ? 'pt-2 pb-28' : 'pt-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)]'
-          }`}
-        >
-          <PageOutlet depth={2} />
-        </main>
+    <div className="min-h-dvh" style={acting ? ({ '--acting-bar': '2.25rem' } as CSSProperties) : undefined}>
+      {acting && <ActingBar acting={acting} />}
+      <div className="lg:flex">
+        <Sidebar />
+        {!focused && <MobileTopBar />}
+        <div className="min-w-0 lg:flex-1">
+          <LaptopTopBar />
+          <main
+            className={`mx-auto w-full px-4 lg:mx-0 lg:px-8 lg:pt-2 lg:pb-8 ${width} ${
+              focused ? 'pt-2 pb-28' : 'pt-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)]'
+            }`}
+          >
+            <PageOutlet depth={2} />
+          </main>
+        </div>
+        {!focused && <BottomTabBar />}
       </div>
-      {!focused && <BottomTabBar />}
     </div>
   )
 }
@@ -183,7 +190,7 @@ function SetupDot({ className }: { className: string }) {
 
 function MobileTopBar() {
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
+    <header className="sticky top-[var(--acting-bar,0px)] z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
       <div className="flex h-14 items-center gap-1 pr-2 pl-4">
         <StoreHome />
         <ShareShopButton />
@@ -197,7 +204,7 @@ function MobileTopBar() {
  * first row is the shop's name alone (UI check #10, founder 2026-10-17). */
 function LaptopTopBar() {
   return (
-    <div className="sticky top-0 z-20 hidden h-16 items-center justify-end gap-1 bg-slate-50/90 px-6 backdrop-blur lg:flex">
+    <div className="sticky top-[var(--acting-bar,0px)] z-20 hidden h-16 items-center justify-end gap-1 bg-slate-50/90 px-6 backdrop-blur lg:flex">
       <ShareShopButton />
       <NotificationBell />
     </div>
@@ -253,7 +260,7 @@ function BottomTabBar() {
 function Sidebar() {
   const t = useT()
   return (
-    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-slate-200 bg-surface lg:flex">
+    <aside className="sticky top-[var(--acting-bar,0px)] hidden h-[calc(100dvh-var(--acting-bar,0px))] w-64 shrink-0 flex-col border-r border-slate-200 bg-surface lg:flex">
       <div className="flex h-16 items-center border-b border-slate-100 pr-3 pl-5">
         <StoreHome />
       </div>

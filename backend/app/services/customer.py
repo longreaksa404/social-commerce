@@ -8,7 +8,7 @@ enforces the same thing (layer 2).
 import uuid
 from collections import defaultdict
 
-from sqlalchemy import ColumnElement, func, or_, select
+from sqlalchemy import ColumnElement, func, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import NotFound
@@ -29,7 +29,11 @@ NOT_SPENT = (OrderStatus.REJECTED, OrderStatus.CANCELLED)
 MAX_HISTORY = 100
 
 
-def _matches(search: str) -> ColumnElement[bool]:
+# A forgotten customer's name (the Data deletion page).
+REMOVED = "(removed)"
+
+
+def matches(search: str) -> ColumnElement[bool]:
     """Part of the name (any case), or part of the phone typed any way."""
     conditions = [Customer.name.icontains(search, autoescape=True)]
     conditions += [
@@ -59,7 +63,7 @@ async def list_customers(
     )
     filters = [Customer.store_id == store_id]
     if search and search.strip():
-        filters.append(_matches(search.strip()))
+        filters.append(matches(search.strip()))
 
     rows = (
         await db.execute(
@@ -144,3 +148,42 @@ async def _spent(
     for customer_id, currency, amount in rows:
         spent[customer_id].append(AmountOut(currency=currency, amount=amount))
     return spent
+
+
+async def forget(db: AsyncSession, customer: Customer) -> tuple[int, str | None]:
+    """A customer who asked to be forgotten (the Data deletion page): their
+    name, phone number, addresses, map pins and notes go from that shop's
+    customer list, orders and alerts. The orders stay, with their items and
+    money, for the seller's records. Not committed; returns how many
+    orders, and the Telegram photo to delete from storage once committed
+    (`python -m app.admin forget-customer`, the admin's Remove)."""
+    order_ids = list(await db.scalars(select(Order.id).where(Order.customer_id == customer.id)))
+    customer.name = REMOVED
+    # Unique per shop, and no longer anyone's number.
+    customer.phone = f"removed-{customer.id.hex[:8]}"
+    customer.address = None
+    customer.telegram_user_id = None
+    customer.telegram_phone = None
+    photo, customer.photo_url = customer.photo_url, None
+    await db.execute(
+        update(Order)
+        .where(Order.customer_id == customer.id)
+        .values(
+            delivery_address=None,
+            delivery_lat=None,
+            delivery_lng=None,
+            delivery_address_note=None,
+            notes=None,
+        )
+    )
+    # The bell's alerts keep the name the order had.
+    await db.execute(
+        text(
+            "UPDATE notification_log SET payload = jsonb_set(payload,"
+            " '{order,customer_name}', to_jsonb(CAST(:removed AS text)))"
+            " WHERE store_id = :store_id"
+            " AND payload->'order'->>'id' = ANY(CAST(:ids AS text[]))"
+        ),
+        {"removed": REMOVED, "store_id": customer.store_id, "ids": [str(i) for i in order_ids]},
+    )
+    return len(order_ids), photo

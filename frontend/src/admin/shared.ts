@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { formatPhone } from '../lib/orders.ts'
 import type { AdminSeller } from '../lib/types.ts'
 
@@ -39,3 +40,13 @@ export function initials(name: string) {
 
 /** A login's phone, or its email for older accounts. */
 export const loginOf = (person: AdminSeller) => (person.phone ? formatPhone(person.phone) : (person.email ?? ''))
+
+/** What was typed, a moment after the typing stops (a search). */
+export function useSettled(value: string, ms = 250) {
+  const [settled, setSettled] = useState(value)
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(value), ms)
+    return () => clearTimeout(timer)
+  }, [value, ms])
+  return settled
+}

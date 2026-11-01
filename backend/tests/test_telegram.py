@@ -22,7 +22,7 @@ from app.models import (
     Order,
     Store,
 )
-from app.services import notifications, telegram
+from app.services import bot_texts, notifications, telegram
 from tests.helpers import (
     KHQR,
     add_product,
@@ -151,9 +151,9 @@ async def test_start_with_bad_code_or_none_explains(client, bot, make_store):
     store = await make_store()
     headers = {"X-Telegram-Bot-Api-Secret-Token": SECRET}
     bad = (await client.post(WEBHOOK, json=start(1, "/start xyz"), headers=headers)).json()
-    assert bad["text"] == telegram.EXPIRED_TEXT
+    assert bad["text"] == bot_texts.DEFAULT.html("link_expired")
     plain = (await client.post(WEBHOOK, json=start(1, "hello"), headers=headers)).json()
-    assert plain["text"] == telegram.HELP_TEXT
+    assert plain["text"] == bot_texts.DEFAULT.html("help")
     # Both say where to connect: Settings → Alerts, in the app's Khmer.
     assert all("ការកំណត់ → ការជូនដំណឹង" in t for t in (bad["text"], plain["text"]))
     assert await chat_id_of(store.store_id) is None
@@ -569,7 +569,7 @@ async def test_received_button_marks_it_paid_and_says_so(client, bot, bot_calls,
     [(method, edit)] = bot_calls
     assert method == "editMessageText"
     assert (edit["chat_id"], edit["message_id"]) == (555, 77)
-    assert edit["text"].endswith(notifications.MARKED_PAID)
+    assert edit["text"].endswith(bot_texts.WORDS["claim.marked"].text)
     assert [b.get("callback_data") for b in edit["reply_markup"]["inline_keyboard"][0]] == [None]
 
     # A second tap (or after Mark paid in the app) changes nothing.
@@ -604,10 +604,11 @@ async def test_received_button_works_only_from_that_shops_chat(
 
     for chat in (666, 777):
         answer = await telegram.handle_update(tap(chat, f"paid:{order['id']}"))
-        assert answer["text"] == notifications.TAP_GONE
+        assert answer["text"] == bot_texts.WORDS["tap.gone"].text
         assert answer["show_alert"] is True
     for data in ("paid:not-a-uuid", f"paid:{uuid.uuid4()}"):
-        assert (await telegram.handle_update(tap(555, data)))["text"] == notifications.TAP_GONE
+        answer = await telegram.handle_update(tap(555, data))
+        assert answer["text"] == bot_texts.WORDS["tap.gone"].text
     assert (await telegram.handle_update(tap(555, "other:1"))) is None
 
     assert (await _payment(client, headers, order["id"]))["status"] == "pending"

@@ -73,7 +73,7 @@ function Numbers({ data }: { data: AdminOverview }) {
   )
 }
 
-function Tile({ label, value, children }: { label: string; value: ReactNode; children: ReactNode }) {
+export function Tile({ label, value, children }: { label: string; value: ReactNode; children: ReactNode }) {
   return (
     <Card className="mx-0 rounded-2xl p-4 sm:p-5">
       <p className="text-sm text-slate-500">{label}</p>

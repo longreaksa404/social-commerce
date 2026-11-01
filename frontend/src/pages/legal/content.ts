@@ -13,8 +13,15 @@ export type LegalDoc = 'privacy' | 'terms' | 'data-deletion'
 export type Block = string | string[]
 export type LegalPage = { title: string; intro: string; sections: { heading: string; body: Block[] }[] }
 
+/** The Terms' Fees name the trial's length and the prices set in the
+ * admin (D2B, 2026-10-30) as {trial}, {month} and {year}; the page fills
+ * them in from /plan/prices. */
+export type Prices = { trial: string; month: string; year: string }
+export const fill = (text: string, prices: Prices) =>
+  text.replace(/\{(trial|month|year)\}/g, (_, key: keyof Prices) => prices[key])
+
 // Change it with the text.
-export const UPDATED = '2026-10-27'
+export const UPDATED = '2026-10-31'
 
 const en: Record<LegalDoc, LegalPage> = {
   privacy: {
@@ -30,6 +37,7 @@ const en: Record<LegalDoc, LegalPage> = {
             "If you log in with Google or Facebook: that account's ID, and the name and email it gives us. We never get your password there, your posts or your friends.",
             "Your shop: its name, link, logo and description, your products, photos and prices, your delivery and payment details (such as a bank account number or KHQR account, which customers see so they can pay you), your contact buttons, and your staff's names and phone numbers.",
             'Your chat with our Telegram bot, so we can send you order alerts and "choose a new password" links.',
+            'A phone number checked with our bot that never made a shop is kept 30 days, then deleted.',
             "Your shop's orders and customers (below).",
           ],
         ],
@@ -49,6 +57,7 @@ const en: Record<LegalDoc, LegalPage> = {
         heading: 'Why we keep it',
         body: [
           "To run the shops: show products, take and deliver orders, send alerts, and let you log in. We don't use your data for advertising, and we don't sell it or give it to advertisers.",
+          "Oak Order may open your shop's app to help you, for up to 30 minutes. Your Telegram is told each time and what we save is recorded.",
         ],
       },
       {
@@ -131,7 +140,7 @@ const en: Record<LegalDoc, LegalPage> = {
       {
         heading: 'Fees',
         body: [
-          "Every new shop gets a free trial of 1 month (30 days), starting the day you open your shop in the app, not the day you sign up. Until then customers can see your shop but can't order. After the trial, Oak Order Standard costs $9.99 a month or $99 a year for each shop, in US dollars, hosting included.",
+          "Every new shop gets a free trial of {trial} days, starting the day you open your shop in the app, not the day you sign up. Until then customers can see your shop but can't order. After the trial, Oak Order Standard costs {month} a month or {year} a year for each shop, in US dollars, hosting included.",
           "You pay Oak Order from your own bank app. Settings → Plan shows your shop's code and Oak Order's KHQR or bank account. Pay with the code in the transfer note (the KHQR adds it for you), then tap \"I've paid\". We check each payment by hand, usually within a day. A new month or year starts where your trial or your last payment ends, so paying early loses no days.",
           "If your trial or your paid time runs out, you have 7 more days to pay, and your shop keeps taking orders. After that it stops taking new orders until you pay, and paying opens it again at once. Customers can still see your shop, and you can still finish and download the orders you have. Nothing is deleted.",
           'You will see the price before you pay. No card is needed, and nothing is charged automatically.',
@@ -211,6 +220,7 @@ const km: Record<LegalDoc, LegalPage> = {
             'បើអ្នកចូលដោយ Google ឬ Facebook៖ លេខសម្គាល់គណនីនោះ និងឈ្មោះ និងអ៊ីមែលដែលវាផ្ដល់ឱ្យយើង។ យើងមិនដែលទទួលបានពាក្យសម្ងាត់ ការបង្ហោះ ឬមិត្តភក្តិរបស់អ្នកនៅទីនោះឡើយ។',
             'ហាងរបស់អ្នក៖ ឈ្មោះ តំណ ឡូហ្គោ និងការពិពណ៌នា ទំនិញ រូបថត និងតម្លៃ ព័ត៌មានដឹកជញ្ជូន និងបង់ប្រាក់ (ដូចជាលេខគណនីធនាគារ ឬគណនី KHQR ដែលអតិថិជនឃើញ ដើម្បីបង់ប្រាក់ឱ្យអ្នក) ប៊ូតុងទំនាក់ទំនង និងឈ្មោះ និងលេខទូរស័ព្ទរបស់បុគ្គលិកអ្នក។',
             'ការឆាតរបស់អ្នកជាមួយ bot Telegram របស់យើង ដើម្បីផ្ញើការជូនដំណឹងការកុម្ម៉ង់ និងតំណ “ជ្រើសពាក្យសម្ងាត់ថ្មី”។',
+            'លេខទូរស័ព្ទដែលបានផ្ទៀងផ្ទាត់ជាមួយ bot ប៉ុន្តែមិនបានបង្កើតហាង ត្រូវរក្សាទុក 30 ថ្ងៃ បន្ទាប់មកលុបចោល។',
             'ការកុម្ម៉ង់ និងអតិថិជនរបស់ហាងអ្នក (ខាងក្រោម)។',
           ],
         ],
@@ -230,6 +240,7 @@ const km: Record<LegalDoc, LegalPage> = {
         heading: 'ហេតុអ្វីយើងរក្សាទុក',
         body: [
           'ដើម្បីដំណើរការហាង៖ បង្ហាញទំនិញ ទទួល និងដឹកការកុម្ម៉ង់ ផ្ញើការជូនដំណឹង និងឱ្យអ្នកចូលគណនីបាន។ យើងមិនប្រើទិន្នន័យរបស់អ្នកសម្រាប់ការផ្សាយពាណិជ្ជកម្មទេ ហើយយើងមិនលក់ ឬផ្ដល់វាទៅអ្នកផ្សាយពាណិជ្ជកម្មឡើយ។',
+          'Oak Order អាចបើកកម្មវិធីហាងរបស់អ្នក ដើម្បីជួយអ្នក រហូតដល់ 30 នាទី។ យើងប្រាប់អ្នកតាម Telegram រាល់ពេល ហើយកត់ត្រាអ្វីដែលយើងរក្សាទុក។',
         ],
       },
       {
@@ -312,7 +323,7 @@ const km: Record<LegalDoc, LegalPage> = {
       {
         heading: 'ថ្លៃសេវា',
         body: [
-          'ហាងថ្មីនីមួយៗទទួលបានការសាកល្បងឥតគិតថ្លៃ 1 ខែ (30 ថ្ងៃ) ចាប់ពីថ្ងៃដែលអ្នកបើកហាងក្នុងកម្មវិធី មិនមែនថ្ងៃចុះឈ្មោះទេ។ រហូតដល់ពេលនោះ អតិថិជនអាចមើលហាងរបស់អ្នកបាន ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។ បន្ទាប់ពីការសាកល្បង Oak Order Standard មានតម្លៃ $9.99 ក្នុងមួយខែ ឬ $99 ក្នុងមួយឆ្នាំ សម្រាប់ហាងនីមួយៗ ជាដុល្លារអាមេរិក រួមទាំងសេវាបង្ហោះ។',
+          'ហាងថ្មីនីមួយៗទទួលបានការសាកល្បងឥតគិតថ្លៃ {trial} ថ្ងៃ ចាប់ពីថ្ងៃដែលអ្នកបើកហាងក្នុងកម្មវិធី មិនមែនថ្ងៃចុះឈ្មោះទេ។ រហូតដល់ពេលនោះ អតិថិជនអាចមើលហាងរបស់អ្នកបាន ប៉ុន្តែមិនអាចកុម្ម៉ង់បានទេ។ បន្ទាប់ពីការសាកល្បង Oak Order Standard មានតម្លៃ {month} ក្នុងមួយខែ ឬ {year} ក្នុងមួយឆ្នាំ សម្រាប់ហាងនីមួយៗ ជាដុល្លារអាមេរិក រួមទាំងសេវាបង្ហោះ។',
           'អ្នកបង់ឱ្យ Oak Order ពីកម្មវិធីធនាគាររបស់អ្នកផ្ទាល់។ ការកំណត់ → គម្រោង បង្ហាញលេខកូដហាងរបស់អ្នក និង KHQR ឬគណនីធនាគាររបស់ Oak Order។ សូមបង់ដោយដាក់លេខកូដនោះក្នុងកំណត់ចំណាំនៃការផ្ទេរប្រាក់ (KHQR ដាក់វាឱ្យអ្នកស្រាប់) រួចចុច “ខ្ញុំបានបង់”។ យើងពិនិត្យការបង់ប្រាក់នីមួយៗដោយដៃ ជាធម្មតារួចក្នុងមួយថ្ងៃ។ ខែ ឬឆ្នាំថ្មីចាប់ផ្ដើមនៅពេលការសាកល្បង ឬការបង់ប្រាក់ចុងក្រោយរបស់អ្នកបញ្ចប់ ដូច្នេះការបង់មុនមិនបាត់បង់ថ្ងៃទេ។',
           'បើការសាកល្បង ឬពេលវេលាដែលអ្នកបានបង់អស់ អ្នកនៅមាន 7 ថ្ងៃទៀតដើម្បីបង់ ហើយហាងរបស់អ្នកនៅតែទទួលការកុម្ម៉ង់។ បន្ទាប់ពីនោះ ហាងឈប់ទទួលការកុម្ម៉ង់ថ្មី រហូតដល់អ្នកបង់ ហើយពេលបង់ ហាងបើកវិញភ្លាមៗ។ អតិថិជននៅតែអាចមើលហាងរបស់អ្នកបាន ហើយអ្នកនៅតែអាចបញ្ចប់ និងទាញយកការកុម្ម៉ង់ដែលមានស្រាប់បាន។ គ្មានអ្វីត្រូវបានលុបទេ។',
           'អ្នកនឹងឃើញតម្លៃមុនពេលបង់។ មិនត្រូវការកាត និងមិនកាត់ប្រាក់ដោយស្វ័យប្រវត្តិទេ។',

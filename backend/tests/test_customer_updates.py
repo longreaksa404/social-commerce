@@ -13,7 +13,7 @@ from app.core.config import get_settings
 from app.db.session import tenant_session
 from app.models import Customer, DeliveryMethod, DeliveryStatus, OrderStatus, PaymentMethod
 from app.models import PaymentStatus as P
-from app.services import customer_updates, telegram
+from app.services import bot_texts, customer_updates, telegram
 from tests.helpers import KHQR, add_product, place_order, registered_seller, set_payments, track
 
 ORDERS = "/api/v1/seller/orders"
@@ -167,11 +167,11 @@ async def test_another_number_still_gets_updates_and_shows_to_the_seller(
 async def test_expired_or_forged_start_code_explains(client, bot, dara):
     code, _ = customer_updates.make_code(uuid.uuid4(), uuid.uuid4(), now=1_000_000)
     reply = await telegram.handle_update(message(dara, text=f"/start {code}"))
-    assert reply["text"] == customer_updates.EXPIRED_TEXT
+    assert reply["text"] == SAYS.html("updates_expired")
     # A live code for an order that doesn't exist.
     code, _ = customer_updates.make_code(uuid.uuid4(), uuid.uuid4())
     reply = await telegram.handle_update(message(dara, text=f"/start {code}"))
-    assert reply["text"] == customer_updates.EXPIRED_TEXT
+    assert reply["text"] == SAYS.html("updates_expired")
 
 
 async def test_only_that_shops_customer_is_linked(client, bot, auth_headers, dara):
@@ -221,7 +221,7 @@ async def test_a_recorded_transfer_tells_the_customer(client, bot, auth_headers,
         f"{ORDERS}/{order_id}/payment", headers=headers, json={"status": "paid", "reference": None}
     )
     assert paid.status_code == 200, paid.text
-    assert [m["text"].splitlines()[-1] for m in bot] == [customer_updates.PAYMENT_RECEIVED]
+    assert [m["text"].splitlines()[-1] for m in bot] == [PAYMENT_RECEIVED]
 
 
 async def test_no_news_without_updates_on(client, bot, auth_headers):
@@ -247,6 +247,13 @@ async def test_blocked_bot_stops_the_updates(client, bot, auth_headers, dara, mo
     assert (await track(client, slug, order_id)).json()["telegram_updates"] == "off"
     # The proved number stays for the seller.
     assert (await seller_customer(client, headers, order_id))["telegram_phone"] == "012345678"
+
+
+# The bot's own words, as the code has them.
+SAYS = bot_texts.DEFAULT
+DELIVERY_FAILED = bot_texts.MESSAGES["delivery_failed"].text.split("\n", 1)[1]
+PAYMENT_RECEIVED = bot_texts.MESSAGES["payment_received"].text.split("\n", 1)[1]
+SENT_DRIVER = bot_texts.WORDS["sent.driver"].text
 
 
 def fake_order(
@@ -285,7 +292,7 @@ def fake_order(
         (
             fake_order(OrderStatus.ACCEPTED, DeliveryStatus.FAILED),
             DeliveryStatus.FAILED,
-            customer_updates.DELIVERY_FAILED,
+            DELIVERY_FAILED,
         ),
         # The seller's own steps that tell the customer nothing.
         (
@@ -298,7 +305,7 @@ def fake_order(
         (
             fake_order(OrderStatus.ACCEPTED, DeliveryStatus.ASSIGNED, note="Dara 012 999 888"),
             DeliveryStatus.ASSIGNED,
-            customer_updates.SENT_DRIVER,
+            SENT_DRIVER,
         ),
         (
             fake_order(
@@ -313,7 +320,7 @@ def fake_order(
                 OrderStatus.ACCEPTED, DeliveryStatus.NOT_ASSIGNED, method=PaymentMethod.KHQR
             ),
             P.PAID,
-            customer_updates.PAYMENT_RECEIVED,
+            PAYMENT_RECEIVED,
         ),
         (
             fake_order(
@@ -325,7 +332,12 @@ def fake_order(
     ],
 )
 def test_news_says_each_thing_once(order, event, said):
-    assert customer_updates.news(order, event) == said
+    found = customer_updates.news(order, event)
+    if found is not None:
+        key, values = found
+        # What follows "<shop> · Order #1".
+        found = SAYS.html(key, shop="Shop", number=1, **values).split("\n", 1)[1]
+    assert found == said
 
 
 # "Message on Telegram" (founder's pick 2026-10-20)
@@ -458,10 +470,10 @@ async def test_a_customer_typing_to_the_bot_is_told_to_use_the_button(
 ):
     _, _, slug, order_id = await an_order(client, auth_headers)
     stranger = await telegram.handle_update(message(dara, text="Hello?"))
-    assert stranger["text"] == telegram.HELP_TEXT  # the seller's help
+    assert stranger["text"] == SAYS.html("help")  # the seller's help
     await get_updates(client, slug, order_id, dara)
     reply = await telegram.handle_update(message(dara, text="Thanks, it's 097 123 456"))
-    assert reply["text"] == customer_updates.HELP_TEXT
+    assert reply["text"] == SAYS.html("customer_help")
 
 
 # The receipt and "Sent" (founder, 2026-10-20)
@@ -478,9 +490,10 @@ async def test_a_customer_who_gets_updates_gets_a_receipt(client, bot, auth_head
     assert placed.status_code == 201, placed.text
     [receipt] = [m for m in bot if m["chat_id"] == str(dara)]
     assert "#1002" in receipt["text"] and "2 × Hat" in receipt["text"]
-    assert "$20.00" in receipt["text"] and customer_updates.PAY_NOW in receipt["text"]
+    assert "$20.00" in receipt["text"]
+    assert bot_texts.WORDS["receipt.pay_now"].text in receipt["text"]
     assert receipt["button"] == (
-        customer_updates.PAY,
+        bot_texts.WORDS["button.pay"].text,
         f"https://app.example.com/shop/{slug}/order/{placed.json()['id']}",
     )
 
@@ -488,8 +501,8 @@ async def test_a_customer_who_gets_updates_gets_a_receipt(client, bot, auth_head
     bot.clear()
     await place_order(client, slug, [(cap, None, 1)], total="10.00")
     [cash] = [m for m in bot if m["chat_id"] == str(dara)]
-    assert customer_updates.PAY_CASH in cash["text"]
-    assert cash["button"][0] == customer_updates.VIEW_ORDER
+    assert bot_texts.WORDS["receipt.pay_cash"].text in cash["text"]
+    assert cash["button"][0] == bot_texts.WORDS["button.view_order"].text
 
 
 async def test_no_receipt_without_updates(client, bot, auth_headers):
@@ -516,7 +529,7 @@ async def test_sending_it_tells_the_customer_without_the_drivers_note(
     )
     assert sent.status_code == 200, sent.text
     [news] = bot
-    assert news["text"].endswith(customer_updates.SENT_DRIVER)
+    assert news["text"].endswith(SENT_DRIVER)
     assert "012 999 888" not in news["text"]
 
 

@@ -13,7 +13,7 @@ from app.models.account import (
     Store,
     StoreOldSlug,
 )
-from app.models.admin import AdminAccount, AdminAction, AdminSession
+from app.models.admin import AdminAccount, AdminAction, AdminSession, PlatformSetting
 from app.models.catalog import Category, Product, ProductStatus, ProductVariant, Sale
 from app.models.delivery import Delivery, DeliveryMethod, DeliveryStatus
 from app.models.link import LinkEvent, LinkEventType, LinkTarget, ShareableLink
@@ -55,6 +55,7 @@ __all__ = [
     "PlanPaymentMethod",
     "PlanPaymentStatus",
     "PlanPeriod",
+    "PlatformSetting",
     "Product",
     "ProductStatus",
     "ProductVariant",

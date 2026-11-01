@@ -3,30 +3,71 @@ at once, so unscoped, and only for an admin account (the Admin guard)."""
 
 import uuid
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Query, Response, status
 
-from app.api.deps import Admin, AdminPasswordAgain, UnscopedDb
+from app.api.deps import Admin, AdminPasswordAgain, UnscopedDb, current_admin_password_again
+from app.core import clock
 from app.models import LoginProvider
 from app.schemas.admin import (
+    AdminActingOut,
+    AdminBotDraftIn,
+    AdminBotPreviewOut,
+    AdminBotProfileIn,
+    AdminBotProfileOut,
+    AdminBotTestOut,
+    AdminBotWordsOut,
+    AdminBroadcastIn,
+    AdminBroadcastOut,
     AdminCloseIn,
+    AdminCustomerOut,
+    AdminErasedOut,
+    AdminEraseIn,
+    AdminForgetIn,
+    AdminForgetOut,
+    AdminHideIn,
+    AdminJobRunOut,
     AdminLogOut,
     AdminNewPasswordOut,
+    AdminOpenIn,
+    AdminOrderOut,
     AdminPhoneIn,
+    AdminProductOut,
     AdminReopenIn,
     AdminSellerOut,
+    AdminSettingsIn,
+    AdminSettingsOut,
+    AdminSignupOut,
+    AdminSystemOut,
+    AdminTestShopIn,
+    AdminTestShopOut,
 )
 from app.schemas.plan import (
     AdminConfirmIn,
     AdminOverviewOut,
+    AdminPaidUntilIn,
     AdminPaymentIn,
+    AdminPaymentsOut,
     AdminRejectIn,
     AdminShopDetailOut,
     AdminShopOut,
+    AdminUndoIn,
 )
 from app.services import admin as admin_service
-from app.services import admin_log, admin_people
+from app.services import (
+    admin_bot,
+    admin_find,
+    admin_log,
+    admin_money,
+    admin_people,
+    admin_settings,
+    admin_system,
+    admin_tools,
+    as_seller,
+    jobs,
+)
+from app.services.images import delete_file, delete_store_files
 from app.services.telegram import escape
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -72,6 +113,126 @@ async def reject(
     return await admin_service.reject(db, admin.admin_id, store_id, payment_id, data)
 
 
+@router.put("/shops/{store_id}/paid-until", response_model=AdminShopDetailOut)
+async def set_paid_until(
+    store_id: uuid.UUID, data: AdminPaidUntilIn, admin: Admin, db: UnscopedDb
+) -> AdminShopDetailOut:
+    """Part 15: a longer trial or a few free days, with why. 409
+    SHOP_IN_SETUP; 422 SAME_DATE, DATE_OUT_OF_RANGE."""
+    return await admin_money.set_paid_until(
+        db, admin.admin_id, store_id, data.paid_until, data.reason
+    )
+
+
+@router.post("/shops/{store_id}/payments/{payment_id}/undo", response_model=AdminShopDetailOut)
+async def undo_payment(
+    store_id: uuid.UUID, payment_id: uuid.UUID, data: AdminUndoIn, admin: Admin, db: UnscopedDb
+) -> AdminShopDetailOut:
+    """Part 16: the shop's latest paid payment becomes Undone and its time
+    comes off. 409 PAYMENT_NOT_PAID, NOT_LATEST_PAYMENT."""
+    return await admin_money.undo_payment(db, admin.admin_id, store_id, payment_id, data.reason)
+
+
+@router.post("/shops/{store_id}/remind", response_model=AdminShopDetailOut)
+async def remind(store_id: uuid.UUID, admin: Admin, db: UnscopedDb) -> AdminShopDetailOut:
+    """Part 18: the plan reminder on the owner's Telegram now; the log line
+    says whether it reached them. 409 SHOP_CLOSED, NO_TELEGRAM,
+    NOTHING_DUE; 503 TELEGRAM_NOT_SET_UP."""
+    return await admin_money.remind(db, admin.admin_id, store_id)
+
+
+Year = Annotated[int | None, Query(ge=2024, le=2100)]
+Month = Annotated[int | None, Query(ge=1, le=12)]
+
+
+def _when(year: int | None, month: int | None) -> tuple[int, int | None]:
+    """This month by default; `year` alone is the whole year."""
+    if year is None:
+        today = clock.today()
+        return today.year, month or today.month
+    return year, month
+
+
+@router.get("/payments", response_model=AdminPaymentsOut)
+async def payments(
+    _: Admin, db: UnscopedDb, year: Year = None, month: Month = None
+) -> AdminPaymentsOut:
+    """Part 17: every "I've paid" waiting, then a month's (or with `year`
+    alone, a year's) payments, with what was collected in it and its year."""
+    return await admin_money.payments(db, *_when(year, month))
+
+
+XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+@router.get("/payments/export", response_class=Response, responses={200: {"content": {XLSX: {}}}})
+async def export_payments(
+    _: Admin, db: UnscopedDb, year: Year = None, month: Month = None
+) -> Response:
+    """The same payments as an Excel file, for the founder's accounts."""
+    year, month = _when(year, month)
+    data = await admin_money.payments(db, year, month)
+    name = f"oak-payments-{year}" + (f"-{month:02d}" if month else "")
+    return Response(
+        admin_money.workbook(data),
+        media_type=XLSX,
+        headers={"Content-Disposition": f'attachment; filename="{name}.xlsx"'},
+    )
+
+
+@router.post("/shops/{store_id}/open-as-seller", response_model=AdminActingOut)
+async def open_as_seller(
+    store_id: uuid.UUID,
+    data: AdminOpenIn,
+    admin: AdminPasswordAgain,
+    db: UnscopedDb,
+    background: BackgroundTasks,
+) -> AdminActingOut:
+    """D1A: the shop's whole seller app as its owner for 30 minutes, with
+    why; logged, the shop's Telegram and the admins told. 409 SHOP_CLOSED;
+    403 PASSWORD_AGAIN."""
+    acting = await as_seller.open_as_seller(db, admin.admin_id, store_id, data.reason)
+    background.add_task(as_seller.tell_shop, store_id)
+    background.add_task(
+        admin_service.tell_admins,
+        f"🔐 Oak Order admin: opened {escape(acting.shop)} as seller. {escape(data.reason)}",
+    )
+    return acting
+
+
+@router.delete("/shops/{store_id}", response_model=AdminErasedOut)
+async def erase_shop(
+    store_id: uuid.UUID,
+    data: AdminEraseIn,
+    admin: Admin,
+    db: UnscopedDb,
+    background: BackgroundTasks,
+) -> AdminErasedOut:
+    """D4B: a closed shop and everything in it, for good, after its link
+    name and the admin's password (every time); its photos go after the
+    response. 409 SHOP_NOT_CLOSED; 422 SLUG_MISMATCH, WRONG_PASSWORD."""
+    store = await admin_tools.erase(db, admin.admin_id, store_id, data.slug, data.password)
+    background.add_task(delete_store_files, store_id)
+    background.add_task(
+        admin_service.tell_admins, f"🔐 Oak Order admin: erased {escape(store.name)}."
+    )
+    return AdminErasedOut(shop=store.name)
+
+
+@router.post("/test-shop", response_model=AdminTestShopOut, status_code=status.HTTP_201_CREATED)
+async def test_shop(data: AdminTestShopIn, admin: Admin, db: UnscopedDb) -> AdminTestShopOut:
+    """Part 29: a shop to try things on, open at once, with an email login
+    and its password shown once; logged."""
+    made = await admin_tools.test_shop(db, admin.admin_id, data.name)
+    return AdminTestShopOut(
+        store_id=made.store.id,
+        shop=made.store.name,
+        slug=made.store.slug,
+        login=made.email,
+        password=made.password,
+    )
+
+
 @router.post("/shops/{store_id}/close", response_model=AdminShopDetailOut)
 async def close_shop(
     store_id: uuid.UUID, data: AdminCloseIn, admin: Admin, db: UnscopedDb
@@ -87,6 +248,191 @@ async def reopen_shop(
 ) -> AdminShopDetailOut:
     """The link and the logins work again. 409 SHOP_ALREADY_OPEN."""
     return await admin_service.set_open(db, admin.admin_id, store_id, data, is_open=True)
+
+
+Search = Annotated[str, Query(min_length=1, max_length=100)]
+
+
+@router.get("/orders", response_model=list[AdminOrderOut])
+async def find_orders(q: Search, _: Admin, db: UnscopedDb) -> list[AdminOrderOut]:
+    """Part 19: "sokha 1043", "1043" or the customer's phone; look only."""
+    return await admin_find.find_orders(db, q)
+
+
+@router.get("/customers", response_model=list[AdminCustomerOut])
+async def find_customers(q: Search, _: Admin, db: UnscopedDb) -> list[AdminCustomerOut]:
+    """Part 20: a phone (typed any way) or a name, in every shop."""
+    return await admin_find.find_customers(db, q)
+
+
+@router.post("/customers/forget", response_model=AdminForgetOut)
+async def forget_customer(
+    data: AdminForgetIn, admin: Admin, db: UnscopedDb, background: BackgroundTasks
+) -> AdminForgetOut:
+    """Part 21: a customer's details removed from one shop or every shop;
+    REMOVE typed and the admin's password every time. 422 WRONG_PASSWORD,
+    INVALID_PHONE; 404 CUSTOMER_NOT_FOUND."""
+    done, photos = await admin_find.forget_customer(db, admin.admin_id, data)
+    for photo in photos:
+        background.add_task(delete_file, photo)
+    shops = "1 shop" if done.shops == 1 else f"{done.shops} shops"
+    background.add_task(
+        admin_service.tell_admins, f"🔐 Oak Order admin: a customer's details removed from {shops}."
+    )
+    return done
+
+
+@router.get("/products", response_model=list[AdminProductOut])
+async def products(
+    _: Admin,
+    db: UnscopedDb,
+    q: Annotated[str | None, Query(max_length=100)] = None,
+    before: datetime | None = None,
+) -> list[AdminProductOut]:
+    """Part 22: the newest products of every shop, 40 at a time."""
+    return await admin_find.products(db, q, before)
+
+
+@router.post("/products/{product_id}/hide", response_model=AdminProductOut)
+async def hide_product(
+    product_id: uuid.UUID, data: AdminHideIn, admin: Admin, db: UnscopedDb
+) -> AdminProductOut:
+    """Part 22: hidden from its shop; the seller can show it again. 409
+    PRODUCT_ALREADY_HIDDEN."""
+    return await admin_find.hide_product(db, admin.admin_id, product_id, data.reason)
+
+
+@router.get("/settings", response_model=AdminSettingsOut)
+async def settings(_: Admin, db: UnscopedDb) -> AdminSettingsOut:
+    """Part 23 and D2B: the riel rate, the prices and the trial length."""
+    return await admin_settings.get(db)
+
+
+@router.put("/settings", response_model=AdminSettingsOut)
+async def save_settings(
+    data: AdminSettingsIn, admin: AdminPasswordAgain, db: UnscopedDb, background: BackgroundTasks
+) -> AdminSettingsOut:
+    """One Save (pick 11A): what changed is logged and the admins get a
+    Telegram line. A new price applies from each shop's next payment, a
+    new trial to shops opened from now. 403 PASSWORD_AGAIN."""
+    page, changes = await admin_settings.save(db, admin.admin_id, data)
+    if changes:
+        background.add_task(
+            admin_service.tell_admins,
+            f"🔐 Oak Order admin: settings saved: {admin_settings.changes_text(changes)}.",
+        )
+    return page
+
+
+@router.get("/system", response_model=AdminSystemOut)
+async def system(_: Admin, db: UnscopedDb) -> AdminSystemOut:
+    """Parts 24 to 27 (pick 12B): speed and errors, the jobs, the bot, the
+    database, the services, the version."""
+    return await admin_system.system(db)
+
+
+@router.post("/jobs/{name}/run", response_model=AdminJobRunOut)
+async def run_job(
+    name: Literal["billing", "reminders"], admin: Admin, db: UnscopedDb
+) -> AdminJobRunOut:
+    """Part 25: Run now, as cron-job.org would; logged."""
+    sent = await jobs.run(name)
+    admin_log.record(db, admin.admin_id, "run_job", job=name, sent=sent)
+    await db.commit()
+    return AdminJobRunOut(sent=sent)
+
+
+@router.post("/broadcast", response_model=AdminBroadcastOut)
+async def broadcast(
+    data: AdminBroadcastIn, admin: Admin, db: UnscopedDb, background: BackgroundTasks
+) -> AdminBroadcastOut:
+    """Part 30 (pick 15A): `me` to read it in the admin's own Telegram
+    first; then to the shops, after the password again (403
+    PASSWORD_AGAIN), logged, the admins told. 503 TELEGRAM_NOT_SET_UP."""
+    if data.to != "me":
+        await current_admin_password_again(admin)
+    done = await admin_tools.broadcast(db, admin.admin_id, data.text, data.to)
+    if data.to != "me":
+        shops = "1 shop" if done.sent == 1 else f"{done.sent} shops"
+        background.add_task(
+            admin_service.tell_admins, f"🔐 Oak Order admin: a message sent to {shops}."
+        )
+    return done
+
+
+@router.post("/system/webhook", response_model=AdminSystemOut)
+async def connect_bot_again(admin: Admin, db: UnscopedDb) -> AdminSystemOut:
+    """System's Connect the bot again: point Telegram at this API; logged."""
+    await admin_bot.connect_again(db, admin.admin_id)
+    return await admin_system.system(db)
+
+
+# The Bot page (02_TECHNICAL.md §12.7; founder 2026-10-31)
+
+
+@router.get("/bot", response_model=AdminBotWordsOut)
+async def bot_words(_: Admin, db: UnscopedDb) -> AdminBotWordsOut:
+    """Every message the bot sends and its small words, as in use now."""
+    return await admin_bot.page(db)
+
+
+@router.post("/bot/preview", response_model=AdminBotPreviewOut)
+async def bot_preview(data: AdminBotDraftIn, _: Admin, db: UnscopedDb) -> AdminBotPreviewOut:
+    """A draft's checks and the message with example orders."""
+    return await admin_bot.preview(db, data)
+
+
+@router.post("/bot/test", response_model=AdminBotTestOut)
+async def bot_test(data: AdminBotDraftIn, _: Admin, db: UnscopedDb) -> AdminBotTestOut:
+    """Save, step one (pick 9B): the draft to the admin's own Telegram.
+    422 BOT_TEXT_INVALID, 503 TELEGRAM_NOT_SET_UP."""
+    return await admin_bot.send_test(db, data)
+
+
+@router.put("/bot/messages/{key}", response_model=AdminBotWordsOut)
+async def bot_go_live(
+    key: str,
+    data: AdminBotDraftIn,
+    admin: AdminPasswordAgain,
+    db: UnscopedDb,
+    background: BackgroundTasks,
+) -> AdminBotWordsOut:
+    """Go live: the draft becomes the bot's words; logged, the admins
+    told. 403 PASSWORD_AGAIN, 422 BOT_TEXT_INVALID."""
+    data = data.model_copy(update={"key": key})
+    words, changes = await admin_bot.go_live(db, admin.admin_id, data)
+    if changes:
+        name = next(m.name for m in words.messages if m.key == key)
+        background.add_task(
+            admin_service.tell_admins, f"🔐 Oak Order admin: the bot's words went live: {name}."
+        )
+    return words
+
+
+@router.get("/bot/profile", response_model=AdminBotProfileOut)
+async def bot_profile(_: Admin) -> AdminBotProfileOut:
+    """The bot's name, text before Start and About, from Telegram."""
+    return await admin_bot.profile()
+
+
+@router.put("/bot/profile", response_model=AdminBotProfileOut)
+async def save_bot_profile(
+    data: AdminBotProfileIn, admin: AdminPasswordAgain, db: UnscopedDb, background: BackgroundTasks
+) -> AdminBotProfileOut:
+    """Pick 11A: one text for everyone. 403 PASSWORD_AGAIN, 502
+    TELEGRAM_FAILED."""
+    saved, changes = await admin_bot.save_profile(db, admin.admin_id, data)
+    if changes:
+        background.add_task(
+            admin_service.tell_admins, "🔐 Oak Order admin: the bot's profile was changed."
+        )
+    return saved
+
+
+@router.get("/signups", response_model=list[AdminSignupOut])
+async def signups(_: Admin, db: UnscopedDb) -> list[AdminSignupOut]:
+    """Part 31: numbers checked in Telegram in 30 days with no shop."""
+    return await admin_tools.unfinished_signups(db)
 
 
 @router.get("/log", response_model=list[AdminLogOut])

@@ -3,6 +3,7 @@ import { ChevronRight, DoorClosed } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../../auth/useAuth.ts'
+import { OnlyTheSeller } from '../ActingBar.tsx'
 import { useFeedback } from '../../components/feedback.ts'
 import { Button, Card, ErrorMessage, Field, PasswordInput, Section } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
@@ -14,6 +15,11 @@ import { useAccount } from '../queries.ts'
  * logins stop at once; nothing is erased. Oak Order opens it again, or
  * erases it for good, when the seller asks (docs/ADMIN.md). */
 export function CloseShopPage() {
+  if (useAuth().acting) return <OnlyTheSeller>Only the seller can close their shop, not Oak Order.</OnlyTheSeller>
+  return <CloseShop />
+}
+
+function CloseShop() {
   const { logout } = useAuth()
   const { toast, confirm } = useFeedback()
   const [password, setPassword] = useState('')
@@ -72,6 +78,7 @@ export function CloseShopPage() {
  * asks for the password. Red words, plain card (red as text only). */
 export function CloseShopRow() {
   const s = useT().settings
+  if (useAuth().acting) return null
   return (
     <Card>
       <Link

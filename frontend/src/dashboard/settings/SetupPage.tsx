@@ -4,7 +4,7 @@ import { buttonClass } from '../../components/styles.ts'
 import { Button, Card } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { OpenShopButton } from '../OpenShop.tsx'
-import { useStore } from '../queries.ts'
+import { usePlan, useStore } from '../queries.ts'
 import { ESSENTIAL, hideSetup, STEP_TARGETS, useSetup, type Setup, type SetupStep } from './setup.ts'
 
 /** /dashboard/settings/setup: the steps to get the shop ready (founder's
@@ -42,6 +42,7 @@ export function SetupPage() {
  * in order, with the next step's button in its row. */
 export function SetupCard({ setup }: { setup: Setup }) {
   const s = useT().settings.setup
+  const trialDays = usePlan().data?.trial_days ?? 30
   const total = setup.steps.length
   const next =
     setup.steps.find((x) => !x.done && ESSENTIAL.has(x.step))?.step ?? setup.steps.find((x) => !x.done)?.step
@@ -55,7 +56,7 @@ export function SetupCard({ setup }: { setup: Setup }) {
         <div aria-hidden className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
           <span className="block h-full rounded-full bg-brand" style={{ width: `${(setup.done / total) * 100}%` }} />
         </div>
-        <p className="mt-2 text-sm text-slate-600">{s.readyHint}</p>
+        <p className="mt-2 text-sm text-slate-600">{s.readyHint(trialDays)}</p>
       </div>
       <SetupSteps setup={setup} next={next} />
     </Card>

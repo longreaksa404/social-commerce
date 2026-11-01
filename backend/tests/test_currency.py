@@ -31,7 +31,7 @@ STORE = "/api/v1/seller/store"
     ],
 )
 def test_convert_rounds_riel_to_100_and_dollars_to_the_cent(amount, to, converted):
-    assert convert(Decimal(amount), to) == Decimal(converted)
+    assert convert(Decimal(amount), to, 4100) == Decimal(converted)
 
 
 async def _prices(product_id) -> tuple[Decimal, list[Decimal | None]]:

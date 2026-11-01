@@ -3,8 +3,9 @@ and logins, closing a shop. Home, the shop list and a shop's page are in
 schemas/plan.py, where they began."""
 
 import uuid
-from datetime import datetime
-from typing import Any
+from datetime import date, datetime
+from decimal import Decimal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -60,7 +61,308 @@ class AdminPhoneIn(BaseModel):
     phone: str = Field(min_length=6, max_length=30)
 
 
+class AdminOpenIn(BaseModel):
+    """Open as seller (D1A): why, for the log."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+    reason: str = Field(min_length=1, max_length=300)
+
+
+class AdminActingOut(BaseModel):
+    """The owner's access for 30 minutes, naming the admin; no refresh."""
+
+    access_token: str
+    expires_at: datetime
+    store_id: uuid.UUID
+    shop: str
+
+
 class AdminNewPasswordOut(BaseModel):
     """Shown once, for the admin to send or read out."""
 
     password: str
+
+
+class AdminOrderOut(BaseModel):
+    """An order found from the admin (part 19): look only."""
+
+    id: uuid.UUID
+    store_id: uuid.UUID
+    shop: str
+    number: int
+    created_at: datetime
+    customer_name: str
+    customer_phone: str
+    items: list[str]  # "Clear case iPhone 15 (Black) × 1"
+    currency: str
+    delivery_fee: Decimal
+    total: Decimal
+    status: str  # the order's own
+    payment_method: str
+    payment_status: str
+    delivery_method: str
+    delivery_status: str
+    seller: str  # the owner's name
+    seller_phone: str | None
+
+
+class AdminCustomerShopOut(BaseModel):
+    store_id: uuid.UUID
+    shop: str
+    customer_id: uuid.UUID
+    orders: int
+    last_order_at: datetime | None
+    telegram: bool  # gets updates on Telegram
+
+
+class AdminCustomerOut(BaseModel):
+    """One phone number in every shop it ordered from (part 20)."""
+
+    phone: str
+    name: str  # their newest name
+    shops: list[AdminCustomerShopOut]
+
+
+class AdminForgetIn(BaseModel):
+    """Remove a customer's details (part 21): from one shop or every shop,
+    with REMOVE typed and the admin's password, every time."""
+
+    phone: str = Field(min_length=6, max_length=30)
+    store_id: uuid.UUID | None = None  # None: every shop
+    confirm: Literal["REMOVE"]
+    password: str = Field(min_length=1, max_length=200)
+
+
+class AdminForgetOut(BaseModel):
+    shops: int
+    orders: int
+
+
+class AdminProductOut(BaseModel):
+    """A product of any shop (part 22, pick 14A)."""
+
+    id: uuid.UUID
+    store_id: uuid.UUID
+    shop: str
+    name: str
+    price: Decimal
+    currency: str
+    image_url: str | None
+    status: str  # active, inactive (hidden)
+    created_at: datetime
+
+
+class AdminHideIn(BaseModel):
+    reason: str | None = Field(default=None, max_length=300)
+
+
+class AdminSettingsIn(BaseModel):
+    """Oak Order's own settings (D2B, pick 11A): one Save for all."""
+
+    khr_per_usd: int = Field(ge=1000, le=10000)
+    month: Decimal = Field(gt=0, le=1000, decimal_places=2)
+    year: Decimal = Field(gt=0, le=10000, decimal_places=2)
+    trial_days: int = Field(ge=1, le=365)
+
+
+class AdminSettingsOut(AdminSettingsIn):
+    paying_shops: int  # who pays a new price from their next payment
+    updated_at: datetime | None  # the last change
+
+
+class PlanPricesPublicOut(BaseModel):
+    """For the Terms' Fees (public): the prices and the trial today."""
+
+    month: Decimal
+    year: Decimal
+    trial_days: int
+    changed_on: date | None  # the day they last changed
+
+
+class AdminSpeedOut(BaseModel):
+    """Counted by the server in memory: since it started, at most an hour."""
+
+    requests: int
+    typical_ms: float | None
+    slow_ms: float | None  # the slowest 1 in 20
+    slow_route: str | None
+    errors_hour: int
+    errors_today: int
+    started_at: datetime
+
+
+class AdminJobOut(BaseModel):
+    name: str  # billing, reminders
+    title: str
+    every: str  # daily, hourly
+    last_at: datetime | None
+    last_sent: int | None
+    late: bool  # never ran, or not within its time
+
+
+class AdminFailedSendOut(BaseModel):
+    store_id: uuid.UUID
+    shop: str
+    event_type: str
+    error: str
+    sent_at: datetime
+
+
+class AdminBotOut(BaseModel):
+    set_up: bool
+    working: bool  # no error from Telegram in the last hour
+    problem: str | None = None
+    waiting: int = 0  # updates Telegram hasn't delivered yet
+    webhook: bool = False
+    failed: int  # sends that failed in 24 hours
+    recent: list[AdminFailedSendOut]
+    # Changed words Telegram refused in 24 hours, sent in the code's
+    # instead (counted by this server since it started).
+    refused: int = 0
+
+
+class AdminServiceOut(BaseModel):
+    name: str
+    set: bool
+
+
+class AdminSystemOut(BaseModel):
+    """The System page (parts 24 to 27, pick 12B)."""
+
+    speed: AdminSpeedOut
+    jobs: list[AdminJobOut]
+    bot: AdminBotOut
+    database_bytes: int
+    database_ms: float
+    services: list[AdminServiceOut]
+    version: str | None  # the live commit (Render's RENDER_GIT_COMMIT)
+
+
+class AdminJobRunOut(BaseModel):
+    sent: int
+
+
+class AdminTestShopIn(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+    name: str | None = Field(default=None, max_length=80)
+
+
+class AdminTestShopOut(BaseModel):
+    """Part 29: the new shop and its login, the password shown once."""
+
+    store_id: uuid.UUID
+    shop: str
+    slug: str
+    login: str
+    password: str
+
+
+class AdminEraseIn(BaseModel):
+    """D4B: the shop's link name typed, and the admin's password."""
+
+    slug: str = Field(min_length=1, max_length=64)
+    password: str = Field(min_length=1, max_length=200)
+
+
+class AdminErasedOut(BaseModel):
+    shop: str
+
+
+class AdminBroadcastIn(BaseModel):
+    """Part 30: a Telegram message, to the admin first (me), then to every
+    open shop with Telegram, or those on trial, or those paying."""
+
+    text: str = Field(min_length=1, max_length=1000)
+    to: Literal["me", "all", "trial", "paying"]
+
+
+class AdminBroadcastOut(BaseModel):
+    sent: int
+    failed: int
+
+
+class AdminSignupOut(BaseModel):
+    """Part 31: a number checked in Telegram that never made a shop."""
+
+    phone: str
+    telegram_name: str | None
+    checked_at: datetime
+
+
+# The Bot page (02_TECHNICAL.md §12.7; founder 2026-10-31)
+
+
+class AdminBotTagOut(BaseModel):
+    name: str
+    label: str
+
+
+class AdminBotMessageOut(BaseModel):
+    key: str
+    group: Literal["sellers", "customers", "you"]
+    name: str
+    about: str
+    text: str  # in use now
+    default: str  # the code's
+    tags: list[AdminBotTagOut]
+    words: list[str]  # the small words shown under it
+    on: bool
+    can_off: bool
+    stays_on: str | None  # why it can't be turned off
+
+
+class AdminBotWordOut(BaseModel):
+    key: str
+    label: str
+    kind: Literal["text", "button", "note"]
+    text: str
+    default: str
+    tags: list[AdminBotTagOut]
+    used_in: list[str]  # the messages' names
+
+
+class AdminBotWordsOut(BaseModel):
+    messages: list[AdminBotMessageOut]
+    words: list[AdminBotWordOut]
+    updated_at: datetime | None
+
+
+class AdminBotDraftIn(BaseModel):
+    """A message's words as typed, not live yet: its text, the small words
+    changed under it, and whether it's sent."""
+
+    key: str
+    text: str = Field(max_length=6000)
+    words: dict[str, str] = Field(default_factory=dict, max_length=60)
+    on: bool = True
+    example: int = Field(default=0, ge=0, le=10)  # which one Send me a test sends
+
+
+class AdminBotExampleOut(BaseModel):
+    label: str
+    html: str  # Telegram HTML: escaped text and <b>
+    buttons: list[str]
+
+
+class AdminBotPreviewOut(BaseModel):
+    errors: list[str]  # Go live refuses these
+    warnings: list[str]  # tags taken out
+    examples: list[AdminBotExampleOut]
+
+
+class AdminBotTestOut(BaseModel):
+    sent: int
+    failed: int
+    error: str | None = None  # what Telegram said
+
+
+class AdminBotProfileIn(BaseModel):
+    """Telegram's limits: name 64, description 512, about 120."""
+
+    name: str = Field(min_length=1, max_length=64)
+    description: str = Field(max_length=512)
+    short_description: str = Field(max_length=120)
+
+
+class AdminBotProfileOut(AdminBotProfileIn):
+    username: str
