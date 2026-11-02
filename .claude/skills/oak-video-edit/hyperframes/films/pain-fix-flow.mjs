@@ -125,8 +125,10 @@ ${BIG.map(([id, text, x, y], i) => cm(id, NAMES[(i * 5 + 3) % NAMES.length], AVC
     { id: 'a2-l-sizes', r: [10, 380, 332, 54], to: [540, 1150], t: s(f[2] + fl[2] * 0.5) },
     { id: 'a2-l-stock', r: [8, 312, 140, 32], to: [770, 820], t: s(f[2] + fl[2] * 0.8) },
   ];
-  const tap38 = s(f[3] + 0.1), camIn = r3(s(f[3]) + 0.75), tapBuy = r3(Math.max(camIn + 0.6, s(f[3] + fl[3] * 0.62))), camOut = r3(tapBuy + 0.25);
-  const whip = r3(Math.max(s(f[4]) + 0.05, tapBuy + 0.55)), rowT = s(f[4] + fl[4] * 0.3), alertT = s(f[4] + fl[4] * 0.62), clickAlert = s(CTA - 0.12);
+  // the punch-in waits until "pick" has been read (1.1 s); Buy is clicked as the camera settles
+  const tap38 = s(f[3] + 0.1), camIn = r3(s(f[3]) + 0.85), tapBuy = r3(Math.max(camIn + 0.5, s(f[3] + fl[3] * 0.62))), camOut = r3(tapBuy + 0.25);
+  // the order row lifts once the list is sharp after the whip (a quick voice can say "list" sooner)
+  const whip = r3(Math.max(s(f[4]) + 0.05, tapBuy + 0.55)), rowT = r3(Math.max(s(f[4] + fl[4] * 0.3), whip + 0.43)), alertT = r3(Math.max(s(f[4] + fl[4] * 0.62), rowT + 0.5)), clickAlert = s(CTA - 0.12);
   const ROW = { r: [0, 226, 390, 92], scale: 1.75, to: [540, 700] };
   const P38 = at(160, 407), PBUY = at(288, 808), PPROD = at(100, 560), ALERT = [540, r3(ST + 52 * K + 62)];
   let a2js = `      land("#a2-with .w", 0.05, 0.12);

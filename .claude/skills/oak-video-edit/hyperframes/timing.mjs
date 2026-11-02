@@ -1,5 +1,6 @@
 // Write a video's timing.json, the clock its film runs on: each voice block's start, length and phrases.
-// With the voice MP3s: blocks end to end, 0.25 s apart; phrases are the speech between pauses of 0.12 s or more.
+// With the voice MP3s: blocks end to end, 0.25 s apart; phrases are the speech between pauses of 0.12 s or more
+// (breaths, short and quiet, don't count), joined across the shortest pauses down to the text's phrase count.
 // Without them: an estimate from the shot list's planned VOICE times, each block's text split into phrases at
 // ។ ៖ ? ! and <short pause>/<long pause>, sized by their length (marked "estimated"; kept unless --estimate).
 // Usage: node timing.mjs <video folder> [--estimate]
@@ -21,11 +22,31 @@ function phrases(file) {
     else start = +m[2];
   }
   if (len - start > 0.05) out.push([+start.toFixed(2), +len.toFixed(2)]);
+  // a breath between phrases reads as a short, quiet "phrase" (peak about -24 dB; speech peaks above -10 dB)
+  return out.filter(([a, z]) => z - a >= 0.3 || peak(file, a, z - a) > -18);
+}
+
+function peak(file, at, len) {
+  const log = spawnSync('ffmpeg', ['-v', 'info', '-ss', String(at), '-t', String(len), '-i', file, '-af', 'volumedetect', '-f', 'null', '-'], { encoding: 'utf8' }).stderr;
+  return parseFloat((log.match(/max_volume: ([-\d.]+) dB/) || [])[1] ?? '0');
+}
+
+// the planned phrases: the text between ។ ៖ ? ! and the pause tags
+const planned = text => text.split(/<(?:short|long) pause>|[។៖?!]/).map(s => s.replace(/<[^>]+>/g, '').trim()).filter(Boolean);
+
+// the voice may also pause inside a planned phrase (at a space): join across the shortest gaps until the counts match
+function fit(phrases, n) {
+  const out = phrases.map(p => [...p]);
+  while (out.length > n) {
+    let k = 0;
+    for (let i = 1; i < out.length - 1; i++) if (out[i + 1][0] - out[i][1] < out[k + 1][0] - out[k][1]) k = i;
+    out.splice(k, 2, [out[k][0], out[k + 1][1]]);
+  }
   return out;
 }
 
 function estimate(text, len) {
-  const parts = text.split(/<(?:short|long) pause>|[។៖?!]/).map(s => s.replace(/<[^>]+>/g, '').trim()).filter(Boolean);
+  const parts = planned(text);
   const gap = 0.2, speak = len - gap * (parts.length - 1), total = parts.reduce((n, s) => n + s.length, 0);
   let t = 0;
   return parts.map(s => { const d = speak * s.length / total, ph = [+t.toFixed(2), +(t + d).toFixed(2)]; t += d + gap; return ph; });
@@ -37,7 +58,11 @@ export function writeTiming(dir, { forceEstimate = false } = {}) {
   const mp3s = plan.voices.map(v => path.join(dir, `${logNo(plan.video)}_${v.n}_${v.name}.mp3`));
   const blocks = {}; let t = 0, T;
   if (mp3s.every(f => fs.existsSync(f))) {
-    plan.voices.forEach((v, i) => { const len = +seconds(mp3s[i]).toFixed(3); blocks[v.name] = { start: +t.toFixed(3), len, phrases: phrases(mp3s[i]) }; t += len + VOICE_GAP; });
+    plan.voices.forEach((v, i) => {
+      const len = +seconds(mp3s[i]).toFixed(3), heard = phrases(mp3s[i]), n = planned(v.text).length;
+      if (heard.length < n) console.log(`  ${v.name}: the voice made ${heard.length} phrases, the text has ${n}: the film falls back to even spacing (retake, or snapshot the beats)`);
+      blocks[v.name] = { start: +t.toFixed(3), len, phrases: fit(heard, n) }; t += len + VOICE_GAP;
+    });
     T = { estimated: false, blocks, voiceEnd: +(t - VOICE_GAP).toFixed(3) };
   } else if (fs.existsSync(file) && !forceEstimate) {
     console.log(`no voice yet (${mp3s.filter(f => !fs.existsSync(f)).map(f => path.basename(f)).join(', ')} missing): kept timing.json`);

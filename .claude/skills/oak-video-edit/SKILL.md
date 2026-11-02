@@ -133,9 +133,18 @@ the kit's `rootIndex` turns that into the root composition.
 - Tags in English: `<short pause>`, `<long pause>`, at most one expression tag
   per video. A 5th field `style: …` overrides the playbook's style line.
 - `voice.mjs`: `--only 3` redoes one block, `--force` all; `--check` transcribes
-  each new block: redo it if a line says `[INSTRUCTION SPOKEN]` or "much longer
-  than planned". A plain transcript can mishear "Oak" as "Book": ask about the
-  name directly before redoing.
+  each new block (gemini-3.5-transcribe, 3 a minute): redo it if a line says
+  `[INSTRUCTION SPOKEN?]` or "much longer than planned". A plain transcript can
+  mishear "Oak" as "Book" or blur a word: ask a Gemini Flash model about the
+  words directly before spending a retake (the newest Flash is often overloaded
+  in the evening; an older one answers).
+- Style lines ask for everyday talk (a real person to a friend, not an announcer).
+  "Teasing" or "a smile in the voice" can add a laugh: keep the hook crisp.
+- A `<short pause>` can come out 0.7 s+. A gap that drags can be shortened by
+  cutting near-silence only (keep breaths), raw take kept as `_<name>_raw.mp3`.
+- `timing.mjs` skips breaths (short and quiet) and joins pauses inside a
+  sentence down to the text's phrase count (split at ។ ៖ ? ! and the pause tags),
+  so put ។ where the film changes beat. It warns when the voice has fewer.
 
 ## Writing the script
 

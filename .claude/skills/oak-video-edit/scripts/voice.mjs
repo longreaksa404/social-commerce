@@ -9,7 +9,7 @@ import { parseShotList } from './shotlist.mjs';
 import { REPO, geminiKey, seconds, logNo } from './common.mjs';
 
 const MODEL = process.env.GEMINI_TTS_MODEL || 'gemini-3.8-flash-tts';
-const CHECK_MODEL = process.env.GEMINI_TEXT_MODEL || 'gemini-3.8-flash';
+const CHECK_MODEL = process.env.GEMINI_TEXT_MODEL || 'gemini-3.5-transcribe'; // free tier: 3 a minute
 const API = 'https://generativelanguage.googleapis.com/v1beta';
 
 const args = process.argv.slice(2);
@@ -76,7 +76,9 @@ async function transcribe(file) {
       { text: 'Transcribe exactly what is spoken, in the script it is spoken in. One line. If any English instruction is spoken, add " [INSTRUCTION SPOKEN]".' },
     ] }] }),
   }, 'check');
-  return body.candidates?.[0]?.content?.parts?.map(p => p.text).join('').trim();
+  const heard = body.candidates?.[0]?.content?.parts?.map(p => p.text ?? p.audioTranscription?.text ?? '').join('').trim();
+  // the transcribe model writes what it hears and ignores the prompt: a run of English words is a spoken instruction
+  return /[A-Za-z]+(\s+[A-Za-z',.]+){3,}/.test(heard) && !heard.includes('[INSTRUCTION SPOKEN]') ? `${heard} [INSTRUCTION SPOKEN?]` : heard;
 }
 
 const voice = await voiceId(speaker);

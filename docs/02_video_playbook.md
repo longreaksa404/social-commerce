@@ -32,12 +32,12 @@ Status: in progress. Tick each step when done.
 3. **Results (~10 min, 3 days after each post).** Fill in the content log. Ask every new lead where they heard about Oak Order.
 
 ## Voice recipe (Gemini, AI Studio)
-- Speaker: Nika (warm, approachable, medium pitch). Update here if I change it.
-- 4 blocks, same speaker, one mood each. Default style lines:
-  1. Hook: `Surprised and a little frustrated, like complaining to a friend`
-  2. Pain / setup: `Tired and relatable, slightly faster, like listing daily problems`
-  3. Fix: `Relieved and bright, confident and friendly, clear on each point`
-  4. Offer + CTA: `Warm and inviting, a little excited, slow down slightly on the offer`
+- Speaker: Achird (male, friendly and warm, made for casual vlogs). Update here if I change it. Picked 2026-11-02 (founder: "talk everyday style, natural like a real human") from one line in four voices: Achird's Khmer came back word for word when transcribed and each question was its own phrase; Nika (the voice before, a high "influencer" pitch) ran two questions together; Aoede sounded word by word; Callirrhoe blurred two words. Gemini has no Khmer voice: every voice is a multilingual one speaking Khmer. The four takes: `Video Marketing\Oak Order\voice-test\2026-11-02 pain line\`.
+- 4 blocks, same speaker, one mood each. Every style line asks for everyday talk, a real person to a friend, not an announcer. Default style lines:
+  1. Hook: `Native Khmer speaker, everyday Phnom Penh talk, like a quick voice message to a seller friend: surprised and a little frustrated, with a smile in the voice. A real person, not an announcer.`
+  2. Pain / setup: `Native Khmer speaker, everyday Phnom Penh talk, like venting to a friend in a voice message: tired and relatable, a bit quicker, a quick beat after each question. Natural and unpolished, not reading.`
+  3. Fix: `Native Khmer speaker, everyday Phnom Penh talk, like telling a friend about a trick you just found: relieved and bright, upbeat and sure of it, smiling. Not reading.`
+  4. Offer + CTA: `Native Khmer speaker, everyday Phnom Penh talk, warm and friendly like inviting a friend: a little excited, slow down slightly on the offer. Not an announcer.`
 - `<short pause>` after the hook, after the product name reveal, before the CTA.
 - At most one expression tag per video.
 - Target about 20–25 s of voice (about 25–28 s with the end card; video 1's CapCut drafts were 30–40 s).
@@ -80,7 +80,7 @@ Used only when a video is built as a CapCut draft. Built by Claude Code as a tem
 English words are spelled in Khmer letters in the voice text only; captions keep the English (picked 2026-11-01 from a test).
 - Order → អូឌ័រ
 - chat → ឆាត
-- Oak Order → អូក អូឌ័រ (check by ear: a test transcript heard "All Go Order"). Video 2 tried "Oak Order" in English letters at the start of a block: the plain check wrote "Book order", but asked about the name directly it heard "Oak". Listen to it before posting.
+- Oak Order → អូក អូឌ័រ (check by ear: a test transcript heard "All Go Order"). Video 2 tried "Oak Order" in English letters at the start of a block: the plain check wrote "Book order", but asked about the name directly it heard "Oak". Video 2 v2 (Achird, "ជាមួយ Oak Order"): asked directly, gemini-3.6-flash heard "Oak Order" clearly. Listen to it before posting.
 - Telegram → តេឡេក្រាម
 - KHQR → ខេអេចឃ្យូអា (heard back as "KHQR", 2026-11-01)
 
