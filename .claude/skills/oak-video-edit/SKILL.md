@@ -121,7 +121,13 @@ the kit's `rootIndex` turns that into the root composition.
 - **HyperFrames rules that bite** (lint catches most): `fromTo`, never CSS
   `transform` on a tweened element, a fade-in's destination says `opacity: 1`,
   texture text gets `data-layout-ignore`, about 30+ blurred/clipped elements in
-  one scene can render black frames, `<audio>` needs an id and a duration.
+  one scene can render black frames (blur one layer that holds them instead),
+  a blurred layer whose children move gets `data-motion-blur="off"` (or the
+  render draws each mover sharp in its own box), `<audio>` needs an id and a
+  duration (the preview skipped a voice block without one).
+- **Focus on what the voice says**: when the voice names one thing among many
+  (a question in the comment flood), that thing pops in sharp and bigger and the
+  rest drops out of focus behind it (founder, 2026-11-02; pain-fix-flow act 1).
 
 ## The voice
 

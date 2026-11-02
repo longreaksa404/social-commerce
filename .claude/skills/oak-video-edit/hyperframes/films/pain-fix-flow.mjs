@@ -2,6 +2,7 @@
 // into its folder as film.mjs and changes the words, the screens and the beats; make.mjs runs it.
 // It expects four voice blocks named hook, pain, fix, cta with 3, 5, 5 and 2 phrases (timing.json).
 //   act 1 (0 → fix): Facebook-style comments flood a crimson ground; the hook line is on screen at frame 0;
+//                    each question the voice asks pops in sharp while the flood drops out of focus behind it;
 //                    on "customers leave" they fall away and the last question becomes the shop's link card.
 //   act 2 (fix → cta): bright teal; the cursor clicks the link card, it grows into an iPhone with the shop;
 //                    tap a product, price / sizes / stock lift out as they're named, pick a size, Buy now,
@@ -49,8 +50,22 @@ export default function film(k) {
     if (m.t > 0) { a1js += `      tl.fromTo("#${m.id}", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.32, ease: "back.out(1.4)" }, ${m.t});\n`; if (m.layer !== 'far' && m.t - lastPop >= 0.3) { cue(m.t + 0.05, 'pop', m.t < PAIN ? 0.8 : 0.55); lastPop = m.t; } }
     a1js += `      tl.fromTo("#${m.id}", { y: 0, rotation: 0, opacity: 1 }, { y: 900, rotation: ${m.spin}, opacity: 0, duration: 0.5, ease: "power3.in", immediateRender: false }, ${m.fall});\n`;
   }
-  for (const [id] of BIG.slice(1)) a1js += `      tl.fromTo("#${id}", { y: 0, rotation: 0, opacity: 1 }, { y: 900, rotation: -14, opacity: 0, duration: 0.5, ease: "power3.in", immediateRender: false }, ${r3(p[4] + 0.15)});\n`;
-  BIG.forEach(([id, , , , t]) => { a1js += `      tl.fromTo("#${id}", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.36, ease: "back.out(1.4)" }, ${r3(t)});\n`; cue(t + 0.06, 'pop', 1.1); });
+  // the spoken questions get the focus: on the first one the flood drops out of focus behind them (one blurred
+  // layer, not dozens), each question pops in sharp and bigger on its word, and the one before steps back.
+  // The flood opts out of render-time motion blur: it would draw each falling comment sharp in its own box
+  const FOCUS = r3(p[1] - 0.1), ON = 1.12, BACK = { opacity: 0.45, scale: 0.9 };
+  a1js += `      tl.fromTo("#a1-feed", { filter: "blur(0px)", opacity: 1 }, { filter: "blur(9px)", opacity: 0.4, duration: 0.35, ease: "power2.out" }, ${FOCUS});
+      tl.fromTo("#a1-badge", { opacity: 1 }, { opacity: 0.5, duration: 0.35, ease: "power2.out" }, ${FOCUS});\n`;
+  BIG.forEach(([id, , , , t], i) => {
+    a1js += `      tl.fromTo("#${id}", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: ${ON}, duration: 0.36, ease: "back.out(1.4)" }, ${r3(t)});\n`;
+    cue(t + 0.06, 'pop', 1.1);
+    const next = BIG[i + 1]?.[4];
+    if (next !== undefined) a1js += `      tl.fromTo("#${id}", { opacity: 1, scale: ${ON} }, { opacity: ${BACK.opacity}, scale: ${BACK.scale}, duration: 0.25, ease: "power2.out", immediateRender: false }, ${r3(next)});\n`;
+  });
+  // on "customers leave" the last two fall with the flood; the first comes back to full to become the shop link
+  a1js += `      tl.fromTo("#a1-q2", { y: 0, rotation: 0, opacity: ${BACK.opacity} }, { y: 900, rotation: -14, opacity: 0, duration: 0.5, ease: "power3.in", immediateRender: false }, ${r3(p[4] + 0.15)});
+      tl.fromTo("#a1-q3", { y: 0, rotation: 0, opacity: 1 }, { y: 900, rotation: -14, opacity: 0, duration: 0.5, ease: "power3.in", immediateRender: false }, ${r3(p[4] + 0.15)});
+      tl.fromTo("#a1-q1", { opacity: ${BACK.opacity}, scale: ${BACK.scale} }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out", immediateRender: false }, ${r3(p[4] + 0.15)});\n`;
   cue(p[4] + 0.2, 'whoosh', 0.8);
   // the last question moves to the middle and becomes the shop link on the drop
   const MORPH = r3(FIX - 0.22);
@@ -97,7 +112,7 @@ export default function film(k) {
     #a1-how { font-size:150px; line-height:1.3; color:#ffb23e; z-index:8; }
     #a1-same, #a1-leave1, #a1-leave2 { font-size:84px; }`,
 `    <div id="a1-light"></div>
-    <div id="a1-feed">
+    <div id="a1-feed" data-motion-blur="off">
 ${comments.map(m => cm(m.id, m.name, m.col, m.text, m.layer, `left:${m.x}px;top:${m.y}px;z-index:${m.layer === 'near' ? 2 : 1}`)).join('\n')}
     </div>
 ${BIG.map(([id, text, x, y], i) => cm(id, NAMES[(i * 5 + 3) % NAMES.length], AVC[(i * 3 + 1) % AVC.length], text, 'big near', `left:${x}px;top:${y}px`)).join('\n')}
