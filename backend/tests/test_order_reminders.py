@@ -78,7 +78,7 @@ async def test_reminds_once_after_two_hours(client, bot, auth_headers, placed_at
     assert "ខ្ញុំបានបង់ហើយ" in reminder["text"]  # I've paid
     assert reminder["button"] == (
         bot_texts.WORDS["button.pay"].text,
-        f"https://app.example.com/shop/{slug}/order/{order_id}",
+        f"https://app.example.com/shop/{slug}/order/{order_id}?pay=1",  # the pay popup
     )
     async with tenant_session(store_id) as db:
         [log] = list(

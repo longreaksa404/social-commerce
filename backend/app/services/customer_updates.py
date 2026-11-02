@@ -194,6 +194,13 @@ def order_button(store: Store, order: Order, texts: bot_texts.Texts) -> tuple[st
     return texts.plain("button.view_order"), f"{app_url}/shop/{store.slug}/order/{order.id}"
 
 
+def pay_button(store: Store, order: Order, texts: bot_texts.Texts) -> tuple[str, str] | None:
+    """Pay: the order page, opening on its pay popup (`?pay=1`, founder's
+    pick 5A, 2026-11-02; only a KHQR payment waiting pops it up)."""
+    view = order_button(store, order, texts)
+    return (texts.plain("button.pay"), f"{view[1]}?pay=1") if view else None
+
+
 async def _load(db, store_id: uuid.UUID, order_id: uuid.UUID) -> tuple[Store, Order] | None:
     order = await db.scalar(
         select(Order)
@@ -477,9 +484,10 @@ async def notify_placed(store_id: uuid.UUID, order_id: uuid.UUID) -> None:
         texts = await bot_texts.load(db)
         if not texts.on("receipt"):
             return
-        view = order_button(store, order, texts)
-        if view and order.payment.method is not PaymentMethod.COD:
-            view = (texts.plain("button.pay"), view[1])
+        if order.payment.method is PaymentMethod.COD:
+            view = order_button(store, order, texts)
+        else:
+            view = pay_button(store, order, texts)
         try:
             await telegram.send_message(
                 order.customer.telegram_user_id, receipt_text(store, order, texts), view

@@ -1,16 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, CircleCheck, Copy, Download, Send, XCircle } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useFeedback } from '../components/feedback.ts'
 import { buttonClass } from '../components/styles.ts'
 import { Button, Card, IconButton } from '../components/ui.tsx'
 import { api } from '../lib/api.ts'
 import { formatMoney } from '../lib/money.ts'
-import { drawKhqr, isIOS } from '../lib/khqrImage.ts'
 import { formatOrderTime } from '../lib/orders.ts'
 import { useT } from '../i18n/useT.ts'
 import type { BankAccount, ShopOrder, ShopStore } from '../lib/types.ts'
 import { useContactLink } from './contact.ts'
+import { useKhqrPicture } from './khqrPicture.ts'
 import { trackStep } from './orderWords.ts'
 
 /** How to pay for the order, and whether the seller has received it.
@@ -70,7 +70,9 @@ export function PaymentCard({ shop, order, phone }: { shop: ShopStore; order: Sh
 function HowToPay({ shop, order, phone, total }: { shop: ShopStore; order: ShopOrder; phone: string; total: string }) {
   const p = useT().order.pay
   const { payment } = order
-  const [toldAt, setToldAt] = useState(payment.claimed_at)
+  // Told here, or in the pay popup (which reloads the order).
+  const [toldHere, setToldAt] = useState<string | null>(null)
+  const toldAt = toldHere ?? payment.claimed_at
   const [again, setAgain] = useState(false)
   const how = payment.khqr ? (
     <KhqrPayment shop={shop} order={order} code={payment.khqr.code} name={payment.khqr.merchant_name} />
@@ -107,7 +109,7 @@ function HowToPay({ shop, order, phone, total }: { shop: ShopStore; order: ShopO
  * chat with a line typed in, for the receipt screenshot. The payment stays
  * "not paid" until the seller confirms it. Once told: when, and sending
  * the receipt again. */
-function IvePaid({
+export function IvePaid({
   shop,
   order,
   phone,
@@ -192,33 +194,10 @@ function IvePaid({
 }
 
 function KhqrPayment({ shop, order, code, name }: { shop: ShopStore; order: ShopOrder; code: string; name: string }) {
-  const { toast } = useFeedback()
   const t = useT()
   const p = t.order.pay
   const total = formatMoney(order.payment.amount, order.currency)
-  const caption = `${t.shop.orderNumber(order.number)} · ${shop.name}`
-  const image = useMemo(() => drawKhqr({ code, name, amount: total, caption }), [code, name, total, caption])
-  const fileName = `order-${order.number}-khqr.png`
-
-  async function save() {
-    const blob = await new Promise<Blob | null>((resolve) => image.canvas.toBlob(resolve, 'image/png'))
-    const file = blob && new File([blob], fileName, { type: 'image/png' })
-    // iPhones save to Photos (where bank apps look) only from the share
-    // sheet; a download would land in Files.
-    if (file && isIOS() && navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file] })
-      } catch {
-        // Closed the share sheet: nothing to do.
-      }
-      return
-    }
-    const link = document.createElement('a')
-    link.href = image.url
-    link.download = fileName
-    link.click()
-    toast(p.qrSaved)
-  }
+  const { picture, save } = useKhqrPicture(shop, order, code, name)
 
   // On a phone the customer can't scan their own screen: saving the QR
   // (then picking it in the bank app) is the first step, so it's the main
@@ -227,12 +206,12 @@ function KhqrPayment({ shop, order, code, name }: { shop: ShopStore; order: Shop
   return (
     <div className="mt-3">
       <img
-        src={image.url}
+        src={picture().url}
         alt={p.khqrAlt(total, name)}
         className="mx-auto w-full max-w-64 rounded-xl border border-slate-200 shadow-sm lg:max-w-80"
       />
       <div className="mt-4 lg:hidden">
-        <Button icon={Download} onClick={save} size="lg" className="w-full">
+        <Button icon={Download} onClick={() => save()} size="lg" className="w-full">
           {p.saveQrPhotos}
         </Button>
         <details className="group mt-2">
@@ -250,7 +229,7 @@ function KhqrPayment({ shop, order, code, name }: { shop: ShopStore; order: Shop
       </div>
       <div className="mt-4 hidden lg:block">
         <p className="text-center text-sm text-slate-600">{p.scanThis}</p>
-        <Button variant="secondary" icon={Download} onClick={save} className="mt-3 w-full">
+        <Button variant="secondary" icon={Download} onClick={() => save()} className="mt-3 w-full">
           {p.saveQr}
         </Button>
       </div>

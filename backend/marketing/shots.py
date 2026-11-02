@@ -824,11 +824,12 @@ class Shots:
             self.tap(page, page.get_by_role("button", name=re.compile(words["place_order"])))
             page.wait_for_url("**/order/**")
             if self.khqr:
-                qr = f"img[alt*={json.dumps(demo_shop.khqr_name(self.shop['name']))}]"
-                page.locator(qr).wait_for()
-                self.scroll_to(page, qr, offset=-40)
+                # The pay popup (2026-11-02) slides up a moment after the
+                # thank-you, over the order page.
+                popup = page.locator("dialog[open]")
+                popup.get_by_role("img", name=demo_shop.khqr_name(self.shop["name"])).wait_for()
                 self.show(page, "11_khqr", look="qr")
-                paid = page.locator("a, button").filter(
+                paid = popup.locator("a, button").filter(
                     has_text=re.compile(f"^{re.escape(words['i_paid'])}")
                 )
                 if paid.first.evaluate("(el) => el.tagName") == "A":

@@ -28,8 +28,8 @@ phone or laptop) before going on.
 - [ ] On the shop, + on a product without options adds one (the number shows on the photo); the bar at the bottom shows the count and total and opens the cart. A product with options has no +.
 - [ ] Order a second time on the same phone: name and phone show as one line with Change. Place order shows the total.
 - [ ] Name, phone, delivery by the shop, "Pin my location on the map" → move the map → Confirm. Choose KHQR. The breakdown shows items, delivery, total.
-- [ ] Place order. The order page shows the KHQR code with the exact total; "Save QR code" works.
-- [ ] Tap "I've paid: send receipt": the shop's Telegram opens with "I've paid order #…" typed in, and the order page says "You told <shop> you paid", with the QR folded behind "Show the QR again".
+- [ ] Place order. After the thank-you, the pay popup slides up: the red KHQR card with the exact total, "Scan to pay, or Download QR"; "Download QR" saves it. The ✕, a swipe down or a tap outside closes it; reloading doesn't bring it back, and the order page shows the QR first.
+- [ ] Open the order with `?pay=1` (Telegram's Pay button): the popup opens. Tap "I've paid: send receipt": the shop's Telegram opens with "I've paid order #…" typed in, the popup closes, and the order page says "You told <shop> you paid", with the QR folded behind "Show the QR again".
 
 **Seller: alerts and the order**
 

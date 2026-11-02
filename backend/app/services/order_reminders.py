@@ -68,9 +68,8 @@ def reminder_text(store: Store, order: Order, texts: bot_texts.Texts) -> bot_tex
 
 
 def pay_button(store: Store, order: Order, texts: bot_texts.Texts) -> tuple[str, str] | None:
-    """The order page, labelled Pay (none for a non-https address)."""
-    view = customer_updates.order_button(store, order, texts)
-    return (texts.plain("button.pay"), view[1]) if view else None
+    """The order page's pay popup, labelled Pay (none for a non-https address)."""
+    return customer_updates.pay_button(store, order, texts)
 
 
 @dataclass

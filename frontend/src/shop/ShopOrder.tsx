@@ -1,6 +1,6 @@
 import { ChevronDown, CircleCheck, Copy, MapPin, Package, Send, Truck, XCircle } from 'lucide-react'
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode, type RefObject } from 'react'
-import { Link, useLocation, useParams } from 'react-router'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router'
 import { buzz, confettiFrom } from '../components/effects.ts'
 import { useFeedback } from '../components/feedback.ts'
 import { buttonClass } from '../components/styles.ts'
@@ -16,6 +16,7 @@ import { ChannelIcon } from './ContactSeller.tsx'
 import { loadCustomerDetails, orderPhone, rememberOrder } from './device.ts'
 import { orderHeadline, trackLabel, trackStep, TRACK_STEPS } from './orderWords.ts'
 import { PaymentCard } from './PaymentCard.tsx'
+import { PayNowSheet } from './PayNowSheet.tsx'
 import { inProgress, isNotFound, useShop, useTelegramUpdates, useTrackOrder } from './queries.ts'
 
 /**
@@ -129,6 +130,7 @@ function OrderView({
   const t = useT()
   const tick = useRef<HTMLSpanElement>(null)
   useCelebration(justPlaced ? order.id : null, tick)
+  const pay = usePayPopup(order, justPlaced)
   // Opened with a typed phone: remember it, so next time it opens directly
   // and the order shows in "Your orders" on the cart page.
   useEffect(() => {
@@ -177,7 +179,10 @@ function OrderView({
           text={order.status === 'pending' ? t.order.willConfirm(shop.name) : t.order.willContact(shop.name)}
           next={
             payNow
-              ? { text: t.order.nextPay(total, t.status.paymentMethod[order.payment.method]), urgent: true }
+              ? // Nothing left to ask once they've said they paid.
+                order.payment.claimed_at
+                ? null
+                : { text: t.order.nextPay(total, t.status.paymentMethod[order.payment.method]), urgent: true }
               : showPayment && order.payment.method === 'cod' && order.payment.status === 'pending'
                 ? {
                     text: (order.delivery_method === 'pickup' ? t.order.nextCodPickup : t.order.nextCod)(total),
@@ -205,8 +210,61 @@ function OrderView({
           </div>
         </Card>
       </div>
+      {order.payment.khqr && (
+        <PayNowSheet
+          shop={shop}
+          order={order}
+          khqr={order.payment.khqr}
+          phone={phone}
+          open={pay.open}
+          onClose={pay.close}
+        />
+      )}
     </div>
   )
+}
+
+/** When the pay popup shows (founder's pick 5A, 2026-11-02): once, a
+ * moment after the thank-you right after checkout (its confetti first), and
+ * whenever the order opens from "Pay" in Telegram (`?pay=1`), while a KHQR
+ * payment waits and the customer hasn't said they paid. A payment the
+ * seller marks paid meanwhile closes it. */
+function usePayPopup(order: ShopOrder, justPlaced: boolean) {
+  const [params, setParams] = useSearchParams()
+  const { state } = useLocation()
+  const fromPay = params.has('pay')
+  const [shown, setShown] = useState(fromPay)
+  const { payment } = order
+  const khqr = payment.method === 'khqr'
+  const key = `sc.payPopup.${order.id}`
+  useEffect(() => {
+    if (!justPlaced || !khqr || sessionValue(key)) return
+    const timer = setTimeout(() => {
+      // Marked when it opens, so a reload doesn't bring it back.
+      try {
+        sessionStorage.setItem(key, '1')
+      } catch {
+        // Storage blocked: it may open again on a reload. Harmless.
+      }
+      setShown(true)
+    }, 900)
+    return () => clearTimeout(timer)
+  }, [justPlaced, khqr, key])
+
+  function close() {
+    setShown(false)
+    if (fromPay) {
+      setParams(
+        (next) => {
+          next.delete('pay')
+          return next
+        },
+        { replace: true, state },
+      )
+    }
+  }
+  const waiting = khqr && payment.status === 'pending' && payment.khqr !== null && !payment.claimed_at
+  return { open: shown && waiting, close }
 }
 
 /** Straight after checkout: a big tick that draws itself (confetti comes

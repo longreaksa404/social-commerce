@@ -191,6 +191,12 @@ export const order = {
       km: 'ស្កេនកូដនេះជាមួយកម្មវិធីធនាគារ។',
     },
     payTitle: { en: (total: string) => `Pay ${total}`, km: (total: string) => `បង់ ${total}` },
+    // The pay popup under its QR (founder's pick 2C, 2026-11-02): "Scan to
+    // pay · or · Download QR · and upload it in your bank app".
+    scanToPay: { en: 'Scan to pay', km: 'ស្កេនដើម្បីបង់ប្រាក់' },
+    or: { en: 'or', km: 'ឬ' },
+    downloadQr: { en: 'Download QR', km: 'ទាញយក QR' },
+    uploadToBank: { en: 'and upload it in your bank app', km: 'រួចបញ្ចូលវាក្នុងកម្មវិធីធនាគាររបស់អ្នក' },
     qrSaved: { en: 'QR code saved', km: 'បានរក្សាទុក QR' },
     khqrStep1: { en: 'Save the QR code, or take a screenshot.', km: 'រក្សាទុក QR ឬថតអេក្រង់។' },
     khqrStep2: {

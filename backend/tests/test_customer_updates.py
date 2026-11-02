@@ -494,7 +494,7 @@ async def test_a_customer_who_gets_updates_gets_a_receipt(client, bot, auth_head
     assert bot_texts.WORDS["receipt.pay_now"].text in receipt["text"]
     assert receipt["button"] == (
         bot_texts.WORDS["button.pay"].text,
-        f"https://app.example.com/shop/{slug}/order/{placed.json()['id']}",
+        f"https://app.example.com/shop/{slug}/order/{placed.json()['id']}?pay=1",  # the pay popup
     )
 
     # Cash on delivery: how it's paid, and View order.
