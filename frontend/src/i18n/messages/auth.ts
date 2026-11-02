@@ -110,6 +110,18 @@ export const auth = {
   login: {
     title: { en: 'Welcome back', km: 'សូមស្វាគមន៍ការត្រឡប់មកវិញ' },
     newHere: { en: 'New here?', km: 'ទើបមកលើកដំបូង?' },
+    tabTelegram: { en: 'Telegram (1-Tap)', km: 'Telegram (ចុចមួយដង)' },
+    tabPassword: { en: 'Password', km: 'ពាក្យសម្ងាត់' },
+    telegramHeroTitle: { en: 'Instant 1-Tap Login', km: 'ចូលភ្លាមៗដោយចុចមួយដង' },
+    telegramHeroDesc: {
+      en: 'Log in with your connected Telegram account without typing passwords.',
+      km: 'ចូលគណនីតាមរយៈ Telegram ដែលបានភ្ជាប់ ដោយមិនបាច់វាយពាក្យសម្ងាត់។',
+    },
+    loginWithPassword: { en: 'Log in with password instead', km: 'ចូលដោយប្រើពាក្យសម្ងាត់ជំនួសវិញ' },
+    loginWithPasswordDesc: {
+      en: 'For staff members or accounts with password.',
+      km: 'សម្រាប់បុគ្គលិក ឬគណនីដែលមានពាក្យសម្ងាត់។',
+    },
   },
   // Forgot password? A link to the shop's Telegram; else Oak Order resets it.
   forgot: {
@@ -164,6 +176,30 @@ export const auth = {
     },
     phoneLabel: { en: 'Phone number (you log in with it)', km: 'លេខទូរស័ព្ទ (អ្នកប្រើវាដើម្បីចូលគណនី)' },
     passwordHint: { en: 'At least 8 characters.', km: 'យ៉ាងតិច 8 តួអក្សរ។' },
+    confirmPassword: { en: 'Confirm password', km: 'បញ្ជាក់ពាក្យសម្ងាត់' },
+    confirmPasswordHint: { en: 'Re-enter your password.', km: 'បញ្ចូលពាក្យសម្ងាត់ម្តងទៀត។' },
+    passwordMismatch: { en: 'Passwords do not match.', km: 'ពាក្យសម្ងាត់ទាំងពីរមិនត្រូវគ្នាទេ។' },
+    passwordsMatch: { en: 'Passwords match', km: 'ពាក្យសម្ងាត់ត្រូវគ្នា' },
+    step1Title: { en: 'Verify Phone', km: 'ផ្ទៀងផ្ទាត់ទូរស័ព្ទ' },
+    step2Title: { en: 'Shop & Password', km: 'ព័ត៌មានហាង & ពាក្យសម្ងាត់' },
+    telegramBenefitTitle: { en: 'Instant Setup via Telegram', km: 'រៀបចំភ្លាមៗតាម Telegram' },
+    telegramBenefitDesc: {
+      en: 'Your phone is verified safely, and you will receive real-time order notifications in Telegram.',
+      km: 'លេខទូរស័ព្ទរបស់អ្នកត្រូវបានផ្ទៀងផ្ទាត់ដោយសុវត្ថិភាព ហើយអ្នកនឹងទទួលបានការជូនដំណឹងអំពីការកុម្ម៉ង់ភ្លាមៗក្នុង Telegram។',
+    },
+    verifiedWithTelegram: { en: 'Verified via Telegram', km: 'បានផ្ទៀងផ្ទាត់តាម Telegram' },
+    changePhone: { en: 'Change', km: 'ប្ដូរ' },
+    backToStep1: { en: 'Back to phone verification', km: 'ត្រឡប់ទៅផ្ទៀងផ្ទាត់លេខទូរស័ព្ទ' },
+    telegramStepsTitle: { en: 'How it works in Telegram:', km: 'របៀបដំណើរការក្នុង Telegram៖' },
+    telegramStep1: { en: 'Open Bot', km: 'បើក Bot' },
+    telegramStep2: { en: 'Tap Start', km: 'ចុច Start' },
+    telegramStep3: { en: 'Share Phone', km: 'ចែករំលែកលេខ' },
+    storeLinkPreview: { en: 'Your store link:', km: 'តំណហាងរបស់អ្នក៖' },
+    passwordStrength: {
+      weak: { en: 'Weak', km: 'ខ្សោយ' },
+      fair: { en: 'Fair', km: 'មធ្យម' },
+      strong: { en: 'Strong', km: 'រឹងមាំ' },
+    },
     submit: { en: 'Create shop', km: 'បង្កើតហាង' },
   },
 } satisfies Tree

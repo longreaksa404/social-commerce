@@ -1,3 +1,4 @@
+import { Mail, Phone } from 'lucide-react'
 import { Field, Input } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
 
@@ -28,6 +29,13 @@ export function LoginField({
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
+          leading={
+            byEmail ? (
+              <Mail className="size-4 text-slate-400" aria-hidden />
+            ) : (
+              <Phone className="size-4 text-slate-400" aria-hidden />
+            )
+          }
           enterKeyHint={enterKeyHint}
           placeholder={byEmail ? undefined : '012 345 678'}
           required
@@ -35,16 +43,18 @@ export function LoginField({
           onChange={(e) => onChange(e.target.value)}
         />
       </Field>
-      <button
-        type="button"
-        onClick={() => {
-          onByEmailChange(!byEmail)
-          onChange('')
-        }}
-        className="inline-flex min-h-11 items-center text-sm font-medium text-navy-700 link"
-      >
-        {byEmail ? t.auth.usePhone : t.auth.useEmail}
-      </button>
+      <div className="mt-1 text-right">
+        <button
+          type="button"
+          onClick={() => {
+            onByEmailChange(!byEmail)
+            onChange('')
+          }}
+          className="inline-flex min-h-9 items-center text-xs font-semibold text-navy-700 link hover:text-navy-900"
+        >
+          {byEmail ? t.auth.usePhone : t.auth.useEmail}
+        </button>
+      </div>
     </div>
   )
 }

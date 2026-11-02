@@ -14,16 +14,24 @@ import { usePhoneCheck } from './usePhoneCheck.ts'
  * 2026-10-24): open the bot, share the number, come back, logged in. For
  * shop owners; staff log in with their password (#25), and the owner's
  * password stays too (#29). A number with no shop gets Create your shop. */
-export function TelegramLogIn({ onLoggedIn }: { onLoggedIn: () => void }) {
+export function TelegramLogIn({
+  onLoggedIn,
+  withDivider = true,
+}: {
+  onLoggedIn: () => void
+  withDivider?: boolean
+}) {
   const block = useBlock(onLoggedIn)
   const t = useT()
   if (block === null) return null
   return (
     <>
       {block}
-      <p className="my-5 flex items-center gap-3 text-sm text-slate-500 before:h-px before:flex-1 before:bg-slate-200 after:h-px after:flex-1 after:bg-slate-200">
-        {t.auth.telegramLogin.orPassword}
-      </p>
+      {withDivider && (
+        <p className="my-5 flex items-center gap-3 text-sm text-slate-500 before:h-px before:flex-1 before:bg-slate-200 after:h-px after:flex-1 after:bg-slate-200">
+          {t.auth.telegramLogin.orPassword}
+        </p>
+      )}
     </>
   )
 }
