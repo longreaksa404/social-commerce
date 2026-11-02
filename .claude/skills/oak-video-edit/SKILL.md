@@ -156,7 +156,7 @@ the kit's `rootIndex` turns that into the root composition.
   pain, fix (Oak Order doing it, with the app's screens), offer + CTA (message
   on Telegram; the end card shows `t.me/longreaksa`).
 - Facts only from `MARKETING_FACTS.md` rows marked Live; never anything in its
-  "Don't claim". The demo shop Oak Fashion is an example: never present its
+  "Don't claim". The demo shop Oak Phone (Oak Fashion before 2026-11-02) is an example: never present its
   orders as real sales. No private seller or customer data (Gemini's free tier).
 - Check the content log so hooks, angles and features don't repeat, and the
   playbook's "Words to avoid" and "Winning hooks".

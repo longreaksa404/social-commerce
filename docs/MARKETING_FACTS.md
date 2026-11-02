@@ -382,7 +382,7 @@ always stays navy.
 | Log in | https://order.oaksolve.com/login |
 | Terms, Privacy, Data deletion | https://order.oaksolve.com/terms, /privacy, /data-deletion |
 | A shop's link (the format) | `https://order.oaksolve.com/shop/<6-character code>`. Example format only: `k7m2qx` in 01 isn't a real shop |
-| Demo or example shop | **"Oak Fashion", https://order.oaksolve.com/shop/zdpb5d**: the founder's demo shoe shop on the live site (17 products with sizes, delivery and pickup, KHQR and cash; opened 2026-10-28). It's a real, open shop: an order placed there reaches the founder. Marketing pictures and clips come from a copy of it on the founder's laptop: `backend/marketing/shots.py` makes 22 phone screens and 15 short MP4s in each of Khmer and English (every file in `docs/CODEBASE.md` §3, "Marketing pictures and clips") |
+| Demo or example shop | **"Oak Phone", https://order.oaksolve.com/shop/zdpb5d**: the founder's demo iPhone shop on the live site (opened 2026-10-28 as the shoe shop "Oak Fashion"; an iPhone shop since 2026-11-02). 13 products in 3 categories: new iPhones (18 Pro Max, 18 Pro, Duo, 17 Pro Max, Air, 17, 17e), used iPhones, AirPods and a MagSafe charger, $45–$2,349, options by storage and colour; delivery and pickup, KHQR and cash; $20 off orders from $1,000. Its 36 orders (#1001–#1036, all dated 2026-11-02) are examples added by Oak Order, not sales. Its photos are from Wikimedia Commons (CC0, or credited in the product's description). It's a real, open shop: an order placed there reaches the founder. Marketing pictures and clips come from a copy of it on the founder's laptop: `backend/marketing/shots.py` makes 22 phone screens and 15 short MP4s in each of Khmer and English (every file in `docs/CODEBASE.md` §3, "Marketing pictures and clips") |
 | Support Telegram | **@longreaksa**, https://t.me/longreaksa (`VITE_SUPPORT_TELEGRAM`, read from the live site's code 2026-10-30). In the app: Settings → Get help |
 | Oak Order's Telegram bot (alerts, logins, customer updates) | **@OakOrder_bot**, https://t.me/OakOrder_bot (`TELEGRAM_BOT_USERNAME`; made by the founder 2026-10-30, replacing the deleted ReaksaShopAlertBot) |
 
@@ -418,7 +418,10 @@ always stays navy.
 ## 10. Video assets
 
 Made by `backend/marketing/shots.py` (`--video` for the clips) from a copy
-of the demo shop "Oak Fashion" (section 8), last on 2026-10-28. Paths
+of the demo shop "Oak Fashion" (section 8), last on 2026-10-28. They still
+show that shoe shop: the demo shop became the iPhone shop "Oak Phone" on
+2026-11-02, and the next run makes its pictures (then the descriptions
+below need redoing). Paths
 are relative to `backend/marketing/out/`. That folder is git-ignored, so
 the files are on the founder's laptop only. `.work/` is the tool's own
 scratch space, not an asset.

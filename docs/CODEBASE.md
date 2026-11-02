@@ -359,8 +359,9 @@ takes about 9 minutes with `--video`, 3 without.
 
 The shop is the live demo shop as it is on the day of the run. The customer
 buys its newest product with options in the middle option, then the next
-one; the chat order takes the product or option with 6 to 8 in stock (now
-the men's slides, Free size: 6) down to the low-stock level, 5. Skipped,
+one (now the iPhone 18 Pro Max, 256GB · Burgundy, then the iPhone 18 Pro,
+256GB · Glacier); the chat order takes the product or option with 6 to 8
+in stock (now the MagSafe Charger, 1m: 7) down to the low-stock level, 5. Skipped,
 with a note at the start and the end of the run: 10–12 without
 `DEMO_BAKONG_ID` (and `DEMO_KHQR_ACCOUNT` with ABA's shared ID; the second
 order is then paid in cash, still for 13), 19–20 when nothing has 6 to 8 in
