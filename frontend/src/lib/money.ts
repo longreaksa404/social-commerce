@@ -2,11 +2,16 @@ import type { Currency } from './types.ts'
 
 /** "$12.50" for USD, "50,000៛" for riel (whole numbers, symbol after). */
 export function formatMoney(amount: string | number, currency: Currency): string {
+  return currency === 'KHR' ? `${formatAmount(amount, currency)}៛` : `$${formatAmount(amount, currency)}`
+}
+
+/** The number alone: "12.50", "50,000" (the KHQR card puts USD or KHR
+ * beside it). */
+export function formatAmount(amount: string | number, currency: Currency): string {
   const value = Number(amount)
-  if (currency === 'KHR') {
-    return `${value.toLocaleString('en-US', { maximumFractionDigits: 0 })}៛`
-  }
-  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  return currency === 'KHR'
+    ? value.toLocaleString('en-US', { maximumFractionDigits: 0 })
+    : value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 /** An amount in the other currency, as the API converts a shop that

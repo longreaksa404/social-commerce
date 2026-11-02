@@ -2,8 +2,8 @@ import { CircleCheck, Download, X } from 'lucide-react'
 import { useEffect, useEffectEvent, useId, useMemo, useRef, useState, type RefObject } from 'react'
 import { encode } from 'uqr'
 import { useT } from '../i18n/useT.ts'
-import { formatMoney } from '../lib/money.ts'
-import type { ShopOrder, ShopPayment, ShopStore } from '../lib/types.ts'
+import { formatAmount, formatMoney } from '../lib/money.ts'
+import type { Currency, ShopOrder, ShopPayment, ShopStore } from '../lib/types.ts'
 import { useKhqrPicture } from './khqrPicture.ts'
 import { IvePaid } from './PaymentCard.tsx'
 
@@ -87,20 +87,23 @@ function PayNow({
   return (
     <>
       {/* The card keeps its own colours in dark mode, like the saved
-          picture (lib/khqrImage.ts): bank apps scan black on white. */}
+          picture (lib/khqrImage.ts): bank apps scan black on white. Laid
+          out like the founder's ABA PayWay picture (2026-11-03). */}
       <div className="bg-white text-[#0f172a]">
-        <div className="relative flex h-14 items-center bg-[#E1232E] pr-1.5 pl-5 text-white">
+        <div className="relative flex h-14 items-center justify-center bg-[#E1232E] pt-1.5 text-white">
           {/* Swipe down to close (phones). */}
-          <span aria-hidden className="absolute top-2 left-1/2 h-1 w-10 -translate-x-1/2 rounded-full bg-white/60 sm:hidden" />
-          <h2 id={titleId} className="flex-1 text-xl font-extrabold tracking-wide">
+          <span aria-hidden className="absolute top-2 left-1/2 h-1 w-10 -translate-x-1/2 rounded-full bg-white/80 sm:hidden" />
+          <h2 id={titleId} className="text-xl font-extrabold tracking-wide">
             <span aria-hidden>KHQR</span>
             <span className="sr-only">{p.payTitle(total)}</span>
           </h2>
+          {/* Phones close it with a swipe or a tap outside, as in the
+              picture; the box on a laptop has no grab bar, so a ✕. */}
           <button
             type="button"
             onClick={onClose}
             aria-label={t.common.close}
-            className="grid size-11 place-items-center rounded-full hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white"
+            className="absolute top-1.5 right-1.5 hidden size-11 place-items-center rounded-full hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white sm:grid"
           >
             <X aria-hidden className="size-5" />
           </button>
@@ -110,29 +113,32 @@ function PayNow({
             className="absolute top-full right-0 size-0 border-t-[14px] border-l-[28px] border-t-[#E1232E] border-l-transparent"
           />
         </div>
-        <div className="px-5 pt-4 pb-3">
-          <p className="truncate text-sm font-semibold tracking-wide text-[#334155]">{khqr.merchant_name}</p>
-          <p className="text-3xl font-extrabold tabular-nums">{total}</p>
+        <div className="px-6 pt-4 pb-3">
+          <p className="truncate text-xs font-semibold tracking-wide text-[#334155]">{khqr.merchant_name}</p>
+          <p className="mt-0.5 flex items-baseline gap-1.5">
+            <span className="text-[1.75rem] leading-tight font-extrabold tabular-nums">
+              {formatAmount(order.payment.amount, order.currency)}
+            </span>
+            <span className="text-sm font-semibold text-[#64748b]">{order.currency}</span>
+          </p>
         </div>
         <div aria-hidden className="border-t-[1.5px] border-dashed border-[#cbd5e1]" />
         {/* About four modules of white around the code, as scanners want. */}
         <QrCode
           code={khqr.code}
+          currency={order.currency}
           label={p.khqrAlt(total, khqr.merchant_name)}
-          className="mx-auto mt-6 block w-[min(60vw,14rem,32dvh)] sm:w-60"
+          className="mx-auto my-6 block w-[min(60vw,14rem,32dvh)] sm:w-60"
         />
-        <p className="pt-5 pb-4 text-center text-xs text-[#64748b]">
-          {`${t.shop.orderNumber(order.number)} · ${shop.name}`}
-        </p>
       </div>
       <div className="px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] text-center sm:pb-5">
-        <p className="font-semibold text-slate-900">{p.scanToPay}</p>
-        <p className="text-sm text-slate-500">{p.or}</p>
+        <p className="text-sm font-bold text-slate-900">{p.scanToPay}</p>
+        <p className="text-xs text-slate-500">{p.or}</p>
         {/* The toast would be under the popup: the link says it instead. */}
         <button
           type="button"
           onClick={() => save(() => setSaved(true))}
-          className="inline-flex min-h-11 items-center gap-2 font-semibold text-navy-700 link"
+          className="inline-flex min-h-10 items-center gap-1.5 font-semibold text-sky-600 hover:text-sky-700"
         >
           {saved ? (
             <CircleCheck aria-hidden className="size-4.5 text-emerald-600" />
@@ -141,18 +147,31 @@ function PayNow({
           )}
           <span aria-live="polite">{saved ? p.qrSaved : p.downloadQr}</span>
         </button>
-        <p className="text-sm text-slate-500">{p.uploadToBank}</p>
+        <p className="mx-auto max-w-56 text-xs text-slate-500">{p.uploadToBank}</p>
         <IvePaid shop={shop} order={order} phone={phone} toldAt={null} onTold={onClose} />
       </div>
     </>
   )
 }
 
-/** The code as SVG, sharp at any size: black on the card's white, error
- * correction M like the saved picture, each row's dark runs as one shape. */
-function QrCode({ code, label, className }: { code: string; label: string; className: string }) {
+/** The code as SVG, sharp at any size: black on the card's white, each
+ * row's dark runs as one shape, and the currency's mark in the middle as
+ * on a bank's KHQR. The saved picture has no mark (it scanned less
+ * reliably at error correction M, 2026-10-25); here Q (a quarter of the
+ * code can be lost) easily covers the mark, about 3% of it. */
+function QrCode({
+  code,
+  currency,
+  label,
+  className,
+}: {
+  code: string
+  currency: Currency
+  label: string
+  className: string
+}) {
   const qr = useMemo(() => {
-    const { size, data } = encode(code, { ecc: 'M', border: 0 })
+    const { size, data } = encode(code, { ecc: 'Q', border: 0 })
     let path = ''
     data.forEach((row, y) => {
       let x = 0
@@ -168,6 +187,8 @@ function QrCode({ code, label, className }: { code: string; label: string; class
     })
     return { size, path }
   }, [code])
+  const middle = qr.size / 2
+  const mark = qr.size * 0.08 // the black circle's radius
   return (
     <svg
       role="img"
@@ -177,6 +198,22 @@ function QrCode({ code, label, className }: { code: string; label: string; class
       className={className}
     >
       <path d={qr.path} fill="#000" />
+      <g shapeRendering="auto">
+        <circle cx={middle} cy={middle} r={mark * 1.3} fill="#fff" />
+        <circle cx={middle} cy={middle} r={mark} fill="#000" />
+        <text
+          x={middle}
+          y={middle}
+          fill="#fff"
+          fontSize={mark * 1.25}
+          fontWeight={700}
+          fontFamily="Inter, 'Noto Sans Khmer', sans-serif"
+          textAnchor="middle"
+          dominantBaseline="central"
+        >
+          {currency === 'KHR' ? '៛' : '$'}
+        </text>
+      </g>
     </svg>
   )
 }
