@@ -88,8 +88,12 @@ Scripts run with the Windows `node`, from the repo root:
    give the founder `http://localhost:<port>/#project/hf` and wait. Their notes
    go into film.mjs (or timing / the voice), then make, check, look again.
 8. **Render** only when they approve (or ask for the file):
-   `hf.mjs <folder> render --quality delivery -o ..\<VIDEO>.mp4`; check its
-   length with ffprobe and its sound with `hf.mjs <folder> audio ..\<VIDEO>.mp4 --json`
+   `hf.mjs <folder> render --quality delivery -o ..\<VIDEO>.mp4` (`-o` is read
+   from `hf\`, so the MP4 lands in the video's folder); then
+   `node hyperframes\master.mjs <folder>\<VIDEO>.mp4` (the mix renders quiet, about
+   -19 LUFS: it brings the sound to -15 LUFS, peaks under -1.5 dB, picture copied,
+   the render before kept as `_<VIDEO>_unmastered.mp4`). Check its length with
+   ffprobe and its sound with `hf.mjs <folder> audio <VIDEO>.mp4 --json`
    (about -16 to -14 LUFS; say the sound was measured, not heard). Don't send
    HyperFrames feedback or publish without asking.
 9. **After posting**: offer to fill in the content log row.
