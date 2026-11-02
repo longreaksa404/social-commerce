@@ -33,9 +33,9 @@ Status: in progress. Tick each step when done.
 
 ## Voice recipe (Gemini, AI Studio)
 - Speaker: Achird (male, friendly and warm, made for casual vlogs). Update here if I change it. Picked 2026-11-02 (founder: "talk everyday style, natural like a real human") from one line in four voices: Achird's Khmer came back word for word when transcribed and each question was its own phrase; Nika (the voice before, a high "influencer" pitch) ran two questions together; Aoede sounded word by word; Callirrhoe blurred two words. Gemini has no Khmer voice: every voice is a multilingual one speaking Khmer. The four takes: `Video Marketing\Oak Order\voice-test\2026-11-02 pain line\`.
-- 4 blocks, same speaker, one mood each. Every style line asks for everyday talk, a real person to a friend, not an announcer. Default style lines:
-  1. Hook: `Native Khmer speaker, everyday Phnom Penh talk, like a quick voice message to a seller friend: surprised and a little frustrated, with a smile in the voice. A real person, not an announcer.`
-  2. Pain / setup: `Native Khmer speaker, everyday Phnom Penh talk, like venting to a friend in a voice message: tired and relatable, a bit quicker, a quick beat after each question. Natural and unpolished, not reading.`
+- 4 blocks, same speaker, one mood each. Every style line asks for calm everyday talk, a real person to a friend, not an announcer: no emotion words like "punchy", "overwhelmed" or "deflated" (video 2: they gave a laugh, a sigh and an acted read; the founder wants it natural, 2026-11-02). Long pauses in a take: `scripts	ighten.mjs` (see the skill). Default style lines:
+  1. Hook: `Native Khmer speaker, everyday Phnom Penh talk, calm and natural, like casually giving a seller friend a simple tip: easy, friendly and matter-of-fact, a natural pace. Not dramatic, not acted, no laugh, not an announcer.`
+  2. Pain / setup: `Native Khmer speaker, everyday Phnom Penh talk, calm and natural, like casually telling a friend what happens every day: an easy conversational pace, a quick beat after each question, plain and matter-of-fact at the end. Not dramatic, not acted, not reading.`
   3. Fix: `Native Khmer speaker, everyday Phnom Penh talk, like telling a friend about a trick you just found: relieved and bright, upbeat and sure of it, smiling. Not reading.`
   4. Offer + CTA: `Native Khmer speaker, everyday Phnom Penh talk, warm and friendly like inviting a friend: a little excited, slow down slightly on the offer. Not an announcer.`
 - `<short pause>` after the hook, after the product name reveal, before the CTA.

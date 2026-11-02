@@ -89,6 +89,7 @@ for (const v of plan.voices) {
   if (only && only !== v.n) continue;
   if (fs.existsSync(out) && !redo) { console.log(`${path.basename(out)}  kept (${seconds(out).toFixed(2)}s)`); continue; }
   await speak(voice, v.style || styles[v.n], v.text, out);
+  fs.rmSync(path.join(dir, `_${v.name}_raw.mp3`), { force: true }); // tighten.mjs's copy of the take before
   const len = seconds(out), planned = v.end - v.start;
   const note = len > planned * 1.6 + 1 ? '  ← much longer than planned: check it' : '';
   console.log(`${path.basename(out)}  ${len.toFixed(2)}s (planned ${planned.toFixed(1)}s)${note}`);

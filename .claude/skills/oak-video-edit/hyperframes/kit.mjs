@@ -146,7 +146,8 @@ export const TELEGRAM_ICON = (fill = 'currentColor', size = 62) => `<svg width="
 
 // ---------- the root composition: ground, scenes, voice, music, sounds ----------
 // scenes: [{ id, start, duration, html }]; ground: { from, to, at, why } (a colour flood) or a plain colour;
-// music: { file, mediaStart, points: [{ t, v }] } (a volume envelope); voices: [{ name, file, start }]
+// music: { file, mediaStart, points: [{ t, v }] } (a volume envelope); voices: [{ name, file, start, len }]
+// (every <audio> gets its length: without one the browser preview may not play a voice block)
 export function rootIndex({ END, T, scenes, ground, music, voices, cues, generator }) {
   const lanes = [];
   const sfxTags = [...cues].sort((a, b) => a.start - b.start).map((q, i) => {
@@ -175,7 +176,7 @@ export function rootIndex({ END, T, scenes, ground, music, voices, cues, generat
       <div id="ground"></div>
 ${scenes.map((sc, i) => `      <div id="${sc.id}" data-composition-id="${sc.id}" data-composition-src="compositions/${sc.id}.html" data-start="${r3(sc.start)}" data-duration="${r3(sc.duration)}" data-track-index="${i + 1}" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:${i + 1}"></div>`).join('\n')}
       <div id="grain"></div>
-${voices.map((v, i) => `      <audio id="vo-${v.name}" class="clip" src="assets/audio/${v.file}" data-start="${r3(v.start)}" data-volume="1" data-track-index="${10 + i}"></audio>`).join('\n')}
+${voices.map((v, i) => `      <audio id="vo-${v.name}" class="clip" src="assets/audio/${v.file}" data-start="${r3(v.start)}"${v.len ? ` data-duration="${r3(v.len)}"` : ''} data-volume="1" data-track-index="${10 + i}"></audio>`).join('\n')}
 ${music ? `      <audio id="music" class="clip" src="assets/audio/${music.file}" data-start="0" data-duration="${END}" data-media-start="${r3(music.mediaStart)}" data-volume="1" data-fade-out="1.2" data-automation='${JSON.stringify({ version: 1, lanes: [{ target: 'volume', points: music.points }] })}' data-track-index="20"></audio>` : ''}
 ${sfxTags.join('\n')}
     </div>

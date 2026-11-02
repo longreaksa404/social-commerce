@@ -138,13 +138,17 @@ the kit's `rootIndex` turns that into the root composition.
   mishear "Oak" as "Book" or blur a word: ask a Gemini Flash model about the
   words directly before spending a retake (the newest Flash is often overloaded
   in the evening; an older one answers).
-- Style lines ask for everyday talk (a real person to a friend, not an announcer).
-  "Teasing" or "a smile in the voice" can add a laugh: keep the hook crisp.
-- A `<short pause>` can come out 0.7 s+. A gap that drags can be shortened by
-  cutting near-silence only (keep breaths), raw take kept as `_<name>_raw.mp3`.
-- `timing.mjs` skips breaths (short and quiet) and joins pauses inside a
-  sentence down to the text's phrase count (split at ។ ៖ ? ! and the pause tags),
-  so put ។ where the film changes beat. It warns when the voice has fewer.
+- Style lines ask for calm everyday talk (a real person to a friend, not an
+  announcer). Emotion words make Gemini act: "punchy", "teasing", "overwhelmed",
+  "deflated" gave a laugh, a sigh and a dramatic read the founder didn't like
+  (2026-11-02). The fix line's easy tone is the model.
+- A take with long pauses (Gemini leaves 0.5-1 s): `node scripts	ighten.mjs
+  <mp3> [--no-breaths]` shortens them (sentence breaks stay a little longer),
+  never cuts words, keeps the untouched take as `_<name>_raw.mp3`;
+  `--no-breaths` also cuts a sigh. Then timing.mjs.
+- `timing.mjs` skips breaths and sighs (short, no pitch) and joins pauses inside
+  a sentence down to the text's phrase count (split at ។ ៖ ? ! and the pause
+  tags), so put ។ where the film changes beat. It warns when the voice has fewer.
 
 ## Writing the script
 

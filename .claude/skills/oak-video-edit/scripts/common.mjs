@@ -2,7 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { execFileSync } from 'child_process';
+import { execFileSync, spawnSync } from 'child_process';
 
 export const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 export const VIDEO_ROOT = process.env.OAK_VIDEO_DIR || path.join(process.env.USERPROFILE, 'Documents/Video Marketing/Oak Order');
@@ -34,3 +34,38 @@ export function seconds(file) {
 
 export const videoDir = name => path.join(VIDEO_ROOT, name);
 export const logNo = videoName => videoName.split('_')[0];
+
+// seconds of voiced sound (a pitch between 70 and 400 Hz) in a stretch of an audio file: a word has some, a breath
+// or a sigh has none
+export function voicedSeconds(file, at, len) {
+  const SR = 16000, buf = execFileSync('ffmpeg', ['-v', 'error', '-ss', String(at), '-t', String(len), '-i', file, '-ac', '1', '-ar', String(SR), '-f', 's16le', '-']);
+  const x = new Float32Array(buf.length / 2).map((_, i) => buf.readInt16LE(i * 2) / 32768);
+  const W = 640, H = 160, lo = Math.floor(SR / 400), hi = Math.floor(SR / 70);
+  let n = 0;
+  for (let s = 0; s + W + hi < x.length; s += H) {
+    let best = 0;
+    for (let L = lo; L <= hi; L++) {
+      let num = 0, d1 = 0, d2 = 0;
+      for (let i = 0; i < W; i++) { num += x[s + i] * x[s + i + L]; d1 += x[s + i] ** 2; d2 += x[s + i + L] ** 2; }
+      best = Math.max(best, num / Math.sqrt(d1 * d2 + 1e-12));
+    }
+    if (best > 0.6) n++;
+  }
+  return n * H / SR;
+}
+
+// the stretches of sound in a voice take: between pauses quieter than -30 dB for 0.12 s or more
+export function soundStretches(file) {
+  const log = spawnSync('ffmpeg', ['-v', 'info', '-i', file, '-af', 'silencedetect=noise=-30dB:d=0.12', '-f', 'null', '-'], { encoding: 'utf8' }).stderr;
+  const out = [], len = seconds(file);
+  let start = 0;
+  for (const m of log.matchAll(/silence_(start|end): ([\d.]+)/g)) {
+    if (m[1] === 'start') { if (+m[2] - start > 0.05) out.push([+start.toFixed(2), +(+m[2]).toFixed(2)]); }
+    else start = +m[2];
+  }
+  if (len - start > 0.05) out.push([+start.toFixed(2), +len.toFixed(2)]);
+  return out;
+}
+
+// a breath or a sigh: a short stretch with no pitch in it
+export const isBreath = (file, [a, z]) => z - a < 0.5 && voicedSeconds(file, a, z - a) < 0.05;

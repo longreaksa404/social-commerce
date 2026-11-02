@@ -28,7 +28,7 @@ export async function make(dir) {
 
   // the project itself: HyperFrames' own scaffold the first time (package.json, hyperframes.json, its CLAUDE.md)
   if (!fs.existsSync(path.join(HF, 'hyperframes.json'))) runCli(dir, ['init', 'hf', '--resolution', 'portrait', '--non-interactive', '--skip-skills', '--skip-transcribe']);
-  const voices = plan.voices.map(v => ({ name: v.name, file: `${logNo(plan.video)}_${v.n}_${v.name}.mp3`, start: T.blocks[v.name]?.start ?? 0 }))
+  const voices = plan.voices.map(v => ({ name: v.name, file: `${logNo(plan.video)}_${v.n}_${v.name}.mp3`, start: T.blocks[v.name]?.start ?? 0, len: T.blocks[v.name]?.len }))
     .filter(v => fs.existsSync(path.join(dir, v.file)));
   const index = kit.rootIndex({ ...out, T, voices, generator: 'make.mjs (oak-video-edit skill) from ../film.mjs' });
   fs.mkdirSync(path.join(HF, 'compositions'), { recursive: true });

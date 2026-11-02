@@ -1,35 +1,19 @@
 // Write a video's timing.json, the clock its film runs on: each voice block's start, length and phrases.
 // With the voice MP3s: blocks end to end, 0.25 s apart; phrases are the speech between pauses of 0.12 s or more
-// (breaths, short and quiet, don't count), joined across the shortest pauses down to the text's phrase count.
+// (breaths and sighs, short and without pitch, don't count), joined across the shortest pauses down to the text's phrase count.
 // Without them: an estimate from the shot list's planned VOICE times, each block's text split into phrases at
 // ។ ៖ ? ! and <short pause>/<long pause>, sized by their length (marked "estimated"; kept unless --estimate).
 // Usage: node timing.mjs <video folder> [--estimate]
 import fs from 'fs';
 import path from 'path';
-import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { parseShotList } from '../scripts/shotlist.mjs';
-import { seconds, logNo } from '../scripts/common.mjs';
+import { seconds, logNo, soundStretches, isBreath } from '../scripts/common.mjs';
 
 const VOICE_GAP = 0.25;
 
-function phrases(file) {
-  const log = spawnSync('ffmpeg', ['-v', 'info', '-i', file, '-af', 'silencedetect=noise=-30dB:d=0.12', '-f', 'null', '-'], { encoding: 'utf8' }).stderr;
-  const out = [], len = seconds(file);
-  let start = 0;
-  for (const m of log.matchAll(/silence_(start|end): ([\d.]+)/g)) {
-    if (m[1] === 'start') { if (+m[2] - start > 0.05) out.push([+start.toFixed(2), +(+m[2]).toFixed(2)]); }
-    else start = +m[2];
-  }
-  if (len - start > 0.05) out.push([+start.toFixed(2), +len.toFixed(2)]);
-  // a breath between phrases reads as a short, quiet "phrase" (peak about -24 dB; speech peaks above -10 dB)
-  return out.filter(([a, z]) => z - a >= 0.3 || peak(file, a, z - a) > -18);
-}
-
-function peak(file, at, len) {
-  const log = spawnSync('ffmpeg', ['-v', 'info', '-ss', String(at), '-t', String(len), '-i', file, '-af', 'volumedetect', '-f', 'null', '-'], { encoding: 'utf8' }).stderr;
-  return parseFloat((log.match(/max_volume: ([-\d.]+) dB/) || [])[1] ?? '0');
-}
+// the voice's phrases: its stretches of sound, without the breaths
+const phrases = file => soundStretches(file).filter(p => !isBreath(file, p));
 
 // the planned phrases: the text between ។ ៖ ? ! and the pause tags
 const planned = text => text.split(/<(?:short|long) pause>|[។៖?!]/).map(s => s.replace(/<[^>]+>/g, '').trim()).filter(Boolean);
