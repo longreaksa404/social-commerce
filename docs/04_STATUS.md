@@ -3462,8 +3462,11 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
         "seed data for sell iphone instead ... do on live"; done on the
         live site through the seller API as the shop's owner, no code
         change). The shop zdpb5d is "Oak Phone": a new logo and cover, a
-        Khmer description, $20 off orders from $1,000; 3 categories (new
-        iPhones, used iPhones, AirPods and accessories) and 13 products
+        Khmer description, $20 off orders from $1,000; 4 categories (new
+        iPhones, used iPhones, Apple Watch and iPad, AirPods and
+        accessories) and 30 products (13 first, then 17 more as the
+        founder asked: 11 used iPhones, 2 Apple Watches, a used iPad Air,
+        AirPods Max, a charger and a cable)
         with options by storage and colour, photos from Wikimedia Commons
         (CC0, or credited at the end of the description) in their own
         shapes (phones 4:5 or 3:4, accessories landscape), as the founder
@@ -3493,6 +3496,21 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
            Their photos, the old logo
            and cover, and the first square iPhone photos stay in R2 (the
            app never deletes replaced photos).
+        5. The shop lists the newest products first, so the 17 added last
+           show above the iPhone 18 Pro Max (and shots.py's customer buys
+           the used iPhone 15 Pro). To put them after the first 13, the
+           same SQL Editor: `UPDATE product SET created_at = created_at -
+           interval '1 day' WHERE store_id =
+           '16d3a4b3-d76c-454e-b1f5-1615283c7855' AND created_at >
+           now() - interval '1 day' AND slug IN ('usb-c-charger-30w',
+           'usb-c-cable', 'airpods-max', 'ipad-air-13-m2-used',
+           'apple-watch-series-11', 'apple-watch-ultra-3',
+           'iphone-12-used', 'iphone-12-pro-used',
+           'iphone-12-pro-max-used', 'iphone-13-pro-used',
+           'iphone-13-pro-max-used', 'iphone-14-plus-used',
+           'iphone-14-used', 'iphone-14-pro-used',
+           'iphone-14-pro-max-used', 'iphone-15-used',
+           'iphone-15-pro-used');` (UPDATE 17).
 
 0000000000000000000000000. **Bot page** (pushed and live 2026-10-31,
         `24738db`; In Progress, "Bot page in the admin"). Founder:
