@@ -3485,6 +3485,14 @@ switch and light / dark mode as Phase 9 tasks (03 §3, totals in §4: Phase 9
         3. Orders are open on the shop (the playbook says they stay
            paused outside screenshots), and its delivery fee is still
            $1.51; both left as they were.
+        4. To drop the 17 hidden shoes for good (no orders, links or
+           sales use them; their options go with them): Neon → SQL
+           Editor, `DELETE FROM product WHERE store_id =
+           '16d3a4b3-d76c-454e-b1f5-1615283c7855' AND status = 'inactive'
+           AND created_at < '2026-11-02';` (it should say DELETE 17).
+           Their photos, the old logo
+           and cover, and the first square iPhone photos stay in R2 (the
+           app never deletes replaced photos).
 
 0000000000000000000000000. **Bot page** (pushed and live 2026-10-31,
         `24738db`; In Progress, "Bot page in the admin"). Founder:
