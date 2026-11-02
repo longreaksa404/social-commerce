@@ -1,6 +1,6 @@
 import { useCallback, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
-import { ArrowLeft, CircleCheck, Lock, ShieldCheck, Store } from 'lucide-react'
+import { ArrowLeft, CircleCheck, Store } from 'lucide-react'
 import { PhoneCheck } from '../auth/PhoneCheck.tsx'
 import { SocialButtons } from '../auth/SocialButtons.tsx'
 import { buttonClass } from '../components/styles.ts'
@@ -205,7 +205,7 @@ export function Register() {
               </span>
               <div className="min-w-0 truncate">
                 <p className="truncate font-semibold text-slate-900 tabular-nums text-sm">
-                  {formatPhone(phone.phone ?? '')}
+                  {formatPhone(phone?.phone ?? '')}
                 </p>
                 <p className="truncate text-xs font-medium text-emerald-700">
                   {t.auth.register.verifiedWithTelegram}
