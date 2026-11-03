@@ -2,22 +2,20 @@ import { useMemo } from 'react'
 import { useFeedback } from '../components/feedback.ts'
 import { useT } from '../i18n/useT.ts'
 import { drawKhqr, isIOS } from '../lib/khqrImage.ts'
-import { formatMoney } from '../lib/money.ts'
 import type { ShopOrder, ShopStore } from '../lib/types.ts'
 
-/** The KHQR as the picture customers save (the standard card, pick 24A),
- * drawn the first time it's needed, and saving it: the order page's card
- * and the pay popup. `onSaved` stands in for the "QR code saved" toast,
+/** The KHQR as the picture customers save (the card's look, as on
+ * screen), drawn the first time it's saved: the order page's card and the
+ * pay popup. `onSaved` stands in for the "QR code saved" toast,
  * which the popup would cover. */
 export function useKhqrPicture(shop: ShopStore, order: ShopOrder, code: string, name: string) {
   const { toast } = useFeedback()
   const t = useT()
-  const total = formatMoney(order.payment.amount, order.currency)
   const caption = `${t.shop.orderNumber(order.number)} · ${shop.name}`
   const picture = useMemo(() => {
     let image: ReturnType<typeof drawKhqr> | undefined
-    return () => (image ??= drawKhqr({ code, name, amount: total, caption }))
-  }, [code, name, total, caption])
+    return () => (image ??= drawKhqr({ code, name, amount: order.payment.amount, currency: order.currency, caption }))
+  }, [code, name, order.payment.amount, order.currency, caption])
   const fileName = `order-${order.number}-khqr.png`
 
   async function save(onSaved?: () => void) {

@@ -1,4 +1,6 @@
 import { encode } from 'uqr'
+import { formatAmount } from './money.ts'
+import type { Currency } from './types.ts'
 
 /** On an iPhone or iPad: saving a picture to Photos goes through the
  * share sheet. */
@@ -10,13 +12,26 @@ export function isIOS() {
 const KHQR_RED = '#E1232E'
 const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Khmer", sans-serif'
 
-/** The code as one picture, in the standard KHQR card's look (founder's
- * pick 24A, 2026-10-25): the red header with its corner tab, who is paid,
- * the amount, a dashed line, the QR, and which order it's for, so a saved
- * copy explains itself in the photo gallery. Drawn at twice its size,
- * sharp in a saved photo. No mark in the code's middle: it scanned less
- * reliably (tried 2026-10-25). */
-export function drawKhqr({ code, name, amount, caption }: { code: string; name: string; amount: string; caption: string }) {
+/** The code as one picture, in the on-screen card's look
+ * (components/KhqrCard.tsx, 2026-11-03; first pick 24A, 2026-10-25): the
+ * red band with KHQR in the middle and its corner tab, who is paid and
+ * "2.50 USD" starting where the code starts, a dashed line, the QR, and
+ * which order it's for, so a saved copy explains itself in the photo
+ * gallery. Drawn at twice its size, sharp in a saved photo. No mark in
+ * the code's middle: it scanned less reliably (tried 2026-10-25). */
+export function drawKhqr({
+  code,
+  name,
+  amount,
+  currency,
+  caption,
+}: {
+  code: string
+  name: string
+  amount: string | number
+  currency: Currency
+  caption: string
+}) {
   const qr = encode(code, { ecc: 'M', border: 0 })
   const scale = 2
   const width = 600
@@ -46,23 +61,31 @@ export function drawKhqr({ code, name, amount, caption }: { code: string; name: 
   ctx.fill()
   ctx.fillStyle = '#ffffff'
   ctx.font = `800 44px ${FONT}`
+  ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText('KHQR', pad, header / 2)
+  ctx.fillText('KHQR', width / 2, header / 2)
+  ctx.textAlign = 'left'
 
   ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = '#334155'
   ctx.font = `600 28px ${FONT}`
   ctx.fillText(fit(ctx, name, width - pad * 2), pad, header + 56)
+  // "2.50 USD": the number big, the currency small and grey after it.
+  const figure = formatAmount(amount, currency)
   ctx.fillStyle = '#0f172a'
   ctx.font = `800 52px ${FONT}`
-  ctx.fillText(amount, pad, header + 122)
+  ctx.fillText(figure, pad, header + 122)
+  const after = pad + ctx.measureText(figure).width + 12
+  ctx.fillStyle = '#64748b'
+  ctx.font = `600 26px ${FONT}`
+  ctx.fillText(currency, after, header + 122)
 
   ctx.strokeStyle = '#cbd5e1'
   ctx.lineWidth = 2
   ctx.setLineDash([10, 8])
   ctx.beginPath()
-  ctx.moveTo(pad, header + 150)
-  ctx.lineTo(width - pad, header + 150)
+  ctx.moveTo(0, header + 150)
+  ctx.lineTo(width, header + 150)
   ctx.stroke()
   ctx.setLineDash([])
 

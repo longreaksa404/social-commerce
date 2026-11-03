@@ -1,9 +1,9 @@
 import { CircleCheck, Download, X } from 'lucide-react'
-import { useEffect, useEffectEvent, useId, useMemo, useRef, useState, type RefObject } from 'react'
-import { encode } from 'uqr'
+import { useEffect, useEffectEvent, useRef, useState, type RefObject } from 'react'
+import { KhqrCard } from '../components/KhqrCard.tsx'
 import { useT } from '../i18n/useT.ts'
-import { formatAmount, formatMoney } from '../lib/money.ts'
-import type { Currency, ShopOrder, ShopPayment, ShopStore } from '../lib/types.ts'
+import { formatMoney } from '../lib/money.ts'
+import type { ShopOrder, ShopPayment, ShopStore } from '../lib/types.ts'
 import { useKhqrPicture } from './khqrPicture.ts'
 import { IvePaid } from './PaymentCard.tsx'
 
@@ -12,11 +12,12 @@ type Khqr = NonNullable<ShopPayment['khqr']>
 /**
  * The pay popup (founder's picks 1A 2C 3B 4C 5A 6A, 2026-11-02): a sheet
  * from the bottom (a box from `sm` up) that is the KHQR card itself, the
- * red header on top, then who is paid, the amount and the code; under it
+ * red band on top, then who is paid, the amount and the code; under it
  * "Scan to pay, or Download QR" and "I've paid". The ✕, a swipe down, Esc
  * (Android's back) or a tap outside closes it, and so does "I've paid",
- * after which the order page shows it was told. When it opens:
- * `usePayPopup` in ShopOrder.tsx.
+ * after which the order page shows it was told. It goes the way it came:
+ * the sheet slides down (the box fades), unless a swipe already took it
+ * down (2026-11-03). When it opens: `usePayPopup` in ShopOrder.tsx.
  */
 export function PayNowSheet({
   shop,
@@ -34,17 +35,43 @@ export function PayNowSheet({
   onClose: () => void
 }) {
   const dialog = useRef<HTMLDialogElement>(null)
-  const titleId = useId()
+  // Its content stays while it slides away.
+  const [shown, setShown] = useState(open)
+  if (open && !shown) setShown(true)
+  const p = useT().order.pay
 
   useEffect(() => {
     const el = dialog.current
     if (!el) return
-    if (open && !el.open) {
-      // Back in place if a swipe sent it down last time.
-      el.style.transform = ''
-      el.style.transition = ''
-      el.showModal()
-    } else if (!open && el.open) el.close()
+    if (open) {
+      delete el.dataset.closing
+      if (!el.open) {
+        // Back in place if a swipe sent it down last time.
+        el.style.transform = ''
+        el.style.transition = ''
+        el.showModal()
+      }
+      return
+    }
+    if (!el.open) return
+    const done = () => {
+      el.close()
+      delete el.dataset.closing
+      setShown(false)
+    }
+    // Swiped away: it's already down.
+    if (el.style.transform) return done()
+    el.dataset.closing = ''
+    const ended = (e: AnimationEvent) => {
+      if (e.target === el && !e.pseudoElement) done()
+    }
+    el.addEventListener('animationend', ended)
+    // In case the animation never runs (a hidden tab).
+    const timer = setTimeout(done, 500)
+    return () => {
+      clearTimeout(timer)
+      el.removeEventListener('animationend', ended)
+    }
   }, [open])
   useSwipeDown(dialog, onClose)
 
@@ -56,10 +83,10 @@ export function PayNowSheet({
         onClose()
       }}
       onClick={(e) => e.target === dialog.current && onClose()}
-      aria-labelledby={titleId}
-      className="m-0 mt-auto w-full max-w-none overscroll-contain rounded-t-3xl bg-surface p-0 shadow-xl open:animate-sheet-up sm:m-auto sm:max-w-sm sm:rounded-3xl sm:open:animate-zoom-in"
+      aria-label={p.payTitle(formatMoney(order.payment.amount, order.currency))}
+      className="m-0 mt-auto w-full max-w-none overscroll-contain rounded-t-3xl bg-surface p-0 shadow-xl open:animate-sheet-up data-closing:animate-sheet-down data-closing:backdrop:animate-fade-out sm:m-auto sm:max-w-sm sm:rounded-3xl sm:open:animate-zoom-in sm:data-closing:animate-zoom-out"
     >
-      {open && <PayNow shop={shop} order={order} khqr={khqr} phone={phone} titleId={titleId} onClose={onClose} />}
+      {shown && <PayNow shop={shop} order={order} khqr={khqr} phone={phone} onClose={onClose} />}
     </dialog>
   )
 }
@@ -69,14 +96,12 @@ function PayNow({
   order,
   khqr,
   phone,
-  titleId,
   onClose,
 }: {
   shop: ShopStore
   order: ShopOrder
   khqr: Khqr
   phone: string
-  titleId: string
   onClose: () => void
 }) {
   const t = useT()
@@ -86,51 +111,32 @@ function PayNow({
   const [saved, setSaved] = useState(false)
   return (
     <>
-      {/* The card keeps its own colours in dark mode, like the saved
-          picture (lib/khqrImage.ts): bank apps scan black on white. Laid
-          out like the founder's ABA PayWay picture (2026-11-03). */}
-      <div className="bg-white text-[#0f172a]">
-        <div className="relative flex h-14 items-center justify-center bg-[#E1232E] pt-1.5 text-white">
-          {/* Swipe down to close (phones). */}
-          <span aria-hidden className="absolute top-2 left-1/2 h-1 w-10 -translate-x-1/2 rounded-full bg-white/80 sm:hidden" />
-          <h2 id={titleId} className="text-xl font-extrabold tracking-wide">
-            <span aria-hidden>KHQR</span>
-            <span className="sr-only">{p.payTitle(total)}</span>
-          </h2>
-          {/* Phones close it with a swipe or a tap outside, as in the
-              picture; the box on a laptop has no grab bar, so a ✕. */}
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={t.common.close}
-            className="absolute top-1.5 right-1.5 hidden size-11 place-items-center rounded-full hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white sm:grid"
-          >
-            <X aria-hidden className="size-5" />
-          </button>
-          {/* The header's corner tab, under its right end. */}
-          <span
-            aria-hidden
-            className="absolute top-full right-0 size-0 border-t-[14px] border-l-[28px] border-t-[#E1232E] border-l-transparent"
-          />
-        </div>
-        <div className="px-6 pt-4 pb-3">
-          <p className="truncate text-xs font-semibold tracking-wide text-[#334155]">{khqr.merchant_name}</p>
-          <p className="mt-0.5 flex items-baseline gap-1.5">
-            <span className="text-[1.75rem] leading-tight font-extrabold tabular-nums">
-              {formatAmount(order.payment.amount, order.currency)}
-            </span>
-            <span className="text-sm font-semibold text-[#64748b]">{order.currency}</span>
-          </p>
-        </div>
-        <div aria-hidden className="border-t-[1.5px] border-dashed border-[#cbd5e1]" />
-        {/* About four modules of white around the code, as scanners want. */}
-        <QrCode
-          code={khqr.code}
-          currency={order.currency}
-          label={p.khqrAlt(total, khqr.merchant_name)}
-          className="mx-auto my-6 block w-[min(60vw,14rem,32dvh)] sm:w-60"
-        />
-      </div>
+      {/* The words start where the code starts (founder, 2026-11-03). */}
+      <KhqrCard
+        code={khqr.code}
+        name={khqr.merchant_name}
+        amount={order.payment.amount}
+        currency={order.currency}
+        label={p.khqrAlt(total, khqr.merchant_name)}
+        column="w-[min(60vw,14rem,32dvh)] sm:w-60"
+        bandClassName="h-14 pt-1.5"
+        band={
+          <>
+            {/* Swipe down to close (phones). */}
+            <span aria-hidden className="absolute top-2 left-1/2 h-1 w-10 -translate-x-1/2 rounded-full bg-white/80 sm:hidden" />
+            {/* Phones close it with a swipe or a tap outside, as in the
+                picture; the box on a laptop has no grab bar, so a ✕. */}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t.common.close}
+              className="absolute top-1.5 right-1.5 hidden size-11 place-items-center rounded-full hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white sm:grid"
+            >
+              <X aria-hidden className="size-5" />
+            </button>
+          </>
+        }
+      />
       <div className="px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] text-center sm:pb-5">
         <p className="text-sm font-bold text-slate-900">{p.scanToPay}</p>
         <p className="text-xs text-slate-500">{p.or}</p>
@@ -151,70 +157,6 @@ function PayNow({
         <IvePaid shop={shop} order={order} phone={phone} toldAt={null} onTold={onClose} />
       </div>
     </>
-  )
-}
-
-/** The code as SVG, sharp at any size: black on the card's white, each
- * row's dark runs as one shape, and the currency's mark in the middle as
- * on a bank's KHQR. The saved picture has no mark (it scanned less
- * reliably at error correction M, 2026-10-25); here Q (a quarter of the
- * code can be lost) easily covers the mark, about 3% of it. */
-function QrCode({
-  code,
-  currency,
-  label,
-  className,
-}: {
-  code: string
-  currency: Currency
-  label: string
-  className: string
-}) {
-  const qr = useMemo(() => {
-    const { size, data } = encode(code, { ecc: 'Q', border: 0 })
-    let path = ''
-    data.forEach((row, y) => {
-      let x = 0
-      while (x < size) {
-        if (!row[x]) {
-          x++
-          continue
-        }
-        const from = x
-        while (x < size && row[x]) x++
-        path += `M${from} ${y}h${x - from}v1H${from}z`
-      }
-    })
-    return { size, path }
-  }, [code])
-  const middle = qr.size / 2
-  const mark = qr.size * 0.08 // the black circle's radius
-  return (
-    <svg
-      role="img"
-      aria-label={label}
-      viewBox={`0 0 ${qr.size} ${qr.size}`}
-      shapeRendering="crispEdges"
-      className={className}
-    >
-      <path d={qr.path} fill="#000" />
-      <g shapeRendering="auto">
-        <circle cx={middle} cy={middle} r={mark * 1.3} fill="#fff" />
-        <circle cx={middle} cy={middle} r={mark} fill="#000" />
-        <text
-          x={middle}
-          y={middle}
-          fill="#fff"
-          fontSize={mark * 1.25}
-          fontWeight={700}
-          fontFamily="Inter, 'Noto Sans Khmer', sans-serif"
-          textAnchor="middle"
-          dominantBaseline="central"
-        >
-          {currency === 'KHR' ? '៛' : '$'}
-        </text>
-      </g>
-    </svg>
   )
 }
 

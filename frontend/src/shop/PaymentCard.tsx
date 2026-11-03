@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, CircleCheck, Copy, Download, Send, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useFeedback } from '../components/feedback.ts'
+import { KhqrCard } from '../components/KhqrCard.tsx'
 import { buttonClass } from '../components/styles.ts'
 import { Button, Card, IconButton } from '../components/ui.tsx'
 import { api } from '../lib/api.ts'
@@ -197,7 +198,7 @@ function KhqrPayment({ shop, order, code, name }: { shop: ShopStore; order: Shop
   const t = useT()
   const p = t.order.pay
   const total = formatMoney(order.payment.amount, order.currency)
-  const { picture, save } = useKhqrPicture(shop, order, code, name)
+  const { save } = useKhqrPicture(shop, order, code, name)
 
   // On a phone the customer can't scan their own screen: saving the QR
   // (then picking it in the bank app) is the first step, so it's the main
@@ -205,10 +206,13 @@ function KhqrPayment({ shop, order, code, name }: { shop: ShopStore; order: Shop
   // their phone: a big code, and saving is the smaller button.
   return (
     <div className="mt-3">
-      <img
-        src={picture().url}
-        alt={p.khqrAlt(total, name)}
-        className="mx-auto w-full max-w-64 rounded-xl border border-slate-200 shadow-sm lg:max-w-80"
+      <KhqrCard
+        code={code}
+        name={name}
+        amount={order.payment.amount}
+        currency={order.currency}
+        label={p.khqrAlt(total, name)}
+        className="mx-auto w-full max-w-64 overflow-hidden rounded-2xl border border-slate-200 shadow-sm lg:max-w-80"
       />
       <div className="mt-4 lg:hidden">
         <Button icon={Download} onClick={() => save()} size="lg" className="w-full">

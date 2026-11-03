@@ -104,6 +104,11 @@
   --animate-pop-in: pop-in 0.4s cubic-bezier(0.3, 1.5, 0.6, 1) backwards;
   --animate-sheet-up: sheet-up 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
   --animate-zoom-in: zoom-in 0.2s ease-out;
+  /* Closing the pay popup the way it came (`forwards`: it stays gone
+     until the dialog is closed). */
+  --animate-sheet-down: sheet-down 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
+  --animate-zoom-out: zoom-out 0.2s ease-in forwards;
+  --animate-fade-out: fade-out 0.25s ease-in forwards;
   --animate-toast: toast 3s ease backwards;
   --animate-shimmer: shimmer 1.6s linear infinite;
   --animate-wiggle: wiggle 0.8s ease-in-out;
@@ -152,6 +157,22 @@
   from {
     opacity: 0;
     scale: 0.96;
+  }
+}
+@keyframes sheet-down {
+  to {
+    translate: 0 100%;
+  }
+}
+@keyframes zoom-out {
+  to {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
   }
 }
 /* A toast's whole life: slides in, stays, fades out as it's removed. Its

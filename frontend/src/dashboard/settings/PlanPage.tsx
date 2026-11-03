@@ -1,8 +1,9 @@
 import { Check, ChevronDown, CircleCheck, Copy, Download, Send } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../../auth/useAuth.ts'
 import { useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
+import { KhqrCard } from '../../components/KhqrCard.tsx'
 import { Button, Card, ErrorMessage, ErrorState, IconButton, Section, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { drawKhqr, isIOS } from '../../lib/khqrImage.ts'
@@ -217,7 +218,9 @@ function Pay({ plan, store }: { plan: Plan; store: Store }) {
         <IconButton label={t.common.copied} icon={Copy} onClick={() => copy(plan.code)} />
       </div>
       <p className="-mt-2 text-xs leading-5 text-slate-500">{p.codeHint}</p>
-      {khqr && <OakKhqr khqr={khqr} name={plan.pay_to.khqr_name ?? 'Oak Order'} amount={price} code={plan.code} />}
+      {khqr && (
+        <OakKhqr khqr={khqr} name={plan.pay_to.khqr_name ?? 'Oak Order'} amount={plan.prices[period]} code={plan.code} />
+      )}
       {bank && (
         <div className="text-sm">
           <p className="mb-1.5 font-medium text-slate-700">{khqr ? p.orTransfer : p.transferTo}</p>
@@ -289,10 +292,9 @@ function Pay({ plan, store }: { plan: Plan; store: Store }) {
  * to photos on a phone (bank apps pick it from there), scanned on a laptop. */
 function OakKhqr({ khqr, name, amount, code }: { khqr: string; name: string; amount: string; code: string }) {
   const p = useT().settings.plan
-  const caption = p.khqrCaption(code)
-  const image = useMemo(() => drawKhqr({ code: khqr, name, amount, caption }), [khqr, name, amount, caption])
 
   async function save() {
+    const image = drawKhqr({ code: khqr, name, amount, currency: 'USD', caption: p.khqrCaption(code) })
     const fileName = `oak-order-${code}.png`
     const blob = await new Promise<Blob | null>((resolve) => image.canvas.toBlob(resolve, 'image/png'))
     const file = blob && new File([blob], fileName, { type: 'image/png' })
@@ -312,7 +314,14 @@ function OakKhqr({ khqr, name, amount, code }: { khqr: string; name: string; amo
 
   return (
     <div>
-      <img src={image.url} alt={`KHQR ${amount} ${name}`} className="mx-auto w-full max-w-60 rounded-xl border border-slate-200 shadow-sm" />
+      <KhqrCard
+        code={khqr}
+        name={name}
+        amount={amount}
+        currency="USD"
+        label={`KHQR ${usd(amount)} ${name}`}
+        className="mx-auto w-full max-w-60 overflow-hidden rounded-2xl border border-slate-200 shadow-sm"
+      />
       <p className="mt-2 text-center text-xs text-slate-500">{p.scanToPay}</p>
       <Button icon={Download} onClick={save} className="mt-2 w-full">
         {p.saveQr}
