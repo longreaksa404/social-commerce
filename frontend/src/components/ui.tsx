@@ -1,4 +1,4 @@
-import { AlertCircle, ChevronLeft, CircleCheck, Ellipsis, Eye, EyeOff, LoaderCircle, RotateCw } from 'lucide-react'
+import { AlertCircle, ChevronDown, ChevronLeft, CircleCheck, Ellipsis, Eye, EyeOff, LoaderCircle, RotateCw } from 'lucide-react'
 import {
   Children,
   createContext,
@@ -236,14 +236,23 @@ export function TextArea({ className = '', ...props }: TextareaHTMLAttributes<HT
   )
 }
 
+/** A dropdown with our own arrow: iPhone Safari draws its native one at its
+ * own small height whatever the padding (28px beside a 44px button), so
+ * `appearance-none` makes it as tall as the inputs and buttons. */
 export function Select({ className = '', ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   const { field } = useFieldProps()
   return (
-    <select
-      {...field}
-      {...props}
-      className={controlClass(`pr-9 ${className}`)}
-    />
+    <div className="relative">
+      <select
+        {...field}
+        {...props}
+        className={controlClass(`appearance-none pr-10 ${className}`)}
+      />
+      <ChevronDown
+        aria-hidden
+        className="pointer-events-none absolute top-1/2 right-3 size-4.5 -translate-y-1/2 text-slate-500"
+      />
+    </div>
   )
 }
 

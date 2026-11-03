@@ -1460,7 +1460,9 @@ is wrapped in try/catch (private mode).
 ### Shared components and helpers
 
 - `components/ui.tsx`: `Field`, `Input`, `MoneyInput`, `PasswordInput`,
-  `TextArea`, `Select`, `Switch`, `Button`, `IconButton`, `Card`,
+  `TextArea`, `Select` (`appearance-none` with our own chevron: iPhone
+  Safari draws a native select at its own short height, ignoring the
+  padding), `Switch`, `Button`, `IconButton`, `Card`,
   `Section`, `PageHeader` (with back link; an optional `subtitle` line
   under the title), `MenuButton` (a ⋯ button with a small menu: closes on a
   choice, a tap outside or Escape, arrow keys between items; red words for
