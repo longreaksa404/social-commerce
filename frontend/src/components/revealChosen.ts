@@ -1,5 +1,3 @@
-import { reducedMotion } from './effects.ts'
-
 /** A row that scrolls sideways (the shop's category chips, the Orders
  * tabs): scrolls it so the chosen item shows with the one before it in
  * full, so the row reads as scrolled rather than cut off at the screen's
@@ -16,18 +14,4 @@ export function revealChosen(row: HTMLElement | null, chosen: HTMLElement | null
   const end = leftOf(item) + item.getBoundingClientRect().width + gutter
   if (end > target + row.clientWidth) target = end - row.clientWidth
   row.scrollLeft = Math.max(0, target)
-}
-
-/** The same kind of row, scrolled so the chosen item sits in its middle
- * (as far as the row's ends allow), gliding there when `glide`: the
- * seller's Products chips, like Taobao's (founder, 2026-11-03). Never
- * glides with the phone's reduce-motion setting on. */
-export function centreChosen(row: HTMLElement | null, chosen: HTMLElement | null, glide: boolean) {
-  if (!row || !chosen) return
-  const item = chosen.closest('li') ?? chosen
-  const box = row.getBoundingClientRect()
-  const at = item.getBoundingClientRect()
-  const left = row.scrollLeft + at.left - box.left + at.width / 2 - row.clientWidth / 2
-  const still = !glide || reducedMotion()
-  row.scrollTo({ left: Math.max(0, left), behavior: still ? 'instant' : 'smooth' })
 }

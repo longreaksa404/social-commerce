@@ -1,9 +1,9 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, EyeOff, LayoutGrid, List, Package, Plus, SearchX, Tags } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Badge, Card, DotList, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
-import { centreChosen } from '../../components/revealChosen.ts'
+import { ChipRow, chipClass, type ChipItem } from '../../components/ChipRow.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { thumbnailUrl } from '../../lib/images.ts'
 import { deal, useColumnCount } from '../../components/columns.ts'
@@ -184,15 +184,10 @@ type Chip = 'all' | 'hidden' | Category
 
 /** All, Hidden (only while something is), then each category with its
  * count, as one row of chips that scrolls sideways on phones like the
- * shop's (founder's pick 1B, 2026-11-03). `chosen` null: a category link
+ * shop's (founder's pick 1B, 2026-11-03); the row glides and the navy
+ * slides to the chip tapped (ChipRow). `chosen` null: a category link
  * while the categories load. Phones end with Categories, which their tab
- * bar has no room for; laptops have it in the sidebar.
- *
- * Tapping a chip glides the row until it's in the middle, and the navy
- * slides over to it (founder, 2026-11-03). The navy is a copy of the
- * chips, all navy with white words, seen through a pill-shaped window
- * over the chosen one: as the window slides, a chip it passes shows
- * white on navy too, never dark words on navy. */
+ * bar has no room for; laptops have it in the sidebar. */
 function FilterChips({
   products,
   categories,
@@ -205,20 +200,14 @@ function FilterChips({
   onChoose: (chip: Chip) => void
 }) {
   const p = useT().products
-  const row = useRef<HTMLDivElement>(null)
-  const band = useRef<HTMLDivElement>(null)
-  const navy = useRef<HTMLDivElement>(null)
-  // The chip the window was last opened over (null: none yet, or none chosen).
-  const placed = useRef<string | null>(null)
   const key = chosen === null || typeof chosen === 'string' ? chosen : chosen.id
   const hidden = products.filter((product) => product.status === 'inactive').length
-  const chips: { id: string; value: Chip; label: ReactNode; count: number }[] = [
-    { id: 'all', value: 'all', label: p.all, count: products.length },
+  const chips: ChipItem[] = [
+    { id: 'all', label: p.all, count: products.length, onChoose: () => onChoose('all') },
     ...(hidden > 0 || key === 'hidden'
       ? [
           {
             id: 'hidden',
-            value: 'hidden' as const,
             label: (
               <>
                 <EyeOff aria-hidden className="size-4" />
@@ -226,112 +215,35 @@ function FilterChips({
               </>
             ),
             count: hidden,
+            onChoose: () => onChoose('hidden'),
           },
         ]
       : []),
     ...categories.map((category) => ({
       id: category.id,
-      value: category,
       label: category.name,
       count: products.filter((product) => product.category_id === category.id).length,
+      onChoose: () => onChoose(category),
     })),
   ]
-
-  // The chosen chip in the middle of the row: there at once when the page
-  // opens (a category link, or back from a product), gliding there when
-  // another chip is tapped.
-  useLayoutEffect(() => {
-    centreChosen(row.current, row.current?.querySelector<HTMLElement>('[aria-pressed="true"]') ?? null, placed.current !== null)
-  }, [key])
-
-  // The window follows the chosen chip after every render (counts and the
-  // language change the chips' widths), sliding only when the choice did…
-  useLayoutEffect(() => {
-    if (!band.current || !navy.current) return
-    openWindow(band.current, navy.current, placed.current !== null && placed.current !== key)
-    placed.current = key
-  })
-  // …and as the fonts load, or a laptop's window narrows and they wrap.
-  const chipIds = chips.map((c) => c.id).join()
-  useEffect(() => {
-    const box = band.current
-    const copy = navy.current
-    const list = box?.firstElementChild
-    if (!box || !copy || !list) return
-    const watch = new ResizeObserver(() => openWindow(box, copy, false))
-    for (const item of [box, ...list.children]) watch.observe(item)
-    return () => watch.disconnect()
-  }, [chipIds])
-
-  const CHIP =
-    'flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium whitespace-nowrap'
-  const white = `${CHIP} border-slate-300 bg-surface text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100`
   return (
-    <div
-      ref={row}
-      role="group"
-      aria-label={p.filterCategory}
+    <ChipRow
+      label={p.filterCategory}
+      chips={chips}
+      chosen={key}
+      wrap
       // Only All on a laptop (no categories, nothing hidden): nothing to choose.
-      className={`-mx-4 mb-4 overflow-x-auto [scrollbar-width:none] max-lg:fade-x lg:mx-0 ${
-        categories.length === 0 && hidden === 0 ? 'lg:hidden' : ''
-      }`}
-    >
-      <div ref={band} className="relative w-max lg:w-auto">
-        <ul className="flex gap-2 px-4 lg:flex-wrap lg:px-0">
-          {chips.map(({ id, value, label, count }) => (
-            <li key={id}>
-              <button type="button" aria-pressed={key === id} onClick={() => onChoose(value)} className={white}>
-                {label}
-                <span className="font-normal text-slate-500 tabular-nums">{count}</span>
-              </button>
-            </li>
-          ))}
-          <li className="lg:hidden">
-            <Link to="/dashboard/categories" className={`${white} border-dashed`}>
-              <Tags aria-hidden className="size-4" />
-              {categories.length > 0 ? p.editCategories : p.addCategories}
-            </Link>
-          </li>
-        </ul>
-        {/* The navy copy, laid out exactly as the chips above (the same
-            row, gaps and wrapping; Categories at the end changes no
-            chip's place, so it's left out). Navy between the chips too,
-            so the window is one pill as it crosses a gap. Shut until
-            placed. */}
-        <div
-          ref={navy}
-          aria-hidden
-          className={`pointer-events-none absolute inset-0 flex gap-2 bg-accent px-4 transition-[clip-path] [clip-path:inset(50%)] lg:flex-wrap lg:px-0 ${GLIDE}`}
-        >
-          {chips.map(({ id, label, count }) => (
-            <span key={id} className={`${CHIP} border-accent bg-accent text-on-accent`}>
-              {label}
-              <span className="font-normal tabular-nums opacity-75">{count}</span>
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
+      className={`-mx-4 mb-4 max-lg:fade-x lg:mx-0 ${categories.length === 0 && hidden === 0 ? 'lg:hidden' : ''}`}
+      end={
+        <li className="lg:hidden">
+          <Link to="/dashboard/categories" className={`${chipClass} border-dashed`}>
+            <Tags aria-hidden className="size-4" />
+            {categories.length > 0 ? p.editCategories : p.addCategories}
+          </Link>
+        </li>
+      }
+    />
   )
-}
-
-// The window's slide.
-const GLIDE = 'duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]'
-
-/** Opens the navy copy's window over the chosen chip (a pill the chip's
- * size), sliding there or not; shut while no chip is chosen. Left alone
- * when it's already there, so a slide that's playing isn't cut short. */
-function openWindow(band: HTMLElement, navy: HTMLElement, slide: boolean) {
-  const chosen = band.querySelector<HTMLElement>('[aria-pressed="true"]')
-  navy.hidden = !chosen
-  if (!chosen) return
-  const box = band.getBoundingClientRect()
-  const at = chosen.getBoundingClientRect()
-  const clip = `inset(${at.top - box.top}px ${box.right - at.right}px ${box.bottom - at.bottom}px ${at.left - box.left}px round 9999px)`
-  if (navy.dataset.clip === clip) return
-  navy.dataset.clip = clip
-  navy.style.transitionDuration = slide ? '' : '0s'
-  navy.style.clipPath = clip
 }
 
 /** Few left: amber with the number; none: red; hidden: grey (with its
