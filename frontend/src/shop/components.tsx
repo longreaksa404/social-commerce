@@ -105,7 +105,8 @@ export function ProductImage({
 
 /** "All" plus each category, as a row of chips that scrolls sideways
  * (ChipRow, as the seller's Products: the row glides the tapped chip to
- * its middle and the navy slides over to it; founder, 2026-11-04).
+ * its middle and the navy slides over to it, and the products turn like
+ * a page, TurningPage; founder, 2026-11-04).
  * Hidden when the shop has no categories. All and a category are
  * separate pages, so the row is a new one after the tap: `carry` starts
  * it where the last one stood. */
@@ -118,6 +119,7 @@ export function CategoryChips({ shop }: { shop: ShopStore }) {
       label={t.shop.categories}
       navigation
       carry={`shop/${shop.slug}`}
+      turn={`shop/${shop.slug}`}
       chosen={categorySlug}
       chips={[
         { id: '', label: t.shop.all, to: `/shop/${shop.slug}` },

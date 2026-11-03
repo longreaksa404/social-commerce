@@ -1,5 +1,6 @@
 import { PackageOpen } from 'lucide-react'
 import { Link, useParams } from 'react-router'
+import { TurningPage } from '../components/TurningPage.tsx'
 import { EmptyState, ErrorState } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
 import { useT } from '../i18n/useT.ts'
@@ -52,13 +53,16 @@ export function ShopCategory() {
       <title>{`${category.name} · ${shop.data.name}`}</title>
       {/* The same top as All: the chosen tab says which category this is. */}
       <ShopIntro shop={shop.data} />
-      {products.length === 0 ? (
-        <EmptyState icon={PackageOpen} title={t.shop.category.emptyTitle} action={allProducts}>
-          {t.shop.category.emptyText}
-        </EmptyState>
-      ) : (
-        <ProductGrid shop={shop.data} products={products} category={category.slug} />
-      )}
+      {/* A category tapped turns the page (CategoryChips); to main's edges. */}
+      <TurningPage turn={`shop/${shop.data.slug}`} page={category.slug} className="-mx-4 px-4">
+        {products.length === 0 ? (
+          <EmptyState icon={PackageOpen} title={t.shop.category.emptyTitle} action={allProducts}>
+            {t.shop.category.emptyText}
+          </EmptyState>
+        ) : (
+          <ProductGrid shop={shop.data} products={products} category={category.slug} />
+        )}
+      </TurningPage>
     </>
   )
 }

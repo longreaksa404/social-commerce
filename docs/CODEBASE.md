@@ -1513,6 +1513,15 @@ is wrapped in try/catch (private mode).
   line under it slides. With the `fade-x` utility (`index.css`) these
   rows fade at both ends (UI check #12); centring the chosen item
   replaced `revealChosen` (it showed the one before it in full).
+- `components/TurningPage.tsx` and `components/pageTurn.ts`: a category
+  tapped turns the products like a page (founder's pick, 2026-11-04):
+  the ChipRow named by `turn` keeps a copy of the products as a chip is
+  tapped (`keepPage`, with the direction from the chips' order), and the
+  TurningPage showing them (the same one, or the next page's in the
+  shop) slides the copy out and its products in, a page's width and
+  32px apart, clipped to the page's edges only while it turns. The copy
+  has `data-leaving` (`index.css`: no animations of its own); the new
+  products' own entrance animations are finished at once.
 - `components/effects.ts` (confetti, vibration, `reducedMotion()`),
   `components/useBump.ts` (re-run an animation when a value changes),
   `shop/fly.ts` (photo flies into the cart).
@@ -1543,7 +1552,8 @@ is wrapped in try/catch (private mode).
   `CategoryChips`, `ShopLogo`, `NotFound`, `QuantityStepper`. The shop's
   cards rise in (40 ms apart, in product order) only the first time a
   list (shop + category) shows since the page loaded (`shownLists`,
-  `useRising`); opened again, it comes from the cache and is just there.
+  `useRising`); opened again, it comes from the cache and is just there;
+  a category tapped turns the page instead (TurningPage).
 - `components/columns.ts`: **photo walls are not CSS columns** (the
   shop's grid and its skeleton, the seller's Photos view). iPhone Safari
   draws a card that animates (fading in, or shrinking under a finger) in

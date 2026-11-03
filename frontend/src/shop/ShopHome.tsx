@@ -1,6 +1,7 @@
 import { PackageOpen } from 'lucide-react'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router'
+import { TurningPage } from '../components/TurningPage.tsx'
 import { EmptyState, ErrorState, Skeleton } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
 import { CategoryChips, ProductGrid, ProductGridSkeleton, ShopLogo } from './components.tsx'
@@ -25,17 +26,20 @@ export function ShopHome() {
     <>
       <title>{shop.data.name}</title>
       <ShopIntro shop={shop.data} />
-      {products.error ? (
-        <ErrorState error={products.error} onRetry={() => products.refetch()} />
-      ) : !products.data ? (
-        <ProductGridSkeleton />
-      ) : products.data.length === 0 ? (
-        <EmptyState icon={PackageOpen} title={t.shop.home.emptyTitle}>
-          {t.shop.home.emptyText}
-        </EmptyState>
-      ) : (
-        <ProductGrid shop={shop.data} products={products.data} />
-      )}
+      {/* A category tapped turns the page (CategoryChips); to main's edges. */}
+      <TurningPage turn={`shop/${shop.data.slug}`} page="" className="-mx-4 px-4">
+        {products.error ? (
+          <ErrorState error={products.error} onRetry={() => products.refetch()} />
+        ) : !products.data ? (
+          <ProductGridSkeleton />
+        ) : products.data.length === 0 ? (
+          <EmptyState icon={PackageOpen} title={t.shop.home.emptyTitle}>
+            {t.shop.home.emptyText}
+          </EmptyState>
+        ) : (
+          <ProductGrid shop={shop.data} products={products.data} />
+        )}
+      </TurningPage>
     </>
   )
 }

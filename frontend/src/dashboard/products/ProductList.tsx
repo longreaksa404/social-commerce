@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router'
 import { Badge, Card, DotList, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
 import { ChipRow, chipClass, type ChipItem } from '../../components/ChipRow.tsx'
+import { TurningPage } from '../../components/TurningPage.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { thumbnailUrl } from '../../lib/images.ts'
 import { deal, useColumnCount } from '../../components/columns.ts'
@@ -107,36 +108,39 @@ export function ProductList() {
         onChoose={choose}
       />
 
-      {shown.length === 0 ? (
-        <EmptyState
-          icon={SearchX}
-          title={p.noneHereTitle}
-          action={
-            <button type="button" className={buttonClass('secondary')} onClick={() => setParams({}, { replace: true })}>
-              {p.showAll}
-            </button>
-          }
-        >
-          {p.noneHereText}
-        </EmptyState>
-      ) : view === 'grid' ? (
-        <ProductGrid products={shown} currency={currency} />
-      ) : (
-        <>
-          <Card className="divide-y divide-slate-100 overflow-hidden lg:hidden">
-            {shown.map((product, i) => (
-              <ProductRow
-                key={product.id}
-                product={product}
-                eager={i < EAGER_PHOTOS}
-                currency={currency}
-                category={product.category_id ? categoryName.get(product.category_id) : undefined}
-              />
-            ))}
-          </Card>
-          <ProductTable products={shown} currency={currency} categoryName={categoryName} />
-        </>
-      )}
+      {/* To the page's edges (main's padding on phones and laptops). */}
+      <TurningPage turn="products" page={hiddenOnly ? 'hidden' : categoryId || 'all'} className="-mx-4 px-4 lg:-mx-8 lg:px-8">
+        {shown.length === 0 ? (
+          <EmptyState
+            icon={SearchX}
+            title={p.noneHereTitle}
+            action={
+              <button type="button" className={buttonClass('secondary')} onClick={() => setParams({}, { replace: true })}>
+                {p.showAll}
+              </button>
+            }
+          >
+            {p.noneHereText}
+          </EmptyState>
+        ) : view === 'grid' ? (
+          <ProductGrid products={shown} currency={currency} />
+        ) : (
+          <>
+            <Card className="divide-y divide-slate-100 overflow-hidden lg:hidden">
+              {shown.map((product, i) => (
+                <ProductRow
+                  key={product.id}
+                  product={product}
+                  eager={i < EAGER_PHOTOS}
+                  currency={currency}
+                  category={product.category_id ? categoryName.get(product.category_id) : undefined}
+                />
+              ))}
+            </Card>
+            <ProductTable products={shown} currency={currency} categoryName={categoryName} />
+          </>
+        )}
+      </TurningPage>
     </>
   )
 }
@@ -185,7 +189,8 @@ type Chip = 'all' | 'hidden' | Category
 /** All, Hidden (only while something is), then each category with its
  * count, as one row of chips that scrolls sideways on phones like the
  * shop's (founder's pick 1B, 2026-11-03); the row glides and the navy
- * slides to the chip tapped (ChipRow). `chosen` null: a category link
+ * slides to the chip tapped (ChipRow), and the products turn like a page
+ * (TurningPage). `chosen` null: a category link
  * while the categories load. Phones end with Categories, which their tab
  * bar has no room for; laptops have it in the sidebar. */
 function FilterChips({
@@ -232,6 +237,7 @@ function FilterChips({
       chips={chips}
       chosen={key}
       wrap
+      turn="products"
       // Only All on a laptop (no categories, nothing hidden): nothing to choose.
       className={`-mx-4 mb-4 max-lg:fade-x lg:mx-0 ${categories.length === 0 && hidden === 0 ? 'lg:hidden' : ''}`}
       end={

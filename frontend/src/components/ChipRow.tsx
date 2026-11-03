@@ -1,6 +1,7 @@
 import { useRef, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { carryRow, useChosenMarker, type Place } from './chosenMarker.ts'
+import { keepPage } from './pageTurn.ts'
 
 export type ChipItem = {
   id: string
@@ -36,6 +37,7 @@ export function ChipRow({
   wrap = false,
   end,
   carry,
+  turn,
   className = '',
 }: {
   label: string
@@ -46,6 +48,8 @@ export function ChipRow({
   wrap?: boolean
   end?: ReactNode
   carry?: string
+  /** The TurningPage of this row's products, which turns when a chip is tapped. */
+  turn?: string
   className?: string
 }) {
   const row = useRef<HTMLDivElement>(null)
@@ -53,8 +57,15 @@ export function ChipRow({
   const navy = useRef<HTMLDivElement>(null)
   useChosenMarker({ chosen, row, box: band, marker: navy, place: windowOver, items: chips.map((c) => c.id).join(), carry })
 
-  const keep = (tapped: HTMLElement) => {
+  // A tap on another chip: the row (carry) and the products (turn) keep
+  // where they stood, for the motion to start there.
+  const keep = (id: string, tapped: HTMLElement) => {
+    if (id === chosen) return
     if (carry) carryRow(carry, row.current, band.current, tapped)
+    if (turn) {
+      const place = (key: string | null) => chips.findIndex((c) => c.id === key)
+      keepPage(turn, place(id) > place(chosen) ? 1 : -1)
+    }
   }
   const words = (chip: ChipItem, count: string) => (
     <>
@@ -80,7 +91,7 @@ export function ChipRow({
                     to={chip.to}
                     aria-current={on ? 'page' : undefined}
                     data-chosen={on || undefined}
-                    onClick={(e) => keep(e.currentTarget)}
+                    onClick={(e) => keep(chip.id, e.currentTarget)}
                     className={chipClass}
                   >
                     {words(chip, 'text-slate-500')}
@@ -91,7 +102,7 @@ export function ChipRow({
                     aria-pressed={on}
                     data-chosen={on || undefined}
                     onClick={(e) => {
-                      keep(e.currentTarget)
+                      keep(chip.id, e.currentTarget)
                       chip.onChoose?.()
                     }}
                     className={chipClass}
