@@ -26,7 +26,8 @@ const SHAPE = 'flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border p
  * The navy is a copy of the chips, all navy with white words (and navy
  * between them), seen through a pill-shaped window over the chosen one:
  * as the window slides, a chip it passes shows white on navy too, never
- * dark words on navy. `end`: <li>s after the chips (Products' "Edit
+ * dark words on navy. It sets off at the tap, by transform, so it glides
+ * even while the page changes under it. `end`: <li>s after the chips (Products' "Edit
  * categories"); the copy leaves them out, as they change no chip's
  * place. `carry`: see useChosenMarker. */
 export function ChipRow({
@@ -55,10 +56,11 @@ export function ChipRow({
   const row = useRef<HTMLDivElement>(null)
   const band = useRef<HTMLDivElement>(null)
   const navy = useRef<HTMLDivElement>(null)
-  useChosenMarker({ chosen, row, box: band, marker: navy, place: windowOver, items: chips.map((c) => c.id).join(), carry })
+  const follow = useChosenMarker({ chosen, row, box: band, marker: navy, place: windowOver, items: chips.map((c) => c.id).join(), carry })
 
   // A tap on another chip: the row (carry) and the products (turn) keep
-  // where they stood, for the motion to start there.
+  // where they stood, for the motion to start there, and the navy sets off
+  // for the chip at once.
   const keep = (id: string, tapped: HTMLElement) => {
     if (id === chosen) return
     if (carry) carryRow(carry, row.current, band.current, tapped)
@@ -66,6 +68,7 @@ export function ChipRow({
       const place = (key: string | null) => chips.findIndex((c) => c.id === key)
       keepPage(turn, place(id) > place(chosen) ? 1 : -1)
     }
+    follow(tapped)
   }
   const words = (chip: ChipItem, count: string) => (
     <>
@@ -115,27 +118,39 @@ export function ChipRow({
           })}
           {end}
         </ul>
-        {/* The navy copy, laid out exactly as the chips above (the same
-            row, gaps and wrapping). Shut until placed. */}
+        {/* The window: a pill the chosen chip's size, moved over it
+            (--x, --y), cutting off what's outside it. Inside it, the navy
+            copy, laid out exactly as the chips above (the same row, gaps
+            and wrapping, the band's width --bw), moved back as far, so it
+            stays on the chips while the window slides. Both move by
+            transform, together (the copy takes the window's timing). */}
         <div
           ref={navy}
           aria-hidden
-          className={`pointer-events-none absolute inset-0 flex gap-2 bg-accent px-4 transition-[clip-path] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] [clip-path:inset(50%)] ${
-            wrap ? 'lg:flex-wrap lg:px-0' : ''
-          }`}
+          className="pointer-events-none absolute top-0 left-0 overflow-hidden rounded-full [transform:translate(var(--x),var(--y))] transition-[transform,width,height] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
         >
-          {chips.map((chip) => (
-            <span key={chip.id} className={`${SHAPE} border-accent bg-accent text-on-accent`}>
-              {words(chip, 'opacity-75')}
-            </span>
-          ))}
+          <div
+            className={`absolute top-0 left-0 flex gap-2 bg-accent px-4 [width:var(--bw)] [transform:translate(calc(var(--x)*-1),calc(var(--y)*-1))] [transition-property:transform] [transition-duration:inherit] [transition-timing-function:inherit] [transition-delay:inherit] ${
+              wrap ? 'lg:flex-wrap lg:px-0' : ''
+            }`}
+          >
+            {chips.map((chip) => (
+              <span key={chip.id} className={`${SHAPE} border-accent bg-accent text-on-accent`}>
+                {words(chip, 'opacity-75')}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-/** The navy copy's window: a pill the chosen chip's size, over it. */
+/** The window: a pill the chosen chip's size, over it. */
 const windowOver: Place = (spot) => ({
-  clipPath: `inset(${spot.top}px ${spot.right}px ${spot.bottom}px ${spot.left}px round 9999px)`,
+  '--x': `${spot.left}px`,
+  '--y': `${spot.top}px`,
+  width: `${spot.width}px`,
+  height: `${spot.height}px`,
+  '--bw': `${spot.left + spot.width + spot.right}px`,
 })

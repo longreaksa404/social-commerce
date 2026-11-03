@@ -1503,14 +1503,22 @@ is wrapped in try/catch (private mode).
   2026-11-03/04: tapping a chip glides the row (`scrollTo` smooth) until
   it's in the middle, like Taobao's, and the navy slides to it. The navy
   is a copy of the chips, all navy with white words, seen through a
-  pill-shaped `clip-path` window over the chosen chip (`data-chosen`), so
-  a chip it passes reads white on navy. `useChosenMarker` keeps a marker
-  on the chosen item after every render and through a `ResizeObserver`;
+  pill-shaped window (`overflow: hidden`) over the chosen chip
+  (`data-chosen`), so a chip it passes reads white on navy. **Markers
+  move by `transform`, never `clip-path` or `left`**: the window by
+  `translate(var(--x), var(--y))`, the copy inside it by the opposite, so
+  it stays on the chips; the phone slides transforms on its own, smooth
+  while the page changes under them (a `clip-path` window jumped ~70% of
+  the way on a slow phone, founder 2026-11-04: "not smooth"). A tap
+  starts the marker at once (`useChosenMarker` returns `follow`), before
+  the page's work; a row replacing another goes on mid-slide (a negative
+  `transition-delay`). `useChosenMarker` keeps a marker on the chosen
+  item after every render and through a `ResizeObserver`;
   `carry` / `carryRow` let a row replaced by another page's start where
   the old one stood (the shop's All and each category are separate
   pages, so its row is a new one after a tap). The Orders tabs use
   `useChosenMarker` alone: the tab glides to the middle and the navy
-  line under it slides. With the `fade-x` utility (`index.css`) these
+  line under it slides (a 100px line, `translateX` and `scaleX`). With the `fade-x` utility (`index.css`) these
   rows fade at both ends (UI check #12); centring the chosen item
   replaced `revealChosen` (it showed the one before it in full).
 - `components/TurningPage.tsx` and `components/pageTurn.ts`: a category
@@ -1518,8 +1526,11 @@ is wrapped in try/catch (private mode).
   the ChipRow named by `turn` keeps a copy of the products as a chip is
   tapped (`keepPage`, with the direction from the chips' order), and the
   TurningPage showing them (the same one, or the next page's in the
-  shop) slides the copy out and its products in, a page's width and
-  32px apart, clipped to the page's edges only while it turns. The copy
+  shop) slides the copy out and its products in: the copy rides inside
+  it, a page's width to the side, so one animation moves both (started
+  by the browser on the first frame it draws); apart by what the content
+  reaches past its column plus 16px, so the cards keep 16px between
+  them; clipped to the page's edges only while it turns. The copy
   has `data-leaving` (`index.css`: no animations of its own); the new
   products' own entrance animations are finished at once. The Orders
   list turns too (its tabs keep the copy); `ready` waits for the tab's

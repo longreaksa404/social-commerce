@@ -6,11 +6,13 @@ import { reducedMotion } from './effects.ts'
  * bottom edges are from the box's. */
 export type Spot = { left: number; top: number; width: number; height: number; right: number; bottom: number }
 
-/** The marker's style for a spot, e.g. `{ clipPath: 'inset(…)' }`. */
-export type Place = (spot: Spot) => Partial<Record<'clipPath' | 'translate' | 'width', string>>
+/** The marker's style for a spot, by CSS property (custom ones too),
+ * e.g. `{ transform: 'translateX(…)' }`. Moved by transform, it slides
+ * smoothly even while the page is busy (the phone draws it on its own). */
+export type Place = (spot: Spot) => Record<string, string>
 
-// Where a row stood as a chip was tapped, for the row that replaces it
-// (the shop's All and its categories are separate pages), by row.
+// Where a row stood as a chip was tapped (and when), for the row that
+// replaces it (the shop's All and its categories are separate pages).
 const carried = new Map<string, { scroll: number; spot: Spot; at: number }>()
 
 /** A row of chips or tabs that scrolls sideways (founder, 2026-11-03/04):
@@ -22,7 +24,10 @@ const carried = new Map<string, { scroll: number; spot: Spot; at: number }>()
  * laptop's window wrapping them). Instant with the reduce-motion setting
  * (and the marker's transition, by index.css). `items` names the items,
  * to watch the new ones. `carry`: the row is replaced by another when a
- * chip is tapped (carryRow), which starts where this one stood. */
+ * chip is tapped (carryRow), which starts where this one stood.
+ *
+ * Returns `follow`, for a tap: the marker starts for the tapped item at
+ * once, before the page changes (which keeps the phone busy a moment). */
 export function useChosenMarker({
   chosen,
   row,
@@ -59,10 +64,13 @@ export function useChosenMarker({
     if (changed && before === null && carry) {
       const from = carried.get(carry)
       carried.delete(carry)
-      if (from && performance.now() - from.at < 1000) {
+      const since = from ? performance.now() - from.at : Infinity
+      if (from && since < 1000) {
         r.scrollTo({ left: from.scroll, behavior: 'instant' })
         mark(m, from.spot, false, place)
         m.getBoundingClientRect() // so the slide starts from there
+        // …and goes on where the last row's had got to since the tap.
+        mark(m, spotOf(b, item), true, place, since)
         glide = true
       }
     }
@@ -80,6 +88,12 @@ export function useChosenMarker({
     last.current = { box: b, chosen, items, watch }
   })
   useEffect(() => () => last.current?.watch.disconnect(), [])
+
+  return (tapped: HTMLElement) => {
+    const b = box.current
+    const m = marker.current
+    if (b && m) mark(m, spotOf(b, tapped), true, place)
+  }
 }
 
 /** Keeps where `row` stands as one of its chips is tapped, for the row
@@ -99,10 +113,10 @@ function spotOf(box: HTMLElement, item: HTMLElement | null): Spot | null {
   return { left: a.left - b.left, top: a.top - b.top, width: a.width, height: a.height, right: b.right - a.right, bottom: b.bottom - a.bottom }
 }
 
-/** Puts the marker on the spot (none: hides it), sliding there or not.
- * Left alone when it's already there, so a slide that's playing isn't
- * cut short. */
-function mark(marker: HTMLElement, spot: Spot | null, slide: boolean, place: Place) {
+/** Puts the marker on the spot (none: hides it), sliding there or not;
+ * `since` ms into the slide already. Left alone when it's already there,
+ * so a slide that's playing isn't cut short. */
+function mark(marker: HTMLElement, spot: Spot | null, slide: boolean, place: Place, since = 0) {
   marker.hidden = !spot
   if (!spot) return
   const style = place(spot)
@@ -110,7 +124,8 @@ function mark(marker: HTMLElement, spot: Spot | null, slide: boolean, place: Pla
   if (marker.dataset.at === at) return
   marker.dataset.at = at
   marker.style.transitionDuration = slide ? '' : '0s'
-  Object.assign(marker.style, style)
+  marker.style.transitionDelay = since ? `${-Math.round(since)}ms` : ''
+  for (const [name, value] of Object.entries(style)) marker.style.setProperty(name, value)
 }
 
 /** Scrolls the row so the item sits in its middle (as far as the row's

@@ -33,7 +33,10 @@ export function TurningPage({
   }, [turn, page, ready])
   return (
     <div className={`relative ${className}`}>
-      <div ref={now}>{children}</div>
+      {/* relative: the copy turning out rides beside the products. */}
+      <div ref={now} className="relative">
+        {children}
+      </div>
     </div>
   )
 }

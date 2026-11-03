@@ -129,8 +129,9 @@ function useFiltered() {
 
 const TAB_KEYS = FILTERS.map((f) => f.key).join()
 
-/** The line under the chosen tab, 8px in from its sides. */
-const underline: Place = (spot) => ({ translate: `${spot.left + 8}px 0`, width: `${spot.width - 16}px` })
+/** The line under the chosen tab, 8px in from its sides: a 100px line
+ * moved and stretched by transform, which slides smoothly. */
+const underline: Place = (spot) => ({ transform: `translateX(${spot.left + 8}px) scaleX(${(spot.width - 16) / 100})` })
 
 /** "Orders" and the status tabs. Laptops: one slim line, the tabs beside
  * the title (founder's pick, 2026-10-07), so the list and the open order
@@ -145,7 +146,7 @@ function OrdersHeader() {
   const tabs = useRef<HTMLElement>(null)
   const list = useRef<HTMLUListElement>(null)
   const line = useRef<HTMLLIElement>(null)
-  useChosenMarker({ chosen: filter.key, row: tabs, box: list, marker: line, place: underline, items: TAB_KEYS })
+  const follow = useChosenMarker({ chosen: filter.key, row: tabs, box: list, marker: line, place: underline, items: TAB_KEYS })
   return (
     <div className="mb-2 lg:mb-5 lg:flex lg:items-center lg:gap-8">
       {/* "New order" beside the title (founder's pick 4A): an order that
@@ -179,9 +180,11 @@ function OrdersHeader() {
                       type="button"
                       aria-pressed={active}
                       data-chosen={active || undefined}
-                      onClick={() => {
-                        // The list turns like a page, from this tab's side.
+                      onClick={(e) => {
+                        // The list turns like a page, from this tab's side,
+                        // and the line sets off for the tab at once.
                         if (!active) keepPage('orders', i > FILTERS.findIndex((x) => x.key === filter.key) ? 1 : -1)
+                        follow(e.currentTarget)
                         choose(f.key)
                       }}
                       className={`relative flex min-h-11 items-center gap-2 rounded-t-lg px-3 text-sm font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 ${
@@ -203,7 +206,7 @@ function OrdersHeader() {
               <li
                 ref={line}
                 aria-hidden
-                className="pointer-events-none absolute -bottom-px left-0 h-[3px] w-0 rounded-t-full bg-brand transition-[translate,width] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+                className="pointer-events-none absolute -bottom-px left-0 h-[3px] w-[100px] origin-left rounded-t-full bg-brand transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [transform:scaleX(0)]"
               />
             </ul>
           </nav>
