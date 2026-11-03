@@ -1498,9 +1498,6 @@ is wrapped in try/catch (private mode).
   place shows (link cards, New link picker, link page, an order's "Came
   through" line). Shapes in `lib/sourceLogos.ts` (Simple Icons, CC0);
   `hasLogo(source)` is false for a place the seller typed in.
-- `components/revealChosen.ts`: scrolls a sideways row (the Orders
-  tabs) so the chosen item shows with the one before it; with the
-  `fade-x` utility (`index.css`) such rows fade at both ends (UI check #12).
 - `components/ChipRow.tsx` and `components/chosenMarker.ts`: a row of
   chips, one chosen (the seller's Products, the shop's categories), as the founder asked
   2026-11-03/04: tapping a chip glides the row (`scrollTo` smooth) until
@@ -1511,7 +1508,11 @@ is wrapped in try/catch (private mode).
   on the chosen item after every render and through a `ResizeObserver`;
   `carry` / `carryRow` let a row replaced by another page's start where
   the old one stood (the shop's All and each category are separate
-  pages, so its row is a new one after a tap).
+  pages, so its row is a new one after a tap). The Orders tabs use
+  `useChosenMarker` alone: the tab glides to the middle and the navy
+  line under it slides. With the `fade-x` utility (`index.css`) these
+  rows fade at both ends (UI check #12); centring the chosen item
+  replaced `revealChosen` (it showed the one before it in full).
 - `components/effects.ts` (confetti, vibration, `reducedMotion()`),
   `components/useBump.ts` (re-run an animation when a value changes),
   `shop/fly.ts` (photo flies into the cart).

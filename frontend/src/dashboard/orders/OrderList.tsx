@@ -1,7 +1,7 @@
 import { CalendarClock, ExternalLink, Inbox, MousePointerClick, Package, Plus, SearchX, Truck } from 'lucide-react'
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
-import { revealChosen } from '../../components/revealChosen.ts'
+import { useChosenMarker, type Place } from '../../components/chosenMarker.ts'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card, EmptyState, ErrorState, Skeleton } from '../../components/ui.tsx'
 import type { Messages } from '../../i18n/core.ts'
@@ -125,6 +125,11 @@ function useFiltered() {
   return { filter, orders, countOf, choose }
 }
 
+const TAB_KEYS = FILTERS.map((f) => f.key).join()
+
+/** The line under the chosen tab, 8px in from its sides. */
+const underline: Place = (spot) => ({ translate: `${spot.left + 8}px 0`, width: `${spot.width - 16}px` })
+
 /** "Orders" and the status tabs. Laptops: one slim line, the tabs beside
  * the title (founder's pick, 2026-10-07), so the list and the open order
  * below start level. Phones: the title, then the tabs in one row that
@@ -133,11 +138,12 @@ function useFiltered() {
 function OrdersHeader() {
   const { filter, orders, countOf, choose } = useFiltered()
   const t = useT()
-  // Phones: the chosen tab shows with the one before it (UI check #12).
+  // Tapping a tab glides the row until it's in the middle and the line
+  // slides under it, as the Products chips (founder, 2026-11-04).
   const tabs = useRef<HTMLElement>(null)
-  useLayoutEffect(() => {
-    revealChosen(tabs.current, tabs.current?.querySelector<HTMLElement>('[aria-pressed="true"]') ?? null)
-  }, [filter.key, orders.isPending])
+  const list = useRef<HTMLUListElement>(null)
+  const line = useRef<HTMLLIElement>(null)
+  useChosenMarker({ chosen: filter.key, row: tabs, box: list, marker: line, place: underline, items: TAB_KEYS })
   return (
     <div className="mb-2 lg:mb-5 lg:flex lg:items-center lg:gap-8">
       {/* "New order" beside the title (founder's pick 4A): an order that
@@ -160,7 +166,7 @@ function OrdersHeader() {
             aria-label={t.orders.filterLabel}
             className="-mx-4 min-w-0 overflow-x-auto [scrollbar-width:none] max-lg:fade-x lg:mx-0 lg:flex-1"
           >
-            <ul className="flex w-max min-w-full gap-1 border-b border-slate-200 px-4 lg:px-0">
+            <ul ref={list} className="relative flex w-max min-w-full gap-1 border-b border-slate-200 px-4 lg:px-0">
               {FILTERS.map((f) => {
                 const active = f.key === filter.key
                 const count = countOf(f.statuses)
@@ -170,6 +176,7 @@ function OrdersHeader() {
                     <button
                       type="button"
                       aria-pressed={active}
+                      data-chosen={active || undefined}
                       onClick={() => choose(f.key)}
                       className={`relative flex min-h-11 items-center gap-2 rounded-t-lg px-3 text-sm font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 ${
                         active ? 'text-slate-900' : 'text-slate-500 hover:text-slate-900'
@@ -183,11 +190,15 @@ function OrdersHeader() {
                       >
                         {count}
                       </span>
-                      {active && <span aria-hidden className="absolute inset-x-2 -bottom-px h-[3px] rounded-t-full bg-brand" />}
                     </button>
                   </li>
                 )
               })}
+              <li
+                ref={line}
+                aria-hidden
+                className="pointer-events-none absolute -bottom-px left-0 h-[3px] w-0 rounded-t-full bg-brand transition-[translate,width] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+              />
             </ul>
           </nav>
         )

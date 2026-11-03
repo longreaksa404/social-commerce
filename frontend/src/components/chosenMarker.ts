@@ -40,8 +40,10 @@ export function useChosenMarker({
   items: string
   carry?: string
 }) {
-  // The item the marker was last put on (null: none yet, or none chosen).
-  const placed = useRef<string | null>(null)
+  // The row as last placed: its box, the item chosen in it (null: none),
+  // and what watches its items' sizes. A new box (the row shown again,
+  // say after the Orders tabs' loading line) starts afresh.
+  const last = useRef<{ box: HTMLElement; chosen: string | null; items: string; watch: ResizeObserver } | null>(null)
 
   // After every render: the items' widths may have changed with it.
   useLayoutEffect(() => {
@@ -49,10 +51,12 @@ export function useChosenMarker({
     const b = box.current
     const m = marker.current
     if (!r || !b || !m) return
+    const same = last.current?.box === b
+    const before = same ? last.current!.chosen : null
     const item = b.querySelector<HTMLElement>('[data-chosen]')
-    const changed = placed.current !== chosen
-    let glide = changed && placed.current !== null
-    if (changed && placed.current === null && carry) {
+    const changed = !same || before !== chosen
+    let glide = changed && before !== null
+    if (changed && before === null && carry) {
       const from = carried.get(carry)
       carried.delete(carry)
       if (from && performance.now() - from.at < 1000) {
@@ -64,17 +68,18 @@ export function useChosenMarker({
     }
     mark(m, spotOf(b, item), glide, place)
     if (changed) centre(r, item, glide)
-    placed.current = chosen
-  })
 
-  useEffect(() => {
-    const b = box.current
-    const m = marker.current
-    if (!b || !m) return
-    const watch = new ResizeObserver(() => mark(m, spotOf(b, b.querySelector('[data-chosen]')), false, place))
-    for (const el of [b, ...b.querySelectorAll('li')]) if (el !== m) watch.observe(el)
-    return () => watch.disconnect()
-  }, [items, box, marker, place])
+    // The items' sizes (the fonts, a laptop's window wrapping them),
+    // watched again for a new row or new items.
+    let watch = last.current?.watch
+    if (!same || last.current!.items !== items || !watch) {
+      watch?.disconnect()
+      watch = new ResizeObserver(() => mark(m, spotOf(b, b.querySelector('[data-chosen]')), false, place))
+      for (const el of [b, ...b.querySelectorAll('li')]) if (el !== m) watch.observe(el)
+    }
+    last.current = { box: b, chosen, items, watch }
+  })
+  useEffect(() => () => last.current?.watch.disconnect(), [])
 }
 
 /** Keeps where `row` stands as one of its chips is tapped, for the row
