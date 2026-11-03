@@ -25,6 +25,7 @@ Status: in progress. Tick each step when done.
 
 ## Cadence
 3 videos/week to start, one per post day (e.g. Mon / Wed / Fri), same time each day. Each video goes to TikTok, Facebook Reels and Instagram Reels. Never more than one a day. → 5–7/week once one batch takes 3 hours or less → daily only if videos bring seller sign-ups. Videos support direct outreach, they don't replace it: if a week is tight, keep outreach and post 2.
+The current run: `03_video_plan.md` (videos 003–022 around the launch; one made a day, posted on this cadence).
 
 ## Weekly rhythm
 1. **Plan (Claude Code, ~45 min).** REVIEW with the filled-in log (from week 2), then BATCH 3 scripts with shot lists. Check the fact-check lists. FIX with Khmer corrections.

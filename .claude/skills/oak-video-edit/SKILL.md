@@ -15,7 +15,8 @@ Code renders the MP4; they post it.
 Read first: `docs/02_video_playbook.md` (tools, voice recipe, looks, words to
 avoid, pronunciation fixes), `docs/MARKETING_FACTS.md` (what's true, section 6
 "Don't claim", section 10 every app picture), `docs/04_content_log.md` (what's
-been made). For a new film also read the plugin's `hyperframes` skill and its
+been made), `docs/03_video_plan.md` (the planned videos and their briefs; "next
+video" = the first one there with no content-log row). For a new film also read the plugin's `hyperframes` skill and its
 `references/types/vertical.md`, `types/launch.md`, `motion.md`, `sound.md`,
 `spec.md` and `review.md` (plugin root below).
 
