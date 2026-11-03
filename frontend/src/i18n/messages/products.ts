@@ -10,14 +10,11 @@ export const products = {
     en: 'Products you add show in your shop.',
     km: 'ទំនិញដែលអ្នកបន្ថែម នឹងបង្ហាញក្នុងហាងរបស់អ្នក។',
   },
-  status: {
-    all: { en: 'All', km: 'ទាំងអស់' },
-    active: { en: 'Active', km: 'កំពុងលក់' },
-    inactive: { en: 'Hidden', km: 'លាក់' },
-  },
-  filterVisibility: { en: 'Filter by visibility', km: 'ច្រោះតាមការបង្ហាញ' },
+  // The list's chips (pick 1B, 2026-11-03): All, Hidden, each category.
+  all: { en: 'All', km: 'ទាំងអស់' },
   filterCategory: { en: 'Filter by category', km: 'ច្រោះតាមប្រភេទ' },
-  allCategories: { en: 'All categories', km: 'គ្រប់ប្រភេទ' },
+  editCategories: { en: 'Edit categories', km: 'កែប្រភេទ' },
+  addCategories: { en: 'Add categories', km: 'បន្ថែមប្រភេទ' },
   noneHereTitle: { en: 'No products here', km: 'គ្មានទំនិញនៅទីនេះទេ' },
   noneHereText: { en: 'No products match these filters.', km: 'គ្មានទំនិញណាត្រូវនឹងការច្រោះនេះទេ។' },
   showAll: { en: 'Show all products', km: 'បង្ហាញទំនិញទាំងអស់' },

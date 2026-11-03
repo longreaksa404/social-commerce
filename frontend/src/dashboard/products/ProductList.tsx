@@ -1,17 +1,16 @@
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, LayoutGrid, List, Package, Plus, SearchX, Tags } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, EyeOff, LayoutGrid, List, Package, Plus, SearchX, Tags } from 'lucide-react'
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { Badge, Card, DotList, EmptyState, ErrorState, PageHeader, Select, Skeleton } from '../../components/ui.tsx'
+import { Badge, Card, DotList, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
+import { revealChosen } from '../../components/revealChosen.ts'
 import { useT } from '../../i18n/useT.ts'
 import { thumbnailUrl } from '../../lib/images.ts'
 import { deal, useColumnCount } from '../../components/columns.ts'
 import { EAGER_PHOTOS, NoPhoto } from '../../shop/components.tsx'
 import { priceLabel, totalStock } from '../../lib/products.ts'
-import type { Currency, Product } from '../../lib/types.ts'
+import type { Category, Currency, Product } from '../../lib/types.ts'
 import { useCategories, useProducts, useStore } from '../queries.ts'
-
-type StatusFilter = 'all' | 'active' | 'inactive'
 
 export function ProductList() {
   const products = useProducts()
@@ -19,11 +18,12 @@ export function ProductList() {
   const store = useStore()
   const t = useT()
   const p = t.products
-  // Filters live in the URL: they survive opening a product and coming back,
-  // and the Categories page can link straight to a filtered list.
+  // The chosen chip lives in the URL: it survives opening a product and
+  // coming back, and the Categories page can link straight to a category.
+  // One at a time: All, Hidden (?status=inactive) or a category.
   const [params, setParams] = useSearchParams()
-  const status = (params.get('status') as StatusFilter | null) ?? 'all'
-  const categoryId = params.get('category') ?? ''
+  const hiddenOnly = params.get('status') === 'inactive'
+  const categoryId = hiddenOnly ? '' : (params.get('category') ?? '')
   // Photos or List, remembered on this device (founder: let sellers pick).
   const [view, setView] = useState<View>(storedView)
   const chooseView = (next: View) => {
@@ -35,15 +35,10 @@ export function ProductList() {
     }
   }
 
-  const setFilter = (key: string, value: string) =>
-    setParams(
-      (p) => {
-        if (value && value !== 'all') p.set(key, value)
-        else p.delete(key)
-        return p
-      },
-      { replace: true },
-    )
+  const choose = (chip: Chip) =>
+    setParams(chip === 'all' ? {} : chip === 'hidden' ? { status: 'inactive' } : { category: chip.id }, {
+      replace: true,
+    })
 
   const addButton = (
     <Link to="/dashboard/products/new" className={`${buttonClass('primary')} shrink-0`}>
@@ -85,9 +80,12 @@ export function ProductList() {
 
   const currency = store.data?.currency ?? 'USD'
   const categoryName = new Map(categories.data?.map((c) => [c.id, c.name]))
-  const inCategory = all.filter((p) => !categoryId || p.category_id === categoryId)
-  const count = (s: StatusFilter) => inCategory.filter((p) => s === 'all' || p.status === s).length
-  const shown = inCategory.filter((p) => status === 'all' || p.status === status)
+  const category = categories.data?.find((c) => c.id === categoryId)
+  // A category deleted since the link was made: all products.
+  const filterId = categories.data && !category ? '' : categoryId
+  const shown = all.filter(
+    (p) => (hiddenOnly ? p.status === 'inactive' : true) && (!filterId || p.category_id === filterId),
+  )
 
   return (
     <>
@@ -101,47 +99,12 @@ export function ProductList() {
         }
       />
 
-      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center">
-        <div role="tablist" aria-label={p.filterVisibility} className="grid grid-cols-3 rounded-xl bg-slate-200/70 p-1 lg:w-96">
-          {(['all', 'active', 'inactive'] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              role="tab"
-              aria-selected={status === value}
-              onClick={() => setFilter('status', value)}
-              className={`min-h-10 rounded-lg text-sm font-medium transition ${
-                status === value ? 'bg-raised text-slate-900 shadow-sm' : 'text-slate-600'
-              }`}
-            >
-              {p.status[value]} <span className="text-slate-600">{count(value)}</span>
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-2 lg:ml-auto">
-          {categories.data && categories.data.length > 0 && (
-            <div className="min-w-0 flex-1 lg:w-56 lg:flex-none">
-              <Select
-                aria-label={p.filterCategory}
-                value={categoryId}
-                onChange={(e) => setFilter('category', e.target.value)}
-              >
-                <option value="">{p.allCategories}</option>
-                {categories.data.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          )}
-          {/* On phones the tab bar has no room for Categories. */}
-          <Link to="/dashboard/categories" className={`${buttonClass('secondary')} shrink-0 lg:hidden`}>
-            <Tags aria-hidden className="size-4" />
-            {t.dashboard.tab.categories}
-          </Link>
-        </div>
-      </div>
+      <FilterChips
+        products={all}
+        categories={categories.data ?? []}
+        chosen={hiddenOnly ? 'hidden' : (category ?? (filterId ? null : 'all'))}
+        onChoose={choose}
+      />
 
       {shown.length === 0 ? (
         <EmptyState
@@ -212,6 +175,85 @@ function ViewSwitch({ view, onChange }: { view: View; onChange: (view: View) => 
           <Icon aria-hidden className="size-4.5" />
         </button>
       ))}
+    </div>
+  )
+}
+
+type Chip = 'all' | 'hidden' | Category
+
+/** All, Hidden (only while something is), then each category with its
+ * count, as one row of chips that scrolls sideways on phones like the
+ * shop's (founder's pick 1B, 2026-11-03). `chosen` null: a category link
+ * while the categories load. Phones end with Categories, which their tab
+ * bar has no room for; laptops have it in the sidebar. */
+function FilterChips({
+  products,
+  categories,
+  chosen,
+  onChoose,
+}: {
+  products: Product[]
+  categories: Category[]
+  chosen: Chip | null
+  onChoose: (chip: Chip) => void
+}) {
+  const p = useT().products
+  const row = useRef<HTMLDivElement>(null)
+  const key = chosen === null || typeof chosen === 'string' ? chosen : chosen.id
+
+  // A category link should show its chip even when it starts off-screen.
+  useLayoutEffect(() => {
+    revealChosen(row.current, row.current?.querySelector<HTMLElement>('[aria-pressed="true"]') ?? null)
+  }, [key])
+
+  const hidden = products.filter((product) => product.status === 'inactive').length
+  const chip = (on: boolean) =>
+    `flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 ${
+      on ? 'border-accent bg-accent text-on-accent' : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50 active:bg-slate-100'
+    }`
+  const item = (id: string, value: Chip, label: ReactNode, count: number) => {
+    const on = key === id
+    return (
+      <li key={id}>
+        <button type="button" aria-pressed={on} onClick={() => onChoose(value)} className={chip(on)}>
+          {label}
+          <span className={`font-normal tabular-nums ${on ? 'opacity-75' : 'text-slate-500'}`}>{count}</span>
+        </button>
+      </li>
+    )
+  }
+  return (
+    <div
+      ref={row}
+      role="group"
+      aria-label={p.filterCategory}
+      // Only All on a laptop (no categories, nothing hidden): nothing to choose.
+      className={`-mx-4 mb-4 overflow-x-auto [scrollbar-width:none] max-lg:fade-x lg:mx-0 ${
+        categories.length === 0 && hidden === 0 ? 'lg:hidden' : ''
+      }`}
+    >
+      <ul className="flex w-max gap-2 px-4 lg:w-auto lg:flex-wrap lg:px-0">
+        {item('all', 'all', p.all, products.length)}
+        {(hidden > 0 || key === 'hidden') &&
+          item(
+            'hidden',
+            'hidden',
+            <>
+              <EyeOff aria-hidden className="size-4" />
+              {p.hidden}
+            </>,
+            hidden,
+          )}
+        {categories.map((category) =>
+          item(category.id, category, category.name, products.filter((product) => product.category_id === category.id).length),
+        )}
+        <li className="lg:hidden">
+          <Link to="/dashboard/categories" className={`${chip(false)} border-dashed`}>
+            <Tags aria-hidden className="size-4" />
+            {categories.length > 0 ? p.editCategories : p.addCategories}
+          </Link>
+        </li>
+      </ul>
     </div>
   )
 }
@@ -449,7 +491,7 @@ function ListSkeleton() {
   return (
     <>
       <PageHeader title={p.title} />
-      <Skeleton className="mb-4 h-12 w-full rounded-xl" />
+      <Skeleton className="mb-4 h-10 w-full rounded-full" />
       <Card className="divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="flex items-center gap-3 px-4 py-3 sm:p-4">
