@@ -1,7 +1,7 @@
 import { CalendarClock, ImageIcon, Minus, Plus, SearchX, Store } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
-import { Link, NavLink, useLocation } from 'react-router'
-import { revealChosen } from '../components/revealChosen.ts'
+import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
+import { Link, useParams } from 'react-router'
+import { ChipRow } from '../components/ChipRow.tsx'
 import { Badge, Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { thumbnailUrl } from '../lib/images.ts'
 import { formatMoney, formatPriceRange } from '../lib/money.ts'
@@ -103,47 +103,32 @@ export function ProductImage({
   )
 }
 
-/** "All" plus each category, as a row of chips that scrolls sideways on
- * phones. Hidden when the shop has no categories. */
+/** "All" plus each category, as a row of chips that scrolls sideways
+ * (ChipRow, as the seller's Products: the row glides the tapped chip to
+ * its middle and the navy slides over to it; founder, 2026-11-04).
+ * Hidden when the shop has no categories. All and a category are
+ * separate pages, so the row is a new one after the tap: `carry` starts
+ * it where the last one stood. */
 export function CategoryChips({ shop }: { shop: ShopStore }) {
-  const nav = useRef<HTMLElement>(null)
-  const { pathname } = useLocation()
+  const { categorySlug = '' } = useParams()
   const t = useT()
-
-  // Someone landing on a category link should see which chip is theirs,
-  // even when it starts off-screen, with the chip before it in full.
-  // Before it's drawn: between All and a category the row is new (another
-  // page component) and nothing fades over it.
-  useLayoutEffect(() => {
-    revealChosen(nav.current, nav.current?.querySelector<HTMLElement>('[aria-current="page"]') ?? null)
-  }, [pathname])
-
   if (shop.categories.length === 0) return null
-  const chip = ({ isActive }: { isActive: boolean }) =>
-    `flex min-h-10 shrink-0 items-center rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 ${
-      isActive
-        ? 'border-accent bg-accent text-on-accent'
-        : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50 active:bg-slate-100'
-    }`
   return (
-    <nav ref={nav} aria-label={t.shop.categories} className="relative -mx-4 mb-5 overflow-x-auto fade-x [scrollbar-width:none]">
-      {/* Padding on the list, not the nav, so the last chip keeps its gap
-          from the screen edge when scrolled all the way. */}
-      <ul className="flex w-max gap-2 px-4">
-        <li>
-          <NavLink to={`/shop/${shop.slug}`} end className={chip}>
-            {t.shop.all}
-          </NavLink>
-        </li>
-        {shop.categories.map((category) => (
-          <li key={category.slug}>
-            <NavLink to={`/shop/${shop.slug}/category/${category.slug}`} className={chip}>
-              {category.name}
-            </NavLink>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <ChipRow
+      label={t.shop.categories}
+      navigation
+      carry={`shop/${shop.slug}`}
+      chosen={categorySlug}
+      chips={[
+        { id: '', label: t.shop.all, to: `/shop/${shop.slug}` },
+        ...shop.categories.map((category) => ({
+          id: category.slug,
+          label: category.name,
+          to: `/shop/${shop.slug}/category/${category.slug}`,
+        })),
+      ]}
+      className="relative -mx-4 mb-5 fade-x"
+    />
   )
 }
 
