@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, EyeOff, LayoutGrid, List, Package, Plus, SearchX, Tags } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Badge, Card, DotList, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
@@ -36,10 +36,32 @@ export function ProductList() {
     }
   }
 
-  const choose = (chip: Chip) =>
+  // Choosing another chip turns the page: a copy of the products shown
+  // now is kept to slide out while the new ones slide in (turnPage).
+  const results = useRef<HTMLDivElement>(null)
+  const leaving = useRef<{ old: HTMLElement; from: 1 | -1 } | null>(null)
+  const shownKey = hiddenOnly ? 'hidden' : categoryId || 'all'
+  // A chip's place in the row, to slide from its side.
+  const place = (key: string) =>
+    key === 'all' ? 0 : key === 'hidden' ? 1 : 2 + (categories.data?.findIndex((c) => c.id === key) ?? 0)
+  const choose = (chip: Chip) => {
+    const key = typeof chip === 'string' ? chip : chip.id
+    if (key === shownKey) return
+    if (results.current && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      leaving.current = {
+        old: results.current.cloneNode(true) as HTMLElement,
+        from: place(key) > place(shownKey) ? 1 : -1,
+      }
+    }
     setParams(chip === 'all' ? {} : chip === 'hidden' ? { status: 'inactive' } : { category: chip.id }, {
       replace: true,
     })
+  }
+  useLayoutEffect(() => {
+    const turn = leaving.current
+    leaving.current = null
+    if (turn && results.current) turnPage(results.current, turn.old, turn.from)
+  }, [shownKey])
 
   const addButton = (
     <Link to="/dashboard/products/new" className={`${buttonClass('primary')} shrink-0`}>
@@ -107,38 +129,87 @@ export function ProductList() {
         onChoose={choose}
       />
 
-      {shown.length === 0 ? (
-        <EmptyState
-          icon={SearchX}
-          title={p.noneHereTitle}
-          action={
-            <button type="button" className={buttonClass('secondary')} onClick={() => setParams({}, { replace: true })}>
-              {p.showAll}
-            </button>
-          }
-        >
-          {p.noneHereText}
-        </EmptyState>
-      ) : view === 'grid' ? (
-        <ProductGrid products={shown} currency={currency} />
-      ) : (
-        <>
-          <Card className="divide-y divide-slate-100 overflow-hidden lg:hidden">
-            {shown.map((product, i) => (
-              <ProductRow
-                key={product.id}
-                product={product}
-                eager={i < EAGER_PHOTOS}
-                currency={currency}
-                category={product.category_id ? categoryName.get(product.category_id) : undefined}
-              />
-            ))}
-          </Card>
-          <ProductTable products={shown} currency={currency} categoryName={categoryName} />
-        </>
-      )}
+      {/* Out to the page's edges (main's padding), so a turning page is
+          cut off there and not at the cards' own edges. */}
+      <div className="relative -mx-4 px-4 lg:-mx-8 lg:px-8">
+        <div ref={results}>
+          {shown.length === 0 ? (
+            <EmptyState
+              icon={SearchX}
+              title={p.noneHereTitle}
+              action={
+                <button type="button" className={buttonClass('secondary')} onClick={() => choose('all')}>
+                  {p.showAll}
+                </button>
+              }
+            >
+              {p.noneHereText}
+            </EmptyState>
+          ) : view === 'grid' ? (
+            <ProductGrid products={shown} currency={currency} />
+          ) : (
+            <>
+              <Card className="divide-y divide-slate-100 overflow-hidden lg:hidden">
+                {shown.map((product, i) => (
+                  <ProductRow
+                    key={product.id}
+                    product={product}
+                    eager={i < EAGER_PHOTOS}
+                    currency={currency}
+                    category={product.category_id ? categoryName.get(product.category_id) : undefined}
+                  />
+                ))}
+              </Card>
+              <ProductTable products={shown} currency={currency} categoryName={categoryName} />
+            </>
+          )}
+        </div>
+      </div>
     </>
   )
+}
+
+/** The products of the chip tapped come in from its side as the ones
+ * before slide out the other way, together, like turning a page
+ * (founder, 2026-11-03). `old` is a copy of the products before the tap,
+ * shown in their place until it's out. The highlight and the row of
+ * chips don't move. */
+function turnPage(now: HTMLElement, old: HTMLElement, from: 1 | -1) {
+  const frame = now.parentElement
+  if (!frame) return
+  // A tap while a page is still turning: that one ends where it is.
+  for (const a of now.getAnimations()) a.cancel()
+  for (const el of frame.querySelectorAll(':scope > [data-leaving]')) el.remove()
+
+  old.dataset.leaving = ''
+  old.inert = true
+  old.setAttribute('aria-hidden', 'true')
+  Object.assign(old.style, {
+    position: 'absolute',
+    top: `${now.offsetTop}px`,
+    left: `${now.offsetLeft}px`,
+    width: `${now.offsetWidth}px`,
+    pointerEvents: 'none',
+  })
+  frame.append(old)
+  frame.style.overflowX = 'clip'
+
+  const timing = { duration: 350, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' }
+  // A page's width and a gap apart (the photo grid reaches 8px past its
+  // column on phones, so the two pages' cards keep 16px between them).
+  const away = (side: number) => `calc(${side * 100}% + ${side * 32}px) 0`
+  const going = old.animate({ translate: ['0 0', away(-from)] }, timing)
+  const coming = now.animate({ translate: [away(from), '0 0'] }, timing)
+  // One start for both, so they move edge to edge: left to themselves,
+  // the copy (just added) starts a frame later and they overlap.
+  going.startTime = coming.startTime = document.timeline.currentTime
+  const done = () => {
+    old.remove()
+    // Unclipped again, unless another tap started a new turn.
+    if (!now.getAnimations().length) frame.style.overflowX = ''
+  }
+  coming.onfinish = done
+  coming.oncancel = done
 }
 
 type View = 'grid' | 'list'
@@ -200,54 +271,25 @@ function FilterChips({
 }) {
   const p = useT().products
   const row = useRef<HTMLDivElement>(null)
-  const list = useRef<HTMLUListElement>(null)
-  const pill = useRef<HTMLLIElement>(null)
-  // The chip the pill was last put on (null: none yet, or none chosen).
-  const placed = useRef<string | null>(null)
   const key = chosen === null || typeof chosen === 'string' ? chosen : chosen.id
-  const hidden = products.filter((product) => product.status === 'inactive').length
-  const showHidden = hidden > 0 || key === 'hidden'
 
   // A category link should show its chip even when it starts off-screen.
   useLayoutEffect(() => {
     revealChosen(row.current, row.current?.querySelector<HTMLElement>('[aria-pressed="true"]') ?? null)
   }, [key])
 
-  // The pill follows the chosen chip after every render (counts and the
-  // language change the chips' widths), sliding only when the choice did…
-  useLayoutEffect(() => {
-    if (!list.current || !pill.current) return
-    placePill(list.current, pill.current, placed.current !== null && placed.current !== key)
-    placed.current = key
-  })
-  // …and as the fonts load, or a laptop's window narrows and they wrap.
-  useEffect(() => {
-    const ul = list.current
-    const el = pill.current
-    if (!ul || !el) return
-    const watch = new ResizeObserver(() => placePill(ul, el, false))
-    for (const item of [ul, ...ul.children]) if (item !== el) watch.observe(item)
-    return () => watch.disconnect()
-  }, [categories, showHidden])
-
-  // Every chip is white: the chosen one's colour is the pill, which
-  // slides to the chip tapped instead of the colour jumping there.
+  const hidden = products.filter((product) => product.status === 'inactive').length
   const chip = (on: boolean) =>
-    `flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border border-slate-300 bg-surface px-4 text-sm font-medium whitespace-nowrap transition-colors ${GLIDE} hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100 ${
-      on ? 'text-on-accent' : 'text-slate-700'
+    `flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 ${
+      on ? 'border-accent bg-accent text-on-accent' : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50 active:bg-slate-100'
     }`
   const item = (id: string, value: Chip, label: ReactNode, count: number) => {
     const on = key === id
     return (
       <li key={id}>
         <button type="button" aria-pressed={on} onClick={() => onChoose(value)} className={chip(on)}>
-          {/* Above the pill (z-1), which covers the chip's white. */}
-          <span className="relative z-2 flex items-center gap-1.5">
-            {label}
-            <span className={`font-normal tabular-nums transition-[color,opacity] ${GLIDE} ${on ? 'opacity-75' : 'text-slate-500'}`}>
-              {count}
-            </span>
-          </span>
+          {label}
+          <span className={`font-normal tabular-nums ${on ? 'opacity-75' : 'text-slate-500'}`}>{count}</span>
         </button>
       </li>
     )
@@ -262,9 +304,9 @@ function FilterChips({
         categories.length === 0 && hidden === 0 ? 'lg:hidden' : ''
       }`}
     >
-      <ul ref={list} className="relative isolate flex w-max gap-2 px-4 lg:w-auto lg:flex-wrap lg:px-0">
+      <ul className="flex w-max gap-2 px-4 lg:w-auto lg:flex-wrap lg:px-0">
         {item('all', 'all', p.all, products.length)}
-        {showHidden &&
+        {(hidden > 0 || key === 'hidden') &&
           item(
             'hidden',
             'hidden',
@@ -283,35 +325,9 @@ function FilterChips({
             {categories.length > 0 ? p.editCategories : p.addCategories}
           </Link>
         </li>
-        <li
-          ref={pill}
-          aria-hidden
-          className={`pointer-events-none absolute top-0 left-0 z-1 rounded-full bg-accent transition-[translate,width,height] ${GLIDE}`}
-        />
       </ul>
     </div>
   )
-}
-
-// The pill's slide, and the chips' colours as it passes.
-const GLIDE = 'duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]'
-
-/** Puts the pill over the chosen chip, sliding there or not; hides it
- * while no chip is chosen. Left alone when it's already there, so a
- * slide that's playing isn't cut short. */
-function placePill(list: HTMLElement, pill: HTMLElement, slide: boolean) {
-  const chosen = list.querySelector<HTMLElement>('[aria-pressed="true"]')
-  pill.hidden = !chosen
-  if (!chosen) return
-  const box = list.getBoundingClientRect()
-  const at = chosen.getBoundingClientRect()
-  const where = [at.left - box.left, at.top - box.top, at.width, at.height]
-  if (pill.dataset.at === where.join()) return
-  pill.dataset.at = where.join()
-  pill.style.transitionDuration = slide ? '' : '0s'
-  pill.style.translate = `${where[0]}px ${where[1]}px`
-  pill.style.width = `${where[2]}px`
-  pill.style.height = `${where[3]}px`
 }
 
 /** Few left: amber with the number; none: red; hidden: grey (with its
