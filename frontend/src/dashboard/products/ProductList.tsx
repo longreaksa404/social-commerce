@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Badge, Card, DotList, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
-import { revealChosen } from '../../components/revealChosen.ts'
+import { centreChosen } from '../../components/revealChosen.ts'
 import { useT } from '../../i18n/useT.ts'
 import { thumbnailUrl } from '../../lib/images.ts'
 import { deal, useColumnCount } from '../../components/columns.ts'
@@ -36,32 +36,10 @@ export function ProductList() {
     }
   }
 
-  // Choosing another chip turns the page: a copy of the products shown
-  // now is kept to slide out while the new ones slide in (turnPage).
-  const results = useRef<HTMLDivElement>(null)
-  const leaving = useRef<{ old: HTMLElement; from: 1 | -1 } | null>(null)
-  const shownKey = hiddenOnly ? 'hidden' : categoryId || 'all'
-  // A chip's place in the row, to slide from its side.
-  const place = (key: string) =>
-    key === 'all' ? 0 : key === 'hidden' ? 1 : 2 + (categories.data?.findIndex((c) => c.id === key) ?? 0)
-  const choose = (chip: Chip) => {
-    const key = typeof chip === 'string' ? chip : chip.id
-    if (key === shownKey) return
-    if (results.current && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      leaving.current = {
-        old: results.current.cloneNode(true) as HTMLElement,
-        from: place(key) > place(shownKey) ? 1 : -1,
-      }
-    }
+  const choose = (chip: Chip) =>
     setParams(chip === 'all' ? {} : chip === 'hidden' ? { status: 'inactive' } : { category: chip.id }, {
       replace: true,
     })
-  }
-  useLayoutEffect(() => {
-    const turn = leaving.current
-    leaving.current = null
-    if (turn && results.current) turnPage(results.current, turn.old, turn.from)
-  }, [shownKey])
 
   const addButton = (
     <Link to="/dashboard/products/new" className={`${buttonClass('primary')} shrink-0`}>
@@ -129,87 +107,38 @@ export function ProductList() {
         onChoose={choose}
       />
 
-      {/* Out to the page's edges (main's padding), so a turning page is
-          cut off there and not at the cards' own edges. */}
-      <div className="relative -mx-4 px-4 lg:-mx-8 lg:px-8">
-        <div ref={results}>
-          {shown.length === 0 ? (
-            <EmptyState
-              icon={SearchX}
-              title={p.noneHereTitle}
-              action={
-                <button type="button" className={buttonClass('secondary')} onClick={() => choose('all')}>
-                  {p.showAll}
-                </button>
-              }
-            >
-              {p.noneHereText}
-            </EmptyState>
-          ) : view === 'grid' ? (
-            <ProductGrid products={shown} currency={currency} />
-          ) : (
-            <>
-              <Card className="divide-y divide-slate-100 overflow-hidden lg:hidden">
-                {shown.map((product, i) => (
-                  <ProductRow
-                    key={product.id}
-                    product={product}
-                    eager={i < EAGER_PHOTOS}
-                    currency={currency}
-                    category={product.category_id ? categoryName.get(product.category_id) : undefined}
-                  />
-                ))}
-              </Card>
-              <ProductTable products={shown} currency={currency} categoryName={categoryName} />
-            </>
-          )}
-        </div>
-      </div>
+      {shown.length === 0 ? (
+        <EmptyState
+          icon={SearchX}
+          title={p.noneHereTitle}
+          action={
+            <button type="button" className={buttonClass('secondary')} onClick={() => setParams({}, { replace: true })}>
+              {p.showAll}
+            </button>
+          }
+        >
+          {p.noneHereText}
+        </EmptyState>
+      ) : view === 'grid' ? (
+        <ProductGrid products={shown} currency={currency} />
+      ) : (
+        <>
+          <Card className="divide-y divide-slate-100 overflow-hidden lg:hidden">
+            {shown.map((product, i) => (
+              <ProductRow
+                key={product.id}
+                product={product}
+                eager={i < EAGER_PHOTOS}
+                currency={currency}
+                category={product.category_id ? categoryName.get(product.category_id) : undefined}
+              />
+            ))}
+          </Card>
+          <ProductTable products={shown} currency={currency} categoryName={categoryName} />
+        </>
+      )}
     </>
   )
-}
-
-/** The products of the chip tapped come in from its side as the ones
- * before slide out the other way, together, like turning a page
- * (founder, 2026-11-03). `old` is a copy of the products before the tap,
- * shown in their place until it's out. The highlight and the row of
- * chips don't move. */
-function turnPage(now: HTMLElement, old: HTMLElement, from: 1 | -1) {
-  const frame = now.parentElement
-  if (!frame) return
-  // A tap while a page is still turning: that one ends where it is.
-  for (const a of now.getAnimations()) a.cancel()
-  for (const el of frame.querySelectorAll(':scope > [data-leaving]')) el.remove()
-
-  old.dataset.leaving = ''
-  old.inert = true
-  old.setAttribute('aria-hidden', 'true')
-  Object.assign(old.style, {
-    position: 'absolute',
-    top: `${now.offsetTop}px`,
-    left: `${now.offsetLeft}px`,
-    width: `${now.offsetWidth}px`,
-    pointerEvents: 'none',
-  })
-  frame.append(old)
-  frame.style.overflowX = 'clip'
-
-  const timing = { duration: 350, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' }
-  // A page's width and a gap apart (the photo grid reaches 8px past its
-  // column on phones, so the two pages' cards keep 16px between them).
-  const away = (side: number) => `calc(${side * 100}% + ${side * 32}px) 0`
-  const going = old.animate({ translate: ['0 0', away(-from)] }, timing)
-  const coming = now.animate({ translate: [away(from), '0 0'] }, timing)
-  // One start for both, so they move edge to edge: left to themselves,
-  // the copy (just added) starts a frame later and they overlap.
-  going.startTime = coming.startTime = document.timeline.currentTime
-  const done = () => {
-    old.remove()
-    // Unclipped again, unless another tap started a new turn.
-    if (!now.getAnimations().length) frame.style.overflowX = ''
-  }
-  coming.onfinish = done
-  coming.oncancel = done
 }
 
 type View = 'grid' | 'list'
@@ -272,10 +201,14 @@ function FilterChips({
   const p = useT().products
   const row = useRef<HTMLDivElement>(null)
   const key = chosen === null || typeof chosen === 'string' ? chosen : chosen.id
+  const shown = useRef(false)
 
-  // A category link should show its chip even when it starts off-screen.
+  // The chosen chip in the middle of the row: there at once when the page
+  // opens (a category link, or back from a product), gliding there when
+  // another chip is tapped.
   useLayoutEffect(() => {
-    revealChosen(row.current, row.current?.querySelector<HTMLElement>('[aria-pressed="true"]') ?? null)
+    centreChosen(row.current, row.current?.querySelector<HTMLElement>('[aria-pressed="true"]') ?? null, shown.current)
+    if (key !== null) shown.current = true
   }, [key])
 
   const hidden = products.filter((product) => product.status === 'inactive').length

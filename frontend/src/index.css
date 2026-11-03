@@ -501,14 +501,6 @@
   }
 }
 
-/* The copy of the products sliding out as the Products page turns
-   (ProductList's turnPage): as they looked, without replaying how they
-   came in (a Card's rise would fade it in again). */
-[data-leaving],
-[data-leaving] * {
-  animation: none;
-}
-
 /* Effects end where they would have ended; nothing loops or waits. */
 @media (prefers-reduced-motion: reduce) {
   *,
