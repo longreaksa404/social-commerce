@@ -496,7 +496,9 @@ function Thumb({ product, eager = false, className }: { product: Product; eager?
   )
 }
 
-/** Phones, List: a row per product. */
+/** Phones, List: a row per product (founder's pick 3A, 2026-11-03: the
+ * name and price at 15px, the details at 13px, so Khmer in them is as
+ * readable as in Khmer's own text-xs). */
 function ProductRow({
   product,
   currency,
@@ -514,13 +516,15 @@ function ProductRow({
       to={`/dashboard/products/${product.id}`}
       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
     >
-      <Thumb product={product} eager={eager} className="size-16" />
+      <Thumb product={product} eager={eager} className="size-14" />
       <span className="min-w-0 flex-1">
-        <span className="line-clamp-2 leading-normal font-medium text-slate-900">{product.name}</span>
-        <span className="mt-0.5 block font-semibold text-slate-900 tabular-nums">{priceLabel(product, currency)}</span>
-        <DotList className="mt-1 text-xs text-slate-500">
-          {product.status === 'inactive' && <Badge>{p.hiddenFromShop}</Badge>}
-          <StockTag product={product} />
+        <span className="line-clamp-2 text-[15px] leading-5 font-medium text-slate-900">{product.name}</span>
+        <span className="mt-0.5 block text-[15px] leading-5 font-semibold text-slate-900 tabular-nums">
+          {priceLabel(product, currency)}
+        </span>
+        <DotList className="mt-1 text-[13px] leading-[18px] text-slate-500">
+          {product.status === 'inactive' && <span className="font-semibold text-slate-600">{p.hiddenFromShop}</span>}
+          <StockWords product={product} />
           {product.has_variants && <span>{p.variantCount(product.variants.length)}</span>}
           {category && <span>{category}</span>}
         </DotList>
@@ -539,7 +543,7 @@ function ListSkeleton() {
       <Card className="divide-y divide-slate-100">
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="flex items-center gap-3 px-4 py-3 sm:p-4">
-            <Skeleton className="size-16 rounded-xl" />
+            <Skeleton className="size-14 rounded-xl" />
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-4 w-16" />
