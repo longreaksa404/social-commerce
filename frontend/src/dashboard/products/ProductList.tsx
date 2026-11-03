@@ -8,7 +8,8 @@ import { useT } from '../../i18n/useT.ts'
 import { thumbnailUrl } from '../../lib/images.ts'
 import { deal, useColumnCount } from '../../components/columns.ts'
 import { EAGER_PHOTOS, NoPhoto } from '../../shop/components.tsx'
-import { priceLabel, totalStock } from '../../lib/products.ts'
+import { formatMoney, moneyParts } from '../../lib/money.ts'
+import { lowestSalePrice, priceLabel, priceRange, totalStock } from '../../lib/products.ts'
 import type { Category, Currency, Product } from '../../lib/types.ts'
 import { useCategories, useProducts, useStore } from '../queries.ts'
 
@@ -261,36 +262,54 @@ function FilterChips({
 /** Few left: amber with the number; none: red; hidden: grey (with its
  * stock, which still matters once it's shown again). "Few" is the
  * seller's own low-stock alert level (Settings → Alerts). */
-function StockTag({ product }: { product: Product }) {
+function useStock(product: Product): { tone: 'neutral' | 'amber' | 'red'; text: string } {
   const p = useT().products
   const level = useStore().data?.low_stock_alert ?? DEFAULT_LOW_STOCK
   const stock = totalStock(product)
-  if (stock === 0) return <Badge tone="red">{p.outOfStock}</Badge>
-  if (stock <= level) return <Badge tone="amber">{p.onlyLeft(stock)}</Badge>
-  return <Badge>{p.inStock(stock)}</Badge>
+  if (stock === 0) return { tone: 'red', text: p.outOfStock }
+  if (stock <= level) return { tone: 'amber', text: p.onlyLeft(stock) }
+  return { tone: 'neutral', text: p.inStock(stock) }
 }
+
+function StockTag({ product }: { product: Product }) {
+  const { tone, text } = useStock(product)
+  return <Badge tone={tone}>{text}</Badge>
+}
+
+/** The same in a card's or row's grey details: plain grey words, amber
+ * or red (as StockTag) only when they need the seller. */
+function StockWords({ product }: { product: Product }) {
+  const { tone, text } = useStock(product)
+  return <span className={tone === 'neutral' ? undefined : `font-semibold ${STOCK_WORDS[tone]}`}>{text}</span>
+}
+
+const STOCK_WORDS = { amber: 'text-amber-700', red: 'text-red-700' }
 
 // A new shop's level, as the backend's notifications.DEFAULT_LOW_STOCK.
 const DEFAULT_LOW_STOCK = 5
 
 /** Photos, each card as tall as its photo (no cropping to a square),
- * packed in columns like a photo wall (`deal`, as the shop's). */
+ * packed in columns like a photo wall (`deal`, as the shop's). The cards
+ * look like Taobao's (founder's pick 2A, 2026-11-03): flat, 8px apart and
+ * from a phone's edges; the name on one line, the price big, a green line
+ * for a sale today, then stock and variants in grey. */
 function ProductGrid({ products, currency }: { products: Product[]; currency: Currency }) {
   const p = useT().products
   const count = useColumnCount()
   return (
-    <div className="flex gap-3">
+    <div className="-mx-2 flex gap-2 sm:mx-0 sm:gap-3">
       {deal(products, count).map((column, c) => (
         <ul key={c} className="min-w-0 flex-1">
           {column.map((product, row) => {
             const hidden = product.status === 'inactive'
             // Its place in the list: the first ones' photos load at once.
             const eager = row * count + c < EAGER_PHOTOS
+            const sale = lowestSalePrice(product)
             return (
-              <li key={product.id} className="pb-3">
+              <li key={product.id} className="pb-2 sm:pb-3">
                 <Link
                   to={`/dashboard/products/${product.id}`}
-                  className="block overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6 transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-[0.98]"
+                  className="block overflow-hidden rounded-xl bg-surface ring-1 ring-slate-900/6 transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-[0.98]"
                 >
                   <span className="relative block">
                     {product.image_urls[0] ? (
@@ -314,14 +333,18 @@ function ProductGrid({ products, currency }: { products: Product[]; currency: Cu
                       </span>
                     )}
                   </span>
-                  <span className="block p-3">
-                    <span className="line-clamp-2 text-sm leading-5 font-medium text-slate-900">{product.name}</span>
-                    <span className="mt-0.5 block text-sm font-semibold text-slate-900 tabular-nums">
-                      {priceLabel(product, currency)}
-                    </span>
-                    <span className="mt-1.5 block">
-                      <StockTag product={product} />
-                    </span>
+                  <span className="block px-2.5 pt-2 pb-2.5">
+                    <span className="block truncate text-[15px] leading-[22px] text-slate-900">{product.name}</span>
+                    {sale !== null && (
+                      <span className="mt-0.5 block text-[13px] leading-[18px] font-medium text-emerald-700">
+                        {(product.has_variants ? p.saleFrom : p.sale)(formatMoney(sale, currency))}
+                      </span>
+                    )}
+                    <BigPrice product={product} currency={currency} />
+                    <DotList className="mt-0.5 text-xs text-slate-500">
+                      <StockWords product={product} />
+                      {product.has_variants && <span>{p.variantCount(product.variants.length)}</span>}
+                    </DotList>
                   </span>
                 </Link>
               </li>
@@ -330,6 +353,27 @@ function ProductGrid({ products, currency }: { products: Product[]; currency: Cu
         </ul>
       ))}
     </div>
+  )
+}
+
+/** "$1,399.00" with the whole dollars big and the $ and cents small, as
+ * Taobao's cards; a range's top follows it small (on the next line when
+ * it doesn't fit beside it). */
+function BigPrice({ product, currency }: { product: Product; currency: Currency }) {
+  const [low, high] = priceRange(product)
+  const { before, whole, cents, after } = moneyParts(low, currency)
+  return (
+    <span className="flex flex-wrap items-baseline gap-x-1 text-slate-900 tabular-nums">
+      <span className="text-sm leading-7 font-semibold whitespace-nowrap">
+        {before}
+        <span className="text-[21px] font-bold tracking-tight">{whole}</span>
+        {cents}
+        {after}
+      </span>
+      {high !== low && (
+        <span className="text-[13px] leading-[18px] font-semibold whitespace-nowrap">– {formatMoney(high, currency)}</span>
+      )}
+    </span>
   )
 }
 

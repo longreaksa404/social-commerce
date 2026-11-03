@@ -42,6 +42,9 @@ export const products = {
     sortBy: { en: (column: string) => `Sort by ${column}`, km: (column: string) => `តម្រៀបតាម${column}` },
   },
   variantCount: { en: (n: number) => `${n} variants`, km: (n: number) => `ជម្រើស ${n}` },
+  // A photo card's green line while a sale lowers the price today.
+  sale: { en: (price: string) => `Sale ${price}`, km: (price: string) => `ប្រូម៉ូសិន ${price}` },
+  saleFrom: { en: (price: string) => `Sale from ${price}`, km: (price: string) => `ប្រូម៉ូសិន ចាប់ពី ${price}` },
 
   newProduct: { en: 'New product', km: 'ទំនិញថ្មី' },
   editProduct: { en: 'Edit product', km: 'កែទំនិញ' },
