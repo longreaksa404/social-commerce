@@ -8,8 +8,8 @@ import { useT } from '../../i18n/useT.ts'
 import { thumbnailUrl } from '../../lib/images.ts'
 import { deal, useColumnCount } from '../../components/columns.ts'
 import { EAGER_PHOTOS, NoPhoto } from '../../shop/components.tsx'
-import { formatMoney, moneyParts } from '../../lib/money.ts'
-import { lowestSalePrice, priceLabel, priceRange, totalStock } from '../../lib/products.ts'
+import { formatMoney } from '../../lib/money.ts'
+import { lowestSalePrice, priceLabel, totalStock } from '../../lib/products.ts'
 import type { Category, Currency, Product } from '../../lib/types.ts'
 import { useCategories, useProducts, useStore } from '../queries.ts'
 
@@ -291,8 +291,9 @@ const DEFAULT_LOW_STOCK = 5
 /** Photos, each card as tall as its photo (no cropping to a square),
  * packed in columns like a photo wall (`deal`, as the shop's). The cards
  * look like Taobao's (founder's pick 2A, 2026-11-03): flat, 8px apart and
- * from a phone's edges; the name on one line, the price big, a green line
- * for a sale today, then stock and variants in grey. */
+ * from a phone's edges; the name on one line, the price on one line in
+ * one size (the founder's pick over big dollars and small cents), a green
+ * line for a sale today, then stock and variants in grey. */
 function ProductGrid({ products, currency }: { products: Product[]; currency: Currency }) {
   const p = useT().products
   const count = useColumnCount()
@@ -340,7 +341,11 @@ function ProductGrid({ products, currency }: { products: Product[]; currency: Cu
                         {(product.has_variants ? p.saleFrom : p.sale)(formatMoney(sale, currency))}
                       </span>
                     )}
-                    <BigPrice product={product} currency={currency} />
+                    {/* 14px, a little tight: "$2,149.00 – $2,349.00" fits a
+                        card on one line down to a 375px phone (149 of 156px). */}
+                    <span className="mt-0.5 block text-sm leading-[22px] font-semibold tracking-tight text-slate-900 tabular-nums">
+                      {priceLabel(product, currency)}
+                    </span>
                     <DotList className="mt-0.5 text-xs text-slate-500">
                       <StockWords product={product} />
                       {product.has_variants && <span>{p.variantCount(product.variants.length)}</span>}
@@ -353,27 +358,6 @@ function ProductGrid({ products, currency }: { products: Product[]; currency: Cu
         </ul>
       ))}
     </div>
-  )
-}
-
-/** "$1,399.00" with the whole dollars big and the $ and cents small, as
- * Taobao's cards; a range's top follows it small (on the next line when
- * it doesn't fit beside it). */
-function BigPrice({ product, currency }: { product: Product; currency: Currency }) {
-  const [low, high] = priceRange(product)
-  const { before, whole, cents, after } = moneyParts(low, currency)
-  return (
-    <span className="flex flex-wrap items-baseline gap-x-1 text-slate-900 tabular-nums">
-      <span className="text-sm leading-7 font-semibold whitespace-nowrap">
-        {before}
-        <span className="text-[21px] font-bold tracking-tight">{whole}</span>
-        {cents}
-        {after}
-      </span>
-      {high !== low && (
-        <span className="text-[13px] leading-[18px] font-semibold whitespace-nowrap">– {formatMoney(high, currency)}</span>
-      )}
-    </span>
   )
 }
 

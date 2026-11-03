@@ -5,15 +5,6 @@ export function formatMoney(amount: string | number, currency: Currency): string
   return currency === 'KHR' ? `${formatAmount(amount, currency)}៛` : `$${formatAmount(amount, currency)}`
 }
 
-/** formatMoney in pieces, for a price drawn with big whole units and small
- * cents: "$" "1,399" ".00" ""; riel "" "50,000" "" "៛". */
-export function moneyParts(amount: string | number, currency: Currency) {
-  const [whole, cents] = formatAmount(amount, currency).split('.')
-  return currency === 'KHR'
-    ? { before: '', whole, cents: '', after: '៛' }
-    : { before: '$', whole, cents: `.${cents}`, after: '' }
-}
-
 /** The number alone: "12.50", "50,000" (the KHQR card puts USD or KHR
  * beside it). */
 export function formatAmount(amount: string | number, currency: Currency): string {
