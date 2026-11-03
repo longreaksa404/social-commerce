@@ -84,7 +84,7 @@ export function PayNowSheet({
       }}
       onClick={(e) => e.target === dialog.current && onClose()}
       aria-label={p.payTitle(formatMoney(order.payment.amount, order.currency))}
-      className="m-0 mt-auto w-full max-w-none overscroll-contain rounded-t-3xl bg-surface p-0 shadow-xl open:animate-sheet-up data-closing:animate-sheet-down data-closing:backdrop:animate-fade-out sm:m-auto sm:max-w-sm sm:rounded-3xl sm:open:animate-zoom-in sm:data-closing:animate-zoom-out"
+      className="theme-light m-0 mt-auto w-full max-w-none overscroll-contain rounded-t-3xl bg-surface p-0 shadow-xl open:animate-sheet-up data-closing:animate-sheet-down data-closing:backdrop:animate-fade-out sm:m-auto sm:max-w-sm sm:rounded-3xl sm:open:animate-zoom-in sm:data-closing:animate-zoom-out"
     >
       {shown && <PayNow shop={shop} order={order} khqr={khqr} phone={phone} onClose={onClose} />}
     </dialog>

@@ -361,6 +361,85 @@
   --color-sky-950: oklch(97.7% 0.013 236.62);
 }
 
+/* Light inside, also in dark mode: the pay popup, a bank's KHQR sheet
+   (founder, 2026-11-03: "it should show light like this in both dark and
+   light mode"). Every colour the dark block above flips, back to its
+   light value. */
+:root[data-theme='dark'] .theme-light {
+  color-scheme: light;
+  --color-surface: --theme(--color-surface inline);
+  --color-raised: --theme(--color-raised inline);
+  --color-tile: --theme(--color-tile inline);
+  --color-accent: --theme(--color-accent inline);
+  --color-accent-hover: --theme(--color-accent-hover inline);
+  --color-brand: --theme(--color-brand inline);
+  --color-oak: --theme(--color-oak inline);
+  --color-oak-ink: --theme(--color-oak-ink inline);
+  --color-navy-50: --theme(--color-navy-50 inline);
+  --color-navy-100: --theme(--color-navy-100 inline);
+  --color-navy-200: --theme(--color-navy-200 inline);
+  --color-navy-300: --theme(--color-navy-300 inline);
+  --color-navy-400: --theme(--color-navy-400 inline);
+  --color-navy-500: --theme(--color-navy-500 inline);
+  --color-navy-600: --theme(--color-navy-600 inline);
+  --color-navy-700: --theme(--color-navy-700 inline);
+  --color-navy-800: --theme(--color-navy-800 inline);
+  --color-navy-900: --theme(--color-navy-900 inline);
+  --color-navy-950: --theme(--color-navy-950 inline);
+  --shadow-card: --theme(--shadow-card inline);
+  --color-slate-50: --theme(--color-slate-50 inline);
+  --color-slate-100: --theme(--color-slate-100 inline);
+  --color-slate-200: --theme(--color-slate-200 inline);
+  --color-slate-300: --theme(--color-slate-300 inline);
+  --color-slate-400: --theme(--color-slate-400 inline);
+  --color-slate-500: --theme(--color-slate-500 inline);
+  --color-slate-600: --theme(--color-slate-600 inline);
+  --color-slate-700: --theme(--color-slate-700 inline);
+  --color-slate-800: --theme(--color-slate-800 inline);
+  --color-slate-900: --theme(--color-slate-900 inline);
+  --color-slate-950: --theme(--color-slate-950 inline);
+  --color-emerald-50: --theme(--color-emerald-50 inline);
+  --color-emerald-100: --theme(--color-emerald-100 inline);
+  --color-emerald-200: --theme(--color-emerald-200 inline);
+  --color-emerald-300: --theme(--color-emerald-300 inline);
+  --color-emerald-400: --theme(--color-emerald-400 inline);
+  --color-emerald-600: --theme(--color-emerald-600 inline);
+  --color-emerald-700: --theme(--color-emerald-700 inline);
+  --color-emerald-800: --theme(--color-emerald-800 inline);
+  --color-emerald-900: --theme(--color-emerald-900 inline);
+  --color-emerald-950: --theme(--color-emerald-950 inline);
+  --color-red-50: --theme(--color-red-50 inline);
+  --color-red-100: --theme(--color-red-100 inline);
+  --color-red-200: --theme(--color-red-200 inline);
+  --color-red-300: --theme(--color-red-300 inline);
+  --color-red-400: --theme(--color-red-400 inline);
+  --color-red-600: --theme(--color-red-600 inline);
+  --color-red-700: --theme(--color-red-700 inline);
+  --color-red-800: --theme(--color-red-800 inline);
+  --color-red-900: --theme(--color-red-900 inline);
+  --color-red-950: --theme(--color-red-950 inline);
+  --color-amber-50: --theme(--color-amber-50 inline);
+  --color-amber-100: --theme(--color-amber-100 inline);
+  --color-amber-200: --theme(--color-amber-200 inline);
+  --color-amber-300: --theme(--color-amber-300 inline);
+  --color-amber-400: --theme(--color-amber-400 inline);
+  --color-amber-600: --theme(--color-amber-600 inline);
+  --color-amber-700: --theme(--color-amber-700 inline);
+  --color-amber-800: --theme(--color-amber-800 inline);
+  --color-amber-900: --theme(--color-amber-900 inline);
+  --color-amber-950: --theme(--color-amber-950 inline);
+  --color-sky-50: --theme(--color-sky-50 inline);
+  --color-sky-100: --theme(--color-sky-100 inline);
+  --color-sky-200: --theme(--color-sky-200 inline);
+  --color-sky-300: --theme(--color-sky-300 inline);
+  --color-sky-400: --theme(--color-sky-400 inline);
+  --color-sky-600: --theme(--color-sky-600 inline);
+  --color-sky-700: --theme(--color-sky-700 inline);
+  --color-sky-800: --theme(--color-sky-800 inline);
+  --color-sky-900: --theme(--color-sky-900 inline);
+  --color-sky-950: --theme(--color-sky-950 inline);
+}
+
 /* Small Khmer text (UI check #1, founder 2026-10-17): at 12px the
    subscripts are about 4px tall, so in Khmer the small size (text-xs: hints,
    labels over statuses, the tab bar, stock tags) is 13px on a 20px line.
