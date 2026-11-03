@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, EyeOff, LayoutGrid, List, Package, Plus, SearchX, Tags } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Badge, Card, DotList, EmptyState, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { buttonClass } from '../../components/styles.ts'
@@ -40,8 +40,6 @@ export function ProductList() {
     setParams(chip === 'all' ? {} : chip === 'hidden' ? { status: 'inactive' } : { category: chip.id }, {
       replace: true,
     })
-  const results = useRef<HTMLDivElement>(null)
-  useRiseOnChange(results, hiddenOnly ? 'hidden' : categoryId)
 
   const addButton = (
     <Link to="/dashboard/products/new" className={`${buttonClass('primary')} shrink-0`}>
@@ -109,56 +107,38 @@ export function ProductList() {
         onChoose={choose}
       />
 
-      <div ref={results}>
-        {shown.length === 0 ? (
-          <EmptyState
-            icon={SearchX}
-            title={p.noneHereTitle}
-            action={
-              <button type="button" className={buttonClass('secondary')} onClick={() => setParams({}, { replace: true })}>
-                {p.showAll}
-              </button>
-            }
-          >
-            {p.noneHereText}
-          </EmptyState>
-        ) : view === 'grid' ? (
-          <ProductGrid products={shown} currency={currency} />
-        ) : (
-          <>
-            <Card className="divide-y divide-slate-100 overflow-hidden lg:hidden">
-              {shown.map((product, i) => (
-                <ProductRow
-                  key={product.id}
-                  product={product}
-                  eager={i < EAGER_PHOTOS}
-                  currency={currency}
-                  category={product.category_id ? categoryName.get(product.category_id) : undefined}
-                />
-              ))}
-            </Card>
-            <ProductTable products={shown} currency={currency} categoryName={categoryName} />
-          </>
-        )}
-      </div>
+      {shown.length === 0 ? (
+        <EmptyState
+          icon={SearchX}
+          title={p.noneHereTitle}
+          action={
+            <button type="button" className={buttonClass('secondary')} onClick={() => setParams({}, { replace: true })}>
+              {p.showAll}
+            </button>
+          }
+        >
+          {p.noneHereText}
+        </EmptyState>
+      ) : view === 'grid' ? (
+        <ProductGrid products={shown} currency={currency} />
+      ) : (
+        <>
+          <Card className="divide-y divide-slate-100 overflow-hidden lg:hidden">
+            {shown.map((product, i) => (
+              <ProductRow
+                key={product.id}
+                product={product}
+                eager={i < EAGER_PHOTOS}
+                currency={currency}
+                category={product.category_id ? categoryName.get(product.category_id) : undefined}
+              />
+            ))}
+          </Card>
+          <ProductTable products={shown} currency={currency} categoryName={categoryName} />
+        </>
+      )}
     </>
   )
-}
-
-/** The products rise in when another chip is chosen, as the shop's do,
- * instead of the list flicking over to the new ones. An animation rather
- * than a new React key, so the table's sort and the loaded photos stay. */
-function useRiseOnChange(ref: RefObject<HTMLElement | null>, key: string) {
-  const last = useRef(key)
-  useLayoutEffect(() => {
-    if (last.current === key) return
-    last.current = key
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    ref.current?.animate(
-      { opacity: [0, 1], translate: ['0 8px', '0 0'] },
-      { duration: 300, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
-    )
-  }, [ref, key])
 }
 
 type View = 'grid' | 'list'
@@ -220,57 +200,28 @@ function FilterChips({
 }) {
   const p = useT().products
   const row = useRef<HTMLDivElement>(null)
-  const list = useRef<HTMLUListElement>(null)
-  const pill = useRef<HTMLLIElement>(null)
-  // The chip the pill was last put on (null: none yet, or none chosen).
-  const placed = useRef<string | null>(null)
   const key = chosen === null || typeof chosen === 'string' ? chosen : chosen.id
-  const hidden = products.filter((product) => product.status === 'inactive').length
-  const showHidden = hidden > 0 || key === 'hidden'
 
-  // A category link should show its chip even when it starts off-screen:
-  // there at once when the page opens on it, gliding over when tapped.
+  // A category link should show its chip even when it starts off-screen.
   useLayoutEffect(() => {
-    const el = row.current
-    if (!el) return
-    el.style.scrollBehavior = placed.current === null ? 'auto' : 'smooth'
-    revealChosen(el, el.querySelector<HTMLElement>('[aria-pressed="true"]'))
+    revealChosen(row.current, row.current?.querySelector<HTMLElement>('[aria-pressed="true"]') ?? null)
   }, [key])
 
-  // The pill follows the chosen chip after every render (counts and the
-  // language change the chips' widths), sliding only when the choice did…
-  useLayoutEffect(() => {
-    if (!list.current || !pill.current) return
-    placePill(list.current, pill.current, placed.current !== null && placed.current !== key)
-    placed.current = key
-  })
-  // …and as the fonts load, or a laptop's window narrows and they wrap.
-  useEffect(() => {
-    const ul = list.current
-    const el = pill.current
-    if (!ul || !el) return
-    const watch = new ResizeObserver(() => placePill(ul, el, false))
-    for (const item of [ul, ...ul.children]) if (item !== el) watch.observe(item)
-    return () => watch.disconnect()
-  }, [categories, showHidden])
-
-  // Every chip is white: the chosen one's colour is the pill, which
-  // slides to the chip tapped instead of the colour jumping there.
+  const hidden = products.filter((product) => product.status === 'inactive').length
+  // The colour fades from the chip left to the chip tapped, slow enough
+  // to see (founder, 2026-11-03: a fade, not a flick or a slide).
   const chip = (on: boolean) =>
-    `flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border border-slate-300 bg-surface px-4 text-sm font-medium whitespace-nowrap transition-colors ${GLIDE} hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100 ${
-      on ? 'text-on-accent' : 'text-slate-700'
+    `flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors ${FADE} focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 ${
+      on ? 'border-accent bg-accent text-on-accent' : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50 active:bg-slate-100'
     }`
   const item = (id: string, value: Chip, label: ReactNode, count: number) => {
     const on = key === id
     return (
       <li key={id}>
         <button type="button" aria-pressed={on} onClick={() => onChoose(value)} className={chip(on)}>
-          {/* Above the pill (z-1), which covers the chip's white. */}
-          <span className="relative z-2 flex items-center gap-1.5">
-            {label}
-            <span className={`font-normal tabular-nums transition-[color,opacity] ${GLIDE} ${on ? 'opacity-75' : 'text-slate-500'}`}>
-              {count}
-            </span>
+          {label}
+          <span className={`font-normal tabular-nums transition-[color,opacity] ${FADE} ${on ? 'opacity-75' : 'text-slate-500'}`}>
+            {count}
           </span>
         </button>
       </li>
@@ -286,9 +237,9 @@ function FilterChips({
         categories.length === 0 && hidden === 0 ? 'lg:hidden' : ''
       }`}
     >
-      <ul ref={list} className="relative isolate flex w-max gap-2 px-4 lg:w-auto lg:flex-wrap lg:px-0">
+      <ul className="flex w-max gap-2 px-4 lg:w-auto lg:flex-wrap lg:px-0">
         {item('all', 'all', p.all, products.length)}
-        {showHidden &&
+        {(hidden > 0 || key === 'hidden') &&
           item(
             'hidden',
             'hidden',
@@ -307,36 +258,12 @@ function FilterChips({
             {categories.length > 0 ? p.editCategories : p.addCategories}
           </Link>
         </li>
-        <li
-          ref={pill}
-          aria-hidden
-          className={`pointer-events-none absolute top-0 left-0 z-1 rounded-full bg-accent transition-[translate,width,height] ${GLIDE}`}
-        />
       </ul>
     </div>
   )
 }
 
-// The pill's slide, and the chips' colours as it passes.
-const GLIDE = 'duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]'
-
-/** Puts the pill over the chosen chip, sliding there or not; hides it
- * while no chip is chosen. Left alone when it's already there, so a
- * slide that's playing isn't cut short. */
-function placePill(list: HTMLElement, pill: HTMLElement, slide: boolean) {
-  const chosen = list.querySelector<HTMLElement>('[aria-pressed="true"]')
-  pill.hidden = !chosen
-  if (!chosen) return
-  const box = list.getBoundingClientRect()
-  const at = chosen.getBoundingClientRect()
-  const where = [at.left - box.left, at.top - box.top, at.width, at.height]
-  if (pill.dataset.at === where.join()) return
-  pill.dataset.at = where.join()
-  pill.style.transitionDuration = slide ? '' : '0s'
-  pill.style.translate = `${where[0]}px ${where[1]}px`
-  pill.style.width = `${where[2]}px`
-  pill.style.height = `${where[3]}px`
-}
+const FADE = 'duration-300 ease-out'
 
 /** Few left: amber with the number; none: red; hidden: grey (with its
  * stock, which still matters once it's shown again). "Few" is the
