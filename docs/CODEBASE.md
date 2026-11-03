@@ -1521,7 +1521,10 @@ is wrapped in try/catch (private mode).
   shop) slides the copy out and its products in, a page's width and
   32px apart, clipped to the page's edges only while it turns. The copy
   has `data-leaving` (`index.css`: no animations of its own); the new
-  products' own entrance animations are finished at once.
+  products' own entrance animations are finished at once. The Orders
+  list turns too (its tabs keep the copy); `ready` waits for the tab's
+  own orders (till then the last tab's stay, `keepPreviousData`), within
+  3 s of the tap.
 - `components/effects.ts` (confetti, vibration, `reducedMotion()`),
   `components/useBump.ts` (re-run an animation when a value changes),
   `shop/fly.ts` (photo flies into the cart).

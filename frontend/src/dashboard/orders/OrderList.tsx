@@ -2,6 +2,8 @@ import { CalendarClock, ExternalLink, Inbox, MousePointerClick, Package, Plus, S
 import { useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { useChosenMarker, type Place } from '../../components/chosenMarker.ts'
+import { keepPage } from '../../components/pageTurn.ts'
+import { TurningPage } from '../../components/TurningPage.tsx'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card, EmptyState, ErrorState, Skeleton } from '../../components/ui.tsx'
 import type { Messages } from '../../i18n/core.ts'
@@ -167,7 +169,7 @@ function OrdersHeader() {
             className="-mx-4 min-w-0 overflow-x-auto [scrollbar-width:none] max-lg:fade-x lg:mx-0 lg:flex-1"
           >
             <ul ref={list} className="relative flex w-max min-w-full gap-1 border-b border-slate-200 px-4 lg:px-0">
-              {FILTERS.map((f) => {
+              {FILTERS.map((f, i) => {
                 const active = f.key === filter.key
                 const count = countOf(f.statuses)
                 const hot = f.key === 'new' && (count ?? 0) > 0
@@ -177,7 +179,11 @@ function OrdersHeader() {
                       type="button"
                       aria-pressed={active}
                       data-chosen={active || undefined}
-                      onClick={() => choose(f.key)}
+                      onClick={() => {
+                        // The list turns like a page, from this tab's side.
+                        if (!active) keepPage('orders', i > FILTERS.findIndex((x) => x.key === filter.key) ? 1 : -1)
+                        choose(f.key)
+                      }}
                       className={`relative flex min-h-11 items-center gap-2 rounded-t-lg px-3 text-sm font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 ${
                         active ? 'text-slate-900' : 'text-slate-500 hover:text-slate-900'
                       }`}
@@ -219,8 +225,11 @@ function OrderList({ selectedId }: { selectedId: string | undefined }) {
 
   if (countOf([]) === 0) return <NoOrdersYet />
 
+  // Another tab turns the list like a page, once its own orders are here
+  // (till then the last tab's stay). To the page's edges on phones; on
+  // laptops a little past the list's column, into the gaps.
   return (
-    <>
+    <TurningPage turn="orders" page={filter.key} ready={!orders.isPlaceholderData} className="-mx-4 px-4 lg:-mx-3 lg:px-3">
       {shown.length === 0 ? (
         <EmptyState icon={SearchX} title={t.orders.noneHereTitle}>
           {t.orders.noneHereText}
@@ -258,7 +267,7 @@ function OrderList({ selectedId }: { selectedId: string | undefined }) {
           {t.orders.showMore}
         </Button>
       )}
-    </>
+    </TurningPage>
   )
 }
 

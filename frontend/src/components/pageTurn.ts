@@ -29,11 +29,13 @@ export function keepPage(turn: string, from: 1 | -1) {
   kept.set(turn, { old: el.cloneNode(true) as HTMLElement, from, at: performance.now() })
 }
 
-/** The copy kept for this page, if a chip was tapped just now. */
+/** The copy kept for this page, if a chip was tapped just now (within 3
+ * s: an Orders tab's orders may take a moment to come; later than that,
+ * they just show). */
 export function takePage(turn: string) {
   const page = kept.get(turn)
   kept.delete(turn)
-  return page && performance.now() - page.at < 1000 ? page : null
+  return page && performance.now() - page.at < 3000 ? page : null
 }
 
 /** Slides `old` (the copy) out of `now`'s place and `now` in, as one
