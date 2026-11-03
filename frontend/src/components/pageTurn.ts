@@ -65,9 +65,18 @@ export function turnPage(now: HTMLElement, old: HTMLElement, from: 1 | -1) {
   frame.style.overflowX = 'clip'
 
   const timing = { duration: 350, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' }
-  // 32px apart: the photo grid reaches 8px past its column on phones,
-  // so the two pages' cards keep 16px between them.
-  const away = (side: number) => `calc(${side * 100}% + ${side * 32}px) 0`
+  // Apart by what the content reaches past its column (phones: the photo
+  // grid 8px, a list's card out to the screen's edges, 16px) on both
+  // sides, plus 16px, so the two pages' cards keep 16px between them.
+  const box = now.getBoundingClientRect()
+  let reach = 0
+  for (const el of now.querySelectorAll(':scope > *, :scope > * > *, :scope > * > * > *')) {
+    const r = el.getBoundingClientRect()
+    // Not shown here (the phones' list on a laptop): no box at all.
+    if (r.width) reach = Math.max(reach, box.left - r.left, r.right - box.right)
+  }
+  const gap = 2 * Math.round(reach) + 16
+  const away = (side: number) => `calc(${side * 100}% + ${side * gap}px) 0`
   const going = old.animate({ translate: ['0 0', away(-from)] }, timing)
   const coming = now.animate({ translate: [away(from), '0 0'] }, timing)
   // One start for both, so they move edge to edge: left to themselves,
