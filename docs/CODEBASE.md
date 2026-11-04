@@ -1538,7 +1538,10 @@ is wrapped in try/catch (private mode).
   3 s of the tap.
 - `components/effects.ts` (confetti, vibration, `reducedMotion()`),
   `components/useBump.ts` (re-run an animation when a value changes),
-  `shop/fly.ts` (photo flies into the cart).
+  `shop/fly.ts` (photo flies into the cart, 0.45 s; what's in the air is
+  kept in `useFlying()` and left out of the header's cart count and the
+  cart bar's items and total until it lands; cart page check 2B,
+  2026-11-04).
 - `shop/CurrentOrder.tsx`: `CurrentOrderButton`, in the shop's header
   (`ShopLayout`) while an order placed on this device is in progress,
   except on the order, checkout and Your orders pages: a truck (a box

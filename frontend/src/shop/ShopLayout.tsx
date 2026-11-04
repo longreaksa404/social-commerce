@@ -13,7 +13,7 @@ import { useShopColor } from './colors.ts'
 import { CurrentOrderButton } from './CurrentOrder.tsx'
 import { MadeWithOak } from './MadeWithOak.tsx'
 import { openedLink } from './device.ts'
-import { onCartLanded } from './fly.ts'
+import { onCartLanded, useFlying } from './fly.ts'
 import { isNotFound, trackView, useShop } from './queries.ts'
 import { useMiniApp } from './miniApp.ts'
 
@@ -39,8 +39,9 @@ export function ShopLayout() {
   const home = useMatch('/shop/:storeSlug') !== null
   const category = useMatch('/shop/:storeSlug/category/:categorySlug') !== null
   const browsing = home || category
-  const { count } = useCart(storeSlug)
-  const cartBar = browsing && count > 0
+  // What's still flying to the cart doesn't count yet (cart page check 2B).
+  const shown = useCart(storeSlug).count - useFlying().count
+  const cartBar = browsing && shown > 0
   // On a phone the cover starts at the very top, under the header's
   // buttons (shop page check 1A); not under the paused notice, which keeps
   // the top. The same rule as ShopHome's CoverBand.
@@ -211,10 +212,13 @@ function onScroll(notify: () => void) {
 /** At the bottom of the shop's grid pages while the cart has something:
  * how many, the total, and the way to the cart, always in reach. */
 function CartBar({ slug, currency }: { slug: string; currency: Currency | undefined }) {
-  const { lines, count } = useCart(slug)
+  const { lines, count: all } = useCart(slug)
+  const flying = useFlying()
   const t = useT()
-  // The prices saved when added; the cart page checks them again.
-  const total = lines.reduce((sum, line) => sum + toCents(line.price) * line.quantity, 0)
+  // The prices saved when added; the cart page checks them again. What's
+  // still flying to the cart counts once it lands (cart page check 2B).
+  const count = all - flying.count
+  const total = lines.reduce((sum, line) => sum + toCents(line.price) * line.quantity, 0) - flying.cents
   return (
     // Phones and tablets: on a laptop the cart in the header is in reach.
     <div className="fixed inset-x-0 bottom-0 z-30 animate-rise px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:hidden">
@@ -235,7 +239,8 @@ function CartBar({ slug, currency }: { slug: string; currency: Currency | undefi
 }
 
 function CartButton({ slug }: { slug: string }) {
-  const { count } = useCart(slug)
+  // What's still flying here counts once it lands (cart page check 2B).
+  const count = useCart(slug).count - useFlying().count
   const t = useT()
   // Bumps each time something added lands in it (shop/fly.ts).
   const [bumps, setBumps] = useState(0)

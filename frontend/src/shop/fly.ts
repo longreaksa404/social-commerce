@@ -1,15 +1,41 @@
+import { useSyncExternalStore } from 'react'
 import { reducedMotion } from '../components/effects.ts'
 
 // Added to the cart: the product's photo flies from the page into the cart
 // button in the header, which bumps as it lands, so the customer sees
-// where their things went.
+// where their things went. The cart's numbers (the header's count, the
+// cart bar's items and total) change as it lands, not at the tap, and the
+// flight is quick (cart page check 2B, founder 2026-11-04: "make it more
+// faster"; 0.7 s before).
 
 const LANDED = 'sc:cart-landed'
-const DURATION = 700
+const DURATION = 450
+
+/** What's added but still flying: the cart's numbers leave it out until
+ * it lands (useFlying). */
+export type Load = { count: number; cents: number }
+let flying: Load = { count: 0, cents: 0 }
+const watchers = new Set<() => void>()
+function carry(load: Load, sign: 1 | -1) {
+  flying = { count: flying.count + sign * load.count, cents: flying.cents + sign * load.cents }
+  watchers.forEach((notify) => notify())
+}
+
+/** What's on its way to the cart now; nothing when it's all landed. */
+export function useFlying(): Load {
+  return useSyncExternalStore(
+    (notify) => {
+      watchers.add(notify)
+      return () => watchers.delete(notify)
+    },
+    () => flying,
+  )
+}
 
 /** Flies a round copy of `image` (or a green dot, without one) from the
- * middle of `from` to the cart button. */
-export function flyToCart(from: Element, image: string | null) {
+ * middle of `from` to the cart button. `load`: what was just added, kept
+ * out of the cart's numbers until it lands. */
+export function flyToCart(from: Element, image: string | null, load?: Load) {
   const cart = document.querySelector('[data-cart-button]')
   if (!cart || reducedMotion()) return landed()
   const start = from.getBoundingClientRect()
@@ -35,6 +61,7 @@ export function flyToCart(from: Element, image: string | null) {
   if (image) inner.style.backgroundImage = `url("${image}")`
   outer.append(inner)
   document.body.append(outer)
+  if (load) carry(load, 1)
 
   const dx = end.left + end.width / 2 - x
   const dy = end.top + end.height / 2 - y
@@ -53,6 +80,7 @@ export function flyToCart(from: Element, image: string | null) {
   )
   flight.onfinish = flight.oncancel = () => {
     outer.remove()
+    if (load) carry(load, -1)
     landed()
   }
 }

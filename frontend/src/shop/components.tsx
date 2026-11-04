@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router'
 import { ChipRow } from '../components/ChipRow.tsx'
 import { Badge, Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { thumbnailUrl } from '../lib/images.ts'
-import { formatCardPrice } from '../lib/money.ts'
+import { formatCardPrice, toCents } from '../lib/money.ts'
 import { formatCalendarDay } from '../lib/orders.ts'
 import { useT } from '../i18n/useT.ts'
 import type { ShopProductCard, ShopStore } from '../lib/types.ts'
@@ -251,7 +251,7 @@ function QuickAdd({ shop, product }: { shop: ShopStore; product: ShopProductCard
 
   function add(event: MouseEvent<HTMLButtonElement>) {
     const photo = event.currentTarget.parentElement?.querySelector('img')
-    flyToCart(photo ?? event.currentTarget, photo?.currentSrc || null)
+    flyToCart(photo ?? event.currentTarget, photo?.currentSrc || null, { count: 1, cents: toCents(product.price_min) })
     buzz()
     cart.add({
       productId: product.id,

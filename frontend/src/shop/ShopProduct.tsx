@@ -5,7 +5,7 @@ import { buzz, reducedMotion } from '../components/effects.ts'
 import { useFeedback } from '../components/feedback.ts'
 import { Button, ErrorState, Skeleton } from '../components/ui.tsx'
 import { buttonClass, cardClass } from '../components/styles.ts'
-import { formatMoney, formatPriceRange } from '../lib/money.ts'
+import { formatMoney, formatPriceRange, toCents } from '../lib/money.ts'
 import { useT } from '../i18n/useT.ts'
 import type { ShopProduct as Product, ShopStore, ShopVariant } from '../lib/types.ts'
 import { MAX_QUANTITY, useCart } from './cart.ts'
@@ -183,7 +183,8 @@ function AddToCart({
    * Buy now goes without it: the cart page opens at once. */
   function add(button: HTMLElement | null) {
     if (button) {
-      flyToCart(...flightStart(photos.current, button))
+      const price = toCents(variant?.price ?? product.price)
+      flyToCart(...flightStart(photos.current, button), { count: amount, cents: price * amount })
       buzz()
     }
     cart.add({
