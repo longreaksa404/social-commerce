@@ -468,6 +468,28 @@
   mask-image: linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent);
 }
 
+/* The shop header's buttons while they sit on the cover photo (phones,
+   shop page check 1A, founder 2026-11-04): each on a soft round, so it
+   reads on any photo, like a page in the Facebook app. */
+@utility on-photo {
+  & > * {
+    position: relative;
+    isolation: isolate;
+  }
+  & > *::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    z-index: -1;
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--color-raised) 90%, transparent);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+  }
+  & > :is(a, button):hover {
+    background-color: transparent;
+  }
+}
+
 @layer base {
   html {
     /* Inherited: any other underline clears Khmer letters too. */

@@ -76,12 +76,16 @@ export function ShopIntro({ shop }: { shop: ShopStore }) {
 /** With a cover (founder's pick 3A, 2026-10-15), like the shop's Facebook
  * page: the cover across the top, edge to edge on phones, the logo over
  * its bottom edge and the name beside it, the same on laptops (the header
- * stays small there; ShopLayout). */
+ * stays small there; ShopLayout). On phones it starts at the very top,
+ * under the header's buttons (shop page check 1A, 2026-11-04), unless the
+ * paused notice is at the top (ShopLayout's `underCover`). */
 function CoverBand({ shop, cover }: { shop: ShopStore; cover: string }) {
   const [failed, setFailed] = useState<string | null>(null)
+  // Up past main's 16px and the header (56px and the phone's top inset).
+  const top = shop.orders_paused ? '-mt-4' : '-mt-4 max-sm:mt-[calc(-4.5rem-env(safe-area-inset-top))]'
   return (
     <div className="mb-5">
-      <div className="-mx-4 -mt-4 aspect-[3/1] overflow-hidden bg-navy-100 sm:mx-0 sm:mt-0 sm:rounded-2xl">
+      <div className={`-mx-4 ${top} aspect-[3/1] overflow-hidden bg-navy-100 sm:mx-0 sm:mt-0 sm:rounded-2xl`}>
         {failed !== cover && (
           <img
             src={cover}

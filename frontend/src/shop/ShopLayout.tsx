@@ -41,6 +41,11 @@ export function ShopLayout() {
   const browsing = home || category
   const { count } = useCart(storeSlug)
   const cartBar = browsing && count > 0
+  // On a phone the cover starts at the very top, under the header's
+  // buttons (shop page check 1A); not under the paused notice, which keeps
+  // the top. The same rule as ShopHome's CoverBand.
+  const phone = useSyncExternalStore(onPhoneChange, () => PHONE.matches)
+  const underCover = browsing && phone && Boolean(shop.data?.cover_url) && !shop.data?.orders_paused
 
   if (isNotFound(shop.error)) {
     return (
@@ -69,7 +74,7 @@ export function ShopLayout() {
           className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-linear-to-b from-navy-50 to-transparent"
         />
       )}
-      <Header shop={shop.data} slug={storeSlug} home={browsing} order={showOrder} />
+      <Header shop={shop.data} slug={storeSlug} home={browsing} order={showOrder} underCover={underCover} />
       <main className="mx-auto w-full max-w-6xl px-4 pt-4 sm:pt-6">
         {shop.isPending && <SlowNotice className="mb-4" />}
         {shop.data?.orders_paused && <PausedNotice shop={shop.data} />}
@@ -102,12 +107,15 @@ function Header({
   slug,
   home,
   order,
+  underCover,
 }: {
   shop: ShopStore | undefined
   slug: string
   home: boolean
   /** Room for the order on its way (CurrentOrderButton), if there is one. */
   order: boolean
+  /** The cover starts under the header (phones; see ShopLayout). */
+  underCover: boolean
 }) {
   // At the top of the shop's home the header is see-through, over the
   // same wash as the shop's name, so the name shows once. On phones the
@@ -116,12 +124,15 @@ function Header({
   // name beside the language and cart), shrinking to the bar on scroll.
   // With a cover the page shows the name below it on laptops too, and the
   // header turns solid as soon as the page moves, so its buttons never sit
-  // over the photo.
+  // over the photo. On phones the cover runs up under the header instead
+  // (shop page check 1A, founder 2026-11-04): the header stays see-through,
+  // its buttons on rounds over the photo, until the name has scrolled
+  // under it, then turns solid with the name as elsewhere.
   const cover = Boolean(shop?.cover_url)
-  const scrolled = useScrolledPast(home ? (cover ? belowCover : 96) : 0)
-  const moved = useScrolledPast(home && cover ? 1 : 0)
+  const scrolled = useScrolledPast(home ? (underCover ? nameUnderHeader : cover ? belowCover : 96) : 0)
+  const moved = useScrolledPast(home && cover && !underCover ? 1 : 0)
   const top = home && !scrolled
-  const clear = cover ? home && !moved : top
+  const clear = cover && !underCover ? home && !moved : top
   const big = top && !cover
   return (
     <header
@@ -151,7 +162,7 @@ function Header({
             <Skeleton className="h-5 w-36" />
           )}
         </Link>
-        <div className="flex shrink-0 items-center">
+        <div className={`flex shrink-0 items-center ${underCover && clear ? 'on-photo' : ''}`}>
           <ThemeToggle />
           <LanguageToggle />
           {/* The order on its way beside the cart, both in the thumb's
@@ -176,6 +187,20 @@ function useScrolledPast(px: number | (() => number)) {
  * CoverBand): the cover is as wide as the page, up to the shop's width. */
 function belowCover() {
   return Math.min(window.innerWidth, 1152) / 3 + 48
+}
+
+/** About where the shop's name goes under the header when the cover
+ * starts at the very top (phones, 1A): the cover, edge to edge, ends at a
+ * third of the width; the name ends 40px below that, the header 56px down. */
+function nameUnderHeader() {
+  return window.innerWidth / 3 - 16
+}
+
+// Phones: below Tailwind's sm, where the cover runs edge to edge.
+const PHONE = window.matchMedia('(max-width: 639.98px)')
+function onPhoneChange(notify: () => void) {
+  PHONE.addEventListener('change', notify)
+  return () => PHONE.removeEventListener('change', notify)
 }
 
 function onScroll(notify: () => void) {
