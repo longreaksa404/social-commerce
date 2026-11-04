@@ -175,7 +175,9 @@ export function ProductGrid({
   const count = useColumnCount()
   const rising = useRising(`${shop.slug}/${category}`)
   return (
-    <div className="flex gap-3">
+    // The seller's Photos cards (shop page check 6A, founder 2026-11-04):
+    // flat, 12px corners, 8px apart and from a phone's edges.
+    <div className="-mx-2 flex gap-2 sm:mx-0 sm:gap-3">
       {deal(products, count).map((column, c) => (
         <ul key={c} className="min-w-0 flex-1">
           {column.map((product, row) => (
@@ -183,9 +185,9 @@ export function ProductGrid({
             // The whole card is the link (its ::after covers it), so the +
             // can sit on the photo without being inside the link (a button
             // can't be).
-            <li key={product.id} className="pb-3">
+            <li key={product.id} className="pb-2 sm:pb-3">
               <div
-                className={`group relative overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6 transition-transform has-[a:active]:scale-[0.98] has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-navy-600 ${rising ? 'animate-rise' : ''}`}
+                className={`group relative overflow-hidden rounded-xl bg-surface ring-1 ring-slate-900/6 transition-transform has-[a:active]:scale-[0.98] has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-navy-600 ${rising ? 'animate-rise' : ''}`}
                 style={rising ? { animationDelay: `${Math.min(row * count + c, 8) * 40}ms` } : undefined}
               >
                 <div className="relative">
@@ -203,10 +205,12 @@ export function ProductGrid({
                 </div>
                 <Link
                   to={`/shop/${shop.slug}/product/${product.slug}`}
-                  className="block p-3 outline-none after:absolute after:inset-0"
+                  className="block px-2.5 pt-2 pb-2.5 outline-none after:absolute after:inset-0"
                 >
-                  <span className="line-clamp-2 text-sm leading-5 font-medium text-slate-900">{product.name}</span>
-                  <span className="mt-0.5 block text-sm font-semibold text-slate-900 tabular-nums">
+                  {/* Two lines, unlike the seller's one: a customer needs the
+                      "មួយទឹក" at the end of "iPhone 15 Pro Max មួយទឹក". */}
+                  <span className="line-clamp-2 text-[15px] leading-[22px] text-slate-900">{product.name}</span>
+                  <span className="mt-0.5 block text-sm leading-[22px] font-semibold tracking-tight text-slate-900 tabular-nums">
                     {/* The lowest price alone, no "From" (shop page check 3B,
                         founder 2026-11-04); the product page shows the range. */}
                     {formatCardPrice(product.price_min, shop.currency)}
@@ -288,14 +292,14 @@ const SKELETON_SHAPES = ['aspect-[4/5]', 'aspect-square', 'aspect-[3/4]', 'aspec
 export function ProductGridSkeleton() {
   const count = useColumnCount()
   return (
-    <div aria-hidden className="flex gap-3">
+    <div aria-hidden className="-mx-2 flex gap-2 sm:mx-0 sm:gap-3">
       {deal(SKELETON_SHAPES, count).map((column, c) => (
         <div key={c} className="min-w-0 flex-1">
           {column.map((shape, row) => (
-            <div key={row} className="pb-3">
-              <div className="overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6">
+            <div key={row} className="pb-2 sm:pb-3">
+              <div className="overflow-hidden rounded-xl bg-surface ring-1 ring-slate-900/6">
                 <Skeleton className={`w-full rounded-none ${shape}`} />
-                <div className="p-3">
+                <div className="px-2.5 pt-2.5 pb-3">
                   <Skeleton className="h-4 w-4/5" />
                   <Skeleton className="mt-2 h-4 w-1/3" />
                 </div>

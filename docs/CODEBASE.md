@@ -1561,7 +1561,9 @@ is wrapped in try/catch (private mode).
   `natural` photo already shown since the page loaded is remembered with
   its shape in `shownPhotos` and drawn at once, decoded with its card,
   instead of fading in again), `ProductGrid` (a photo wall with the same
-  cards as the seller's grid view; the card's link covers it with
+  cards as the seller's grid view: flat, 12px corners, 8px apart and from
+  a phone's edges, shop page check 6A, 2026-11-04, but the name on up to
+  two lines; the card's link covers it with
   `::after` so the + can sit on the photo; the price is the lowest one
   alone, "$1,399", no "From" and no ".00" on whole dollars,
   `formatCardPrice` in `lib/money.ts`, shop page check 3B, 2026-11-04;
