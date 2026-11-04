@@ -1,4 +1,4 @@
-import { ChevronRight, ReceiptText, ShoppingCart, Trash2, Truck } from 'lucide-react'
+import { ChevronRight, ReceiptText, ShoppingCart, Tag, Trash2, Truck, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { Card, EmptyState, IconButton } from '../components/ui.tsx'
 import { buttonClass } from '../components/styles.ts'
@@ -12,7 +12,9 @@ import { placedOrders } from './device.ts'
 
 /** The cart's items at the top of the order page: each line with its
  * quantity, what's wrong with any of them, and what a little more would
- * get (a discount, free delivery), with bars filling up. */
+ * get (a discount, free delivery): one navy line each, under the items,
+ * that opens the shop, once the cart is halfway there (cart page check
+ * 7A, founder 2026-11-04; green boxes with bars before). */
 export function CartItems({
   shop,
   checked,
@@ -26,6 +28,17 @@ export function CartItems({
   const money = (cents: number) => formatMoney(cents / 100, shop.currency)
   const next = nextDiscount(checked.subtotalCents, shop.discounts)
   const freeDelivery = freeDeliveryNudge(checked.subtotalCents, checked.itemCount, shop.delivery)
+  // Only from halfway: far from the goal ("add $861 more") it's noise.
+  const discountLine =
+    next && checked.subtotalCents >= next.missing ? page.addMoreForDiscount(money(next.missing), money(next.off)) : null
+  const deliveryLine =
+    freeDelivery?.kind === 'free'
+      ? page.deliveryIsFree
+      : freeDelivery && freeDelivery.progress >= HALFWAY
+        ? freeDelivery.kind === 'amount'
+          ? page.addMoreForFreeDelivery(money(freeDelivery.missing))
+          : page.addItemsForFreeDelivery(freeDelivery.missing)
+        : null
 
   return (
     <div>
@@ -45,32 +58,26 @@ export function CartItems({
       {!checked.loading && !checked.ready && !checked.error && (
         <p className="mt-3 text-sm text-red-700">{page.fixItems}</p>
       )}
-      {!checked.loading && (next || freeDelivery) && (
-        <div className="mt-4 space-y-2">
-          {next && (
-            <Nudge
-              text={page.addMoreForDiscount(money(next.missing), money(next.off))}
-              progress={checked.subtotalCents / (checked.subtotalCents + next.missing)}
-            />
+      {!checked.loading && (discountLine || deliveryLine) && (
+        <ul className="-mx-4 divide-y divide-slate-100 border-b border-slate-100 sm:-mx-6">
+          {discountLine && (
+            <li>
+              <Nudge shop={shop.slug} icon={Tag} text={discountLine} />
+            </li>
           )}
-          {freeDelivery?.kind === 'free' ? (
-            <p className="flex animate-rise items-center gap-2 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-sm font-medium text-emerald-800">
-              <Truck aria-hidden className="size-4.5 shrink-0" />
-              {page.deliveryIsFree}
-            </p>
-          ) : (
-            freeDelivery && (
-              <Nudge
-                text={
-                  freeDelivery.kind === 'amount'
-                    ? page.addMoreForFreeDelivery(money(freeDelivery.missing))
-                    : page.addItemsForFreeDelivery(freeDelivery.missing)
-                }
-                progress={freeDelivery.progress}
-              />
-            )
+          {deliveryLine && (
+            <li>
+              {freeDelivery?.kind === 'free' ? (
+                <p className="flex min-h-12 items-center gap-2.5 px-4 text-sm font-medium text-navy-700 sm:px-6">
+                  <Truck aria-hidden className="size-4.5 shrink-0" />
+                  {deliveryLine}
+                </p>
+              ) : (
+                <Nudge shop={shop.slug} icon={Truck} text={deliveryLine} />
+              )}
+            </li>
           )}
-        </div>
+        </ul>
       )}
     </div>
   )
@@ -99,19 +106,22 @@ export function EmptyCart({ shop }: { shop: string }) {
   )
 }
 
-/** A nudge toward a discount or free delivery: the line, and a bar that
- * fills as the cart gets closer (it says the same as the line). */
-function Nudge({ text, progress }: { text: string; progress: number }) {
+// The cart is at least this far toward a discount or free delivery before
+// the line saying what's left shows (cart page check 7A).
+const HALFWAY = 0.5
+
+/** A nudge toward a discount or free delivery: one navy line, no box,
+ * that opens the shop to add more. */
+function Nudge({ shop, icon: Icon, text }: { shop: string; icon: LucideIcon; text: string }) {
   return (
-    <div className="rounded-xl bg-emerald-50 px-3.5 py-2.5">
-      <p className="text-sm text-emerald-800">{text}</p>
-      <div aria-hidden className="mt-2 h-1.5 overflow-hidden rounded-full bg-emerald-100">
-        <div
-          className="h-full rounded-full bg-emerald-600 transition-[width] duration-500 ease-out"
-          style={{ width: `${Math.max(4, Math.min(100, Math.round(progress * 100)))}%` }}
-        />
-      </div>
-    </div>
+    <Link
+      to={`/shop/${shop}`}
+      className="flex min-h-12 items-center gap-2.5 px-4 text-sm font-medium text-navy-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 active:bg-slate-100 sm:px-6"
+    >
+      <Icon aria-hidden className="size-4.5 shrink-0" />
+      <span className="min-w-0 flex-1">{text}</span>
+      <ChevronRight aria-hidden className="size-4.5 shrink-0" />
+    </Link>
   )
 }
 

@@ -186,19 +186,20 @@ export const shop = {
       km: 'សូមដាក់ទំនិញពីហាង ដើម្បីកុម្ម៉ង់។',
     },
     browse: { en: 'Browse products', km: 'មើលទំនិញ' },
+    // Lines under the cart's items, no full stop (cart page check 7A).
     addMoreForDiscount: {
-      en: (missing: string, off: string) => `Add ${missing} more to get ${off} off.`,
-      km: (missing: string, off: string) => `ទិញបន្ថែម ${missing} ទៀត ដើម្បីទទួលបានការបញ្ចុះតម្លៃ ${off}។`,
+      en: (missing: string, off: string) => `Add ${missing} more for ${off} off`,
+      km: (missing: string, off: string) => `ទិញបន្ថែម ${missing} ទៀត ដើម្បីទទួលបានការបញ្ចុះតម្លៃ ${off}`,
     },
     addMoreForFreeDelivery: {
-      en: (missing: string) => `Add ${missing} more for free delivery.`,
-      km: (missing: string) => `ទិញបន្ថែម ${missing} ទៀត ដើម្បីបានដឹកជូនឥតគិតថ្លៃ។`,
+      en: (missing: string) => `Add ${missing} more for free delivery`,
+      km: (missing: string) => `ទិញបន្ថែម ${missing} ទៀត ដើម្បីបានដឹកជូនឥតគិតថ្លៃ`,
     },
     addItemsForFreeDelivery: {
-      en: (n: number) => (n === 1 ? 'Add 1 more item for free delivery.' : `Add ${n} more items for free delivery.`),
-      km: (n: number) => `ទិញទំនិញ ${n} ទៀត ដើម្បីបានដឹកជូនឥតគិតថ្លៃ។`,
+      en: (n: number) => (n === 1 ? 'Add 1 more item for free delivery' : `Add ${n} more items for free delivery`),
+      km: (n: number) => `ទិញទំនិញ ${n} ទៀត ដើម្បីបានដឹកជូនឥតគិតថ្លៃ`,
     },
-    deliveryIsFree: { en: 'Your delivery is free.', km: 'ការដឹករបស់អ្នកឥតគិតថ្លៃ។' },
+    deliveryIsFree: { en: 'Your delivery is free', km: 'ការដឹករបស់អ្នកឥតគិតថ្លៃ' },
     fixItems: { en: 'Fix the items marked in red to continue.', km: 'សូមកែទំនិញដែលមានសញ្ញាក្រហម ដើម្បីបន្ត។' },
     remove: { en: (name: string) => `Remove ${name}`, km: (name: string) => `ដក ${name} ចេញ` },
     yourOrders: { en: 'Your orders', km: 'ការកុម្ម៉ង់របស់អ្នក' },
