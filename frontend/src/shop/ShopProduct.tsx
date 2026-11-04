@@ -1,8 +1,7 @@
-import { ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
-import { useRef, useState, type Ref, type RefObject } from 'react'
+import { Check, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
+import { useEffect, useRef, useState, type Ref, type RefObject } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { buzz, reducedMotion } from '../components/effects.ts'
-import { useFeedback } from '../components/feedback.ts'
 import { Button, ErrorState, Skeleton } from '../components/ui.tsx'
 import { buttonClass, cardClass } from '../components/styles.ts'
 import { formatMoney, formatPriceRange, toCents } from '../lib/money.ts'
@@ -159,8 +158,12 @@ function AddToCart({
 }) {
   const cart = useCart(shop.slug)
   const navigate = useNavigate()
-  const { toast } = useFeedback()
   const [quantity, setQuantity] = useState(1)
+  // "✓ Added" on the button for a moment, where the finger is, instead of
+  // a message over the header (cart page check 4A, founder 2026-11-04).
+  const [added, setAdded] = useState(false)
+  const addedTimer = useRef(0)
+  useEffect(() => () => clearTimeout(addedTimer.current), [])
   const t = useT()
 
   const variantId = variant?.id ?? null
@@ -229,16 +232,22 @@ function AddToCart({
               <Button
                 size="lg"
                 variant="secondary"
-                icon={ShoppingCart}
+                icon={added ? Check : ShoppingCart}
                 onClick={(event) => {
                   if (needsOption) return onNeedOption()
                   add(event.currentTarget)
-                  toast(t.shop.product.added)
+                  setAdded(true)
+                  clearTimeout(addedTimer.current)
+                  addedTimer.current = window.setTimeout(() => setAdded(false), 1500)
                 }}
                 className="flex-1"
               >
-                {t.shop.product.addToCart}
+                {added ? t.shop.product.addedShort : t.shop.product.addToCart}
               </Button>
+              {/* What the toast used to say, for screen readers. */}
+              <span role="status" className="sr-only">
+                {added ? t.shop.product.added : ''}
+              </span>
               {/* Most customers from a post want just this: into the cart
                   and straight to ordering. */}
               <Button

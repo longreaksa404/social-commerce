@@ -127,6 +127,8 @@ export const shop = {
     addToCart: { en: 'Add to cart', km: 'ដាក់កន្ត្រក' },
     buyNow: { en: 'Buy now', km: 'ទិញឥឡូវនេះ' },
     added: { en: 'Added to your cart', km: 'បានដាក់កន្ត្រកហើយ' },
+    // On the Add to cart button for a moment (cart page check 4A).
+    addedShort: { en: 'Added', km: 'បានដាក់ហើយ' },
     viewCart: { en: (n: number) => `View cart (${n})`, km: (n: number) => `មើលកន្ត្រក (${n})` },
     askSeller: { en: 'Ask seller on Telegram', km: 'សួរអ្នកលក់តាម Telegram' },
     // Typed into the customer's Telegram chat with the seller.
