@@ -179,9 +179,13 @@ function AddToCart({
   const needsOption = blocked === null && product.has_variants && !variant
   const full = blocked === null && !needsOption && room <= 0
 
-  function add(button: HTMLElement) {
-    flyToCart(...flightStart(photos.current, button))
-    buzz()
+  /** Into the cart; with `button`, the photo flies from there to the cart.
+   * Buy now goes without it: the cart page opens at once. */
+  function add(button: HTMLElement | null) {
+    if (button) {
+      flyToCart(...flightStart(photos.current, button))
+      buzz()
+    }
     cart.add({
       productId: product.id,
       variantId,
@@ -238,9 +242,12 @@ function AddToCart({
                   and straight to ordering. */}
               <Button
                 size="lg"
-                onClick={(event) => {
+                onClick={() => {
                   if (needsOption) return onNeedOption()
-                  add(event.currentTarget)
+                  // Already in the cart (Add to cart, then Buy now): just
+                  // go there, not add a second one (cart page check 1A,
+                  // founder 2026-11-04). A quantity picked above 1 still adds.
+                  if (cart.quantityOf(product.id, variantId) === 0 || quantity > 1) add(null)
                   navigate(cartPath)
                 }}
                 className="flex-1"
