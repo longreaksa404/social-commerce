@@ -87,7 +87,17 @@ export function useChosenMarker({
     }
     last.current = { box: b, chosen, items, watch }
   })
-  useEffect(() => () => last.current?.watch.disconnect(), [])
+  // Forgotten too, so a row shown again starts afresh: in development
+  // React mounts everything twice, and a watcher kept after this would
+  // be a dead one (the navy kept the width the chip had before the Khmer
+  // font loaded).
+  useEffect(
+    () => () => {
+      last.current?.watch.disconnect()
+      last.current = null
+    },
+    [],
+  )
 
   return (tapped: HTMLElement) => {
     const b = box.current
