@@ -77,12 +77,6 @@ export const shop = {
   oneLess: { en: 'One less', km: 'បន្ថយមួយ' },
   oneMore: { en: 'One more', km: 'បន្ថែមមួយ' },
   seeAllProducts: { en: 'See all products', km: 'មើលទំនិញទាំងអស់' },
-  // The + on a product photo in the grid (products without options).
-  quickAdd: {
-    en: (name: string, inCart: number) => (inCart ? `${name}: ${inCart} in cart. Add one more` : `Add ${name} to cart`),
-    km: (name: string, inCart: number) =>
-      inCart ? `${name}៖ មាន ${inCart} ក្នុងកន្ត្រក។ បន្ថែមមួយទៀត` : `ដាក់ ${name} ចូលកន្ត្រក`,
-  },
   // The bar at the bottom of the shop while the cart has something in it.
   cartBar: {
     items: { en: (n: number) => (n === 1 ? '1 item' : `${n} items`), km: (n: number) => `ទំនិញ ${n}` },

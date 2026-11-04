@@ -1567,7 +1567,8 @@ is wrapped in try/catch (private mode).
   cards as the seller's grid view: flat, 12px corners, 8px apart and from
   a phone's edges, shop page check 6A, 2026-11-04, but the name on up to
   two lines; the card's link covers it with
-  `::after` so the + can sit on the photo; the price is the lowest one
+  `::after`; no + on the photo since 2026-11-04, founder: a tap opens the
+  product; the price is the lowest one
   alone, "$1,399", no "From" and no ".00" on whole dollars,
   `formatCardPrice` in `lib/money.ts`, shop page check 3B, 2026-11-04;
   the product page keeps the range), `ProductGridSkeleton`,

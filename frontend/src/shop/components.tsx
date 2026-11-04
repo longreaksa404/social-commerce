@@ -1,17 +1,14 @@
 import { CalendarClock, ImageIcon, Minus, Plus, SearchX, Store, Trash2 } from 'lucide-react'
-import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { ChipRow } from '../components/ChipRow.tsx'
 import { Badge, Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { thumbnailUrl } from '../lib/images.ts'
-import { formatCardPrice, toCents } from '../lib/money.ts'
+import { formatCardPrice } from '../lib/money.ts'
 import { formatCalendarDay } from '../lib/orders.ts'
 import { useT } from '../i18n/useT.ts'
 import type { ShopProductCard, ShopStore } from '../lib/types.ts'
-import { buzz } from '../components/effects.ts'
 import { deal, useColumnCount } from '../components/columns.ts'
-import { MAX_QUANTITY, useCart } from './cart.ts'
-import { flyToCart } from './fly.ts'
 
 // The grid's photos already shown since the page loaded, with their shape
 // (width ÷ height). Shown again (another category and back), a photo is
@@ -182,26 +179,23 @@ export function ProductGrid({
         <ul key={c} className="min-w-0 flex-1">
           {column.map((product, row) => (
             // The first ones come in one after another, a row at a time.
-            // The whole card is the link (its ::after covers it), so the +
-            // can sit on the photo without being inside the link (a button
-            // can't be).
+            // The whole card is the link (its ::after covers it).
             <li key={product.id} className="pb-2 sm:pb-3">
               <div
                 className={`group relative overflow-hidden rounded-xl bg-surface ring-1 ring-slate-900/6 transition-transform has-[a:active]:scale-[0.98] has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-navy-600 ${rising ? 'animate-rise' : ''}`}
                 style={rising ? { animationDelay: `${Math.min(row * count + c, 8) * 40}ms` } : undefined}
               >
-                <div className="relative">
-                  <div className="overflow-hidden">
-                    <ProductImage
-                      small
-                      natural
-                      src={product.image_url}
-                      alt=""
-                      eager={row * count + c < EAGER_PHOTOS}
-                      className={`w-full transition-transform group-hover:scale-[1.03] ${product.in_stock ? '' : 'opacity-60'}`}
-                    />
-                  </div>
-                  {!product.has_variants && product.in_stock && <QuickAdd shop={shop} product={product} />}
+                {/* No + on the photo (founder, 2026-11-04): a tap opens the
+                    product, where Add to cart and Buy now are. */}
+                <div className="overflow-hidden">
+                  <ProductImage
+                    small
+                    natural
+                    src={product.image_url}
+                    alt=""
+                    eager={row * count + c < EAGER_PHOTOS}
+                    className={`w-full transition-transform group-hover:scale-[1.03] ${product.in_stock ? '' : 'opacity-60'}`}
+                  />
                 </div>
                 <Link
                   to={`/shop/${shop.slug}/product/${product.slug}`}
@@ -239,51 +233,6 @@ function StockTag({ product }: { product: ShopProductCard }) {
   if (!product.in_stock) tag = <Badge tone="red">{t.shop.soldOut}</Badge>
   else if (stock !== null && stock <= LOW_STOCK) tag = <Badge tone="amber">{t.shop.onlyLeft(stock)}</Badge>
   return tag && <span className="mt-1.5 block">{tag}</span>
-}
-
-/** + on the photo: one into the cart without opening the product. Shows
- * how many are in the cart once there are some. */
-function QuickAdd({ shop, product }: { shop: ShopStore; product: ShopProductCard }) {
-  const cart = useCart(shop.slug)
-  const t = useT()
-  const inCart = cart.quantityOf(product.id, null)
-  const full = inCart >= Math.min(MAX_QUANTITY, product.stock_quantity ?? 0)
-
-  function add(event: MouseEvent<HTMLButtonElement>) {
-    const photo = event.currentTarget.parentElement?.querySelector('img')
-    flyToCart(photo ?? event.currentTarget, photo?.currentSrc || null, { count: 1, cents: toCents(product.price_min) })
-    buzz()
-    cart.add({
-      productId: product.id,
-      variantId: null,
-      quantity: 1,
-      productSlug: product.slug,
-      name: product.name,
-      variantName: null,
-      price: product.price_min,
-      imageUrl: product.image_url,
-    })
-  }
-
-  return (
-    // Over the photo's bottom corner, and above the card's link.
-    <button
-      type="button"
-      onClick={add}
-      disabled={full}
-      aria-label={t.shop.quickAdd(product.name, inCart)}
-      className="absolute right-1 bottom-1 z-10 flex size-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 disabled:opacity-60"
-    >
-      <span
-        key={inCart}
-        className={`flex size-9 items-center justify-center rounded-full text-sm font-bold shadow-md ring-1 ring-slate-900/10 tabular-nums transition-colors ${
-          inCart ? 'animate-pop bg-accent text-on-accent' : 'bg-raised text-navy-700 active:bg-slate-100'
-        }`}
-      >
-        {inCart ? inCart : <Plus aria-hidden className="size-5" />}
-      </span>
-    </button>
-  )
 }
 
 // Mixed heights, as the photos will be.
