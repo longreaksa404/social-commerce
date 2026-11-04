@@ -4,12 +4,12 @@ import { reducedMotion } from '../components/effects.ts'
 // Added to the cart: the product's photo flies from the page into the cart
 // button in the header, which bumps as it lands, so the customer sees
 // where their things went. The cart's numbers (the header's count, the
-// cart bar's items and total) change as it lands, not at the tap, and the
-// flight is quick (cart page check 2B, founder 2026-11-04: "make it more
-// faster"; 0.7 s before).
+// cart bar's items and total) change as it lands, not at the tap. The
+// flight takes 0.6 s (founder, 2026-11-04: 0.7 s at first, then 0.45 s
+// for "make it more faster" in the cart page check 2B, then "make it 0.6").
 
 const LANDED = 'sc:cart-landed'
-const DURATION = 450
+const DURATION = 600
 
 /** What's added but still flying: the cart's numbers leave it out until
  * it lands (useFlying). */
