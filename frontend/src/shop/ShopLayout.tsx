@@ -152,7 +152,7 @@ function Header({
       >
         {checkout ? (
           // The cart page's one bar (cart page check 3A, founder
-          // 2026-11-04): back to the shop, "Your order" with the shop's
+          // 2026-11-04): back to the shop, "Your cart" with the shop's
           // name under it, then the moon and the language; no cart button
           // on the cart itself.
           <div className="-ml-2 flex min-w-0 items-center gap-1">
@@ -164,7 +164,7 @@ function Header({
               <ChevronLeft aria-hidden className="size-6" />
             </Link>
             <div className="min-w-0">
-              <h1 className="truncate text-lg leading-6 font-bold tracking-tight text-slate-900">{t.checkout.yourOrder}</h1>
+              <h1 className="truncate text-lg leading-6 font-bold tracking-tight text-slate-900">{t.checkout.yourCart}</h1>
               {shop ? (
                 <p className="truncate text-xs leading-4 text-slate-500">{shop.name}</p>
               ) : (

@@ -2,7 +2,7 @@ import type { Tree } from '../core.ts'
 
 /** Checkout and the map for pinning the delivery spot. */
 export const checkout = {
-  tab: { en: (shop: string) => `Checkout · ${shop}`, km: (shop: string) => `កុម្ម៉ង់ · ${shop}` },
+  tab: { en: (shop: string) => `Your cart · ${shop}`, km: (shop: string) => `កន្ត្រករបស់អ្នក · ${shop}` },
   title: { en: 'Checkout', km: 'កុម្ម៉ង់' },
   yourDetails: { en: 'Your details', km: 'ព័ត៌មានរបស់អ្នក' },
   // "Continue with Telegram" (founder, 2026-10-20): the customer shares
@@ -93,7 +93,10 @@ export const checkout = {
     },
     cod: { en: 'Pay cash when you get it.', km: 'បង់សាច់ប្រាក់ ពេលទទួលទំនិញ។' },
   },
-  yourOrder: { en: 'Your order', km: 'ការកុម្ម៉ង់របស់អ្នក' },
+  // The cart page's title: in Khmer "Your order" read the same as "Your
+  // orders" (the orders placed), so it's the cart (Your order page check
+  // 3A, founder 2026-11-04), as on the cart button and View cart.
+  yourCart: { en: 'Your cart', km: 'កន្ត្រករបស់អ្នក' },
   placeOrder: { en: 'Place order', km: 'បញ្ជាក់ការកុម្ម៉ង់' },
   notTakingOrders: { en: 'Not taking orders right now', km: 'មិនទទួលការកុម្ម៉ង់នៅពេលនេះទេ' },
   openingSoon: { en: 'Opening soon', km: 'នឹងបើកឆាប់ៗនេះ' },
