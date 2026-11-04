@@ -105,13 +105,6 @@ export const checkout = {
   delivery: { en: 'Delivery', km: 'ការដឹកជញ្ជូន' },
   pickup: { en: 'Pickup', km: 'មកយកផ្ទាល់' },
   deliveryByShop: { en: 'Delivery by the shop', km: 'ហាងដឹកជូនផ្ទាល់' },
-  hintOwn: { en: 'The seller brings it to you.', km: 'អ្នកលក់ដឹកជូនដល់អ្នក។' },
-  hintPickup: { en: 'Collect it from the seller.', km: 'មកយកពីអ្នកលក់ដោយខ្លួនឯង។' },
-  hintCourier: { en: 'Sent with a delivery company.', km: 'ផ្ញើតាមក្រុមហ៊ុនដឹកជញ្ជូន។' },
-  hintOwnOrCourier: {
-    en: 'By the seller or a delivery company.',
-    km: 'អ្នកលក់ដឹកជូន ឬផ្ញើតាមក្រុមហ៊ុនដឹកជញ្ជូន។',
-  },
   courierOptional: { en: 'Delivery company (optional)', km: 'ក្រុមហ៊ុនដឹកជញ្ជូន (មិនចាំបាច់)' },
   shopChooses: { en: 'Shop chooses', km: 'ឲ្យហាងជ្រើសរើស' },
   howGet: { en: 'How do you want to get your order?', km: 'តើអ្នកចង់ទទួលការកុម្ម៉ង់តាមរបៀបណា?' },

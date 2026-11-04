@@ -1,4 +1,4 @@
-import { AlertCircle, Banknote, Check, Landmark, LoaderCircle, MapPin, Plus, QrCode, UserRound, type LucideIcon } from 'lucide-react'
+import { AlertCircle, Banknote, Check, Landmark, LoaderCircle, MapPin, Plus, QrCode, Store, Truck, UserRound, type LucideIcon } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import {
@@ -576,8 +576,6 @@ function DeliverySection({
   // A free-delivery rule applies to this order (the shop charges otherwise).
   const freeNow = delivering && price.fee === 0 && Number(options.fee) > 0
   const label = (choice: Choice) => (choice === 'pickup' ? c.pickup : c.delivery)
-  const deliveryHint = !options.couriers.length ? c.hintOwn : options.own_delivery ? c.hintOwnOrCourier : c.hintCourier
-  const hint = (choice: Choice) => (choice === 'pickup' ? c.hintPickup : deliveryHint)
   const check = useChoiceCheck(c.chooseDelivery)
   const choiceError = fieldError(error, 'delivery_method') ?? check.problem
   const courierError = fieldError(error, 'courier')
@@ -589,19 +587,33 @@ function DeliverySection({
           onInvalid={check.onInvalid}
           onChange={check.clear}
         >
-          <legend className="mb-1.5 block text-sm font-medium text-slate-700">{c.howGet}</legend>
-          <div className="space-y-2">
-            {choices.map((choice) => (
-              <ChoiceCard
-                key={choice}
-                name="delivery-choice"
-                checked={how === choice}
-                onChange={() => onChoose(choice)}
-                label={label(choice)}
-                hint={hint(choice)}
-                trailing={choice === 'pickup' ? free : feeText}
-              />
-            ))}
+          <legend className="sr-only">{c.howGet}</legend>
+          {/* Side by side like the ways to pay, what each costs under its
+              name (Your order page check 1B, founder 2026-11-04); the
+              pickup place shows once Pickup is chosen. */}
+          <div className="grid grid-cols-2 gap-2">
+            {choices.map((choice) => {
+              const Icon = choice === 'pickup' ? Store : Truck
+              return (
+                <label
+                  key={choice}
+                  className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 px-2 py-3 text-center text-slate-700 transition-colors has-[:checked]:border-navy-600 has-[:checked]:bg-navy-50/50 has-[:checked]:text-navy-800 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-navy-600/15"
+                >
+                  <input
+                    type="radio"
+                    name="delivery-choice"
+                    required
+                    value={choice}
+                    checked={how === choice}
+                    onChange={() => onChoose(choice)}
+                    className="sr-only"
+                  />
+                  <Icon aria-hidden className="size-6" />
+                  <span className="text-sm leading-tight font-medium">{label(choice)}</span>
+                  <span className="text-xs text-slate-500 tabular-nums">{choice === 'pickup' ? free : feeText}</span>
+                </label>
+              )
+            })}
           </div>
           <ChoiceProblem id="delivery-choice-error" text={choiceError} />
         </fieldset>
@@ -758,42 +770,6 @@ function MapUnavailable({ onClose }: { onClose: () => void }) {
 }
 
 /** A radio choice as a full-width card. */
-function ChoiceCard({
-  name,
-  checked,
-  onChange,
-  label,
-  hint,
-  trailing,
-}: {
-  name: string
-  checked: boolean
-  onChange: () => void
-  label: string
-  hint?: string
-  trailing?: string
-}) {
-  return (
-    <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-slate-200 px-3.5 py-3 has-[:checked]:border-navy-600 has-[:checked]:bg-navy-50/50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-navy-600/15">
-      <input
-        type="radio"
-        name={name}
-        required
-        checked={checked}
-        onChange={onChange}
-        // Drawn like the seller's New order, not the browser's own radio,
-        // which dark mode paints as a grey disc (UI check #13).
-        className="mt-0.5 grid size-5 shrink-0 appearance-none place-content-center rounded-full border-2 border-slate-300 bg-surface before:size-2.5 before:rounded-full before:bg-brand before:opacity-0 checked:border-brand checked:before:opacity-100 focus-visible:outline-none"
-      />
-      <span className="min-w-0 flex-1">
-        <span className="block break-words font-medium text-slate-900">{label}</span>
-        {hint && <span className="mt-0.5 block text-sm text-slate-500">{hint}</span>}
-      </span>
-      {trailing && <span className="shrink-0 text-sm font-medium text-slate-900">{trailing}</span>}
-    </label>
-  )
-}
-
 /** What the order comes to: items, discount, delivery, total. */
 function Totals({ currency, loading, price }: { currency: Currency; loading: boolean; price: Price }) {
   const t = useT()
