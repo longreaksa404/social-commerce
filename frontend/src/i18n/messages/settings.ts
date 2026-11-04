@@ -10,6 +10,10 @@ export const settings = {
   store: { en: 'Shop', km: 'ហាង' },
   storeName: { en: 'Shop name', km: 'ឈ្មោះហាង' },
   description: { en: 'Description', km: 'ការពិពណ៌នា' },
+  descriptionHint: {
+    en: (max: number) => `At most ${max} characters.`,
+    km: (max: number) => `យ៉ាងច្រើន ${max} តួអក្សរ។`,
+  },
   currency: { en: 'Currency', km: 'រូបិយប័ណ្ណ' },
   currencyHint: {
     en: (rate: string) => `Prices are converted at $1 = ${rate}.`,

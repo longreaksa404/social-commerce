@@ -19,6 +19,31 @@ async def test_seller_sees_and_edits_only_their_store(client, register):
     assert again["description"] is None
 
 
+async def test_shop_description_is_at_most_150_characters(client, register):
+    # Short, to read at a glance under the shop's name (shop page check 2A).
+    headers = {"Authorization": f"Bearer {(await register())['access_token']}"}
+
+    # Khmer counts by letters as typed, as the box's maxLength does.
+    fits = await client.patch(
+        "/api/v1/seller/store", headers=headers, json={"description": "ក" * 150}
+    )
+    too_long = await client.patch(
+        "/api/v1/seller/store", headers=headers, json={"description": "ក" * 151}
+    )
+    padded = await client.patch(
+        "/api/v1/seller/store", headers=headers, json={"description": " " + "a" * 150 + "  "}
+    )
+
+    assert fits.status_code == 200
+    assert too_long.status_code == 422
+    assert too_long.json()["error"] == {
+        "code": "VALIDATION_ERROR",
+        "message": "Use at most 150 characters.",
+        "field": "description",
+    }
+    assert padded.status_code == 200  # spaces around it don't count
+
+
 async def test_shop_colour_starts_navy_and_shows_in_the_shop(client, register):
     a, b = await register(), await register()
     a_headers = {"Authorization": f"Bearer {a['access_token']}"}

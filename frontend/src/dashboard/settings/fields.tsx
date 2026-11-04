@@ -48,6 +48,8 @@ export type FieldsProps = {
   error: unknown
 }
 
+const SHOP_DESCRIPTION_MAX = 150
+
 export function ShopFields({ store, form, update, error }: FieldsProps) {
   const s = useT().settings
   return (
@@ -63,9 +65,11 @@ export function ShopFields({ store, form, update, error }: FieldsProps) {
           onChange={(e) => update({ name: e.target.value })}
         />
       </Field>
-      <Field label={s.description} error={fieldError(error, 'description')}>
+      {/* Short, so it reads at a glance under the shop's name (shop page
+          check 2A, 2026-11-04); the API's SHOP_DESCRIPTION_MAX. */}
+      <Field label={s.description} hint={s.descriptionHint(SHOP_DESCRIPTION_MAX)} error={fieldError(error, 'description')}>
         <TextArea
-          maxLength={2000}
+          maxLength={SHOP_DESCRIPTION_MAX}
           autoCapitalize="sentences"
           value={form.description}
           onChange={(e) => update({ description: e.target.value })}

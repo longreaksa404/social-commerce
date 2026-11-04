@@ -104,6 +104,7 @@ export const KM_BY_MESSAGE: Record<string, string> = {
   'Record the payment before completing this order.': 'សូមកត់ត្រាការបង់ប្រាក់ មុននឹងបញ្ចប់ការកុម្ម៉ង់នេះ។',
 
   // Settings
+  'Use at most 150 characters.': 'សូមប្រើយ៉ាងច្រើន 150 តួអក្សរ។',
   'This shop link is already taken.': 'តំណហាងនេះមានគេប្រើរួចហើយ។',
   'Choose a day after today.': 'សូមជ្រើសថ្ងៃក្រោយថ្ងៃនេះ។',
   'Choose up to a year, ending after it starts.': 'សូមជ្រើសរយៈពេលមិនលើសមួយឆ្នាំ ដែលថ្ងៃបញ្ចប់នៅក្រោយថ្ងៃចាប់ផ្ដើម។',

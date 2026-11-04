@@ -1,13 +1,22 @@
 import re
 import uuid
 from datetime import date, datetime
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    computed_field,
+    field_validator,
+)
 from pydantic_core import PydanticCustomError
 
 from app.core.config import get_settings
 from app.models.account import Currency, OrderConfirmationMode, ShopColor
-from app.schemas.common import Description, Name
+from app.schemas.common import Name
 from app.schemas.delivery import DeliverySettings, DiscountSettings
 from app.schemas.payment import PaymentSettings
 from app.services.phone import normalize_phone
@@ -94,10 +103,29 @@ _INSTAGRAM_PREFIX = re.compile(
 )
 
 
+# The shop's description stays short, so it reads at a glance under the
+# shop's name on a phone (shop page check 2A, founder 2026-11-04: "set max
+# word ... to prevent they put many word here"). About two or three lines
+# at 360px, as long as an Instagram bio. Older, longer ones still show,
+# folded; the next Save asks the seller to shorten it.
+SHOP_DESCRIPTION_MAX = 150
+
+
+def _short_description(value: str) -> str:
+    if len(value) > SHOP_DESCRIPTION_MAX:
+        raise PydanticCustomError("too_long", f"Use at most {SHOP_DESCRIPTION_MAX} characters.")
+    return value
+
+
+ShopDescription = Annotated[
+    str, StringConstraints(strip_whitespace=True), AfterValidator(_short_description)
+]
+
+
 class StoreUpdate(BaseModel):
     # No slug: a shop's link is made at sign-up and stays (2026-10-18).
     name: Name | None = None
-    description: Description | None = None
+    description: ShopDescription | None = None
     currency: Currency | None = None
     order_confirmation_mode: OrderConfirmationMode | None = None
     orders_paused: bool | None = None

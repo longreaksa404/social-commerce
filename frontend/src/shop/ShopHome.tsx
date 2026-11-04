@@ -55,13 +55,14 @@ export function ShopIntro({ shop }: { shop: ShopStore }) {
       {shop.cover_url ? (
         <CoverBand shop={shop} cover={shop.cover_url} />
       ) : (
-        // No cover: the name sits level with the middle of the logo, the
-        // description under the name (UI check #16, founder 2026-10-17).
+        // No cover: the name sits level with the middle of the logo (UI
+        // check #16, founder 2026-10-17), the description under both, edge
+        // to edge (shop page check 2A, 2026-11-04).
         <div className={`${band} grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4`}>
           <ShopLogo shop={shop} className="size-16 shadow-md ring-4 ring-surface lg:hidden" />
           <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900 lg:sr-only">{shop.name}</h1>
           {shop.description && (
-            <div className="col-start-2 lg:col-span-2 lg:col-start-1">
+            <div className="col-span-2">
               <Description text={shop.description} />
             </div>
           )}
@@ -96,12 +97,15 @@ function CoverBand({ shop, cover }: { shop: ShopStore; cover: string }) {
           />
         )}
       </div>
-      <div className="flex items-start gap-3 sm:px-4 lg:gap-4">
-        <ShopLogo shop={shop} className="relative -mt-9 size-18 shadow-md ring-4 ring-surface lg:-mt-12 lg:size-24" />
-        <div className="min-w-0 flex-1 pt-2 lg:pt-3">
-          <h1 className="text-2xl font-bold tracking-tight break-words text-slate-900 lg:text-3xl">{shop.name}</h1>
-          {shop.description && <Description text={shop.description} />}
+      <div className="sm:px-4">
+        <div className="flex items-start gap-3 lg:gap-4">
+          <ShopLogo shop={shop} className="relative -mt-9 size-18 shadow-md ring-4 ring-surface lg:-mt-12 lg:size-24" />
+          <h1 className="min-w-0 flex-1 pt-2 text-2xl font-bold tracking-tight break-words text-slate-900 lg:pt-3 lg:text-3xl">
+            {shop.name}
+          </h1>
         </div>
+        {/* Under the logo and the name, edge to edge (shop page check 2A). */}
+        {shop.description && <Description text={shop.description} />}
       </div>
     </div>
   )
@@ -123,7 +127,9 @@ export function ShopIntroSkeleton() {
 }
 
 /** Long descriptions start folded so the products show on the first
- * screen; "Show more" appears only if the text is actually cut off. */
+ * screen; "Show more" appears only if the text is actually cut off. Since
+ * 2026-11-04 Settings takes at most 150 characters (about 3 lines on a
+ * 360px phone), so this is for descriptions written before that. */
 function Description({ text }: { text: string }) {
   const ref = useRef<HTMLParagraphElement>(null)
   const [open, setOpen] = useState(false)
