@@ -63,6 +63,33 @@ async def test_store_page_shows_only_categories_with_active_products(client, mak
     assert body["categories"] == [{"name": "Tops", "slug": "tops", "product_count": 2}]
 
 
+async def test_categories_with_the_most_products_come_first(client, two_stores):
+    # A phone shop's row starts with its phones, not A to Z (shop page
+    # check 4A); ties by name; another shop's products don't count.
+    a, b = two_stores
+    watch = await add_category(a.store_id, "apple-watch")
+    used = await add_category(a.store_id, "used")
+    new = await add_category(a.store_id, "new")
+    cases = await add_category(a.store_id, "cases")
+    for slug in ("u1", "u2", "u3"):
+        await add_product(a.store_id, slug, category_id=used)
+    for slug in ("n1", "n2"):
+        await add_product(a.store_id, slug, category_id=new)
+    await add_product(a.store_id, "c1", category_id=cases)
+    await add_product(a.store_id, "w1", category_id=watch)
+    await add_product(a.store_id, "w2", category_id=watch, status="inactive")
+    await add_product(b.store_id, "other")
+
+    response = await client.get(f"/api/v1/shop/{await shop_slug(a.store_id)}")
+
+    assert [(c["slug"], c["product_count"]) for c in response.json()["categories"]] == [
+        ("used", 3),
+        ("new", 2),
+        ("apple-watch", 1),  # its hidden product doesn't count
+        ("cases", 1),
+    ]
+
+
 async def test_products_are_this_stores_active_products_only(client, two_stores):
     a, b = two_stores
     await add_product(a.store_id, "shirt", stock=0)

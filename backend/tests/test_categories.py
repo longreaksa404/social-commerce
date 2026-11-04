@@ -27,3 +27,37 @@ async def test_seller_cannot_touch_another_sellers_category(client, auth_headers
     assert b_list.json() == []
     a_list = (await client.get("/api/v1/seller/categories", headers=a)).json()
     assert [c["name"] for c in a_list] == ["Shoes"]
+
+
+async def test_seller_sees_categories_with_the_most_products_first(client, auth_headers):
+    # The same order as the shop (shop page check 4A); hidden products count.
+    headers = await auth_headers()
+    ids = {}
+    for name in ("Apple Watch", "iPhone", "Cases"):
+        created = await client.post(
+            "/api/v1/seller/categories", headers=headers, json={"name": name}
+        )
+        ids[name] = created.json()["id"]
+    for i, (name, status) in enumerate(
+        [("iPhone", "active"), ("iPhone", "inactive"), ("Cases", "active")]
+    ):
+        created = await client.post(
+            "/api/v1/seller/products",
+            headers=headers,
+            json={
+                "name": f"P{i}",
+                "price": "10.00",
+                "category_id": ids[name],
+                "stock_quantity": 1,
+                "status": status,
+            },
+        )
+        assert created.status_code == 201
+
+    listed = (await client.get("/api/v1/seller/categories", headers=headers)).json()
+
+    assert [(c["name"], c["product_count"]) for c in listed] == [
+        ("iPhone", 2),
+        ("Cases", 1),
+        ("Apple Watch", 0),
+    ]

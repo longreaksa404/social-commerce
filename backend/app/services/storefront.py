@@ -71,7 +71,9 @@ async def store_page(db: AsyncSession, store: Store) -> ShopStoreOut:
             Product.status == ProductStatus.ACTIVE,
         )
         .group_by(Category.id)
-        .order_by(Category.name)
+        # The busiest first, so a phone shop's row starts with its phones
+        # (shop page check 4A, founder 2026-11-04); ties by name.
+        .order_by(product_count.desc(), Category.name)
     )
     stopped = orders_stopped(store)
     setup = in_setup(store)

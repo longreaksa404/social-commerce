@@ -1121,7 +1121,7 @@ from the schema.
 | PATCH | `/seller/staff/{staff_id}` | owner | `StaffUpdate` (`full_name?`, `phone?`) | `StaffOut` | Edit a helper (founder's test list #26, 2026-10-24); a phone on another account → 409 `PHONE_TAKEN`; their phones stay logged in; another shop's → 404 |
 | POST | `/seller/staff/{staff_id}/password` | owner | `StaffPassword` | `StaffOut` | Sets it and logs their phones out; another shop's → 404 `STAFF_NOT_FOUND`. The app asks first ("Set a new password for Dara?", test list #27); the old one isn't asked, as they forgot it |
 | DELETE | `/seller/staff/{staff_id}` | owner | — | 204 | Deletes the login (and its sessions) |
-| GET | `/seller/categories` | seller | — | `list[CategoryOut]` | With `product_count`; by name |
+| GET | `/seller/categories` | seller | — | `list[CategoryOut]` | With `product_count` (hidden products too); the most products first, ties by name (shop page check 4A, 2026-11-04) |
 | POST | `/seller/categories` | seller | `CategoryCreate` | `CategoryOut` (201) | Slug from name if omitted |
 | PATCH | `/seller/categories/{category_id}` | seller | `CategoryUpdate` | `CategoryOut` | |
 | DELETE | `/seller/categories/{category_id}` | seller | — | 204 | Hard delete; products become uncategorized |
@@ -1202,7 +1202,7 @@ from the schema.
 | GET | `/seller/links` | seller | — | `list[LinkOut]` | Newest 200, with view/order counts |
 | POST | `/seller/links` | seller | `LinkCreate` | `LinkOut` (201) | Same target + source + campaign returns the existing link; hidden product → 409 `PRODUCT_HIDDEN` |
 | GET | `/seller/links/{link_id}/stats` | seller | — | `LinkStatsOut` | + its orders (≤100) |
-| GET | `/shop/{store_slug}` | public | — | `ShopStoreOut` | Categories with active products, `cover_url` and `color`, payment method names, delivery options, discounts, `telegram_username` / `messenger_username` / `instagram_username` / `contact_phone`, `orders_paused` / `orders_resume_on`, `opening_soon` (in setup: not opened by its owner yet) |
+| GET | `/shop/{store_slug}` | public | — | `ShopStoreOut` | Categories with active products (the most active products first, ties by name: shop page check 4A, 2026-11-04), `cover_url` and `color`, payment method names, delivery options, discounts, `telegram_username` / `messenger_username` / `instagram_username` / `contact_phone`, `orders_paused` / `orders_resume_on`, `opening_soon` (in setup: not opened by its owner yet) |
 | GET | `/shop/{store_slug}/products` | public | — | `list[ShopProductCard]` | Active only; **no paging**; `has_variants` and `stock_quantity` (null with variants) let the grid's + add to the cart; `category` (its slug, or null) lets a category tab show at once from this list |
 | GET | `/shop/{store_slug}/products/{product_slug}` | public | — | `ShopProductOut` | Variants with effective price and stock; `price` (and each variant's) after any sale today, `was_price` before it (null: none); the cards' `price_min`/`price_max` likewise, with `was_price_min` |
 | GET | `/shop/{store_slug}/categories/{category_slug}` | public | — | `ShopCategoryPageOut` | |

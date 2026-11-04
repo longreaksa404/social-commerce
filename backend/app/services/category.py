@@ -19,8 +19,12 @@ async def list_categories(db: AsyncSession, store_id: uuid.UUID) -> list[Categor
         .where(Product.category_id == Category.id, Product.store_id == store_id)
         .scalar_subquery()
     )
+    # Most products first, as the shop shows them (shop page check 4A,
+    # founder 2026-11-04); ties by name.
     rows = await db.execute(
-        select(Category, product_count).where(Category.store_id == store_id).order_by(Category.name)
+        select(Category, product_count)
+        .where(Category.store_id == store_id)
+        .order_by(product_count.desc(), Category.name)
     )
     return [
         CategoryOut.model_validate(category).model_copy(update={"product_count": count})
