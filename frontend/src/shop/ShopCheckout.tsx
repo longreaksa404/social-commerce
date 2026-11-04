@@ -372,8 +372,6 @@ export function ShopCheckout() {
             price={price}
             error={place.error}
             onChoose={(choice) => setForm((f) => ({ ...f, how: choice }))}
-            courier={courier ?? ''}
-            onCourier={(choice) => setForm((f) => ({ ...f, courier: choice }))}
           >
             {how !== null && !pickup && (
               <>
@@ -404,6 +402,24 @@ export function ShopCheckout() {
                     onChange={(e) => set('address', e.target.value)}
                   />
                 </Field>
+                {/* The shop's delivery companies, an optional pick, after the
+                    address every order needs (Your order page check 2B,
+                    founder 2026-11-04; before it until then). */}
+                {options.couriers.length > 0 && (
+                  <div>
+                    <Pills
+                      name="courier"
+                      legend={c.courierOptional}
+                      options={[
+                        { value: '', label: c.shopChooses },
+                        ...options.couriers.map((name) => ({ value: name, label: name })),
+                      ]}
+                      value={courier ?? ''}
+                      onChange={(choice) => setForm((f) => ({ ...f, courier: choice }))}
+                    />
+                    <ChoiceProblem id="courier-error" text={fieldError(place.error, 'courier')} />
+                  </div>
+                )}
                 {/* One address box; the notes behind links until wanted (UX
                     check #11, 2026-10-17). */}
                 {form.addressNote || openNotes.address || fieldError(place.error, 'delivery_address_note') ? (
@@ -548,8 +564,6 @@ function DeliverySection({
   price,
   error,
   onChoose,
-  courier,
-  onCourier,
   children,
 }: {
   options: ShopStore['delivery']
@@ -559,8 +573,6 @@ function DeliverySection({
   price: Price
   error: unknown
   onChoose: (choice: Choice) => void
-  courier: string
-  onCourier: (courier: string) => void
   children: ReactNode
 }) {
   const t = useT()
@@ -578,7 +590,6 @@ function DeliverySection({
   const label = (choice: Choice) => (choice === 'pickup' ? c.pickup : c.delivery)
   const check = useChoiceCheck(c.chooseDelivery)
   const choiceError = fieldError(error, 'delivery_method') ?? check.problem
-  const courierError = fieldError(error, 'courier')
   return (
     <Section step={3} title={choices.length === 1 && choices[0] === 'pickup' ? c.pickup : c.delivery}>
       {choices.length > 1 ? (
@@ -621,18 +632,6 @@ function DeliverySection({
         <p className="text-sm text-slate-700">
           {label(choices[0])}: {choices[0] === 'pickup' ? free : feeText}
         </p>
-      )}
-      {delivering && options.couriers.length > 0 && (
-        <div>
-          <Pills
-            name="courier"
-            legend={c.courierOptional}
-            options={[{ value: '', label: c.shopChooses }, ...options.couriers.map((name) => ({ value: name, label: name }))]}
-            value={courier}
-            onChange={onCourier}
-          />
-          <ChoiceProblem id="courier-error" text={courierError} />
-        </div>
       )}
       {delivering && freeRules.length > 0 && Number(options.fee) > 0 && (
         <p
