@@ -4,12 +4,14 @@ import { formatMoney } from '../lib/money.ts'
 import { PAYMENT_METHOD_ORDER } from '../lib/payments.ts'
 import type { ShopStore } from '../lib/types.ts'
 
-type Line = { icon: LucideIcon; text: string }
+type Line = { icon: LucideIcon; text: string; deal?: boolean }
 
 /** How buying here works, in up to three short lines under the shop's
- * name (UX check #12, 2026-10-17; tags before): delivery with its free
- * rules and pickup, the ways to pay, the discounts. Who delivers and the
- * pickup address show at checkout. */
+ * name (UX check #12, 2026-10-17; tags before): the discounts, delivery
+ * with its free rules and pickup, the ways to pay. Who delivers and the
+ * pickup address show at checkout. The discounts are the shop's best
+ * news, so they come first and alone in navy (shop page check 7A,
+ * founder 2026-11-04: only the important thing stands out). */
 export function ShopInfo({ shop, className = '' }: { shop: ShopStore; className?: string }) {
   const t = useT()
   const i = t.shop.info
@@ -36,15 +38,22 @@ export function ShopInfo({ shop, className = '' }: { shop: ShopStore; className?
 
   const discounts = [...shop.discounts].sort((a, b) => Number(a.min_subtotal) - Number(b.min_subtotal))
   if (discounts.length) {
-    lines.push({ icon: Tag, text: discounts.map((r) => i.discount(money(r.amount_off), money(r.min_subtotal))).join(' · ') })
+    lines.unshift({
+      icon: Tag,
+      text: discounts.map((r) => i.discount(money(r.amount_off), money(r.min_subtotal))).join(' · '),
+      deal: true,
+    })
   }
   if (lines.length === 0) return null
 
   return (
     <section aria-label={i.title} className={className}>
       <ul className="space-y-1.5">
-        {lines.map(({ icon: Icon, text }) => (
-          <li key={text} className="flex items-start gap-2 text-sm leading-5 text-slate-700">
+        {lines.map(({ icon: Icon, text, deal }) => (
+          <li
+            key={text}
+            className={`flex items-start gap-2 text-sm leading-5 ${deal ? 'font-semibold text-navy-700' : 'text-slate-700'}`}
+          >
             <Icon aria-hidden className="mt-0.5 size-4 shrink-0 text-navy-700" />
             <span className="min-w-0">{text}</span>
           </li>
