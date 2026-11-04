@@ -1,4 +1,4 @@
-import { ChevronRight, ShoppingCart } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Link, Navigate, useLocation, useMatch, useParams, useSearchParams } from 'react-router'
 import { ErrorState, PageOutlet, Skeleton, SlowNotice } from '../components/ui.tsx'
@@ -75,7 +75,7 @@ export function ShopLayout() {
           className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-linear-to-b from-navy-50 to-transparent"
         />
       )}
-      <Header shop={shop.data} slug={storeSlug} home={browsing} order={showOrder} underCover={underCover} />
+      <Header shop={shop.data} slug={storeSlug} home={browsing} order={showOrder} underCover={underCover} checkout={checkout} />
       <main className="mx-auto w-full max-w-6xl px-4 pt-4 sm:pt-6">
         {shop.isPending && <SlowNotice className="mb-4" />}
         {shop.data?.orders_paused && <PausedNotice shop={shop.data} />}
@@ -109,6 +109,7 @@ function Header({
   home,
   order,
   underCover,
+  checkout,
 }: {
   shop: ShopStore | undefined
   slug: string
@@ -117,7 +118,10 @@ function Header({
   order: boolean
   /** The cover starts under the header (phones; see ShopLayout). */
   underCover: boolean
+  /** The cart page: its own title in the bar, and no cart button. */
+  checkout: boolean
 }) {
+  const t = useT()
   // At the top of the shop's home the header is see-through, over the
   // same wash as the shop's name, so the name shows once. On phones the
   // page shows it big and the header's small one waits until that has
@@ -146,30 +150,54 @@ function Header({
           big ? 'h-14 lg:h-24' : 'h-14'
         }`}
       >
-        <Link
-          to={`/shop/${slug}`}
-          className={`-mx-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2 transition-opacity duration-200 focus-visible:outline-2 focus-visible:outline-navy-600 ${
-            big ? 'max-lg:invisible max-lg:opacity-0 lg:gap-4' : top ? 'invisible opacity-0' : ''
-          }`}
-        >
-          <ShopLogo shop={shop} className={big ? 'size-8 shadow-md ring-4 ring-surface lg:size-16' : 'size-8'} />
-          {shop ? (
-            <span
-              className={`truncate font-semibold text-slate-900 ${big ? 'lg:text-2xl lg:font-bold lg:tracking-tight' : ''}`}
+        {checkout ? (
+          // The cart page's one bar (cart page check 3A, founder
+          // 2026-11-04): back to the shop, "Your order" with the shop's
+          // name under it, then the moon and the language; no cart button
+          // on the cart itself.
+          <div className="-ml-2 flex min-w-0 items-center gap-1">
+            <Link
+              to={`/shop/${slug}`}
+              aria-label={t.common.back}
+              className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
             >
-              {shop.name}
-            </span>
-          ) : (
-            <Skeleton className="h-5 w-36" />
-          )}
-        </Link>
+              <ChevronLeft aria-hidden className="size-6" />
+            </Link>
+            <div className="min-w-0">
+              <h1 className="truncate text-lg leading-6 font-bold tracking-tight text-slate-900">{t.checkout.yourOrder}</h1>
+              {shop ? (
+                <p className="truncate text-xs leading-4 text-slate-500">{shop.name}</p>
+              ) : (
+                <Skeleton className="mt-0.5 h-3 w-24" />
+              )}
+            </div>
+          </div>
+        ) : (
+          <Link
+            to={`/shop/${slug}`}
+            className={`-mx-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2 transition-opacity duration-200 focus-visible:outline-2 focus-visible:outline-navy-600 ${
+              big ? 'max-lg:invisible max-lg:opacity-0 lg:gap-4' : top ? 'invisible opacity-0' : ''
+            }`}
+          >
+            <ShopLogo shop={shop} className={big ? 'size-8 shadow-md ring-4 ring-surface lg:size-16' : 'size-8'} />
+            {shop ? (
+              <span
+                className={`truncate font-semibold text-slate-900 ${big ? 'lg:text-2xl lg:font-bold lg:tracking-tight' : ''}`}
+              >
+                {shop.name}
+              </span>
+            ) : (
+              <Skeleton className="h-5 w-36" />
+            )}
+          </Link>
+        )}
         <div className={`flex shrink-0 items-center ${underCover && clear ? 'on-photo' : ''}`}>
           <ThemeToggle />
           <LanguageToggle />
           {/* The order on its way beside the cart, both in the thumb's
               reach; the settings, set once, further left. */}
           {order && <CurrentOrderButton slug={slug} />}
-          <CartButton slug={slug} />
+          {!checkout && <CartButton slug={slug} />}
         </div>
       </div>
     </header>

@@ -8,7 +8,6 @@ import {
   ErrorState,
   Field,
   Input,
-  PageHeader,
   Pills,
   Section,
   Skeleton,
@@ -185,7 +184,6 @@ export function ShopCheckout() {
     return (
       <div className="mx-auto max-w-xl">
         <title>{t.shop.cartPage.tab(shop.data.name)}</title>
-        <PageHeader title={c.yourOrder} back={`/shop/${storeSlug}`} />
         <EmptyCart shop={storeSlug} />
       </div>
     )
@@ -266,7 +264,6 @@ export function ShopCheckout() {
   return (
     <form onSubmit={submit} className="mx-auto max-w-xl pb-24 lg:max-w-6xl lg:pb-0">
       <title>{c.tab(shop.data.name)}</title>
-      <PageHeader title={c.yourOrder} back={`/shop/${storeSlug}`} />
       {/* One column on phones; on laptops the form on the left and the
           total with Place order on the right, staying in view. */}
       <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-6 lg:space-y-0">
@@ -845,7 +842,6 @@ function Totals({ currency, loading, price }: { currency: Currency; loading: boo
 function CheckoutSkeleton() {
   return (
     <div aria-hidden className="mx-auto max-w-xl space-y-4">
-      <Skeleton className="h-8 w-40" />
       <Skeleton className="h-52 w-full rounded-2xl" />
       <Skeleton className="h-52 w-full rounded-2xl" />
     </div>
