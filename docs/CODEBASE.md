@@ -1562,7 +1562,10 @@ is wrapped in try/catch (private mode).
   its shape in `shownPhotos` and drawn at once, decoded with its card,
   instead of fading in again), `ProductGrid` (a photo wall with the same
   cards as the seller's grid view; the card's link covers it with
-  `::after` so the + can sit on the photo), `ProductGridSkeleton`,
+  `::after` so the + can sit on the photo; the price is the lowest one
+  alone, "$1,399", no "From" and no ".00" on whole dollars,
+  `formatCardPrice` in `lib/money.ts`, shop page check 3B, 2026-11-04;
+  the product page keeps the range), `ProductGridSkeleton`,
   `CategoryChips`, `ShopLogo`, `NotFound`, `QuantityStepper`. The shop's
   cards rise in (40 ms apart, in product order) only the first time a
   list (shop + category) shows since the page loaded (`shownLists`,

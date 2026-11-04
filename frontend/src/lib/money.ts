@@ -27,6 +27,16 @@ export function priceStep(currency: Currency): string {
   return currency === 'KHR' ? '1' : '0.01'
 }
 
+/** A price as a product card in the shop shows it (shop page check 3B,
+ * founder 2026-11-04): "$1,399" for whole dollars, "$19.50" with cents,
+ * riel as formatMoney. Short, so it fits a card on a 360px phone. */
+export function formatCardPrice(amount: string | number, currency: Currency): string {
+  const value = Number(amount)
+  return currency === 'USD' && Number.isInteger(value)
+    ? `$${value.toLocaleString('en-US')}`
+    : formatMoney(amount, currency)
+}
+
 /** "$8.00", or "$8.00 – $12.00" when the prices differ. */
 export function formatPriceRange(low: string | number, high: string | number, currency: Currency): string {
   return Number(low) === Number(high)

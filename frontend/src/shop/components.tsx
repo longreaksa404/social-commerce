@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router'
 import { ChipRow } from '../components/ChipRow.tsx'
 import { Badge, Card, IconButton, Skeleton } from '../components/ui.tsx'
 import { thumbnailUrl } from '../lib/images.ts'
-import { formatMoney, formatPriceRange } from '../lib/money.ts'
+import { formatCardPrice } from '../lib/money.ts'
 import { formatCalendarDay } from '../lib/orders.ts'
 import { useT } from '../i18n/useT.ts'
 import type { ShopProductCard, ShopStore } from '../lib/types.ts'
@@ -207,10 +207,12 @@ export function ProductGrid({
                 >
                   <span className="line-clamp-2 text-sm leading-5 font-medium text-slate-900">{product.name}</span>
                   <span className="mt-0.5 block text-sm font-semibold text-slate-900 tabular-nums">
-                    {formatPriceRange(product.price_min, product.price_max, shop.currency)}
+                    {/* The lowest price alone, no "From" (shop page check 3B,
+                        founder 2026-11-04); the product page shows the range. */}
+                    {formatCardPrice(product.price_min, shop.currency)}
                     {/* On sale (test list #21): the price before, crossed out. */}
                     {product.was_price_min && (
-                      <s className="ml-1.5 font-normal text-slate-400">{formatMoney(product.was_price_min, shop.currency)}</s>
+                      <s className="ml-1.5 font-normal text-slate-400">{formatCardPrice(product.was_price_min, shop.currency)}</s>
                     )}
                   </span>
                   <StockTag product={product} />
