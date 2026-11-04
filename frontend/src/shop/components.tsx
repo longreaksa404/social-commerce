@@ -1,4 +1,4 @@
-import { CalendarClock, ImageIcon, Minus, Plus, SearchX, Store } from 'lucide-react'
+import { CalendarClock, ImageIcon, Minus, Plus, SearchX, Store, Trash2 } from 'lucide-react'
 import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { ChipRow } from '../components/ChipRow.tsx'
@@ -348,31 +348,41 @@ export function NotFound({ title, children, action }: { title: string; children:
   )
 }
 
-/** − n + for how many to buy. */
+/** − n + for how many to buy. With `onRemove` (the cart), the − turns
+ * into a bin at 1 that takes the line out (cart page check 6A, founder
+ * 2026-11-04), rather than a − that does nothing beside a separate bin. */
 export function QuantityStepper({
   value,
   max,
   onChange,
   disabled = false,
   label,
+  onRemove,
+  removeLabel,
 }: {
   value: number
   max: number
   onChange: (value: number) => void
   disabled?: boolean
   label?: string
+  onRemove?: () => void
+  removeLabel?: string
 }) {
   const t = useT()
   const button = 'border border-slate-300 bg-surface shadow-xs'
   return (
     <div role="group" aria-label={label ?? t.shop.quantity} className="flex shrink-0 items-center gap-1">
-      <IconButton
-        icon={Minus}
-        label={t.shop.oneLess}
-        disabled={disabled || value <= 1}
-        onClick={() => onChange(value - 1)}
-        className={button}
-      />
+      {onRemove && value <= 1 ? (
+        <IconButton icon={Trash2} label={removeLabel ?? t.shop.oneLess} disabled={disabled} onClick={onRemove} className={button} />
+      ) : (
+        <IconButton
+          icon={Minus}
+          label={t.shop.oneLess}
+          disabled={disabled || value <= 1}
+          onClick={() => onChange(value - 1)}
+          className={button}
+        />
+      )}
       <output aria-live="polite" className="w-9 text-center text-base font-semibold text-slate-900 tabular-nums">
         {value}
       </output>

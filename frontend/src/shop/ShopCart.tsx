@@ -154,14 +154,25 @@ function CartRow({
             {line.variantName && <p className="mt-0.5 text-sm text-slate-500">{line.variantName}</p>}
             <p className="mt-0.5 text-sm text-slate-700">{formatMoney(line.price, currency)}</p>
           </div>
-          <IconButton icon={Trash2} label={t.shop.cartPage.remove(line.name)} onClick={onRemove} className="-mt-2 -mr-2" />
+          {/* Out of stock: no stepper, so the bin stays here. Otherwise the
+              stepper's − turns into it at 1 (cart page check 6A). */}
+          {unavailable && (
+            <IconButton icon={Trash2} label={t.shop.cartPage.remove(line.name)} onClick={onRemove} className="-mt-2 -mr-2" />
+          )}
         </div>
         {line.problem && <p className="mt-1 text-sm font-medium text-red-700">{line.problem}</p>}
         {!unavailable && (
           // The line's total goes under the buttons when there's no room
           // beside them (320px phones, bigger amounts).
           <div className="mt-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-            <QuantityStepper value={line.quantity} max={max} onChange={onQuantity} label={t.shop.quantityOf(line.name)} />
+            <QuantityStepper
+              value={line.quantity}
+              max={max}
+              onChange={onQuantity}
+              label={t.shop.quantityOf(line.name)}
+              onRemove={onRemove}
+              removeLabel={t.shop.cartPage.remove(line.name)}
+            />
             <span className="ml-auto font-semibold text-slate-900">
               {formatMoney((toCents(line.price) * line.quantity) / 100, currency)}
             </span>
