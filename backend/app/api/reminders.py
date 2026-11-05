@@ -21,5 +21,5 @@ async def reminders_run(
     secret = get_settings().billing_cron_secret
     if not secret or not hmac.compare_digest(x_cron_secret, secret):
         raise HTTPException(status_code=404)
-    background.add_task(jobs.run, "reminders")
+    background.add_task(jobs.run_from_cron, "reminders")
     return {"started": True}

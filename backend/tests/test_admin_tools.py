@@ -141,6 +141,34 @@ async def test_a_message_goes_to_the_admin_first_then_the_open_shops(client, reg
     assert shop["activity"][0]["event_type"] == "broadcast"
 
 
+async def test_the_same_message_to_the_same_shops_is_sent_once(client, register, admin, sent):
+    await register()
+    await client.post(
+        "/api/v1/admin/auth/password", headers=bearer(admin), json={"password": ADMIN_PASSWORD}
+    )
+    text = f"Maintenance tonight {datetime.now(UTC).timestamp()}"
+
+    first = await client.post(
+        f"{ADMIN}/broadcast", headers=bearer(admin), json={"text": text, "to": "all"}
+    )
+    again = await client.post(
+        f"{ADMIN}/broadcast", headers=bearer(admin), json={"text": f"  {text} ", "to": "all"}
+    )
+    other_shops = await client.post(
+        f"{ADMIN}/broadcast", headers=bearer(admin), json={"text": text, "to": "trial"}
+    )
+
+    assert first.status_code == 200, first.text
+    assert again.status_code == 409
+    assert again.json()["error"]["code"] == "BROADCAST_REPEATED"
+    assert other_shops.status_code == 200
+    lines = (await client.get(f"{ADMIN}/log", headers=bearer(admin))).json()
+    assert [line["details"]["to"] for line in lines if line["action"] == "broadcast"][:2] == [
+        "trial",
+        "all",
+    ]
+
+
 async def test_paying_shops_only(client, register, admin, sent):
     paying = await register()
     trial = await register()

@@ -5,10 +5,11 @@ import uuid
 from datetime import datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, BackgroundTasks, Query, Response, status
+from fastapi import APIRouter, BackgroundTasks, Query, Request, Response, status
 
 from app.api.deps import Admin, AdminPasswordAgain, UnscopedDb, current_admin_password_again
 from app.core import clock
+from app.core.ratelimit import limiter
 from app.models import LoginProvider
 from app.schemas.admin import (
     AdminActingOut,
@@ -201,7 +202,9 @@ async def open_as_seller(
 
 
 @router.delete("/shops/{store_id}", response_model=AdminErasedOut)
+@limiter.limit("10/minute")  # takes the password: no guessing it here
 async def erase_shop(
+    request: Request,
     store_id: uuid.UUID,
     data: AdminEraseIn,
     admin: Admin,
@@ -266,8 +269,13 @@ async def find_customers(q: Search, _: Admin, db: UnscopedDb) -> list[AdminCusto
 
 
 @router.post("/customers/forget", response_model=AdminForgetOut)
+@limiter.limit("10/minute")  # takes the password: no guessing it here
 async def forget_customer(
-    data: AdminForgetIn, admin: Admin, db: UnscopedDb, background: BackgroundTasks
+    request: Request,
+    data: AdminForgetIn,
+    admin: Admin,
+    db: UnscopedDb,
+    background: BackgroundTasks,
 ) -> AdminForgetOut:
     """Part 21: a customer's details removed from one shop or every shop;
     REMOVE typed and the admin's password every time. 422 WRONG_PASSWORD,

@@ -5,10 +5,11 @@ sent to the admin first (part 30, pick 15A), and the sign-ups that didn't
 finish (part 31). The test shop and erasing also serve the founder's
 commands (`python -m app.admin test-shop`, `erase-shop`)."""
 
+import asyncio
 import secrets
 import uuid
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 import httpx
@@ -20,6 +21,7 @@ from app.core.config import get_settings
 from app.core.errors import AppError, NotFound
 from app.models import (
     AdminAccount,
+    AdminAction,
     Customer,
     NotificationLog,
     NotificationStatus,
@@ -129,6 +131,11 @@ async def erase(
 
 Audience = Literal["me", "all", "trial", "paying"]
 BROADCAST = "broadcast"  # the shops' notification_log rows
+# The same words to the same shops again this soon is taken as a second
+# tap or a retry, and refused (the log shows the first one went).
+REPEAT = timedelta(minutes=10)
+# One message to the shops at a time (one server process).
+_sending = asyncio.Lock()
 
 
 def broadcast_text(text: str) -> str:
@@ -174,6 +181,27 @@ async def broadcast(
             except (TelegramError, httpx.HTTPError):
                 failed += 1
         return AdminBroadcastOut(sent=sent, failed=failed)
+    if _sending.locked():
+        raise AppError(409, "BROADCAST_RUNNING", "A message to the shops is being sent now.")
+    async with _sending:
+        return await _send_to_shops(db, admin_id, text, to, message)
+
+
+async def _send_to_shops(
+    db: AsyncSession, admin_id: uuid.UUID, text: str, to: Audience, message: str
+) -> AdminBroadcastOut:
+    repeat = await db.scalar(
+        select(AdminAction.id).where(
+            AdminAction.action == BROADCAST,
+            AdminAction.created_at >= datetime.now(UTC) - REPEAT,
+            AdminAction.details["to"].astext == to,
+            AdminAction.details["text"].astext == text.strip(),
+        )
+    )
+    if repeat is not None:
+        raise AppError(
+            409, "BROADCAST_REPEATED", "This message went to these shops a few minutes ago."
+        )
     marker = str(uuid.uuid4())
     for store in await _audience(db, to):
         await notifications.send_to_seller(db, store, BROADCAST, {"broadcast": marker}, message)

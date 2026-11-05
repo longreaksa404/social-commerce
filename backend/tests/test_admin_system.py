@@ -2,14 +2,16 @@
 and errors counted in memory, the jobs and Run now, the bot, the database,
 the services by name only."""
 
+import asyncio
 from datetime import UTC, datetime, timedelta
 
+import pytest
 from sqlalchemy import delete
 
 from app.core.config import get_settings
 from app.db.session import unscoped_session
 from app.models import PlatformSetting
-from app.services import jobs, monitor
+from app.services import admin_system, billing, jobs, monitor
 
 ADMIN = "/api/v1/admin"
 
@@ -91,3 +93,66 @@ def test_a_job_is_late_after_its_time():
     assert jobs.late("reminders", ran, now) is True  # hourly
     assert jobs.late("billing", ran, now) is False  # daily
     assert jobs.late("billing", None, now) is True  # never ran
+
+
+async def test_no_backup_is_assumed_until_a_night_reports(client, admin):
+    await forget_runs()
+
+    never = (await client.get(f"{ADMIN}/system", headers=bearer(admin))).json()["backup"]
+    assert never["last_at"] is None and never["late"] is True
+
+    # What .github/workflows/backup.yml writes after a night's upload.
+    night = datetime.now(UTC) - timedelta(hours=5)
+    async with unscoped_session() as db:
+        db.add(
+            PlatformSetting(
+                key="job:backup",
+                value={"at": night.isoformat(), "file": "nightly/x.dump", "bytes": 4096},
+            )
+        )
+        await db.commit()
+    saved = (await client.get(f"{ADMIN}/system", headers=bearer(admin))).json()["backup"]
+    assert saved["late"] is False and saved["failing"] is False
+    assert saved["file"] == "nightly/x.dump" and saved["bytes"] == 4096
+
+    # A failed night after it keeps the good one and shows the failure.
+    later = admin_system.backup_state(
+        {"at": night.isoformat(), "failed_at": datetime.now(UTC).isoformat()}
+    )
+    assert later.failing is True and later.last_at is not None
+
+
+async def test_a_failed_run_is_saved_without_its_words(client, admin, monkeypatch):
+    await forget_runs()
+
+    async def broken():
+        raise RuntimeError("https://api.telegram.org/bot123:SECRET/sendMessage")
+
+    monkeypatch.setattr(billing, "run_daily", broken)
+    with pytest.raises(RuntimeError):  # a 500 on the server
+        await client.post(f"{ADMIN}/jobs/billing/run", headers=bearer(admin))
+    page = await client.get(f"{ADMIN}/system", headers=bearer(admin))
+
+    job = next(j for j in page.json()["jobs"] if j["name"] == "billing")
+    assert job["failing"] is True and job["error"] == "RuntimeError"
+    assert "SECRET" not in page.text
+
+
+async def test_a_job_runs_once_at_a_time(client, admin, monkeypatch):
+    started, release = asyncio.Event(), asyncio.Event()
+
+    async def slow():
+        started.set()
+        await release.wait()
+        return billing.RunSummary()
+
+    monkeypatch.setattr(billing, "run_daily", slow)
+    first = asyncio.create_task(jobs.run("billing"))
+    await started.wait()
+
+    second = await client.post(f"{ADMIN}/jobs/billing/run", headers=bearer(admin))
+    release.set()
+    assert await first == 0
+
+    assert second.status_code == 409
+    assert second.json()["error"]["code"] == "JOB_RUNNING"

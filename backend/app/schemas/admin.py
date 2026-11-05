@@ -195,9 +195,12 @@ class AdminJobOut(BaseModel):
     name: str  # billing, reminders
     title: str
     every: str  # daily, hourly
-    last_at: datetime | None
+    last_at: datetime | None  # the last run that worked
     last_sent: int | None
     late: bool  # never ran, or not within its time
+    failed_at: datetime | None = None  # the last run that failed
+    error: str | None = None  # its kind of error, e.g. "TimeoutError"
+    failing: bool = False  # the latest run failed
 
 
 class AdminFailedSendOut(BaseModel):
@@ -226,11 +229,24 @@ class AdminServiceOut(BaseModel):
     set: bool
 
 
+class AdminBackupOut(BaseModel):
+    """The nightly database copy (docs/BACKUPS.md), as the GitHub workflow
+    reports it after each night. Never reported: not known to work."""
+
+    last_at: datetime | None  # the last copy saved
+    file: str | None
+    bytes: int | None
+    failed_at: datetime | None
+    late: bool  # no copy saved in the last 26 hours (or ever)
+    failing: bool  # the latest night failed
+
+
 class AdminSystemOut(BaseModel):
     """The System page (parts 24 to 27, pick 12B)."""
 
     speed: AdminSpeedOut
     jobs: list[AdminJobOut]
+    backup: AdminBackupOut
     bot: AdminBotOut
     database_bytes: int
     database_ms: float

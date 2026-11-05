@@ -42,6 +42,13 @@ few MB).
 If a night fails, GitHub emails you. A missed night doesn't break the
 next one.
 
+Each night also reports to the admin (since 2026-11-06): the workflow
+writes the night's file and size, or that it failed, into the database
+it has just copied (`platform_setting` key `job:backup`). The admin's
+System page (the Database tile and Nightly backup) and its bell show
+it; until a night has reported they say no backup is known to work, and
+a night that was skipped for missing secrets never reports.
+
 ---
 
 ## Restoring

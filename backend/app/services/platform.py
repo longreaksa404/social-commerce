@@ -96,10 +96,21 @@ def job_key(name: str) -> str:
 
 async def record_run(db: AsyncSession, name: str, sent: int) -> None:
     """A job ran (cron-job.org, or Run now): when, and how many it sent.
-    Commits."""
+    Its last failure stays, so the System page can show both. Commits."""
+    await _merge_run(db, name, {"at": datetime.now(UTC).isoformat(), "sent": sent})
+
+
+async def record_failure(db: AsyncSession, name: str, error: str) -> None:
+    """A job's run failed: when, and the kind of error (its class name, never
+    its words, which can carry a key). Commits."""
+    await _merge_run(db, name, {"failed_at": datetime.now(UTC).isoformat(), "error": error})
+
+
+async def _merge_run(db: AsyncSession, name: str, value: dict[str, Any]) -> None:
     key = job_key(name)
     rows = await _rows(db, [key])
-    _put(db, rows, key, {"at": datetime.now(UTC).isoformat(), "sent": sent}, None)
+    before = rows[key].value if key in rows else {}
+    _put(db, rows, key, {**before, **value}, None)
     await db.commit()
 
 

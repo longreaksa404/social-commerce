@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.models import NotificationChannel, NotificationLog, NotificationStatus, Store
 from app.schemas.admin import (
+    AdminBackupOut,
     AdminBotOut,
     AdminFailedSendOut,
     AdminJobOut,
@@ -95,27 +96,59 @@ async def _bot(db: AsyncSession) -> AdminBotOut:
     )
 
 
+# The nightly copy's report (.github/workflows/backup.yml writes it, as
+# `job:backup`, straight into the database it has just copied).
+BACKUP = "backup"
+BACKUP_LATE = timedelta(hours=26)
+
+
+def job_states(runs: dict[str, dict]) -> list[AdminJobOut]:
+    out = []
+    for name, (title, every, _) in jobs.JOBS.items():
+        last = runs.get(name) or {}
+        out.append(
+            AdminJobOut(
+                name=name,
+                title=title,
+                every=every,
+                last_at=last.get("at"),
+                last_sent=last.get("sent"),
+                late=jobs.late(name, runs.get(name)),
+                failed_at=last.get("failed_at"),
+                error=last.get("error"),
+                failing=jobs.failed(runs.get(name)),
+            )
+        )
+    return out
+
+
+def backup_state(last: dict | None, now: datetime | None = None) -> AdminBackupOut:
+    """Late until a copy is reported: a backup is never assumed to work."""
+    last = last or {}
+    now = now or datetime.now(UTC)
+    at = datetime.fromisoformat(last["at"]) if "at" in last else None
+    return AdminBackupOut(
+        last_at=at,
+        file=last.get("file"),
+        bytes=last.get("bytes"),
+        failed_at=last.get("failed_at"),
+        late=at is None or now - at > BACKUP_LATE,
+        failing=jobs.failed(last),
+    )
+
+
 async def system(db: AsyncSession) -> AdminSystemOut:
     speed = monitor.summary()
     started = time.perf_counter()
     await db.execute(text("SELECT 1"))
     query_ms = (time.perf_counter() - started) * 1000
     size = await db.scalar(select(func.pg_database_size(func.current_database())))
-    runs = await platform.last_runs(db, list(jobs.JOBS))
+    runs = await platform.last_runs(db, [*jobs.JOBS, BACKUP])
     commit = os.environ.get("RENDER_GIT_COMMIT", "")
     return AdminSystemOut(
         speed=AdminSpeedOut(**speed.__dict__),
-        jobs=[
-            AdminJobOut(
-                name=name,
-                title=title,
-                every=every,
-                last_at=runs[name]["at"] if name in runs else None,
-                last_sent=runs[name]["sent"] if name in runs else None,
-                late=jobs.late(name, runs.get(name)),
-            )
-            for name, (title, every, _) in jobs.JOBS.items()
-        ],
+        jobs=job_states(runs),
+        backup=backup_state(runs.get(BACKUP)),
         bot=await _bot(db),
         database_bytes=size or 0,
         database_ms=round(query_ms, 1),

@@ -1,6 +1,6 @@
 import { ExternalLink } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { Link } from 'react-router'
+import { useEffect, type ReactNode } from 'react'
+import { Link, useLocation } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import { cardClass } from '../components/styles.ts'
 import { Button, ErrorState, PageHeader, Skeleton } from '../components/ui.tsx'
@@ -44,9 +44,25 @@ export function AdminSystem() {
   )
 }
 
+/** The nightly backup in words, and how it reads: never "fine" until a
+ * night has reported. */
+function backupWords(backup: System['backup']): { text: string; tone: string } {
+  if (backup.failing) return { text: `Last night failed ${backup.failed_at ? ago(backup.failed_at) : ''}`.trim(), tone: 'text-red-700' }
+  if (!backup.last_at) return { text: 'No backup reported yet', tone: 'text-amber-700' }
+  if (backup.late) return { text: `Late · last saved ${ago(backup.last_at)}`, tone: 'text-amber-700' }
+  return { text: `Backup saved ${ago(backup.last_at)}`, tone: '' }
+}
+
 function Page({ system }: { system: System }) {
-  const { speed, bot } = system
-  const late = system.jobs.filter((j) => j.late)
+  const { speed, bot, backup } = system
+  const late = system.jobs.filter((j) => j.late && !j.failing)
+  const failing = system.jobs.filter((j) => j.failing)
+  const backupNow = backupWords(backup)
+  // From a notice ("/admin/system#jobs"): to its part once it's drawn.
+  const { hash } = useLocation()
+  useEffect(() => {
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView()
+  }, [hash])
   const services = [...system.services, { name: 'Support Telegram (app)', set: Boolean(SUPPORT_TELEGRAM) }]
   const unset = services.filter((s) => !s.set)
   return (
@@ -62,8 +78,20 @@ function Page({ system }: { system: System }) {
         <Tile to="#speed" label="Errors today" value={speed.errors_today}>
           <span className={speed.errors_hour > 0 ? 'text-red-700' : undefined}>{speed.errors_hour} in the last hour</span>
         </Tile>
-        <Tile to="#jobs" label="Daily jobs" value={late.length === 0 ? 'All ran' : <span className="text-amber-700">{late.length} late</span>}>
-          {late.length === 0 ? system.jobs.map((j) => j.title).join(', ') : late.map((j) => j.title).join(', ')}
+        <Tile
+          to="#jobs"
+          label="Daily jobs"
+          value={
+            failing.length > 0 ? (
+              <span className="text-red-700">{failing.length} failed</span>
+            ) : late.length > 0 ? (
+              <span className="text-amber-700">{late.length} late</span>
+            ) : (
+              'All ran'
+            )
+          }
+        >
+          {[...failing, ...late].length === 0 ? system.jobs.map((j) => j.title).join(', ') : [...failing, ...late].map((j) => j.title).join(', ')}
         </Tile>
         <Tile
           to="#bot"
@@ -74,8 +102,8 @@ function Page({ system }: { system: System }) {
             {bot.failed === 1 ? '1 failed send' : `${bot.failed} failed sends`}, 24 h
           </span>
         </Tile>
-        <Tile to="#database" label="Database" value={mb(system.database_bytes)}>
-          Answers in {ms(system.database_ms)}
+        <Tile to="#backup" label="Database" value={mb(system.database_bytes)}>
+          <span className={backupNow.tone || undefined}>{backupNow.text}</span>
         </Tile>
         <Tile to="#services" label="Services" value={`${services.length - unset.length} of ${services.length} set`}>
           {unset.length === 0 ? 'All set' : `${unset.map((s) => s.name).join(', ')} not set`}
@@ -145,6 +173,29 @@ function Page({ system }: { system: System }) {
             ['Answers in', ms(system.database_ms)],
           ]}
         />
+      </Group>
+
+      <Group id="backup" title="Nightly backup">
+        <Rows
+          rows={[
+            ['State', <span key="s" className={backupNow.tone || undefined}>{backupNow.text}</span>],
+            ...(backup.last_at
+              ? ([
+                  [
+                    'Last saved',
+                    `${new Date(backup.last_at).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${backup.bytes ? ` · ${mb(backup.bytes)}` : ''}`,
+                  ],
+                ] as [string, ReactNode][])
+              : []),
+            ...(backup.failed_at
+              ? ([['Last failure', <span key="f" className={backup.failing ? 'text-red-700' : undefined}>{ago(backup.failed_at)}</span>]] as [string, ReactNode][])
+              : []),
+            ['When', 'Every night at 02:00, by GitHub'],
+            ['Kept', '30 nights, in a private R2 bucket'],
+            ['Restore tried', '4 Oct 2026, on a local copy'],
+          ]}
+        />
+        <p className="mt-2 text-xs text-slate-500 sm:px-1">Each night reports here when it ends. Setup and restore: docs/BACKUPS.md.</p>
       </Group>
 
       <Group id="services" title="Services">
@@ -270,10 +321,16 @@ function Job({ job }: { job: System['jobs'][number] }) {
     <li className="flex items-center gap-3 px-4 py-3 text-sm">
       <div className="min-w-0 flex-1">
         <p className="font-medium text-slate-900">{job.title}</p>
-        <p className={job.late ? 'text-amber-700' : 'text-slate-500'}>
+        <p className={job.late && !job.failing ? 'text-amber-700' : 'text-slate-500'}>
           {job.every === 'daily' ? 'Daily' : 'Hourly'} ·{' '}
           {job.last_at ? `last ran ${ago(job.last_at)} · ${job.last_sent === 1 ? '1 sent' : `${job.last_sent} sent`}` : 'never ran on this server'}
         </p>
+        {job.failed_at && (
+          <p className={job.failing ? 'text-red-700' : 'text-slate-500'}>
+            {job.failing ? 'Last run failed' : 'Failed'} {ago(job.failed_at)}
+            {job.error && ` · ${job.error}`}
+          </p>
+        )}
       </div>
       <Button variant="secondary" loading={run.isPending} onClick={ask}>
         Run now

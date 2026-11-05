@@ -54,8 +54,44 @@ jobs:
         run: /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" --format=custom --no-owner --file=backup.dump
 
       - name: Upload to R2
+        id: upload
         if: steps.setup.outputs.configured == 'true'
         run: |
           name="nightly/oak-order-$(date -u +%Y-%m-%d).dump"
           aws s3 cp backup.dump "s3://$BUCKET/$name" --endpoint-url "$R2_ENDPOINT" --no-progress
           echo "Saved $name ($(du -h backup.dump | cut -f1))" >> "$GITHUB_STEP_SUMMARY"
+          echo "file=$name" >> "$GITHUB_OUTPUT"
+          echo "bytes=$(stat -c %s backup.dump)" >> "$GITHUB_OUTPUT"
+
+      # The admin's System page shows the last night saved, and a failed
+      # one (`platform_setting` key `job:backup`, merged so a failure keeps
+      # the last good night). Only a report after a real upload counts:
+      # until then the page says no backup is known to work.
+      - name: Report the night to the admin
+        if: steps.setup.outputs.configured == 'true'
+        continue-on-error: true
+        env:
+          FILE: ${{ steps.upload.outputs.file }}
+          BYTES: ${{ steps.upload.outputs.bytes }}
+        run: |
+          /usr/lib/postgresql/17/bin/psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -v file="$FILE" -v bytes="$BYTES" <<'SQL'
+          INSERT INTO platform_setting (key, value, updated_at)
+          VALUES ('job:backup', jsonb_build_object(
+            'at', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"+00:00"'),
+            'file', :'file', 'bytes', (:'bytes')::bigint), now())
+          ON CONFLICT (key) DO UPDATE
+            SET value = platform_setting.value || EXCLUDED.value, updated_at = now();
+          SQL
+
+      - name: Report a failed night to the admin
+        if: failure() && steps.setup.outputs.configured == 'true'
+        continue-on-error: true
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q <<'SQL'
+          INSERT INTO platform_setting (key, value, updated_at)
+          VALUES ('job:backup', jsonb_build_object(
+            'failed_at', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"+00:00"'),
+            'error', 'GitHub workflow'), now())
+          ON CONFLICT (key) DO UPDATE
+            SET value = platform_setting.value || EXCLUDED.value, updated_at = now();
+          SQL

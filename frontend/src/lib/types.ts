@@ -305,7 +305,22 @@ export type AdminSystem = {
     errors_today: number
     started_at: string
   }
-  jobs: { name: 'billing' | 'reminders'; title: string; every: string; last_at: string | null; last_sent: number | null; late: boolean }[]
+  /** last_at: the last run that worked; failing: the latest run failed
+   * (failed_at, and its kind of error, e.g. "TimeoutError"). */
+  jobs: {
+    name: 'billing' | 'reminders'
+    title: string
+    every: string
+    last_at: string | null
+    last_sent: number | null
+    late: boolean
+    failed_at: string | null
+    error: string | null
+    failing: boolean
+  }[]
+  /** The nightly database copy, as its GitHub workflow reports each night.
+   * Never reported: not known to work (late). */
+  backup: { last_at: string | null; file: string | null; bytes: number | null; failed_at: string | null; late: boolean; failing: boolean }
   bot: {
     set_up: boolean
     working: boolean
