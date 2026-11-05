@@ -5,11 +5,11 @@ description: Make an Oak Order marketing video the founder's way, with HyperFram
 
 # Make an Oak Order video
 
-**Founder preference, 2026-11-05:** keep personal Telegram details out of
-videos. The founder puts the contact link in the bio or post description.
-No Telegram handle, URL or chat button in the film. Video 003 also omits
-the spoken Telegram invitation and ends with Follow and the first-seller
-offer. Apply this when copying older templates or examples below.
+**Founder clarification, 2026-11-05:** remove only the personal Telegram
+username/URL from videos; the founder puts that link in the bio or post
+description. Keep everything else, including Telegram icons, chat buttons
+and the spoken invitation. Do not remove these when omitting the username.
+Apply this when copying older templates or examples below.
 
 The founder makes short videos for TikTok, Facebook Reels and Instagram Reels,
 part-time. Everything happens here in Claude Code: script, voice, edit. Since
@@ -63,8 +63,8 @@ Scripts run with the Windows `node`, from the repo root:
 - Energetic music (Mixkit), its drop on the fix; a sound on every visible action,
   peaking one frame after it; no chimes or dings; music lifts on the end card.
 - About 25 s: voice ~22 s plus a 3 s end card (acorn, wordmark when the name
-  has been revealed, and the offer line). Contact links stay in the bio or
-  post description.
+  has been revealed, the offer line and a Telegram button). The personal
+  username/URL stays in the bio or post description.
 
 ## Steps
 
@@ -177,8 +177,9 @@ the kit's `rootIndex` turns that into the root composition.
 ## Writing the script
 
 - 20–30 s, four blocks: hook (one punchy line, ≤3 s, on screen at frame 0),
-  pain, fix (Oak Order doing it, with the app's screens), offer + CTA.
-  Contact details go in the bio or post description, outside the video.
+  pain, fix (Oak Order doing it, with the app's screens), offer + CTA (message
+  on Telegram). Keep the spoken invitation and Telegram button; put the
+  personal username/URL in the bio or post description, outside the video.
 - Facts only from `MARKETING_FACTS.md` rows marked Live; never anything in its
   "Don't claim". The demo shop Oak Phone (Oak Fashion before 2026-11-02) is an example: never present its
   orders as real sales. No private seller or customer data (Gemini's free tier).
