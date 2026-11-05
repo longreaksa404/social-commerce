@@ -12,11 +12,10 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
-  MeshPhysicalMaterial,
+  MeshStandardMaterial,
   NoToneMapping,
   PerspectiveCamera,
   PlaneGeometry,
-  PMREMGenerator,
   Scene,
   Shape,
   ShapeGeometry,
@@ -25,7 +24,6 @@ import {
   WebGLRenderer,
   type Texture,
 } from 'three'
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 
 export type Shot = 'hero' | 0 | 1 | 2 | 3
 export type Finish = 'titanium' | 'navy' | 'black'
@@ -122,13 +120,6 @@ export function createPhoneScene(
   renderer.toneMapping = NoToneMapping
 
   const scene = new Scene()
-  const pmrem = new PMREMGenerator(renderer)
-  const room = new RoomEnvironment()
-  const lighting = pmrem.fromScene(room, 0.04)
-  scene.environment = lighting.texture
-  room.dispose()
-  pmrem.dispose()
-
   const camera = new PerspectiveCamera(30, 1, 0.1, 100)
   const key = new DirectionalLight(0xffffff, 1.4)
   key.position.set(-3, 4, 5)
@@ -139,7 +130,7 @@ export function createPhoneScene(
 
   const phone = new Group()
   scene.add(phone)
-  const disposables: { dispose(): void }[] = [lighting]
+  const disposables: { dispose(): void }[] = []
   const keep = <T extends { dispose(): void }>(thing: T) => (disposables.push(thing), thing)
 
   // The titanium body, its edges rounded.
@@ -154,21 +145,16 @@ export function createPhoneScene(
     }),
   )
   body.center()
-  const metal = keep(
-    new MeshPhysicalMaterial({
-      color: FINISHES[options.finish],
-      metalness: 1,
-      roughness: 0.32,
-      clearcoat: 0.4,
-      clearcoatRoughness: 0.2,
-    }),
-  )
+  // Standard, not physical, materials: they compile far faster on phones.
+  // Keep a little diffuse response so the edge stays visible without an
+  // environment map. Generating one blocks the main thread on mobile GPUs.
+  const metal = keep(new MeshStandardMaterial({ color: FINISHES[options.finish], metalness: 0.68, roughness: 0.34 }))
   phone.add(new Mesh(body, metal))
 
   // The black glass around the screen.
   const glass = new Mesh(
     keep(flatRect(BODY.w - 0.05, BODY.h - 0.05, BODY.r - 0.02)),
-    keep(new MeshPhysicalMaterial({ color: 0x050607, roughness: 0.08, metalness: 0, clearcoat: 1 })),
+    keep(new MeshStandardMaterial({ color: 0x050607, roughness: 0.08, metalness: 0 })),
   )
   glass.position.z = FRONT + 0.001
   phone.add(glass)
@@ -266,6 +252,9 @@ export function createPhoneScene(
 
   let frame = 0
   let last = 0
+  // Shaders compile in the background first (where the browser can).
+  let compiled = false
+  let wantRunning = true
   let firstDrawn = false
   let timed = 0
   let timedMs = 0
@@ -345,7 +334,7 @@ export function createPhoneScene(
     }
   }
   const start = () => {
-    if (frame || failed) return
+    if (frame || failed || !compiled || !wantRunning) return
     last = performance.now()
     // A pause resets the speed watch: only frames in a row count.
     timed = timedMs = 0
@@ -377,7 +366,13 @@ export function createPhoneScene(
   }
 
   setScreen(options.screen)
-  start()
+  renderer
+    .compileAsync(scene, camera)
+    .then(() => {
+      compiled = true
+      start()
+    })
+    .catch(fail)
 
   return {
     setScreen,
@@ -394,7 +389,11 @@ export function createPhoneScene(
     sweep: () => {
       sweepAt = clock
     },
-    setRunning: (on) => (on ? start() : stop()),
+    setRunning: (on) => {
+      wantRunning = on
+      if (on) start()
+      else stop()
+    },
     dispose: () => {
       stop()
       failed = true
