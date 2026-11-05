@@ -16,7 +16,9 @@ export function Bottom() {
         className="absolute inset-x-0 top-0 -z-10 h-full bg-[radial-gradient(50rem_26rem_at_50%_0%,color-mix(in_oklab,var(--color-night-glow)_70%,transparent),transparent_70%)]"
       />
       <div className="mx-auto max-w-6xl text-center">
-        <h2 className="home-display mx-auto max-w-3xl text-[clamp(2rem,7vw,3.75rem)]">{bottom.title}</h2>
+        <h2 data-reveal="wipe" className="home-display mx-auto max-w-3xl text-[clamp(2rem,7vw,3.75rem)]">
+          {bottom.title}
+        </h2>
         <Link data-cta="create" to="/register" className={`${solidButton} mt-9`}>
           {t.auth.createYourStore}
         </Link>

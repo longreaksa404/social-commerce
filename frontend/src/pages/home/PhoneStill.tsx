@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { Lang } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { screenUrl, type Screen } from './screens.ts'
@@ -12,11 +12,13 @@ export function PhoneStill({
   lang,
   priority = false,
   className = '',
+  style,
 }: {
   screen: Screen
   lang: Lang
   priority?: boolean
   className?: string
+  style?: CSSProperties
 }) {
   const t = useT()
   const src = screenUrl(lang, screen)
@@ -27,7 +29,7 @@ export function PhoneStill({
 
   const image = 'absolute inset-0 size-full object-cover object-top'
   return (
-    <div className={`home-phone ${className}`} data-screen={next?.loaded ? next.src : shown}>
+    <div className={`home-phone ${className}`} style={style} data-screen={next?.loaded ? next.src : shown}>
       <div className="home-phone-bezel">
         <div className="home-phone-screen">
           <img

@@ -182,6 +182,99 @@ def check_questions(browser: Browser) -> None:
     page.context.close()
 
 
+# Task 4: How it works, the pinned stage.
+
+STEP_FILES = ("share", "checkout", "khqr", "orders")
+
+
+def scroll_steps(page: Page, progress: float) -> None:
+    """Scroll so How it works' pinned stage is `progress` (0-1) through."""
+    page.evaluate(
+        """(p) => {
+          const section = document.querySelector('[data-steps]')
+          const stage = section.querySelector('[data-step-stage]')
+          const top = section.getBoundingClientRect().top + scrollY
+          scrollTo(0, top + p * (section.offsetHeight - stage.offsetHeight))
+        }""",
+        progress,
+    )
+    page.wait_for_timeout(250)
+
+
+def active_step(page: Page) -> int:
+    return int(page.get_attribute("[data-step-stage]", "data-step-active") or -1)
+
+
+def wait_screen(page: Page, ending: str) -> None:
+    """Wait until the stage's phone shows `ending` (its screen has loaded)."""
+    page.wait_for_function(
+        "(e) => document.querySelector('[data-step-stage] [data-screen]')"
+        "?.dataset.screen.endsWith(e)",
+        arg=ending,
+        timeout=5000,
+    )
+
+
+def walk_steps(browser: Browser, width: int, height: int, reduced: bool = False) -> None:
+    page = open_home(browser, "km", width, height, reduced=reduced)
+    for index, progress in enumerate((0.1, 0.35, 0.6, 0.85)):
+        scroll_steps(page, progress)
+        where = f"{width}px at {progress}"
+        assert active_step(page) == index, f"{where}: step {active_step(page)}, want {index}"
+        wait_screen(page, f"/home/km/{STEP_FILES[index]}.webp")
+        shot(page, f"steps-{width}-{index}{'-reduced' if reduced else ''}", full=False)
+    page.context.close()
+
+
+@check
+def check_steps(browser: Browser) -> None:
+    walk_steps(browser, 390, 844)
+    walk_steps(browser, 1440, 900)
+
+
+@check
+def check_toolbar_resize(browser: Browser) -> None:
+    page = open_home(browser)
+    scroll_steps(page, 0.375)
+    assert active_step(page) == 1, f"before: step {active_step(page)}, want 1"
+    page.set_viewport_size({"width": 390, "height": 700})
+    page.wait_for_timeout(300)
+    assert active_step(page) == 1, f"after the screen got shorter: step {active_step(page)}"
+    scroll = page.evaluate("document.documentElement.scrollWidth")
+    assert scroll <= 390, f"page is {scroll}px wide"
+    page.context.close()
+
+
+@check
+def check_lang_switch(browser: Browser) -> None:
+    page = open_home(browser)
+    scroll_steps(page, 0.1)
+    wait_screen(page, "/home/km/share.webp")
+    page.locator("header button", has_text="EN").click()
+    wait_screen(page, "/home/en/share.webp")
+    page.context.close()
+
+
+@check
+def check_back_nav(browser: Browser) -> None:
+    page = open_home(browser)
+    scroll_steps(page, 0.6)
+    assert active_step(page) == 2, f"before: step {active_step(page)}, want 2"
+    # Log in, in the sticky top bar: on screen here, so clicking doesn't scroll.
+    page.locator("[data-cta=login]").click()
+    page.wait_for_url("**/login")
+    page.go_back()
+    page.wait_for_selector("main[data-home]")
+    page.wait_for_timeout(400)
+    assert active_step(page) == 2, f"after Back: step {active_step(page)}, want 2"
+    page.context.close()
+
+
+@check
+def check_steps_reduced(browser: Browser) -> None:
+    walk_steps(browser, 390, 844, reduced=True)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--url", default=OPTS["url"])

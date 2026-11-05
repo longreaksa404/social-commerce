@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { Navigate } from 'react-router'
 import { useAuth } from '../../auth/useAuth.ts'
 import { Spinner } from '../../components/ui.tsx'
@@ -9,6 +10,7 @@ import { HowItWorks } from './HowItWorks.tsx'
 import { Pricing } from './Pricing.tsx'
 import { Questions } from './Questions.tsx'
 import { TopBar } from './TopBar.tsx'
+import { useReveal } from './useReveal.ts'
 
 /** The start page, for sellers who've never heard of Oak Order (founder's
  * picks 2026-11-04, docs/superpowers/specs/2026-11-04-home-page-design.md):
@@ -19,8 +21,14 @@ export function Home() {
   if (status === 'loading') return <Spinner />
   // 'unreachable' has a stored session: the dashboard shows the retry.
   if (status === 'authenticated' || status === 'unreachable') return <Navigate to="/dashboard" replace />
+  return <HomePage />
+}
+
+function HomePage() {
+  const root = useRef<HTMLDivElement>(null)
+  useReveal(root)
   return (
-    <div className="home relative isolate min-h-dvh overflow-x-clip text-white">
+    <div ref={root} className="home relative isolate min-h-dvh overflow-x-clip text-white">
       <TopBar />
       <main data-home>
         <Hero />

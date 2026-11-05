@@ -17,8 +17,10 @@ export function Questions() {
   return (
     <section className="px-5 py-24 sm:px-8 sm:py-32">
       <div className="mx-auto max-w-3xl">
-        <h2 className="home-display text-[clamp(1.85rem,6vw,3.25rem)]">{q.title}</h2>
-        <div className="mt-10 space-y-3">
+        <h2 data-reveal="wipe" className="home-display text-[clamp(1.85rem,6vw,3.25rem)]">
+          {q.title}
+        </h2>
+        <div data-reveal className="mt-10 space-y-3">
           {items.map(([question, answer]) => (
             <details key={question} className="group rounded-2xl border border-white/10 bg-white/[0.03] open:bg-white/[0.05]">
               <summary className="flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-2xl px-5 py-4 font-medium focus-visible:outline-2 focus-visible:outline-white">
