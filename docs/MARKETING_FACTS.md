@@ -396,13 +396,9 @@ always stays navy.
 
 ## 9. Last checked
 
-- **Date:** 2026-10-27.
-- **Code:** commit `11378ac` ("Marketing: keep the screenshot tool out of
-  the API's Docker image") on `main`, with nothing unpushed. Every row
-  marked Live was checked in the code (backend services and schemas, the
-  routes, and the app's English and Khmer texts in
-  `frontend/src/i18n/messages/`).
-- **Live site, same day:** order.oaksolve.com answers (still hosted on
+- **Date:** 2026-11-05.
+- **Code:** The logged-out start page is built in the local `home-page` worktree, not live or pushed. Commit `592943f` reduces 3D startup work. Frontend lint/build and all 25 browser checks pass; mobile Lighthouse is 66 performance, 100 accessibility, CLS 0. The shared 1.1 MB entry bundle keeps it below the planned performance target and is recorded for a separate pass. The existing marketing fact rows remain as last checked on 2026-10-27.
+- **Live site, last checked 2026-10-27:** order.oaksolve.com answers (still hosted on
   Vercel); `/register` loads; `api.oaksolve.com/health` is ok;
   oaksolve.com forwards to order.oaksolve.com; a shop link opened as
   Telegram's preview bot gets its card ("<shop> · Oak Order", a large

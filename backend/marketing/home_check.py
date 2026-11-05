@@ -553,6 +553,40 @@ def check_3d_context_lost(browser: Browser) -> None:
     page.context.close()
 
 
+# Task 7: the last pass.
+
+
+@check
+def check_keyboard(browser: Browser) -> None:
+    page = open_home(browser, "en")
+    seen: list[dict] = []
+    for _ in range(80):
+        page.keyboard.press("Tab")
+        here = page.evaluate(
+            """() => {
+              const e = document.activeElement
+              if (!e || e === document.body) return null
+              const s = getComputedStyle(e)
+              return { tag: e.tagName, cta: e.dataset.cta || '',
+                       text: e.textContent.trim().slice(0, 30),
+                       outline: s.outlineStyle, href: e.getAttribute('href') || '' }
+            }"""
+        )
+        if here is None or (seen and here == seen[0]):
+            break
+        seen.append(here)
+    ctas = [item["cta"] for item in seen]
+    assert "login" in ctas and "demo" in ctas, f"Log in or Try a demo shop not reached: {ctas}"
+    assert ctas.count("create") >= 3, f"Create your shop reached {ctas.count('create')} times"
+    assert sum(item["tag"] == "SUMMARY" for item in seen) == 5, "not every question reached"
+    assert {"EN", "ខ្មែរ"} <= {item["text"] for item in seen}, "the language switch wasn't reached"
+    legal = [item for item in seen if item["href"] in ("/privacy", "/terms", "/data-deletion")]
+    assert len(legal) == 3, f"legal links reached: {len(legal)}"
+    hidden = [item["text"] or item["href"] for item in seen if item["outline"] == "none"]
+    assert not hidden, f"no focus ring on: {hidden}"
+    page.context.close()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--url", default=OPTS["url"])
