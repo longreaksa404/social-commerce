@@ -17,7 +17,9 @@
   // survive container rebuilds. CLAUDE_CONFIG_DIR also moves ~/.claude.json
   // into that volume.
   "mounts": [
-    "source=claude-code-config-${devcontainerId},target=/home/vscode/.claude,type=volume"
+    "source=claude-code-config-${devcontainerId},target=/home/vscode/.claude,type=volume",
+    // Codex login and settings, kept across rebuilds the same way.
+    "source=codex-config-${devcontainerId},target=/home/vscode/.codex,type=volume"
   ],
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
@@ -27,14 +29,17 @@
     "WATCHFILES_FORCE_POLLING": "true"
   },
   // A fresh named volume is owned by root; hand it to the vscode user.
-  "onCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.claude",
+  // The Codex CLI runs in the terminal: its VS Code panel times out (408)
+  // loading its files through the dev-container connection.
+  "onCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.claude /home/vscode/.codex && npm install -g @openai/codex",
 
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-python.python",
         "ms-python.debugpy",
-        "anthropic.claude-code"
+        "anthropic.claude-code",
+        "openai.chatgpt"
       ]
     }
   },

@@ -157,7 +157,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 ├── .github/workflows/
 │   ├── ci.yml                 Backend: ruff, ruff format, alembic upgrade, pytest (Postgres service). Frontend: oxlint, build
 │   └── backup.yml             Nightly pg_dump of prod to a private R2 bucket; skips until its secrets exist
-├── .devcontainer/             Dev container (Python 3.12, Node, Docker-in-Docker; file polling on)
+├── .devcontainer/             Dev container (Python 3.12, Node, Docker-in-Docker; file polling on; Codex CLI, ~/.claude and ~/.codex in named volumes)
 ├── docs/                      01_PRODUCT, 02_TECHNICAL, 03_DEVELOPMENT, 04_STATUS, ADMIN (founder's commands), BACKUPS, REGRESSION_CHECKLIST, PERF_AUDIT (performance baseline and findings), MARKETING_FACTS (what's live, for the marketing project; recheck when a feature, price or login changes), this file
 │
 ├── backend/
