@@ -195,7 +195,6 @@ export const auth = {
     telegramStep1: { en: 'Open Bot', km: 'បើក Bot' },
     telegramStep2: { en: 'Tap Start', km: 'ចុច Start' },
     telegramStep3: { en: 'Share Phone', km: 'ចែករំលែកលេខ' },
-    storeLinkPreview: { en: 'Your store link:', km: 'តំណហាងរបស់អ្នក៖' },
     passwordStrength: {
       weak: { en: 'Weak', km: 'ខ្សោយ' },
       fair: { en: 'Fair', km: 'មធ្យម' },

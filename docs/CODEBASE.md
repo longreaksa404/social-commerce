@@ -483,6 +483,8 @@ starts a new transaction.
 
 ### Auth
 
+- Registration pick 3A (founder, 2026-11-05): Register no longer invents a shop-name URL while typing. Sellers enter the shop name without the extra hint or icon; the real random-code link remains available through the dashboard share and link actions after creation. Removed the unused slug-preview formatter and translation. Frontend lint and build pass.
+
 - Registration pick 2A (founder, 2026-11-05): Register uses one tick-and-number row with a 44px Change action, replacing the card and duplicate Back action. usePhoneCheck gives each mounted flow its own creation-query key and only accepts a completed check after opening or resuming it, so Change no longer reuses a cached verified phone. Checked fresh verification in Chromium, frontend lint and build.
 
 - Registration pick 1B (founder, 2026-11-05): Register shows Verify phone and Your shop as two numbered steps, with the active step in navy and named for screen readers; the phone check stays in a plain card. The local fake-verification button is removed. Checked in Chromium at 360px in Khmer, plus frontend lint and build.

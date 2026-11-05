@@ -1,6 +1,6 @@
 import { useCallback, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
-import { CircleCheck, Store } from 'lucide-react'
+import { CircleCheck } from 'lucide-react'
 import { PhoneCheck } from '../auth/PhoneCheck.tsx'
 import { SocialButtons } from '../auth/SocialButtons.tsx'
 import { buttonClass } from '../components/styles.ts'
@@ -180,7 +180,6 @@ export function Register() {
           <Field
             label={t.auth.register.storeName}
             error={fieldError(error, 'store_name')}
-            hint={t.auth.register.storeNameHint}
           >
             <Input
               required
@@ -188,22 +187,11 @@ export function Register() {
               maxLength={100}
               autoCapitalize="words"
               enterKeyHint="next"
-              leading={<Store className="size-4 text-slate-400" aria-hidden />}
               placeholder={t.common.example('Sokha Fashion')}
               value={form.store_name}
               onChange={set('store_name')}
             />
           </Field>
-
-          {/* Live Store Link Preview Card */}
-          {form.store_name.trim().length > 0 && (
-            <div className="flex items-center gap-2 rounded-xl bg-slate-100/80 px-3.5 py-2 text-xs text-slate-600 transition-all animate-fade-in">
-              <span className="text-slate-400 font-normal">{t.auth.register.storeLinkPreview}</span>
-              <span className="truncate font-semibold text-navy-800">
-                order.oaksolve.com/{formatStoreSlug(form.store_name)}
-              </span>
-            </div>
-          )}
 
           {/* For password managers: the login this password goes with */}
           <input type="tel" autoComplete="username" value={phone?.phone ?? ''} hidden readOnly />
@@ -305,15 +293,6 @@ export function Register() {
 
 // ---------------------------------------------------------------------------
 // Helpers & Local Components
-
-function formatStoreSlug(name: string): string {
-  const cleaned = name
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-zA-Z0-9\u1780-\u17FF-]/g, '')
-  return cleaned || 'my-shop'
-}
 
 function calculateStrength(password: string): {
   score: 0 | 1 | 2 | 3
