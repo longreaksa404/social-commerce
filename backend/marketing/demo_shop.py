@@ -234,7 +234,7 @@ def fetch(folder: Path) -> dict:
         path.write_bytes(data)
     copy = {"shop": shop, "products": products}
     (folder / "shop.json").write_text(
-        json.dumps(copy, ensure_ascii=False, indent=1, sort_keys=True)
+        json.dumps(copy, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8"
     )
     return copy
 
@@ -256,7 +256,7 @@ def photo_path(url: str) -> str:
 def load(folder: Path) -> dict:
     """The copy `fetch` saved."""
     try:
-        return json.loads((folder / "shop.json").read_text())
+        return json.loads((folder / "shop.json").read_text(encoding="utf-8"))
     except FileNotFoundError:
         sys.exit(f"No copy of the live shop in {folder}: run with --fetch first.")
 

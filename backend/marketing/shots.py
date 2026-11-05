@@ -18,9 +18,13 @@ their own ports, then drives headless Chromium at an iPhone's 390 x 844 at
 3x (1170 x 2532 PNGs) through a customer's orders and the seller's work on
 them, in Khmer and in English:
 
-    marketing/out/km/01_shop.png ... 22_customers.png
+    marketing/out/km/01_shop.png ... 27_sold_out.png
     marketing/out/en/...
     marketing/out/video/km_customer.mp4, km_01_shop.mp4 ...  (--video)
+
+With --copy it films a shop copy made on this machine instead (the Oak
+Wear clothing shop: marketing/clothing_shop.py), nothing read from the
+live site; give it its own --out.
 
 Every picture and clip is listed in docs/CODEBASE.md section 3. Each
 picture is checked first: no console errors or failed requests, nothing
@@ -126,6 +130,9 @@ TEXT = {
         "one_more": "ច្រើនមួយ",
         "save_order": "រក្សាទុកការកុម្ម៉ង់",
         "receipt": "វិក្កយបត្រ",
+        "add_to_cart": "ដាក់កន្ត្រក",
+        "cart_one_more": "បន្ថែមមួយ",
+        "quantity_of": "ចំនួន {}",
     },
     "en": {
         "buy_now": "Buy now",
@@ -137,6 +144,9 @@ TEXT = {
         "one_more": "One more",
         "save_order": "Save order",
         "receipt": "Receipt",
+        "add_to_cart": "Add to cart",
+        "cart_one_more": "One more",
+        "quantity_of": "Quantity of {}",
     },
 }
 LOW_STOCK = 5  # the copy's low-stock level: the app's default
@@ -296,6 +306,15 @@ def low_stock_pick(products: list[dict], taken: set) -> tuple[dict, dict | None,
     return product, option, stock - LOW_STOCK
 
 
+def sold_out_pick(products: list[dict]) -> dict | None:
+    """The first product with an option sold out and another to buy."""
+    for product in products:
+        stock = [option["stock_quantity"] for option in product["variants"]]
+        if 0 in stock and any(left != 0 for left in stock):
+            return product
+    return None
+
+
 def search_words(name: str, names: list[str]) -> str:
     """The fewest words of `name`, in a row, that no other name has."""
     words = name.split()
@@ -436,6 +455,7 @@ class Shots:
         self.shop_url = f"{WEB}/shop/{self.shop['slug']}"
         self.names = [product["name"] for product in copy["products"]]
         self.first, self.second, self.low = picks(copy)
+        self.sold_out_pick = sold_out_pick(copy["products"])
         self.khqr = demo_shop.khqr_settings()[0] is not None
         self.order_a = self.order_b = self.order_c = ""
         self.token, self.seller_request = "", None  # the seller's, for the API (seller_login)
@@ -619,6 +639,22 @@ class Shots:
                 scrollTo(0, Math.max(0, top))
             }""",
             [selector, offset],
+        )
+
+    def scroll_end(self, page, down: bool) -> None:
+        """To the bottom of the page, or back to its top: at once for a
+        still, a scroll you can follow on film."""
+        by = 100_000 if down else -100_000
+        if self.moving:
+            page.evaluate(GLIDE, [None, 0, by, ms("scroll")])
+            return
+        self.settle(page, "scroll", toasts=False)
+        page.evaluate(
+            """(by) => {
+                document.documentElement.style.scrollBehavior = 'auto'
+                scrollTo(0, Math.max(0, scrollY + by))
+            }""",
+            by,
         )
 
     def tap(self, page, target) -> None:
@@ -998,10 +1034,63 @@ class Shots:
                 page.wait_for_url("**/dashboard/customers/*")
                 self.look(page, "22_customer", "done")
 
+    def cart(self, page) -> None:
+        """23-26: another customer puts both products of the first orders
+        in the cart (each in its middle option), picks delivery and looks
+        at the total, then takes one more of the first. With Oak Wear's
+        free delivery from $30: $8.50 + $14 + $2 = $24.50, then $31 with
+        delivery free."""
+        words = TEXT[self.lang]
+        for product in (self.first, self.second):
+            page.goto(f"{self.shop_url}/product/{product['slug']}")
+            option = demo_shop.middle_option(product)["name"]
+            page.locator("fieldset label").filter(
+                has_text=re.compile(rf"^{re.escape(option)}$")
+            ).click()
+            page.get_by_role("button", name=words["add_to_cart"]).click()
+            # It flies to the cart first (shop/fly.ts).
+            page.wait_for_timeout(1500)
+        page.goto(f"{self.shop_url}/cart")
+        stepper = page.get_by_role(
+            "group", name=words["quantity_of"].format(self.first["name"]), exact=True
+        )
+        stepper.wait_for()
+        with self.film(page, "23_cart"):
+            self.wait(page, "start")
+            self.scroll_to(page, DELIVERY_TILE, offset=-160)
+            self.tap(page, page.locator(DELIVERY_TILE))
+            self.scroll_end(page, down=False)
+            self.show(page, "23_cart", look="beat")
+            self.scroll_end(page, down=True)
+            self.show(page, "24_cart_total")
+            self.scroll_end(page, down=False)
+            self.wait(page, "beat")
+            self.tap(page, stepper.get_by_role("button", name=words["cart_one_more"], exact=True))
+            self.show(page, "25_cart_one_more", look="beat")
+            self.scroll_end(page, down=True)
+            self.show(page, "26_cart_one_more_total", look="done")
+
+    def sold_out(self, page) -> None:
+        """27: a product with an option sold out (it can't be picked) and
+        another the customer picks."""
+        product = self.sold_out_pick
+        page.goto(f"{self.shop_url}/product/{product['slug']}")
+        page.locator("fieldset").wait_for()
+        with self.film(page, "27_sold_out"):
+            self.wait(page, "start")
+            self.scroll_to(page, "fieldset", offset=-160)
+            option = next(o for o in product["variants"] if o["stock_quantity"] != 0)
+            label = page.locator("fieldset label").filter(
+                has_text=re.compile(rf"^{re.escape(option['name'])}$")
+            )
+            self.tap(page, label)
+            self.show(page, "27_sold_out", look="done")
+
 
 def story(browser, lang: str, out: Path, copy: dict, moving: bool) -> None:
     """Every step in the order it happens, on two phones: the seller's and
-    the customer's (one phone throughout, which remembers them)."""
+    the customer's (one phone throughout, which remembers them); then a
+    new customer's phone for the cart and a sold-out option."""
     folder = out / ("video" if moving else lang)
     if moving:
         folder.mkdir(parents=True, exist_ok=True)
@@ -1034,6 +1123,12 @@ def story(browser, lang: str, out: Path, copy: dict, moving: bool) -> None:
         if run.low:
             run.low_stock(desk)
         run.customers(desk)
+        # A third phone: someone new, with nothing in their cart.
+        shopper, other_phone = run.context()
+        stack.callback(shopper.close)
+        run.cart(other_phone)
+        if run.sold_out_pick:
+            run.sold_out(other_phone)
     if moving:
         shutil.rmtree(folder / ".frames", ignore_errors=True)
 
@@ -1118,21 +1213,27 @@ class Recorder:
 
 
 @contextmanager
-def demo_servers(work: Path):
-    """The live demo shop copied, the built site, the API on the demo
-    database and the photo server, running; yields the copy and a function
-    that seeds the demo shop afresh from it."""
+def demo_servers(work: Path, copy_folder: Path | None = None):
+    """The live demo shop copied (or the copy in `copy_folder`, e.g. from
+    clothing_shop.py), the built site, the API on the demo database and
+    the photo server, running; yields the copy and a function that seeds
+    the demo shop afresh from it."""
     busy = [port for port in (API_PORT, WEB_PORT, PHOTO_PORT) if not port_free(port)]
     if busy:
         raise Failed(f"ports in use: {busy} (another run still going?)")
     database_url = demo_shop.database_url(demo_shop.DEFAULT_DATABASE)  # refuses non-local
-    print("Copying the live demo shop ...", flush=True)
-    copy = demo_shop.fetch(work / "live")
+    if copy_folder:
+        print(f"Using the shop copy in {copy_folder} ...", flush=True)
+        copy = demo_shop.load(copy_folder)
+    else:
+        print("Copying the live demo shop ...", flush=True)
+        copy_folder = work / "live"
+        copy = demo_shop.fetch(copy_folder)
     build_site(work / "site")
     print("Seeding the demo shop ...", flush=True)
-    seed(work / "live")
+    seed(copy_folder)
     with ExitStack() as stack:
-        stack.enter_context(photo_server(work / "live" / "photos"))
+        stack.enter_context(photo_server(copy_folder / "photos"))
         stack.enter_context(
             running(
                 [sys.executable, "-m", "uvicorn", "app.main:app", "--port", str(API_PORT)]
@@ -1153,7 +1254,7 @@ def demo_servers(work: Path):
                 "The site",
             )
         )
-        yield copy, lambda: seed(work / "live")
+        yield copy, lambda: seed(copy_folder)
 
 
 def skipped(copy: dict) -> list[str]:
@@ -1167,6 +1268,8 @@ def skipped(copy: dict) -> list[str]:
             f"19-20 (low stock) skipped: no product or option on the live shop has "
             f"{LOW_STOCK + 1}-{LOW_STOCK + 3} in stock, for an order to take it to {LOW_STOCK}"
         )
+    if sold_out_pick(copy["products"]) is None:
+        notes.append("27 (sold out) skipped: no product has an option sold out and one to buy")
     return notes
 
 
@@ -1175,6 +1278,11 @@ def main() -> None:
     parser.add_argument("--video", action="store_true", help="also record MP4s")
     parser.add_argument("--lang", nargs="+", choices=("km", "en"), default=["km", "en"])
     parser.add_argument("--out", type=Path, default=HERE / "out", help="where the files go")
+    parser.add_argument(
+        "--copy",
+        type=Path,
+        help="a shop copy to film instead of the live demo shop (clothing_shop.py copy)",
+    )
     args = parser.parse_args()
 
     try:
@@ -1186,7 +1294,8 @@ def main() -> None:
     out = args.out.resolve()
     try:
         with ExitStack() as stack:
-            copy, reseed = stack.enter_context(demo_servers(out / ".work"))
+            copy_folder = args.copy and args.copy.resolve()
+            copy, reseed = stack.enter_context(demo_servers(out / ".work", copy_folder))
             notes = skipped(copy)
             for note in notes:
                 print(f"Note: {note}", flush=True)

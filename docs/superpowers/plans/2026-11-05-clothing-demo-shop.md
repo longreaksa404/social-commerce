@@ -5,6 +5,36 @@ Date: 2026-11-05
 Status: plan requested by the founder. Name, catalogue, assets and settings
 below are proposals for review. No shop created; no live data changed.
 
+**2026-11-06: built on the laptop only.** Founder: "create the ready demo
+shop from 2026-11-05-clothing-demo-shop.md. after done make new photo and
+clip about it for make new marketing video later." Founder's choices that
+day:
+
+- **Local only for now.** No live shop: making one needs the admin login
+  (password and Telegram), which only the founder can do. Oak Wear exists
+  as `backend/marketing/clothing_shop.json`, built and filmed on the
+  laptop (`clothing_shop.py`, then `shots.py --copy`).
+- **Live shop later takes KHQR too,** with the same demo account as Oak
+  Phone (`DEMO_BAKONG_ID` / `DEMO_KHQR_ACCOUNT`).
+- **Free stock photos** from Pexels (free for business use, no credit
+  needed), because the Gemini key is on the free tier, which allows no
+  images. Source and author of each are in the JSON and in
+  `out/clothing/photos/sources.txt`.
+- **Taobao look** (founder's screenshot): the garment fills the picture
+  on a plain light background, hanger and folded shots, models cropped so
+  no face shows, two colours side by side.
+
+What changed from the proposal below, to match the photos found: Midi
+dress became Slip dress (white and black), Shirt dress became Denim
+shorts (so 6 tops, 4 bottoms, 2 dresses), Light cardigan is Knit cardigan
+($16, beige, cream, grey), and colours follow the photos (e.g. polo grey
+and pink, trousers cream and beige, oversized tee cream). Unchanged: the
+name, the $8.50 T-shirt in Black / M and the $14 trousers as the two main
+products, the dress option at 7 for low stock, one jeans size at 0,
+delivery $2, pickup free, free delivery from $30, the $24.50 and $31
+examples. Khmer and English catalogues are separate copies: the Khmer
+clips show Khmer names, the English clips English ones.
+
 ## Goal and scope
 
 Prepare a second, separate demo shop for marketing Oak Order to clothing

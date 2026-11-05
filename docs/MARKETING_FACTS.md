@@ -390,7 +390,8 @@ always stays navy.
 | Log in | https://order.oaksolve.com/login |
 | Terms, Privacy, Data deletion | https://order.oaksolve.com/terms, /privacy, /data-deletion |
 | A shop's link (the format) | `https://order.oaksolve.com/shop/<6-character code>`. Example format only: `k7m2qx` in 01 isn't a real shop |
-| Demo or example shop | **"Oak Phone", https://order.oaksolve.com/shop/zdpb5d**: the founder's demo iPhone shop on the live site (opened 2026-10-28 as the shoe shop "Oak Fashion"; an iPhone shop since 2026-11-02). 30 products in 4 categories: new iPhones (18 Pro Max, 18 Pro, Duo, 17 Pro Max, Air, 17, 17e), 14 used iPhones (12 to 16 Pro), Apple Watch Series 11 and Ultra 3 and a used iPad Air, AirPods and chargers, $19–$2,349, options by storage and colour; delivery and pickup, KHQR and cash; $20 off orders from $1,000. Its 36 orders (#1001–#1036, all dated 2026-11-02) are examples added by Oak Order, not sales. Its photos are from Wikimedia Commons (CC0, or credited in the product's description). It's a real, open shop: an order placed there reaches the founder. The new start page links to it (**Try a demo shop**, with "don't pay the QR" under it), built 2026-11-05, not live yet. Marketing pictures and clips come from a copy of it on the founder's laptop: `backend/marketing/shots.py` makes 22 phone screens and 15 short MP4s in each of Khmer and English (every file in `docs/CODEBASE.md` §3, "Marketing pictures and clips") |
+| Demo or example shop | **"Oak Phone", https://order.oaksolve.com/shop/zdpb5d**: the founder's demo iPhone shop on the live site (opened 2026-10-28 as the shoe shop "Oak Fashion"; an iPhone shop since 2026-11-02). 30 products in 4 categories: new iPhones (18 Pro Max, 18 Pro, Duo, 17 Pro Max, Air, 17, 17e), 14 used iPhones (12 to 16 Pro), Apple Watch Series 11 and Ultra 3 and a used iPad Air, AirPods and chargers, $19–$2,349, options by storage and colour; delivery and pickup, KHQR and cash; $20 off orders from $1,000. Its 36 orders (#1001–#1036, all dated 2026-11-02) are examples added by Oak Order, not sales. Its photos are from Wikimedia Commons (CC0, or credited in the product's description). It's a real, open shop: an order placed there reaches the founder. The new start page links to it (**Try a demo shop**, with "don't pay the QR" under it), built 2026-11-05, not live yet. Marketing pictures and clips come from a copy of it on the founder's laptop: `backend/marketing/shots.py` makes 27 phone screens and 17 short MP4s in each of Khmer and English (every file in `docs/CODEBASE.md` §3, "Marketing pictures and clips") |
+| Clothing demo shop | **"Oak Wear", no link: on the founder's laptop only** (built 2026-11-06; a live shop needs the founder's admin login and comes later, with the same demo KHQR as Oak Phone). Everyday clothing for anyone: 12 products in 3 categories (6 tops, 4 bottoms, 2 dresses), $8.50–$20, options by colour and size (e.g. Black / M), stock per option; delivery $2, pickup free (Toul Tompoung Market), free delivery from $30, KHQR and cash. Description: "Demo shop for everyday clothing." Photos from Pexels (free for business use, no credit needed), cropped Taobao-style: the garment fills the picture, no faces. Don't show a link for it or say it's a real shop. Pictures and clips: section 10, "Oak Wear set" |
 | Support Telegram | **@longreaksa**, https://t.me/longreaksa (`VITE_SUPPORT_TELEGRAM`, read from the live site's code 2026-10-30). In the app: Settings → Get help |
 | Oak Order's Telegram bot (alerts, logins, customer updates) | **@OakOrder_bot**, https://t.me/OakOrder_bot (`TELEGRAM_BOT_USERNAME`; made by the founder 2026-10-30, replacing the deleted ReaksaShopAlertBot) |
 
@@ -522,3 +523,41 @@ scratch space, not an asset.
 | `video/km_19_low_stock.mp4`, `video/en_19_low_stock.mp4` | Pictures 19–20: the bell, the low-stock alert, the product | 6.9 s · 6.8 s | 3.5 the bell, low stock |
 | `video/km_21_parcel_slip.mp4`, `video/en_21_parcel_slip.mp4` | Picture 21: ⋯ → Receipt, the slip | 5.6 s · 5.6 s | 3.3 receipt (parcel slip) |
 | `video/km_22_customers.mp4`, `video/en_22_customers.mp4` | Picture 22: the Customers tab, then one customer's page | 6.9 s · 7.0 s | 3.4 customers |
+
+The Oak Phone set above was made before pictures 23–27 existed; a new
+run of it adds them too (the cart without free delivery: Oak Phone has
+none).
+
+### Oak Wear set (clothing, made 2026-11-06)
+
+The clothing demo shop "Oak Wear" (section 8), built and filmed on the
+founder's laptop only; no live shop or link. Same file names, sizes and
+steps as the Oak Phone set, in `backend/marketing/out/clothing/` (`km/`,
+`en/`, `video/`), with the app as it was on 2026-11-06. Copies
+for editing: `Documents\Video Marketing\Oak Order\Oak Wear demo shop\`
+(`screens/km`, `screens/en`, `clips`, and `photos`: the 15 product photos,
+logo, cover, a contact sheet and `sources.txt`).
+
+- **The shop's words follow the language:** the Khmer pictures and clips
+  show the Khmer catalogue (អាវយឺតធម្មតា, ពណ៌ខ្មៅ / M …), the English ones
+  the English catalogue (Basic T-shirt, Black / M …). Some earlier demo
+  customers keep Khmer names in both.
+- **What's bought:** order A is the Basic T-shirt, Black / M, $8.50 +
+  $2 delivery = $10.50 cash. Order B is the Casual trousers, Beige / M,
+  $14 + $2 = $16 by KHQR (the QR is the Oak Phone demo account, past its
+  date). Order C (chat) is 2 × Everyday dress, Black / M, $34 with free
+  delivery, which takes that option from 7 to 5 left: the low-stock alert.
+- **Photos:** Pexels, cropped Taobao-style (the garment fills the picture,
+  no faces). Don't say they're the seller's own photos.
+
+| Files | On screen | Length (km · en) |
+|---|---|---|
+| `km/01_shop.png` … `22_customers.png`, `en/…` | As in the Oak Phone table, with Oak Wear: the cover of four catalogue photos, the round OAK WEAR logo, "Demo shop for everyday clothing.", chips All / Tops / Bottoms / Dresses, the photo feed (Basic T-shirt $8.50, Casual trousers $14, Everyday dress $17, Oversized T-shirt $10 …); no bill discount line and no contact buttons | still |
+| `km/23_cart.png`, `en/…` | Your cart (2 items): Basic T-shirt Black / M $8.50, Casual trousers Beige / M $14.00, "Add $7.50 more for free delivery" | still |
+| `km/24_cart_total.png`, `en/…` | Items $22.50, Delivery $2.00, Total $24.50, Place order $24.50 | still |
+| `km/25_cart_one_more.png`, `en/…` | The T-shirt at 2 ($17.00), "Your delivery is free" | still |
+| `km/26_cart_one_more_total.png`, `en/…` | Items $31.00, Delivery Free, Total $31.00, Place order $31.00 | still |
+| `km/27_sold_out.png`, `en/…` | Straight jeans $18.00, In stock: Blue / 28 picked, Blue / 30, Blue / 32 greyed (sold out) | still |
+| `video/km_23_cart.mp4`, `video/en_23_cart.mp4` | Delivery tapped, $24.50, back up, + on the T-shirt, free delivery, $31.00 | 13.9 s · 14.0 s |
+| `video/km_27_sold_out.mp4`, `video/en_27_sold_out.mp4` | Down to the sizes, 28 picked beside the greyed 32 | 5.7 s · 5.7 s |
+| The other 15 clips per language | As in the Oak Phone table, with Oak Wear | km: 00 10.3, customer 23.2, 01 8.9, 03 5.2, 05 10.5, 06 4.8, arrives 9.8, 10 9.6, 13 5.1, 14 7.0, 16 8.7, 17 10.4, 19 6.8, 21 5.6, 22 7.0 s; en: 10.3, 22.9, 8.9, 5.2, 10.2, 4.7, 9.8, 9.6, 5.1, 7.0, 8.8, 10.0, 6.9, 5.6, 6.9 s |

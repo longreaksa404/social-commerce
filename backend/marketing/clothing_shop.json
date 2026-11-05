@@ -1,0 +1,198 @@
+{
+ "shop": {
+  "name": "Oak Wear",
+  "slug": "oak-wear",
+  "color": "navy",
+  "currency": "USD",
+  "description": {
+   "km": "ហាងសាកល្បងលក់សម្លៀកបំពាក់ប្រចាំថ្ងៃ។",
+   "en": "Demo shop for everyday clothing."
+  },
+  "delivery_fee": "2.00",
+  "free_delivery_from": "30.00",
+  "pickup_address": {
+   "km": "ផ្សារទួលទំពូង ភ្នំពេញ",
+   "en": "Toul Tompoung Market, Phnom Penh"
+  },
+  "payment_methods": ["cod", "khqr"]
+ },
+ "categories": [
+  {"slug": "tops", "name": {"km": "អាវ", "en": "Tops"}},
+  {"slug": "bottoms", "name": {"km": "ខោ", "en": "Bottoms"}},
+  {"slug": "dresses", "name": {"km": "រ៉ូប", "en": "Dresses"}}
+ ],
+ "colours": {
+  "Black": "ពណ៌ខ្មៅ",
+  "White": "ពណ៌ស",
+  "Cream": "ពណ៌ក្រែម",
+  "Grey": "ពណ៌ប្រផេះ",
+  "Pink": "ពណ៌ផ្កាឈូក",
+  "Beige": "ពណ៌កាគី",
+  "Blue": "ពណ៌ខៀវ",
+  "Light blue": "ពណ៌ខៀវខ្ចី"
+ },
+ "products": [
+  {
+   "slug": "basic-t-shirt",
+   "category": "tops",
+   "name": {"km": "អាវយឺតធម្មតា", "en": "Basic T-shirt"},
+   "description": {
+    "km": "អាវយឺតកប្បាស 100% ក្រណាត់ស្រាល ពាក់ស្រួលរាល់ថ្ងៃ។ មានពណ៌ស និងខ្មៅ។",
+    "en": "100% cotton tee, light and easy to wear every day. White or black."
+   },
+   "price": "8.50",
+   "photos": ["tee-black", "tee-white"],
+   "variants": [["White", "M", 12], ["White", "L", 10], ["Black", "M", 15], ["Black", "L", 11]]
+  },
+  {
+   "slug": "casual-trousers",
+   "category": "bottoms",
+   "name": {"km": "ខោជើងវែង", "en": "Casual trousers"},
+   "description": {
+    "km": "ខោជើងវែងក្រណាត់ស្រាល ពាក់ទៅធ្វើការ ឬដើរលេងបាន។",
+    "en": "Light, easy trousers for work or weekends."
+   },
+   "price": "14.00",
+   "photos": ["trousers-cream", "trousers-beige"],
+   "variants": [["Cream", "M", 10], ["Cream", "L", 9], ["Beige", "M", 12], ["Beige", "L", 10]]
+  },
+  {
+   "slug": "everyday-dress",
+   "category": "dresses",
+   "name": {"km": "រ៉ូបប្រចាំថ្ងៃ", "en": "Everyday dress"},
+   "description": {
+    "km": "រ៉ូបពណ៌ខ្មៅ គ្មានដៃ ប្រវែងក្រោមជង្គង់ ពាក់បានគ្រប់ពេល។",
+    "en": "Sleeveless black dress, below the knee, easy to wear anywhere."
+   },
+   "price": "17.00",
+   "photos": ["dress-black"],
+   "variants": [["Black", "S", 10], ["Black", "M", 7], ["Black", "L", 9]]
+  },
+  {
+   "slug": "oversized-t-shirt",
+   "category": "tops",
+   "name": {"km": "អាវយឺត Oversize", "en": "Oversized T-shirt"},
+   "description": {
+    "km": "អាវយឺតទម្រង់ធំ ក្រណាត់កប្បាសទន់ ក្រាស់ល្មម។",
+    "en": "Relaxed oversized fit in soft, medium-weight cotton."
+   },
+   "price": "10.00",
+   "photos": ["oversized-cream"],
+   "variants": [["Cream", "M", 14], ["Cream", "L", 12], ["Cream", "XL", 9]]
+  },
+  {
+   "slug": "straight-jeans",
+   "category": "bottoms",
+   "name": {"km": "ខោខូវប៊យជើងត្រង់", "en": "Straight jeans"},
+   "description": {
+    "km": "ខោខូវប៊យជើងត្រង់ ក្រណាត់ជីនរឹងមាំ។ ទំហំ 28 ដល់ 32។",
+    "en": "Classic straight-leg jeans in sturdy blue denim. Sizes 28 to 32."
+   },
+   "price": "18.00",
+   "photos": ["jeans-blue"],
+   "variants": [["Blue", "28", 11], ["Blue", "30", 9], ["Blue", "32", 0]]
+  },
+  {
+   "slug": "polo-shirt",
+   "category": "tops",
+   "name": {"km": "អាវប៉ូឡូ", "en": "Polo shirt"},
+   "description": {
+    "km": "អាវប៉ូឡូកប្បាស មានក ពាក់ទៅធ្វើការ ឬដើរលេងបាន។",
+    "en": "Cotton polo with a soft collar, smart enough for work."
+   },
+   "price": "12.00",
+   "photos": ["polo-grey", "polo-pink"],
+   "variants": [["Grey", "M", 10], ["Grey", "L", 12], ["Pink", "M", 9], ["Pink", "L", 11]]
+  },
+  {
+   "slug": "slip-dress",
+   "category": "dresses",
+   "name": {"km": "រ៉ូបខ្សែស្មា", "en": "Slip dress"},
+   "description": {
+    "km": "រ៉ូបខ្សែស្មា ក្រណាត់ស្រាល ពាក់ឯកឯង ឬពាក់ជាមួយអាវក្រៅ។",
+    "en": "Light strap dress to wear alone or under a shirt."
+   },
+   "price": "20.00",
+   "photos": ["slip-dresses"],
+   "variants": [["White", "S", 10], ["White", "M", 12], ["Black", "S", 9], ["Black", "M", 11]]
+  },
+  {
+   "slug": "casual-shorts",
+   "category": "bottoms",
+   "name": {"km": "ខោខ្លីកប្បាស", "en": "Casual shorts"},
+   "description": {
+    "km": "ខោខ្លីកប្បាស មានហោប៉ៅ ពាក់ស្រួលពេលក្តៅ។",
+    "en": "Cotton shorts with pockets, cool for hot days."
+   },
+   "price": "11.00",
+   "photos": ["shorts-colours"],
+   "variants": [["Beige", "M", 12], ["Beige", "L", 10], ["Light blue", "M", 11], ["Light blue", "L", 9]]
+  },
+  {
+   "slug": "linen-shirt",
+   "category": "tops",
+   "name": {"km": "អាវសឺមីលីនិន", "en": "Linen shirt"},
+   "description": {
+    "km": "អាវសឺមីក្រណាត់លីនិន កឈរ ដៃវែង ពាក់ត្រជាក់ស្រួល។",
+    "en": "Long-sleeve linen shirt with a band collar, cool and breathable."
+   },
+   "price": "15.00",
+   "photos": ["linen-shirt"],
+   "variants": [["Cream", "M", 13], ["Cream", "L", 10]]
+  },
+  {
+   "slug": "ribbed-top",
+   "category": "tops",
+   "name": {"km": "អាវខ្លីសាច់ក្រួញ", "en": "Ribbed top"},
+   "description": {
+    "km": "អាវខ្លីសាច់ក្រួញ មានឡេវ ពាក់ជាមួយខោចង្កេះខ្ពស់ស្អាត។",
+    "en": "Short ribbed top with buttons, nice with high-waisted bottoms."
+   },
+   "price": "9.00",
+   "photos": ["ribbed-top"],
+   "variants": [["White", "S", 12], ["White", "M", 14]]
+  },
+  {
+   "slug": "denim-shorts",
+   "category": "bottoms",
+   "name": {"km": "ខោខូវប៊យខ្លី", "en": "Denim shorts"},
+   "description": {
+    "km": "ខោខូវប៊យខ្លី ចង្កេះខ្ពស់ ពណ៌ខៀវខ្ចី។",
+    "en": "High-waisted denim shorts in light blue."
+   },
+   "price": "12.00",
+   "photos": ["denim-shorts"],
+   "variants": [["Light blue", "S", 10], ["Light blue", "M", 13], ["Light blue", "L", 9]]
+  },
+  {
+   "slug": "knit-cardigan",
+   "category": "tops",
+   "name": {"km": "អាវរងាត្បាញ", "en": "Knit cardigan"},
+   "description": {
+    "km": "អាវរងាត្បាញស្រាល មានឡេវ ពាក់ពេលល្ងាច ឬក្នុងបន្ទប់ម៉ាស៊ីនត្រជាក់។",
+    "en": "Light knit cardigan for cool evenings and air-conditioned rooms."
+   },
+   "price": "16.00",
+   "photos": ["cardigans"],
+   "variants": [["Beige", "M", 9], ["Beige", "L", 10], ["Cream", "M", 12], ["Cream", "L", 11], ["Grey", "M", 10], ["Grey", "L", 9]]
+  }
+ ],
+ "photos": {
+  "tee-black": {"pexels": 8532616, "author": "Hanna Pad", "crop": [0.165, 0.0, 0.835, 1.0]},
+  "tee-white": {"pexels": 12025472, "author": "Mr. Mockup", "crop": [0.167, 0.0, 0.833, 1.0]},
+  "trousers-cream": {"pexels": 19456438, "author": "Jonathan Borba", "crop": [0.0, 0.06, 1.0, 1.0]},
+  "trousers-beige": {"pexels": 39457741, "author": "Engin Akyurt", "crop": [0.1, 0.33, 0.9, 1.0]},
+  "dress-black": {"pexels": 20817637, "author": "Laura Chouette", "crop": [0.0, 0.31, 1.0, 1.0]},
+  "oversized-cream": {"pexels": 6786611, "author": "Artem Podrez", "crop": [0.07, 0.1, 0.8, 1.0]},
+  "jeans-blue": {"pexels": 6764143, "author": "cottonbro studio", "crop": [0.25, 0.25, 1.0, 0.917]},
+  "polo-grey": {"pexels": 17984122, "author": "Luis angel Alejos espinoza", "crop": [0.0, 0.33, 1.0, 1.0]},
+  "polo-pink": {"pexels": 17984123, "author": "Luis angel Alejos espinoza", "crop": [0.0, 0.33, 1.0, 1.0]},
+  "slip-dresses": {"pexels": 8997984, "author": "PNW Production", "crop": [0.08, 0.0, 0.92, 1.0]},
+  "shorts-colours": {"pexels": 30710089, "author": "Luis Quintero", "crop": [0.08, 0.0, 0.92, 1.0]},
+  "linen-shirt": {"pexels": 22441291, "author": "dayong tien", "crop": [0.06, 0.14, 0.94, 0.8]},
+  "ribbed-top": {"pexels": 9594418, "author": "Ron Lach", "crop": [0.3, 0.06, 1.0, 0.96]},
+  "denim-shorts": {"pexels": 4554337, "author": "Engin Akyurt", "crop": [0.06, 0.0, 0.94, 1.0]},
+  "cardigans": {"pexels": 9603624, "author": "Ron Lach", "crop": [0.0, 0.3, 1.0, 1.0]}
+ },
+ "cover": ["tee-black", "trousers-cream", "cardigans", "dress-black"]
+}

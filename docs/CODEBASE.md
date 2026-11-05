@@ -185,7 +185,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 │   │   ├── schemas/           Pydantic request/response models, one file per domain (+ common, upload)
 │   │   ├── services/          All business logic and queries (see §4)
 │   │   └── api/               Thin FastAPI routers, one per resource; deps.py holds the dependencies
-│   ├── marketing/             Not app code: shots.py (marketing screenshots and MP4s of a local copy of the live demo shop), demo_shop.py (copies that shop read-only and seeds it), requirements.txt (Playwright, imageio-ffmpeg); out/ is git-ignored
+│   ├── marketing/             Not app code: shots.py (marketing screenshots and MP4s of a local copy of the live demo shop), demo_shop.py (copies that shop read-only and seeds it), clothing_shop.py + clothing_shop.json (the Oak Wear clothing demo shop, built on the laptop only: its photos and a copy for shots.py --copy), requirements.txt (Playwright, imageio-ffmpeg); out/ is git-ignored
 │   └── tests/
 │       ├── conftest.py        Creates and migrates <db>_test, empties it, fixtures (client, register, auth_headers, make_store)
 │       ├── helpers.py         Direct-DB factories (add_product, ...) and API shortcuts (place_order, set_delivery, ...)
@@ -302,7 +302,7 @@ cd frontend && npm install
 | Founder's commands | `python -m app.admin <command> <login>` (a phone number typed any way, or an older account's email; `auth.login_filter`), commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend), `test-shop [--name]` (a shop with an email login and no phone, for the load test: sign-up needs a phone checked in Telegram, one shop per number), `forget-customer <shop link name> <phone>` (`services/customer.forget`, shared with the admin's Remove since 2026-10-30; a customer's name becomes "(removed)"; phone, addresses, map pins and notes go from that shop's customer, orders and alert payloads; the orders' items and money stay; the Data deletion page promises it), and `admin-password <phone>` (a new password for an admin account, every browser on it logged out), and `move-photos <old> <new>` (rewrites the R2 address saved in `product.image_urls`, `store.logo_url` and `store.cover_url`, for `images.oaksolve.com`); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
 | Bot on a laptop | `python -m app.telegram_poll` (backend, beside uvicorn): answers your **test** bot by polling, since Telegram's webhook can't reach localhost. Needs the three `TELEGRAM_*` values in `.env` and `PUBLIC_API_URL` empty; refuses a bot that has a webhook (the live one) |
 | Performance audit tools | `backend/loadtest/seed_perf.py` (a local `social_commerce_perf` database with a 500-product shop; refuses anything but a local `*_perf` database) and `measure.py` (every endpoint's time, SQL statements and Postgres round trips), run from `backend/` with its venv; `backend/loadtest/README.md`, results in `docs/PERF_AUDIT.md` |
-| Marketing pictures and clips | `.venv/bin/python marketing/shots.py [--video] [--lang km en]` (backend, Postgres running; on the founder's Windows laptop `.venv\Scripts\python.exe`, which works since 2026-11-05: Vite runs as `node node_modules/vite/bin/vite.js`; once: `.venv/bin/pip install -r marketing/requirements.txt && .venv/bin/playwright install --with-deps chromium`). Copies the founder's live demo shop through its public storefront (`DEMO_SHOP_SLUG`; GET requests only, no login) and seeds it, with six earlier orders, into a local `social_commerce_demo` (`marketing/demo_shop.py`; refuses anything but a local `*_demo` database), builds the frontend against its own API (ports 8011 API, 4180 site, 8091 photos; Telegram, R2, Sentry and sign-in providers blanked whatever `.env` says), and drives headless Chromium at 390 × 844 @3x through every step in "Marketing pictures and clips" below, in Khmer and English, into `backend/marketing/out/` (git-ignored). Each picture is checked: no console errors or failed requests, nothing fetched from outside this machine, no debug words, nothing loading (photos, placeholders, toasts, the order progress bar), Khmer drawn in Noto Sans Khmer. The browser clock is frozen and the new orders' API times, and the two times inside their KHQR, are pinned (`demo_shop.NOW`, `ORDER_TIME`), so reruns give the same PNGs (and the KHQR in them is past its date). The bell shows no number for a new order (UX check #20): the New tab counts it, the notifications page shows it unread |
+| Marketing pictures and clips | `.venv/bin/python marketing/shots.py [--video] [--lang km en]` (backend, Postgres running; on the founder's Windows laptop `.venv\Scripts\python.exe`, which works since 2026-11-05: Vite runs as `node node_modules/vite/bin/vite.js`; once: `.venv/bin/pip install -r marketing/requirements.txt && .venv/bin/playwright install --with-deps chromium`). Copies the founder's live demo shop through its public storefront (`DEMO_SHOP_SLUG`; GET requests only, no login) and seeds it, with six earlier orders, into a local `social_commerce_demo` (`marketing/demo_shop.py`; refuses anything but a local `*_demo` database), builds the frontend against its own API (ports 8011 API, 4180 site, 8091 photos; Telegram, R2, Sentry and sign-in providers blanked whatever `.env` says), and drives headless Chromium at 390 × 844 @3x through every step in "Marketing pictures and clips" below, in Khmer and English, into `backend/marketing/out/` (git-ignored). `--copy <folder>` films a shop copy made on the laptop instead of the live demo shop (the Oak Wear clothing shop: `marketing/clothing_shop.py photos` downloads and crops its Pexels photos and makes its logo and cover, `clothing_shop.py copy --lang km|en` writes the copy in one catalogue language; give the run its own `--out`, e.g. `marketing/out/clothing`). Each picture is checked: no console errors or failed requests, nothing fetched from outside this machine, no debug words, nothing loading (photos, placeholders, toasts, the order progress bar), Khmer drawn in Noto Sans Khmer. The browser clock is frozen and the new orders' API times, and the two times inside their KHQR, are pinned (`demo_shop.NOW`, `ORDER_TIME`), so reruns give the same PNGs (and the KHQR in them is past its date). The bell shows no number for a new order (UX check #20): the New tab counts it, the notifications page shows it unread |
 | Marketing videos (HyperFrames) | The `oak-video-edit` skill (`.claude/skills/oak-video-edit/`), run natively on the founder's Windows laptop, not the dev container. `scripts/voice.mjs` makes the four Khmer voice MP3s with Gemini (speaker and style lines read from `docs/02_video_playbook.md`), and `scripts/tighten.mjs` shortens a take's long pauses (and, asked, its sighs) without cutting words. The edit is HyperFrames (HeyGen's open-source HTML-to-MP4 renderer, the Claude Code plugin `hyperframes@hyperframes`): `hyperframes/timing.mjs` measures the voice into `timing.json`, `hyperframes/make.mjs` runs the video's `film.mjs` (copied from `hyperframes/films/`, built from `hyperframes/kit.mjs`: the iPhone with the shots.py screens, the cursor, titles, sound cues, the root with music and voice) into a HyperFrames project `hf/` in the video's folder and copies its assets, and `hyperframes/hf.mjs` runs the plugin's CLI there (check, snapshot, preview, render); `hyperframes/master.mjs` brings the rendered MP4's sound to -15 LUFS. The founder clarified on 2026-11-05: omit only the personal Telegram username/URL from videos (put it in the bio or post description); keep Telegram icons, chat buttons and spoken invitations. Follow this when copying older templates. The older CapCut path stays: `scripts/build.mjs` copies the CapCut draft `oak-template` and lays out a shot list's SHOT lines through the founder's capcut-mcp fork (`~/mcp/capcut-mcp`, branch `oak`), CapCut closed while a draft is written |
 | Frontend dev server | `npm run dev`: http://localhost:5173 |
 | Frontend lint | `npm run lint` (oxlint) |
@@ -368,7 +368,16 @@ in stock (now the MagSafe Charger, 1m: 7) down to the low-stock level, 5. Skippe
 with a note at the start and the end of the run: 10–12 without
 `DEMO_BAKONG_ID` (and `DEMO_KHQR_ACCOUNT` with ABA's shared ID; the second
 order is then paid in cash, still for 13), 19–20 when nothing has 6 to 8 in
-stock.
+stock, 27 when no product has an option sold out and another in stock.
+23–27 run on a third phone, a new customer with an empty cart.
+
+The Oak Wear clothing shop (`--copy`, run per language with that
+language's catalogue into `out/clothing/`, 2026-11-06): the customer buys
+the Basic T-shirt in Black / M ($8.50) and the Casual trousers in Beige / M
+($14); the chat order takes the Everyday dress, Black / M, from 7 to 5;
+23–26 show $8.50 + $14 + $2 delivery = $24.50, then one more T-shirt: $31,
+delivery free (free from $30); 27 is the Straight jeans with size 32 sold
+out.
 
 | File | What it shows | Length |
 |---|---|---|
@@ -394,6 +403,11 @@ stock.
 | `20_low_stock_product` | That product, opened from the alert: its option at 5 in stock | still |
 | `21_parcel_slip` | Order C's parcel slip (⋯ → Receipt): "COLLECT … CASH" | still |
 | `22_customers` | The Customers tab: seven customers | still |
+| `23_cart` | A new customer's cart with both products, Delivery picked: the items and "Add … more for free delivery" when the shop gives it | still |
+| `24_cart_total` | The bottom of that cart: items, delivery, total, Place order with the amount | still |
+| `25_cart_one_more` | One more of the first product: its line at 2 ("Your delivery is free" when that reaches the shop's amount) | still |
+| `26_cart_one_more_total` | The bottom again: the new total | still |
+| `27_sold_out` | A product with one option sold out (greyed) and another picked | still |
 | `video/<lang>_00_shop_link.mp4` | The hook: the shop as a link opens it, then a slow scroll down the products (no order on the phone yet) | 10.3 s |
 | `<lang>_customer.mp4` | The customer's whole first order, 01 to 06, as they'd tap it | 23.1–23.3 s |
 | `<lang>_01_shop.mp4` | Cut from it: the shop, a scroll, the product opened | 8.9 s |
@@ -409,6 +423,8 @@ stock.
 | `<lang>_19_low_stock` | 19–20: the bell, the alert, the product | 6.8–6.9 s |
 | `<lang>_21_parcel_slip` | 21: ⋯ → Receipt, the slip | 5.6 s |
 | `<lang>_22_customers` | 22: the Customers tab, then a customer's page | 6.9–7 s |
+| `<lang>_23_cart` | 23–26: Delivery tapped, down to the total, back up, One more, down to the new total (Oak Wear) | 13.9–14 s |
+| `<lang>_27_sold_out` | 27: down to the options, an available one picked beside the sold-out one (Oak Wear) | 5.7 s |
 
 **The start page's phone screens.** `backend/marketing/home_images.py
 [--source DIR]` (Pillow) turns 5 of these stills per language (`01_shop`,
