@@ -1,11 +1,11 @@
 # Oak Order: marketing fact sheet
 
-> **Last checked: 2026-10-27, against the code at commit `11378ac`** (branch
-> `main`, the same as `origin/main`, so the same as the live site).
-> The live site was checked the same day (section 9). Updated the same day
-> for the sign-up methods: TikTok login was removed. Updated 2026-10-30
-> (commit `d0eb304`): the Telegram handles in section 8 and the video
-> assets in section 10; the features weren't checked again.
+> **Last checked: 2026-11-05, against the code at commit `4d687c6`** (branch
+> `main`, the same as `origin/main`, so the same as the live site): every
+> commit since the full check of 2026-10-27 (`11378ac`) that changes what a
+> seller or customer sees, plus the live prices (section 9). Before that:
+> the full check of 2026-10-27, and 2026-10-30 (`d0eb304`) for the
+> Telegram handles in section 8 and the video assets in section 10.
 >
 > For whoever writes from this sheet (people or the claude.ai marketing
 > project): **only rows marked Live may be shown, or described as working
@@ -74,8 +74,8 @@ numbers, reviews or quotes to use.
 
 | What it does | Screen / button to record | Status |
 |---|---|---|
-| Sign up with a phone number proved in Telegram (no SMS code), a shop name and a password. One shop per number. | Start page → **Create your shop** (បង្កើតហាងរបស់អ្នក) → **Verify with Telegram** (ផ្ទៀងផ្ទាត់ជាមួយ Telegram) → **Create shop** (បង្កើតហាង) | Live |
-| Shop owners log in by sharing their number in Telegram, or with phone and password. Staff use phone and password. | Log in → **Log in with Telegram** (ចូលគណនីជាមួយ Telegram) | Live |
+| Sign up with a phone number proved in Telegram (no SMS code), a shop name and a password. One shop per number. Two steps: **Verify Phone** (ផ្ទៀងផ្ទាត់ទូរស័ព្ទ), then **Shop & Password** (ព័ត៌មានហាង & ពាក្យសម្ងាត់), the password typed twice. | Start page → **Create your shop** (បង្កើតហាងរបស់អ្នក) → **Verify with Telegram** (ផ្ទៀងផ្ទាត់ជាមួយ Telegram) → **Create shop** (បង្កើតហាង) | Live |
+| Shop owners log in by sharing their number in Telegram, or with phone and password. Staff use phone and password. | Log in → tab **Telegram (1-Tap)** (Telegram (ចុចមួយដង)) → **Log in with Telegram** (ចូលគណនីជាមួយ Telegram); tab **Password** (ពាក្យសម្ងាត់) | Live |
 | Sign up or log in with Google. | The square Google "G" button under the sign-up and log-in forms | Live |
 | Sign up or log in with Facebook. | (hidden on the live site) | In progress: waits for Meta's business verification and App Review |
 | Sign up or log in with TikTok. | — | Removed 2026-10-27 (TikTok turned the app down). Don't mention it; Telegram and Google cover it |
@@ -106,7 +106,7 @@ numbers, reviews or quotes to use.
 | What it does | Screen / button to record | Status |
 |---|---|---|
 | KHQR for the exact amount of each order, paid straight into the seller's own bank account (ABA, ACLEDA, Wing and other Bakong banks). No payment company in between, and Oak Order takes no cut. The seller uploads their bank app's Receive QR and the details fill in. Dollar and riel accounts both work. | Settings → **Payments** (ការបង់ប្រាក់) → **Upload your bank's QR** (បញ្ចូល QR ធនាគាររបស់អ្នក) | Live. Personal QRs only: a business (merchant) QR is refused |
-| The customer saves the QR and pays from their bank app. Each QR works for 24 hours. | Customer's order page → **Save QR to photos** (រក្សាទុក QR ក្នុងរូបថត) | Live |
+| Right after a KHQR order, a pay sheet slides up: the KHQR card (shop, amount, the QR), **Scan to pay** (ស្កេនដើម្បីបង់ប្រាក់), or **Download QR** (ទាញយក QR) **and upload it in your bank app**, then **I've paid: send receipt**. Once per order; the Pay button in the customer's Telegram receipt and reminder opens it again. The customer pays from their bank app. Each QR works for 24 hours. Cash orders get no sheet. | Customer: the pay sheet after **Place order**; the order page's payment card → **Save QR to photos** (រក្សាទុក QR ក្នុងរូបថត) | Live |
 | Cash on delivery (or cash at pickup). | Checkout → **Cash** (សាច់ប្រាក់) | Live |
 | After paying, the customer taps "I've paid". The shop's Telegram opens with "I've paid order #1001, $12.00" typed, so they can send the bank receipt. The seller's order then reads "Says paid at 14:02: check your bank app for $12.00". | Customer: **I've paid: send receipt** (ខ្ញុំបានបង់ហើយ៖ ផ្ញើបង្កាន់ដៃ). Seller: **Says paid at …** (អតិថិជនថាបានបង់នៅ …) | Live |
 | The seller checks their bank app, then marks the order paid with one tap, from the app or from the Telegram alert. | Order → **Mark paid** (កត់ថាបានបង់) → **Confirm paid** (បញ្ជាក់ថាបានបង់); in Telegram, **✅ បានទទួល កត់ថាបានបង់** (Received, mark paid) | Live (by hand: see section 6) |
@@ -176,27 +176,34 @@ numbers, reviews or quotes to use.
 1. **The link.** The customer taps the shop's link in a post, a comment
    reply or a chat. In Facebook and Telegram it shows as a picture card
    (the cover or the product photo, the name, "· Oak Order"). Live.
-2. **The shop.** Cover, logo and name at the top; All and the categories;
-   a grid of photos; "Only 3 left" (នៅសល់តែ 3 ទៀត) and "Sold out" (អស់ស្តុក);
-   sale prices with the old price crossed out; a **Delivery and payment**
-   (ការដឹកជញ្ជូន និងការបង់ប្រាក់) box. A + on a photo adds a product without
-   options to the cart.
-   "Made with Oak Order" (ដំណើរការដោយ Oak Order) is at the bottom. Live.
+2. **The shop.** Cover, logo, name and description at the top; under them
+   up to 3 of the shop's discounts (the ones from the smallest amount;
+   nothing if it has none). The delivery fee and the ways to pay show at
+   checkout, no longer here (2026-11-04). All and the categories; a grid
+   of product cards, each with its lowest price; "Only 3 left" (នៅសល់តែ
+   3 ទៀត) and "Sold out" (អស់ស្តុក); sale prices with the old price crossed
+   out. A tap on a card opens the product (no + on the cards since
+   2026-11-04). "Made with Oak Order" (ដំណើរការដោយ Oak Order) is at the
+   bottom. Live.
 3. **A product.** Photos, options (size, colour), stock, **Add to cart**
    (ដាក់កន្ត្រក) or **Buy now** (ទិញឥឡូវនេះ), **Ask seller on Telegram**
    (សួរអ្នកលក់តាម Telegram). Live.
-4. **Checkout** (cart and checkout on one page): **Continue with Telegram**
+4. **Checkout** (cart and checkout on one page, **Your cart**, កន្ត្រករបស់អ្នក):
+   **Continue with Telegram**
    (បន្តជាមួយ Telegram) fills in the name and a confirmed phone number, or
    **or type your details** (ឬវាយបញ្ចូលព័ត៌មានរបស់អ្នក). The phone is read
    back ("The seller will call 012 345 678. Check it's right."). Then
-   **Delivery** (ការដឹកជញ្ជូន) or **Pickup** (មកយកផ្ទាល់), a courier or
-   **Shop chooses**, the address and/or **Pin my location on the map**, a
-   note, **KHQR** or **Cash**, and **Place order** (បញ្ជាក់ការកុម្ម៉ង់). The
-   cart shows "Add $3.00 more for free delivery" when the shop has it.
-   No account or password. Live.
+   **Delivery** (ការដឹកជញ្ជូន) or **Pickup** (មកយកផ្ទាល់) as two tiles side
+   by side; for delivery **Pin my location on the map** and the address,
+   then a courier or **Shop chooses**; a note, **KHQR** or **Cash**, and
+   **Place order** (បញ្ជាក់ការកុម្ម៉ង់). Once the cart is halfway to a
+   discount or free delivery, one line says "Add $3.00 more for free
+   delivery" (or "… for $20.00 off"), and "Your delivery is free" once it's
+   reached. No account or password. Live.
 5. **Pay.** "Thank you! Your order is placed." (អរគុណ! យើងបានទទួលការកុម្ម៉ង់
-   របស់អ្នកហើយ។). KHQR: "One step left: pay $12.00 by KHQR", the QR for the
-   exact amount, **Save QR to photos**, scan it in the bank app, then
+   របស់អ្នកហើយ។). KHQR: "One step left: pay $12.00 by KHQR", and a moment
+   later the pay sheet slides up with the QR for the exact amount (section
+   3.2): scan it, or **Download QR** and upload it in the bank app, then
    **I've paid: send receipt**. Cash: "Pay $12.00 in cash when it arrives".
    The customer sees how to pay right away, before the seller accepts.
    Live.
@@ -412,6 +419,23 @@ always stays navy.
   username is from the founder (a new bot, the same day). Clip lengths were read from the MP4
   files, made 2026-10-28. File names were checked in `shots.py`; the tool
   wasn't run again.
+- **2026-11-05, commit `4d687c6`** (the same as `origin/main`): every
+  commit since `11378ac` that changes what a seller or customer sees.
+  Changed in this sheet: sign-up in two steps and the login's tabs (3.0);
+  the KHQR pay sheet (3.2, section 4 step 5); the shop's top shows only
+  up to 3 discounts and its cards have no + (section 4 step 2); the cart
+  is "Your cart", its "add more" line shows from halfway, Delivery and
+  Pickup are tiles and the courier comes after the address (step 4). The
+  live site's scripts have these changes ("Your delivery is free",
+  "Download QR", "Telegram (1-Tap)"; no "Delivery and payment"). Prices
+  and the trial are now set in the admin: the live
+  `api.oaksolve.com/api/v1/plan/prices` reads $9.99, $99 and 30 days,
+  never changed. The bot's words can now be changed or a message switched
+  off in the admin; none has been (still Khmer only). Unchanged: every
+  other row, the sign-up and login button names, and the $0 free-time
+  payment (the admin also has Change paid-until date now). Not affecting
+  this sheet: the admin pages, and the look of the chips, cards and
+  page turns.
 - **Check again** after any push that changes a feature, a price or a
   login method: compare 04_STATUS.md's "Last updated" with this date.
 
@@ -421,7 +445,11 @@ Made by `backend/marketing/shots.py` (`--video` for the clips) from a copy
 of the demo shop "Oak Fashion" (section 8), last on 2026-10-28. They still
 show that shoe shop: the demo shop became the iPhone shop "Oak Phone" on
 2026-11-02, and the next run makes its pictures (then the descriptions
-below need redoing). Paths
+below need redoing). The shop's look changed on 2026-11-04 too (section
+4, steps 2, 4 and 5): `01_shop` and `02_products` will show only the
+discounts under the name and no + on the cards, and `11_khqr` will be
+the pay sheet after Place order (`shots.py` takes it there since
+2026-11-02). Paths
 are relative to `backend/marketing/out/`. That folder is git-ignored, so
 the files are on the founder's laptop only. `.work/` is the tool's own
 scratch space, not an asset.
