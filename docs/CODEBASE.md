@@ -408,6 +408,17 @@ stock.
 | `<lang>_21_parcel_slip` | 21: ⋯ → Receipt, the slip | 5.6 s |
 | `<lang>_22_customers` | 22: the Customers tab, then a customer's page | 6.9–7 s |
 
+**The start page's phone screens.** `backend/marketing/home_images.py
+[--source DIR]` (Pillow) turns 5 of these stills per language (`01_shop`,
+`16_share_link`, `05_checkout`, `11_khqr`, `07_dashboard`) into
+`frontend/public/home/<lang>/{shop,share,checkout,khqr,orders}.webp`, 780 ×
+1688 at quality 82 (38–79 KB each), and writes the film grain the page lays
+over everything, `frontend/public/home/grain.webp` (128 px, the same file
+every run). Those 11 files are committed. It exits 1 if a still is missing
+or a screen is over 150 KB. Run it after `shots.py` whenever one of those
+screens changes; `--source` points at another checkout's `out/` (a
+worktree has none).
+
 ---
 
 ## 4. Backend architecture
