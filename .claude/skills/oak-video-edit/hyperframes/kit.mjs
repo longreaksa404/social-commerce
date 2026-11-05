@@ -31,6 +31,7 @@ export const SFX = {
   'hf-click': [0.073, 1.6, 0.366], 'mx-tap': [0, 0.55, 0.199], 'hf-pop': [0.12, 0.85, 0.72], 'mx-pop': [0.01, 0.3, 0.168],
   'hf-whoosh': [0.162, 0.5, 0.575], 'mx-swoosh': [0.235, 0.55, 0.72], 'mx-whoosh': [0.721, 0.5, 1.757],
   'hf-riser': [3.472, 0.28, 4.4], 'hf-impact-bass-1': [0.073, 0.22, 2.116],
+  'mx-typing': [0.128, 0.45, 1.3], // keys every ~0.25 s; only its first 1.3 s (the file runs 4.5 s)
 };
 // repeated kinds rotate takes (the same whoosh on every cut is the commonest tell)
 export const TAKES = { click: ['hf-click', 'mx-tap'], pop: ['hf-pop', 'mx-pop'], whoosh: ['hf-whoosh', 'mx-swoosh', 'mx-whoosh'] };

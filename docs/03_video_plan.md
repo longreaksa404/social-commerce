@@ -85,7 +85,7 @@ row to the content log as Draft.
 
 | Type | Shape | Film template |
 |---|---|---|
-| Teaser | The pain or a glimpse, no full app tour, the launch date at the end | new: `teaser.mjs` (first made with 003) |
+| Teaser | The pain or a glimpse, no full app tour, the launch date at the end | `teaser.mjs` (video 003; the date is `DATE` in the film, on screen only) |
 | Launch | The whole loop fast (link → order → pay → deliver), then the offer | new: `launch.mjs` (first made with 006; 022 reuses it) |
 | Pain → Fix | Hook, pain, Oak Order fixing it on the app's screens, offer | `pain-fix-flow.mjs` (video 002) |
 | How-to | One job in a few taps, cursor-led, no pain act | new: `how-to.mjs` (first made with 009) |
