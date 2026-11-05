@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLang, useT } from '../../i18n/useT.ts'
-import { PhoneStill } from './PhoneStill.tsx'
+import { Phone3D } from './Phone3D.tsx'
 import { STEP_SCREENS, stepAt } from './screens.ts'
+import type { Intro } from './useIntro.ts'
 
 const STEPS = ['share', 'order', 'pay', 'track'] as const
 // Each step is 80% of a screen of scrolling; the phone stays put meanwhile.
@@ -14,7 +15,7 @@ const TURNS = ['rotateY(-12deg) rotateX(4deg)', 'rotateY(8deg) rotateX(2deg)', '
  * phone; on laptops they scroll on the left. Heights are in svh, the
  * smallest screen height, so a browser bar hiding mid-scroll doesn't jump
  * to another step. */
-export function HowItWorks() {
+export function HowItWorks({ intro }: { intro: Intro }) {
   const t = useT()
   const { lang } = useLang()
   const steps = t.home.steps
@@ -81,12 +82,13 @@ export function HowItWorks() {
           ref={stage}
           data-step-stage
           data-step-active={step}
-          className="sticky top-0 flex h-svh flex-col items-center justify-center gap-6 pt-[calc(4rem+env(safe-area-inset-top))] pb-6 lg:col-start-2 lg:row-start-1 lg:pt-16"
+          className="sticky top-0 flex h-svh flex-col items-center justify-center gap-9 pt-[calc(4rem+env(safe-area-inset-top))] pb-6 lg:col-start-2 lg:row-start-1 lg:pt-16"
         >
-          <PhoneStill
+          <Phone3D
             screen={STEP_SCREENS[step]}
             lang={lang}
-            sweep={step}
+            shot={step as 0 | 1 | 2 | 3}
+            wait={intro === 'playing'}
             className={`w-[min(60vw,26svh)] lg:w-[min(320px,34svh)] ${fade}`}
             style={{ transform: `perspective(1600px) ${TURNS[step]}` }}
           />

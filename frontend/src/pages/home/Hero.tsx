@@ -4,8 +4,9 @@ import { Link } from 'react-router'
 import { useLang, useT } from '../../i18n/useT.ts'
 import { usePlanPrices } from '../../lib/planPrices.ts'
 import { outlineButton, solidButton } from './buttons.ts'
-import { PhoneStill } from './PhoneStill.tsx'
+import { Phone3D } from './Phone3D.tsx'
 import { DEMO_SHOP } from './screens.ts'
+import type { Intro } from './useIntro.ts'
 
 /** When each part arrives in the opening (home.css, main[data-intro]). */
 const after = (seconds: number) => ({ '--d': `${seconds}s` }) as CSSProperties
@@ -14,7 +15,7 @@ const after = (seconds: number) => ({ '--d': `${seconds}s` }) as CSSProperties
  * and the phone with the demo shop on it. On phones the phone comes under
  * the buttons, its top showing, so people scroll. It dims and drifts back
  * as it scrolls away. */
-export function Hero() {
+export function Hero({ intro }: { intro: Intro }) {
   const t = useT()
   const { lang } = useLang()
   const prices = usePlanPrices()
@@ -56,10 +57,13 @@ export function Hero() {
             className="home-intro-glow absolute top-1/2 left-1/2 -z-10 size-[130%] -translate-1/2 rounded-full bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--color-night-glow)_80%,transparent),transparent)]"
           />
           <div className="home-intro-phone">
-            <PhoneStill
+            <Phone3D
               screen="shop"
               lang={lang}
+              shot="hero"
               priority
+              follow
+              wait={intro === 'playing'}
               className="w-[min(70vw,290px)] [transform:perspective(1600px)_rotateY(-12deg)_rotateX(4deg)] lg:w-[330px]"
             />
           </div>

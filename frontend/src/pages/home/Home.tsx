@@ -56,8 +56,8 @@ function HomePage() {
       <Atmosphere />
       <TopBar />
       <main data-home data-intro={intro}>
-        <Hero />
-        <HowItWorks />
+        <Hero intro={intro} />
+        <HowItWorks intro={intro} />
         <Features />
         <Pricing />
         <Questions />

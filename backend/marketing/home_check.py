@@ -406,6 +406,153 @@ def check_night_behind(browser: Browser) -> None:
     page.context.close()
 
 
+# Task 6: the 3D phone.
+
+FRONTEND = HERE.parents[1] / "frontend"
+# The entry chunk before three.js came in (commit e3de878), in kB.
+ENTRY_BEFORE_KB = 1112.33
+GPU = ["--enable-gpu", "--use-angle=d3d11", "--ignore-gpu-blocklist"]
+NO_WEBGL = ["--disable-webgl", "--disable-3d-apis"]
+CANVAS = "canvas[data-phone3d]"
+# The first screen's phone (How it works has its own).
+HERO = ".home-intro-phone"
+HERO_CANVAS = f"{HERO} {CANVAS}"
+
+
+def still_visible(page: Page, scope: str = HERO) -> bool:
+    return page.evaluate(
+        "(s) => getComputedStyle(document.querySelector(s + ' [data-still]')).opacity === '1'",
+        scope,
+    )
+
+
+@check
+def check_chunk(browser: Browser) -> None:
+    dist = FRONTEND / "dist"
+    html = (dist / "index.html").read_text(encoding="utf-8")
+    entry = next(dist.glob("assets/index-*.js"))
+    assert entry.name in html, f"{entry.name} isn't the entry index.html loads"
+    assert "WebGLRenderer" not in entry.read_text(encoding="utf-8"), (
+        "three.js is in the entry chunk"
+    )
+    three = [
+        f.name for f in dist.glob("assets/*.js") if "WebGLRenderer" in f.read_text(encoding="utf-8")
+    ]
+    assert three, "no chunk with three.js"
+    grew = entry.stat().st_size / 1000 - ENTRY_BEFORE_KB
+    assert grew < 15, f"the entry chunk grew {grew:.1f} kB"
+    print(f"  three in {three}, entry +{grew:.1f} kB")
+
+
+@check
+def check_3d_loaded(browser: Browser) -> None:
+    page = open_home(browser)
+    page.wait_for_selector(HERO_CANVAS, timeout=8000)
+    page.wait_for_function(
+        f"() => getComputedStyle(document.querySelector('{HERO_CANVAS}')).opacity === '1'",
+        timeout=4000,
+    )
+    assert not still_visible(page), "the still phone shows under the 3D one"
+    shot(page, "3d-hero", full=False)
+    page.context.close()
+
+
+@check
+def check_3d_steps(browser: Browser) -> None:
+    page = open_home(browser)
+    for index, progress in enumerate((0.1, 0.35, 0.6, 0.85)):
+        scroll_steps(page, progress)
+        stage = f"[data-step-stage] {CANVAS}"
+        page.wait_for_selector(stage, timeout=8000)
+        page.wait_for_function(
+            "([s, i, e]) => { const c = document.querySelector(s);"
+            " return c.dataset.shot === String(i) && c.dataset.screen.endsWith(e) }",
+            arg=[stage, index, f"/home/km/{STEP_FILES[index]}.webp"],
+            timeout=4000,
+        )
+        page.wait_for_timeout(1200)
+        shot(page, f"3d-step-{index}", full=False)
+    page.context.close()
+
+
+@check
+def check_3d_lang(browser: Browser) -> None:
+    page = open_home(browser)
+    page.wait_for_selector(HERO_CANVAS, timeout=8000)
+    page.locator("header button", has_text="EN").click()
+    page.wait_for_function(
+        f"() => document.querySelector('{HERO_CANVAS}').dataset.screen.includes('/home/en/')",
+        timeout=4000,
+    )
+    page.context.close()
+
+
+@check
+def check_3d_reduced(browser: Browser) -> None:
+    context = browser.new_context(viewport={"width": 390, "height": 844}, reduced_motion="reduce")
+    page = context.new_page()
+    asked = []
+    page.on("request", lambda request: asked.append(request.url))
+    page.goto(OPTS["url"] + "/")
+    page.wait_for_selector("main[data-home]")
+    page.wait_for_timeout(2000)
+    assert not [url for url in asked if "phoneScene" in url], "three.js was downloaded"
+    assert page.locator(CANVAS).count() == 0, "a 3D canvas with reduce motion"
+    assert still_visible(page), "the still phone is hidden"
+    context.close()
+
+
+@check
+def check_3d_no_webgl(browser: Browser) -> None:
+    page = open_home(browser)
+    page.wait_for_timeout(2000)
+    assert page.locator(CANVAS).count() == 0, "a 3D canvas without WebGL"
+    assert still_visible(page), "the still phone is hidden"
+    assert not page.errors, f"page errors: {page.errors}"  # type: ignore[attr-defined]
+    page.context.close()
+
+
+@check
+def check_3d_slow(browser: Browser) -> None:
+    context = browser.new_context(viewport={"width": 390, "height": 844})
+    page = context.new_page()
+    page.goto(OPTS["url"] + "/")
+    page.wait_for_selector("main[data-home]")
+    # A slow phone from here on: before the 3D phone (after the opening).
+    context.new_cdp_session(page).send("Emulation.setCPUThrottlingRate", {"rate": 30})
+    page.wait_for_selector(HERO_CANVAS, state="attached")
+    page.wait_for_function(
+        f"() => !document.querySelector('{HERO_CANVAS}')"
+        f" && getComputedStyle(document.querySelector('{HERO} [data-still]')).opacity === '1'",
+        timeout=30000,
+        polling=500,
+    )
+    context.close()
+
+
+@check
+def check_3d_context_lost(browser: Browser) -> None:
+    page = open_home(browser)
+    page.wait_for_selector(HERO_CANVAS, timeout=8000)
+    page.wait_for_function(
+        f"() => getComputedStyle(document.querySelector('{HERO_CANVAS}')).opacity === '1'",
+        timeout=4000,
+    )
+    page.evaluate(
+        f"() => {{ const c = document.querySelector('{HERO_CANVAS}');"
+        " const gl = c.getContext('webgl2') || c.getContext('webgl');"
+        " gl.getExtension('WEBGL_lose_context').loseContext() }"
+    )
+    page.wait_for_function(f"() => !document.querySelector('{HERO_CANVAS}')", timeout=2000)
+    # It fades back in (0.7 s).
+    page.wait_for_function(
+        f"() => getComputedStyle(document.querySelector('{HERO} [data-still]')).opacity === '1'",
+        timeout=2000,
+    )
+    assert not page.errors, f"page errors: {page.errors}"  # type: ignore[attr-defined]
+    page.context.close()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--url", default=OPTS["url"])
@@ -436,7 +583,9 @@ def main() -> int:
 
 
 def launch(playwright: Playwright, name: str) -> Browser:
-    return playwright.chromium.launch(headless=not OPTS["headed"])
+    """Chromium; the 3D checks get the GPU (or no WebGL at all)."""
+    args = NO_WEBGL if name == "3d_no_webgl" else GPU if name.startswith("3d") else []
+    return playwright.chromium.launch(headless=not OPTS["headed"], args=args)
 
 
 if __name__ == "__main__":
