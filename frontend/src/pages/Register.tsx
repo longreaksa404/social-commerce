@@ -1,6 +1,6 @@
 import { useCallback, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
-import { ArrowLeft, CircleCheck, Store } from 'lucide-react'
+import { CircleCheck, Store } from 'lucide-react'
 import { PhoneCheck } from '../auth/PhoneCheck.tsx'
 import { SocialButtons } from '../auth/SocialButtons.tsx'
 import { buttonClass } from '../components/styles.ts'
@@ -160,37 +160,17 @@ export function Register() {
       ) : (
         /* ──────── STEP 2: SHOP NAME & PASSWORDS ──────── */
         <form onSubmit={submit} className="mt-6 space-y-4 animate-fade-in">
-          {/* Back to Step 1 action */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+            <CircleCheck className="size-5 shrink-0 text-emerald-600" aria-hidden />
+            <span className="sr-only">{t.auth.phoneCheck.verified}</span>
+            <span className="font-semibold text-slate-900 tabular-nums">
+              {formatPhone(phone?.phone ?? '')}
+            </span>
             <button
               type="button"
               onClick={resetPhone}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-navy-700 transition-colors"
-            >
-              <ArrowLeft className="size-3.5" aria-hidden />
-              <span>{t.auth.register.backToStep1}</span>
-            </button>
-          </div>
-
-          {/* Verified Phone Chip */}
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-surface p-3.5 shadow-xs">
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                <CircleCheck className="size-5" aria-hidden />
-              </span>
-              <div className="min-w-0 truncate">
-                <p className="truncate font-semibold text-slate-900 tabular-nums text-sm">
-                  {formatPhone(phone?.phone ?? '')}
-                </p>
-                <p className="truncate text-xs font-medium text-emerald-700">
-                  {t.auth.register.verifiedWithTelegram}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={resetPhone}
-              className="shrink-0 text-xs font-semibold text-navy-700 link hover:text-navy-900"
+              disabled={pending}
+              className="ml-auto min-h-11 min-w-11 shrink-0 px-2 text-sm font-semibold text-navy-700 link disabled:opacity-50"
             >
               {t.auth.register.changePhone}
             </button>
