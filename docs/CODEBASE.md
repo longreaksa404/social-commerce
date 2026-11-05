@@ -494,6 +494,16 @@ starts a new transaction.
 
 ### Auth
 
+- Registration pick 5A (founder, 2026-11-05): Create shop stays after the last field with the terms directly below it, in the normal scrolling form (final pick 5A). If the phone becomes registered while the seller fills in step two, the submission error now stays visible above the button. All five chosen options are complete. Checked frontend lint/build and Chromium at 360, 390, 414 and 1366px, in English/Khmer and light/dark; Change, expiry, taken-phone errors, draft reload, password toggles and mismatch blocking passed with simulated API responses. Real-phone Telegram handoff remains to try.
+
+- Registration pick 4B (founder, 2026-11-05): Register keeps two password fields with visibility toggles and the eight-character rule. Mismatch appears on blur or submit, clears while editing either field, and focuses confirmation on a refused submit. The extra strength bars, English-only Security label and matching-success line are removed. Confirmation stays local and is never sent to the API or saved in the draft. Checked validation, Change, expired/taken checks, draft reload, and 16 language/size/theme layouts in Chromium with simulated Telegram responses; frontend lint and build pass.
+
+- Registration pick 3A (founder, 2026-11-05): Register no longer invents a shop-name URL while typing. Sellers enter the shop name without the extra hint or icon; the real random-code link remains available through the dashboard share and link actions after creation. Removed the unused slug-preview formatter and translation. Frontend lint and build pass.
+
+- Registration pick 2A (founder, 2026-11-05): Register uses one tick-and-number row with a 44px Change action, replacing the card and duplicate Back action. usePhoneCheck gives each mounted flow its own creation-query key and only accepts a completed check after opening or resuming it, so Change no longer reuses a cached verified phone. Checked fresh verification in Chromium, frontend lint and build.
+
+- Registration pick 1B (founder, 2026-11-05): Register shows Verify phone and Your shop as two numbered steps, with the active step in navy and named for screen readers; the phone check stays in a plain card. The local fake-verification button is removed. Checked in Chromium at 360px in Khmer, plus frontend lint and build.
+
 - **Phone number logins** (founder's choice 2026-10-09). `POST
   /auth/register` takes `store_name`, `password` and
   `phone_check` (and `full_name`, which the page no
