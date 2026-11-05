@@ -179,7 +179,6 @@ export const auth = {
     confirmPassword: { en: 'Confirm password', km: 'បញ្ជាក់ពាក្យសម្ងាត់' },
     confirmPasswordHint: { en: 'Re-enter your password.', km: 'បញ្ចូលពាក្យសម្ងាត់ម្តងទៀត។' },
     passwordMismatch: { en: 'Passwords do not match.', km: 'ពាក្យសម្ងាត់ទាំងពីរមិនត្រូវគ្នាទេ។' },
-    passwordsMatch: { en: 'Passwords match', km: 'ពាក្យសម្ងាត់ត្រូវគ្នា' },
     step1Title: { en: 'Verify phone', km: 'ផ្ទៀងផ្ទាត់ទូរស័ព្ទ' },
     step2Title: { en: 'Your shop', km: 'ហាងរបស់អ្នក' },
     setupTitle: { en: 'Set up your shop', km: 'រៀបចំហាងរបស់អ្នក' },
@@ -195,11 +194,6 @@ export const auth = {
     telegramStep1: { en: 'Open Bot', km: 'បើក Bot' },
     telegramStep2: { en: 'Tap Start', km: 'ចុច Start' },
     telegramStep3: { en: 'Share Phone', km: 'ចែករំលែកលេខ' },
-    passwordStrength: {
-      weak: { en: 'Weak', km: 'ខ្សោយ' },
-      fair: { en: 'Fair', km: 'មធ្យម' },
-      strong: { en: 'Strong', km: 'រឹងមាំ' },
-    },
     submit: { en: 'Create shop', km: 'បង្កើតហាង' },
   },
 } satisfies Tree

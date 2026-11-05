@@ -55,6 +55,16 @@ export function Register() {
     form.confirm_password.length > 0 && form.password !== form.confirm_password,
   )
 
+  function editPassword(key: 'password' | 'confirm_password') {
+    return (event: { target: { value: string } }) => {
+      set(key)(event)
+      setConfirmTouched(false)
+      setError((current: unknown) =>
+        current instanceof ApiError && current.field === 'confirm_password' ? null : current,
+      )
+    }
+  }
+
   function resetPhone() {
     setPhone(null)
     setOpened(null)
@@ -62,7 +72,7 @@ export function Register() {
     setError(null)
   }
 
-  async function submit(event: FormEvent) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!phone || phone.taken) {
       if (!phone) {
@@ -88,6 +98,9 @@ export function Register() {
           'confirm_password',
         ),
       )
+      const confirmation = event.currentTarget.elements.namedItem('confirm_password') as HTMLInputElement
+      confirmation.focus()
+      confirmation.scrollIntoView({ block: 'center' })
       return
     }
 
@@ -112,9 +125,6 @@ export function Register() {
       setPending(false)
     }
   }
-
-  // Password strength calculation
-  const strength = calculateStrength(form.password)
 
   return (
     <AuthLayout
@@ -196,54 +206,22 @@ export function Register() {
           {/* For password managers: the login this password goes with */}
           <input type="tel" autoComplete="username" value={phone?.phone ?? ''} hidden readOnly />
 
-          {/* Password with Strength Meter */}
-          <div>
-            <Field
-              label={t.auth.password}
-              error={fieldError(error, 'password')}
-              hint={t.auth.register.passwordHint}
-            >
-              <PasswordInput
-                required
-                autoComplete="new-password"
-                enterKeyHint="next"
-                minLength={8}
-                value={form.password}
-                onChange={set('password')}
-              />
-            </Field>
-
-            {/* Password strength bar */}
-            {form.password.length > 0 && (
-              <div className="mt-2 space-y-1.5 animate-fade-in">
-                <div className="flex items-center justify-between text-[11px] font-medium">
-                  <span className="text-slate-500">Security</span>
-                  <span className={strength.textColor}>
-                    {strength.score === 1 && t.auth.register.passwordStrength.weak}
-                    {strength.score === 2 && t.auth.register.passwordStrength.fair}
-                    {strength.score === 3 && t.auth.register.passwordStrength.strong}
-                  </span>
-                </div>
-                <div className="flex gap-1.5 h-1">
-                  <div
-                    className={`h-full flex-1 rounded-full transition-colors ${
-                      strength.score >= 1 ? strength.barColor : 'bg-slate-200'
-                    }`}
-                  />
-                  <div
-                    className={`h-full flex-1 rounded-full transition-colors ${
-                      strength.score >= 2 ? strength.barColor : 'bg-slate-200'
-                    }`}
-                  />
-                  <div
-                    className={`h-full flex-1 rounded-full transition-colors ${
-                      strength.score >= 3 ? strength.barColor : 'bg-slate-200'
-                    }`}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+          <Field
+            label={t.auth.password}
+            error={fieldError(error, 'password')}
+            hint={t.auth.register.passwordHint}
+          >
+            <PasswordInput
+              required
+              name="password"
+              autoComplete="new-password"
+              enterKeyHint="next"
+              minLength={8}
+              value={form.password}
+              onChange={editPassword('password')}
+              onBlur={() => setConfirmTouched(true)}
+            />
+          </Field>
 
           {/* Confirm Password */}
           <Field
@@ -253,27 +231,17 @@ export function Register() {
                 ? t.auth.register.passwordMismatch
                 : fieldError(error, 'confirm_password')
             }
-            hint={
-              !mismatch && form.confirm_password.length > 0 ? (
-                <span className="flex items-center gap-1 text-emerald-600 font-medium">
-                  <CircleCheck className="size-3.5" aria-hidden />
-                  {t.auth.register.passwordsMatch}
-                </span>
-              ) : (
-                t.auth.register.confirmPasswordHint
-              )
-            }
+            hint={t.auth.register.confirmPasswordHint}
           >
             <PasswordInput
               required
               autoComplete="new-password"
+              name="confirm_password"
               enterKeyHint="go"
               minLength={8}
               value={form.confirm_password}
-              onChange={(e) => {
-                setConfirmTouched(true)
-                set('confirm_password')(e)
-              }}
+              onChange={editPassword('confirm_password')}
+              onBlur={() => setConfirmTouched(true)}
             />
           </Field>
 
@@ -293,22 +261,6 @@ export function Register() {
 
 // ---------------------------------------------------------------------------
 // Helpers & Local Components
-
-function calculateStrength(password: string): {
-  score: 0 | 1 | 2 | 3
-  barColor: string
-  textColor: string
-} {
-  if (!password) return { score: 0, barColor: 'bg-slate-200', textColor: 'text-slate-400' }
-  let score = 0
-  if (password.length >= 8) score++
-  if (/[0-9]/.test(password) && /[a-zA-Z]/.test(password)) score++
-  if (/[^a-zA-Z0-9]/.test(password) || password.length >= 12) score++
-
-  if (score <= 1) return { score: 1, barColor: 'bg-red-500', textColor: 'text-red-600' }
-  if (score === 2) return { score: 2, barColor: 'bg-amber-500', textColor: 'text-amber-600' }
-  return { score: 3, barColor: 'bg-emerald-500', textColor: 'text-emerald-600' }
-}
 
 /** Two numbered milestones; the current step is also named to screen readers. */
 function StepBar({ currentStep }: { currentStep: 1 | 2 }) {
