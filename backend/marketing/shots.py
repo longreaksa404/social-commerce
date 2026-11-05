@@ -53,6 +53,9 @@ from pathlib import Path
 BACKEND = Path(__file__).resolve().parents[1]
 FRONTEND = BACKEND.parent / "frontend"
 HERE = Path(__file__).resolve().parent
+# Vite's own script, run with node: node_modules/.bin/vite is a shell script
+# Windows can't start, and node itself stops cleanly when the run ends.
+VITE = FRONTEND / "node_modules" / "vite" / "bin" / "vite.js"
 sys.path.insert(0, str(HERE))
 
 import demo_shop  # noqa: E402
@@ -68,6 +71,11 @@ API_PORT, WEB_PORT, PHOTO_PORT = 8011, 4180, 8091
 API = f"http://localhost:{API_PORT}"
 WEB = f"http://localhost:{WEB_PORT}"
 PHOTOS = f"http://localhost:{PHOTO_PORT}"
+
+
+def vite(*args: str) -> list[str]:
+    return ["node", str(VITE), *args]
+
 
 VIEWPORT = {"width": 390, "height": 844}
 SCALE = 3  # 1170 x 2532: sharp at 1080 x 1920
@@ -138,7 +146,9 @@ DEBUG_WORDS = re.compile(
 )
 # An order's row on the Orders tab (not "+ New order").
 ORDER_ROW = "a[href*='/dashboard/orders/']:not([href$='/new'])"
-CATEGORY_TABS = "nav:has(a[href*='/category/'])"
+# The shop's category chips (a ChipRow with role=navigation since 2026-11-04).
+CATEGORY_TABS = "[role=navigation]:has(a[href*='/category/'])"
+DELIVERY_TILE = "label:has(input[name=delivery-choice][value=delivery])"
 # Only this machine; "I've paid" opens the shop's chat, which isn't
 # followed (no Telegram in the pictures).
 LOCAL = re.compile(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?/")
@@ -384,11 +394,10 @@ def build_site(out: Path) -> None:
     env = dict(os.environ)
     env.update(VITE_API_URL=API, VITE_SENTRY_DSN="")
     print("Building the frontend ...", flush=True)
-    vite = FRONTEND / "node_modules" / ".bin" / "vite"
-    if not vite.exists():
+    if not VITE.exists():
         raise Failed("No frontend/node_modules: run `npm install` in frontend/ first")
     subprocess.run(
-        [str(vite), "build", "--outDir", str(out), "--emptyOutDir", "--logLevel", "error"],
+        vite("build", "--outDir", str(out), "--emptyOutDir", "--logLevel", "error"),
         cwd=FRONTEND,
         env=env,
         check=True,
@@ -731,7 +740,7 @@ class Shots:
             self.type_into(page, "input[autocomplete=name]", me["name"])
             self.type_into(page, "input[autocomplete=tel]", me["phone"])
             # Delivery (not pickup); the address box opens with it.
-            self.tap(page, page.locator("label:has(input[name=delivery-choice])"))
+            self.tap(page, page.locator(DELIVERY_TILE))
             self.type_into(page, "[autocomplete=street-address]", me["address"])
             if self.khqr:  # cash alone isn't a choice: nothing to tap
                 self.tap(page, page.locator("label:has(input[name=payment][value=cod])"))
@@ -813,7 +822,7 @@ class Shots:
         page.wait_for_url("**/cart")
         page.wait_for_load_state("networkidle")
         # Delivery first (off camera on film): the clip is about paying.
-        self.tap(page, page.locator("label:has(input[name=delivery-choice])"))
+        self.tap(page, page.locator(DELIVERY_TILE))
         if self.khqr:
             self.scroll_to(page, "label:has(input[name=payment])", offset=-110)
         with self.film(page, "10_khqr") if self.khqr else nullcontext():
@@ -1136,8 +1145,8 @@ def demo_servers(work: Path):
         )
         stack.enter_context(
             running(
-                [str(FRONTEND / "node_modules" / ".bin" / "vite"), "preview"]
-                + ["--port", str(WEB_PORT), "--strictPort", "--outDir", str(work / "site")],
+                vite("preview", "--port", str(WEB_PORT), "--strictPort")
+                + ["--outDir", str(work / "site")],
                 FRONTEND,
                 dict(os.environ),
                 WEB,

@@ -1,11 +1,11 @@
 # Oak Order: marketing fact sheet
 
-> **Last checked: 2026-10-27, against the code at commit `11378ac`** (branch
-> `main`, the same as `origin/main`, so the same as the live site).
-> The live site was checked the same day (section 9). Updated the same day
-> for the sign-up methods: TikTok login was removed. Updated 2026-10-30
-> (commit `d0eb304`): the Telegram handles in section 8 and the video
-> assets in section 10; the features weren't checked again.
+> **Last checked: 2026-11-05, against the code at commit `4d687c6`** (branch
+> `main`, the same as `origin/main`, so the same as the live site): every
+> commit since the full check of 2026-10-27 (`11378ac`) that changes what a
+> seller or customer sees, plus the live prices (section 9). Before that:
+> the full check of 2026-10-27, and 2026-10-30 (`d0eb304`) for the
+> Telegram handles in section 8 and the video assets in section 10.
 >
 > For whoever writes from this sheet (people or the claude.ai marketing
 > project): **only rows marked Live may be shown, or described as working
@@ -40,12 +40,12 @@
 Customers order and pay through it, and you see every order, payment and
 delivery in one place on your phone.**
 
-The app's own lines, from the start page (use them word for word):
+The app's own lines, from the start page (use them word for word; the second one replaces "Easy orders for sellers…" once the new start page is live, built 2026-11-05):
 
 | English | Khmer |
 |---|---|
 | Turn social media chats into real orders | ប្រែការឆាតលើបណ្ដាញសង្គម ទៅជាការកុម្ម៉ង់ពិតៗ |
-| Easy orders for sellers on Facebook, TikTok and Instagram. | ការកុម្ម៉ង់ងាយស្រួល សម្រាប់អ្នកលក់លើ Facebook, TikTok និង Instagram។ |
+| One link for your Facebook, TikTok and Instagram shop. Customers order and pay through it, and you see every order, payment and delivery in one place on your phone. | តំណតែមួយសម្រាប់ហាងរបស់អ្នកលើ Facebook, TikTok និង Instagram។ អតិថិជនកុម្ម៉ង់ និងបង់ប្រាក់តាមតំណនោះ ហើយអ្នកឃើញរាល់ការកុម្ម៉ង់ ការបង់ប្រាក់ និងការដឹកជញ្ជូន នៅកន្លែងតែមួយលើទូរស័ព្ទរបស់អ្នក។ |
 
 ## 2. Who it's for
 
@@ -74,8 +74,9 @@ numbers, reviews or quotes to use.
 
 | What it does | Screen / button to record | Status |
 |---|---|---|
-| Sign up with a phone number proved in Telegram (no SMS code), a shop name and a password. One shop per number. | Start page → **Create your shop** (បង្កើតហាងរបស់អ្នក) → **Verify with Telegram** (ផ្ទៀងផ្ទាត់ជាមួយ Telegram) → **Create shop** (បង្កើតហាង) | Live |
-| Shop owners log in by sharing their number in Telegram, or with phone and password. Staff use phone and password. | Log in → **Log in with Telegram** (ចូលគណនីជាមួយ Telegram) | Live |
+| Sign up with a phone number proved in Telegram (no SMS code), a shop name and a password. One shop per number. Two steps: **Verify Phone** (ផ្ទៀងផ្ទាត់ទូរស័ព្ទ), then **Shop & Password** (ព័ត៌មានហាង & ពាក្យសម្ងាត់), the password typed twice. | Start page → **Create your shop** (បង្កើតហាងរបស់អ្នក) → **Verify with Telegram** (ផ្ទៀងផ្ទាត់ជាមួយ Telegram) → **Create shop** (បង្កើតហាង) | Live |
+| Shop owners log in by sharing their number in Telegram, or with phone and password. Staff use phone and password. | Log in → tab **Telegram (1-Tap)** (Telegram (ចុចមួយដង)) → **Log in with Telegram** (ចូលគណនីជាមួយ Telegram); tab **Password** (ពាក្យសម្ងាត់) | Live |
+| A start page for new sellers: what Oak Order does, How it works on a phone with the app's real screens, six features, the price, five questions, and **Try a demo shop** (សាកមើលហាងគំរូ), which opens Oak Phone. | order.oaksolve.com, logged out | Built 2026-11-05, not live yet (not pushed) |
 | Sign up or log in with Google. | The square Google "G" button under the sign-up and log-in forms | Live |
 | Sign up or log in with Facebook. | (hidden on the live site) | In progress: waits for Meta's business verification and App Review |
 | Sign up or log in with TikTok. | — | Removed 2026-10-27 (TikTok turned the app down). Don't mention it; Telegram and Google cover it |
@@ -106,7 +107,7 @@ numbers, reviews or quotes to use.
 | What it does | Screen / button to record | Status |
 |---|---|---|
 | KHQR for the exact amount of each order, paid straight into the seller's own bank account (ABA, ACLEDA, Wing and other Bakong banks). No payment company in between, and Oak Order takes no cut. The seller uploads their bank app's Receive QR and the details fill in. Dollar and riel accounts both work. | Settings → **Payments** (ការបង់ប្រាក់) → **Upload your bank's QR** (បញ្ចូល QR ធនាគាររបស់អ្នក) | Live. Personal QRs only: a business (merchant) QR is refused |
-| The customer saves the QR and pays from their bank app. Each QR works for 24 hours. | Customer's order page → **Save QR to photos** (រក្សាទុក QR ក្នុងរូបថត) | Live |
+| Right after a KHQR order, a pay sheet slides up: the KHQR card (shop, amount, the QR), **Scan to pay** (ស្កេនដើម្បីបង់ប្រាក់), or **Download QR** (ទាញយក QR) **and upload it in your bank app**, then **I've paid: send receipt**. Once per order; the Pay button in the customer's Telegram receipt and reminder opens it again. The customer pays from their bank app. Each QR works for 24 hours. Cash orders get no sheet. | Customer: the pay sheet after **Place order**; the order page's payment card → **Save QR to photos** (រក្សាទុក QR ក្នុងរូបថត) | Live |
 | Cash on delivery (or cash at pickup). | Checkout → **Cash** (សាច់ប្រាក់) | Live |
 | After paying, the customer taps "I've paid". The shop's Telegram opens with "I've paid order #1001, $12.00" typed, so they can send the bank receipt. The seller's order then reads "Says paid at 14:02: check your bank app for $12.00". | Customer: **I've paid: send receipt** (ខ្ញុំបានបង់ហើយ៖ ផ្ញើបង្កាន់ដៃ). Seller: **Says paid at …** (អតិថិជនថាបានបង់នៅ …) | Live |
 | The seller checks their bank app, then marks the order paid with one tap, from the app or from the Telegram alert. | Order → **Mark paid** (កត់ថាបានបង់) → **Confirm paid** (បញ្ជាក់ថាបានបង់); in Telegram, **✅ បានទទួល កត់ថាបានបង់** (Received, mark paid) | Live (by hand: see section 6) |
@@ -176,27 +177,34 @@ numbers, reviews or quotes to use.
 1. **The link.** The customer taps the shop's link in a post, a comment
    reply or a chat. In Facebook and Telegram it shows as a picture card
    (the cover or the product photo, the name, "· Oak Order"). Live.
-2. **The shop.** Cover, logo and name at the top; All and the categories;
-   a grid of photos; "Only 3 left" (នៅសល់តែ 3 ទៀត) and "Sold out" (អស់ស្តុក);
-   sale prices with the old price crossed out; a **Delivery and payment**
-   (ការដឹកជញ្ជូន និងការបង់ប្រាក់) box. A + on a photo adds a product without
-   options to the cart.
-   "Made with Oak Order" (ដំណើរការដោយ Oak Order) is at the bottom. Live.
+2. **The shop.** Cover, logo, name and description at the top; under them
+   up to 3 of the shop's discounts (the ones from the smallest amount;
+   nothing if it has none). The delivery fee and the ways to pay show at
+   checkout, no longer here (2026-11-04). All and the categories; a grid
+   of product cards, each with its lowest price; "Only 3 left" (នៅសល់តែ
+   3 ទៀត) and "Sold out" (អស់ស្តុក); sale prices with the old price crossed
+   out. A tap on a card opens the product (no + on the cards since
+   2026-11-04). "Made with Oak Order" (ដំណើរការដោយ Oak Order) is at the
+   bottom. Live.
 3. **A product.** Photos, options (size, colour), stock, **Add to cart**
    (ដាក់កន្ត្រក) or **Buy now** (ទិញឥឡូវនេះ), **Ask seller on Telegram**
    (សួរអ្នកលក់តាម Telegram). Live.
-4. **Checkout** (cart and checkout on one page): **Continue with Telegram**
+4. **Checkout** (cart and checkout on one page, **Your cart**, កន្ត្រករបស់អ្នក):
+   **Continue with Telegram**
    (បន្តជាមួយ Telegram) fills in the name and a confirmed phone number, or
    **or type your details** (ឬវាយបញ្ចូលព័ត៌មានរបស់អ្នក). The phone is read
    back ("The seller will call 012 345 678. Check it's right."). Then
-   **Delivery** (ការដឹកជញ្ជូន) or **Pickup** (មកយកផ្ទាល់), a courier or
-   **Shop chooses**, the address and/or **Pin my location on the map**, a
-   note, **KHQR** or **Cash**, and **Place order** (បញ្ជាក់ការកុម្ម៉ង់). The
-   cart shows "Add $3.00 more for free delivery" when the shop has it.
-   No account or password. Live.
+   **Delivery** (ការដឹកជញ្ជូន) or **Pickup** (មកយកផ្ទាល់) as two tiles side
+   by side; for delivery **Pin my location on the map** and the address,
+   then a courier or **Shop chooses**; a note, **KHQR** or **Cash**, and
+   **Place order** (បញ្ជាក់ការកុម្ម៉ង់). Once the cart is halfway to a
+   discount or free delivery, one line says "Add $3.00 more for free
+   delivery" (or "… for $20.00 off"), and "Your delivery is free" once it's
+   reached. No account or password. Live.
 5. **Pay.** "Thank you! Your order is placed." (អរគុណ! យើងបានទទួលការកុម្ម៉ង់
-   របស់អ្នកហើយ។). KHQR: "One step left: pay $12.00 by KHQR", the QR for the
-   exact amount, **Save QR to photos**, scan it in the bank app, then
+   របស់អ្នកហើយ។). KHQR: "One step left: pay $12.00 by KHQR", and a moment
+   later the pay sheet slides up with the QR for the exact amount (section
+   3.2): scan it, or **Download QR** and upload it in the bank app, then
    **I've paid: send receipt**. Cash: "Pay $12.00 in cash when it arrives".
    The customer sees how to pay right away, before the seller accepts.
    Live.
@@ -382,19 +390,15 @@ always stays navy.
 | Log in | https://order.oaksolve.com/login |
 | Terms, Privacy, Data deletion | https://order.oaksolve.com/terms, /privacy, /data-deletion |
 | A shop's link (the format) | `https://order.oaksolve.com/shop/<6-character code>`. Example format only: `k7m2qx` in 01 isn't a real shop |
-| Demo or example shop | **"Oak Phone", https://order.oaksolve.com/shop/zdpb5d**: the founder's demo iPhone shop on the live site (opened 2026-10-28 as the shoe shop "Oak Fashion"; an iPhone shop since 2026-11-02). 30 products in 4 categories: new iPhones (18 Pro Max, 18 Pro, Duo, 17 Pro Max, Air, 17, 17e), 14 used iPhones (12 to 16 Pro), Apple Watch Series 11 and Ultra 3 and a used iPad Air, AirPods and chargers, $19–$2,349, options by storage and colour; delivery and pickup, KHQR and cash; $20 off orders from $1,000. Its 36 orders (#1001–#1036, all dated 2026-11-02) are examples added by Oak Order, not sales. Its photos are from Wikimedia Commons (CC0, or credited in the product's description). It's a real, open shop: an order placed there reaches the founder. Marketing pictures and clips come from a copy of it on the founder's laptop: `backend/marketing/shots.py` makes 22 phone screens and 15 short MP4s in each of Khmer and English (every file in `docs/CODEBASE.md` §3, "Marketing pictures and clips") |
+| Demo or example shop | **"Oak Phone", https://order.oaksolve.com/shop/zdpb5d**: the founder's demo iPhone shop on the live site (opened 2026-10-28 as the shoe shop "Oak Fashion"; an iPhone shop since 2026-11-02). 30 products in 4 categories: new iPhones (18 Pro Max, 18 Pro, Duo, 17 Pro Max, Air, 17, 17e), 14 used iPhones (12 to 16 Pro), Apple Watch Series 11 and Ultra 3 and a used iPad Air, AirPods and chargers, $19–$2,349, options by storage and colour; delivery and pickup, KHQR and cash; $20 off orders from $1,000. Its 36 orders (#1001–#1036, all dated 2026-11-02) are examples added by Oak Order, not sales. Its photos are from Wikimedia Commons (CC0, or credited in the product's description). It's a real, open shop: an order placed there reaches the founder. The new start page links to it (**Try a demo shop**, with "don't pay the QR" under it), built 2026-11-05, not live yet. Marketing pictures and clips come from a copy of it on the founder's laptop: `backend/marketing/shots.py` makes 22 phone screens and 15 short MP4s in each of Khmer and English (every file in `docs/CODEBASE.md` §3, "Marketing pictures and clips") |
 | Support Telegram | **@longreaksa**, https://t.me/longreaksa (`VITE_SUPPORT_TELEGRAM`, read from the live site's code 2026-10-30). In the app: Settings → Get help |
 | Oak Order's Telegram bot (alerts, logins, customer updates) | **@OakOrder_bot**, https://t.me/OakOrder_bot (`TELEGRAM_BOT_USERNAME`; made by the founder 2026-10-30, replacing the deleted ReaksaShopAlertBot) |
 
 ## 9. Last checked
 
-- **Date:** 2026-10-27.
-- **Code:** commit `11378ac` ("Marketing: keep the screenshot tool out of
-  the API's Docker image") on `main`, with nothing unpushed. Every row
-  marked Live was checked in the code (backend services and schemas, the
-  routes, and the app's English and Khmer texts in
-  `frontend/src/i18n/messages/`).
-- **Live site, same day:** order.oaksolve.com answers (still hosted on
+- **Date:** 2026-11-05.
+- **Code:** The logged-out start page is built in the local `home-page` worktree, not live or pushed. Commit `592943f` reduces 3D startup work. Frontend lint/build and all 25 browser checks pass; mobile Lighthouse is 66 performance, 100 accessibility, CLS 0. The shared 1.1 MB entry bundle keeps it below the planned performance target and is recorded for a separate pass. The existing marketing fact rows remain as last checked on 2026-10-27.
+- **Live site, last checked 2026-10-27:** order.oaksolve.com answers (still hosted on
   Vercel); `/register` loads; `api.oaksolve.com/health` is ok;
   oaksolve.com forwards to order.oaksolve.com; a shop link opened as
   Telegram's preview bot gets its card ("<shop> · Oak Order", a large
@@ -412,16 +416,34 @@ always stays navy.
   username is from the founder (a new bot, the same day). Clip lengths were read from the MP4
   files, made 2026-10-28. File names were checked in `shots.py`; the tool
   wasn't run again.
+- **2026-11-05, commit `4d687c6`** (the same as `origin/main`): every
+  commit since `11378ac` that changes what a seller or customer sees.
+  Changed in this sheet: sign-up in two steps and the login's tabs (3.0);
+  the KHQR pay sheet (3.2, section 4 step 5); the shop's top shows only
+  up to 3 discounts and its cards have no + (section 4 step 2); the cart
+  is "Your cart", its "add more" line shows from halfway, Delivery and
+  Pickup are tiles and the courier comes after the address (step 4). The
+  live site's scripts have these changes ("Your delivery is free",
+  "Download QR", "Telegram (1-Tap)"; no "Delivery and payment"). Prices
+  and the trial are now set in the admin: the live
+  `api.oaksolve.com/api/v1/plan/prices` reads $9.99, $99 and 30 days,
+  never changed. The bot's words can now be changed or a message switched
+  off in the admin; none has been (still Khmer only). Unchanged: every
+  other row, the sign-up and login button names, and the $0 free-time
+  payment (the admin also has Change paid-until date now). Not affecting
+  this sheet: the admin pages, and the look of the chips, cards and
+  page turns.
 - **Check again** after any push that changes a feature, a price or a
   login method: compare 04_STATUS.md's "Last updated" with this date.
 
 ## 10. Video assets
 
 Made by `backend/marketing/shots.py` (`--video` for the clips) from a copy
-of the demo shop "Oak Fashion" (section 8), last on 2026-10-28. They still
-show that shoe shop: the demo shop became the iPhone shop "Oak Phone" on
-2026-11-02, and the next run makes its pictures (then the descriptions
-below need redoing). Paths
+of the demo iPhone shop "Oak Phone" (section 8), last on 2026-11-05 at
+commit `eed2adc`, so with the shop's look of 2026-11-04 (section 4: only
+the discount under the name, no + on the cards, the KHQR pay sheet,
+Delivery and Pickup tiles). The run before (2026-10-28) showed the shoe
+shop Oak Fashion; video 002 was made from it. Paths
 are relative to `backend/marketing/out/`. That folder is git-ignored, so
 the files are on the founder's laptop only. `.work/` is the tool's own
 scratch space, not an asset.
@@ -458,27 +480,27 @@ scratch space, not an asset.
 
 | Files | On screen | Feature (section 3) |
 |---|---|---|
-| `km/01_shop.png`, `en/01_shop.png` | The shop's top: cover, logo, "Oak Fashion", the description, "Delivery $1.50 · free pickup", "Pay by KHQR or cash on delivery", "$2.00 off orders from $30.00", category tabs, the first products | 3.1 shop page, bill discounts; 3.3 delivery fee; 3.2 ways to pay (§4 step 2) |
-| `km/02_products.png`, `en/02_products.png` | The category tabs and the product grid | 3.1 products and categories |
-| `km/03_product.png`, `en/03_product.png` | The product the customer opens: photos, price, sizes | 3.1 products with options |
-| `km/04_option.png`, `en/04_option.png` | The middle size picked | 3.1 options (§4 step 3) |
-| `km/05_checkout.png`, `en/05_checkout.png` | Checkout: name, phone, Delivery, the address, cash on delivery, Place order | 3.3 delivery; 3.2 cash on delivery (§4 step 4) |
-| `km/06_confirmation.png`, `en/06_confirmation.png` | "Thank you": order A placed, pay in cash when it arrives | 3.2 cash on delivery (§4 step 5) |
-| `km/07_dashboard.png`, `en/07_dashboard.png` | The seller's Orders tab, order A on top as new | 3.4 every order in one list |
-| `km/08_order.png`, `en/08_order.png` | Order A opened: Reject / Accept | 3.4 one page per order |
-| `km/09_notifications.png`, `en/09_notifications.png` | The bell's list, order A unread | 3.5 the bell |
-| `km/10_khqr_checkout.png`, `en/10_khqr_checkout.png` | Order B's checkout on the same phone: details remembered, Delivery, KHQR picked | 3.2 KHQR (§4 step 4) |
-| `km/11_khqr.png`, `en/11_khqr.png` | Order B's KHQR: shop name, the exact amount, the QR, Save QR to photos. The QR is the founder's real ABA account, already past its date | 3.2 KHQR for the exact amount |
-| `km/12_khqr_paid.png`, `en/12_khqr_paid.png` | After "I've paid: send receipt": "You told Oak Fashion you paid", the QR folded away | 3.2 "I've paid" |
-| `km/13_tracking.png`, `en/13_tracking.png` | The customer's order B (#1008): "On the way to you", the progress bar with the truck, "A driver is assigned", Paid $16.50, Telegram / Messenger / Call | §4 step 6 (tracking has no row in section 3); 3.1 contact buttons |
-| `km/14_accepted.png`, `en/14_accepted.png` | Order A accepted: Send to driver / Delivered, cash received | 3.3 Send to driver; 3.2 one tap for cash |
-| `km/15_completed.png`, `en/15_completed.png` | Order A after "Delivered, cash received": delivered, paid, complete | 3.2 one tap for cash; 3.3 completes by itself |
-| `km/16_share_link.png`, `en/16_share_link.png` | A product's Share sheet: where it'll be posted (Facebook, TikTok …) | 3.1 share a product to a post |
-| `km/17_chat_order_form.png`, `en/17_chat_order_form.png` | New order from a chat: an earlier customer's phone, their name filled in, the product picked | 3.1 add an order that came by chat |
-| `km/18_chat_order.png`, `en/18_chat_order.png` | That order saved (order C) | 3.1 add an order that came by chat |
-| `km/19_low_stock_alert.png`, `en/19_low_stock_alert.png` | The bell's list: "Running low" (men's slides, Free size: 5 left), "Sreyneang Sok says they paid · $16.50 · Check your bank app", new orders #1008 and #1007 | 3.5 the bell (in the app, not the Telegram alert) |
-| `km/20_low_stock_product.png`, `en/20_low_stock_product.png` | That product, opened from the alert: its option at 5 in stock | 3.1 stock per option; 3.5 low stock |
-| `km/21_parcel_slip.png`, `en/21_parcel_slip.png` | Order C's receipt (⋯ → Receipt): shop, customer, address, items, "COLLECT … CASH" | 3.3 receipt (parcel slip) |
+| `km/01_shop.png`, `en/01_shop.png` | The shop's top: the cover (iPhones on stands) from the very top with the moon, language and cart buttons on it, the logo, "Oak Phone", the description, "$20.00 off orders from $1,000.00", the category chips (All, iPhone មួយទឹក, iPhone ថ្មី …), the first cards (iPhone 18 Pro Max $1,399, iPhone 18 Pro $1,289) | 3.1 shop page, bill discounts (§4 step 2) |
+| `km/02_products.png`, `en/02_products.png` | The category chips and the product grid, each card with its lowest price (iPhone 18 Pro Max, 18 Pro, Duo, 17 Pro Max …) | 3.1 products and categories |
+| `km/03_product.png`, `en/03_product.png` | The product the customer opens: iPhone 18 Pro Max, photos, "$1,399.00 – $1,849.00", its options (storage · colour) | 3.1 products with options |
+| `km/04_option.png`, `en/04_option.png` | 1TB · Burgundy picked: $1,849.00, In stock, the quantity, Ask the seller (Telegram, Messenger, Call), Add to cart / Buy now | 3.1 options (§4 step 3) |
+| `km/05_checkout.png`, `en/05_checkout.png` | Your cart: name and phone typed, "The seller will call 089 765 432. Check it's right.", the Delivery ($1.50) and Pickup (Free) tiles, Pin my location on the map, the address, Place order $1,830.50 | 3.3 delivery; 3.2 cash on delivery (§4 step 4) |
+| `km/06_confirmation.png`, `en/06_confirmation.png` | "Thank you, Sreyneang Sok!": order A (#1007, $1,830.50) placed, "Pay $1,830.50 in cash when it arrives", waiting for the seller | 3.2 cash on delivery (§4 step 5) |
+| `km/07_dashboard.png`, `en/07_dashboard.png` | The seller's Orders tab: order A on top as New, Cash due; earlier demo orders under it | 3.4 every order in one list |
+| `km/08_order.png`, `en/08_order.png` | Order A opened: Reject / Accept; delivery not sent yet; cash due; the item, the $20.00 discount, the total | 3.4 one page per order |
+| `km/09_notifications.png`, `en/09_notifications.png` | The bell's list, new order #1007 unread on top | 3.5 the bell |
+| `km/10_khqr_checkout.png`, `en/10_khqr_checkout.png` | Order B's checkout on the same phone: details remembered, the delivery company (Shop chooses, J&T Express, VET Express), KHQR picked, total $1,470.50 | 3.2 KHQR (§4 step 4) |
+| `km/11_khqr.png`, `en/11_khqr.png` | The pay sheet over the thank-you: the KHQR card (OAK PHONE, 1,470.50 USD, the QR with a $ in its middle), Scan to pay, or Download QR and upload it in your bank app, I've paid: send receipt. The QR is the founder's real ABA account, already past its date | 3.2 KHQR for the exact amount, the pay sheet |
+| `km/12_khqr_paid.png`, `en/12_khqr_paid.png` | After "I've paid: send receipt": "You told Oak Phone you paid (10:41 AM). They'll confirm it here.", Send the receipt again, Show the QR again | 3.2 "I've paid" |
+| `km/13_tracking.png`, `en/13_tracking.png` | The customer's order B (#1008): "On the way to you", the progress bar with the truck, "A driver is assigned", Paid · $1,470.50, Telegram / Messenger / Call | §4 step 6 (tracking has no row in section 3); 3.1 contact buttons |
+| `km/14_accepted.png`, `en/14_accepted.png` | Order A accepted ("Accepted. 1 more new order", Next): Send / Delivered, cash received | 3.3 Send to driver; 3.2 one tap for cash |
+| `km/15_completed.png`, `en/15_completed.png` | Order A after "Delivered, cash received": Completed, Delivered, Paid (marked paid 10:41 AM) | 3.2 one tap for cash; 3.3 completes by itself |
+| `km/16_share_link.png`, `en/16_share_link.png` | Share iPhone 18 Pro Max: where you'll post it (Facebook, TikTok, Instagram, Telegram, Messenger, Other) | 3.1 share a product to a post |
+| `km/17_chat_order_form.png`, `en/17_chat_order_form.png` | New order from a chat: an earlier customer's phone ("Ordered once before"), their name filled in (Sokha Chan), 2 × MagSafe Charger (1m) picked, total $91.50 | 3.1 add an order that came by chat |
+| `km/18_chat_order.png`, `en/18_chat_order.png` | That order saved (order C, #1009): Send / Delivered, cash received, Copy link for the customer, "Added by you from a chat" | 3.1 add an order that came by chat |
+| `km/19_low_stock_alert.png`, `en/19_low_stock_alert.png` | The bell's list: "Running low" (MagSafe Charger (1m): 5 left), "Sreyneang Sok says they paid · $1,470.50 · Check your bank app", new orders #1008 and #1007 | 3.5 the bell (in the app, not the Telegram alert) |
+| `km/20_low_stock_product.png`, `en/20_low_stock_product.png` | That product, opened from the alert: its option 1m at 5 in stock | 3.1 stock per option; 3.5 low stock |
+| `km/21_parcel_slip.png`, `en/21_parcel_slip.png` | Order C's receipt (⋯ → Receipt): Oak Phone, the customer and address, 2 × MagSafe Charger, "COLLECT $91.50 CASH", Save picture / Print | 3.3 receipt (parcel slip) |
 | `km/22_customers.png`, `en/22_customers.png` | The Customers tab: search box, "7 customers", each with phone, orders and total | 3.4 customers |
 
 **Clips** (15 per language)
@@ -486,17 +508,17 @@ scratch space, not an asset.
 | Files | On screen | Length (km · en) | Feature (section 3) |
 |---|---|---|---|
 | `video/km_00_shop_link.mp4`, `video/en_00_shop_link.mp4` | The hook: the shop opens from its link, then a slow scroll down the products. No order yet | 10.3 s · 10.3 s | 3.1 shop page, one link |
-| `video/km_customer.mp4`, `video/en_customer.mp4` | The customer's whole first order, pictures 01–06, tapped as they would | 26.0 s · 25.8 s | 3.1 products and options; 3.3 delivery; 3.2 cash (§4 steps 2–5) |
-| `video/km_01_shop.mp4`, `video/en_01_shop.mp4` | Cut from it: the shop, a scroll, the product opened | 9.4 s · 9.3 s | 3.1 shop page and products |
-| `video/km_03_option.mp4`, `video/en_03_option.mp4` | Cut: the size picked | 5.6 s · 5.5 s | 3.1 options |
-| `video/km_05_checkout.mp4`, `video/en_05_checkout.mp4` | Cut: Buy now, the details typed, Delivery, cash on delivery | 11.6 s · 11.5 s | 3.3 delivery; 3.2 cash (§4 step 4) |
-| `video/km_06_order_placed.mp4`, `video/en_06_order_placed.mp4` | Cut: Place order, "Thank you" | 5.5 s · 5.5 s | 3.2 cash (§4 step 5) |
-| `video/km_order_arrives.mp4`, `video/en_order_arrives.mp4` | The seller's Orders tab as order A arrives (the app checks every 30 s), then the seller opens it | 10.4 s · 10.6 s | 3.4 order list; 3.5 the bell's 30-second check |
-| `video/km_10_khqr.mp4`, `video/en_10_khqr.mp4` | Pictures 10–12: KHQR picked, Place order, the KHQR, "I've paid" | 11.4 s · 11.4 s | 3.2 KHQR and "I've paid" |
-| `video/km_13_tracking.mp4`, `video/en_13_tracking.mp4` | Picture 13: the truck at the shop's top, then order B on its way | 6.4 s · 6.2 s | §4 step 6 (no row in section 3) |
-| `video/km_14_accept_to_complete.mp4`, `video/en_14_accept_to_complete.mp4` | Pictures 14–15: Accept, then "Delivered, cash received": complete | 8.0 s · 8.1 s | 3.4 accept; 3.2 one tap for cash; 3.3 completes by itself |
-| `video/km_16_share.mp4`, `video/en_16_share.mp4` | Picture 16: Products → the product → Share → Facebook, ending on "Link copied" (the phone's own share list can't be filmed here) | 10.6 s · 10.6 s | 3.1 share a product to a post |
-| `video/km_17_chat_order.mp4`, `video/en_17_chat_order.mp4` | Pictures 17–18: the phone typed, name and address filled in, the product searched and picked, Save order | 11.2 s · 11.0 s | 3.1 add an order that came by chat |
-| `video/km_19_low_stock.mp4`, `video/en_19_low_stock.mp4` | Pictures 19–20: the bell, the low-stock alert, the product | 8.1 s · 8.2 s | 3.5 the bell, low stock |
-| `video/km_21_parcel_slip.mp4`, `video/en_21_parcel_slip.mp4` | Picture 21: ⋯ → Receipt, the slip | 6.1 s · 6.1 s | 3.3 receipt (parcel slip) |
-| `video/km_22_customers.mp4`, `video/en_22_customers.mp4` | Picture 22: the Customers tab, then one customer's page | 7.8 s · 7.8 s | 3.4 customers |
+| `video/km_customer.mp4`, `video/en_customer.mp4` | The customer's whole first order, pictures 01–06, tapped as they would | 23.3 s · 23.1 s | 3.1 products and options; 3.3 delivery; 3.2 cash (§4 steps 2–5) |
+| `video/km_01_shop.mp4`, `video/en_01_shop.mp4` | Cut from it: the shop, a scroll, the product opened | 8.9 s · 8.9 s | 3.1 shop page and products |
+| `video/km_03_option.mp4`, `video/en_03_option.mp4` | Cut: the option picked | 5.2 s · 5.1 s | 3.1 options |
+| `video/km_05_checkout.mp4`, `video/en_05_checkout.mp4` | Cut: Buy now, the details typed, the Delivery tile, cash on delivery | 10.6 s · 10.4 s | 3.3 delivery; 3.2 cash (§4 step 4) |
+| `video/km_06_order_placed.mp4`, `video/en_06_order_placed.mp4` | Cut: Place order, "Thank you" | 4.7 s · 4.7 s | 3.2 cash (§4 step 5) |
+| `video/km_order_arrives.mp4`, `video/en_order_arrives.mp4` | The seller's Orders tab as order A arrives (the app checks every 30 s), then the seller opens it | 9.8 s · 9.9 s | 3.4 order list; 3.5 the bell's 30-second check |
+| `video/km_10_khqr.mp4`, `video/en_10_khqr.mp4` | Pictures 10–12: KHQR picked, Place order, the pay sheet sliding up, "I've paid" | 9.6 s · 9.6 s | 3.2 KHQR and "I've paid" |
+| `video/km_13_tracking.mp4`, `video/en_13_tracking.mp4` | Picture 13: the truck at the shop's top, then order B on its way | 5.2 s · 5.1 s | §4 step 6 (no row in section 3) |
+| `video/km_14_accept_to_complete.mp4`, `video/en_14_accept_to_complete.mp4` | Pictures 14–15: Accept, then "Delivered, cash received": complete | 7.0 s · 7.0 s | 3.4 accept; 3.2 one tap for cash; 3.3 completes by itself |
+| `video/km_16_share.mp4`, `video/en_16_share.mp4` | Picture 16: Products → the product → Share → Facebook, ending on "Link copied" (the phone's own share list can't be filmed here) | 8.8 s · 8.8 s | 3.1 share a product to a post |
+| `video/km_17_chat_order.mp4`, `video/en_17_chat_order.mp4` | Pictures 17–18: the phone typed, name and address filled in, the product searched and picked, Save order | 10.0 s · 10.0 s | 3.1 add an order that came by chat |
+| `video/km_19_low_stock.mp4`, `video/en_19_low_stock.mp4` | Pictures 19–20: the bell, the low-stock alert, the product | 6.9 s · 6.8 s | 3.5 the bell, low stock |
+| `video/km_21_parcel_slip.mp4`, `video/en_21_parcel_slip.mp4` | Picture 21: ⋯ → Receipt, the slip | 5.6 s · 5.6 s | 3.3 receipt (parcel slip) |
+| `video/km_22_customers.mp4`, `video/en_22_customers.mp4` | Picture 22: the Customers tab, then one customer's page | 6.9 s · 7.0 s | 3.4 customers |

@@ -98,8 +98,8 @@ Founder-side checks on the live site are in `04_STATUS.md`.
 | 8 | Link stats | DONE | `GET /seller/links/{id}/stats`, `LinkDetail.tsx` |
 | 8 | Open Graph link previews | DONE | `frontend/middleware.ts` (Vercel Routing Middleware, bots only) |
 
-The Phase 0 "API: ok" check is gone from the frontend. The landing page
-(`src/pages/Home.tsx`) is now a sign-up page. `GET /health` is still used by
+The Phase 0 "API: ok" check is gone from the frontend. The start page
+(`src/pages/home/`) is a landing page for new sellers (2026-11-05). `GET /health` is still used by
 Render's health check.
 
 ### Phase 9 (current)
@@ -208,7 +208,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
         ├── auth/              AuthContext.tsx (provider), useAuth.ts (context + hook), PhoneCheck.tsx (verify a phone with the bot)
         ├── lib/               api.ts (fetch client), types.ts (API types), pricing, money, images, errors, ...
         ├── components/        ui.tsx (UI kit), styles.ts, FeedbackProvider (toasts/confirm), effects, RootLayout, KhqrCard
-        ├── pages/             Home (landing), Login, Register, FinishSignup, OAuthCallback, ForgotPassword, ResetPassword, Legal (+ legal/content.ts), LoginField, AgreeLine, AuthLayout
+        ├── pages/             home/ (the start page: Home, TopBar, Hero, HowItWorks, Features, Pricing, Questions, Bottom, PhoneStill, screens.ts, home.css), Login, Register, FinishSignup, OAuthCallback, ForgotPassword, ResetPassword, Legal (+ legal/content.ts), LoginField, AgreeLine, AuthLayout
         ├── dashboard/         Seller app: Layout, queries.ts, orders/, customers/, products/, links/, settings/, Categories, Notifications
         ├── shop/              Customer shop: ShopLayout, pages, queries.ts, cart.ts, device.ts, MapPicker, MapPreview, lookUpAddress, PaymentCard, PayNowSheet, khqrPicture, ...
         ├── i18n/              core.ts, useT.ts, LanguageProvider, LanguageSwitch, messages/*.ts ({en, km} pairs)
@@ -300,7 +300,7 @@ cd frontend && npm install
 | Founder's commands | `python -m app.admin <command> <login>` (a phone number typed any way, or an older account's email; `auth.login_filter`), commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend), `test-shop [--name]` (a shop with an email login and no phone, for the load test: sign-up needs a phone checked in Telegram, one shop per number), `forget-customer <shop link name> <phone>` (`services/customer.forget`, shared with the admin's Remove since 2026-10-30; a customer's name becomes "(removed)"; phone, addresses, map pins and notes go from that shop's customer, orders and alert payloads; the orders' items and money stay; the Data deletion page promises it), and `admin-password <phone>` (a new password for an admin account, every browser on it logged out), and `move-photos <old> <new>` (rewrites the R2 address saved in `product.image_urls`, `store.logo_url` and `store.cover_url`, for `images.oaksolve.com`); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
 | Bot on a laptop | `python -m app.telegram_poll` (backend, beside uvicorn): answers your **test** bot by polling, since Telegram's webhook can't reach localhost. Needs the three `TELEGRAM_*` values in `.env` and `PUBLIC_API_URL` empty; refuses a bot that has a webhook (the live one) |
 | Performance audit tools | `backend/loadtest/seed_perf.py` (a local `social_commerce_perf` database with a 500-product shop; refuses anything but a local `*_perf` database) and `measure.py` (every endpoint's time, SQL statements and Postgres round trips), run from `backend/` with its venv; `backend/loadtest/README.md`, results in `docs/PERF_AUDIT.md` |
-| Marketing pictures and clips | `.venv/bin/python marketing/shots.py [--video] [--lang km en]` (backend, Postgres running; once: `.venv/bin/pip install -r marketing/requirements.txt && .venv/bin/playwright install --with-deps chromium`). Copies the founder's live demo shop through its public storefront (`DEMO_SHOP_SLUG`; GET requests only, no login) and seeds it, with six earlier orders, into a local `social_commerce_demo` (`marketing/demo_shop.py`; refuses anything but a local `*_demo` database), builds the frontend against its own API (ports 8011 API, 4180 site, 8091 photos; Telegram, R2, Sentry and sign-in providers blanked whatever `.env` says), and drives headless Chromium at 390 × 844 @3x through every step in "Marketing pictures and clips" below, in Khmer and English, into `backend/marketing/out/` (git-ignored). Each picture is checked: no console errors or failed requests, nothing fetched from outside this machine, no debug words, nothing loading (photos, placeholders, toasts, the order progress bar), Khmer drawn in Noto Sans Khmer. The browser clock is frozen and the new orders' API times, and the two times inside their KHQR, are pinned (`demo_shop.NOW`, `ORDER_TIME`), so reruns give the same PNGs (and the KHQR in them is past its date). The bell shows no number for a new order (UX check #20): the New tab counts it, the notifications page shows it unread |
+| Marketing pictures and clips | `.venv/bin/python marketing/shots.py [--video] [--lang km en]` (backend, Postgres running; on the founder's Windows laptop `.venv\Scripts\python.exe`, which works since 2026-11-05: Vite runs as `node node_modules/vite/bin/vite.js`; once: `.venv/bin/pip install -r marketing/requirements.txt && .venv/bin/playwright install --with-deps chromium`). Copies the founder's live demo shop through its public storefront (`DEMO_SHOP_SLUG`; GET requests only, no login) and seeds it, with six earlier orders, into a local `social_commerce_demo` (`marketing/demo_shop.py`; refuses anything but a local `*_demo` database), builds the frontend against its own API (ports 8011 API, 4180 site, 8091 photos; Telegram, R2, Sentry and sign-in providers blanked whatever `.env` says), and drives headless Chromium at 390 × 844 @3x through every step in "Marketing pictures and clips" below, in Khmer and English, into `backend/marketing/out/` (git-ignored). Each picture is checked: no console errors or failed requests, nothing fetched from outside this machine, no debug words, nothing loading (photos, placeholders, toasts, the order progress bar), Khmer drawn in Noto Sans Khmer. The browser clock is frozen and the new orders' API times, and the two times inside their KHQR, are pinned (`demo_shop.NOW`, `ORDER_TIME`), so reruns give the same PNGs (and the KHQR in them is past its date). The bell shows no number for a new order (UX check #20): the New tab counts it, the notifications page shows it unread |
 | Marketing videos (HyperFrames) | The `oak-video-edit` skill (`.claude/skills/oak-video-edit/`), run natively on the founder's Windows laptop, not the dev container. `scripts/voice.mjs` makes the four Khmer voice MP3s with Gemini (speaker and style lines read from `docs/02_video_playbook.md`), and `scripts/tighten.mjs` shortens a take's long pauses (and, asked, its sighs) without cutting words. The edit is HyperFrames (HeyGen's open-source HTML-to-MP4 renderer, the Claude Code plugin `hyperframes@hyperframes`): `hyperframes/timing.mjs` measures the voice into `timing.json`, `hyperframes/make.mjs` runs the video's `film.mjs` (copied from `hyperframes/films/`, built from `hyperframes/kit.mjs`: the iPhone with the shots.py screens, the cursor, titles, sound cues, the root with music and voice) into a HyperFrames project `hf/` in the video's folder and copies its assets, and `hyperframes/hf.mjs` runs the plugin's CLI there (check, snapshot, preview, render); `hyperframes/master.mjs` brings the rendered MP4's sound to -15 LUFS. The older CapCut path stays: `scripts/build.mjs` copies the CapCut draft `oak-template` and lays out a shot list's SHOT lines through the founder's capcut-mcp fork (`~/mcp/capcut-mcp`, branch `oak`), CapCut closed while a draft is written |
 | Frontend dev server | `npm run dev`: http://localhost:5173 |
 | Frontend lint | `npm run lint` (oxlint) |
@@ -360,8 +360,8 @@ takes about 9 minutes with `--video`, 3 without.
 
 The shop is the live demo shop as it is on the day of the run. The customer
 buys its newest product with options in the middle option, then the next
-one (now the iPhone 18 Pro Max, 256GB · Burgundy, then the iPhone 18 Pro,
-256GB · Glacier); the chat order takes the product or option with 6 to 8
+one (now the iPhone 18 Pro Max, 1TB · Burgundy, then the iPhone 18 Pro,
+512GB · Glacier); the chat order takes the product or option with 6 to 8
 in stock (now the MagSafe Charger, 1m: 7) down to the low-stock level, 5. Skipped,
 with a note at the start and the end of the run: 10–12 without
 `DEMO_BAKONG_ID` (and `DEMO_KHQR_ACCOUNT` with ABA's shared ID; the second
@@ -370,11 +370,11 @@ stock.
 
 | File | What it shows | Length |
 |---|---|---|
-| `01_shop.png` | The shop's top: cover, logo, name, description, the delivery fee, ways to pay, the bill discount | still |
-| `02_products` | The category tabs and the product grid | still |
-| `03_product` | The product the customer opens: photos, price, sizes | still |
-| `04_option` | The middle size picked | still |
-| `05_checkout` | Checkout: name, phone, Delivery, the address, cash on delivery, Place order | still |
+| `01_shop.png` | The shop's top: the cover from the very top, logo, name, description, the bill discount, the category chips | still |
+| `02_products` | The category chips and the product grid | still |
+| `03_product` | The product the customer opens: photos, price, options | still |
+| `04_option` | The middle option picked | still |
+| `05_checkout` | Your cart: name, phone, the Delivery tile, the address, cash on delivery, Place order | still |
 | `06_confirmation` | "Thank you": order A placed, cash on delivery | still |
 | `07_dashboard` | The Orders tab with order A on top, new | still |
 | `08_order` | Order A opened: Reject / Accept | still |
@@ -392,21 +392,32 @@ stock.
 | `20_low_stock_product` | That product, opened from the alert: its option at 5 in stock | still |
 | `21_parcel_slip` | Order C's parcel slip (⋯ → Receipt): "COLLECT … CASH" | still |
 | `22_customers` | The Customers tab: seven customers | still |
-| `video/<lang>_00_shop_link.mp4` | The hook: the shop as a link opens it, then a slow scroll down the products (no order on the phone yet) | 10 s |
-| `<lang>_customer.mp4` | The customer's whole first order, 01 to 06, as they'd tap it | 26 s |
-| `<lang>_01_shop.mp4` | Cut from it: the shop, a scroll, the product opened | 9.5 s |
-| `<lang>_03_option` | Cut: the size picked | 5.5 s |
-| `<lang>_05_checkout` | Cut: Buy now, the details typed, Delivery, cash on delivery | 12 s |
-| `<lang>_06_order_placed` | Cut: Place order, "Thank you" | 5.5 s |
-| `<lang>_order_arrives` | The Orders tab as order A arrives (it checks every 30 s) and the seller opens it | 10.5 s |
-| `<lang>_10_khqr` | 10–12: from the payment choices (Delivery picked off camera): KHQR, Place order, the pay popup sliding up, "I've paid" | 11.5 s |
-| `<lang>_13_tracking` | 13: the truck at the shop's top, then order B on its way | 6 s |
-| `<lang>_14_accept_to_complete` | 14–15: Accept, then "Delivered, cash received": completed | 8 s |
-| `<lang>_16_share` | 16: Products → the product → Share → Facebook ("Link copied": the headless browser has no share list to film) | 11 s |
-| `<lang>_17_chat_order` | 17–18: the phone typed, name and address filled in, the product searched and picked, Save order | 11.5 s |
-| `<lang>_19_low_stock` | 19–20: the bell, the alert, the product | 8–9 s |
-| `<lang>_21_parcel_slip` | 21: ⋯ → Receipt, the slip | 6 s |
-| `<lang>_22_customers` | 22: the Customers tab, then a customer's page | 8 s |
+| `video/<lang>_00_shop_link.mp4` | The hook: the shop as a link opens it, then a slow scroll down the products (no order on the phone yet) | 10.3 s |
+| `<lang>_customer.mp4` | The customer's whole first order, 01 to 06, as they'd tap it | 23.1–23.3 s |
+| `<lang>_01_shop.mp4` | Cut from it: the shop, a scroll, the product opened | 8.9 s |
+| `<lang>_03_option` | Cut: the option picked | 5.1–5.2 s |
+| `<lang>_05_checkout` | Cut: Buy now, the details typed, Delivery, cash on delivery | 10.4–10.6 s |
+| `<lang>_06_order_placed` | Cut: Place order, "Thank you" | 4.7 s |
+| `<lang>_order_arrives` | The Orders tab as order A arrives (it checks every 30 s) and the seller opens it | 9.8–9.9 s |
+| `<lang>_10_khqr` | 10–12: from the payment choices (Delivery picked off camera): KHQR, Place order, the pay popup sliding up, "I've paid" | 9.6 s |
+| `<lang>_13_tracking` | 13: the truck at the shop's top, then order B on its way | 5.1–5.2 s |
+| `<lang>_14_accept_to_complete` | 14–15: Accept, then "Delivered, cash received": completed | 7 s |
+| `<lang>_16_share` | 16: Products → the product → Share → Facebook ("Link copied": the headless browser has no share list to film) | 8.8 s |
+| `<lang>_17_chat_order` | 17–18: the phone typed, name and address filled in, the product searched and picked, Save order | 10 s |
+| `<lang>_19_low_stock` | 19–20: the bell, the alert, the product | 6.8–6.9 s |
+| `<lang>_21_parcel_slip` | 21: ⋯ → Receipt, the slip | 5.6 s |
+| `<lang>_22_customers` | 22: the Customers tab, then a customer's page | 6.9–7 s |
+
+**The start page's phone screens.** `backend/marketing/home_images.py
+[--source DIR]` (Pillow) turns 5 of these stills per language (`01_shop`,
+`16_share_link`, `05_checkout`, `11_khqr`, `07_dashboard`) into
+`frontend/public/home/<lang>/{shop,share,checkout,khqr,orders}.webp`, 780 ×
+1688 at quality 82 (38–79 KB each), and writes the film grain the page lays
+over everything, `frontend/public/home/grain.webp` (128 px, the same file
+every run). Those 11 files are committed. It exits 1 if a still is missing
+or a screen is over 150 KB. Run it after `shots.py` whenever one of those
+screens changes; `--source` points at another checkout's `out/` (a
+worktree has none).
 
 ---
 
@@ -1148,7 +1159,7 @@ from the schema.
 | GET | `/seller/stats` | **owner** | `?period=today\|week\|month` | `StatsOut` | **Not shown in the app yet**: kept for the seller dashboard (founder, 2026-10-09: the numbers and chart wait for it; picks 8B, 9B; `services/stats.py`): orders placed in the period except rejected / cancelled, their totals and their pending payments per currency, Phnom Penh days; `days` = sales per day in the shop's currency, the last 7 days for today and the week, this month's days so far for the month. 403 `OWNER_ONLY` for staff |
 | GET | `/seller/plan` | seller (staff too) | — | `PlanOut` | The shop's plan with Oak Order (01 §33.1): `stage` (`setup`/`active`/`ending_soon`/`overdue`/`stopped`), `on_trial` (no payment yet), `paid_until`, `pay_by` (paid_until + 7: the last day before new orders stop), `days_left` (today included, 0 once run out) (these three null in setup), `trial_until` (in setup: the trial's last day if opened today), `trial_days` (the trial's length set in the admin, 2026-10-30), `prices` (`month` "9.99", `year` "99.00" until the admin sets others, USD), `code` (the shop's code), `pay_to` (`khqr_month`, `khqr_year`, `khqr_name`, `bank`; all empty without `OAK_*`), `claim` (an "I've paid" waiting for the founder), `payments` newest first: paid ones and ones not found |
 | POST | `/seller/plan/open` | owner | — | `PlanOut` | Open the shop: the 30-day free trial starts today and it takes orders (the dashboard asks first). Again once open: nothing changes |
-| GET | `/plan/prices` | none (60/min) | — | `PlanPricesPublicOut` (`month`, `year`, `trial_days`, `changed_on`) | Oak Order's prices and trial today, for the Terms' Fees (D2B, 2026-10-30) |
+| GET | `/plan/prices` | none (60/min) | — | `PlanPricesPublicOut` (`month`, `year`, `trial_days`, `changed_on`) | Oak Order's prices and trial today, for the Terms' Fees (D2B, 2026-10-30) and the start page's price |
 | POST | `/seller/plan/paid` | owner | `PaidClaimIn` (`period`) | `PlanOut` | "I've paid": a pending payment and a Telegram alert to the founder (after the response); while one waits, nothing new. 10/min; 403 `NOT_AS_ADMIN` when the admin opened the shop |
 | POST | `/admin/auth/login` | none | `AdminLoginIn` (`phone`, `password`) | `AdminStepOut` (`step_token`, 5 min) | The admin's login, step 1 (01 §22.11); 401 `INVALID_CREDENTIALS` for a wrong password, an unknown number or one not in `ADMIN_PHONES`; 10/min |
 | POST | `/admin/auth/confirm` | step token | `AdminConfirmIn` (`step_token`, `phone_check`) | `AccessOut` + `admin_refresh` cookie | Step 2: a finished phone check (`POST /auth/phone-checks`) of the account's own number; another number → 403 `ADMIN_PHONE_MISMATCH` (the check isn't used up); a stale step → 401 `TOKEN_EXPIRED`; 10/min |
@@ -1284,19 +1295,20 @@ router via `createBrowserRouter`), TanStack Query 5, Tailwind CSS 4 (via
 `@tailwindcss/vite`; there is no `tailwind.config`, the theme lives in
 `src/index.css`), Vite 8, TypeScript 6, oxlint. Other libraries:
 lucide-react (icons), leaflet (checkout map, lazy-loaded), uqr (draws
-KHQR), @sentry/react, @vercel/functions (middleware),
+KHQR), three (the start page's 3D phone only, its own chunk loaded by
+`import()` from `pages/home/Phone3D.tsx`, about 146 kB gzipped), @sentry/react, @vercel/functions (middleware),
 @fontsource-variable/noto-sans-khmer and inter. No automated frontend tests.
 
 ### Routes (`src/router.tsx`)
 
 | Path | Component | Notes |
 |---|---|---|
-| `/` | `pages/Home` | Landing: Register / Log in |
+| `/` | `pages/home/Home` | The start page for logged-out visitors (logged in: `/dashboard`). What Oak Order does, Create your shop and Try a demo shop (`DEMO_SHOP`, `/shop/zdpb5d`), How it works with the app's real screens on a phone (`PhoneStill`: a CSS phone around `public/home/<lang>/<screen>.webp`, made by `backend/marketing/home_images.py`; a new screen fades in once loaded), six features, the price card and five questions with prices and trial days from `GET /plan/prices` (`usePlanPrices`), help on Telegram, the legal links. Night navy in light and dark mode alike, with a champagne accent used nowhere else (`@theme` tokens `night`, `night-2`, `night-glow`, `champagne`; dark mode turns the navy scale light, so the page doesn't use it). Texts in `messages/home.ts`, the headline is `auth.home.title`. The cinematic layer: an opening (`useIntro`: `main[data-intro]` is `playing` once per tab, 1.6 s of CSS on what's already there, so every link works from the first frame; a tap, key or scroll ends it), `Atmosphere` (drifting soft lights behind, grain and a vignette over, none catching taps), the first screen dimming as it scrolls away (`--leave`), titles wiping up and cards fading in (`useReveal`). How it works is a pinned stage (`HowItWorks`: `count × 80svh`, the step from scroll progress, `data-step-active`). The phone on the first screen and in How it works is `Phone3D`: always `PhoneStill`, and where `canUse3D()` (`can3d.ts`: not with reduce motion, save-data, under 4 GB or 4 cores, or without WebGL) a three.js phone over it (`phoneScene.ts`: built in code, a titanium body, the screenshot as its screen fading between screens, a band of light, a soft shadow, a shot per step that the camera eases to; no model or lighting file). It loads after the opening and once near the screen, fades in on its first frame, draws only while on screen, and removes itself (the picture comes back) if its first 60 frames average over 40 ms or the GPU is lost. `canvas[data-phone3d]` carries `data-shot` and `data-screen`. `index.html` adds `home-night` on `/` so it's navy from the first paint; `Home` takes it off and puts back the browser bar's colour when left. Reduce motion: no opening, drift, wipes or dimming. Spec: `docs/superpowers/specs/2026-11-04-home-page-design.md`; checks: `backend/marketing/home_check.py` |
 | `/login`, `/register` | `pages/Login`, `pages/Register` | Register asks only the phone check, shop name and password (the seller's name is their Telegram name; the link is a code the API makes). Under each form, "or sign up with" / "or log in with" and a row of Google and Facebook logos (`auth/SocialButtons.tsx` with its `label`: Google's square icon button, `ProviderButton` `iconOnly`; each only when its `VITE_` ID is set); Login has "Forgot password?". Log in starts with "Log in with Telegram" (`auth/TelegramLogIn.tsx` on `auth/usePhoneCheck.ts`, the check Register's `PhoneCheck` also uses; founder's test list #30, 2026-10-24): open the bot, share the number, come back logged in (`POST /auth/telegram`); a number with no shop shows Create your shop, a staff number says to use the password; hidden where the bot isn't set up (503). Then "or with your password" and the phone + password form, its Log in outlined |
 | `/register/finish` | `pages/FinishSignup` | Someone new from Google or Facebook: shop name, phone checked in Telegram (the name is the provider's) → `POST /auth/social/register`. The signup comes in the navigation state or `sessionStorage` `sc.signup` (`lib/signup.ts`); without one, back to `/register` |
 | `/auth/facebook/callback` | `pages/OAuthCallback` (`provider="facebook"`) | Back from Facebook with `code` and `state` (the only callback routed: `/auth/tiktok/callback` went 2026-10-27 and falls to `*`). Only the sign-in this tab started (`sessionStorage` `sc.oauth`, 15 min, `lib/oauth.ts`) is finished: log in (`POST /auth/oauth/facebook`, then like Google, `auth/useSocialResult.ts`) or connect (waits for the session, `POST /seller/account/oauth/facebook`, back to Your account). Cancelled, refused or someone else's → "Couldn't log you in" with a link back |
 | `/shops` | `pages/YourShops` (lazy) | "Your shops" (2026-10-20): what OPEN in Telegram's chat list opens (the bot's main mini app, set in BotFather). Inside Telegram by `initData`, in a browser by the Telegram login; with one shop it goes straight in; a shop opened from the list gets Telegram's back arrow to it on its home (`markFromYourShops`) |
-| `/privacy`, `/terms`, `/data-deletion` | `pages/Legal` | Public, no login; English or Khmer with the language switch. The text is in `pages/legal/content.ts` (what's kept, the hosts, cookies, how long, deletion: keep it true to the code), the date in `UPDATED`; Contact links `VITE_SUPPORT_TELEGRAM` (else "Settings → Get help"). The Terms' Fees state the plan (01 §33.1: the trial, $9.99 / $99, paying by hand with the shop's code and "I've paid" on Settings → Plan, the 7 days, no new orders after, nothing deleted), with `{trial}`, `{month}` and `{year}` filled in from `GET /plan/prices` (the admin's Settings, D2B, 2026-10-30; today's defaults while it loads); the Terms' date is the later of `UPDATED` and the day the prices or trial last changed. Linked from the start page (`LegalLinks`) and under "Create shop" (`pages/AgreeLine.tsx`). Meta asks for these URLs (2026-10-09) |
+| `/privacy`, `/terms`, `/data-deletion` | `pages/Legal` | Public, no login; English or Khmer with the language switch. The text is in `pages/legal/content.ts` (what's kept, the hosts, cookies, how long, deletion: keep it true to the code), the date in `UPDATED`; Contact links `VITE_SUPPORT_TELEGRAM` (else "Settings → Get help"). The Terms' Fees state the plan (01 §33.1: the trial, $9.99 / $99, paying by hand with the shop's code and "I've paid" on Settings → Plan, the 7 days, no new orders after, nothing deleted), with `{trial}`, `{month}` and `{year}` filled in from `GET /plan/prices` through `usePlanPrices` (`lib/planPrices.ts`, shared with the start page; the admin's Settings, D2B, 2026-10-30; today's defaults while it loads); the Terms' date is the later of `UPDATED` and the day the prices or trial last changed. Linked from the start page (`LegalLinks`) and under "Create shop" (`pages/AgreeLine.tsx`). Meta asks for these URLs (2026-10-09) |
 | `/forgot-password`, `/reset-password#<token>` | `pages/ForgotPassword`, `pages/ResetPassword` | The link goes to the shop's Telegram; without Telegram, "Message Oak Order" (if `VITE_SUPPORT_TELEGRAM`). Saving logs in (`startSession` in `AuthContext`) |
 | `/dashboard` | `dashboard/Layout` (`DashboardLayout`) | **Auth guard**: spinner while loading, retry card if unreachable, `Navigate` to `/login` if anonymous; index redirects to `orders` |
 | `/dashboard/settings/setup` | `settings/SetupPage.tsx`, `settings/setup.ts` | A new shop's checklist (founder's pick 7C), owners only: add a product, delivery fee (`delivery_set_up`), ways to pay (`payment_set_up`), Telegram alerts (when the bot exists), contact buttons, logo, Open your shop (to Settings → Plan; done once the plan isn't `setup`); each opens its page. "Set up your shop · 2 of 7 done" tops the Settings menu until all are done or "Hide this list" (per device, `sc.setup.hidden.<store id>`); an amber dot on the Settings tab (and sidebar) until the first three and opening are done. While those aren't done (and the list isn't hidden), the same list tops Orders as "Get your shop ready" (`SetupCard`, `useSetupOnOrders`; UX check #3, 2026-10-17), the next step with its button in its row (Open shop asks first), in place of the delivery reminder |
@@ -1465,7 +1477,7 @@ window), `sc.chatOrder.<store id>` (the delivery and payment picked on the
 last chat order, picked again on the next), `sc.register` and
 `sc.register.social` (the shop name typed on Create your shop / Set up your
 shop and the phone check they opened in Telegram, never the password; 30
-minutes; `lib/signup.ts` `useSavedDraft` / `useKeepDraft`). `sessionStorage`: "confetti already shown" per order. Every access
+minutes; `lib/signup.ts` `useSavedDraft` / `useKeepDraft`). `sessionStorage`: "confetti already shown" per order; `sc.home.intro`, the start page's opening already played in this tab (`pages/home/useIntro.ts`). Every access
 is wrapped in try/catch (private mode).
 
 ### Shared components and helpers
@@ -1916,8 +1928,7 @@ async def test_store_only_sees_its_own_rows(two_stores):
 - **§13 rate limiting** names login and storefront; the code also limits
   register (5/min) and refresh (30/min). Logout is unlimited.
 - **Brand:** 01 §1.1 names the product Oak Order (renamed from Sroul Order
-  2026-10-08). The start page (`pages/Home.tsx`, "Oak Order" in big
-  letters), `BrandMark` in `pages/AuthLayout.tsx` (`OakOrderName` from
+  2026-10-08). The start page's top bar (`pages/home/TopBar.tsx`), `BrandMark` in `pages/AuthLayout.tsx` (`OakOrderName` from
   `components/OakMark.tsx`: the name with the acorn's cap pressed onto
   the O, drawn from Kantumruy Pro Bold's own O; founder's picks
   2026-10-15, replacing the stand-in hexagon leaf), `public/favicon.svg`
@@ -2046,6 +2057,7 @@ this document.
 | 25 | `frontend/src/lib/pricing.ts` | Frontend copy of the pricing rules (in cents) |
 
 Next in line: `frontend/src/components/ui.tsx` (UI kit),
+`frontend/src/pages/home/Home.tsx` (the start page) and `phoneScene.ts` (its 3D phone),
 `frontend/src/index.css` (theme tokens, dark mode),
 `frontend/src/i18n/core.ts` (translations), `backend/app/services/notifications.py`,
 `telegram.py` (alerts) and `bot_texts.py` (every word the bot sends), `backend/app/schemas/store.py` / `payment.py` /
