@@ -1,12 +1,14 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminApi } from '../lib/api.ts'
 import type {
+  AdminAnalytics,
   AdminBotDraft,
   AdminBotPreview,
   AdminBotProfile,
   AdminBotWords,
   AdminCustomer,
   AdminLogLine,
+  AdminNotices,
   AdminOrder,
   AdminOverview,
   AdminPayments,
@@ -37,6 +39,8 @@ export const adminKeys = {
   system: ['admin', 'system'] as const,
   bot: ['admin', 'bot'] as const,
   botProfile: ['admin', 'bot', 'profile'] as const,
+  notices: ['admin', 'notices'] as const,
+  analytics: (months: number) => ['admin', 'analytics', months] as const,
 }
 
 /** Who is logged in to the admin. */
@@ -412,5 +416,34 @@ export function useSaveBotProfile() {
       queryClient.setQueryData(adminKeys.botProfile, profile)
       queryClient.invalidateQueries({ queryKey: adminKeys.log })
     },
+  })
+}
+
+/** The bell: what needs the admin now. Checked every minute while the
+ * admin is open in a visible tab. */
+export function useAdminNotices() {
+  return useQuery({
+    queryKey: adminKeys.notices,
+    queryFn: () => adminApi<AdminNotices>('/admin/notices'),
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  })
+}
+
+/** Mark notices read (`keys` null: every one now). Changes nothing else. */
+export function useReadNotices() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (keys: string[] | null) =>
+      adminApi<AdminNotices>('/admin/notices/read', { method: 'POST', body: keys === null ? { all: true } : { keys } }),
+    onSuccess: (answer) => queryClient.setQueryData(adminKeys.notices, answer),
+  })
+}
+
+/** Analytics over the last `months` months. */
+export function useAdminAnalytics(months: number) {
+  return useQuery({
+    queryKey: adminKeys.analytics(months),
+    queryFn: () => adminApi<AdminAnalytics>(`/admin/analytics?months=${months}`),
   })
 }

@@ -13,6 +13,7 @@ from app.core.ratelimit import limiter
 from app.models import LoginProvider
 from app.schemas.admin import (
     AdminActingOut,
+    AdminAnalyticsOut,
     AdminBotDraftIn,
     AdminBotPreviewOut,
     AdminBotProfileIn,
@@ -31,6 +32,8 @@ from app.schemas.admin import (
     AdminJobRunOut,
     AdminLogOut,
     AdminNewPasswordOut,
+    AdminNoticesOut,
+    AdminNoticesReadIn,
     AdminOpenIn,
     AdminOrderOut,
     AdminPhoneIn,
@@ -57,10 +60,12 @@ from app.schemas.plan import (
 )
 from app.services import admin as admin_service
 from app.services import (
+    admin_analytics,
     admin_bot,
     admin_find,
     admin_log,
     admin_money,
+    admin_notices,
     admin_people,
     admin_settings,
     admin_system,
@@ -78,6 +83,28 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 async def overview(_: Admin, db: UnscopedDb) -> AdminOverviewOut:
     """Home: the numbers across every shop, then what needs the admin."""
     return await admin_service.overview(db)
+
+
+@router.get("/analytics", response_model=AdminAnalyticsOut)
+async def analytics(
+    _: Admin, db: UnscopedDb, months: Annotated[int, Query(ge=1, le=36)] = 12
+) -> AdminAnalyticsOut:
+    """Growth month by month from what's recorded (test shops left out)."""
+    return await admin_analytics.analytics(db, months)
+
+
+@router.get("/notices", response_model=AdminNoticesOut)
+async def notices(admin: Admin, db: UnscopedDb) -> AdminNoticesOut:
+    """The bell: what needs the admin now, made from the records, with
+    which this admin has read."""
+    return await admin_notices.notices(db, admin.admin_id)
+
+
+@router.post("/notices/read", response_model=AdminNoticesOut)
+async def notices_read(data: AdminNoticesReadIn, admin: Admin, db: UnscopedDb) -> AdminNoticesOut:
+    """Mark notices read (`all`: every one now); changes nothing else."""
+    keys = None if data.all else data.keys
+    return await admin_notices.mark_read(db, admin.admin_id, keys)
 
 
 @router.get("/shops", response_model=list[AdminShopOut])

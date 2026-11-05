@@ -1,29 +1,50 @@
-import { Activity, Bot, Home, Inbox, LogOut, Menu, Package, ScrollText, SlidersHorizontal, Store, Users, Wallet, Wrench, type LucideIcon } from 'lucide-react'
+import {
+  Activity,
+  Bot,
+  ChartColumn,
+  ContactRound,
+  Home,
+  Inbox,
+  LogOut,
+  Menu,
+  Package,
+  ScrollText,
+  SlidersHorizontal,
+  Store,
+  Users,
+  Wallet,
+  Wrench,
+  type LucideIcon,
+} from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, NavLink, useLocation } from 'react-router'
 import { OakMark } from '../components/OakMark.tsx'
 import { ErrorState, PageOutlet, Spinner } from '../components/ui.tsx'
 import { formatPhone } from '../lib/orders.ts'
+import { NoticeBell } from './Notices.tsx'
 import { useAdminMe } from './queries.ts'
 import { SearchBox } from './Search.tsx'
 import { useAdminSession } from './useAdminSession.ts'
 
 // The admin panel's places (founder's pick 1A, 2026-10-28): the menu on the
 // left on a laptop, where the admin is mostly used; the first four in a
-// bottom bar on a phone, the rest under More. More places join as they're
-// built (04_STATUS.md, "Admin panel").
+// bottom bar on a phone, the rest under More. The order follows the
+// admin brief of 2026-11-06: running the shops first, then the bot and
+// the system. Search and the bell are in the header, not the menu.
 const places: { to: string; label: string; icon: LucideIcon; end?: boolean }[] = [
   { to: '/admin', label: 'Home', icon: Home, end: true },
   { to: '/admin/shops', label: 'Shops', icon: Store },
   { to: '/admin/people', label: 'People', icon: Users },
   { to: '/admin/money', label: 'Money', icon: Wallet },
+  { to: '/admin/analytics', label: 'Analytics', icon: ChartColumn },
   { to: '/admin/orders', label: 'Orders', icon: Inbox },
+  { to: '/admin/customers', label: 'Customers', icon: ContactRound },
   { to: '/admin/products', label: 'Products', icon: Package },
-  { to: '/admin/settings', label: 'Settings', icon: SlidersHorizontal },
-  { to: '/admin/system', label: 'System', icon: Activity },
   { to: '/admin/bot', label: 'Bot', icon: Bot },
-  { to: '/admin/tools', label: 'Tools', icon: Wrench },
+  { to: '/admin/system', label: 'System', icon: Activity },
   { to: '/admin/log', label: 'Log', icon: ScrollText },
+  { to: '/admin/tools', label: 'Tools', icon: Wrench },
+  { to: '/admin/settings', label: 'Settings', icon: SlidersHorizontal },
 ]
 const TAB_COUNT = 4
 
@@ -46,8 +67,9 @@ export function AdminLayout() {
       <MobileTopBar />
       <div className="min-w-0 lg:flex-1">
         <main className="mx-auto w-full max-w-3xl px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] lg:mx-0 lg:max-w-7xl lg:px-8 lg:pt-5 lg:pb-10">
-          <div className="mb-3 hidden justify-end lg:flex">
+          <div className="mb-3 hidden justify-end gap-2 lg:flex">
             <SearchBox wide />
+            <NoticeBell />
           </div>
           <PageOutlet depth={3} />
         </main>
@@ -82,7 +104,7 @@ function Sidebar() {
       <div className="flex h-16 items-center border-b border-slate-100 px-5">
         <AdminBrand />
       </div>
-      <nav aria-label="Admin" className="flex flex-col gap-1 p-3">
+      <nav aria-label="Admin" className="flex min-h-0 flex-col gap-1 overflow-y-auto p-3">
         {places.map(({ to, label, icon: Icon, end }) => (
           <NavLink key={to} to={to} end={end} className={({ isActive }) => navClass(isActive)}>
             <Icon aria-hidden className="size-5" />
@@ -108,7 +130,10 @@ function MobileTopBar() {
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
       <div className="flex h-14 items-center justify-between pr-2 pl-4">
         <AdminBrand />
-        <SearchBox />
+        <div className="flex items-center">
+          <SearchBox />
+          <NoticeBell />
+        </div>
       </div>
     </header>
   )

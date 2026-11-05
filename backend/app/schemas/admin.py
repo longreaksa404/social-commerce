@@ -5,7 +5,7 @@ schemas/plan.py, where they began."""
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -383,3 +383,71 @@ class AdminBotProfileIn(BaseModel):
 
 class AdminBotProfileOut(AdminBotProfileIn):
     username: str
+
+
+class AdminNoticeOut(BaseModel):
+    """One notice on the admin's bell (services/admin_notices.py), made from
+    the records each time; only `read` is kept apart from them."""
+
+    key: str  # names its cause: "claim:<payment id>", "ending:<shop>:<date>"…
+    kind: Literal[
+        "claim",
+        "stopped",
+        "unpaid",
+        "ending",
+        "not_opened",
+        "telegram",
+        "job_failed",
+        "job_late",
+        "backup_failed",
+        "backup_late",
+        "errors",
+    ]
+    severity: Literal["action", "urgent", "warning", "info"]
+    title: str
+    text: str
+    at: datetime | None  # when it started; None: not known (never ran)
+    href: str  # the admin page to open
+    read: bool = False
+
+
+class AdminNoticesOut(BaseModel):
+    items: list[AdminNoticeOut]  # newest first
+    unread: int
+
+
+class AdminNoticesReadIn(BaseModel):
+    """Mark these read; `all` marks every notice of the moment."""
+
+    keys: list[Annotated[str, Field(max_length=200)]] = Field(default=[], max_length=200)
+    all: bool = False
+
+
+class AdminMonthOut(BaseModel):
+    """One Phnom Penh month on the Analytics page (services/admin_analytics.py)."""
+
+    month: str  # "2026-11"
+    signups: int  # shops made
+    orders: int  # in every shop (counted, not money)
+    active_shops: int  # shops with at least one order
+    collected: Decimal  # Oak Order's plan payments, US dollars
+    collected_month_plans: Decimal
+    collected_year_plans: Decimal
+    payments: int  # paid, more than $0
+    paying: int  # on the month's last day: paid for a period not over yet
+    monthly_value: Decimal  # what they pay a month (a year's / 12)
+
+
+class AdminAnalyticsOut(BaseModel):
+    through: date  # today in Phnom Penh: the last month runs to it
+    months: list[AdminMonthOut]  # oldest first
+    trial_over: int  # shops that paid, or whose free time ended
+    converted: int  # of those, the ones that paid
+    renewals_due: int  # paid periods ended in the range, days to pay over
+    renewed: int
+    paying_month: int  # today: shops on a month's plan
+    paying_year: int
+    monthly_value: Decimal  # today
+    open_shops: int
+    quiet_shops: int  # open, past setup, no order in 30 days
+    test_shops: int  # left out of every number

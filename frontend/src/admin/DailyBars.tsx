@@ -24,7 +24,9 @@ export function DailyBars({
     <Card className="p-4 sm:p-5">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="font-semibold text-slate-900">{title}</h2>
-        <p className="text-sm text-slate-500">30 days</p>
+        <p className="text-sm text-slate-500">
+          30 days: <span className="tabular-nums">{unit(days.reduce((sum, d) => sum + d.value, 0))}</span>
+        </p>
       </div>
       <div className="relative mt-4" onMouseLeave={() => setActive(null)}>
         <span className="absolute -top-1 left-0 text-xs text-slate-400 tabular-nums">{max}</span>

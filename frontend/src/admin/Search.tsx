@@ -15,15 +15,15 @@ const digitsOf = (text: string) => text.replace(/\D/g, '').replace(/^855/, '0')
 
 /** Search results (founder's pick 10C): shops and people from the lists
  * the admin already has, customers and orders from the API. `only`: just
- * customers and orders (the Orders page). `onPick`: after a tap (closes
- * the panel). */
-export function SearchResults({ q, only, onPick }: { q: string; only?: 'orders'; onPick?: () => void }) {
+ * orders (the Orders page) or just customers (the Customers page).
+ * `onPick`: after a tap (closes the panel). */
+export function SearchResults({ q, only, onPick }: { q: string; only?: 'orders' | 'customers'; onPick?: () => void }) {
   const words = q.trim().toLowerCase()
   const digits = digitsOf(words)
   const shops = useAdminShops()
   const people = useAdminPeople()
-  const customers = useAdminCustomers(q.trim())
-  const orders = useAdminOrders(q.trim())
+  const customers = useAdminCustomers(only === 'orders' ? '' : q.trim())
+  const orders = useAdminOrders(only === 'customers' ? '' : q.trim())
   if (!words) return null
 
   const has = (text: string | null | undefined) => (text ?? '').toLowerCase().includes(words)
@@ -85,7 +85,7 @@ export function SearchResults({ q, only, onPick }: { q: string; only?: 'orders';
         </section>
       )}
       {nothing && <p className="text-sm text-slate-500 sm:px-1">Nothing found.</p>}
-      {/^\D+$/.test(words) && <p className="text-xs text-slate-500 sm:px-1">Add a number for an order: {words.split(/\s+/)[0]} 1043.</p>}
+      {only !== 'customers' && /^\D+$/.test(words) && <p className="text-xs text-slate-500 sm:px-1">Add a number for an order: {words.split(/\s+/)[0]} 1043.</p>}
     </div>
   )
 }

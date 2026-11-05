@@ -11,10 +11,29 @@ import { SearchResults } from './Search.tsx'
 import { ago, initials, useSettled } from './shared.ts'
 import { Sheet } from './ui.tsx'
 
-/** /admin/orders (parts 19 and 20): find an order ("sokha 1043", "1043")
- * or a customer (a phone or a name) in every shop; look only. The same
- * search as the one on every page (pick 10C), without shops and people. */
+/** /admin/orders (part 19): find an order in every shop ("sokha 1043",
+ * "1043", or the customer's phone); look only. The same search as the one
+ * on every page (pick 10C), orders only. */
 export function AdminOrders() {
+  return (
+    <FindPage
+      title="Orders"
+      only="orders"
+      placeholder="sokha 1043, or a phone"
+      label="Find an order"
+      hint="A shop and an order number, or the customer's phone."
+    />
+  )
+}
+
+/** /admin/customers (part 20): find a customer in every shop by phone or
+ * name; each phone opens its page with the shops it ordered from. Shops
+ * keep their own customers: the same phone in two shops is two records. */
+export function AdminCustomers() {
+  return <FindPage title="Customers" only="customers" placeholder="012 345 678, or a name" label="Find a customer" hint="A phone number or a name." />
+}
+
+function FindPage({ title, only, placeholder, label, hint }: { title: string; only: 'orders' | 'customers'; placeholder: string; label: string; hint: string }) {
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState(params.get('q') ?? '')
   const q = useSettled(query).trim()
@@ -25,22 +44,22 @@ export function AdminOrders() {
 
   return (
     <>
-      <title>Orders · Oak Order admin</title>
-      <PageHeader title="Orders and customers" />
+      <title>{`${title} · Oak Order admin`}</title>
+      <PageHeader title={title} />
       <div className="max-w-3xl space-y-5">
         <div>
           <Input
             type="search"
             autoFocus
             leading={<Search aria-hidden className="size-4" />}
-            placeholder="sokha 1043, or a phone"
-            aria-label="Find an order or a customer"
+            placeholder={placeholder}
+            aria-label={label}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <p className="mt-1.5 text-xs text-slate-500 sm:px-1">A shop and an order number, or a phone or name.</p>
+          <p className="mt-1.5 text-xs text-slate-500 sm:px-1">{hint}</p>
         </div>
-        {q ? <SearchResults q={q} only="orders" /> : <EmptyState icon={Search} title="Find an order or a customer" />}
+        {q ? <SearchResults q={q} only={only} /> : <EmptyState icon={Search} title={label} />}
       </div>
     </>
   )
@@ -55,9 +74,9 @@ export function AdminCustomerPage() {
   const customer = found.data?.find((c) => c.phone === phone)
   return (
     <div className="max-w-3xl">
-      <Link to="/admin/orders" className="mb-3 inline-flex min-h-11 items-center gap-1 text-sm font-medium text-navy-700">
+      <Link to="/admin/customers" className="mb-3 inline-flex min-h-11 items-center gap-1 text-sm font-medium text-navy-700">
         <ChevronLeft aria-hidden className="size-4" />
-        Orders and customers
+        Customers
       </Link>
       {found.isPending ? (
         <Skeleton className="h-64 w-full rounded-2xl" />
@@ -146,7 +165,7 @@ function Forget({ customer, target, onClose }: { customer: AdminCustomer; target
         onSuccess: (done) => {
           toast(`Removed from ${done.shops === 1 ? '1 shop' : `${done.shops} shops`} · in the log`)
           close()
-          if (target.storeId === null || customer.shops.length === 1) navigate('/admin/orders')
+          if (target.storeId === null || customer.shops.length === 1) navigate('/admin/customers')
         },
       },
     )

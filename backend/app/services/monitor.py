@@ -27,15 +27,24 @@ class Request:
 
 _recent: deque[Request] = deque(maxlen=100_000)
 _errors_by_day: Counter[str] = Counter()
+_last_error: datetime | None = None
 
 
 def record(route: str, ms: float, status: int) -> None:
+    global _last_error
     now = time.time()
     _recent.append(Request(now, route, ms, status))
     while _recent and _recent[0].at < now - HOUR:
         _recent.popleft()
     if status >= 500:
         _errors_by_day[clock.today().isoformat()] += 1
+        _last_error = datetime.fromtimestamp(now, UTC)
+
+
+def last_error_at() -> datetime | None:
+    """The newest server error since the server started (the admin's bell
+    shows a new one as unread)."""
+    return _last_error
 
 
 @dataclass(frozen=True)

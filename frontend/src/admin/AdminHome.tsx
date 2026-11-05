@@ -3,9 +3,9 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../components/ui.tsx'
 import { formatMoney } from '../lib/money.ts'
-import type { AdminNeed, AdminOverview } from '../lib/types.ts'
+import type { AdminNeed, AdminNotice, AdminOverview } from '../lib/types.ts'
 import { DailyBars } from './DailyBars.tsx'
-import { useAdminOverview } from './queries.ts'
+import { useAdminNotices, useAdminOverview } from './queries.ts'
 import { shortDay } from './shared.ts'
 
 const usd = (amount: string | number) => formatMoney(amount, 'USD')
@@ -19,7 +19,10 @@ export function AdminHome() {
   return (
     <>
       <title>Home · Oak Order admin</title>
-      <PageHeader title="Home" />
+      <PageHeader
+        title="Home"
+        subtitle={overview.data ? `Phnom Penh time · today ${shortDay(overview.data.days.at(-1)?.day ?? '')}` : undefined}
+      />
       {overview.isPending ? (
         <div className="space-y-4">
           <Skeleton className="h-28 w-full rounded-2xl" />
@@ -54,17 +57,22 @@ function Numbers({ data }: { data: AdminOverview }) {
   const today = new Date(`${data.days.at(-1)?.day ?? ''}T00:00`)
   const month = today.toLocaleDateString('en-GB', { month: 'long' })
   const { shops } = data
+  const unpaid = data.needs.filter((n) => n.kind === 'unpaid').length
+  const ending = data.needs.filter((n) => n.kind === 'ending').length
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <Tile label="Shops" value={shops.total}>
         {shops.paying} paying · {shops.trial} on trial · {shops.setup} in setup
+        {ending > 0 && <span className="text-amber-700"> · {ending} ending soon</span>}
+        {unpaid > 0 && <span className="text-red-700"> · {unpaid} unpaid</span>}
         {shops.stopped > 0 && <span className="text-red-700"> · {shops.stopped} stopped</span>}
+        {shops.closed > 0 && <> · {shops.closed} closed</>}
       </Tile>
       <Tile label={`Collected in ${month}`} value={usd(data.collected_month)}>
         {plural(data.payments_month, 'payment')} · {today.getFullYear()}: {usd(data.collected_year)}
       </Tile>
       <Tile label="If all renew" value={usd(data.monthly_income)}>
-        a month
+        a month: each paying shop's last plan, a year's / 12
       </Tile>
       <Tile label="Orders today" value={data.orders_today}>
         {data.orders_week} in 7 days
@@ -83,8 +91,19 @@ export function Tile({ label, value, children }: { label: string; value: ReactNo
   )
 }
 
+// The bell's notices about the system itself, listed under the shops.
+const SYSTEM_KINDS = new Set<AdminNotice['kind']>(['job_failed', 'job_late', 'backup_failed', 'backup_late', 'errors'])
+const TONE: Record<AdminNotice['severity'], string> = {
+  action: 'text-navy-700',
+  urgent: 'text-red-700',
+  warning: 'text-amber-700',
+  info: 'text-slate-500',
+}
+
 function Needs({ data }: { data: AdminOverview }) {
-  const count = data.needs.length + (data.telegram_failed > 0 ? 1 : 0)
+  const notices = useAdminNotices()
+  const system = (notices.data?.items ?? []).filter((n) => SYSTEM_KINDS.has(n.kind))
+  const count = data.needs.length + (data.telegram_failed > 0 ? 1 : 0) + system.length
   return (
     <section aria-labelledby="needs">
       <h2 id="needs" className="mb-2 text-sm font-semibold text-slate-500 sm:px-1">
@@ -107,6 +126,20 @@ function Needs({ data }: { data: AdminOverview }) {
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium text-slate-900">{need.name}</span>
                     <NeedText need={need} />
+                  </span>
+                  <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
+                </Link>
+              </li>
+            ))}
+            {system.map((notice) => (
+              <li key={notice.key}>
+                <Link
+                  to={notice.href}
+                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium text-slate-900">{notice.title}</span>
+                    <span className={`block text-sm ${TONE[notice.severity]}`}>{notice.text}</span>
                   </span>
                   <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
                 </Link>

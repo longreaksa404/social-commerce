@@ -919,3 +919,63 @@ export type Sale = {
   /** Not past its last day. */
   active: boolean
 }
+
+/** One notice on the admin's bell: made from the records each time (a
+ * claim, a plan ending, a failed job…); only `read` is kept apart. `key`
+ * names its cause, so the same cause is one notice. */
+export type AdminNotice = {
+  key: string
+  kind:
+    | 'claim'
+    | 'stopped'
+    | 'unpaid'
+    | 'ending'
+    | 'not_opened'
+    | 'telegram'
+    | 'job_failed'
+    | 'job_late'
+    | 'backup_failed'
+    | 'backup_late'
+    | 'errors'
+  severity: 'action' | 'urgent' | 'warning' | 'info'
+  title: string
+  text: string
+  /** When it started; null when not known (a job that never ran). */
+  at: string | null
+  href: string
+  read: boolean
+}
+
+export type AdminNotices = { items: AdminNotice[]; unread: number }
+
+/** A Phnom Penh month on the Analytics page; money is Oak Order's plan
+ * payments in US dollars, orders are counted only. */
+export type AdminMonth = {
+  month: string
+  signups: number
+  orders: number
+  active_shops: number
+  collected: string
+  collected_month_plans: string
+  collected_year_plans: string
+  payments: number
+  /** On the month's last day: shops that had paid for a period not over. */
+  paying: number
+  monthly_value: string
+}
+
+export type AdminAnalytics = {
+  /** Today in Phnom Penh: the last month runs to it. */
+  through: string
+  months: AdminMonth[]
+  trial_over: number
+  converted: number
+  renewals_due: number
+  renewed: number
+  paying_month: number
+  paying_year: number
+  monthly_value: string
+  open_shops: number
+  quiet_shops: number
+  test_shops: number
+}
