@@ -8,7 +8,7 @@ import { formatPhone } from '../lib/orders.ts'
 import type { AdminShop as Shop } from '../lib/types.ts'
 import { AdminShop } from './AdminShop.tsx'
 import { useAdminShops } from './queries.ts'
-import { ago, shortDay } from './shared.ts'
+import { ago, date, shortDay } from './shared.ts'
 import { Chip, Chips } from './ui.tsx'
 
 // What needs the founder first, All last (pick 28A, 2026-10-25).
@@ -192,6 +192,7 @@ function Table({ shops, sort, onSort }: { shops: Shop[]; sort: Sort; onSort: (s:
           <tr>
             <SortHeader label="Shop" k="name" sort={sort} onSort={onSort} />
             <th scope="col" className="px-4 py-2.5 text-left font-medium">Code</th>
+            <th scope="col" className="px-4 py-2.5 text-left font-medium">Signed up</th>
             <th scope="col" className="px-4 py-2.5 text-left font-medium">Owner's phone</th>
             <th scope="col" className="px-4 py-2.5 text-left font-medium">Stage</th>
             <SortHeader label="Paid until" k="paid_until" sort={sort} onSort={onSort} />
@@ -211,7 +212,11 @@ function Table({ shops, sort, onSort }: { shops: Shop[]; sort: Sort; onSort: (s:
                   </span>
                 </Link>
               </td>
-              <td className="px-4 py-2.5 font-semibold tracking-wide whitespace-nowrap text-slate-700">{shop.code}</td>
+              <td className="px-4 py-2.5 whitespace-nowrap">
+                <span className="block font-semibold tracking-wide text-slate-700">{shop.code}</span>
+                <span className="block text-xs text-slate-500">{shop.currency === 'KHR' ? 'Sells in riel' : 'Sells in dollars'}</span>
+              </td>
+              <td className="px-4 py-2.5 whitespace-nowrap text-slate-500">{date(shop.created_at)}</td>
               <td className="max-w-[12rem] truncate px-4 py-2.5 text-slate-700 tabular-nums">{formatPhone(shop.login)}</td>
               <td className="px-4 py-2.5 whitespace-nowrap">
                 <StageWords shop={shop} />

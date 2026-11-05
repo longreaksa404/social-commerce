@@ -137,6 +137,7 @@ function Person({ person }: { person: AdminSeller }) {
           </p>
           <p className="text-sm break-words text-slate-500 tabular-nums">
             {loginOf(person)} · {person.last_seen ? `used the app ${ago(person.last_seen)}` : 'not logged in on any phone now'}
+            {person.devices > 0 && ` · logged in on ${person.devices === 1 ? '1 phone or browser' : `${person.devices} phones or browsers`}`}
           </p>
         </div>
       </div>

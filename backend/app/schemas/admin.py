@@ -55,6 +55,7 @@ class AdminSellerOut(BaseModel):
     has_password: bool
     logins: list[AdminLoginOut]
     last_seen: datetime | None  # the last time the app renewed its login
+    devices: int = 0  # phones and browsers logged in now
 
 
 class AdminPhoneIn(BaseModel):

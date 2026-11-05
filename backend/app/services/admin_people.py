@@ -11,6 +11,7 @@ again (the AdminPasswordAgain guard) and send the admin a Telegram line
 
 import secrets
 import uuid
+from datetime import UTC, datetime
 
 from sqlalchemy import delete, func, or_, select
 from sqlalchemy.exc import IntegrityError
@@ -59,6 +60,20 @@ async def _people(db: AsyncSession, seller_id: uuid.UUID | None = None) -> list[
             )
         ).all()
     )
+    # A refresh token still good is one phone or browser logged in.
+    devices = dict(
+        (
+            await db.execute(
+                select(RefreshToken.seller_id, func.count())
+                .where(
+                    RefreshToken.seller_id.in_(ids),
+                    RefreshToken.revoked_at.is_(None),
+                    RefreshToken.expires_at > datetime.now(UTC),
+                )
+                .group_by(RefreshToken.seller_id)
+            )
+        ).all()
+    )
     logins: dict[uuid.UUID, list[AdminLoginOut]] = {}
     for login in await db.scalars(
         select(SellerLogin)
@@ -84,6 +99,7 @@ async def _people(db: AsyncSession, seller_id: uuid.UUID | None = None) -> list[
             has_password=seller.has_password,
             logins=logins.get(seller.id, []),
             last_seen=seen.get(seller.id),
+            devices=devices.get(seller.id, 0),
         )
         for seller, store, _ in rows
     ]

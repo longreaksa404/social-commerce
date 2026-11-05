@@ -449,10 +449,13 @@ async def log(
     db: UnscopedDb,
     store_id: uuid.UUID | None = None,
     before: datetime | None = None,
+    action: Annotated[list[str] | None, Query()] = None,
 ) -> list[AdminLogOut]:
     """Everything done from the admin, newest first, 100 at a time (older:
-    `before` = the last one's created_at); one shop's with `store_id`."""
-    return await admin_log.entries(db, store_id=store_id, before=before)
+    `before` = the last one's created_at; a day: `before` = the next day's
+    start); one shop's with `store_id`; only some kinds with `action`
+    (repeated)."""
+    return await admin_log.entries(db, store_id=store_id, before=before, actions=action)
 
 
 @router.get("/sellers", response_model=list[AdminSellerOut])

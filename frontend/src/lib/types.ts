@@ -192,6 +192,8 @@ export type AdminShop = {
   owner_name: string
   orders: number
   last_order_at: string | null
+  /** What the shop sells in. */
+  currency: Currency
 }
 
 /** A payment as the admin sees it: also "void" (Undone: marked paid by
@@ -201,7 +203,6 @@ export type AdminPayment = Omit<PlanPayment, 'status'> & { status: PlanPaymentSt
 
 export type AdminShopDetail = AdminShop & {
   payments: AdminPayment[]
-  currency: Currency
   /** How customers can pay: cod, khqr. */
   pays_by: string[]
   payment_set_up: boolean
@@ -412,6 +413,8 @@ export type AdminSeller = {
   /** Google or Facebook accounts that log in to it. */
   logins: { provider: 'google' | 'facebook'; label: string | null }[]
   last_seen: string | null
+  /** Phones and browsers logged in now. */
+  devices: number
 }
 
 /** A shop on the admin's Home list (founder's pick 3B, 2026-10-28). `day`:

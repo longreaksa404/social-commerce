@@ -154,6 +154,13 @@ export function logWords(line: AdminLogLine, withShop = true): { title: string; 
       title = `Removed ${person}'s ${PROVIDER[text(d.provider)] ?? text(d.provider)} login`
       if (d.label) lines.push(text(d.label))
       break
+    case 'admin_login':
+      title = 'Logged in to the admin'
+      lines.push('Password, then Telegram')
+      break
+    case 'admin_setup':
+      title = 'Set up the admin account'
+      break
     default:
       title = line.action.replaceAll('_', ' ')
   }
@@ -162,6 +169,18 @@ export function logWords(line: AdminLogLine, withShop = true): { title: string; 
   if (line.reason) lines.push(line.reason)
   return { title, lines, warn }
 }
+
+/** The Log page's kinds (its chips): which actions each shows. */
+export const LOG_KINDS: { label: string; actions: string[] }[] = [
+  { label: 'Money', actions: ['mark_paid', 'claim_not_found', 'paid_until', 'undo_payment', 'remind'] },
+  { label: 'Shops', actions: ['close_shop', 'reopen_shop', 'erase_shop', 'test_shop', 'open_as_seller', 'seller_save'] },
+  { label: 'People', actions: ['reset_password', 'logout_all', 'change_phone', 'remove_login'] },
+  { label: 'Customers and products', actions: ['forget_customer', 'hide_product'] },
+  { label: 'Bot and messages', actions: ['bot_text', 'bot_profile', 'bot_webhook', 'broadcast'] },
+  { label: 'Settings', actions: ['setting'] },
+  { label: 'Jobs', actions: ['run_job'] },
+  { label: 'Admin log-ins', actions: ['admin_login', 'admin_setup'] },
+]
 
 /** A row of a day list (AdminLog.tsx): what happened, the details under it. */
 export type DayItem = { id: string; at: string; title: string; lines: string[]; href?: string; warn?: string }

@@ -1,20 +1,34 @@
 import { ScrollText } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { Button, Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../components/ui.tsx'
-import { logItem, type DayItem } from './logWords.ts'
+import { Button, Card, EmptyState, ErrorState, Field, Input, PageHeader, Skeleton } from '../components/ui.tsx'
+import { LOG_KINDS, logItem, type DayItem } from './logWords.ts'
 import { useAdminLog } from './queries.ts'
 import { Chip, Chips } from './ui.tsx'
 
 // Chips for the shops in the newest lines, after All shops.
 const SHOP_CHIPS = 5
 
+/** "2026-11-07T00:00:00+07:00": the start of the day after, in Phnom Penh. */
+function dayAfter(ymd: string) {
+  const next = new Date(`${ymd}T00:00:00Z`)
+  next.setUTCDate(next.getUTCDate() + 1)
+  return `${next.toISOString().slice(0, 10)}T00:00:00+07:00`
+}
+
 /** /admin/log: everything done from the admin, a day at a time (founder's
- * pick 13A, 2026-10-28), like a diary; chips for the shops in it. */
+ * pick 13A, 2026-10-28), like a diary; chips for the kinds of action and
+ * the shops in it, and a day to start from. Read only: nothing here
+ * changes a line. */
 export function AdminLog() {
   const [storeId, setStoreId] = useState<string | null>(null)
+  const [kind, setKind] = useState<string | null>(null)
+  const [day, setDay] = useState('')
+  const [today] = useState(() => new Date().toLocaleDateString('en-CA'))
+  const actions = LOG_KINDS.find((k) => k.label === kind)?.actions ?? []
   const all = useAdminLog(null)
-  const log = useAdminLog(storeId)
+  const log = useAdminLog(storeId, actions, day ? dayAfter(day) : '')
+  const filtered = storeId !== null || kind !== null || day !== ''
   const shops = new Map<string, string>()
   for (const line of all.data?.pages.flat() ?? []) {
     if (line.store_id && line.shop && shops.size < SHOP_CHIPS) shops.set(line.store_id, line.shop)
@@ -25,6 +39,16 @@ export function AdminLog() {
       <title>Log · Oak Order admin</title>
       <PageHeader title="Log" />
       <div className="max-w-3xl space-y-4">
+        <Chips label="Kind">
+          <Chip on={kind === null} onClick={() => setKind(null)}>
+            Everything
+          </Chip>
+          {LOG_KINDS.map((k) => (
+            <Chip key={k.label} on={kind === k.label} onClick={() => setKind(k.label)}>
+              {k.label}
+            </Chip>
+          ))}
+        </Chips>
         {shops.size > 0 && (
           <Chips label="Shop">
             <Chip on={storeId === null} onClick={() => setStoreId(null)}>
@@ -37,12 +61,22 @@ export function AdminLog() {
             ))}
           </Chips>
         )}
+        <div className="flex items-end gap-2">
+          <Field label="From day" className="w-48">
+            <Input type="date" value={day} max={today} onChange={(e) => setDay(e.target.value)} />
+          </Field>
+          {day && (
+            <Button variant="secondary" onClick={() => setDay('')}>
+              Today
+            </Button>
+          )}
+        </div>
         {log.isPending ? (
           <Skeleton className="h-80 w-full rounded-2xl" />
         ) : log.error ? (
           <ErrorState error={log.error} onRetry={() => log.refetch()} />
         ) : log.data.pages[0].length === 0 ? (
-          <EmptyState icon={ScrollText} title="Nothing done from the admin yet" />
+          <EmptyState icon={ScrollText} title={filtered ? 'Nothing like this in the log' : 'Nothing done from the admin yet'} />
         ) : (
           <>
             <DayList items={log.data.pages.flat().map((line) => logItem(line, storeId === null))} />

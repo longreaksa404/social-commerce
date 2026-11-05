@@ -62,14 +62,16 @@ export function useAdminShop(id: string) {
 const LOG_PAGE = 100
 
 /** The admin's log, newest first, a page at a time; one shop's with
- * `storeId`. Fresh each visit. */
-export function useAdminLog(storeId: string | null) {
+ * `storeId`, some kinds with `actions`, from a day back with `before` (the
+ * next day's start). Fresh each visit. */
+export function useAdminLog(storeId: string | null, actions: readonly string[] = [], before = '') {
   return useInfiniteQuery({
-    queryKey: [...adminKeys.log, storeId ?? 'all'],
+    queryKey: [...adminKeys.log, storeId ?? 'all', actions.join(','), before],
     queryFn: ({ pageParam }) => {
       const params = new URLSearchParams()
       if (storeId) params.set('store_id', storeId)
-      if (pageParam) params.set('before', pageParam)
+      for (const action of actions) params.append('action', action)
+      if (pageParam || before) params.set('before', pageParam || before)
       return adminApi<AdminLogLine[]>(`/admin/log?${params}`)
     },
     initialPageParam: '',

@@ -134,6 +134,7 @@ class AdminShopOut(BaseModel):
     owner_name: str = ""
     orders: int = 0
     last_order_at: datetime | None = None
+    currency: str = "USD"  # what the shop sells in: USD, KHR
 
 
 class AdminPaymentOut(PlanPaymentOut):
@@ -201,7 +202,6 @@ class AdminActivityOut(BaseModel):
 class AdminShopDetailOut(AdminShopOut):
     payments: list[AdminPaymentOut]  # every one, newest first
     # A shop's page beside the list (founder's pick 5D, 2026-10-28).
-    currency: str = "USD"
     pays_by: list[str] = []  # the ways customers can pay: cod, khqr
     payment_set_up: bool = False
     delivery_set_up: bool = False

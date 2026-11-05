@@ -3,10 +3,14 @@
 time. A row is added in the same transaction as the thing it records, so
 one never happens without the other.
 
-Actions so far: mark_paid (by hand, or a seller's "I've paid" found),
-claim_not_found, close_shop, reopen_shop, reset_password, logout_all,
-change_phone, remove_login. Each keeps the shop's and the person's names
-in `details`, so a line still reads right after a rename or an erase.
+Actions: mark_paid (by hand, or a seller's "I've paid" found),
+claim_not_found, paid_until, undo_payment, remind, close_shop, reopen_shop,
+erase_shop, test_shop, reset_password, logout_all, change_phone,
+remove_login, open_as_seller, seller_save, forget_customer, hide_product,
+setting, broadcast, run_job, bot_text, bot_profile, bot_webhook, and the
+admin's own admin_login and admin_setup. Each keeps the shop's and the
+person's names in `details`, so a line still reads right after a rename or
+an erase.
 """
 
 import uuid
@@ -52,6 +56,7 @@ async def entries(
     *,
     store_id: uuid.UUID | None = None,
     before: datetime | None = None,
+    actions: list[str] | None = None,
     limit: int = PAGE,
 ) -> list[AdminLogOut]:
     """The newest first, with each shop's name as it is now (as it was
@@ -66,6 +71,8 @@ async def entries(
         query = query.where(AdminAction.store_id == store_id)
     if before is not None:
         query = query.where(AdminAction.created_at < before)
+    if actions:
+        query = query.where(AdminAction.action.in_(actions))
     return [
         AdminLogOut(
             id=row.id,

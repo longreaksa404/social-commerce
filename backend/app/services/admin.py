@@ -134,6 +134,7 @@ def _shop(
         owner_name=owner.full_name,
         orders=orders[0],
         last_order_at=orders[1],
+        currency=store.currency.value,
     )
 
 
@@ -362,7 +363,6 @@ async def shop_detail(db: AsyncSession, store_id: uuid.UUID) -> AdminShopDetailO
     return AdminShopDetailOut(
         **shop.model_dump(),
         payments=[AdminPaymentOut.model_validate(p) for p in payments],
-        currency=store.currency.value,
         pays_by=[m.value for m in methods],
         payment_set_up=store.payment_set_up,
         delivery_set_up=store.delivery_set_up,

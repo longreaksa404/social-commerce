@@ -75,3 +75,31 @@ async def test_close_and_reopen_from_the_admin_logs_out_only_that_shop(client, r
     # The shop's Activity carries the same lines.
     detail = (await client.get(shop, headers=bearer(admin))).json()
     assert [line["id"] for line in detail["log"]] == [line["id"] for line in lines]
+
+
+async def test_the_log_filters_by_kind_and_has_the_admins_own_log_ins(client, register, admin):
+    seller = await register()
+    store_id = await store_id_of(client, seller)
+    await client.post(
+        f"/api/v1/admin/shops/{store_id}/payments",
+        headers=bearer(admin),
+        json={"period": "month", "amount": "0"},
+    )
+    await client.post(
+        f"/api/v1/admin/shops/{store_id}/close", headers=bearer(admin), json={"reason": "asked"}
+    )
+
+    money = (
+        await client.get(
+            LOG, params={"action": ["mark_paid", "undo_payment"]}, headers=bearer(admin)
+        )
+    ).json()
+    shops = (await client.get(LOG, params={"action": "close_shop"}, headers=bearer(admin))).json()
+    security = (
+        await client.get(LOG, params={"action": "admin_setup"}, headers=bearer(admin))
+    ).json()
+
+    assert money and {line["action"] for line in money} == {"mark_paid"}
+    assert shops and {line["action"] for line in shops} == {"close_shop"}
+    # The admin fixture set the account up through the API: its first log-in.
+    assert security and security[0]["store_id"] is None

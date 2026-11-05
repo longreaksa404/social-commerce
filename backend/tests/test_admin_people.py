@@ -51,6 +51,7 @@ async def test_every_login_is_listed_with_its_shop(client, register, admin):
     assert owner["shop"] == staff["shop"]
     assert owner["is_open"] and staff["is_open"]
     assert owner["last_seen"] is not None
+    assert owner["devices"] == 1  # the phone that registered
 
 
 async def test_a_new_password_needs_the_admins_password_and_logs_out_every_phone(
@@ -85,6 +86,7 @@ async def test_log_out_every_phone_keeps_the_password(client, register, admin):
 
     assert done.status_code == 200
     assert done.json()["last_seen"] is None
+    assert done.json()["devices"] == 0
     assert (await refresh(client, seller["refresh_token"])).status_code == 401
     assert (await login(client, seller["phone"])).status_code == 200
 

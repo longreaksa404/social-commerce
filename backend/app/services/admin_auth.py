@@ -25,7 +25,7 @@ from app.core.errors import AppError
 from app.models import AdminAccount, AdminSession
 from app.schemas.admin_auth import AdminConfirmIn, AdminLoginIn, AdminSetupIn, AdminStepOut
 from app.schemas.auth import TokenPair
-from app.services import phone_check
+from app.services import admin_log, phone_check
 from app.services.admin import admin_phones
 from app.services.auth import REUSE_GRACE
 from app.services.phone import normalize_phone
@@ -84,6 +84,7 @@ async def confirm(db: AsyncSession, data: AdminConfirmIn) -> TokenPair:
             "phone_check",
         )
     account.telegram_user_id = check.telegram_user_id
+    admin_log.record(db, account.id, "admin_login")
     return await _start(db, account)
 
 
@@ -107,6 +108,7 @@ async def setup(db: AsyncSession, data: AdminSetupIn) -> TokenPair:
     )
     db.add(account)
     await db.flush()
+    admin_log.record(db, account.id, "admin_setup")
     return await _start(db, account)
 
 
