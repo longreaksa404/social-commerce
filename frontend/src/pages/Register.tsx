@@ -15,7 +15,8 @@ import { useT } from '../i18n/useT.ts'
 import { AgreeLine } from './AgreeLine.tsx'
 import { AuthLayout } from './AuthLayout.tsx'
 
-const FIELDS = ['store_name', 'phone_check', 'password', 'confirm_password']
+// Phone-check errors belong to PhoneCheck on step one and the form on step two.
+const FIELDS = ['store_name', 'password', 'confirm_password']
 const DRAFT_KEY = 'sc.register'
 
 /** Verify a phone first, then name the shop and choose its password. */
@@ -247,12 +248,13 @@ export function Register() {
 
           <ErrorMessage error={formError(error, FIELDS)} />
 
-          <Button type="submit" size="lg" loading={pending} className="w-full">
-            {t.auth.register.submit}
-          </Button>
-
-          {pending && <SlowNotice />}
-          <AgreeLine />
+          <div className="space-y-3 pt-2">
+            <Button type="submit" size="lg" loading={pending} className="w-full">
+              {t.auth.register.submit}
+            </Button>
+            <AgreeLine />
+            {pending && <SlowNotice />}
+          </div>
         </form>
       )}
     </AuthLayout>
