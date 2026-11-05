@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { api, ApiError } from '../lib/api.ts'
 import type { PhoneCheck as Check } from '../lib/types.ts'
 
@@ -15,12 +15,15 @@ const POLL_MS = 2_500
  * few seconds once the seller opened Telegram, until it has the number
  * (`done`). */
 export function usePhoneCheck(resume: Check | null = null) {
+  // A remounted phone step must not reuse the check verified on its last mount.
+  // Saved drafts resume by their explicit check id instead.
+  const instance = useId()
   const [attempt, setAttempt] = useState(0)
   const [resumed, setResumed] = useState(resume)
   const [opened, setOpened] = useState(resume !== null)
 
   const created = useQuery({
-    queryKey: ['phone-check', 'new', attempt],
+    queryKey: ['phone-check', 'new', instance, attempt],
     queryFn: () => api<Check>('/auth/phone-checks', { method: 'POST', auth: false }),
     enabled: resumed === null,
     staleTime: CHECK_REFRESH_MS,
@@ -37,7 +40,7 @@ export function usePhoneCheck(resume: Check | null = null) {
     refetchOnWindowFocus: true,
     retry: false,
   })
-  const done = read.data?.phone ? read.data : null
+  const done = opened && read.data?.phone ? read.data : null
 
   function startOver() {
     setResumed(null)

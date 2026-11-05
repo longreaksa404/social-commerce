@@ -1,12 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
 import { Send } from 'lucide-react'
 import { Link } from 'react-router'
 import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
 import { useLang, useT } from '../i18n/useT.ts'
-import { api } from '../lib/api.ts'
+import { usePlanPrices } from '../lib/planPrices.ts'
 import { SUPPORT_TELEGRAM } from '../lib/support.ts'
 import { BrandMark } from './AuthLayout.tsx'
-import { fill, LEGAL, UPDATED, type Block, type LegalDoc, type Prices } from './legal/content.ts'
+import { fill, LEGAL, UPDATED, type Block, type LegalDoc } from './legal/content.ts'
 
 const PATHS: Record<LegalDoc, string> = { privacy: '/privacy', terms: '/terms', 'data-deletion': '/data-deletion' }
 
@@ -17,7 +16,7 @@ export function Legal({ doc }: { doc: LegalDoc }) {
   const { lang } = useLang()
   const t = useT()
   const page = LEGAL[lang][doc]
-  const prices = usePrices()
+  const prices = usePlanPrices()
   // The Terms are as new as their prices.
   const updated = doc === 'terms' && prices.changedOn && prices.changedOn > UPDATED ? prices.changedOn : UPDATED
   const date = new Intl.DateTimeFormat(lang === 'km' ? 'km-KH' : 'en-GB', { dateStyle: 'long' }).format(
@@ -40,7 +39,7 @@ export function Legal({ doc }: { doc: LegalDoc }) {
             <h2 className="text-lg font-semibold text-slate-900">{section.heading}</h2>
             <div className="mt-2 space-y-3">
               {section.body.map((block, i) => (
-                <Body key={i} block={typeof block === 'string' ? fill(block, prices.values) : block.map((item) => fill(item, prices.values))} />
+                <Body key={i} block={typeof block === 'string' ? fill(block, prices) : block.map((item) => fill(item, prices))} />
               ))}
             </div>
           </section>
@@ -68,25 +67,6 @@ export function Legal({ doc }: { doc: LegalDoc }) {
       </main>
     </div>
   )
-}
-
-// "9.99" → "$9.99", "99.00" → "$99", as Settings → Plan writes them.
-const usd = (amount: string) => `$${Number(amount).toFixed(2).replace(/\.00$/, '')}`
-
-/** Oak Order's prices and trial today (set in the admin), with today's
- * defaults while they load or if they can't. */
-function usePrices(): { values: Prices; changedOn: string | null } {
-  const query = useQuery({
-    queryKey: ['plan-prices'],
-    queryFn: () =>
-      api<{ month: string; year: string; trial_days: number; changed_on: string | null }>('/plan/prices', { auth: false }),
-    staleTime: 5 * 60_000,
-  })
-  const data = query.data
-  return {
-    values: data ? { trial: String(data.trial_days), month: usd(data.month), year: usd(data.year) } : { trial: '30', month: '$9.99', year: '$99' },
-    changedOn: data?.changed_on ?? null,
-  }
 }
 
 function Body({ block }: { block: Block }) {

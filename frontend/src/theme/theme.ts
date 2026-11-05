@@ -8,7 +8,8 @@ export type ThemeChoice = 'auto' | 'light' | 'dark'
 
 const THEME_KEY = 'sc.theme'
 // The bars' color, for the phone's status bar.
-const BAR_COLORS = { light: '#ffffff', dark: '#181d25' }
+/** The phone's browser bar in each theme (the start page has its own). */
+export const BAR_COLORS = { light: '#ffffff', dark: '#181d25' }
 const phoneDark = window.matchMedia('(prefers-color-scheme: dark)')
 
 export function storedTheme(): ThemeChoice {

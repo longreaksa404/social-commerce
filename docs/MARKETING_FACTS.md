@@ -40,12 +40,12 @@
 Customers order and pay through it, and you see every order, payment and
 delivery in one place on your phone.**
 
-The app's own lines, from the start page (use them word for word):
+The app's own lines, from the start page (use them word for word; the second one replaces "Easy orders for sellers…" once the new start page is live, built 2026-11-05):
 
 | English | Khmer |
 |---|---|
 | Turn social media chats into real orders | ប្រែការឆាតលើបណ្ដាញសង្គម ទៅជាការកុម្ម៉ង់ពិតៗ |
-| Easy orders for sellers on Facebook, TikTok and Instagram. | ការកុម្ម៉ង់ងាយស្រួល សម្រាប់អ្នកលក់លើ Facebook, TikTok និង Instagram។ |
+| One link for your Facebook, TikTok and Instagram shop. Customers order and pay through it, and you see every order, payment and delivery in one place on your phone. | តំណតែមួយសម្រាប់ហាងរបស់អ្នកលើ Facebook, TikTok និង Instagram។ អតិថិជនកុម្ម៉ង់ និងបង់ប្រាក់តាមតំណនោះ ហើយអ្នកឃើញរាល់ការកុម្ម៉ង់ ការបង់ប្រាក់ និងការដឹកជញ្ជូន នៅកន្លែងតែមួយលើទូរស័ព្ទរបស់អ្នក។ |
 
 ## 2. Who it's for
 
@@ -76,6 +76,7 @@ numbers, reviews or quotes to use.
 |---|---|---|
 | Sign up with a phone number proved in Telegram (no SMS code), a shop name and a password. One shop per number. Two steps: **Verify Phone** (ផ្ទៀងផ្ទាត់ទូរស័ព្ទ), then **Shop & Password** (ព័ត៌មានហាង & ពាក្យសម្ងាត់), the password typed twice. | Start page → **Create your shop** (បង្កើតហាងរបស់អ្នក) → **Verify with Telegram** (ផ្ទៀងផ្ទាត់ជាមួយ Telegram) → **Create shop** (បង្កើតហាង) | Live |
 | Shop owners log in by sharing their number in Telegram, or with phone and password. Staff use phone and password. | Log in → tab **Telegram (1-Tap)** (Telegram (ចុចមួយដង)) → **Log in with Telegram** (ចូលគណនីជាមួយ Telegram); tab **Password** (ពាក្យសម្ងាត់) | Live |
+| A start page for new sellers: what Oak Order does, How it works on a phone with the app's real screens, six features, the price, five questions, and **Try a demo shop** (សាកមើលហាងគំរូ), which opens Oak Phone. | order.oaksolve.com, logged out | Built 2026-11-05, not live yet (not pushed) |
 | Sign up or log in with Google. | The square Google "G" button under the sign-up and log-in forms | Live |
 | Sign up or log in with Facebook. | (hidden on the live site) | In progress: waits for Meta's business verification and App Review |
 | Sign up or log in with TikTok. | — | Removed 2026-10-27 (TikTok turned the app down). Don't mention it; Telegram and Google cover it |
@@ -389,19 +390,15 @@ always stays navy.
 | Log in | https://order.oaksolve.com/login |
 | Terms, Privacy, Data deletion | https://order.oaksolve.com/terms, /privacy, /data-deletion |
 | A shop's link (the format) | `https://order.oaksolve.com/shop/<6-character code>`. Example format only: `k7m2qx` in 01 isn't a real shop |
-| Demo or example shop | **"Oak Phone", https://order.oaksolve.com/shop/zdpb5d**: the founder's demo iPhone shop on the live site (opened 2026-10-28 as the shoe shop "Oak Fashion"; an iPhone shop since 2026-11-02). 30 products in 4 categories: new iPhones (18 Pro Max, 18 Pro, Duo, 17 Pro Max, Air, 17, 17e), 14 used iPhones (12 to 16 Pro), Apple Watch Series 11 and Ultra 3 and a used iPad Air, AirPods and chargers, $19–$2,349, options by storage and colour; delivery and pickup, KHQR and cash; $20 off orders from $1,000. Its 36 orders (#1001–#1036, all dated 2026-11-02) are examples added by Oak Order, not sales. Its photos are from Wikimedia Commons (CC0, or credited in the product's description). It's a real, open shop: an order placed there reaches the founder. Marketing pictures and clips come from a copy of it on the founder's laptop: `backend/marketing/shots.py` makes 22 phone screens and 15 short MP4s in each of Khmer and English (every file in `docs/CODEBASE.md` §3, "Marketing pictures and clips") |
+| Demo or example shop | **"Oak Phone", https://order.oaksolve.com/shop/zdpb5d**: the founder's demo iPhone shop on the live site (opened 2026-10-28 as the shoe shop "Oak Fashion"; an iPhone shop since 2026-11-02). 30 products in 4 categories: new iPhones (18 Pro Max, 18 Pro, Duo, 17 Pro Max, Air, 17, 17e), 14 used iPhones (12 to 16 Pro), Apple Watch Series 11 and Ultra 3 and a used iPad Air, AirPods and chargers, $19–$2,349, options by storage and colour; delivery and pickup, KHQR and cash; $20 off orders from $1,000. Its 36 orders (#1001–#1036, all dated 2026-11-02) are examples added by Oak Order, not sales. Its photos are from Wikimedia Commons (CC0, or credited in the product's description). It's a real, open shop: an order placed there reaches the founder. The new start page links to it (**Try a demo shop**, with "don't pay the QR" under it), built 2026-11-05, not live yet. Marketing pictures and clips come from a copy of it on the founder's laptop: `backend/marketing/shots.py` makes 22 phone screens and 15 short MP4s in each of Khmer and English (every file in `docs/CODEBASE.md` §3, "Marketing pictures and clips") |
 | Support Telegram | **@longreaksa**, https://t.me/longreaksa (`VITE_SUPPORT_TELEGRAM`, read from the live site's code 2026-10-30). In the app: Settings → Get help |
 | Oak Order's Telegram bot (alerts, logins, customer updates) | **@OakOrder_bot**, https://t.me/OakOrder_bot (`TELEGRAM_BOT_USERNAME`; made by the founder 2026-10-30, replacing the deleted ReaksaShopAlertBot) |
 
 ## 9. Last checked
 
-- **Date:** 2026-10-27.
-- **Code:** commit `11378ac` ("Marketing: keep the screenshot tool out of
-  the API's Docker image") on `main`, with nothing unpushed. Every row
-  marked Live was checked in the code (backend services and schemas, the
-  routes, and the app's English and Khmer texts in
-  `frontend/src/i18n/messages/`).
-- **Live site, same day:** order.oaksolve.com answers (still hosted on
+- **Date:** 2026-11-05.
+- **Code:** The logged-out start page is built in the local `home-page` worktree, not live or pushed. Commit `592943f` reduces 3D startup work. Frontend lint/build and all 25 browser checks pass; mobile Lighthouse is 66 performance, 100 accessibility, CLS 0. The shared 1.1 MB entry bundle keeps it below the planned performance target and is recorded for a separate pass. The existing marketing fact rows remain as last checked on 2026-10-27.
+- **Live site, last checked 2026-10-27:** order.oaksolve.com answers (still hosted on
   Vercel); `/register` loads; `api.oaksolve.com/health` is ok;
   oaksolve.com forwards to order.oaksolve.com; a shop link opened as
   Telegram's preview bot gets its card ("<shop> · Oak Order", a large

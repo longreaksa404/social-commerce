@@ -2,6 +2,11 @@
 
 Picked by the founder on 2026-10-15. Navy is #1f3350.
 
+The start page (`frontend/src/pages/home/`) adds a thin champagne gold,
+#d6bc8a, on small details only (step numbers, the price card's edge, the
+free-days line, small icons), and a night navy, #0b1320 (founder,
+2026-11-04). Nowhere else in the app: its UI stays navy only.
+
 - `oak-acorn.svg`: the acorn, tilted. Oak Solutions' logo, and Oak Order's
   icon wherever the name doesn't fit. The same shape as
   `frontend/src/components/OakMark.tsx`.

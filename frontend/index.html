@@ -27,6 +27,12 @@
       } catch (e) {}
       var dark = choice === 'dark' || (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
       document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+      // The start page is night navy from its first paint, before the app
+      // has loaded (pages/home/Home.tsx takes it off when it's left).
+      if (location.pathname === '/') {
+        document.documentElement.classList.add('home-night')
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0b1320')
+      }
     </script>
   </head>
   <body>

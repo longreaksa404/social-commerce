@@ -5,6 +5,7 @@ import { categories } from './categories.ts'
 import { checkout } from './checkout.ts'
 import { common } from './common.ts'
 import { customers } from './customers.ts'
+import { home } from './home.ts'
 import { legal } from './legal.ts'
 import { links } from './links.ts'
 import { dashboard } from './dashboard.ts'
@@ -15,4 +16,4 @@ import { settings } from './settings.ts'
 import { shop } from './shop.ts'
 import { status } from './status.ts'
 
-export const messageTree = { common, auth, shop, checkout, order, status, dashboard, orders, customers, products, categories, links, settings, legal, admin } satisfies Tree
+export const messageTree = { common, auth, home, shop, checkout, order, status, dashboard, orders, customers, products, categories, links, settings, legal, admin } satisfies Tree

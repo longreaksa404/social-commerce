@@ -80,6 +80,14 @@
   --color-navy-900: #121e31;
   --color-navy-950: #0b1320;
 
+  /* The start page (pages/home): the same in light and dark mode, so not
+     the navy scale above, which dark mode turns light. Champagne is used
+     there only, on small details (founder, 2026-11-04). */
+  --color-night: #0b1320;
+  --color-night-2: #121e31;
+  --color-night-glow: #2f4669;
+  --color-champagne: #d6bc8a;
+
   /* Cards: a soft shadow and a faint outline (ring-slate-900/6, which
      dark mode turns into a faint light line) instead of a grey border. */
   --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px -4px rgb(15 23 42 / 0.08);
@@ -501,6 +509,12 @@
 
   body {
     @apply bg-slate-50 text-slate-900 antialiased;
+  }
+  /* The start page: night navy from the first paint, before the app loads
+     (index.html adds the class on /, pages/home/Home.tsx takes it off). */
+  :root.home-night,
+  :root.home-night body {
+    background: var(--color-night);
   }
 
   /* Number fields: no tiny spinner arrows; phones show a number pad anyway. */

@@ -24,6 +24,7 @@ Logged-in sellers still go straight to `/dashboard` (no change).
 | 4 | Look | Luxury through restraint: midnight navy, white type, lots of space, one thin champagne-gold accent (home page only), frosted cards, smooth reveals |
 | 5 | 3D | One real 3D phone built in code with three.js, showing the real app screens: floating on the first screen, and pinned through How it works while its screen changes per step. CSS depth elsewhere |
 | 6 | Pictures of the app | Real screenshots from `backend/marketing/shots.py` (Oak Phone), shrunk to WebP, Khmer and English sets |
+| 8 | Options page | Not made: the founder said "do all now" (2026-11-05), so the recommended picks are built, 1A 2A 3A 4A 5A 6A (gold accent, natural titanium phone, phone under the buttons, words sharpening then a light sweep, pinned phone, light grain and vignette); any of them can change after the founder sees the page |
 | 7 | Cinematic ("also make it cinematic") | A short opening title sequence, a moving 3D camera and a light sweeping across the phone, each How it works step framed like a film shot, light film grain and a vignette (section 4.1) |
 
 Cost accepted (Rule 3): $0, no new service; one new library (`three`,
