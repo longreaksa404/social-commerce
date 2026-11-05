@@ -150,7 +150,8 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
 
 ```
 /
-├── CLAUDE.md                  Rules for Claude Code sessions (hard rules, commands)
+├── AGENTS.md                  Rules for coding agents (Codex, Claude): hard rules, commands, preferences
+├── CLAUDE.md                  Imports AGENTS.md, plus Claude-only notes
 ├── .env.example               Every env var name; one root .env serves compose, backend and Vite
 ├── docker-compose.yml         Local Postgres 16 only (localhost:5432)
 ├── render.yaml                Render Blueprint for the API (free plan, Singapore, deploys after CI passes)
