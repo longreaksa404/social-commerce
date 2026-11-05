@@ -30,13 +30,14 @@ row to the content log as Draft.
 ## Before day 1
 
 1. **Launch day (L).** Pick the date. Videos 003–005 say it.
-2. **Fresh app pictures.** Run `backend/marketing/shots.py --video`: the
-   pictures on disk still show the shoe shop Oak Fashion. Then change
-   `linkCard`'s title in `.claude/skills/oak-video-edit/hyperframes/kit.mjs`
-   to "Oak Phone · Oak Order" and redo MARKETING_FACTS section 10
-   (04_STATUS.md, Next Up, step 2).
-3. **Facts check.** MARKETING_FACTS was last checked against the code on
-   2026-10-27. Claude Code checks it again before video 003.
+2. **Fresh app pictures.** Done 2026-11-05: `shots.py --video` made the
+   Oak Phone pictures and clips, `linkCard`'s title reads "Oak Phone · Oak
+   Order", and MARKETING_FACTS section 10 describes them. Still to do
+   before 005: `linkCard`'s picture is cut from `01_shop` at the old
+   cover position; the cover now starts at the very top under the round
+   moon, language and cart buttons, so the card needs the cover photo
+   itself.
+3. **Facts check.** Done 2026-11-05 (MARKETING_FACTS section 9).
 4. **Missing screens** (needed from video 010). `shots.py` doesn't make these
    yet: the checkout map pin; the Send to driver message; the start page and
    sign-up with Telegram; the "Get your shop ready" checklist; Payments →
@@ -151,7 +152,8 @@ Screens are paths under `backend/marketing/out/` (Khmer: `km/`, `video/km_…`).
 - Story: hook with the day count → a shop link pasted into a Telegram chat
   turns into its picture card → the Oak Order wordmark → "Opens [date]. Free
   for your first 30 days, no card." → first sellers: message on Telegram.
-- Screens: `linkCard()`, brand/oak-order-name.png, km/01_shop.png.
+- Screens: `linkCard()` (its picture: see "Before day 1", step 2),
+  brand/oak-order-name.png, km/01_shop.png.
 
 ### Launch day
 

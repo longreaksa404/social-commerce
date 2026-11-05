@@ -132,7 +132,7 @@ ${overlay}
 
 // ---------- the shop link's preview card (the picture card a link gets in Facebook and Telegram) ----------
 export const LINK_ICON = '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#12a37a" stroke-width="2.4" stroke-linecap="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>';
-export function linkCard({ w = 860, h = 447, title = 'Oak Fashion · Oak Order', url = 'order.oaksolve.com/shop/zdpb5d', cover = '01_shop' } = {}) {
+export function linkCard({ w = 860, h = 447, title = 'Oak Phone · Oak Order', url = 'order.oaksolve.com/shop/zdpb5d', cover = '01_shop' } = {}) {
   const html = top => `<div class="lp" style="top:${top}px"><div class="lp-img"></div><div class="lp-b"><div class="lp-t">${title}</div><div class="lp-u">${LINK_ICON}${url}</div></div></div>`;
   const css = `.lp { position:absolute; left:0; width:${w}px; height:${h}px; background:#fff; border-radius:30px; overflow:hidden; box-shadow:0 30px 70px rgba(0,0,0,.4); }
     .lp-img { height:287px; background:url(${IMG(cover)}) 0px -123px / 860px auto no-repeat; }

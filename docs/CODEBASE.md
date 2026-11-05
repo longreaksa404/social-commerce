@@ -300,7 +300,7 @@ cd frontend && npm install
 | Founder's commands | `python -m app.admin <command> <login>` (a phone number typed any way, or an older account's email; `auth.login_filter`), commands `reset-password`, `close-shop`, `reopen-shop`, `erase-shop` (backend), `test-shop [--name]` (a shop with an email login and no phone, for the load test: sign-up needs a phone checked in Telegram, one shop per number), `forget-customer <shop link name> <phone>` (`services/customer.forget`, shared with the admin's Remove since 2026-10-30; a customer's name becomes "(removed)"; phone, addresses, map pins and notes go from that shop's customer, orders and alert payloads; the orders' items and money stay; the Data deletion page promises it), and `admin-password <phone>` (a new password for an admin account, every browser on it logged out), and `move-photos <old> <new>` (rewrites the R2 address saved in `product.image_urls`, `store.logo_url` and `store.cover_url`, for `images.oaksolve.com`); `erase-shop` only for a closed shop, after typing its link name: a plain `DELETE` of the seller cascades to the store and every tenant table, then `images.delete_store_files` empties `stores/<id>/` in R2; on the live DB with `DATABASE_URL='<Neon direct URL>'` in front (`docs/ADMIN.md`) |
 | Bot on a laptop | `python -m app.telegram_poll` (backend, beside uvicorn): answers your **test** bot by polling, since Telegram's webhook can't reach localhost. Needs the three `TELEGRAM_*` values in `.env` and `PUBLIC_API_URL` empty; refuses a bot that has a webhook (the live one) |
 | Performance audit tools | `backend/loadtest/seed_perf.py` (a local `social_commerce_perf` database with a 500-product shop; refuses anything but a local `*_perf` database) and `measure.py` (every endpoint's time, SQL statements and Postgres round trips), run from `backend/` with its venv; `backend/loadtest/README.md`, results in `docs/PERF_AUDIT.md` |
-| Marketing pictures and clips | `.venv/bin/python marketing/shots.py [--video] [--lang km en]` (backend, Postgres running; once: `.venv/bin/pip install -r marketing/requirements.txt && .venv/bin/playwright install --with-deps chromium`). Copies the founder's live demo shop through its public storefront (`DEMO_SHOP_SLUG`; GET requests only, no login) and seeds it, with six earlier orders, into a local `social_commerce_demo` (`marketing/demo_shop.py`; refuses anything but a local `*_demo` database), builds the frontend against its own API (ports 8011 API, 4180 site, 8091 photos; Telegram, R2, Sentry and sign-in providers blanked whatever `.env` says), and drives headless Chromium at 390 × 844 @3x through every step in "Marketing pictures and clips" below, in Khmer and English, into `backend/marketing/out/` (git-ignored). Each picture is checked: no console errors or failed requests, nothing fetched from outside this machine, no debug words, nothing loading (photos, placeholders, toasts, the order progress bar), Khmer drawn in Noto Sans Khmer. The browser clock is frozen and the new orders' API times, and the two times inside their KHQR, are pinned (`demo_shop.NOW`, `ORDER_TIME`), so reruns give the same PNGs (and the KHQR in them is past its date). The bell shows no number for a new order (UX check #20): the New tab counts it, the notifications page shows it unread |
+| Marketing pictures and clips | `.venv/bin/python marketing/shots.py [--video] [--lang km en]` (backend, Postgres running; on the founder's Windows laptop `.venv\Scripts\python.exe`, which works since 2026-11-05: Vite runs as `node node_modules/vite/bin/vite.js`; once: `.venv/bin/pip install -r marketing/requirements.txt && .venv/bin/playwright install --with-deps chromium`). Copies the founder's live demo shop through its public storefront (`DEMO_SHOP_SLUG`; GET requests only, no login) and seeds it, with six earlier orders, into a local `social_commerce_demo` (`marketing/demo_shop.py`; refuses anything but a local `*_demo` database), builds the frontend against its own API (ports 8011 API, 4180 site, 8091 photos; Telegram, R2, Sentry and sign-in providers blanked whatever `.env` says), and drives headless Chromium at 390 × 844 @3x through every step in "Marketing pictures and clips" below, in Khmer and English, into `backend/marketing/out/` (git-ignored). Each picture is checked: no console errors or failed requests, nothing fetched from outside this machine, no debug words, nothing loading (photos, placeholders, toasts, the order progress bar), Khmer drawn in Noto Sans Khmer. The browser clock is frozen and the new orders' API times, and the two times inside their KHQR, are pinned (`demo_shop.NOW`, `ORDER_TIME`), so reruns give the same PNGs (and the KHQR in them is past its date). The bell shows no number for a new order (UX check #20): the New tab counts it, the notifications page shows it unread |
 | Marketing videos (HyperFrames) | The `oak-video-edit` skill (`.claude/skills/oak-video-edit/`), run natively on the founder's Windows laptop, not the dev container. `scripts/voice.mjs` makes the four Khmer voice MP3s with Gemini (speaker and style lines read from `docs/02_video_playbook.md`), and `scripts/tighten.mjs` shortens a take's long pauses (and, asked, its sighs) without cutting words. The edit is HyperFrames (HeyGen's open-source HTML-to-MP4 renderer, the Claude Code plugin `hyperframes@hyperframes`): `hyperframes/timing.mjs` measures the voice into `timing.json`, `hyperframes/make.mjs` runs the video's `film.mjs` (copied from `hyperframes/films/`, built from `hyperframes/kit.mjs`: the iPhone with the shots.py screens, the cursor, titles, sound cues, the root with music and voice) into a HyperFrames project `hf/` in the video's folder and copies its assets, and `hyperframes/hf.mjs` runs the plugin's CLI there (check, snapshot, preview, render); `hyperframes/master.mjs` brings the rendered MP4's sound to -15 LUFS. The older CapCut path stays: `scripts/build.mjs` copies the CapCut draft `oak-template` and lays out a shot list's SHOT lines through the founder's capcut-mcp fork (`~/mcp/capcut-mcp`, branch `oak`), CapCut closed while a draft is written |
 | Frontend dev server | `npm run dev`: http://localhost:5173 |
 | Frontend lint | `npm run lint` (oxlint) |
@@ -360,8 +360,8 @@ takes about 9 minutes with `--video`, 3 without.
 
 The shop is the live demo shop as it is on the day of the run. The customer
 buys its newest product with options in the middle option, then the next
-one (now the iPhone 18 Pro Max, 256GB · Burgundy, then the iPhone 18 Pro,
-256GB · Glacier); the chat order takes the product or option with 6 to 8
+one (now the iPhone 18 Pro Max, 1TB · Burgundy, then the iPhone 18 Pro,
+512GB · Glacier); the chat order takes the product or option with 6 to 8
 in stock (now the MagSafe Charger, 1m: 7) down to the low-stock level, 5. Skipped,
 with a note at the start and the end of the run: 10–12 without
 `DEMO_BAKONG_ID` (and `DEMO_KHQR_ACCOUNT` with ABA's shared ID; the second
@@ -370,11 +370,11 @@ stock.
 
 | File | What it shows | Length |
 |---|---|---|
-| `01_shop.png` | The shop's top: cover, logo, name, description, the delivery fee, ways to pay, the bill discount | still |
-| `02_products` | The category tabs and the product grid | still |
-| `03_product` | The product the customer opens: photos, price, sizes | still |
-| `04_option` | The middle size picked | still |
-| `05_checkout` | Checkout: name, phone, Delivery, the address, cash on delivery, Place order | still |
+| `01_shop.png` | The shop's top: the cover from the very top, logo, name, description, the bill discount, the category chips | still |
+| `02_products` | The category chips and the product grid | still |
+| `03_product` | The product the customer opens: photos, price, options | still |
+| `04_option` | The middle option picked | still |
+| `05_checkout` | Your cart: name, phone, the Delivery tile, the address, cash on delivery, Place order | still |
 | `06_confirmation` | "Thank you": order A placed, cash on delivery | still |
 | `07_dashboard` | The Orders tab with order A on top, new | still |
 | `08_order` | Order A opened: Reject / Accept | still |
@@ -392,21 +392,21 @@ stock.
 | `20_low_stock_product` | That product, opened from the alert: its option at 5 in stock | still |
 | `21_parcel_slip` | Order C's parcel slip (⋯ → Receipt): "COLLECT … CASH" | still |
 | `22_customers` | The Customers tab: seven customers | still |
-| `video/<lang>_00_shop_link.mp4` | The hook: the shop as a link opens it, then a slow scroll down the products (no order on the phone yet) | 10 s |
-| `<lang>_customer.mp4` | The customer's whole first order, 01 to 06, as they'd tap it | 26 s |
-| `<lang>_01_shop.mp4` | Cut from it: the shop, a scroll, the product opened | 9.5 s |
-| `<lang>_03_option` | Cut: the size picked | 5.5 s |
-| `<lang>_05_checkout` | Cut: Buy now, the details typed, Delivery, cash on delivery | 12 s |
-| `<lang>_06_order_placed` | Cut: Place order, "Thank you" | 5.5 s |
-| `<lang>_order_arrives` | The Orders tab as order A arrives (it checks every 30 s) and the seller opens it | 10.5 s |
-| `<lang>_10_khqr` | 10–12: from the payment choices (Delivery picked off camera): KHQR, Place order, the pay popup sliding up, "I've paid" | 11.5 s |
-| `<lang>_13_tracking` | 13: the truck at the shop's top, then order B on its way | 6 s |
-| `<lang>_14_accept_to_complete` | 14–15: Accept, then "Delivered, cash received": completed | 8 s |
-| `<lang>_16_share` | 16: Products → the product → Share → Facebook ("Link copied": the headless browser has no share list to film) | 11 s |
-| `<lang>_17_chat_order` | 17–18: the phone typed, name and address filled in, the product searched and picked, Save order | 11.5 s |
-| `<lang>_19_low_stock` | 19–20: the bell, the alert, the product | 8–9 s |
-| `<lang>_21_parcel_slip` | 21: ⋯ → Receipt, the slip | 6 s |
-| `<lang>_22_customers` | 22: the Customers tab, then a customer's page | 8 s |
+| `video/<lang>_00_shop_link.mp4` | The hook: the shop as a link opens it, then a slow scroll down the products (no order on the phone yet) | 10.3 s |
+| `<lang>_customer.mp4` | The customer's whole first order, 01 to 06, as they'd tap it | 23.1–23.3 s |
+| `<lang>_01_shop.mp4` | Cut from it: the shop, a scroll, the product opened | 8.9 s |
+| `<lang>_03_option` | Cut: the option picked | 5.1–5.2 s |
+| `<lang>_05_checkout` | Cut: Buy now, the details typed, Delivery, cash on delivery | 10.4–10.6 s |
+| `<lang>_06_order_placed` | Cut: Place order, "Thank you" | 4.7 s |
+| `<lang>_order_arrives` | The Orders tab as order A arrives (it checks every 30 s) and the seller opens it | 9.8–9.9 s |
+| `<lang>_10_khqr` | 10–12: from the payment choices (Delivery picked off camera): KHQR, Place order, the pay popup sliding up, "I've paid" | 9.6 s |
+| `<lang>_13_tracking` | 13: the truck at the shop's top, then order B on its way | 5.1–5.2 s |
+| `<lang>_14_accept_to_complete` | 14–15: Accept, then "Delivered, cash received": completed | 7 s |
+| `<lang>_16_share` | 16: Products → the product → Share → Facebook ("Link copied": the headless browser has no share list to film) | 8.8 s |
+| `<lang>_17_chat_order` | 17–18: the phone typed, name and address filled in, the product searched and picked, Save order | 10 s |
+| `<lang>_19_low_stock` | 19–20: the bell, the alert, the product | 6.8–6.9 s |
+| `<lang>_21_parcel_slip` | 21: ⋯ → Receipt, the slip | 5.6 s |
+| `<lang>_22_customers` | 22: the Customers tab, then a customer's page | 6.9–7 s |
 
 ---
 
