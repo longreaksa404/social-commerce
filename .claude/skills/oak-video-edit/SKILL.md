@@ -137,6 +137,12 @@ the kit's `rootIndex` turns that into the root composition.
 ## The voice
 
 - **VOICE times** are the plan; the real MP3 lengths decide the film.
+- **The speaker** is the playbook's (Achird) unless the shot list has a `SPEAKER <Gemini voice>` line.
+  Video 003 (founder, 2026-11-05): a female voice, Callirrhoe (easy-going, casual; picked over Sulafat
+  on a pain-block test), and **one expression for the whole video**: the same style line on all four
+  blocks, not a mood per block. List the voices for free: `GET /v1beta/voices` (named ones are
+  `type: prebuilt`, multilingual; none is Khmer). Test a candidate with `--only 2` in a copy of the
+  shot list in `voice-test/<name>/` (one clip each).
 - In VOICE text, English words are spelled in Khmer letters (Order → អូឌ័រ,
   chat → ឆាត, Telegram → តេឡេក្រាម, KHQR → ខេអេចឃ្យូអា) or the voice mispronounces
   them; on-screen titles keep the English. New spellings go in the playbook's

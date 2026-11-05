@@ -1,5 +1,6 @@
 // Make the 4 voice MP3s for a shot list with Gemini TTS (Interactions API). Never prints the key.
-// Speaker and style lines come from docs/02_video_playbook.md "Voice recipe" unless a VOICE line has its own style.
+// Speaker and style lines come from docs/02_video_playbook.md "Voice recipe" unless the shot list has a SPEAKER line
+// or a VOICE line has its own style.
 // Usage: node voice.mjs <shotlist.txt> [--only 2] [--force] [--check]
 //   existing MP3s are kept unless --force (all) or --only <n> (that block); --check transcribes each new block
 import fs from 'fs';
@@ -81,8 +82,9 @@ async function transcribe(file) {
   return /[A-Za-z]+(\s+[A-Za-z',.]+){3,}/.test(heard) && !heard.includes('[INSTRUCTION SPOKEN]') ? `${heard} [INSTRUCTION SPOKEN?]` : heard;
 }
 
-const voice = await voiceId(speaker);
-console.log(`speaker ${speaker} (${voice}), model ${MODEL}, into ${dir}`);
+const who = plan.speaker || speaker;
+const voice = await voiceId(who);
+console.log(`speaker ${who} (${voice})${plan.speaker ? ' from the shot list' : ''}, model ${MODEL}, into ${dir}`);
 for (const v of plan.voices) {
   const out = path.join(dir, `${logNo(plan.video)}_${v.n}_${v.name}.mp3`);
   const redo = force || only === v.n;

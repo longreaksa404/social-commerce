@@ -16,12 +16,14 @@ function parseRange(s) {
 function field(x) { const i = x.indexOf(':'); return i < 0 ? [x.trim().toLowerCase(), ''] : [x.slice(0, i).trim().toLowerCase(), x.slice(i + 1).trim()]; }
 
 export function parseShotList(text) {
-  const plan = { video: null, voices: [], audio: null, shots: [], endCard: false };
+  const plan = { video: null, speaker: null, voices: [], audio: null, shots: [], endCard: false };
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.trim();
     if (!line || line.startsWith('#') || line.startsWith('```')) continue;
     const [head, ...rest] = line.split('|').map(s => s.trim());
     if (/^VIDEO\s/i.test(head)) plan.video = head.replace(/^VIDEO\s+/i, '').trim();
+    // SPEAKER <Gemini voice>: this video's voice instead of the playbook's Speaker
+    else if (/^SPEAKER\s/i.test(head)) plan.speaker = head.replace(/^SPEAKER\s+/i, '').trim();
     else if (/^VOICE\s+\d/i.test(head)) {
       // VOICE <n> | <start>–<end> | <name> | <voice text> [| style: ...]
       const [times, name, voiceText, ...opts] = rest;
