@@ -20,7 +20,7 @@ no new paid service, infrastructure, schema, endpoint or screen design.
 
 - Working English name: **Oak Wear**. Confirm before creating the live
   shop; the name is not settled.
-- Everyday casual clothing, with consistent studio or flat-lay photos.
+- Everyday casual clothing, with a natural mix of studio and flat-lay photos.
 - Khmer-first product names and short descriptions. Prepare English and
   Khmer copy for founder review. Seller-entered catalogue text is not
   translated by the UI language switch: use short bilingual names or put
@@ -78,8 +78,12 @@ product: 14 product photos, one logo and one cover.
 
 - Prefer original AI-generated studio or flat-lay photos of generic,
   unbranded garments. Apply the imagegen skill when generating them.
-- Keep background, lighting and framing consistent. Use portrait images
-  around 4:5 showing the entire garment.
+- Use varied photo proportions so the shop feels like a real social-selling
+  catalogue: some portrait (for example 4:5 or 3:4), some landscape (for
+  example 4:3 or 3:2), and a few near-square images. Do not make every
+  image square or force every garment into the same crop. Keep the garment
+  fully visible and use a consistent visual style, lighting and background
+  even when the canvas size changes.
 - Photos must match the garment and available colours. Prepare a matching
   photo for each offered colour before publishing; a shared photo can show
   multiple actual colourways. Stay within the app's five-photo limit.
