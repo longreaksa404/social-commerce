@@ -275,6 +275,137 @@ def check_steps_reduced(browser: Browser) -> None:
     walk_steps(browser, 390, 844, reduced=True)
 
 
+# Task 5: the opening sequence.
+
+BLOCK_STORAGE = """Object.defineProperty(window, 'sessionStorage', {
+  get() { throw new Error('storage blocked') },
+})"""
+
+
+def fresh(browser: Browser, reduced: bool = False, script: str = "") -> Page:
+    """A new tab on / that hasn't seen the intro; returns as soon as the
+    page's main is in the DOM (no waiting for the fade or the fonts)."""
+    context = browser.new_context(
+        viewport={"width": 390, "height": 844},
+        reduced_motion="reduce" if reduced else "no-preference",
+    )
+    if script:
+        context.add_init_script(script)
+    page = context.new_page()
+    page.errors = []  # type: ignore[attr-defined]
+    page.on("pageerror", lambda error: page.errors.append(str(error)))  # type: ignore[attr-defined]
+    page.goto(OPTS["url"] + "/", wait_until="commit")
+    page.wait_for_selector("main[data-home]", state="attached")
+    return page
+
+
+def intro(page: Page) -> str:
+    return page.get_attribute("main[data-home]", "data-intro") or ""
+
+
+def never_playing(page: Page, where: str) -> None:
+    for _ in range(20):
+        assert intro(page) != "playing", f"{where}: the intro played"
+        page.wait_for_timeout(50)
+
+
+@check
+def check_intro_once(browser: Browser) -> None:
+    page = fresh(browser)
+    assert intro(page) == "playing", f"first visit: data-intro={intro(page)!r}"
+    page.wait_for_function(
+        "() => document.querySelector('main').dataset.intro === 'done'", timeout=2500
+    )
+    page.reload(wait_until="commit")
+    page.wait_for_selector("main[data-home]", state="attached")
+    never_playing(page, "after a reload")
+    page.context.close()
+
+
+@check
+def check_intro_tap(browser: Browser) -> None:
+    page = fresh(browser)
+    page.wait_for_timeout(150)
+    assert intro(page) == "playing", "the intro wasn't playing at 150 ms"
+    button = page.locator("[data-cta=create]").first
+    box = button.bounding_box()
+    assert box, "no Create your shop"
+    x, y = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+    on_top = page.evaluate(
+        "([x, y]) => !!document.elementFromPoint(x, y)?.closest('[data-cta=create]')", [x, y]
+    )
+    assert on_top, "something covers Create your shop during the intro"
+    page.mouse.click(x, y)
+    page.wait_for_url("**/register", timeout=3000)
+    page.context.close()
+
+
+@check
+def check_intro_scroll(browser: Browser) -> None:
+    page = fresh(browser)
+    page.wait_for_selector("[data-cta=create]")
+    page.wait_for_timeout(200)
+    assert intro(page) == "playing", "the intro wasn't playing at 200 ms"
+    page.mouse.move(195, 400)
+    page.mouse.wheel(0, 400)
+    page.wait_for_timeout(150)
+    assert intro(page) == "done", f"a scroll didn't end the intro: {intro(page)!r}"
+    page.context.close()
+
+
+@check
+def check_intro_reduced(browser: Browser) -> None:
+    page = fresh(browser, reduced=True)
+    never_playing(page, "reduce motion")
+    names = page.evaluate(
+        "() => [...document.querySelectorAll('.home-glow')]"
+        ".map((e) => getComputedStyle(e).animationName)"
+    )
+    assert names and all(name == "none" for name in names), f"glows drift: {names}"
+    page.context.close()
+
+
+@check
+def check_intro_storage_blocked(browser: Browser) -> None:
+    page = fresh(browser, script=BLOCK_STORAGE)
+    assert intro(page) == "playing", f"storage blocked: data-intro={intro(page)!r}"
+    page.wait_for_timeout(1800)
+    assert intro(page) == "done", "storage blocked: the intro didn't end"
+    assert not page.errors, f"page errors: {page.errors}"  # type: ignore[attr-defined]
+    page.context.close()
+
+
+@check
+def check_intro_back(browser: Browser) -> None:
+    page = fresh(browser)
+    page.wait_for_function(
+        "() => document.querySelector('main').dataset.intro === 'done'", timeout=2500
+    )
+    page.locator("[data-cta=demo]").click()
+    page.wait_for_url("**/shop/zdpb5d")
+    page.go_back(wait_until="commit")
+    page.wait_for_selector("main[data-home]", state="attached")
+    never_playing(page, "after Back")
+    page.context.close()
+
+
+@check
+def check_night_behind(browser: Browser) -> None:
+    page = fresh(browser)
+    night = "getComputedStyle(document.body).backgroundColor"
+    first = page.evaluate(night)
+    assert first == "rgb(11, 19, 32)", f"not navy before the app: {first!r}"
+    bar = "document.querySelector('meta[name=theme-color]').content"
+    assert page.evaluate(bar) == "#0b1320", f"browser bar: {page.evaluate(bar)}"
+    page.locator("[data-cta=login]").click(force=True)
+    page.wait_for_url("**/login")
+    page.wait_for_selector("main[data-home]", state="detached")
+    left = page.evaluate(night)
+    assert left != "rgb(11, 19, 32)", f"still navy behind /login: {left!r}"
+    assert page.evaluate(bar) == "#ffffff", f"browser bar on /login: {page.evaluate(bar)}"
+    page.context.close()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--url", default=OPTS["url"])

@@ -510,6 +510,12 @@
   body {
     @apply bg-slate-50 text-slate-900 antialiased;
   }
+  /* The start page: night navy from the first paint, before the app loads
+     (index.html adds the class on /, pages/home/Home.tsx takes it off). */
+  :root.home-night,
+  :root.home-night body {
+    background: var(--color-night);
+  }
 
   /* Number fields: no tiny spinner arrows; phones show a number pad anyway. */
   input[type='number']::-webkit-inner-spin-button,

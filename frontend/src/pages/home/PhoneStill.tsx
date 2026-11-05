@@ -13,12 +13,15 @@ export function PhoneStill({
   priority = false,
   className = '',
   style,
+  sweep,
 }: {
   screen: Screen
   lang: Lang
   priority?: boolean
   className?: string
   style?: CSSProperties
+  /** A light band crosses the glass each time this changes. */
+  sweep?: number
 }) {
   const t = useT()
   const src = screenUrl(lang, screen)
@@ -56,6 +59,8 @@ export function PhoneStill({
               className={`${image} transition-opacity duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] ${next.loaded ? 'opacity-100' : 'opacity-0'}`}
             />
           )}
+          <span aria-hidden className="home-phone-sweep" />
+          {sweep !== undefined && <span key={sweep} aria-hidden className="home-phone-sweep home-phone-sweep-run" />}
           <span aria-hidden className="home-phone-island" />
         </div>
       </div>

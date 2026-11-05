@@ -86,6 +86,7 @@ export function HowItWorks() {
           <PhoneStill
             screen={STEP_SCREENS[step]}
             lang={lang}
+            sweep={step}
             className={`w-[min(60vw,26svh)] lg:w-[min(320px,34svh)] ${fade}`}
             style={{ transform: `perspective(1600px) ${TURNS[step]}` }}
           />

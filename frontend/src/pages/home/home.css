@@ -116,3 +116,134 @@
     transition: none;
   }
 }
+
+/* The opening (useIntro, main[data-intro]): the light behind the phone
+   rises, the headline's words sharpen one by one, the phone rises out of
+   the dark and a band of light crosses it, then the rest. Only opacity,
+   translate, scale and filter, on things already on the page: every link
+   works from the first frame. 'done' drops the animations. */
+@keyframes home-word {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+}
+@keyframes home-rise {
+  from {
+    opacity: 0;
+    translate: 0 40px;
+  }
+}
+@keyframes home-fade {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+@keyframes home-glow-in {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+@keyframes home-sweep {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 100% 0;
+  }
+}
+[data-intro='playing'] .home-word {
+  animation: home-word 0.7s var(--home-ease) both;
+  animation-delay: calc(0.15s + var(--w) * 90ms);
+}
+[data-intro='playing'] .home-intro-glow {
+  animation: home-glow-in 1.2s var(--home-ease) both;
+}
+[data-intro='playing'] .home-intro-phone {
+  animation: home-rise 1s var(--home-ease) 0.35s both;
+}
+[data-intro='playing'] .home-intro-after {
+  animation: home-fade 0.7s var(--home-ease) both;
+  animation-delay: var(--d, 1s);
+}
+/* The top bar is outside main: it follows main's data-intro by :has(). */
+.home:has([data-intro='playing']) .home-topbar {
+  animation: home-fade 0.6s var(--home-ease) 0.1s both;
+}
+
+/* A band of light across the phone's glass: in the opening (the first
+   screen's phone) and each time How it works changes step. */
+.home-phone-sweep {
+  position: absolute;
+  inset: 0 -60%;
+  translate: -100% 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.22) 50%, transparent 60%);
+}
+[data-intro='playing'] .home-intro-phone .home-phone-sweep,
+.home-phone-sweep-run {
+  animation: home-sweep 1.1s var(--home-ease) 0.9s both;
+}
+.home-phone-sweep-run {
+  animation-delay: 0.15s;
+}
+
+/* The first screen dims and drifts back as it scrolls away (Hero sets
+   --leave, 0 to 1), like a cut through black into How it works. */
+.home-leave {
+  opacity: calc(1 - var(--leave, 0) * 0.7);
+  scale: calc(1 - var(--leave, 0) * 0.04);
+}
+
+/* The atmosphere (Atmosphere.tsx). */
+.home-glow {
+  position: absolute;
+  width: 80vmax;
+  height: 80vmax;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--c), transparent);
+  animation: home-drift var(--t) ease-in-out infinite alternate;
+}
+.home-glow-a {
+  --c: color-mix(in oklab, var(--color-night-glow) 45%, transparent);
+  --t: 48s;
+  top: -35vmax;
+  left: -25vmax;
+}
+.home-glow-b {
+  --c: color-mix(in oklab, var(--color-champagne) 6%, transparent);
+  --t: 60s;
+  top: 20vh;
+  right: -45vmax;
+}
+.home-glow-c {
+  --c: color-mix(in oklab, var(--color-night-glow) 30%, transparent);
+  --t: 40s;
+  bottom: -45vmax;
+  left: 5vw;
+}
+@keyframes home-drift {
+  to {
+    translate: 10vmax 7vmax;
+  }
+}
+.home-vignette {
+  background: radial-gradient(130% 95% at 50% 45%, transparent 60%, color-mix(in oklab, var(--color-night) 45%, transparent));
+}
+.home-grain {
+  background: url('/home/grain.webp') 0 0 / 128px;
+  opacity: 0.05;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-glow,
+  .home-phone-sweep-run {
+    animation: none;
+  }
+  .home-leave {
+    opacity: 1;
+    scale: 1;
+  }
+}

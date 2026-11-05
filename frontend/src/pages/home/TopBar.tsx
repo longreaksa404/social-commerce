@@ -13,7 +13,7 @@ export function TopBar() {
   const scrolled = useScrolled(40)
   return (
     <header
-      className={`sticky top-0 z-30 border-b pt-[env(safe-area-inset-top)] transition-colors duration-500 ${
+      className={`home-topbar sticky top-0 z-30 border-b pt-[env(safe-area-inset-top)] transition-colors duration-500 ${
         scrolled ? 'border-white/10 bg-night/70 backdrop-blur-md' : 'border-transparent'
       }`}
     >
