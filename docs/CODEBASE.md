@@ -483,6 +483,8 @@ starts a new transaction.
 
 ### Auth
 
+- Registration pick 1B (founder, 2026-11-05): Register shows Verify phone and Your shop as two numbered steps, with the active step in navy and named for screen readers; the phone check stays in a plain card. The local fake-verification button is removed. Checked in Chromium at 360px in Khmer, plus frontend lint and build.
+
 - **Phone number logins** (founder's choice 2026-10-09). `POST
   /auth/register` takes `store_name`, `password` and
   `phone_check` (and `full_name`, which the page no

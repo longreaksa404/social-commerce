@@ -18,11 +18,7 @@ import { AuthLayout } from './AuthLayout.tsx'
 const FIELDS = ['store_name', 'phone_check', 'password', 'confirm_password']
 const DRAFT_KEY = 'sc.register'
 
-/**
- * 2-Step Sign-up with Progressive Disclosure & Visual Polish:
- * Step 1: Connect and verify phone number via Telegram bot with guided micro-steps.
- * Step 2: Once verified, configure shop name (with live URL preview) and password (with strength & confirmation).
- */
+/** Verify a phone first, then name the shop and choose its password. */
 export function Register() {
   const { status, register } = useAuth()
   const navigate = useNavigate()
@@ -122,7 +118,7 @@ export function Register() {
 
   return (
     <AuthLayout
-      title={isVerified ? t.auth.register.step2Title : t.auth.createYourStore}
+      title={isVerified ? t.auth.register.setupTitle : t.auth.createYourStore}
       footer={
         <>
           {t.auth.register.haveAccount}{' '}
@@ -139,7 +135,7 @@ export function Register() {
         /* ──────── STEP 1: VERIFY PHONE WITH TELEGRAM ──────── */
         <div className="mt-6 space-y-4 animate-fade-in">
           {/* Telegram Phone Check Button / Component */}
-          <div className="rounded-2xl border border-slate-200 bg-surface p-4 shadow-xs">
+          <div className="rounded-xl border border-slate-300 bg-surface p-4">
             <PhoneCheck
               key={phoneKey}
               label={t.auth.register.phoneLabel}
@@ -158,27 +154,6 @@ export function Register() {
               }}
             />
           </div>
-
-          {/* Local Dev Helper (Only visible during local development for easy UI testing) */}
-          {import.meta.env.DEV && (
-            <div className="pt-1 text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setPhone({
-                    id: 'dev-demo-check-' + Date.now(),
-                    phone: '012345678',
-                    taken: false,
-                    expires_at: new Date(Date.now() + 1800000).toISOString(),
-                    telegram_url: 'https://t.me/example',
-                  })
-                }}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-500 hover:border-slate-400 hover:text-slate-800"
-              >
-                <span>⚡ Dev Preview: Simulate Telegram Verification</span>
-              </button>
-            </div>
-          )}
 
           <SocialButtons label={t.auth.social.orSignUp} />
         </div>
@@ -376,81 +351,38 @@ function calculateStrength(password: string): {
   return { score: 3, barColor: 'bg-emerald-500', textColor: 'text-emerald-600' }
 }
 
-/**
- * Centered 2-Step progress indicator showing current milestone.
- */
+/** Two numbered milestones; the current step is also named to screen readers. */
 function StepBar({ currentStep }: { currentStep: 1 | 2 }) {
   const t = useT()
-  const steps = [
-    { number: 1, label: t.auth.register.step1Title },
-    { number: 2, label: t.auth.register.step2Title },
-  ]
+  const steps = [t.auth.register.step1Title, t.auth.register.step2Title]
 
   return (
-    <div className="mx-auto flex w-full max-w-xs items-center justify-center">
-      {/* Step 1 */}
-      <div className="flex flex-col items-center">
-        <span
-          className={`flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 ${
-            currentStep > 1
-              ? 'bg-emerald-600 text-white shadow-xs'
-              : 'bg-accent text-on-accent shadow-xs'
-          }`}
-        >
-          {currentStep > 1 ? (
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="size-4"
+    <ol className="mx-auto grid w-full max-w-sm grid-cols-2 gap-4">
+      {steps.map((label, index) => {
+        const step = index + 1
+        const current = step === currentStep
+        return (
+          <li
+            key={step}
+            aria-current={current ? 'step' : undefined}
+            className="flex min-w-0 flex-col items-center gap-1.5 text-center"
+          >
+            <span
               aria-hidden
+              className={`flex size-8 items-center justify-center rounded-full text-xs font-semibold ${
+                current
+                  ? 'bg-accent text-on-accent'
+                  : 'border border-slate-300 bg-surface text-slate-500'
+              }`}
             >
-              <path d="M5 12.5l4.5 4.5L19 7.5" />
-            </svg>
-          ) : (
-            '1'
-          )}
-        </span>
-        <span
-          className={`mt-1.5 text-center text-xs font-medium whitespace-nowrap transition-colors ${
-            currentStep >= 1 ? 'text-slate-900 font-semibold' : 'text-slate-400'
-          }`}
-        >
-          {steps[0].label}
-        </span>
-      </div>
-
-      {/* Connecting line */}
-      <div className="mx-3 -mt-5 h-0.5 flex-1 rounded-full bg-slate-200 overflow-hidden">
-        <div
-          className={`h-full transition-all duration-500 ${
-            currentStep > 1 ? 'w-full bg-emerald-600' : 'w-0 bg-accent'
-          }`}
-        />
-      </div>
-
-      {/* Step 2 */}
-      <div className="flex flex-col items-center">
-        <span
-          className={`flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 ${
-            currentStep === 2
-              ? 'bg-accent text-on-accent shadow-xs ring-4 ring-navy-600/15'
-              : 'border-2 border-slate-300 bg-surface text-slate-400'
-          }`}
-        >
-          2
-        </span>
-        <span
-          className={`mt-1.5 text-center text-xs font-medium whitespace-nowrap transition-colors ${
-            currentStep === 2 ? 'text-slate-900 font-semibold' : 'text-slate-400'
-          }`}
-        >
-          {steps[1].label}
-        </span>
-      </div>
-    </div>
+              {step}
+            </span>
+            <span className={`text-xs ${current ? 'font-semibold text-slate-900' : 'text-slate-500'}`}>
+              {label}
+            </span>
+          </li>
+        )
+      })}
+    </ol>
   )
 }
