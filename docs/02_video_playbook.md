@@ -86,6 +86,7 @@ English words are spelled in Khmer letters in the voice text only; captions keep
 - Oak Order → អូក អូឌ័រ (check by ear: a test transcript heard "All Go Order"). Video 2 tried "Oak Order" in English letters at the start of a block: the plain check wrote "Book order", but asked about the name directly it heard "Oak". Video 2 v2 (Achird, "ជាមួយ Oak Order"): asked directly, gemini-3.6-flash heard "Oak Order" clearly. Listen to it before posting.
 - Telegram → តេឡេក្រាម
 - KHQR → ខេអេចឃ្យូអា (heard back as "KHQR", 2026-11-01)
+- TikTok → តិកតុក, Instagram → អ៊ីនស្តាក្រាម (video 005, 2026-11-06: the transcript heard "TikTok" and "Instagram"; Callirrhoe's "Oak Order" in English letters, asked directly, gemini-3.6-flash heard "Oak Order" clearly)
 - App → អែប, comment → ខមិន, Facebook → ហ្វេសប៊ុក (video 003, 2026-11-05: asked directly, gemini-3.6-flash heard "app" said like the English word and ខមិន as "comment"; the plain transcript misheard ភ្ញៀវខមិន, so ask before a retake)
 
 ## Winning hooks (update from REVIEW)
