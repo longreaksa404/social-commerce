@@ -427,16 +427,19 @@ export function Section({
   description,
   action,
   step,
+  className = '',
   children,
 }: {
   title: string
   description?: ReactNode
   action?: ReactNode
   step?: number
+  // Where it sits in a page's grid (the product form's columns).
+  className?: string
   children: ReactNode
 }) {
   return (
-    <Card className="p-4 sm:p-6">
+    <Card className={`p-4 sm:p-6 ${className}`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2.5 text-base font-semibold text-slate-900">

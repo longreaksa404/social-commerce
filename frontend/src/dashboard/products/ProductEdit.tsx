@@ -220,9 +220,17 @@ function ProductForm({ product }: { product?: Product }) {
         />
       )}
 
-      <form onSubmit={submit} className="space-y-4">
+      {/* Phones: photos, details, Show in shop, one under the other.
+          Laptops: what you type on the left, the photos and Show in shop
+          on the right, so name, price and options are on the first screen
+          beside the photo (founder's pick 6A, 2026-11-06). */}
+      <form
+        onSubmit={submit}
+        className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-6 xl:grid-cols-[minmax(0,1fr)_26rem]"
+      >
         <Section
           title={p.photos}
+          className="lg:col-start-2 lg:row-start-1"
         >
           {isNew ? (
             <NewProductPhotos photos={newPhotos} onChange={setNewPhotos} />
@@ -239,7 +247,7 @@ function ProductForm({ product }: { product?: Product }) {
         {/* One card for the product (founder's pick, 2026-10-08): name,
             then price and stock side by side, options, category, and the
             description last as it's optional. */}
-        <Section title={p.details}>
+        <Section title={p.details} className="lg:col-start-1 lg:row-span-2 lg:row-start-1">
           <Field label={p.name} error={fieldError(save.error, 'name')}>
             <Input
               required
@@ -297,7 +305,7 @@ function ProductForm({ product }: { product?: Product }) {
           </Field>
         </Section>
 
-        <Section title={p.visibility}>
+        <Section title={p.visibility} className="lg:col-start-2 lg:row-start-2">
           <Switch
             checked={draft.status === 'active'}
             onChange={(on) => set('status', on ? 'active' : 'inactive')}
@@ -305,12 +313,14 @@ function ProductForm({ product }: { product?: Product }) {
           />
         </Section>
 
-        <ErrorMessage error={formError(save.error, fields)} />
+        <div className="empty:hidden lg:col-span-2">
+          <ErrorMessage error={formError(save.error, fields)} />
+        </div>
 
         {/* Pinned to the bottom so Save is always in reach (floating at the
-            bottom of the column on wide screens). */}
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
-          <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
+            bottom of both columns on wide screens). */}
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:col-span-2 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
+          <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3 lg:max-w-none lg:px-5">
             <span className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
               {progress ??
                 (dirty ? t.common.unsaved : isNew ? '' : <SavedNote key={save.submittedAt} justSaved={save.isSuccess} />)}

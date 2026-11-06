@@ -74,7 +74,7 @@ function Shell() {
   const linksList = useMatch('/dashboard/links') !== null
   const settingsMenu = useMatch('/dashboard/settings') !== null
   const width =
-    orderScreen || ordersList || productsList
+    orderScreen || ordersList || productsList || productScreen
       ? 'max-w-3xl lg:max-w-7xl'
       : settingsMenu || settingsScreen
         ? 'max-w-3xl lg:max-w-6xl'
