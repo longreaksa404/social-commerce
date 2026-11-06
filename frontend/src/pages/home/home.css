@@ -173,15 +173,16 @@
   }
 }
 
-/* The opening (useIntro, main[data-intro]): the headline's words sharpen
-   one by one, the phone rises and a band of light crosses it, then the
-   rest. Only opacity, translate, scale and filter, on things already on the
-   page: every link works from the first frame. 'done' drops the
+/* The opening (useIntro, main[data-intro]): the headline's words fade in
+   one by one, the laptop and the phone rise and a band of light crosses
+   the phone, then the rest. Only opacity and translate, on things already
+   on the page: every link works from the first frame. 'done' drops the
    animations. */
+/* Opacity only: a blur on large Khmer type was the costliest frame of
+   the opening on cheap phones (2026-11-06). */
 @keyframes home-word {
   from {
     opacity: 0;
-    filter: blur(8px);
   }
 }
 @keyframes home-rise {

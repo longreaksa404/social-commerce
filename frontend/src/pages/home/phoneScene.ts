@@ -68,8 +68,9 @@ const FRONT = BODY.depth / 2 + BODY.bevel
 
 const FADE_S = 0.4
 const SWEEP_S = 1.1
-// The first 60 frames averaging over this: too slow, back to the picture.
-const SLOW_MS = 40
+// The first 60 frames averaging over this (under 40 a second): too slow,
+// back to the picture, so scrolling stays smooth (was 40 ms, 2026-11-06).
+const SLOW_MS = 25
 
 /** A rounded rectangle centred on 0, its UVs 0 to 1 across it. */
 function roundedRect(width: number, height: number, radius: number): Shape {

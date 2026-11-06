@@ -11,9 +11,9 @@ type State = 'off' | 'loading' | 'on'
  * (canUse3D) the 3D one over it, which fades in once drawn and hides the
  * picture. If the 3D one fails (too slow, the GPU lost) it goes and the
  * picture comes back. three.js (its own chunk) loads once `wait` is over
- * (the opening: building the scene stalls the page for a moment) and the
- * phone is near the screen. `follow`: lean toward the pointer and push in
- * on scroll (the first screen). */
+ * (the opening: building the scene stalls the page for a moment), the
+ * phone is near the screen and the browser is idle. `follow`: lean toward
+ * the pointer and push in on scroll (the first screen). */
 export function Phone3D({
   screen,
   lang,
@@ -57,7 +57,12 @@ export function Phone3D({
   useEffect(() => {
     if (state !== 'loading' || wait || !near) return
     let cancelled = false
-    const timer = window.setTimeout(() => {
+    // When the phone has nothing else to do (building the scene holds it
+    // for a moment), at the latest after 1.5 s.
+    const idle = 'requestIdleCallback' in window
+    const start = (build: () => void) =>
+      idle ? window.requestIdleCallback(build, { timeout: 1500 }) : window.setTimeout(build, 100)
+    const timer = start(() => {
       import('./phoneScene.ts')
         .then(({ createPhoneScene }) => {
           if (cancelled || !canvas.current || scene.current) return
@@ -76,10 +81,11 @@ export function Phone3D({
           scene.current.setRunning(latest.current.visible && !document.hidden)
         })
         .catch(() => setState('off'))
-    }, 100)
+    })
     return () => {
       cancelled = true
-      window.clearTimeout(timer)
+      if (idle) window.cancelIdleCallback(timer)
+      else window.clearTimeout(timer)
     }
   }, [state, wait, near])
 
@@ -129,7 +135,8 @@ export function Phone3D({
     }
   }, [follow, state])
 
-  const fade = 'transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]'
+  // Short, so the picture and the 3D phone are seen together only briefly.
+  const fade = 'transition-opacity duration-300 ease-out'
   return (
     <div className="relative">
       <div data-still className={`${fade} ${state === 'on' ? 'opacity-0' : 'opacity-100'}`}>
