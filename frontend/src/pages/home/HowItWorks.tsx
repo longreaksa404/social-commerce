@@ -9,13 +9,10 @@ const STEPS = ['share', 'order', 'pay', 'track'] as const
 const STEP_SVH = 80
 // The still phone turns a little at each step (the 3D one turns more).
 const TURNS = ['rotateY(-12deg) rotateX(4deg)', 'rotateY(8deg) rotateX(2deg)', 'rotateY(-6deg) rotateX(6deg)', 'rotateY(12deg) rotateX(3deg)']
-// The phone's width on phones: a quarter of the screen's height, but on
-// short screens (Safari with its bars, iPhone SE) what's left after the top
-// bar, the pinned section label, the words and gaps (about 350 px), plus
-// room for the 3D close-up
-// (the phone is 2.06 times as tall as wide, 2.3 with the close-up), so it
-// never goes under the top bar (founder's video, 2026-11-06).
-const PHONE_WIDTH = 'w-[min(60vw,26svh,calc((100svh_-_350px)/2.3))]'
+// The size container gets the height left after the full heading and
+// caption. 43% of that height leaves room for the 3D close-up (the phone
+// is about 2.3 times as tall as wide), including longer Khmer headings.
+const PHONE_WIDTH = 'w-[min(60vw,26svh,43cqh)]'
 
 /** How it works: the phone stays in place while the four steps scroll by,
  * its screen changing at each. On phones the step's words change under the
@@ -69,8 +66,8 @@ export function HowItWorks({ intro }: { intro: Intro }) {
   const fade = 'transition duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none'
   return (
     <section className="px-5 pt-24 sm:px-8 sm:pt-32">
-      <div className="mx-auto max-w-6xl">
-        <p data-reveal className="home-eyebrow hidden lg:block">
+      <div className="mx-auto hidden max-w-6xl lg:block">
+        <p data-reveal className="home-eyebrow">
           {steps.eyebrow}
         </p>
         <h2 data-reveal="wipe" className="home-display mt-3 max-w-2xl text-[clamp(1.85rem,6vw,3.25rem)]">
@@ -101,21 +98,24 @@ export function HowItWorks({ intro }: { intro: Intro }) {
           ref={stage}
           data-step-stage
           data-step-active={step}
-          className="sticky top-0 flex h-svh flex-col items-center justify-center gap-9 pt-[calc(7.5rem+env(safe-area-inset-top))] pb-6 lg:col-start-2 lg:row-start-1 lg:pt-16"
+          className="sticky top-0 flex h-svh flex-col items-center gap-4 pt-[calc(5rem+1px+env(safe-area-inset-top))] pb-6 lg:col-start-2 lg:row-start-1 lg:justify-center lg:gap-9 lg:pt-16"
         >
-          <p data-step-label className="home-eyebrow absolute top-[calc(5rem+1px+env(safe-area-inset-top))] left-0 lg:hidden">
-            {steps.eyebrow}
-          </p>
-          <Phone3D
-            screen={STEP_SCREENS[step]}
-            lang={lang}
-            shot={step as 0 | 1 | 2 | 3}
-            wait={intro === 'playing'}
-            className={`${PHONE_WIDTH} lg:w-[min(320px,34svh)] ${fade}`}
-            style={{ transform: `perspective(1600px) ${TURNS[step]}` }}
-          />
+          <div data-step-heading className="w-full shrink-0 lg:hidden">
+            <p data-step-label className="home-eyebrow">{steps.eyebrow}</p>
+            <h2 className="home-display mt-2 text-[clamp(1.5rem,5vw,1.85rem)]">{steps.title}</h2>
+          </div>
+          <div className="flex min-h-0 w-full flex-1 items-center justify-center [container-type:size] lg:contents">
+            <Phone3D
+              screen={STEP_SCREENS[step]}
+              lang={lang}
+              shot={step as 0 | 1 | 2 | 3}
+              wait={intro === 'playing'}
+              className={`${PHONE_WIDTH} lg:w-[min(320px,34svh)] ${fade}`}
+              style={{ transform: `perspective(1600px) ${TURNS[step]}` }}
+            />
+          </div>
           {/* Phones: the step's words under the phone, one at a time. */}
-          <div className="grid w-full max-w-sm lg:hidden">
+          <div className="grid w-full max-w-sm shrink-0 lg:hidden">
             {STEPS.map((key, index) => (
               <div
                 key={key}
