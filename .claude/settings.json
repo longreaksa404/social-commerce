@@ -3,5 +3,9 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "enabledPlugins": {
+    "superpowers@anthropic-plugin-directory": false,
+    "marketing@anthropic-plugin-directory": false
   }
 }
