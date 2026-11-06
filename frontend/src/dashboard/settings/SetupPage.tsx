@@ -1,4 +1,5 @@
 import { Check, ChevronRight } from 'lucide-react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { buttonClass } from '../../components/styles.ts'
 import { Button, Card } from '../../components/ui.tsx'
@@ -39,26 +40,45 @@ export function SetupPage() {
 
 /** The same steps at the top of Orders while the shop isn't ready (UX
  * check #3, 2026-10-17): a new seller's first screen says what to do next,
- * in order, with the next step's button in its row. */
+ * in order, with the next step's button in its row. Only the steps left
+ * show; the done ones fold into one row (founder's pick 10A, 2026-11-06:
+ * all six at full height hid every order on a 360px phone). Once the shop
+ * is open it's "Finish setting up", without "start taking orders". */
 export function SetupCard({ setup }: { setup: Setup }) {
   const s = useT().settings.setup
   const trialDays = usePlan().data?.trial_days ?? 30
+  const [showDone, setShowDone] = useState(false)
   const total = setup.steps.length
+  const open = setup.steps.some((x) => x.step === 'open' && x.done)
   const next =
     setup.steps.find((x) => !x.done && ESSENTIAL.has(x.step))?.step ?? setup.steps.find((x) => !x.done)?.step
   return (
     <Card className="mb-4">
-      <div className="px-4 pt-4 sm:px-6 sm:pt-5">
+      <div className="px-4 pt-4 pb-2 sm:px-6 sm:pt-5">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-base font-semibold text-slate-900">{s.readyTitle}</h2>
+          <h2 className="text-base font-semibold text-slate-900">{open ? s.finishTitle : s.readyTitle}</h2>
           <span className="shrink-0 text-sm text-slate-500 tabular-nums">{s.progress(setup.done, total)}</span>
         </div>
         <div aria-hidden className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
           <span className="block h-full rounded-full bg-brand" style={{ width: `${(setup.done / total) * 100}%` }} />
         </div>
-        <p className="mt-2 text-sm text-slate-600">{s.readyHint(trialDays)}</p>
+        {!open && <p className="mt-2 text-sm text-slate-600">{s.readyHint(trialDays)}</p>}
       </div>
-      <SetupSteps setup={setup} next={next} />
+      <SetupSteps setup={setup} next={next} onlyLeft={!showDone} />
+      {setup.done > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowDone((v) => !v)}
+          aria-expanded={showDone}
+          className="flex min-h-12 w-full items-center gap-3 border-t border-slate-100 px-4 py-2 text-left transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 sm:rounded-b-2xl sm:px-6"
+        >
+          <span aria-hidden className="flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
+            <Check className="size-3" strokeWidth={3} />
+          </span>
+          <span className="min-w-0 flex-1 text-sm text-slate-500">{s.doneCount(setup.done)}</span>
+          <span className="text-sm font-medium text-navy-700">{showDone ? s.hideDone : s.showDone}</span>
+        </button>
+      )}
     </Card>
   )
 }
@@ -68,11 +88,11 @@ const ROW =
 
 /** A row per step, each opening its page. `next` gets its button in the
  * row instead (Open shop asks first, as everywhere). */
-function SetupSteps({ setup, next }: { setup: Setup; next?: SetupStep }) {
+function SetupSteps({ setup, next, onlyLeft = false }: { setup: Setup; next?: SetupStep; onlyLeft?: boolean }) {
   const s = useT().settings.setup
   return (
     <ul className="divide-y divide-slate-100">
-      {setup.steps.map(({ step, done }) => {
+      {setup.steps.filter((x) => !onlyLeft || !x.done).map(({ step, done }) => {
         const body = (
           <>
             <span

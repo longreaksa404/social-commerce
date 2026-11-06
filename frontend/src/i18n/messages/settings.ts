@@ -330,6 +330,15 @@ export const settings = {
     // The same list on Orders while the shop isn't ready (UX check #3,
     // 2026-10-17).
     readyTitle: { en: 'Get your shop ready', km: 'រៀបចំហាងរបស់អ្នកឱ្យរួចរាល់' },
+    // Once the shop is open, with no line under it (pick 10A, 2026-11-06).
+    finishTitle: { en: 'Finish setting up', km: 'បញ្ចប់ការរៀបចំហាង' },
+    // On Orders the done steps fold into one row (pick 10A).
+    doneCount: {
+      en: (n: number) => `${n} done`,
+      km: (n: number) => `រួចរាល់ ${n}`,
+    },
+    showDone: { en: 'Show', km: 'បង្ហាញ' },
+    hideDone: { en: 'Hide', km: 'លាក់' },
     // `days`: the trial's length, set in the admin (D2B, 2026-10-30).
     readyHint: {
       en: (days: number) => `Do these to start taking orders. Opening starts your ${days}-day free trial.`,
