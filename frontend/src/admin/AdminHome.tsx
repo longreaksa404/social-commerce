@@ -157,7 +157,7 @@ function Needs({ data }: { data: AdminOverview }) {
             {data.needs.map((need) => (
               <li key={`${need.kind}-${need.store_id}`}>
                 <Link
-                  to={`/admin/shops/${need.store_id}`}
+                  to={`/admin/shops/${need.store_id}${need.kind === 'claim' ? '?tab=plan' : ''}`}
                   className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600"
                 >
                   <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-full bg-navy-50 font-semibold text-navy-700">

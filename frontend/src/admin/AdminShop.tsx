@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronRight, ExternalLink, Eye, Lock, Send, Trash2 } from 'lucide-react'
+import { CalendarDays, ChevronRight, ExternalLink, Eye, Lock, Send, Trash2, X } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
@@ -12,6 +12,7 @@ import { formatPhone } from '../lib/orders.ts'
 import type { AdminPayment, AdminShopDetail, PlanPayment, PlanPeriod } from '../lib/types.ts'
 import { PhoneBar } from './AdminHeader.tsx'
 import { DayList } from './AdminLog.tsx'
+import { useListParams } from './listParams.ts'
 import { logItem, type DayItem } from './logWords.ts'
 import { ShopLogo, StageWords } from './ShopBits.tsx'
 import { useAdminSettings, useAdminShop, useCheckClaim, useEraseShop, useMarkPaid, useSetShopOpen, useShopMoney } from './queries.ts'
@@ -33,10 +34,14 @@ const TAB_LABEL: Record<Tab, string> = { overview: 'Overview', plan: 'Plan', peo
  * date in ⋯ and on Plan, Undo on the latest payment. */
 export function AdminShop({ storeId }: { storeId: string }) {
   const shop = useAdminShop(storeId)
-  const [tab, setTab] = useState<Tab>('overview')
+  // The tab is in the address (?tab=plan, redesign pick 6A): Money's
+  // "Open plan" and Back land on the same tab.
+  const { params, update, listSearch } = useListParams()
+  const tab: Tab = TABS.find((t) => t === params.get('tab')) ?? 'overview'
+  const setTab = (next: Tab) => update({ tab: next === 'overview' ? null : next })
   return (
     <div className="min-w-0">
-      <PhoneBar back="/admin/shops" title={shop.data?.name ?? 'Shop'} sub={shop.data?.code} />
+      <PhoneBar back={`/admin/shops${listSearch}`} title={shop.data?.name ?? 'Shop'} sub={shop.data?.code} />
       {shop.isPending ? (
         <Skeleton className="h-96 w-full rounded-2xl" />
       ) : shop.error ? (
@@ -44,7 +49,7 @@ export function AdminShop({ storeId }: { storeId: string }) {
       ) : (
         <>
           <title>{`${shop.data.name} · Oak Order admin`}</title>
-          <Header shop={shop.data} onCheck={() => setTab('plan')} />
+          <Header shop={shop.data} onCheck={() => setTab('plan')} closeTo={`/admin/shops${listSearch}`} />
           <div role="tablist" aria-label={shop.data.name} className="mt-5 mb-4 flex gap-5 border-b border-slate-200">
             {TABS.map((key) => (
               <button
@@ -84,21 +89,30 @@ export function AdminShop({ storeId }: { storeId: string }) {
 // A plan reminder is worth sending while there's something to pay.
 const DUE = new Set(['ending_soon', 'overdue', 'stopped'])
 
-function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void }) {
+function Header({ shop, onCheck, closeTo }: { shop: AdminShopDetail; onCheck: () => void; closeTo: string }) {
   const [closing, setClosing] = useState(false)
   const [moving, setMoving] = useState(false)
   const [opening, setOpening] = useState(false)
   const [erasing, setErasing] = useState(false)
   return (
     <div className={`${cardClass} p-4 sm:p-5`}>
-      <div className="flex items-center gap-3">
+      <div className="flex items-start gap-3">
         <ShopLogo shop={shop} size="size-12" />
-        <div className="min-w-0">
-          <h1 className="truncate text-lg font-bold text-slate-900">{shop.name}</h1>
-          <p className="truncate text-sm text-slate-500">
-            <span className="font-semibold tracking-wide text-slate-700">{shop.code}</span> · /shop/{shop.slug}
+        <div className="min-w-0 flex-1">
+          {/* The whole name, on as many lines as it needs. */}
+          <h1 className="text-lg leading-snug font-bold break-words text-slate-900">{shop.name}</h1>
+          <p className="text-sm break-words text-slate-500">
+            <span className="font-semibold tracking-wide text-slate-700">{shop.code}</span> · /shop/{shop.slug} · Sells in{' '}
+            {shop.currency === 'KHR' ? 'riel' : 'dollars'}
           </p>
         </div>
+        <Link
+          to={closeTo}
+          aria-label="Close"
+          className="-mt-1 -mr-1 hidden size-10 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-navy-600 lg:inline-flex"
+        >
+          <X aria-hidden className="size-5" />
+        </Link>
       </div>
       <p className="mt-3 text-sm">
         <StageWords shop={shop} />
@@ -439,13 +453,16 @@ function Reopen({ shop }: { shop: AdminShopDetail }) {
 
 function Facts({ rows }: { rows: [string, ReactNode][] }) {
   return (
-    <dl className={`${cardClass} divide-y divide-slate-100`}>
-      {rows.map(([label, value]) => (
-        <div key={label} className="flex gap-4 px-4 py-3 text-sm">
-          <dt className="w-32 shrink-0 text-slate-500">{label}</dt>
-          <dd className="min-w-0 flex-1 text-slate-900">{value}</dd>
-        </div>
-      ))}
+    // Two columns once the shop page is wide enough (pick 6A).
+    <dl className={`${cardClass} @container overflow-hidden`}>
+      <div className="-mb-px grid @2xl:grid-cols-2">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex gap-4 border-b border-slate-100 px-4 py-3 text-sm">
+            <dt className="w-32 shrink-0 text-slate-500">{label}</dt>
+            <dd className="min-w-0 flex-1 break-words text-slate-900">{value}</dd>
+          </div>
+        ))}
+      </div>
     </dl>
   )
 }

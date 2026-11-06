@@ -66,7 +66,7 @@ export function AdminAnalytics() {
   const months = RANGES.find((n) => String(n) === params.get('months')) ?? 12
   const measure = MEASURES.find((m) => m.key === params.get('measure')) ?? MEASURES[0]
   const set = (key: string, value: string) => {
-    const next = new URLSearchParams(params)
+    const next = new URLSearchParams(window.location.search)
     next.set(key, value)
     setParams(next, { replace: true })
   }
