@@ -30,9 +30,9 @@ function HomePage() {
   useReveal(root)
   const intro = useIntro()
   return (
-    <div ref={root} className="home relative isolate min-h-dvh overflow-x-clip text-slate-900">
+    <div ref={root} className="home relative isolate min-h-dvh text-slate-900">
       <TopBar />
-      <main data-home data-intro={intro}>
+      <main data-home data-intro={intro} className="overflow-x-clip pt-[calc(4rem+1px+env(safe-area-inset-top))]">
         <Hero intro={intro} />
         <HowItWorks intro={intro} />
         <Features />
