@@ -24,9 +24,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import clock
 from app.models import NotificationChannel, NotificationLog, NotificationStatus, PlatformSetting
-from app.schemas.admin import AdminNoticeOut, AdminNoticesOut
+from app.schemas.admin import AdminNoticeOut, AdminNoticesOut, AdminServerHoursOut
 from app.schemas.plan import PlanStage
-from app.services import admin_system, jobs, monitor, platform
+from app.services import admin_system, awake, jobs, monitor, platform
 from app.services import plan as plan_service
 from app.services.admin import NOT_OPENED_DAYS, list_shops
 
@@ -235,6 +235,23 @@ def _error_notice() -> AdminNoticeOut | None:
     )
 
 
+def hours_notice(hours: AdminServerHoursOut | None, now: datetime) -> AdminNoticeOut | None:
+    """Render's free hours running low: once when the month is on pace to
+    run out, again (urgent) when nearly all are used."""
+    if hours is None or not hours.low:
+        return None
+    pace = f" · on pace for {hours.on_pace}" if hours.on_pace is not None else ""
+    return AdminNoticeOut(
+        key=f"hours:{awake.month_key(now)}:{'over' if hours.over else 'pace'}",
+        kind="server_hours",
+        severity="urgent" if hours.over else "warning",
+        title="Free server hours running low",
+        text=f"About {hours.used:.0f} of {hours.limit} hours used{pace}",
+        at=now,
+        href="/admin/system#speed",
+    )
+
+
 async def current(db: AsyncSession) -> list[AdminNoticeOut]:
     """Every notice of the moment, newest first (most urgent first at the
     same time; one with no time, last)."""
@@ -247,6 +264,9 @@ async def current(db: AsyncSession) -> list[AdminNoticeOut]:
     error = _error_notice()
     if error:
         notices.append(error)
+    hours = hours_notice(await awake.state(db), now)
+    if hours:
+        notices.append(hours)
     oldest = datetime.min.replace(tzinfo=UTC)
     return sorted(notices, key=lambda n: (-(n.at or oldest).timestamp(), SEVERITY[n.severity]))
 

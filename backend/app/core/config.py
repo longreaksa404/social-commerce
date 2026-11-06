@@ -86,6 +86,9 @@ class Settings(BaseSettings):
     # #15, 2026-10-24: 4,100 for now, set by hand until the admin page
     # holds it).
     khr_per_usd: int = Field(default=4100, ge=1000, le=10000)
+    # Render's free hours a month: the admin warns before they run out
+    # (services/awake.py). 0 once the service is on a paid plan.
+    render_free_hours: int = Field(default=750, ge=0)
 
     @property
     def facebook_configured(self) -> bool:

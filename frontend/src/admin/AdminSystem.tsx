@@ -53,6 +53,19 @@ function backupWords(backup: System['backup']): { text: string; tone: string } {
   return { text: `Backup saved ${ago(backup.last_at)}`, tone: '' }
 }
 
+/** Render's free hours this month (backend services/awake.py): amber when
+ * the month is on pace to run out, red once nearly all are used. */
+function ServerHours({ hours }: { hours: NonNullable<System['server_hours']> }) {
+  const since = new Date(hours.counted_from).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  return (
+    <span className={hours.over ? 'text-red-700' : hours.low ? 'text-amber-700' : undefined}>
+      About {Math.round(hours.used)} of {hours.limit}
+      {hours.on_pace !== null && ` · on pace for ${hours.on_pace}`}
+      {!hours.from_month_start && <span className="text-slate-500"> · counted since {since}</span>}
+    </span>
+  )
+}
+
 function Page({ system }: { system: System }) {
   const { speed, bot, backup } = system
   const late = system.jobs.filter((j) => j.late && !j.failing)
@@ -126,6 +139,7 @@ function Page({ system }: { system: System }) {
             ],
             ['Errors', `${speed.errors_hour} in the last hour · ${speed.errors_today} today`],
             ['Server up since', `${new Date(speed.started_at).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} (${ago(speed.started_at)})`],
+            ...(system.server_hours ? ([['Free server hours', <ServerHours key="h" hours={system.server_hours} />]] as [string, ReactNode][]) : []),
           ]}
         />
         <p className="mt-2 text-xs text-slate-500 sm:px-1">Counted by the server since it started; Render restarts it after a deploy or a quiet spell.</p>

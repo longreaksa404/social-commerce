@@ -22,7 +22,7 @@ from app.schemas.admin import (
     AdminSpeedOut,
     AdminSystemOut,
 )
-from app.services import jobs, monitor, platform, telegram
+from app.services import awake, jobs, monitor, platform, telegram
 from app.services.telegram import TelegramError
 
 
@@ -147,6 +147,7 @@ async def system(db: AsyncSession) -> AdminSystemOut:
     commit = os.environ.get("RENDER_GIT_COMMIT", "")
     return AdminSystemOut(
         speed=AdminSpeedOut(**speed.__dict__),
+        server_hours=await awake.state(db),
         jobs=job_states(runs),
         backup=backup_state(runs.get(BACKUP)),
         bot=await _bot(db),

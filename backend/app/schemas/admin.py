@@ -242,10 +242,25 @@ class AdminBackupOut(BaseModel):
     failing: bool  # the latest night failed
 
 
+class AdminServerHoursOut(BaseModel):
+    """Render's free hours this month, as this server counts its own awake
+    time (services/awake.py)."""
+
+    used: float  # hours this month, counted from counted_from
+    limit: int  # 750
+    counted_from: datetime
+    from_month_start: bool  # False: Render's own count is higher
+    on_pace: int | None  # the month's hours at this rate; None for 2 days
+    low: bool  # on pace for 93% or more, or 93% used
+    over: bool  # 93% used
+
+
 class AdminSystemOut(BaseModel):
     """The System page (parts 24 to 27, pick 12B)."""
 
     speed: AdminSpeedOut
+    # None off Render or on a paid plan (RENDER_FREE_HOURS=0).
+    server_hours: AdminServerHoursOut | None = None
     jobs: list[AdminJobOut]
     backup: AdminBackupOut
     bot: AdminBotOut
@@ -402,6 +417,7 @@ class AdminNoticeOut(BaseModel):
         "backup_failed",
         "backup_late",
         "errors",
+        "server_hours",
     ]
     severity: Literal["action", "urgent", "warning", "info"]
     title: str

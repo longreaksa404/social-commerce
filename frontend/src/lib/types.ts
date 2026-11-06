@@ -333,6 +333,19 @@ export type AdminSystem = {
     /** Changed words Telegram refused in 24 h, sent in the original. */
     refused: number
   }
+  /** Render's free hours this month, counted by the server itself; null
+   * off Render or on a paid plan. */
+  server_hours: {
+    used: number
+    limit: number
+    counted_from: string
+    /** False: counting began after the 1st, so Render's count is higher. */
+    from_month_start: boolean
+    /** The month's hours at this rate; null until 2 days are counted. */
+    on_pace: number | null
+    low: boolean
+    over: boolean
+  } | null
   database_bytes: number
   database_ms: number
   services: { name: string; set: boolean }[]
@@ -937,6 +950,7 @@ export type AdminNotice = {
     | 'backup_failed'
     | 'backup_late'
     | 'errors'
+    | 'server_hours'
   severity: 'action' | 'urgent' | 'warning' | 'info'
   title: string
   text: string

@@ -92,7 +92,7 @@ export function Tile({ label, value, children }: { label: string; value: ReactNo
 }
 
 // The bell's notices about the system itself, listed under the shops.
-const SYSTEM_KINDS = new Set<AdminNotice['kind']>(['job_failed', 'job_late', 'backup_failed', 'backup_late', 'errors'])
+const SYSTEM_KINDS = new Set<AdminNotice['kind']>(['job_failed', 'job_late', 'backup_failed', 'backup_late', 'errors', 'server_hours'])
 const TONE: Record<AdminNotice['severity'], string> = {
   action: 'text-navy-700',
   urgent: 'text-red-700',

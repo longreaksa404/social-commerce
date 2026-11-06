@@ -31,7 +31,7 @@ from app.api import (
 from app.core.config import get_settings
 from app.core.errors import install_error_handlers
 from app.core.ratelimit import limiter
-from app.services import as_seller, monitor
+from app.services import as_seller, awake, monitor
 from app.services.telegram import register_webhook
 
 settings = get_settings()
@@ -53,6 +53,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     if settings.telegram_configured and settings.public_api_url:
         await register_webhook()
     yield
+    # Render's free hours (services/awake.py): the awake time not saved yet.
+    if awake.enabled():
+        await awake.save_on_stop()
 
 
 app = FastAPI(title="Oak Order API", lifespan=lifespan)
