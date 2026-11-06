@@ -2,23 +2,26 @@ import { useState, type ReactNode } from 'react'
 import { useFeedback } from '../components/feedback.ts'
 import { cardClass } from '../components/styles.ts'
 import { Button, ErrorMessage, ErrorState, Field, Input, MoneyInput, Skeleton } from '../components/ui.tsx'
-import { AdminPageHeader } from './AdminHeader.tsx'
+import { useUnsavedChanges } from '../dashboard/useUnsavedChanges.ts'
 import { errorText } from '../lib/errors.ts'
 import type { AdminSettings as Settings } from '../lib/types.ts'
+import { AdminPageHeader } from './AdminHeader.tsx'
 import { useAdminSettings, useSaveSettings } from './queries.ts'
 import { date } from './shared.ts'
-import { Sheet } from './ui.tsx'
+import { SaveBar, Sheet } from './ui.tsx'
 import { usePasswordAgain } from './usePasswordAgain.tsx'
 
 type Form = { month: string; year: string; trial_days: string; khr_per_usd: string }
-
 const formOf = (s: Settings): Form => ({ month: s.month, year: s.year, trial_days: String(s.trial_days), khr_per_usd: String(s.khr_per_usd) })
 const usd = (amount: string) => `$${Number(amount).toFixed(2).replace(/\.00$/, '')}`
 
 /** /admin/settings (part 23 and D2B, founder's pick 11A, 2026-10-28):
  * Oak Order's own numbers on one page with one Save, nothing changed until
  * then. Save says who a change reaches, asks for the password again, and
- * each change goes in the log. */
+ * each change goes in the log. Redesign pick 15A (2026-11-06): "When you
+ * save" beside the fields says who each change reaches before Save; the
+ * Save bar is docked at the bottom (SaveBar); leaving with changes asks
+ * first (useUnsavedChanges). */
 export function AdminSettings() {
   const settings = useAdminSettings()
   return (
@@ -43,14 +46,15 @@ function SettingsForm({ settings }: { settings: Settings }) {
   const [form, setForm] = useState<Form>(() => formOf(settings))
   const [asking, setAsking] = useState(false)
   const saved = formOf(settings)
-
   const set = (key: keyof Form) => (value: string) => setForm((f) => ({ ...f, [key]: value }))
   const priceChanged = Number(form.month) !== Number(saved.month) || Number(form.year) !== Number(saved.year)
   const trialChanged = Number(form.trial_days) !== Number(saved.trial_days)
   const rateChanged = Number(form.khr_per_usd) !== Number(saved.khr_per_usd)
-  const dirty = priceChanged || trialChanged || rateChanged
+  const changes = [priceChanged, trialChanged, rateChanged].filter(Boolean).length
+  const dirty = changes > 0
   const valid =
     Number(form.month) > 0 && Number(form.year) > 0 && Number(form.trial_days) >= 1 && Number(form.trial_days) <= 365 && Number(form.khr_per_usd) >= 1000 && Number(form.khr_per_usd) <= 10000
+  useUnsavedChanges(dirty && !save.isPending)
 
   async function confirmSave() {
     try {
@@ -81,55 +85,71 @@ function SettingsForm({ settings }: { settings: Settings }) {
   if (rateChanged) reach.push(`The next currency switch converts at $1 = ${Number(form.khr_per_usd).toLocaleString('en-US')}៛.`)
 
   return (
-    <div className="max-w-2xl space-y-6 pb-24">
-      <Group title="Plan">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Month">
-            <MoneyInput currency="USD" required value={form.month} onChange={set('month')} />
-          </Field>
-          <Field label="Year" hint="From each shop's next payment.">
-            <MoneyInput currency="USD" required value={form.year} onChange={set('year')} />
-          </Field>
+    <>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,36rem)_minmax(16rem,22rem)]">
+        <div className="space-y-6">
+          <Group title="Plan">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Month">
+                <MoneyInput currency="USD" required value={form.month} onChange={set('month')} />
+              </Field>
+              <Field label="Year" hint="From each shop's next payment.">
+                <MoneyInput currency="USD" required value={form.year} onChange={set('year')} />
+              </Field>
+            </div>
+            <Field label="Free trial" hint="For shops opened from now." className="max-w-56">
+              <Input
+                type="number"
+                inputMode="numeric"
+                min="1"
+                max="365"
+                trailing={<span className="text-sm text-slate-500">days</span>}
+                value={form.trial_days}
+                onChange={(e) => set('trial_days')(e.target.value)}
+              />
+            </Field>
+          </Group>
+          <Group title="Currency">
+            <Field label="Riel rate" hint="Used when a shop switches currency." className="max-w-56">
+              <Input
+                type="number"
+                inputMode="numeric"
+                min="1000"
+                max="10000"
+                leading={<span className="text-sm font-medium">$1 =</span>}
+                trailing={<span className="text-sm text-slate-500">៛</span>}
+                value={form.khr_per_usd}
+                onChange={(e) => set('khr_per_usd')(e.target.value)}
+              />
+            </Field>
+          </Group>
         </div>
-        <Field label="Free trial" hint="For shops opened from now." className="max-w-56">
-          <Input
-            type="number"
-            inputMode="numeric"
-            min="1"
-            max="365"
-            trailing={<span className="text-sm text-slate-500">days</span>}
-            value={form.trial_days}
-            onChange={(e) => set('trial_days')(e.target.value)}
-          />
-        </Field>
-      </Group>
-      <Group title="Currency">
-        <Field label="Riel rate" hint="Used when a shop switches currency." className="max-w-56">
-          <Input
-            type="number"
-            inputMode="numeric"
-            min="1000"
-            max="10000"
-            leading={<span className="text-sm font-medium">$1 =</span>}
-            trailing={<span className="text-sm text-slate-500">៛</span>}
-            value={form.khr_per_usd}
-            onChange={(e) => set('khr_per_usd')(e.target.value)}
-          />
-        </Field>
-      </Group>
-
+        <section aria-labelledby="when-you-save" className={`${cardClass} p-4 sm:p-5 lg:sticky lg:top-5 lg:mt-7`}>
+          <h2 id="when-you-save" className="font-semibold text-slate-900">
+            {dirty ? 'When you save' : 'No changes'}
+          </h2>
+          {dirty ? (
+            <ul className="mt-2 space-y-2 text-sm leading-6 text-slate-600">
+              {reach.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-1 text-sm text-slate-500">Change a number to see who it reaches.</p>
+          )}
+        </section>
+      </div>
       {dirty && (
-        <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-20 flex items-center gap-2 rounded-2xl bg-surface py-2 pr-2 pl-4 shadow-xl ring-1 ring-slate-900/10 lg:sticky lg:inset-x-auto lg:bottom-4">
-          <span className="flex-1 text-sm font-semibold text-slate-900">Not saved</span>
+        <SaveBar>
+          <span className="min-w-0 flex-1 text-sm font-semibold text-slate-900">Not saved · {changes === 1 ? '1 change' : `${changes} changes`}</span>
           <Button variant="secondary" onClick={() => setForm(saved)}>
             Undo
           </Button>
           <Button disabled={!valid} onClick={() => setAsking(true)}>
             Save
           </Button>
-        </div>
+        </SaveBar>
       )}
-
       <Sheet open={asking} onClose={() => setAsking(false)} title="Save the new settings?">
         <ul className="mt-2 space-y-1.5 text-sm leading-6 text-slate-600">
           {reach.map((line) => (
@@ -147,7 +167,7 @@ function SettingsForm({ settings }: { settings: Settings }) {
         </div>
       </Sheet>
       {sheet}
-    </div>
+    </>
   )
 }
 

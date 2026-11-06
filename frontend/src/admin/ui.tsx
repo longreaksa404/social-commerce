@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 
 /** A filter chip: the picked one dark, the rest grey. */
 export function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
@@ -59,5 +59,35 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
         </div>
       )}
     </dialog>
+  )
+}
+
+/** The bar with Save while something isn't saved (founder's pick 15A,
+ * 2026-11-06): docked across the bottom of the page, never floating over
+ * the fields or the Bot's preview; on a phone right above the bottom bar,
+ * and out of the way while the keyboard is open (Save is back once it
+ * closes). `children`: its words and buttons. */
+export function SaveBar({ children }: { children: ReactNode }) {
+  const [typing, setTyping] = useState(false)
+  useEffect(() => {
+    const view = window.visualViewport
+    if (!view) return
+    // A phone's keyboard takes a third of the screen or more.
+    const check = () => setTyping(window.innerWidth < 1024 && view.height < window.innerHeight * 0.7)
+    view.addEventListener('resize', check)
+    return () => view.removeEventListener('resize', check)
+  }, [])
+  return (
+    <>
+      {/* Room at the end of the page, so the bar never hides its last row. */}
+      <div aria-hidden className="h-20 lg:hidden" />
+      <div
+        role="region"
+        aria-label="Save"
+        className={`fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4rem)] z-20 border-t border-slate-200 bg-surface px-4 py-2.5 lg:sticky lg:inset-x-auto lg:bottom-0 lg:-mx-6 lg:mt-6 lg:px-6 xl:-mx-8 xl:px-8 ${typing ? 'hidden' : ''}`}
+      >
+        <div className="flex flex-wrap items-center gap-2">{children}</div>
+      </div>
+    </>
   )
 }
