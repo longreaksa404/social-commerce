@@ -1369,8 +1369,9 @@ KHQR), three (the start page's 3D phone only, its own chunk loaded by
 
 The dashboard shell has a bottom tab bar on phones (Orders, Customers,
 Products, Links, Settings) and a sidebar from `lg`, whose first row is the
-shop's logo and name alone; on laptops the bell and share sit in a slim
-sticky bar at the page's top right (`LaptopTopBar`, UI check #10). Beside the bell, a
+shop's logo and name with share and the bell beside them (founder's pick
+7A, 2026-11-06; until then a strip at the page's top right, UI check #10,
+left every laptop page starting 64 px down). Beside the bell, a
 share button (`ShareShopButton`, `dashboard/ShareShop.tsx`, UX check #10,
 2026-10-17) opens the phone's share list with the shop's link, or copies
 it on a laptop; the Links page starts with the shop's link and Copy

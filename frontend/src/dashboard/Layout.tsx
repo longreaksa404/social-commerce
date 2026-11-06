@@ -82,9 +82,8 @@ function Shell() {
         <Sidebar />
         {!focused && <MobileTopBar />}
         <div className="min-w-0 lg:flex-1">
-          <LaptopTopBar />
           <main
-            className={`mx-auto w-full px-4 lg:mx-0 lg:px-8 lg:pt-2 lg:pb-8 ${width} ${
+            className={`mx-auto w-full px-4 lg:mx-0 lg:px-8 lg:pt-8 lg:pb-8 ${width} ${
               focused ? 'pt-2 pb-28' : 'pt-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)]'
             }`}
           >
@@ -200,17 +199,6 @@ function MobileTopBar() {
   )
 }
 
-/** Laptops: share and the bell at the page's top right, so the sidebar's
- * first row is the shop's name alone (UI check #10, founder 2026-10-17). */
-function LaptopTopBar() {
-  return (
-    <div className="sticky top-[var(--acting-bar,0px)] z-20 hidden h-16 items-center justify-end gap-1 bg-slate-50/90 px-6 backdrop-blur lg:flex">
-      <ShareShopButton />
-      <NotificationBell />
-    </div>
-  )
-}
-
 function BottomTabBar() {
   const onCategories = useMatch('/dashboard/categories') !== null
   const t = useT()
@@ -261,8 +249,13 @@ function Sidebar() {
   const t = useT()
   return (
     <aside className="sticky top-[var(--acting-bar,0px)] hidden h-[calc(100dvh-var(--acting-bar,0px))] w-64 shrink-0 flex-col border-r border-slate-200 bg-surface lg:flex">
-      <div className="flex h-16 items-center border-b border-slate-100 pr-3 pl-5">
+      {/* Share and the bell beside the shop's name, so no page starts with
+          a strip of its own for them (founder's pick 7A, 2026-11-06; it
+          replaces UI check #10's strip at the page's top right). */}
+      <div className="flex min-h-16 items-center gap-0.5 border-b border-slate-100 py-2 pr-1.5 pl-5">
         <StoreHome />
+        <ShareShopButton />
+        <NotificationBell />
       </div>
       <nav aria-label={t.dashboard.mainNav} className="flex flex-col gap-1 p-3">
         {sidebarLinks.map(({ to, key, icon: Icon }) => (
