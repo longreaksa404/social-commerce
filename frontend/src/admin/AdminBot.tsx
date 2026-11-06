@@ -4,6 +4,7 @@ import { NavLink, useParams } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import { cardClass } from '../components/styles.ts'
 import { Button, EmptyState, ErrorState, Field, Input, PageHeader, Skeleton, Switch, TextArea } from '../components/ui.tsx'
+import { AdminPageHeader } from './AdminHeader.tsx'
 import { errorText } from '../lib/errors.ts'
 import type { AdminBotDraft, AdminBotMessage, AdminBotProfile, AdminBotWord, AdminBotWords } from '../lib/types.ts'
 import { useDebounced } from '../lib/useDebounced.ts'
@@ -50,9 +51,9 @@ export function AdminBot() {
   return (
     <>
       <title>Bot · Oak Order admin</title>
+      <AdminPageHeader title="Bot" subtitle={bot.data?.updated_at ? `Last changed ${date(bot.data.updated_at)}` : undefined} phone={!key} />
       <div className="lg:grid lg:grid-cols-[19rem_minmax(0,1fr)] lg:items-start lg:gap-6">
-        <div className={`${key ? 'hidden lg:block' : ''} lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto lg:pb-2`}>
-          <PageHeader title="Bot" subtitle={bot.data?.updated_at ? `Last changed ${date(bot.data.updated_at)}` : undefined} />
+        <div className={`${key ? 'hidden lg:block' : ''} lg:sticky lg:top-5 lg:max-h-[calc(100dvh-2.5rem)] lg:overflow-y-auto lg:pb-2`}>
           {list}
         </div>
         <div className={`${key ? '' : 'hidden lg:block'} min-w-0`}>{open}</div>

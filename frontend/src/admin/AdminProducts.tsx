@@ -2,7 +2,8 @@ import { EyeOff, ImageOff, Package, Search } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
-import { Button, EmptyState, ErrorMessage, ErrorState, Input, PageHeader, Skeleton } from '../components/ui.tsx'
+import { Button, EmptyState, ErrorMessage, ErrorState, Input, Skeleton } from '../components/ui.tsx'
+import { AdminPageHeader } from './AdminHeader.tsx'
 import { formatMoney } from '../lib/money.ts'
 import type { AdminProduct } from '../lib/types.ts'
 import { useAdminProducts, useHideProduct } from './queries.ts'
@@ -23,7 +24,7 @@ export function AdminProducts() {
   return (
     <>
       <title>Products · Oak Order admin</title>
-      <PageHeader title="Products" />
+      <AdminPageHeader title="Products" />
       <div className="mb-4 max-w-xl">
         <Input
           type="search"

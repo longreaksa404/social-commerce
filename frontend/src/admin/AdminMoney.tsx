@@ -4,7 +4,8 @@ import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import { cardClass } from '../components/styles.ts'
-import { Button, EmptyState, ErrorState, IconButton, PageHeader, Skeleton } from '../components/ui.tsx'
+import { Button, EmptyState, ErrorState, IconButton, Skeleton } from '../components/ui.tsx'
+import { AdminPageHeader } from './AdminHeader.tsx'
 import { adminBlob } from '../lib/api.ts'
 import { errorText } from '../lib/errors.ts'
 import { formatMoney } from '../lib/money.ts'
@@ -57,7 +58,7 @@ export function AdminMoney() {
   return (
     <>
       <title>Payments · Oak Order admin</title>
-      <PageHeader
+      <AdminPageHeader
         title="Payments"
         action={
           <Button variant="secondary" loading={download.isPending} onClick={() => download.mutate()}>

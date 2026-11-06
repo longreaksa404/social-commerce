@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react'
 import { useFeedback } from '../components/feedback.ts'
 import { cardClass } from '../components/styles.ts'
-import { Button, ErrorMessage, ErrorState, Field, Input, MoneyInput, PageHeader, Skeleton } from '../components/ui.tsx'
+import { Button, ErrorMessage, ErrorState, Field, Input, MoneyInput, Skeleton } from '../components/ui.tsx'
+import { AdminPageHeader } from './AdminHeader.tsx'
 import { errorText } from '../lib/errors.ts'
 import type { AdminSettings as Settings } from '../lib/types.ts'
 import { useAdminSettings, useSaveSettings } from './queries.ts'
@@ -23,7 +24,7 @@ export function AdminSettings() {
   return (
     <>
       <title>Settings · Oak Order admin</title>
-      <PageHeader title="Settings" subtitle={settings.data?.updated_at ? `Last changed ${date(settings.data.updated_at)}` : undefined} />
+      <AdminPageHeader title="Settings" subtitle={settings.data?.updated_at ? `Last changed ${date(settings.data.updated_at)}` : undefined} />
       {settings.isPending ? (
         <Skeleton className="h-96 w-full max-w-2xl rounded-2xl" />
       ) : settings.error ? (

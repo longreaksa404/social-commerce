@@ -3,7 +3,8 @@ import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import { cardClass } from '../components/styles.ts'
-import { Button, ErrorMessage, Field, PageHeader, Skeleton, TextArea } from '../components/ui.tsx'
+import { Button, ErrorMessage, Field, Skeleton, TextArea } from '../components/ui.tsx'
+import { AdminPageHeader } from './AdminHeader.tsx'
 import { errorText } from '../lib/errors.ts'
 import { formatPhone } from '../lib/orders.ts'
 import type { AdminShop } from '../lib/types.ts'
@@ -24,7 +25,7 @@ export function AdminTools() {
   return (
     <>
       <title>Tools · Oak Order admin</title>
-      <PageHeader title="Tools" />
+      <AdminPageHeader title="Tools" />
       <div className="max-w-3xl space-y-8">
         <Broadcast />
         <Signups />

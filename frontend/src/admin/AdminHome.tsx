@@ -1,7 +1,8 @@
 import { ChevronRight, PartyPopper } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
-import { Card, EmptyState, ErrorState, PageHeader, Skeleton } from '../components/ui.tsx'
+import { Card, EmptyState, ErrorState, Skeleton } from '../components/ui.tsx'
+import { AdminPageHeader } from './AdminHeader.tsx'
 import { formatMoney } from '../lib/money.ts'
 import type { AdminNeed, AdminNotice, AdminOverview } from '../lib/types.ts'
 import { DailyBars } from './DailyBars.tsx'
@@ -19,7 +20,7 @@ export function AdminHome() {
   return (
     <>
       <title>Home · Oak Order admin</title>
-      <PageHeader
+      <AdminPageHeader
         title="Home"
         subtitle={overview.data ? `Phnom Penh time · today ${shortDay(overview.data.days.at(-1)?.day ?? '')}` : undefined}
       />

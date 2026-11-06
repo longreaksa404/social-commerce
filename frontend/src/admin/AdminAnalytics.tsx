@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Card, ErrorState, PageHeader, Skeleton } from '../components/ui.tsx'
+import { Card, ErrorState, Skeleton } from '../components/ui.tsx'
+import { AdminPageHeader } from './AdminHeader.tsx'
 import { formatMoney } from '../lib/money.ts'
 import type { AdminAnalytics as Analytics, AdminMonth } from '../lib/types.ts'
 import { Tile } from './AdminHome.tsx'
@@ -27,7 +28,7 @@ export function AdminAnalytics() {
   return (
     <>
       <title>Analytics · Oak Order admin</title>
-      <PageHeader
+      <AdminPageHeader
         title="Analytics"
         subtitle={
           data ? `Phnom Penh months, to ${day(data.through)}${data.test_shops ? ` · ${plural(data.test_shops, 'test shop')} left out` : ''}` : undefined

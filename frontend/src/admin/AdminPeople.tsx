@@ -2,7 +2,8 @@ import { ChevronRight, Search } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { cardClass } from '../components/styles.ts'
-import { EmptyState, ErrorState, Input, PageHeader, Skeleton } from '../components/ui.tsx'
+import { EmptyState, ErrorState, Input, Skeleton } from '../components/ui.tsx'
+import { AdminPageHeader } from './AdminHeader.tsx'
 import type { AdminSeller } from '../lib/types.ts'
 import { AdminPerson } from './AdminPerson.tsx'
 import { useAdminPeople } from './queries.ts'
@@ -62,19 +63,16 @@ export function AdminPeople() {
   return (
     <>
       <title>People · Oak Order admin</title>
+      <AdminPageHeader title="People" phone={!sellerId} />
       {sellerId ? (
         <div className="lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start lg:gap-6">
-          <div className="hidden lg:sticky lg:top-8 lg:block lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto lg:pb-2">
-            <PageHeader title="People" />
+          <div className="hidden lg:sticky lg:top-5 lg:block lg:max-h-[calc(100dvh-2.5rem)] lg:overflow-y-auto lg:pb-2">
             {list}
           </div>
           <AdminPerson key={sellerId} sellerId={sellerId} />
         </div>
       ) : (
-        <div className="max-w-3xl">
-          <PageHeader title="People" />
-          {list}
-        </div>
+        list
       )}
     </>
   )

@@ -1,9 +1,10 @@
-import { ChevronLeft, ChevronRight, Search, UserX } from 'lucide-react'
+import { ChevronRight, Search, UserX } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import { cardClass } from '../components/styles.ts'
-import { Button, EmptyState, ErrorMessage, ErrorState, Field, Input, PageHeader, PasswordInput, Skeleton } from '../components/ui.tsx'
+import { Button, EmptyState, ErrorMessage, ErrorState, Field, Input, PasswordInput, Skeleton } from '../components/ui.tsx'
+import { AdminPageHeader } from './AdminHeader.tsx'
 import { formatPhone } from '../lib/orders.ts'
 import type { AdminCustomer } from '../lib/types.ts'
 import { useAdminCustomers, useForgetCustomer } from './queries.ts'
@@ -45,7 +46,7 @@ function FindPage({ title, only, placeholder, label, hint }: { title: string; on
   return (
     <>
       <title>{`${title} · Oak Order admin`}</title>
-      <PageHeader title={title} />
+      <AdminPageHeader title={title} />
       <div className="max-w-3xl space-y-5">
         <div>
           <Input
@@ -73,21 +74,20 @@ export function AdminCustomerPage() {
   const found = useAdminCustomers(phone)
   const customer = found.data?.find((c) => c.phone === phone)
   return (
-    <div className="max-w-3xl">
-      <Link to="/admin/customers" className="mb-3 inline-flex min-h-11 items-center gap-1 text-sm font-medium text-navy-700">
-        <ChevronLeft aria-hidden className="size-4" />
-        Customers
-      </Link>
-      {found.isPending ? (
-        <Skeleton className="h-64 w-full rounded-2xl" />
-      ) : found.error ? (
-        <ErrorState error={found.error} onRetry={() => found.refetch()} />
-      ) : !customer ? (
-        <EmptyState icon={UserX} title="No customer with this phone" />
-      ) : (
-        <Customer customer={customer} />
-      )}
-    </div>
+    <>
+      <AdminPageHeader title="Customers" back="/admin/customers" />
+      <div className="max-w-3xl">
+        {found.isPending ? (
+          <Skeleton className="h-64 w-full rounded-2xl" />
+        ) : found.error ? (
+          <ErrorState error={found.error} onRetry={() => found.refetch()} />
+        ) : !customer ? (
+          <EmptyState icon={UserX} title="No customer with this phone" />
+        ) : (
+          <Customer customer={customer} />
+        )}
+      </div>
+    </>
   )
 }
 

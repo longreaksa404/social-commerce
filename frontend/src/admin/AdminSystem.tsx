@@ -3,7 +3,8 @@ import { useEffect, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import { cardClass } from '../components/styles.ts'
-import { Button, ErrorState, PageHeader, Skeleton } from '../components/ui.tsx'
+import { Button, ErrorState, Skeleton } from '../components/ui.tsx'
+import { AdminPageHeader } from './AdminHeader.tsx'
 import { errorText } from '../lib/errors.ts'
 import { SUPPORT_TELEGRAM } from '../lib/support.ts'
 import type { AdminSystem as System } from '../lib/types.ts'
@@ -32,7 +33,7 @@ export function AdminSystem() {
   return (
     <>
       <title>System · Oak Order admin</title>
-      <PageHeader title="System" />
+      <AdminPageHeader title="System" />
       {system.isPending ? (
         <Skeleton className="h-96 w-full rounded-2xl" />
       ) : system.error ? (

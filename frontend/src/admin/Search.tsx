@@ -7,7 +7,7 @@ import { useT } from '../i18n/useT.ts'
 import { formatMoney } from '../lib/money.ts'
 import { formatPhone } from '../lib/orders.ts'
 import type { AdminOrder } from '../lib/types.ts'
-import { ShopLogo, StageWords } from './AdminShops.tsx'
+import { ShopLogo, StageWords } from './ShopBits.tsx'
 import { useAdminCustomers, useAdminOrders, useAdminPeople, useAdminShops } from './queries.ts'
 import { ago, date, initials, loginOf, useSettled } from './shared.ts'
 
@@ -235,10 +235,10 @@ export function SearchBox({ wide = false }: { wide?: boolean }) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="flex h-10 w-80 items-center gap-2 rounded-xl bg-surface px-3 text-sm text-slate-500 ring-1 ring-slate-200 transition hover:ring-slate-300 focus-visible:outline-2 focus-visible:outline-navy-600"
+          className="flex h-10 w-64 items-center gap-2 rounded-xl bg-surface px-3 text-sm text-slate-500 ring-1 ring-slate-200 transition hover:ring-slate-300 focus-visible:outline-2 focus-visible:outline-navy-600"
         >
           <SearchIcon aria-hidden className="size-4" />
-          <span className="flex-1 text-left">Search shops, people, orders</span>
+          <span className="min-w-0 flex-1 truncate text-left">Search shops, people, orders</span>
           <kbd className="rounded-md px-1.5 font-sans text-xs ring-1 ring-slate-200">/</kbd>
         </button>
       ) : (

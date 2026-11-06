@@ -1,7 +1,8 @@
 import { ScrollText } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { Button, Card, EmptyState, ErrorState, Field, Input, PageHeader, Skeleton } from '../components/ui.tsx'
+import { Button, Card, EmptyState, ErrorState, Field, Input, Skeleton } from '../components/ui.tsx'
+import { AdminPageHeader } from './AdminHeader.tsx'
 import { phnomPenhDate } from '../lib/orders.ts'
 import { LOG_KINDS, logItem, type DayItem } from './logWords.ts'
 import { useAdminLog } from './queries.ts'
@@ -35,7 +36,7 @@ export function AdminLog() {
   return (
     <>
       <title>Log · Oak Order admin</title>
-      <PageHeader title="Log" />
+      <AdminPageHeader title="Log" />
       <div className="max-w-3xl space-y-4">
         <Chips label="Kind">
           <Chip on={kind === null} onClick={() => setKind(null)}>
