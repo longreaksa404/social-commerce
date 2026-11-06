@@ -113,10 +113,10 @@ function StoreMark() {
 
 /** Takes the room left in its bar: up to two lines, so a long (or Khmer)
  * name isn't cut to a few letters (UX check #30, 2026-10-17). */
-function StoreName() {
+function StoreName({ className = '' }: { className?: string }) {
   const store = useStore()
   return (
-    <div className="min-w-0 flex-1">
+    <div className={`min-w-0 flex-1 ${className}`}>
       {store.data ? (
         <span className="line-clamp-2 leading-5 font-semibold break-words text-slate-900">{store.data.name}</span>
       ) : (
@@ -126,15 +126,19 @@ function StoreName() {
   )
 }
 
-/** The shop's logo and name: a way home to Orders from anywhere. */
-function StoreHome() {
+/** The shop's logo and name: a way home to Orders from anywhere. In the
+ * slim menu rail (laptops under 1280px) the logo alone; the name is read
+ * out. */
+function StoreHome({ rail = false }: { rail?: boolean }) {
   return (
     <Link
       to="/dashboard/orders"
-      className="-my-1 -ml-1.5 flex min-w-0 flex-1 items-center gap-2.5 rounded-xl py-1 pl-1.5 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-navy-600"
+      className={`-my-1 -ml-1.5 flex min-w-0 flex-1 items-center gap-2.5 rounded-xl py-1 pl-1.5 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-navy-600 ${
+        rail ? 'max-xl:m-0 max-xl:flex-none max-xl:p-1.5' : ''
+      }`}
     >
       <StoreMark />
-      <StoreName />
+      <StoreName className={rail ? 'max-xl:sr-only' : ''} />
     </Link>
   )
 }
@@ -248,22 +252,26 @@ function BottomTabBar() {
 function Sidebar() {
   const t = useT()
   return (
-    <aside className="sticky top-[var(--acting-bar,0px)] hidden h-[calc(100dvh-var(--acting-bar,0px))] w-64 shrink-0 flex-col border-r border-slate-200 bg-surface lg:flex">
+    // From 1024 to 1279px a slim rail (icons with their names under them),
+    // so the open order beside the list isn't squeezed (founder's pick 3A,
+    // 2026-11-06); the full menu from 1280px.
+    <aside className="sticky top-[var(--acting-bar,0px)] hidden h-[calc(100dvh-var(--acting-bar,0px))] w-22 shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-surface lg:flex xl:w-64">
       {/* Share and the bell beside the shop's name, so no page starts with
           a strip of its own for them (founder's pick 7A, 2026-11-06; it
-          replaces UI check #10's strip at the page's top right). */}
-      <div className="flex min-h-16 items-center gap-0.5 border-b border-slate-100 py-2 pr-1.5 pl-5">
-        <StoreHome />
+          replaces UI check #10's strip at the page's top right). In the
+          rail, under the logo. */}
+      <div className="flex min-h-16 items-center gap-0.5 border-b border-slate-100 py-2 pr-1.5 pl-5 max-xl:flex-col max-xl:px-0 max-xl:py-3">
+        <StoreHome rail />
         <ShareShopButton />
         <NotificationBell />
       </div>
-      <nav aria-label={t.dashboard.mainNav} className="flex flex-col gap-1 p-3">
+      <nav aria-label={t.dashboard.mainNav} className="flex flex-col gap-1 p-3 max-xl:p-1.5">
         {sidebarLinks.map(({ to, key, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+              `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors max-xl:flex-col max-xl:gap-1 max-xl:px-1 max-xl:py-2 max-xl:text-center max-xl:text-xs ${
                 isActive ? 'bg-navy-50 text-navy-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`
             }

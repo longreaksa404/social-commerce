@@ -56,7 +56,7 @@ export function OrdersPage() {
         {/* The setup list covers the delivery fee (its step 2). */}
         {setup ? <SetupCard setup={setup} /> : <DeliveryReminder />}
       </div>
-      <div className="lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,30rem)_minmax(0,1fr)]">
+      <div className="lg:grid lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,30rem)_minmax(0,1fr)]">
         <div className={orderId ? 'max-lg:hidden' : ''}>
           <OrderList selectedId={orderId} />
         </div>

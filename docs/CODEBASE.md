@@ -1368,7 +1368,10 @@ KHQR), three (the start page's 3D phone only, its own chunk loaded by
 | `*` | redirect to `/` | |
 
 The dashboard shell has a bottom tab bar on phones (Orders, Customers,
-Products, Links, Settings) and a sidebar from `lg`, whose first row is the
+Products, Links, Settings) and a sidebar from `lg` (from 1024 to 1279px a
+slim rail, `w-22`: icons with their names under them, the logo, share and
+the bell on top; founder's pick 3A, 2026-11-06, so the open order beside
+the Orders list, `24rem` there, gets about 450px instead of 264), whose first row is the
 shop's logo and name with share and the bell beside them (founder's pick
 7A, 2026-11-06; until then a strip at the page's top right, UI check #10,
 left every laptop page starting 64 px down). Beside the bell, a
