@@ -10,7 +10,8 @@ import type { AdminBotDraft, AdminBotMessage, AdminBotProfile, AdminBotWord, Adm
 import { useDebounced } from '../lib/useDebounced.ts'
 import { useAdminBot, useBotGoLive, useBotPreview, useBotProfile, useBotTest, useSaveBotProfile } from './queries.ts'
 import { date } from './shared.ts'
-import { Chip, Chips } from './ui.tsx'
+import { Chip, Chips, SaveBar } from './ui.tsx'
+import { useUnsavedChanges } from '../dashboard/useUnsavedChanges.ts'
 import { usePasswordAgain } from './usePasswordAgain.tsx'
 
 const GROUPS = [
@@ -137,6 +138,7 @@ function MessageEditor({ message, words }: { message: AdminBotMessage; words: Ad
   const wordsChanged = Object.keys(changedWords).length > 0
   const draft: AdminBotDraft = { key: message.key, text, words: changedWords, on }
   const dirty = text !== message.text || wordsChanged || on !== message.on
+  useUnsavedChanges(dirty && !goLive.isPending)
   const preview = useBotPreview(JSON.parse(useDebounced(JSON.stringify(draft), 300)) as AdminBotDraft)
   const examples = preview.data?.examples ?? []
   const shown = examples[Math.min(example, examples.length - 1)]
@@ -216,12 +218,13 @@ function MessageEditor({ message, words }: { message: AdminBotMessage; words: Ad
   }
 
   return (
-    <div className="space-y-5 pb-24">
+    <div className="space-y-5">
       <PhoneBar back="/admin/bot" title={message.name} sub="Bot" />
       <div className="hidden lg:block">
         <PageHeader title={message.name} subtitle={message.about} />
       </div>
       <p className="-mt-2 text-sm text-slate-500 lg:hidden">{message.about}</p>
+      {dirty && <Steps at={step?.ok ? 'tested' : 'draft'} />}
 
       <section aria-label="Sending" className={`${cardClass} px-4 py-2 sm:px-5`}>
         {message.can_off ? (
@@ -345,7 +348,7 @@ function MessageEditor({ message, words }: { message: AdminBotMessage; words: Ad
       )}
 
       {dirty && (
-        <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-20 flex flex-wrap items-center gap-2 rounded-2xl bg-surface py-2 pr-2 pl-4 shadow-xl ring-1 ring-slate-900/10 lg:sticky lg:inset-x-auto lg:bottom-4">
+        <SaveBar column>
           {step ? (
             <>
               <span className={`min-w-0 flex-1 text-sm font-semibold ${step.ok ? 'text-slate-900' : 'text-amber-700'}`}>{step.said}</span>
@@ -367,7 +370,7 @@ function MessageEditor({ message, words }: { message: AdminBotMessage; words: Ad
               </Button>
             </>
           )}
-        </div>
+        </SaveBar>
       )}
       {sheet}
     </div>
@@ -375,6 +378,30 @@ function MessageEditor({ message, words }: { message: AdminBotMessage; words: Ad
 }
 
 const WHO_SEES: Record<AdminBotMessage['group'], string> = { sellers: 'Sellers see', customers: 'Customers see', you: 'You see' }
+
+/** Where an unsaved change is (founder's pick 11A, 2026-11-06): typed
+ * (Draft), sent to your own Telegram by Save (Tested), then Go live. */
+function Steps({ at }: { at: 'draft' | 'tested' }) {
+  const steps = [
+    ['draft', 'Draft'],
+    ['tested', 'Tested in your Telegram'],
+    ['live', 'Live'],
+  ] as const
+  const now = steps.findIndex(([key]) => key === at)
+  return (
+    <ol aria-label="Where this change is" className="-mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+      {steps.map(([key, label], i) => (
+        <li key={key} aria-current={i === now ? 'step' : undefined} className="flex items-center gap-2">
+          {i > 0 && <span aria-hidden className="text-slate-300">›</span>}
+          <span className={i === now ? 'font-semibold text-slate-900' : i < now ? 'font-medium text-slate-500' : 'text-slate-400'}>
+            {i < now && '✓ '}
+            {label}
+          </span>
+        </li>
+      ))}
+    </ol>
+  )
+}
 
 // Pick 3A: the box is a plain text area whose {tags} show coloured: the
 // words sit on a layer under a see-through text area with the same font,
@@ -469,6 +496,7 @@ function ProfileForm({ profile }: { profile: AdminBotProfile }) {
   const { guard, sheet } = usePasswordAgain()
   const [form, setForm] = useState({ name: profile.name, description: profile.description, short_description: profile.short_description })
   const dirty = form.name !== profile.name || form.description !== profile.description || form.short_description !== profile.short_description
+  useUnsavedChanges(dirty && !save.isPending)
   const valid = form.name.trim().length > 0 && Object.entries(LIMITS).every(([key, max]) => form[key as keyof typeof LIMITS].length <= max)
   const count = (key: keyof typeof LIMITS) => `${form[key].length} / ${LIMITS[key]}`
 
@@ -482,7 +510,7 @@ function ProfileForm({ profile }: { profile: AdminBotProfile }) {
   }
 
   return (
-    <div className="space-y-5 pb-24">
+    <div className="space-y-5">
       <PhoneBar back="/admin/bot" title="Bot profile" sub="Bot" />
       <div className="hidden lg:block">
         <PageHeader title="Bot profile" subtitle={`@${profile.username} · photo and OPEN app in BotFather`} />
@@ -515,7 +543,7 @@ function ProfileForm({ profile }: { profile: AdminBotProfile }) {
         </section>
       </div>
       {dirty && (
-        <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-20 flex items-center gap-2 rounded-2xl bg-surface py-2 pr-2 pl-4 shadow-xl ring-1 ring-slate-900/10 lg:sticky lg:inset-x-auto lg:bottom-4">
+        <SaveBar column>
           <span className="flex-1 text-sm font-semibold text-slate-900">Not saved</span>
           <Button variant="secondary" onClick={() => setForm({ name: profile.name, description: profile.description, short_description: profile.short_description })}>
             Undo
@@ -523,7 +551,7 @@ function ProfileForm({ profile }: { profile: AdminBotProfile }) {
           <Button loading={save.isPending} disabled={!valid} onClick={confirmSave}>
             Save
           </Button>
-        </div>
+        </SaveBar>
       )}
       {sheet}
     </div>

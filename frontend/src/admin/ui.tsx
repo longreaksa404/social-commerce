@@ -66,8 +66,9 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
  * 2026-11-06): docked across the bottom of the page, never floating over
  * the fields or the Bot's preview; on a phone right above the bottom bar,
  * and out of the way while the keyboard is open (Save is back once it
- * closes). `children`: its words and buttons. */
-export function SaveBar({ children }: { children: ReactNode }) {
+ * closes). `children`: its words and buttons; `column`: in a page's
+ * column (the Bot editor) instead of across the page. */
+export function SaveBar({ children, column = false }: { children: ReactNode; column?: boolean }) {
   const [typing, setTyping] = useState(false)
   useEffect(() => {
     const view = window.visualViewport
@@ -84,7 +85,7 @@ export function SaveBar({ children }: { children: ReactNode }) {
       <div
         role="region"
         aria-label="Save"
-        className={`fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4rem)] z-20 border-t border-slate-200 bg-surface px-4 py-2.5 lg:sticky lg:inset-x-auto lg:bottom-0 lg:-mx-6 lg:mt-6 lg:px-6 xl:-mx-8 xl:px-8 ${typing ? 'hidden' : ''}`}
+        className={`fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4rem)] z-20 border-t border-slate-200 bg-surface px-4 py-2.5 lg:sticky lg:inset-x-auto lg:bottom-0 lg:mt-6 ${column ? 'lg:rounded-t-2xl lg:border-x lg:px-4' : 'lg:-mx-6 lg:px-6 xl:-mx-8 xl:px-8'} ${typing ? 'hidden' : ''}`}
       >
         <div className="flex flex-wrap items-center gap-2">{children}</div>
       </div>
