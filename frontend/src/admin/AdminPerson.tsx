@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Copy } from 'lucide-react'
+import { Check, Copy } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
@@ -8,6 +8,7 @@ import { ApiError } from '../lib/api.ts'
 import { errorText } from '../lib/errors.ts'
 import type { AdminSeller } from '../lib/types.ts'
 import { PhoneBar } from './AdminHeader.tsx'
+import { useListParams } from './listParams.ts'
 import { usePasswordAgain } from './usePasswordAgain.tsx'
 import { useAdminPerson, usePersonAction } from './queries.ts'
 import { ago, initials, loginOf } from './shared.ts'
@@ -22,9 +23,10 @@ const PROVIDER = { google: 'Google', facebook: 'Facebook' } as const
  * phone and Remove ask for the admin's password again (usePasswordAgain). */
 export function AdminPerson({ sellerId }: { sellerId: string }) {
   const person = useAdminPerson(sellerId)
+  const { listSearch } = useListParams()
   return (
     <div className="min-w-0">
-      <PhoneBar back="/admin/people" title={person.data?.name ?? 'Person'} sub={person.data ? `${person.data.role === 'owner' ? 'Owner' : 'Staff'} · ${person.data.shop}` : undefined} />
+      <PhoneBar back={`/admin/people${listSearch}`} title={person.data?.name ?? 'Person'} sub={person.data ? `${person.data.role === 'owner' ? 'Owner' : 'Staff'} · ${person.data.shop}` : undefined} />
       {person.isPending ? (
         <Skeleton className="h-96 w-full rounded-2xl" />
       ) : person.error ? (
@@ -39,26 +41,28 @@ export function AdminPerson({ sellerId }: { sellerId: string }) {
   )
 }
 
-function Group({ title, children }: { title: string; children: ReactNode }) {
+/** A card with its title (pick 7A): "Logs in with" and "Help" side by
+ * side once the page is wide enough. */
+function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section aria-label={title}>
-      <h2 className="mt-6 mb-2 text-sm font-semibold text-slate-500 sm:px-1">{title}</h2>
-      <ul className={`${cardClass} divide-y divide-slate-100`}>{children}</ul>
+    <section aria-label={title} className={`${cardClass} min-w-0`}>
+      <h2 className="px-4 pt-3 pb-1 text-sm font-semibold text-slate-900">{title}</h2>
+      <ul className="divide-y divide-slate-100">{children}</ul>
     </section>
   )
 }
 
-function HelpRow({ label, onClick }: { label: string; onClick: () => void }) {
+/** One help action: what it does, in a line, before the button. */
+function HelpAction({ label, what, button, onClick }: { label: string; what: ReactNode; button: string; onClick: () => void }) {
   return (
-    <li>
-      <button
-        type="button"
-        onClick={onClick}
-        className="flex min-h-12 w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-slate-900 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 sm:[li:first-child>&]:rounded-t-2xl sm:[li:last-child>&]:rounded-b-2xl"
-      >
-        <span className="flex-1">{label}</span>
-        <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
-      </button>
+    <li className="flex items-center gap-3 px-4 py-3 text-sm">
+      <span className="min-w-0 flex-1">
+        <span className="block font-medium text-slate-900">{label}</span>
+        <span className="block text-slate-500">{what}</span>
+      </span>
+      <Button variant="secondary" onClick={onClick} className="shrink-0">
+        {button}
+      </Button>
     </li>
   )
 }
@@ -120,13 +124,13 @@ function Person({ person }: { person: AdminSeller }) {
 
   return (
     <>
-      <div className={`${cardClass} flex items-center gap-3 p-4 sm:p-5`}>
+      <div className={`${cardClass} flex items-start gap-3 p-4 sm:p-5`}>
         <span aria-hidden className="flex size-12 shrink-0 items-center justify-center rounded-full bg-navy-50 text-lg font-semibold text-navy-700">
           {initials(person.name)}
         </span>
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-bold text-slate-900">{person.name}</h1>
-          <p className="truncate text-sm text-slate-500">
+          <h1 className="text-lg leading-snug font-bold break-words text-slate-900">{person.name}</h1>
+          <p className="text-sm break-words text-slate-500">
             {person.role === 'owner' ? 'Owner' : 'Staff'} ·{' '}
             <Link to={`/admin/shops/${person.store_id}`} className="font-medium text-navy-700 hover:underline">
               {person.shop}
@@ -140,28 +144,39 @@ function Person({ person }: { person: AdminSeller }) {
         </div>
       </div>
 
-      <Group title="Logs in with">
-        {ways.length > 0 && (
-          <li className="px-4 py-3 text-sm font-medium text-slate-900">{ways.join(' · ')}</li>
-        )}
-        {person.logins.map((login) => (
-          <li key={login.provider} className="flex items-center gap-3 px-4 py-3 text-sm">
-            <span className="min-w-0 flex-1">
-              <span className="block font-medium text-slate-900">{PROVIDER[login.provider]}</span>
-              {login.label && <span className="block truncate text-slate-500">{login.label}</span>}
-            </span>
-            <Button variant="danger" onClick={() => remove(login.provider, login.label)}>
-              Remove
-            </Button>
-          </li>
-        ))}
-      </Group>
+      <div className="@container mt-4">
+        <div className="grid items-start gap-4 @2xl:grid-cols-2">
+          <Panel title="Logs in with">
+            {ways.length > 0 && <li className="px-4 py-3 text-sm text-slate-900">{ways.join(' · ')}</li>}
+            {person.logins.map((login) => (
+              <li key={login.provider} className="flex items-center gap-3 px-4 py-3 text-sm">
+                <span className="min-w-0 flex-1">
+                  <span className="block font-medium text-slate-900">{PROVIDER[login.provider]}</span>
+                  {login.label && <span className="block break-words text-slate-500">{login.label}</span>}
+                </span>
+                <Button variant="danger" onClick={() => remove(login.provider, login.label)}>
+                  Remove
+                </Button>
+              </li>
+            ))}
+          </Panel>
 
-      <Group title="Help">
-        <HelpRow label="New password" onClick={newPassword} />
-        <HelpRow label="Log out every phone" onClick={logOutAll} />
-        <HelpRow label="Change login phone" onClick={() => setChangingPhone(true)} />
-      </Group>
+          <Panel title="Help">
+            <HelpAction label="New password" what="Logs out every phone. You see it once." button="Make" onClick={newPassword} />
+            <HelpAction label="Log out every phone" what="They log in again with their password." button="Log out" onClick={logOutAll} />
+            <HelpAction
+              label="Change login phone"
+              what={
+                <>
+                  Ask them for their shop code first: <span className="font-semibold tracking-wide text-slate-700">{person.code}</span>
+                </>
+              }
+              button="Change"
+              onClick={() => setChangingPhone(true)}
+            />
+          </Panel>
+        </div>
+      </div>
 
       <NewPassword name={person.name} password={password} onDone={() => setPassword(null)} />
       <ChangePhone person={person} open={changingPhone} onClose={() => setChangingPhone(false)} run={run} />
