@@ -1,5 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { adminApi } from '../lib/api.ts'
+import { ppDay } from './shared.ts'
 import type {
   AdminAnalytics,
   AdminBotDraft,
@@ -446,4 +448,15 @@ export function useAdminAnalytics(months: number) {
     queryKey: adminKeys.analytics(months),
     queryFn: () => adminApi<AdminAnalytics>(`/admin/analytics?months=${months}`),
   })
+}
+
+/** The day Oak Order's first real shop signed up (test shops left out, as
+ * Analytics leaves them out), from the shop list: earlier days and months
+ * are drawn as "No shops yet" instead of zeros. Null while loading. */
+export function useFirstSignupDay() {
+  const shops = useAdminShops()
+  return useMemo(() => {
+    const days = (shops.data ?? []).filter((s) => !/^test-.*@example\.com$/.test(s.login)).map((s) => ppDay(s.created_at))
+    return days.length ? days.sort()[0] : null
+  }, [shops.data])
 }

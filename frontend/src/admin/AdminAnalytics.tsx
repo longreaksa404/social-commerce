@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Card, ErrorState, Skeleton } from '../components/ui.tsx'
+import { ErrorState, Skeleton } from '../components/ui.tsx'
 import { AdminPageHeader } from './AdminHeader.tsx'
 import { formatMoney } from '../lib/money.ts'
 import type { AdminAnalytics as Analytics, AdminMonth } from '../lib/types.ts'
 import { Tile } from './AdminHome.tsx'
-import { useAdminAnalytics } from './queries.ts'
+import { ChartCard, type ChartPoint } from './Chart.tsx'
+import { useAdminAnalytics, useFirstSignupDay } from './queries.ts'
 import { day, monthName } from './shared.ts'
 import { Chip, Chips } from './ui.tsx'
 
@@ -112,10 +113,9 @@ function Page({ data }: { data: Analytics }) {
   )
 }
 
-/** One measure per month as columns, like Home's DailyBars: navy columns
- * with rounded tops on one baseline, the newest month full strength and
- * labelled; hovering a column shows its month, value and detail; a hidden
- * table gives every value to screen readers. */
+/** One measure per month (pick 4A): the shared ColumnChart in its card,
+ * this month "so far", the months before the first shop as "No shops
+ * yet"; the card's summary is this month's value. */
 function MonthlyBars({
   title,
   months,
@@ -129,74 +129,28 @@ function MonthlyBars({
   label: (n: number) => string
   detail?: (month: AdminMonth) => string
 }) {
-  const [active, setActive] = useState<number | null>(null)
-  const values = months.map(value)
-  const max = Math.max(...values, 0)
+  const first = useFirstSignupDay()
   const last = months.length - 1
-  const shown = active === null ? null : months[active]
+  const money = title === 'Collected' || title === 'Monthly value'
+  const points: ChartPoint[] = months.map((month, i) => ({
+    key: month.month,
+    label: monthShort(month.month, i === 0),
+    long: monthLong(month.month),
+    value: value(month),
+    partial: i === last,
+    none: first !== null && month.month < first.slice(0, 7),
+    detail: detail?.(month),
+  }))
   return (
-    <Card className="p-4 sm:p-5">
-      <div className="flex items-baseline justify-between gap-3">
-        <h3 className="font-semibold text-slate-900">{title}</h3>
-        <p className="text-sm text-slate-500">
-          This month <span className="font-semibold text-slate-900 tabular-nums">{label(values[last] ?? 0)}</span>
-        </p>
-      </div>
-      {max === 0 ? (
-        <p className="mt-4 flex h-28 items-center justify-center rounded-xl border border-dashed border-slate-200 text-sm text-slate-500">
-          None in these months
-        </p>
-      ) : (
-        <div className="relative mt-4" onMouseLeave={() => setActive(null)}>
-          <span className="absolute -top-1 left-0 text-xs text-slate-400 tabular-nums">{label(max)}</span>
-          <div aria-hidden className="flex h-28 items-end gap-[2px] border-b border-slate-200 pt-4">
-            {values.map((v, i) => (
-              <div key={months[i].month} onMouseEnter={() => setActive(i)} className="flex h-full flex-1 items-end justify-center">
-                <div
-                  className={`w-full max-w-8 rounded-t-[4px] ${i === last || i === active ? 'bg-navy-700' : 'bg-navy-300'}`}
-                  style={{ height: v ? `${Math.max(3, (v / max) * 100)}%` : 0 }}
-                />
-              </div>
-            ))}
-          </div>
-          {shown && active !== null && (
-            <div
-              className="pointer-events-none absolute top-0 z-10 max-w-64 -translate-y-full rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs text-white shadow-lg"
-              style={
-                active < months.length / 2
-                  ? { left: `${(active / months.length) * 100}%` }
-                  : {
-                      right: `${((months.length - active - 1) / months.length) * 100}%`,
-                    }
-              }
-            >
-              <span className="font-semibold tabular-nums">{label(values[active])}</span>
-              <span className="ml-1.5 text-white/70">{monthLong(shown.month)}</span>
-              {detail && <span className="mt-0.5 block text-white/80">{detail(shown)}</span>}
-            </div>
-          )}
-        </div>
-      )}
-      <div className="mt-1.5 flex justify-between text-xs text-slate-500">
-        <span>{months[0] && monthShort(months[0].month, true)}</span>
-        <span>{months[last] && monthShort(months[last].month, true)}</span>
-      </div>
-      {/* In a hidden box: a table ignores a 1px width and would widen the page. */}
-      <div className="sr-only">
-        <table>
-          <caption>{title}, by month</caption>
-          <tbody>
-            {months.map((month, i) => (
-              <tr key={month.month}>
-                <th scope="row">{monthLong(month.month)}</th>
-                <td>{label(values[i])}</td>
-                {detail && <td>{detail(month)}</td>}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </Card>
+    <ChartCard
+      heading="h3"
+      title={title}
+      summary={<>This month <span className="font-semibold text-slate-900">{label(points[last]?.value ?? 0)}</span></>}
+      points={points}
+      unit={label}
+      money={money}
+      empty="None in these months"
+    />
   )
 }
 

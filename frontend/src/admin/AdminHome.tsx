@@ -5,9 +5,9 @@ import { Card, EmptyState, ErrorState, Skeleton } from '../components/ui.tsx'
 import { AdminPageHeader } from './AdminHeader.tsx'
 import { formatMoney } from '../lib/money.ts'
 import type { AdminNeed, AdminNotice, AdminOverview } from '../lib/types.ts'
-import { DailyBars } from './DailyBars.tsx'
-import { useAdminNotices, useAdminOverview } from './queries.ts'
-import { addDays, monthName, shortDay } from './shared.ts'
+import { ChartCard, type ChartPoint } from './Chart.tsx'
+import { useAdminNotices, useAdminOverview, useFirstSignupDay } from './queries.ts'
+import { addDays, dayMonth, monthName, shortDay } from './shared.ts'
 
 const usd = (amount: string | number) => formatMoney(amount, 'USD')
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
@@ -35,21 +35,40 @@ export function AdminHome() {
         <div className="space-y-6">
           <Numbers data={overview.data} />
           <div className="grid gap-4 lg:grid-cols-2">
-            <DailyBars
-              title="Orders per day"
-              days={overview.data.days.map((d) => ({ day: d.day, value: d.orders }))}
-              unit={(n) => plural(n, 'order')}
-            />
-            <DailyBars
-              title="Sign-ups per day"
-              days={overview.data.days.map((d) => ({ day: d.day, value: d.signups }))}
-              unit={(n) => plural(n, 'sign-up')}
-            />
+            <DailyChart data={overview.data} measure="orders" />
+            <DailyChart data={overview.data} measure="signups" />
           </div>
           <Needs data={overview.data} />
         </div>
       )}
     </>
+  )
+}
+
+/** Orders or sign-ups per Phnom Penh day for 30 days (pick 4A): today
+ * "so far", the days before the first shop as "No shops yet". */
+function DailyChart({ data, measure }: { data: AdminOverview; measure: 'orders' | 'signups' }) {
+  const first = useFirstSignupDay()
+  const word = measure === 'orders' ? 'order' : 'sign-up'
+  const last = data.days.length - 1
+  const points: ChartPoint[] = data.days.map((d, i) => ({
+    key: d.day,
+    label: i === last ? 'Today' : dayMonth(d.day),
+    long: i === last ? `Today, ${shortDay(d.day)}` : shortDay(d.day),
+    value: d[measure],
+    partial: i === last,
+    none: first !== null && d.day < first,
+  }))
+  const total = data.days.reduce((sum, d) => sum + d[measure], 0)
+  return (
+    <ChartCard
+      title={measure === 'orders' ? 'Orders per day' : 'Sign-ups per day'}
+      summary={`${plural(total, word)} in 30 days`}
+      points={points}
+      unit={(n) => plural(n, word)}
+      daily
+      empty={measure === 'orders' ? 'No orders in these 30 days' : 'No sign-ups in these 30 days'}
+    />
   )
 }
 

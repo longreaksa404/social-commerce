@@ -30,7 +30,8 @@ export const dayMonth = (ymd: string, thisYear?: string) =>
 
 /** "2026-11" → "November 2026"; `short`: "Nov", or "Nov 26" with the year. */
 export const monthName = (ym: string, style: 'long' | 'short' | 'shortYear' = 'long') =>
-  calendar(`${ym}-01`).toLocaleDateString('en-GB', {
+  // en-US for short months: "Sep", not en-GB's "Sept".
+  calendar(`${ym}-01`).toLocaleDateString(style === 'long' ? 'en-GB' : 'en-US', {
     month: style === 'long' ? 'long' : 'short',
     year: style === 'long' ? 'numeric' : style === 'shortYear' ? '2-digit' : undefined,
     timeZone: 'UTC',
