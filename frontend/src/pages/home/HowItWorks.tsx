@@ -11,10 +11,11 @@ const STEP_SVH = 80
 const TURNS = ['rotateY(-12deg) rotateX(4deg)', 'rotateY(8deg) rotateX(2deg)', 'rotateY(-6deg) rotateX(6deg)', 'rotateY(12deg) rotateX(3deg)']
 // The phone's width on phones: a quarter of the screen's height, but on
 // short screens (Safari with its bars, iPhone SE) what's left after the top
-// bar, the words, the gaps (about 290 px) and room for the 3D close-up
+// bar, the pinned section label, the words and gaps (about 350 px), plus
+// room for the 3D close-up
 // (the phone is 2.06 times as tall as wide, 2.3 with the close-up), so it
 // never goes under the top bar (founder's video, 2026-11-06).
-const PHONE_WIDTH = 'w-[min(60vw,26svh,calc((100svh_-_290px)/2.3))]'
+const PHONE_WIDTH = 'w-[min(60vw,26svh,calc((100svh_-_350px)/2.3))]'
 
 /** How it works: the phone stays in place while the four steps scroll by,
  * its screen changing at each. On phones the step's words change under the
@@ -69,7 +70,7 @@ export function HowItWorks({ intro }: { intro: Intro }) {
   return (
     <section className="px-5 pt-24 sm:px-8 sm:pt-32">
       <div className="mx-auto max-w-6xl">
-        <p data-reveal className="home-eyebrow">
+        <p data-reveal className="home-eyebrow hidden lg:block">
           {steps.eyebrow}
         </p>
         <h2 data-reveal="wipe" className="home-display mt-3 max-w-2xl text-[clamp(1.85rem,6vw,3.25rem)]">
@@ -100,8 +101,11 @@ export function HowItWorks({ intro }: { intro: Intro }) {
           ref={stage}
           data-step-stage
           data-step-active={step}
-          className="sticky top-0 flex h-svh flex-col items-center justify-center gap-9 pt-[calc(4rem+env(safe-area-inset-top))] pb-6 lg:col-start-2 lg:row-start-1 lg:pt-16"
+          className="sticky top-0 flex h-svh flex-col items-center justify-center gap-9 pt-[calc(7.5rem+env(safe-area-inset-top))] pb-6 lg:col-start-2 lg:row-start-1 lg:pt-16"
         >
+          <p data-step-label className="home-eyebrow absolute top-[calc(5rem+1px+env(safe-area-inset-top))] left-0 lg:hidden">
+            {steps.eyebrow}
+          </p>
           <Phone3D
             screen={STEP_SCREENS[step]}
             lang={lang}
