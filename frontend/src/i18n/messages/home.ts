@@ -28,8 +28,8 @@ export const home = {
     share: {
       title: { en: 'Share one link in every post.', km: 'ចែករំលែកតំណតែមួយ ក្នុងគ្រប់ការបង្ហោះ។' },
       text: {
-        en: 'Your shop, a product or a category, with a picture card in Facebook and Telegram.',
-        km: 'ហាង ទំនិញ ឬប្រភេទទំនិញរបស់អ្នក បង្ហាញជាកាតរូបភាពក្នុង Facebook និង Telegram។',
+        en: 'Your shop, a product or a category, with a picture card.',
+        km: 'ហាង ទំនិញ ឬប្រភេទទំនិញរបស់អ្នក បង្ហាញជាកាតរូបភាព។',
       },
     },
     order: {
@@ -39,15 +39,15 @@ export const home = {
     pay: {
       title: { en: 'They pay by KHQR, straight to your bank.', km: 'ពួកគេបង់តាម KHQR ចូលធនាគាររបស់អ្នកផ្ទាល់។' },
       text: {
-        en: 'The QR has the exact amount. Oak Order takes no cut. One tap marks it paid.',
-        km: 'QR មានចំនួនទឹកប្រាក់ត្រឹមត្រូវ។ Oak Order មិនកាត់កម្រៃទេ។ ចុចម្ដងដើម្បីកត់ថាបានបង់។',
+        en: 'The QR has the exact amount. Oak Order takes no cut.',
+        km: 'QR មានចំនួនទឹកប្រាក់ត្រឹមត្រូវ។ Oak Order មិនកាត់កម្រៃទេ។',
       },
     },
     track: {
       title: { en: 'Every order in one place.', km: 'ការកុម្ម៉ង់ទាំងអស់នៅកន្លែងតែមួយ។' },
       text: {
-        en: 'Each new one on your Telegram; follow it to delivered.',
-        km: 'ការកុម្ម៉ង់ថ្មីនីមួយៗមកដល់ Telegram របស់អ្នក ហើយតាមដានវារហូតដល់ដៃអតិថិជន។',
+        en: 'Each new one comes to your Telegram.',
+        km: 'ការកុម្ម៉ង់ថ្មីនីមួយៗមកដល់ Telegram របស់អ្នក។',
       },
     },
   },
@@ -56,22 +56,22 @@ export const home = {
     chat: {
       title: { en: 'Orders from chat too', km: 'ការកុម្ម៉ង់ពីការឆាតក៏បាន' },
       text: {
-        en: 'Add an order that came by chat in seconds, then send the customer a link to follow and pay.',
-        km: 'បញ្ចូលការកុម្ម៉ង់ដែលមកតាមការឆាតក្នុងពេលប៉ុន្មានវិនាទី រួចផ្ញើតំណឱ្យអតិថិជនតាមដាន និងបង់ប្រាក់។',
+        en: 'Add one in seconds, then send the customer a link to pay.',
+        km: 'បញ្ចូលក្នុងពេលប៉ុន្មានវិនាទី រួចផ្ញើតំណឱ្យអតិថិជនបង់ប្រាក់។',
       },
     },
     stock: {
       title: { en: 'Stock counts itself', km: 'ស្តុកគណនាដោយខ្លួនឯង' },
       text: {
-        en: 'It goes down with every order, and Telegram tells you when a product runs low or sells out.',
-        km: 'វាថយចុះតាមការកុម្ម៉ង់នីមួយៗ ហើយ Telegram ប្រាប់អ្នកពេលទំនិញជិតអស់ ឬអស់ស្តុក។',
+        en: 'It goes down with every order; Telegram tells you when it runs low.',
+        km: 'វាថយចុះតាមការកុម្ម៉ង់នីមួយៗ ហើយ Telegram ប្រាប់ពេលជិតអស់។',
       },
     },
     driver: {
       title: { en: 'Send to driver', km: 'ផ្ញើទៅអ្នកដឹក' },
       text: {
-        en: 'The customer, address, map pin and what to collect, in one message.',
-        km: 'អតិថិជន អាសយដ្ឋាន ទីតាំងលើផែនទី និងប្រាក់ត្រូវប្រមូល ក្នុងសារតែមួយ។',
+        en: 'Address, map pin and what to collect, in one message.',
+        km: 'អាសយដ្ឋាន ទីតាំងលើផែនទី និងប្រាក់ត្រូវប្រមូល ក្នុងសារតែមួយ។',
       },
     },
     receipt: {
@@ -114,8 +114,8 @@ export const home = {
     app: {
       q: { en: 'Do my customers need an app or an account?', km: 'តើអតិថិជនរបស់ខ្ញុំត្រូវការកម្មវិធី ឬគណនីទេ?' },
       a: {
-        en: "No. They open your link in their phone's browser, choose and order. Customers who use Telegram can follow their order there.",
-        km: 'ទេ។ ពួកគេបើកតំណរបស់អ្នកក្នុងកម្មវិធីរុករកលើទូរស័ព្ទ ជ្រើសរើស ហើយកុម្ម៉ង់។ អតិថិជនដែលប្រើ Telegram អាចតាមដានការកុម្ម៉ង់នៅទីនោះ។',
+        en: "No. They open your link in their phone's browser, choose and order.",
+        km: 'ទេ។ ពួកគេបើកតំណរបស់អ្នកក្នុងកម្មវិធីរុករកលើទូរស័ព្ទ ជ្រើសរើស ហើយកុម្ម៉ង់។',
       },
     },
     computer: {
@@ -128,8 +128,8 @@ export const home = {
     pay: {
       q: { en: 'How do customers pay?', km: 'តើអតិថិជនបង់ប្រាក់ដោយរបៀបណា?' },
       a: {
-        en: 'By KHQR, straight into your own bank account (ABA, ACLEDA, Wing and other Bakong banks), or in cash on delivery. You check your bank app and tap Mark paid.',
-        km: 'តាម KHQR ចូលគណនីធនាគាររបស់អ្នកផ្ទាល់ (ABA, ACLEDA, Wing និងធនាគារ Bakong ផ្សេងទៀត) ឬជាសាច់ប្រាក់ពេលទទួលទំនិញ។ អ្នកពិនិត្យកម្មវិធីធនាគារ ហើយចុច «កត់ថាបានបង់»។',
+        en: 'By KHQR, straight into your own bank account (ABA, ACLEDA, Wing and other Bakong banks), or in cash on delivery.',
+        km: 'តាម KHQR ចូលគណនីធនាគាររបស់អ្នកផ្ទាល់ (ABA, ACLEDA, Wing និងធនាគារ Bakong ផ្សេងទៀត) ឬជាសាច់ប្រាក់ពេលទទួលទំនិញ។',
       },
     },
     after: {
