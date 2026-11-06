@@ -10,7 +10,7 @@ export const auth = {
       km: 'ប្រែការឆាត\u200bលើបណ្ដាញសង្គម ទៅជាការកុម្ម៉ង់ពិតៗ',
     },
   },
-  // The navy half beside the login and register forms on laptops.
+  // The half beside the login and register forms on laptops.
   pitch: {
     text: {
       en: 'One link for your shop on Facebook, TikTok and Instagram. Every order in one place.',

@@ -8,13 +8,10 @@ import { useT } from '../i18n/useT.ts'
 
 /** The product's name, Oak Order (01_PRODUCT.md section 1.1), with the
  * acorn as its O (components/OakMark.tsx): all navy (light navy in dark
- * mode, UI check #15), or all white with `onDark` for the navy panel. */
-export function BrandMark({ className = '', onDark = false }: { className?: string; onDark?: boolean }) {
+ * mode, UI check #15). */
+export function BrandMark({ className = '' }: { className?: string }) {
   return (
-    <Link
-      to="/"
-      className={`inline-flex min-h-11 items-center text-2xl ${onDark ? 'text-white' : 'text-oak-ink'} ${className}`}
-    >
+    <Link to="/" className={`inline-flex min-h-11 items-center text-2xl text-oak-ink ${className}`}>
       <OakOrderName />
     </Link>
   )
@@ -77,35 +74,36 @@ export function AuthLayout({
   )
 }
 
-/** The navy half on laptops. The same deep navy in light and dark: it's
- * the brand, not the page. */
+/** The other half on laptops: the page grey (the app's dark grey in dark
+ * mode) with the brand, what it does and an example order. It was solid
+ * navy; navy is never a background (founder's pick 9A, 2026-11-06). */
 function Pitch() {
   const t = useT()
   const p = t.auth.pitch
   return (
-    <aside className="hidden flex-col bg-[#182841] p-12 text-white lg:flex">
-      <BrandMark onDark />
+    <aside className="hidden flex-col border-r border-slate-200 bg-slate-50 p-12 lg:flex">
+      <BrandMark />
       <div className="my-auto max-w-md">
         <p className="text-3xl leading-tight font-bold tracking-tight text-balance">
           <Phrases text={t.auth.home.title} />
         </p>
-        <p className="mt-4 text-lg leading-relaxed text-white/75">{p.text}</p>
+        <p className="mt-4 text-lg leading-relaxed text-slate-600">{p.text}</p>
         {/* An example, said so: what a new order looks like arriving. */}
         <div className="mt-10">
-          <p className="mb-2 text-xs font-semibold text-white/60">{p.example}</p>
-          <div className="flex items-center gap-3 rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
+          <p className="mb-2 text-xs font-semibold text-slate-500">{p.example}</p>
+          <div className="flex items-center gap-3 rounded-2xl bg-surface p-4 shadow-card ring-1 ring-slate-900/6">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-oak-ink">
               <ShoppingBag aria-hidden className="size-5" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block font-semibold">{p.sampleTitle}</span>
-              <span className="block text-sm text-white/70">{p.sampleText}</span>
+              <span className="block text-sm text-slate-600">{p.sampleText}</span>
             </span>
-            <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-bold text-[#182841]">{p.sampleTag}</span>
+            <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-bold text-on-accent">{p.sampleTag}</span>
           </div>
         </div>
       </div>
-      <p className="text-sm text-white/50">order.oaksolve.com</p>
+      <p className="text-sm text-slate-500">order.oaksolve.com</p>
     </aside>
   )
 }
