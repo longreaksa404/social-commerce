@@ -8,7 +8,8 @@ Development only: it never reads or writes the live site.
     .venv/bin/python marketing/shots.py --copy marketing/out/clothing/copy-km \\
         --lang km --out marketing/out/clothing [--video]
 
-The shop is clothing_shop.json: 12 products in 3 categories, their names
+The shop is clothing_shop.json: 50 products in 4 categories (the first 12
+are the ones the marketing pictures buy; keep them first), their names
 and descriptions in Khmer and English, options (colour / size) with
 stock, and where each photo comes from. `photos` downloads the photos
 from Pexels (free for business use, no credit needed:
