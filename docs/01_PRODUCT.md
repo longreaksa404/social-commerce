@@ -1033,7 +1033,14 @@ page only checked plan payments (§33.1), from a seller login.
   laptop); a login's own page; payments with the waiting ones first;
   search from every page (`/`); one Settings page with one Save; the
   activity log a day at a time; products as a photo grid; a message to
-  every shop sent to the admin first.
+  every shop sent to the admin first. Redesigned with the founder's
+  picks of 2026-11-06 (1A 2A 3B 4A 5A 6A 7A 8A 9A 10A+B 11A 12A 13A 14A
+  15A): the menu in three groups with a slim rail on small laptops and
+  no width cap; More lights up on its pages on a phone; charts on a
+  real scale, read by tap and keyboard; Analytics as one chart and a
+  month table; Products as a grid or rows; Money with "I've paid" first
+  and one payments table; System as one list, problems first; a docked
+  Save bar, and leaving with unsaved changes asks first.
 - **Log and tools:** a log of every admin action; a test shop in one tap;
   a Telegram message to every shop (sent to the founder first);
   sign-ups that didn't finish (numbers checked in Telegram that never
