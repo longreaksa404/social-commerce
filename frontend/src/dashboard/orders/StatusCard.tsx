@@ -66,6 +66,7 @@ function Row({
   tone,
   shaded,
   muted = false,
+  beside = false,
   children,
 }: {
   icon: LucideIcon
@@ -74,6 +75,9 @@ function Row({
   tone: StatusTone
   shaded: boolean
   muted?: boolean
+  // Laptops: the buttons at the right of the status, on its line, rather
+  // than under it (founder's pick 8A, 2026-11-06); under it if they don't fit.
+  beside?: boolean
   children?: ReactNode
 }) {
   return (
@@ -81,9 +85,11 @@ function Row({
       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
         <Icon aria-hidden className="size-4.5" />
       </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-xs text-slate-500">{label}</p>
-        <p className={`font-semibold break-words ${muted ? 'text-slate-600' : TONE_TEXT[tone]}`}>{value}</p>
+      <div className={`min-w-0 flex-1 ${beside ? 'lg:flex lg:flex-wrap lg:items-center lg:gap-x-4' : ''}`}>
+        <div className={beside ? 'lg:min-w-24 lg:flex-1' : ''}>
+          <p className="text-xs text-slate-500">{label}</p>
+          <p className={`font-semibold break-words ${muted ? 'text-slate-600' : TONE_TEXT[tone]}`}>{value}</p>
+        </div>
         {children}
       </div>
     </div>
@@ -99,9 +105,13 @@ const Sub = ({ children }: { children: ReactNode }) => <p className="mt-0.5 text
 // Each button starts at its whole label's width, so a pair that doesn't
 // fit side by side goes one under the other, full width, instead of
 // squeezing a long label (Khmer above all) onto two lines (UI check #5).
-const Buttons = ({ children }: { children: ReactNode }) => (
-  <div className="mt-3 flex flex-wrap gap-2.5 *:min-w-0 *:basis-[max-content]">{children}</div>
+// Laptops: each at its own width, not stretched to the card's (pick 8A).
+const Buttons = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
+  <div className={`mt-3 flex flex-wrap gap-2.5 *:min-w-0 *:basis-[max-content] lg:*:grow-0 ${className}`}>{children}</div>
 )
+// In a row with the buttons beside the status (`Row beside`).
+const BESIDE = 'lg:my-1 lg:justify-end'
+
 
 function OrderRow({ order, actions, step }: { order: Order; actions: OrderActions; step: ReturnType<typeof nextStep> }) {
   const t = useT()
@@ -116,7 +126,7 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
   let body: ReactNode = null
   if (order.status === 'pending') {
     body = (
-      <Buttons>
+      <Buttons className={BESIDE}>
         {ends.map((status) => (
           <Button key={status} variant="danger" disabled={busy} onClick={() => move(status)}>
             {o.action.rejected}
@@ -138,7 +148,7 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
     // without the cash" is in the ⋯ menu.
     const cash = cashDue(order)
     body = (
-      <Buttons>
+      <Buttons className={BESIDE}>
         <Button
           {...nextIf(step === 'complete')}
           loading={(change.isPending && change.variables === 'completed') || (cash && actions.payment.isPending)}
@@ -152,7 +162,7 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
     )
   } else if (canReady) {
     body = (
-      <Buttons>
+      <Buttons className={BESIDE}>
         <Button
           variant="secondary"
           loading={change.isPending && change.variables === 'ready'}
@@ -171,6 +181,7 @@ function OrderRow({ order, actions, step }: { order: Order; actions: OrderAction
       value={t.status.order[order.status]}
       tone={ORDER_STATUS_TONES[order.status]}
       shaded={step === 'accept' || step === 'complete'}
+      beside
     >
       {body}
     </Row>
