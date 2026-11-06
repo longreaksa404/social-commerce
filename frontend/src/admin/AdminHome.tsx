@@ -1,4 +1,4 @@
-import { ChevronRight, PartyPopper } from 'lucide-react'
+import { Activity, ChevronRight, PartyPopper, Send } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Card, EmptyState, ErrorState, Skeleton } from '../components/ui.tsx'
@@ -12,9 +12,11 @@ import { addDays, dayMonth, monthName, shortDay } from './shared.ts'
 const usd = (amount: string | number) => formatMoney(amount, 'USD')
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 
-/** /admin: the admin's Home (founder's pick 3B, 2026-10-28): Oak Order's
- * numbers first, then the shops that need the admin, most urgent first
- * (a waiting "I've paid" leads; checking it is on the shop's page). */
+/** /admin: the admin's Home (founder's pick 3B, 2026-10-28; tidied by
+ * the redesign's 3B, 2026-11-06): Oak Order's numbers first, the two daily
+ * charts side by side, then the shops and the system that need the admin,
+ * most urgent first (a waiting "I've paid" leads; checking it is on the
+ * shop's page). Names wrap instead of being cut. */
 export function AdminHome() {
   const overview = useAdminOverview()
   return (
@@ -26,8 +28,15 @@ export function AdminHome() {
       />
       {overview.isPending ? (
         <div className="space-y-4">
-          <Skeleton className="h-28 w-full rounded-2xl" />
-          <Skeleton className="h-48 w-full rounded-2xl" />
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-28 rounded-2xl" />
+            ))}
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Skeleton className="h-60 rounded-2xl" />
+            <Skeleton className="h-60 rounded-2xl" />
+          </div>
         </div>
       ) : overview.error ? (
         <ErrorState error={overview.error} onRetry={() => overview.refetch()} />
@@ -82,11 +91,22 @@ function Numbers({ data }: { data: AdminOverview }) {
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <Tile label="Shops" value={shops.total}>
-        {shops.paying} paying · {shops.trial} on trial · {shops.setup} in setup
-        {ending > 0 && <span className="text-amber-700"> · {ending} ending soon</span>}
-        {unpaid > 0 && <span className="text-red-700"> · {unpaid} unpaid</span>}
-        {shops.stopped > 0 && <span className="text-red-700"> · {shops.stopped} stopped</span>}
-        {shops.closed > 0 && <> · {shops.closed} closed</>}
+        <span className="block">
+          <span className="whitespace-nowrap">{shops.paying} paying</span> · <span className="whitespace-nowrap">{shops.trial} on trial</span> ·{' '}
+          <span className="whitespace-nowrap">{shops.setup} in setup</span>
+        </span>
+        {(ending > 0 || unpaid > 0 || shops.stopped > 0 || shops.closed > 0) && (
+          <span className="block">
+            {[
+              ending > 0 && <span key="ending" className="whitespace-nowrap text-amber-700">{ending} ending soon</span>,
+              unpaid > 0 && <span key="unpaid" className="whitespace-nowrap text-red-700">{unpaid} unpaid</span>,
+              shops.stopped > 0 && <span key="stopped" className="whitespace-nowrap text-red-700">{shops.stopped} stopped</span>,
+              shops.closed > 0 && <span key="closed" className="whitespace-nowrap">{shops.closed} closed</span>,
+            ]
+              .filter(Boolean)
+              .flatMap((part, i) => (i === 0 ? [part] : [' · ', part]))}
+          </span>
+        )}
       </Tile>
       <Tile label={`Collected in ${month}`} value={usd(data.collected_month)}>
         {plural(data.payments_month, 'payment')} · {today.slice(0, 4)}: {usd(data.collected_year)}
@@ -103,9 +123,9 @@ function Numbers({ data }: { data: AdminOverview }) {
 
 export function Tile({ label, value, children }: { label: string; value: ReactNode; children: ReactNode }) {
   return (
-    <Card className="mx-0 rounded-2xl p-4 sm:p-5">
+    <Card className="mx-0 rounded-2xl p-4">
       <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900 tabular-nums sm:text-3xl">{value}</p>
+      <p className="mt-0.5 text-2xl font-bold tracking-tight text-slate-900 tabular-nums">{value}</p>
       <p className="mt-1 text-xs leading-5 text-slate-500 tabular-nums">{children}</p>
     </Card>
   )
@@ -144,7 +164,7 @@ function Needs({ data }: { data: AdminOverview }) {
                     {[...need.name.trim()][0]?.toUpperCase()}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium text-slate-900">{need.name}</span>
+                    <span className="block font-medium break-words text-slate-900">{need.name}</span>
                     <NeedText need={need} />
                   </span>
                   <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
@@ -157,8 +177,11 @@ function Needs({ data }: { data: AdminOverview }) {
                   to={notice.href}
                   className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600"
                 >
+                  <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                    <Activity className="size-4" />
+                  </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium text-slate-900">{notice.title}</span>
+                    <span className="block font-medium break-words text-slate-900">{notice.title}</span>
                     <span className={`block text-sm ${TONE[notice.severity]}`}>{notice.text}</span>
                   </span>
                   <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
@@ -166,11 +189,20 @@ function Needs({ data }: { data: AdminOverview }) {
               </li>
             ))}
             {data.telegram_failed > 0 && (
-              <li className="flex items-center gap-3 px-4 py-3">
-                <span className="min-w-0 flex-1">
-                  <span className="block font-medium text-slate-900">Telegram</span>
-                  <span className="block text-sm text-amber-700">{plural(data.telegram_failed, 'message')} failed in 24 hours</span>
-                </span>
+              <li>
+                <Link
+                  to="/admin/system#bot"
+                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600"
+                >
+                  <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                    <Send className="size-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-medium text-slate-900">Telegram</span>
+                    <span className="block text-sm text-amber-700">{plural(data.telegram_failed, 'message')} failed in 24 hours</span>
+                  </span>
+                  <ChevronRight aria-hidden className="size-5 shrink-0 text-slate-400" />
+                </Link>
               </li>
             )}
           </ul>
