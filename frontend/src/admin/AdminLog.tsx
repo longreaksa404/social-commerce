@@ -1,72 +1,67 @@
 import { ScrollText } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { Button, Card, EmptyState, ErrorState, Field, Input, Skeleton } from '../components/ui.tsx'
-import { AdminPageHeader } from './AdminHeader.tsx'
+import { Button, Card, EmptyState, ErrorState, Field, Input, Select, Skeleton } from '../components/ui.tsx'
 import { phnomPenhDate } from '../lib/orders.ts'
+import { AdminPageHeader } from './AdminHeader.tsx'
+import { useListParams } from './listParams.ts'
 import { LOG_KINDS, logItem, type DayItem } from './logWords.ts'
-import { useAdminLog } from './queries.ts'
+import { useAdminLog, useAdminShops } from './queries.ts'
 import { addDays, dayMonth, ppDay, shortDay, time } from './shared.ts'
-import { Chip, Chips } from './ui.tsx'
-
-// Chips for the shops in the newest lines, after All shops.
-const SHOP_CHIPS = 5
 
 /** "2026-11-07T00:00:00+07:00": the start of the day after, in Phnom Penh. */
 const dayAfter = (ymd: string) => `${addDays(ymd)}T00:00:00+07:00`
 
 /** /admin/log: everything done from the admin, a day at a time (founder's
- * pick 13A, 2026-10-28), like a diary; chips for the kinds of action and
- * the shops in it, and a day to start from. Read only: nothing here
+ * pick 13A, 2026-10-28), like a diary. Redesign pick 13A (2026-11-06): its
+ * filters in one row above the days: the kind, any shop (every shop, not
+ * only the few in the newest lines), a day to start from, and Clear; in
+ * the address, so Back and a reload keep them. Read only: nothing here
  * changes a line. */
 export function AdminLog() {
-  const [storeId, setStoreId] = useState<string | null>(null)
-  const [kind, setKind] = useState<string | null>(null)
-  const [day, setDay] = useState('')
+  const { params, update } = useListParams()
+  const kind = LOG_KINDS.find((k) => k.label === params.get('kind'))?.label ?? null
+  const storeId = params.get('shop')
+  const day = params.get('from') ?? ''
   const [today] = useState(() => phnomPenhDate())
   const actions = LOG_KINDS.find((k) => k.label === kind)?.actions ?? []
-  const all = useAdminLog(null)
+  const shops = useAdminShops()
   const log = useAdminLog(storeId, actions, day ? dayAfter(day) : '')
   const filtered = storeId !== null || kind !== null || day !== ''
-  const shops = new Map<string, string>()
-  for (const line of all.data?.pages.flat() ?? []) {
-    if (line.store_id && line.shop && shops.size < SHOP_CHIPS) shops.set(line.store_id, line.shop)
-  }
+  const shopOptions = [...(shops.data ?? [])].sort((a, b) => a.name.localeCompare(b.name))
 
   return (
     <>
       <title>Log · Oak Order admin</title>
-      <AdminPageHeader title="Log" />
-      <div className="max-w-3xl space-y-4">
-        <Chips label="Kind">
-          <Chip on={kind === null} onClick={() => setKind(null)}>
-            Everything
-          </Chip>
-          {LOG_KINDS.map((k) => (
-            <Chip key={k.label} on={kind === k.label} onClick={() => setKind(k.label)}>
-              {k.label}
-            </Chip>
-          ))}
-        </Chips>
-        {shops.size > 0 && (
-          <Chips label="Shop">
-            <Chip on={storeId === null} onClick={() => setStoreId(null)}>
-              All shops
-            </Chip>
-            {[...shops].map(([id, name]) => (
-              <Chip key={id} on={storeId === id} onClick={() => setStoreId(id)}>
-                {name}
-              </Chip>
-            ))}
-          </Chips>
-        )}
-        <div className="flex items-end gap-2">
-          <Field label="From day" className="w-48">
-            <Input type="date" value={day} max={today} onChange={(e) => setDay(e.target.value)} />
+      <AdminPageHeader title="Log" subtitle="Everything done from the admin · Phnom Penh time" />
+      <div className="max-w-4xl space-y-4">
+        <div role="group" aria-label="Filter the log" className="flex flex-wrap items-end gap-3">
+          <Field label="Kind" className="w-full sm:w-52">
+            <Select value={kind ?? ''} onChange={(e) => update({ kind: e.target.value || null })}>
+              <option value="">Everything</option>
+              {LOG_KINDS.map((k) => (
+                <option key={k.label} value={k.label}>
+                  {k.label}
+                </option>
+              ))}
+            </Select>
           </Field>
-          {day && (
-            <Button variant="secondary" onClick={() => setDay('')}>
-              Today
+          <Field label="Shop" className="w-full sm:w-64">
+            <Select value={storeId ?? ''} onChange={(e) => update({ shop: e.target.value || null })}>
+              <option value="">All shops</option>
+              {shopOptions.map((shop) => (
+                <option key={shop.id} value={shop.id}>
+                  {shop.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="From day" className="w-full sm:w-44">
+            <Input type="date" value={day} max={today} onChange={(e) => update({ from: e.target.value || null })} />
+          </Field>
+          {filtered && (
+            <Button variant="ghost" onClick={() => update({ kind: null, shop: null, from: null })}>
+              Clear
             </Button>
           )}
         </div>
@@ -75,7 +70,17 @@ export function AdminLog() {
         ) : log.error ? (
           <ErrorState error={log.error} onRetry={() => log.refetch()} />
         ) : log.data.pages[0].length === 0 ? (
-          <EmptyState icon={ScrollText} title={filtered ? 'Nothing like this in the log' : 'Nothing done from the admin yet'} />
+          <EmptyState
+            icon={ScrollText}
+            title={filtered ? 'Nothing like this in the log' : 'Nothing done from the admin yet'}
+            action={
+              filtered ? (
+                <Button variant="secondary" onClick={() => update({ kind: null, shop: null, from: null })}>
+                  Clear the filters
+                </Button>
+              ) : undefined
+            }
+          />
         ) : (
           <>
             <DayList items={log.data.pages.flat().map((line) => logItem(line, storeId === null))} />
