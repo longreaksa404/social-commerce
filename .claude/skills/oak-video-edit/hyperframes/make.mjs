@@ -43,7 +43,8 @@ export async function make(dir) {
     const dst = path.join(HF, 'assets', rel);
     const [kind, name] = rel.split('/');
     const src = {
-      screens: () => path.join(REPO, 'backend/marketing/out/km', name),
+      // the film's `screens` picks the set: 'km' (Oak Phone, the default) or 'clothing/km' (Oak Wear)
+      screens: () => path.join(REPO, 'backend/marketing/out', out.screens ?? 'km', name),
       fonts: () => name === 'NotoSansKhmer-Bold.ttf' ? path.join(REPO, 'brand/fonts', name) : path.join(CAPCUT_FONTS, name),
       sfx: () => name.startsWith('hf-') ? path.join(pluginRoot(), 'skills/media-use/audio/assets/sfx', name.slice(3)) : path.join(SFX_DIR, name.replace(/^mx-/, '')),
       audio: () => voices.some(v => v.file === name) ? path.join(dir, name) : path.join(MUSIC_DIR, name),
