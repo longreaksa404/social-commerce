@@ -5,7 +5,7 @@
   "color": "navy",
   "currency": "USD",
   "description": {
-   "km": "ហាងសាកល្បងលក់សម្លៀកបំពាក់ប្រចាំថ្ងៃ។",
+   "km": "Demo shop for everyday clothing.",
    "en": "Demo shop for everyday clothing."
   },
   "delivery_fee": "2.00",
@@ -14,47 +14,46 @@
    "km": "ផ្សារទួលទំពូង ភ្នំពេញ",
    "en": "Toul Tompoung Market, Phnom Penh"
   },
-  "payment_methods": ["cod", "khqr"]
+  "payment_methods": [
+   "cod",
+   "khqr"
+  ]
  },
  "categories": [
-  {"slug": "tops", "name": {"km": "អាវ", "en": "Tops"}},
-  {"slug": "bottoms", "name": {"km": "ខោ", "en": "Bottoms"}},
-  {"slug": "dresses", "name": {"km": "រ៉ូប", "en": "Dresses"}},
-  {"slug": "skirts", "name": {"km": "សំពត់", "en": "Skirts"}}
+  {"slug": "tops", "name": {"km": "Tops", "en": "Tops"}},
+  {"slug": "bottoms", "name": {"km": "Bottoms", "en": "Bottoms"}},
+  {"slug": "dresses", "name": {"km": "Dresses", "en": "Dresses"}},
+  {"slug": "skirts", "name": {"km": "Skirts", "en": "Skirts"}}
  ],
  "colours": {
-  "Black": "ពណ៌ខ្មៅ",
   "White": "ពណ៌ស",
-  "Cream": "ពណ៌ក្រែម",
-  "Grey": "ពណ៌ប្រផេះ",
-  "Pink": "ពណ៌ផ្កាឈូក",
+  "Black": "ពណ៌ខ្មៅ",
+  "Olive": "Olive",
   "Beige": "ពណ៌កាគី",
+  "Pink": "ពណ៌ផ្កាឈូក",
   "Blue": "ពណ៌ខៀវ",
+  "Grey": "ពណ៌ប្រផេះ",
   "Light blue": "ពណ៌ខៀវខ្ចី",
-  "Lilac": "ពណ៌ស្វាយខ្ចី",
-  "Green": "ពណ៌បៃតង",
-  "Charcoal": "ពណ៌ប្រផេះចាស់",
-  "Orange": "ពណ៌ទឹកក្រូច",
-  "Pink stripe": "ឆ្នូតពណ៌ផ្កាឈូក",
-  "Black stripe": "ឆ្នូតពណ៌ខ្មៅ",
-  "Red": "ពណ៌ក្រហម",
-  "Yellow": "ពណ៌លឿង",
-  "Brown": "ពណ៌ត្នោត",
-  "Purple": "ពណ៌ស្វាយ",
+  "Cream": "ពណ៌ក្រែម",
   "Mint": "ពណ៌បៃតងខ្ចី",
-  "Light pink": "ពណ៌ផ្កាឈូកខ្ចី",
+  "Sage": "Sage",
+  "Red": "ពណ៌ក្រហម",
+  "Brown": "ពណ៌ត្នោត",
+  "Stone": "Stone",
+  "Black stripe": "ឆ្នូតពណ៌ខ្មៅ",
+  "Red stripe": "Red stripe",
+  "Yellow": "ពណ៌លឿង",
   "Dark blue": "ពណ៌ខៀវចាស់",
-  "Dark green": "ពណ៌បៃតងចាស់"
+  "Wine": "Wine",
+  "Teal": "Teal",
+  "Champagne": "Champagne"
  },
  "products": [
   {
    "slug": "basic-t-shirt",
    "category": "tops",
-   "name": {"km": "អាវយឺតធម្មតា", "en": "Basic T-shirt"},
-   "description": {
-    "km": "អាវយឺតកប្បាស 100% ក្រណាត់ស្រាល ពាក់ស្រួលរាល់ថ្ងៃ។ មានពណ៌ស និងខ្មៅ។",
-    "en": "100% cotton tee, light and easy to wear every day. White or black."
-   },
+   "name": {"km": "Basic T-shirt", "en": "Basic T-shirt"},
+   "description": {"km": "100% cotton tee, light and easy to wear every day. White or black.", "en": "100% cotton tee, light and easy to wear every day. White or black."},
    "price": "8.50",
    "photos": ["tee-black", "tee-white"],
    "variants": [["White", "M", 12], ["White", "L", 10], ["Black", "M", 15], ["Black", "L", 11]]
@@ -62,23 +61,17 @@
   {
    "slug": "casual-trousers",
    "category": "bottoms",
-   "name": {"km": "ខោជើងវែង", "en": "Casual trousers"},
-   "description": {
-    "km": "ខោជើងវែងក្រណាត់ស្រាល ពាក់ទៅធ្វើការ ឬដើរលេងបាន។",
-    "en": "Light, easy trousers for work or weekends."
-   },
+   "name": {"km": "Casual trousers", "en": "Casual trousers"},
+   "description": {"km": "Light, easy chinos for work or weekends.", "en": "Light, easy chinos for work or weekends."},
    "price": "14.00",
-   "photos": ["trousers-cream", "trousers-beige"],
-   "variants": [["Cream", "M", 10], ["Cream", "L", 9], ["Beige", "M", 12], ["Beige", "L", 10]]
+   "photos": ["trousers-stack"],
+   "variants": [["Olive", "M", 10], ["Olive", "L", 9], ["Beige", "M", 12], ["Beige", "L", 10]]
   },
   {
    "slug": "everyday-dress",
    "category": "dresses",
-   "name": {"km": "រ៉ូបប្រចាំថ្ងៃ", "en": "Everyday dress"},
-   "description": {
-    "km": "រ៉ូបពណ៌ខ្មៅ គ្មានដៃ ប្រវែងក្រោមជង្គង់ ពាក់បានគ្រប់ពេល។",
-    "en": "Sleeveless black dress, below the knee, easy to wear anywhere."
-   },
+   "name": {"km": "Everyday dress", "en": "Everyday dress"},
+   "description": {"km": "Soft black dress with a gathered waist. Easy to dress up or down.", "en": "Soft black dress with a gathered waist. Easy to dress up or down."},
    "price": "17.00",
    "photos": ["dress-black"],
    "variants": [["Black", "S", 10], ["Black", "M", 7], ["Black", "L", 9]]
@@ -86,23 +79,17 @@
   {
    "slug": "oversized-t-shirt",
    "category": "tops",
-   "name": {"km": "អាវយឺត Oversize", "en": "Oversized T-shirt"},
-   "description": {
-    "km": "អាវយឺតទម្រង់ធំ ក្រណាត់កប្បាសទន់ ក្រាស់ល្មម។",
-    "en": "Relaxed oversized fit in soft, medium-weight cotton."
-   },
+   "name": {"km": "Oversized T-shirt", "en": "Oversized T-shirt"},
+   "description": {"km": "Roomy cotton tee with dropped shoulders.", "en": "Roomy cotton tee with dropped shoulders."},
    "price": "10.00",
-   "photos": ["oversized-cream"],
-   "variants": [["Cream", "M", 14], ["Cream", "L", 12], ["Cream", "XL", 9]]
+   "photos": ["tee-pink"],
+   "variants": [["Pink", "M", 14], ["Pink", "L", 12], ["Pink", "XL", 9]]
   },
   {
    "slug": "straight-jeans",
    "category": "bottoms",
-   "name": {"km": "ខោខូវប៊យជើងត្រង់", "en": "Straight jeans"},
-   "description": {
-    "km": "ខោខូវប៊យជើងត្រង់ ក្រណាត់ជីនរឹងមាំ។ ទំហំ 28 ដល់ 32។",
-    "en": "Classic straight-leg jeans in sturdy blue denim. Sizes 28 to 32."
-   },
+   "name": {"km": "Straight jeans", "en": "Straight jeans"},
+   "description": {"km": "Classic mid-blue straight-leg jeans.", "en": "Classic mid-blue straight-leg jeans."},
    "price": "18.00",
    "photos": ["jeans-blue"],
    "variants": [["Blue", "28", 11], ["Blue", "30", 9], ["Blue", "32", 0]]
@@ -110,23 +97,17 @@
   {
    "slug": "polo-shirt",
    "category": "tops",
-   "name": {"km": "អាវប៉ូឡូ", "en": "Polo shirt"},
-   "description": {
-    "km": "អាវប៉ូឡូកប្បាស មានក ពាក់ទៅធ្វើការ ឬដើរលេងបាន។",
-    "en": "Cotton polo with a soft collar, smart enough for work."
-   },
+   "name": {"km": "Polo shirt", "en": "Polo shirt"},
+   "description": {"km": "Short-sleeve cotton polo with a small print.", "en": "Short-sleeve cotton polo with a small print."},
    "price": "12.00",
-   "photos": ["polo-grey", "polo-pink"],
+   "photos": ["polos"],
    "variants": [["Grey", "M", 10], ["Grey", "L", 12], ["Pink", "M", 9], ["Pink", "L", 11]]
   },
   {
    "slug": "slip-dress",
    "category": "dresses",
-   "name": {"km": "រ៉ូបខ្សែស្មា", "en": "Slip dress"},
-   "description": {
-    "km": "រ៉ូបខ្សែស្មា ក្រណាត់ស្រាល ពាក់ឯកឯង ឬពាក់ជាមួយអាវក្រៅ។",
-    "en": "Light strap dress to wear alone or under a shirt."
-   },
+   "name": {"km": "Slip dress", "en": "Slip dress"},
+   "description": {"km": "Simple slip dress with thin straps. White or black.", "en": "Simple slip dress with thin straps. White or black."},
    "price": "20.00",
    "photos": ["slip-dresses"],
    "variants": [["White", "S", 10], ["White", "M", 12], ["Black", "S", 9], ["Black", "M", 11]]
@@ -134,11 +115,8 @@
   {
    "slug": "casual-shorts",
    "category": "bottoms",
-   "name": {"km": "ខោខ្លីកប្បាស", "en": "Casual shorts"},
-   "description": {
-    "km": "ខោខ្លីកប្បាស មានហោប៉ៅ ពាក់ស្រួលពេលក្តៅ។",
-    "en": "Cotton shorts with pockets, cool for hot days."
-   },
+   "name": {"km": "Casual shorts", "en": "Casual shorts"},
+   "description": {"km": "Cotton chino shorts in five colours.", "en": "Cotton chino shorts in five colours."},
    "price": "11.00",
    "photos": ["shorts-colours"],
    "variants": [["Beige", "M", 12], ["Beige", "L", 10], ["Light blue", "M", 11], ["Light blue", "L", 9]]
@@ -146,11 +124,8 @@
   {
    "slug": "linen-shirt",
    "category": "tops",
-   "name": {"km": "អាវសឺមីលីនិន", "en": "Linen shirt"},
-   "description": {
-    "km": "អាវសឺមីក្រណាត់លីនិន កឈរ ដៃវែង ពាក់ត្រជាក់ស្រួល។",
-    "en": "Long-sleeve linen shirt with a band collar, cool and breathable."
-   },
+   "name": {"km": "Linen shirt", "en": "Linen shirt"},
+   "description": {"km": "Breathable linen shirt with a stand collar.", "en": "Breathable linen shirt with a stand collar."},
    "price": "15.00",
    "photos": ["linen-shirt"],
    "variants": [["Cream", "M", 13], ["Cream", "L", 10]]
@@ -158,11 +133,8 @@
   {
    "slug": "ribbed-top",
    "category": "tops",
-   "name": {"km": "អាវខ្លីសាច់ក្រួញ", "en": "Ribbed top"},
-   "description": {
-    "km": "អាវខ្លីសាច់ក្រួញ មានឡេវ ពាក់ជាមួយខោចង្កេះខ្ពស់ស្អាត។",
-    "en": "Short ribbed top with buttons, nice with high-waisted bottoms."
-   },
+   "name": {"km": "Ribbed top", "en": "Ribbed top"},
+   "description": {"km": "Fitted ribbed knit top with buttons.", "en": "Fitted ribbed knit top with buttons."},
    "price": "9.00",
    "photos": ["ribbed-top"],
    "variants": [["White", "S", 12], ["White", "M", 14]]
@@ -170,11 +142,8 @@
   {
    "slug": "denim-shorts",
    "category": "bottoms",
-   "name": {"km": "ខោខូវប៊យខ្លី", "en": "Denim shorts"},
-   "description": {
-    "km": "ខោខូវប៊យខ្លី ចង្កេះខ្ពស់ ពណ៌ខៀវខ្ចី។",
-    "en": "High-waisted denim shorts in light blue."
-   },
+   "name": {"km": "Denim shorts", "en": "Denim shorts"},
+   "description": {"km": "High-waist ripped denim shorts with rolled hems.", "en": "High-waist ripped denim shorts with rolled hems."},
    "price": "12.00",
    "photos": ["denim-shorts"],
    "variants": [["Light blue", "S", 10], ["Light blue", "M", 13], ["Light blue", "L", 9]]
@@ -182,541 +151,411 @@
   {
    "slug": "knit-cardigan",
    "category": "tops",
-   "name": {"km": "អាវរងាត្បាញ", "en": "Knit cardigan"},
-   "description": {
-    "km": "អាវរងាត្បាញស្រាល មានឡេវ ពាក់ពេលល្ងាច ឬក្នុងបន្ទប់ម៉ាស៊ីនត្រជាក់។",
-    "en": "Light knit cardigan for cool evenings and air-conditioned rooms."
-   },
+   "name": {"km": "Knit cardigan", "en": "Knit cardigan"},
+   "description": {"km": "Chunky knit cardigan, warm and soft.", "en": "Chunky knit cardigan, warm and soft."},
    "price": "16.00",
    "photos": ["cardigans"],
    "variants": [["Beige", "M", 9], ["Beige", "L", 10], ["Cream", "M", 12], ["Cream", "L", 11], ["Grey", "M", 10], ["Grey", "L", 9]]
   },
   {
-   "slug": "crop-tank-top",
+   "slug": "linen-henley",
    "category": "tops",
-   "name": {"km": "អាវខ្លីគ្មានដៃ", "en": "Crop tank top"},
-   "description": {
-    "km": "អាវខ្លីគ្មានដៃ សាច់ក្រួញ យឺតស្រួលពាក់។",
-    "en": "Short ribbed tank, fitted and stretchy."
-   },
-   "price": "7.00",
-   "photos": ["tank-pink"],
-   "variants": [["Pink", "S", 12], ["Pink", "M", 9]]
-  },
-  {
-   "slug": "ribbed-cami",
-   "category": "tops",
-   "name": {"km": "អាវខ្សែស្មាសាច់ក្រួញ", "en": "Ribbed cami top"},
-   "description": {
-    "km": "អាវខ្សែស្មាតូច សាច់ក្រួញទន់។",
-    "en": "Thin straps, soft ribbed knit."
-   },
-   "price": "7.50",
-   "photos": ["cami-blue"],
-   "variants": [["Light blue", "S", 15], ["Light blue", "M", 10]]
-  },
-  {
-   "slug": "knit-smocked-top",
-   "category": "tops",
-   "name": {"km": "អាវត្បាញដៃខ្លី", "en": "Knit smocked top"},
-   "description": {
-    "km": "អាវត្បាញស្រាល ដៃខ្លីមានរំយោល។",
-    "en": "Light knit with frilled sleeves."
-   },
-   "price": "11.00",
-   "photos": ["smocked-cream", "smocked-lilac"],
-   "variants": [["Cream", "S", 11], ["Cream", "M", 14], ["Lilac", "S", 13], ["Lilac", "M", 9]]
-  },
-  {
-   "slug": "soft-t-shirt",
-   "category": "tops",
-   "name": {"km": "អាវយឺតសាច់ទន់", "en": "Soft T-shirt"},
-   "description": {
-    "km": "អាវយឺតសាច់ទន់ ធូររលុងបន្តិច ពាក់រាល់ថ្ងៃ។",
-    "en": "Soft, slightly loose everyday tee."
-   },
-   "price": "8.00",
-   "photos": ["tee-green", "tee-black-back"],
-   "variants": [["Green", "M", 16], ["Green", "L", 10], ["Black", "M", 12], ["Black", "L", 9]]
-  },
-  {
-   "slug": "eyelet-blouse",
-   "category": "tops",
-   "name": {"km": "អាវប៉ាក់ប្រហោង", "en": "Eyelet blouse"},
-   "description": {
-    "km": "អាវកប្បាស ប៉ាក់ប្រហោងស្អាត។",
-    "en": "Cotton blouse with eyelet lace."
-   },
+   "name": {"km": "Linen henley", "en": "Linen henley"},
+   "description": {"km": "Short-sleeve linen top with a button placket.", "en": "Short-sleeve linen top with a button placket."},
    "price": "13.00",
-   "photos": ["eyelet-white"],
-   "variants": [["White", "S", 15], ["White", "M", 10], ["White", "L", 11]]
+   "photos": ["henley-white"],
+   "variants": [["White", "S", 12], ["White", "M", 9], ["White", "L", 15]]
   },
   {
-   "slug": "cross-back-t-shirt",
+   "slug": "cotton-t-shirt",
    "category": "tops",
-   "name": {"km": "អាវយឺតខ្សែខ្វែងខ្នង", "en": "Cross-back T-shirt"},
-   "description": {
-    "km": "អាវយឺតធូរ មានខ្សែខ្វែងនៅខ្នង។",
-    "en": "Loose tee with crossed straps at the back."
-   },
-   "price": "10.00",
-   "photos": ["crossback-charcoal"],
-   "variants": [["Charcoal", "M", 14], ["Charcoal", "L", 13]]
+   "name": {"km": "Cotton T-shirt", "en": "Cotton T-shirt"},
+   "description": {"km": "Heavy cotton tee that keeps its shape.", "en": "Heavy cotton tee that keeps its shape."},
+   "price": "9.00",
+   "photos": ["tee-mint", "tees-black-mint"],
+   "variants": [["Mint", "M", 10], ["Mint", "L", 11], ["Black", "M", 14], ["Black", "L", 13]]
   },
   {
-   "slug": "crop-t-shirt",
+   "slug": "oxford-shirt",
    "category": "tops",
-   "name": {"km": "អាវយឺតខ្លី", "en": "Crop T-shirt"},
-   "description": {
-    "km": "អាវយឺតខ្លី សាច់ក្រួញ ពណ៌ទោល ឬឆ្នូត។",
-    "en": "Short ribbed tee, plain or striped."
-   },
-   "price": "8.00",
-   "photos": ["croptee-orange", "croptee-stripe"],
-   "variants": [["Orange", "S", 9], ["Orange", "M", 16], ["Pink stripe", "S", 10], ["Pink stripe", "M", 12]]
+   "name": {"km": "Oxford shirt", "en": "Oxford shirt"},
+   "description": {"km": "Button-down oxford shirt with a chest pocket.", "en": "Button-down oxford shirt with a chest pocket."},
+   "price": "15.00",
+   "photos": ["oxford-sage"],
+   "variants": [["Sage", "S", 9], ["Sage", "M", 16], ["Sage", "L", 10]]
   },
   {
-   "slug": "floral-tie-blouse",
+   "slug": "classic-shirt",
    "category": "tops",
-   "name": {"km": "អាវផ្កាចងខាងមុខ", "en": "Floral tie-front blouse"},
-   "description": {
-    "km": "អាវលំនាំផ្កា មានឡេវ និងចងខាងមុខ។",
-    "en": "Floral print, buttons and a front tie."
-   },
-   "price": "12.00",
-   "photos": ["tieblouse-red"],
-   "variants": [["Red", "S", 9], ["Red", "M", 15], ["Red", "L", 10]]
-  },
-  {
-   "slug": "batwing-top",
-   "category": "tops",
-   "name": {"km": "អាវដៃប្រចៀវ", "en": "Batwing top"},
-   "description": {
-    "km": "អាវធូរ ដៃធំ ជាយមិនស្មើ។",
-    "en": "Loose, wide-sleeve top with an uneven hem."
-   },
-   "price": "11.00",
-   "photos": ["batwing-yellow"],
-   "variants": [["Yellow", "M", 11], ["Yellow", "L", 14]]
-  },
-  {
-   "slug": "utility-shirt",
-   "category": "tops",
-   "name": {"km": "អាវសឺមីហោប៉ៅមុខ", "en": "Utility shirt"},
-   "description": {
-    "km": "អាវសឺមីខ្លី ហោប៉ៅទ្រូង មានខ្សែរូតជាយ។",
-    "en": "Short shirt with chest pockets and a drawstring."
-   },
+   "name": {"km": "Classic shirt", "en": "Classic shirt"},
+   "description": {"km": "Crisp long-sleeve shirt for work.", "en": "Crisp long-sleeve shirt for work."},
    "price": "14.00",
-   "photos": ["utility-red"],
-   "variants": [["Red", "S", 13], ["Red", "M", 9], ["Red", "L", 16]]
+   "photos": ["shirt-lightblue"],
+   "variants": [["Light blue", "S", 12], ["Light blue", "M", 9], ["Light blue", "L", 15]]
   },
   {
-   "slug": "leaf-print-top",
+   "slug": "chunky-sweater",
    "category": "tops",
-   "name": {"km": "អាវលំនាំស្លឹកឈើ", "en": "Leaf print top"},
-   "description": {
-    "km": "អាវខ្សែស្មាចង សាច់យឺត លំនាំស្លឹកឈើ។",
-    "en": "Smocked top with tie straps."
-   },
-   "price": "10.00",
-   "photos": ["leaftop-white"],
-   "variants": [["White", "S", 10], ["White", "M", 12]]
+   "name": {"km": "Chunky sweater", "en": "Chunky sweater"},
+   "description": {"km": "Thick knit sweater with a contrast collar.", "en": "Thick knit sweater with a contrast collar."},
+   "price": "18.00",
+   "photos": ["sweater-red"],
+   "variants": [["Red", "M", 10], ["Red", "L", 11]]
+  },
+  {
+   "slug": "cotton-shirt",
+   "category": "tops",
+   "name": {"km": "Cotton shirt", "en": "Cotton shirt"},
+   "description": {"km": "Soft everyday shirt in a heather weave.", "en": "Soft everyday shirt in a heather weave."},
+   "price": "13.00",
+   "photos": ["shirt-grey"],
+   "variants": [["Grey", "S", 14], ["Grey", "M", 13], ["Grey", "L", 9]]
+  },
+  {
+   "slug": "cropped-blazer",
+   "category": "tops",
+   "name": {"km": "Cropped blazer", "en": "Cropped blazer"},
+   "description": {"km": "Short collarless blazer with one button.", "en": "Short collarless blazer with one button."},
+   "price": "22.00",
+   "photos": ["blazer-grey"],
+   "variants": [["Grey", "S", 16], ["Grey", "M", 10], ["Grey", "L", 12]]
+  },
+  {
+   "slug": "knit-t-shirt",
+   "category": "tops",
+   "name": {"km": "Knit T-shirt", "en": "Knit T-shirt"},
+   "description": {"km": "Fine-knit short-sleeve top.", "en": "Fine-knit short-sleeve top."},
+   "price": "12.00",
+   "photos": ["knit-tee-cream"],
+   "variants": [["Cream", "S", 9], ["Cream", "M", 15]]
+  },
+  {
+   "slug": "hoodie",
+   "category": "tops",
+   "name": {"km": "Hoodie", "en": "Hoodie"},
+   "description": {"km": "Brushed cotton hoodie with a relaxed fit.", "en": "Brushed cotton hoodie with a relaxed fit."},
+   "price": "16.00",
+   "photos": ["hoodie-brown"],
+   "variants": [["Brown", "M", 10], ["Brown", "L", 11]]
+  },
+  {
+   "slug": "sweatshirt",
+   "category": "tops",
+   "name": {"km": "Sweatshirt", "en": "Sweatshirt"},
+   "description": {"km": "Plain crew-neck sweatshirt.", "en": "Plain crew-neck sweatshirt."},
+   "price": "14.00",
+   "photos": ["sweatshirt-stone", "sweatshirt-sage"],
+   "variants": [["Stone", "M", 14], ["Stone", "L", 13], ["Sage", "M", 9], ["Sage", "L", 16]]
   },
   {
    "slug": "striped-t-shirt",
    "category": "tops",
-   "name": {"km": "អាវយឺតឆ្នូត", "en": "Striped T-shirt"},
-   "description": {
-    "km": "អាវយឺតឆ្នូតធំ រាងធូរ។",
-    "en": "Boxy tee with bold stripes."
-   },
+   "name": {"km": "Striped T-shirt", "en": "Striped T-shirt"},
+   "description": {"km": "Breton-stripe tee with a contrast neck.", "en": "Breton-stripe tee with a contrast neck."},
    "price": "9.00",
-   "photos": ["stripetee-black"],
-   "variants": [["Black stripe", "M", 9], ["Black stripe", "L", 15]]
+   "photos": ["tee-stripe"],
+   "variants": [["Black stripe", "S", 10], ["Black stripe", "M", 12], ["Black stripe", "L", 9]]
   },
   {
-   "slug": "tie-waist-trousers",
-   "category": "bottoms",
-   "name": {"km": "ខោជើងវែងចងចង្កេះ", "en": "Tie-waist trousers"},
-   "description": {
-    "km": "ខោជើងវែងស្រាល ចង្កេះកៅស៊ូ មានខ្សែចង។",
-    "en": "Light trousers with an elastic, tie waist."
-   },
+   "slug": "striped-shirt",
+   "category": "tops",
+   "name": {"km": "Striped shirt", "en": "Striped shirt"},
+   "description": {"km": "Cotton shirt with red stripes.", "en": "Cotton shirt with red stripes."},
+   "price": "13.00",
+   "photos": ["shirt-stripe"],
+   "variants": [["Red stripe", "S", 15], ["Red stripe", "M", 10], ["Red stripe", "L", 11]]
+  },
+  {
+   "slug": "knit-polo",
+   "category": "tops",
+   "name": {"km": "Knit polo", "en": "Knit polo"},
+   "description": {"km": "Half-zip knit polo in soft beige.", "en": "Half-zip knit polo in soft beige."},
    "price": "15.00",
-   "photos": ["tiewaist-brown", "tiewaist-yellow"],
-   "variants": [["Brown", "S", 10], ["Brown", "M", 11], ["Brown", "L", 14], ["Yellow", "S", 13], ["Yellow", "M", 9], ["Yellow", "L", 16]]
+   "photos": ["knit-polo"],
+   "variants": [["Beige", "M", 14], ["Beige", "L", 13]]
   },
   {
-   "slug": "cargo-joggers",
+   "slug": "everyday-t-shirt",
+   "category": "tops",
+   "name": {"km": "Everyday T-shirt", "en": "Everyday T-shirt"},
+   "description": {"km": "Light tee with a curved hem.", "en": "Light tee with a curved hem."},
+   "price": "8.00",
+   "photos": ["tee-yellow"],
+   "variants": [["Yellow", "S", 9], ["Yellow", "M", 16], ["Yellow", "L", 10]]
+  },
+  {
+   "slug": "relaxed-jeans",
    "category": "bottoms",
-   "name": {"km": "ខោហោប៉ៅចំហៀង", "en": "Cargo joggers"},
-   "description": {
-    "km": "ខោហោប៉ៅចំហៀង ជើងរួញ។",
-    "en": "Joggers with side pockets and cuffed ankles."
-   },
-   "price": "16.00",
-   "photos": ["cargo-lilac", "cargo-pink"],
-   "variants": [["Lilac", "S", 10], ["Lilac", "M", 12], ["Lilac", "L", 9], ["Pink", "S", 15], ["Pink", "M", 10], ["Pink", "L", 11]]
+   "name": {"km": "Relaxed jeans", "en": "Relaxed jeans"},
+   "description": {"km": "Loose-fit jeans in light or dark wash.", "en": "Loose-fit jeans in light or dark wash."},
+   "price": "19.00",
+   "photos": ["jeans-trio"],
+   "variants": [["Light blue", "28", 12], ["Light blue", "30", 9], ["Light blue", "32", 15], ["Dark blue", "28", 10], ["Dark blue", "30", 11], ["Dark blue", "32", 14]]
+  },
+  {
+   "slug": "slim-jeans",
+   "category": "bottoms",
+   "name": {"km": "Slim jeans", "en": "Slim jeans"},
+   "description": {"km": "Slim-fit stretch jeans.", "en": "Slim-fit stretch jeans."},
+   "price": "18.00",
+   "photos": ["jeans-hangers"],
+   "variants": [["Blue", "28", 13], ["Blue", "30", 9], ["Blue", "32", 16]]
   },
   {
    "slug": "sweatpants",
    "category": "bottoms",
-   "name": {"km": "ខោកីឡា", "en": "Sweatpants"},
-   "description": {
-    "km": "ខោកីឡាកប្បាសទន់ មានខ្សែរូត។",
-    "en": "Soft cotton sweatpants with a drawstring."
-   },
+   "name": {"km": "Sweatpants", "en": "Sweatpants"},
+   "description": {"km": "Fleece sweatpants with a drawstring.", "en": "Fleece sweatpants with a drawstring."},
    "price": "13.00",
-   "photos": ["sweat-red", "sweat-purple"],
-   "variants": [["Red", "S", 14], ["Red", "M", 13], ["Red", "L", 9], ["Purple", "S", 16], ["Purple", "M", 10], ["Purple", "L", 12]]
-  },
-  {
-   "slug": "printed-wide-leg-trousers",
-   "category": "bottoms",
-   "name": {"km": "ខោជើងធំលំនាំផ្កា", "en": "Printed wide-leg trousers"},
-   "description": {
-    "km": "ខោជើងធំ ស្រាលរលូន លំនាំភ្លឺថ្លា។",
-    "en": "Flowing wide-leg trousers in bright prints."
-   },
-   "price": "17.00",
-   "photos": ["wideprint-pink", "wideprint-red"],
-   "variants": [["Pink", "S", 9], ["Pink", "M", 15], ["Pink", "L", 10], ["Red", "S", 11], ["Red", "M", 14], ["Red", "L", 13]]
-  },
-  {
-   "slug": "cropped-trousers",
-   "category": "bottoms",
-   "name": {"km": "ខោជើងខ្លីបន្តិច", "en": "Cropped trousers"},
-   "description": {
-    "km": "ខោធូរ ប្រវែងកំភួនជើង ជាយរហែកស្អាត។",
-    "en": "Relaxed cropped trousers with frayed hems."
-   },
-   "price": "14.00",
-   "photos": ["cropped-pink", "cropped-mint"],
-   "variants": [["Light pink", "S", 9], ["Light pink", "M", 16], ["Light pink", "L", 10], ["Mint", "S", 12], ["Mint", "M", 9], ["Mint", "L", 15]]
-  },
-  {
-   "slug": "belted-trousers",
-   "category": "bottoms",
-   "name": {"km": "ខោជើងវែងមានខ្សែក្រវ៉ាត់", "en": "Belted trousers"},
-   "description": {
-    "km": "ខោជើងវែងស្អាតបាត មានខ្សែក្រវ៉ាត់ជាប់។",
-    "en": "Smart trousers, belt included."
-   },
-   "price": "18.00",
-   "photos": ["belted-yellow"],
-   "variants": [["Yellow", "S", 10], ["Yellow", "M", 11], ["Yellow", "L", 14]]
-  },
-  {
-   "slug": "wide-leg-jeans",
-   "category": "bottoms",
-   "name": {"km": "ខោខូវប៊យជើងធំ", "en": "Wide-leg jeans"},
-   "description": {
-    "km": "ខោខូវប៊យជើងធំ សាច់ទន់ មានខ្សែចងចង្កេះ។",
-    "en": "Soft wide-leg jeans with a tie waist."
-   },
-   "price": "19.00",
-   "photos": ["widejeans-light", "widejeans-dark"],
-   "variants": [["Light blue", "28", 13], ["Light blue", "30", 9], ["Light blue", "32", 16], ["Dark blue", "28", 10], ["Dark blue", "30", 12], ["Dark blue", "32", 9]]
-  },
-  {
-   "slug": "skinny-trousers",
-   "category": "bottoms",
-   "name": {"km": "ខោជាប់ជើង", "en": "Skinny trousers"},
-   "description": {
-    "km": "ខោជាប់ជើង ចង្កេះខ្ពស់ យឺតស្រួល។",
-    "en": "Stretchy high-waist skinny trousers."
-   },
-   "price": "16.00",
-   "photos": ["skinny-white", "skinny-brown"],
-   "variants": [["White", "28", 15], ["White", "30", 10], ["White", "32", 11], ["Brown", "28", 14], ["Brown", "30", 13], ["Brown", "32", 9]]
-  },
-  {
-   "slug": "sport-shorts",
-   "category": "bottoms",
-   "name": {"km": "ខោខ្លីកីឡា", "en": "Sport shorts"},
-   "description": {
-    "km": "ខោខ្លីស្រាល ចង្កេះកៅស៊ូ។",
-    "en": "Light shorts with an elastic waist."
-   },
-   "price": "8.00",
-   "photos": ["sportshorts-blue", "sportshorts-pink"],
-   "variants": [["Blue", "S", 16], ["Blue", "M", 10], ["Blue", "L", 12], ["Pink", "S", 9], ["Pink", "M", 15], ["Pink", "L", 10]]
-  },
-  {
-   "slug": "button-shorts",
-   "category": "bottoms",
-   "name": {"km": "ខោខ្លីឡេវមុខ", "en": "Button-front shorts"},
-   "description": {
-    "km": "ខោខ្លីចង្កេះខ្ពស់ មានឡេវមួយជួរ។",
-    "en": "High-waist shorts with a row of buttons."
-   },
-   "price": "11.00",
-   "photos": ["buttonshorts-black", "buttonshorts-green"],
-   "variants": [["Black", "S", 11], ["Black", "M", 14], ["Black", "L", 13], ["Dark green", "S", 9], ["Dark green", "M", 16], ["Dark green", "L", 10]]
+   "photos": ["sweatpants"],
+   "variants": [["Grey", "M", 10], ["Grey", "L", 12], ["Brown", "M", 9], ["Brown", "L", 15], ["Black", "M", 10], ["Black", "L", 11]]
   },
   {
    "slug": "cut-off-shorts",
    "category": "bottoms",
-   "name": {"km": "ខោខ្លីជាយរហែក", "en": "Cut-off shorts"},
-   "description": {
-    "km": "ខោខ្លីពណ៌ភ្លឺ ចង្កេះខ្ពស់ ជាយរហែក។",
-    "en": "Bright high-waist shorts with raw hems."
-   },
+   "name": {"km": "Cut-off shorts", "en": "Cut-off shorts"},
+   "description": {"km": "Washed cotton shorts with raw hems.", "en": "Washed cotton shorts with raw hems."},
    "price": "11.00",
-   "photos": ["cutoff-red", "cutoff-yellow"],
-   "variants": [["Red", "S", 12], ["Red", "M", 9], ["Red", "L", 15], ["Yellow", "S", 10], ["Yellow", "M", 11], ["Yellow", "L", 14]]
+   "photos": ["shorts-olive"],
+   "variants": [["Olive", "S", 14], ["Olive", "M", 13], ["Olive", "L", 9]]
   },
   {
-   "slug": "printed-shorts",
+   "slug": "linen-shorts",
    "category": "bottoms",
-   "name": {"km": "ខោខ្លីលំនាំ", "en": "Printed shorts"},
-   "description": {
-    "km": "ខោខ្លីចងចង្កេះ លំនាំស្អាត។",
-    "en": "Easy tie-waist shorts in fun prints."
-   },
-   "price": "9.00",
-   "photos": ["printshorts-red", "printshorts-black"],
-   "variants": [["Red", "S", 13], ["Red", "M", 9], ["Red", "L", 16], ["Black", "S", 10], ["Black", "M", 12], ["Black", "L", 9]]
+   "name": {"km": "Linen shorts", "en": "Linen shorts"},
+   "description": {"km": "Light linen shorts with an elastic waist.", "en": "Light linen shorts with an elastic waist."},
+   "price": "11.00",
+   "photos": ["shorts-linen"],
+   "variants": [["White", "S", 16], ["White", "M", 10], ["White", "L", 12], ["Brown", "S", 9], ["Brown", "M", 15], ["Brown", "L", 10], ["Black", "S", 11], ["Black", "M", 14], ["Black", "L", 13]]
   },
   {
-   "slug": "smocked-strap-dress",
+   "slug": "ripped-denim-shorts",
+   "category": "bottoms",
+   "name": {"km": "Ripped denim shorts", "en": "Ripped denim shorts"},
+   "description": {"km": "Knee-length denim shorts with rips.", "en": "Knee-length denim shorts with rips."},
+   "price": "12.00",
+   "photos": ["shorts-ripped"],
+   "variants": [["Blue", "28", 9], ["Blue", "30", 16], ["Blue", "32", 10]]
+  },
+  {
+   "slug": "floral-peasant-dress",
    "category": "dresses",
-   "name": {"km": "រ៉ូបខ្សែស្មាទ្រូងយឺត", "en": "Smocked strap dress"},
-   "description": {
-    "km": "រ៉ូបខ្លី ខ្សែស្មា ជាយប៉ាក់ឡាស។",
-    "en": "Short dress with lace trim at the hem."
-   },
+   "name": {"km": "Floral peasant dress", "en": "Floral peasant dress"},
+   "description": {"km": "Loose dress with bell sleeves and a ruffle hem.", "en": "Loose dress with bell sleeves and a ruffle hem."},
    "price": "18.00",
-   "photos": ["smockdress-beige"],
-   "variants": [["Beige", "S", 15], ["Beige", "M", 10], ["Beige", "L", 11]]
+   "photos": ["dress-floral-pink", "dress-floral-cream"],
+   "variants": [["Pink", "S", 12], ["Pink", "M", 9], ["Pink", "L", 15], ["Cream", "S", 10], ["Cream", "M", 11], ["Cream", "L", 14]]
   },
   {
-   "slug": "midi-sundress",
+   "slug": "printed-tunic-dress",
    "category": "dresses",
-   "name": {"km": "រ៉ូបវែងរដូវក្តៅ", "en": "Midi sundress"},
-   "description": {
-    "km": "រ៉ូបវែងល្មម ស្រាល ចង្កេះកៅស៊ូ។",
-    "en": "Light midi dress with an elastic waist."
-   },
+   "name": {"km": "Printed tunic dress", "en": "Printed tunic dress"},
+   "description": {"km": "Off-shoulder tunic dress in a bold print.", "en": "Off-shoulder tunic dress in a bold print."},
+   "price": "17.00",
+   "photos": ["dress-print-black", "dress-print-blue"],
+   "variants": [["Black", "S", 13], ["Black", "M", 9], ["Black", "L", 16], ["Blue", "S", 10], ["Blue", "M", 12], ["Blue", "L", 9]]
+  },
+  {
+   "slug": "sequin-dress",
+   "category": "dresses",
+   "name": {"km": "Sequin dress", "en": "Sequin dress"},
+   "description": {"km": "Sleeveless sequin dress with a sheer top.", "en": "Sleeveless sequin dress with a sheer top."},
+   "price": "22.00",
+   "photos": ["dress-sequin"],
+   "variants": [["Black", "S", 15], ["Black", "M", 10], ["Black", "L", 11]]
+  },
+  {
+   "slug": "ruffle-hem-dress",
+   "category": "dresses",
+   "name": {"km": "Ruffle hem dress", "en": "Ruffle hem dress"},
+   "description": {"km": "Pleated red dress with a ruffled hem.", "en": "Pleated red dress with a ruffled hem."},
+   "price": "18.00",
+   "photos": ["dress-ruffle-red"],
+   "variants": [["Red", "S", 14], ["Red", "M", 13], ["Red", "L", 9]]
+  },
+  {
+   "slug": "wrap-dress",
+   "category": "dresses",
+   "name": {"km": "Wrap dress", "en": "Wrap dress"},
+   "description": {"km": "Draped wrap dress with short sleeves.", "en": "Draped wrap dress with short sleeves."},
+   "price": "18.00",
+   "photos": ["dress-wrap-wine"],
+   "variants": [["Wine", "S", 16], ["Wine", "M", 10], ["Wine", "L", 12]]
+  },
+  {
+   "slug": "patchwork-dress",
+   "category": "dresses",
+   "name": {"km": "Patchwork print dress", "en": "Patchwork print dress"},
+   "description": {"km": "Colourful print dress with frill sleeves.", "en": "Colourful print dress with frill sleeves."},
+   "price": "17.00",
+   "photos": ["dress-patchwork"],
+   "variants": [["Pink", "S", 9], ["Pink", "M", 15], ["Pink", "L", 10]]
+  },
+  {
+   "slug": "paisley-dress",
+   "category": "dresses",
+   "name": {"km": "Paisley dress", "en": "Paisley dress"},
+   "description": {"km": "Long-sleeve dress in a paisley print.", "en": "Long-sleeve dress in a paisley print."},
+   "price": "17.00",
+   "photos": ["dress-paisley"],
+   "variants": [["Grey", "S", 11], ["Grey", "M", 14], ["Grey", "L", 13]]
+  },
+  {
+   "slug": "mesh-sleeve-dress",
+   "category": "dresses",
+   "name": {"km": "Mesh sleeve dress", "en": "Mesh sleeve dress"},
+   "description": {"km": "Fitted mini dress with sheer sleeves.", "en": "Fitted mini dress with sheer sleeves."},
    "price": "19.00",
-   "photos": ["sundress-mint"],
-   "variants": [["Mint", "S", 14], ["Mint", "M", 13], ["Mint", "L", 9]]
+   "photos": ["dress-mesh"],
+   "variants": [["Black", "S", 9], ["Black", "M", 16], ["Black", "L", 10]]
   },
   {
-   "slug": "linen-belted-dress",
+   "slug": "snake-print-dress",
    "category": "dresses",
-   "name": {"km": "រ៉ូបលីនិនមានខ្សែចង", "en": "Linen belted dress"},
-   "description": {
-    "km": "រ៉ូបសាច់លីនិន មានខ្សែចងចង្កេះ។",
-    "en": "Linen-look dress with a rope belt."
-   },
-   "price": "21.00",
-   "photos": ["linendress-white"],
-   "variants": [["White", "S", 16], ["White", "M", 10], ["White", "L", 12]]
+   "name": {"km": "Snake print dress", "en": "Snake print dress"},
+   "description": {"km": "Off-shoulder dress with a flared hem.", "en": "Off-shoulder dress with a flared hem."},
+   "price": "18.00",
+   "photos": ["dress-snake"],
+   "variants": [["Grey", "S", 12], ["Grey", "M", 9], ["Grey", "L", 15]]
   },
   {
-   "slug": "bodycon-midi-dress",
+   "slug": "halter-dress",
    "category": "dresses",
-   "name": {"km": "រ៉ូបតឹងខ្លួនវែងល្មម", "en": "Bodycon midi dress"},
-   "description": {
-    "km": "រ៉ូបតឹងខ្លួន សាច់យឺត ខ្សែស្មាតូច។",
-    "en": "Fitted stretch dress with thin straps."
-   },
+   "name": {"km": "Halter dress", "en": "Halter dress"},
+   "description": {"km": "Satin halter dress with a tie waist.", "en": "Satin halter dress with a tie waist."},
+   "price": "19.00",
+   "photos": ["dress-halter"],
+   "variants": [["Yellow", "S", 10], ["Yellow", "M", 11], ["Yellow", "L", 14]]
+  },
+  {
+   "slug": "printed-t-shirt-dress",
+   "category": "dresses",
+   "name": {"km": "Printed T-shirt dress", "en": "Printed T-shirt dress"},
+   "description": {"km": "Easy T-shirt dress with a lace hem.", "en": "Easy T-shirt dress with a lace hem."},
    "price": "16.00",
-   "photos": ["bodycon-black"],
+   "photos": ["dress-tee-teal"],
+   "variants": [["Teal", "S", 13], ["Teal", "M", 9], ["Teal", "L", 16]]
+  },
+  {
+   "slug": "floral-t-shirt-dress",
+   "category": "dresses",
+   "name": {"km": "Floral T-shirt dress", "en": "Floral T-shirt dress"},
+   "description": {"km": "Short-sleeve dress with a floral side print.", "en": "Short-sleeve dress with a floral side print."},
+   "price": "15.00",
+   "photos": ["dress-tee-red"],
+   "variants": [["Red", "S", 10], ["Red", "M", 12], ["Red", "L", 9]]
+  },
+  {
+   "slug": "knit-midi-skirt",
+   "category": "skirts",
+   "name": {"km": "Knit midi skirt", "en": "Knit midi skirt"},
+   "description": {"km": "Soft ribbed skirt with an elastic waist.", "en": "Soft ribbed skirt with an elastic waist."},
+   "price": "13.00",
+   "photos": ["skirt-knit-white"],
+   "variants": [["White", "S", 15], ["White", "M", 10], ["White", "L", 11]]
+  },
+  {
+   "slug": "ribbon-skirt",
+   "category": "skirts",
+   "name": {"km": "Ribbon skirt", "en": "Ribbon skirt"},
+   "description": {"km": "Layered skirt of black ribbons.", "en": "Layered skirt of black ribbons."},
+   "price": "16.00",
+   "photos": ["skirt-ribbon"],
+   "variants": [["Black", "S", 14], ["Black", "M", 13], ["Black", "L", 9]]
+  },
+  {
+   "slug": "satin-skirt",
+   "category": "skirts",
+   "name": {"km": "Satin skirt", "en": "Satin skirt"},
+   "description": {"km": "Silky satin skirt with a ruffle.", "en": "Silky satin skirt with a ruffle."},
+   "price": "15.00",
+   "photos": ["skirt-satin"],
+   "variants": [["Champagne", "S", 16], ["Champagne", "M", 10], ["Champagne", "L", 12]]
+  },
+  {
+   "slug": "bubble-skirt",
+   "category": "skirts",
+   "name": {"km": "Bubble skirt", "en": "Bubble skirt"},
+   "description": {"km": "Textured bubble skirt with a cream trim.", "en": "Textured bubble skirt with a cream trim."},
+   "price": "17.00",
+   "photos": ["skirt-bubble"],
    "variants": [["Black", "S", 9], ["Black", "M", 15], ["Black", "L", 10]]
   },
   {
-   "slug": "t-shirt-dress",
-   "category": "dresses",
-   "name": {"km": "រ៉ូបអាវយឺត", "en": "T-shirt dress"},
-   "description": {
-    "km": "រ៉ូបអាវយឺតធំ ពាក់ស្រួល។",
-    "en": "Oversized tee you wear as a dress."
-   },
+   "slug": "button-skirt",
+   "category": "skirts",
+   "name": {"km": "Button skirt", "en": "Button skirt"},
+   "description": {"km": "Linen skirt with buttons down the front.", "en": "Linen skirt with buttons down the front."},
    "price": "14.00",
-   "photos": ["teedress-black", "teedress-white"],
-   "variants": [["Black", "M", 11], ["Black", "L", 14], ["White", "M", 13], ["White", "L", 9]]
+   "photos": ["skirt-button"],
+   "variants": [["Olive", "S", 11], ["Olive", "M", 14], ["Olive", "L", 13]]
   },
   {
-   "slug": "floral-mini-dress",
-   "category": "dresses",
-   "name": {"km": "រ៉ូបខ្លីលំនាំផ្កា", "en": "Floral mini dress"},
-   "description": {
-    "km": "រ៉ូបខ្លីខ្សែស្មា សំពត់រីក លំនាំផ្កា។",
-    "en": "Strappy mini dress with a full skirt."
-   },
-   "price": "17.00",
-   "photos": ["floralmini-red"],
-   "variants": [["Red", "S", 16], ["Red", "M", 10], ["Red", "L", 12]]
-  },
-  {
-   "slug": "polka-dot-dress",
-   "category": "dresses",
-   "name": {"km": "រ៉ូបលំនាំចំណុច", "en": "Polka-dot dress"},
-   "description": {
-    "km": "រ៉ូបរុំ ដៃធំ មានខ្សែចង។",
-    "en": "Wrap dress with wide sleeves and a tie."
-   },
-   "price": "22.00",
-   "photos": ["polkadress-white"],
-   "variants": [["White", "S", 9], ["White", "M", 15], ["White", "L", 10]]
-  },
-  {
-   "slug": "eyelet-dress",
-   "category": "dresses",
-   "name": {"km": "រ៉ូបប៉ាក់ប្រហោង", "en": "Eyelet dress"},
-   "description": {
-    "km": "រ៉ូបកប្បាសប៉ាក់ប្រហោង កររំយោល។",
-    "en": "Cotton eyelet dress with a ruffled neckline."
-   },
-   "price": "20.00",
-   "photos": ["eyeletdress-white"],
-   "variants": [["White", "S", 11], ["White", "M", 14], ["White", "L", 13]]
-  },
-  {
-   "slug": "denim-off-shoulder-dress",
-   "category": "dresses",
-   "name": {"km": "រ៉ូបខូវប៊យបើកស្មា", "en": "Denim off-shoulder dress"},
-   "description": {
-    "km": "រ៉ូបខូវប៊យសាច់ទន់ បើកស្មា មានរំយោល។",
-    "en": "Soft denim dress with a ruffle top."
-   },
-   "price": "19.00",
-   "photos": ["denimdress-blue"],
-   "variants": [["Light blue", "S", 9], ["Light blue", "M", 16], ["Light blue", "L", 10]]
-  },
-  {
-   "slug": "polka-dot-midi-skirt",
+   "slug": "peacock-print-skirt",
    "category": "skirts",
-   "name": {"km": "សំពត់វែងលំនាំចំណុច", "en": "Polka-dot midi skirt"},
-   "description": {
-    "km": "សំពត់វែងល្មម មានឡេវ និងចំហមុខ។",
-    "en": "Midi skirt with buttons and a front slit."
-   },
+   "name": {"km": "Peacock print skirt", "en": "Peacock print skirt"},
+   "description": {"km": "Short A-line skirt in a peacock print.", "en": "Short A-line skirt in a peacock print."},
    "price": "14.00",
-   "photos": ["polkaskirt-red"],
-   "variants": [["Red", "S", 12], ["Red", "M", 9], ["Red", "L", 15]]
-  },
-  {
-   "slug": "button-mini-skirt",
-   "category": "skirts",
-   "name": {"km": "សំពត់ខ្លីឡេវមុខ", "en": "Button mini skirt"},
-   "description": {
-    "km": "សំពត់ខ្លី មានឡេវខាងមុខ។",
-    "en": "Denim-look mini skirt with buttons."
-   },
-   "price": "12.00",
-   "photos": ["miniskirt-white"],
-   "variants": [["White", "S", 10], ["White", "M", 11], ["White", "L", 14]]
-  },
-  {
-   "slug": "printed-mini-skirt",
-   "category": "skirts",
-   "name": {"km": "សំពត់ខ្លីលំនាំ", "en": "Printed mini skirt"},
-   "description": {
-    "km": "សំពត់ខ្លីស្រាល លំនាំស្លាប។",
-    "en": "Flowy mini skirt in a feather print."
-   },
-   "price": "11.00",
-   "photos": ["printskirt-black"],
-   "variants": [["Black", "S", 13], ["Black", "M", 9], ["Black", "L", 16]]
-  },
-  {
-   "slug": "denim-pencil-skirt",
-   "category": "skirts",
-   "name": {"km": "សំពត់ខូវប៊យតឹង", "en": "Denim pencil skirt"},
-   "description": {
-    "km": "សំពត់ខូវប៊យត្រឹមជង្គង់ មានខ្សែក្រវ៉ាត់។",
-    "en": "Knee-length denim skirt, belt included."
-   },
-   "price": "15.00",
-   "photos": ["pencilskirt-white"],
-   "variants": [["White", "28", 10], ["White", "30", 12], ["White", "32", 9]]
-  },
-  {
-   "slug": "floral-midi-skirt",
-   "category": "skirts",
-   "name": {"km": "សំពត់វែងលំនាំផ្កា", "en": "Floral midi skirt"},
-   "description": {
-    "km": "សំពត់វែងស្រាល លំនាំផ្កា។",
-    "en": "Light, flowing skirt with a floral print."
-   },
-   "price": "15.00",
-   "photos": ["floralskirt-blue"],
-   "variants": [["Blue", "S", 15], ["Blue", "M", 10], ["Blue", "L", 11]]
+   "photos": ["skirt-peacock"],
+   "variants": [["Blue", "S", 9], ["Blue", "M", 16], ["Blue", "L", 10]]
   }
  ],
  "photos": {
-  "tee-black": {"pexels": 8532616, "author": "Hanna Pad", "crop": [0.165, 0.0, 0.835, 1.0]},
+  "tee-black": {"pexels": 8532616, "author": "Hanna Pad", "crop": [0.167, 0.0, 0.833, 1.0]},
   "tee-white": {"pexels": 12025472, "author": "Mr. Mockup", "crop": [0.167, 0.0, 0.833, 1.0]},
-  "trousers-cream": {"pexels": 19456438, "author": "Jonathan Borba", "crop": [0.0, 0.06, 1.0, 1.0]},
-  "trousers-beige": {"pexels": 39457741, "author": "Engin Akyurt", "crop": [0.1, 0.33, 0.9, 1.0]},
-  "dress-black": {"pexels": 20817637, "author": "Laura Chouette", "crop": [0.0, 0.31, 1.0, 1.0]},
-  "oversized-cream": {"pexels": 6786611, "author": "Artem Podrez", "crop": [0.07, 0.1, 0.8, 1.0]},
-  "jeans-blue": {"pexels": 6764143, "author": "cottonbro studio", "crop": [0.25, 0.25, 1.0, 0.917]},
-  "polo-grey": {"pexels": 17984122, "author": "Luis angel Alejos espinoza", "crop": [0.0, 0.33, 1.0, 1.0]},
-  "polo-pink": {"pexels": 17984123, "author": "Luis angel Alejos espinoza", "crop": [0.0, 0.33, 1.0, 1.0]},
-  "slip-dresses": {"pexels": 8997984, "author": "PNW Production", "crop": [0.08, 0.0, 0.92, 1.0]},
-  "shorts-colours": {"pexels": 30710089, "author": "Luis Quintero", "crop": [0.08, 0.0, 0.92, 1.0]},
-  "linen-shirt": {"pexels": 22441291, "author": "dayong tien", "crop": [0.06, 0.14, 0.94, 0.8]},
-  "ribbed-top": {"pexels": 9594418, "author": "Ron Lach", "crop": [0.3, 0.06, 1.0, 0.96]},
-  "denim-shorts": {"pexels": 4554337, "author": "Engin Akyurt", "crop": [0.06, 0.0, 0.94, 1.0]},
-  "cardigans": {"pexels": 9603624, "author": "Ron Lach", "crop": [0.0, 0.3, 1.0, 1.0]},
-  "tank-pink": {"pexels": 39457492, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "cami-blue": {"pexels": 39457493, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "smocked-cream": {"pexels": 39457495, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "smocked-lilac": {"pexels": 39457498, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "tee-green": {"pexels": 39457513, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "tee-black-back": {"pexels": 39457514, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "eyelet-white": {"pexels": 39457515, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "crossback-charcoal": {"pexels": 39457528, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "croptee-orange": {"pexels": 39457541, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "croptee-stripe": {"pexels": 39457542, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "tieblouse-red": {"pexels": 39457572, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "batwing-yellow": {"pexels": 39457672, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "utility-red": {"pexels": 39457718, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "leaftop-white": {"pexels": 39457719, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "stripetee-black": {"pexels": 39457727, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "tiewaist-brown": {"pexels": 39457503, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "tiewaist-yellow": {"pexels": 39457504, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "cargo-lilac": {"pexels": 39457564, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "cargo-pink": {"pexels": 39457565, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "sweat-red": {"pexels": 39457736, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "sweat-purple": {"pexels": 39457744, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "wideprint-pink": {"pexels": 39457509, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "wideprint-red": {"pexels": 39457510, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "cropped-pink": {"pexels": 39457557, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "cropped-mint": {"pexels": 39457558, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "belted-yellow": {"pexels": 39457559, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "widejeans-light": {"pexels": 39457728, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "widejeans-dark": {"pexels": 39457729, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "skinny-white": {"pexels": 39457748, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "skinny-brown": {"pexels": 39457749, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "sportshorts-blue": {"pexels": 39457546, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "sportshorts-pink": {"pexels": 39457547, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "buttonshorts-black": {"pexels": 39457538, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "buttonshorts-green": {"pexels": 39457539, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "cutoff-red": {"pexels": 39457661, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "cutoff-yellow": {"pexels": 39457674, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "printshorts-red": {"pexels": 39457562, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "printshorts-black": {"pexels": 39457563, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "smockdress-beige": {"pexels": 39457518, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "sundress-mint": {"pexels": 39457522, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "linendress-white": {"pexels": 39457523, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "bodycon-black": {"pexels": 39457663, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "teedress-black": {"pexels": 39457698, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "teedress-white": {"pexels": 39457699, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "floralmini-red": {"pexels": 39457705, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "polkadress-white": {"pexels": 39457711, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "eyeletdress-white": {"pexels": 39457739, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "denimdress-blue": {"pexels": 39457730, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "polkaskirt-red": {"pexels": 39457516, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "miniskirt-white": {"pexels": 39457537, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "printskirt-black": {"pexels": 39457697, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "pencilskirt-white": {"pexels": 39457750, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]},
-  "floralskirt-blue": {"pexels": 39457731, "author": "Engin Akyurt", "crop": [0.0, 0.0, 1.0, 1.0]}
+  "jeans-blue": {"pexels": 6764143, "author": "cottonbro studio", "crop": [0.0, 0.0, 1.0, 1.0]},
+  "slip-dresses": {"pexels": 8997984, "author": "PNW Production", "crop": [0.166, 0.0, 0.834, 1.0]},
+  "shorts-colours": {"pexels": 30710089, "author": "Luis Quintero", "crop": [0.167, 0.0, 0.833, 1.0]},
+  "linen-shirt": {"pexels": 22441291, "author": "dayong tien", "crop": [0.0, 0.005, 1.0, 0.895]},
+  "ribbed-top": {"pexels": 9594418, "author": "Ron Lach", "crop": [0.217, 0.0, 0.883, 1.0]},
+  "denim-shorts": {"pexels": 4554337, "author": "Engin Akyurt", "crop": [0.167, 0.0, 0.833, 1.0]},
+  "cardigans": {"pexels": 9603624, "author": "Ron Lach", "crop": [0.01, 0.0, 0.99, 1.0]},
+  "trousers-stack": {"pexels": 11176394, "author": "Onkar Salvi", "crop": [0.0, 0.117, 1.0, 1.0]},
+  "dress-black": {"pexels": 19895958, "author": "Marcelo Verfe", "crop": [0.0, 0.05, 1.0, 0.95]},
+  "tee-pink": {"pexels": 9558761, "author": "MART PRODUCTION", "crop": [0.0, 0.0, 1.0, 1.0]},
+  "polos": {"pexels": 11100267, "author": "Onkar Salvi", "crop": [0.0, 0.003, 1.0, 0.997]},
+  "henley-white": {"pexels": 22441292, "author": "dayong tien", "crop": [0.0, 0.005, 1.0, 0.895]},
+  "tee-mint": {"pexels": 34156905, "author": "dayong tien", "crop": [0.0, 0.0, 1.0, 1.0]},
+  "tees-black-mint": {"pexels": 34156907, "author": "dayong tien", "crop": [0.0, 0.128, 1.0, 0.972]},
+  "oxford-sage": {"pexels": 9594940, "author": "Ron Lach", "crop": [0.0, 0.105, 1.0, 0.995]},
+  "shirt-lightblue": {"pexels": 9558723, "author": "MART PRODUCTION", "crop": [0.0, 0.056, 1.0, 0.944]},
+  "sweater-red": {"pexels": 12944791, "author": "freestockpro", "crop": [0.0, 0.056, 1.0, 0.944]},
+  "shirt-grey": {"pexels": 13381986, "author": "Fahmi Garna", "crop": [0.0, 0.0, 1.0, 1.0]},
+  "blazer-grey": {"pexels": 6046226, "author": "Skylar Kang", "crop": [0.169, 0.0, 0.831, 1.0]},
+  "knit-tee-cream": {"pexels": 6046231, "author": "Skylar Kang", "crop": [0.0, 0.058, 1.0, 0.942]},
+  "hoodie-brown": {"pexels": 6786666, "author": "Artem Podrez", "crop": [0.0, 0.175, 1.0, 0.925]},
+  "sweatshirt-stone": {"pexels": 9594147, "author": "Ron Lach", "crop": [0.0, 0.055, 1.0, 0.945]},
+  "sweatshirt-sage": {"pexels": 9594681, "author": "Ron Lach", "crop": [0.036, 0.0, 0.964, 1.0]},
+  "tee-stripe": {"pexels": 13181673, "author": "Fahmi Garna", "crop": [0.0, 0.175, 1.0, 0.925]},
+  "shirt-stripe": {"pexels": 12955555, "author": "freestockpro", "crop": [0.0, 0.083, 1.0, 0.917]},
+  "knit-polo": {"pexels": 20763273, "author": "Saeed Karimi", "crop": [0.031, 0.0, 0.969, 1.0]},
+  "tee-yellow": {"pexels": 11671275, "author": "Marina Podrez", "crop": [0.0, 0.006, 1.0, 0.894]},
+  "jeans-trio": {"pexels": 17720471, "author": "Dmitriy Steinke", "crop": [0.0, 0.056, 1.0, 0.944]},
+  "jeans-hangers": {"pexels": 1082528, "author": "Mica Asato", "crop": [0.167, 0.0, 0.833, 1.0]},
+  "sweatpants": {"pexels": 31961168, "author": "eben", "crop": [0.031, 0.0, 0.969, 1.0]},
+  "shorts-olive": {"pexels": 6046239, "author": "Skylar Kang", "crop": [0.0, 0.003, 1.0, 0.997]},
+  "shorts-linen": {"pexels": 23710321, "author": "dayong tien", "crop": [0.166, 0.0, 0.834, 1.0]},
+  "shorts-ripped": {"pexels": 16390573, "author": "wolfart", "crop": [0.0, 0.0, 1.0, 1.0]},
+  "dress-floral-pink": {"pexels": 19895949, "author": "Marcelo Verfe", "crop": [0.0, 0.011, 1.0, 0.989]},
+  "dress-floral-cream": {"pexels": 19895950, "author": "Marcelo Verfe", "crop": [0.0, 0.048, 1.0, 0.952]},
+  "dress-print-black": {"pexels": 19895953, "author": "Marcelo Verfe", "crop": [0.0, 0.002, 1.0, 0.998]},
+  "dress-print-blue": {"pexels": 19895954, "author": "Marcelo Verfe", "crop": [0.0, 0.026, 1.0, 0.974]},
+  "dress-sequin": {"pexels": 19895955, "author": "Marcelo Verfe", "crop": [0.0, 0.02, 1.0, 0.98]},
+  "dress-ruffle-red": {"pexels": 19895956, "author": "Marcelo Verfe", "crop": [0.0, 0.057, 1.0, 0.943]},
+  "dress-wrap-wine": {"pexels": 19895960, "author": "Marcelo Verfe", "crop": [0.022, 0.0, 0.978, 1.0]},
+  "dress-patchwork": {"pexels": 19895961, "author": "Marcelo Verfe", "crop": [0.0, 0.032, 1.0, 0.968]},
+  "dress-paisley": {"pexels": 19895963, "author": "Marcelo Verfe", "crop": [0.0, 0.05, 1.0, 0.95]},
+  "dress-mesh": {"pexels": 19895964, "author": "Marcelo Verfe", "crop": [0.0, 0.054, 1.0, 0.946]},
+  "dress-snake": {"pexels": 19895965, "author": "Marcelo Verfe", "crop": [0.043, 0.0, 0.957, 1.0]},
+  "dress-halter": {"pexels": 19895977, "author": "Marcelo Verfe", "crop": [0.0, 0.069, 1.0, 0.931]},
+  "dress-tee-teal": {"pexels": 19895979, "author": "Marcelo Verfe", "crop": [0.0, 0.056, 1.0, 0.944]},
+  "dress-tee-red": {"pexels": 19895983, "author": "Marcelo Verfe", "crop": [0.0, 0.034, 1.0, 0.966]},
+  "skirt-knit-white": {"pexels": 38266547, "author": "Eugenia Remark", "crop": [0.0, 0.0, 1.0, 1.0]},
+  "skirt-ribbon": {"pexels": 6044015, "author": "Skylar Kang", "crop": [0.0, 0.003, 1.0, 0.997]},
+  "skirt-satin": {"pexels": 6046221, "author": "Skylar Kang", "crop": [0.0, 0.058, 1.0, 0.942]},
+  "skirt-bubble": {"pexels": 6046229, "author": "Skylar Kang", "crop": [0.0, 0.003, 1.0, 0.997]},
+  "skirt-button": {"pexels": 7432278, "author": "Elisabeth Ende", "crop": [0.1, 0.0, 0.9, 1.0]},
+  "skirt-peacock": {"pexels": 19895985, "author": "Marcelo Verfe", "crop": [0.036, 0.0, 0.964, 1.0]}
  },
- "cover": ["tee-black", "trousers-cream", "cardigans", "dress-black"]
+ "cover": ["tee-black", "dress-floral-pink", "cardigans", "jeans-blue"]
 }

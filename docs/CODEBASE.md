@@ -437,7 +437,7 @@ out.
 [--source DIR]` (Pillow) turns 5 of these stills per language (`01_shop`,
 `16_share_link`, `05_checkout`, `11_khqr`, `07_dashboard`) into
 `frontend/public/home/<lang>/{shop,share,checkout,khqr,orders}.webp` at
-the full 1170 × 2532 (73–198 KB each; lossless when smaller, else quality
+the full 1170 × 2532 (73–237 KB each; lossless when smaller, else quality
 90: founder, 2026-11-06, "make the image very good quality"). The laptop
 on the first screen:
 `backend/marketing/laptop_shot.py --login … --password …` logs in to the
@@ -447,8 +447,10 @@ so 2880 × 1800 pixels) in
 both languages (`out/<lang>/laptop_orders.png`; `--lang` for one, `--out`
 for another folder such as `out/clothing`); `home_images.py --only
 laptop` makes `public/home/<lang>/laptop.webp` (shrunk to 1440 × 900, ~75 KB). Those
-12 files are committed; since 2026-11-06 they are the Oak Wear set
-(`--source marketing/out/clothing`), as the live demo shop is Oak Wear. It exits 1 if a still is missing
+12 files are committed; since 2026-11-06 they are the Oak Wear set of
+the 50-product, garment-only, English catalogue (`--source
+marketing/out/wear50`: shots.py and laptop_shot.py `--out
+marketing/out/wear50`), as the live demo shop is Oak Wear. It exits 1 if a still is missing
 or a screen is over 300 KB. Run it after `shots.py` whenever one of those
 screens changes; `--source` points at another checkout's `out/` (a
 worktree has none).

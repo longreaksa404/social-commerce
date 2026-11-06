@@ -10,11 +10,13 @@ Development only: it never reads or writes the live site.
 
 The shop is clothing_shop.json: 50 products in 4 categories (the first 12
 are the ones the marketing pictures buy; keep them first), their names
-and descriptions in Khmer and English, options (colour / size) with
-stock, and where each photo comes from. `photos` downloads the photos
-from Pexels (free for business use, no credit needed:
-pexels.com/license), crops each as the file says (the garment filling the
-picture, no faces), and makes the shop's logo, its cover from catalogue
+and descriptions in English (founder, 2026-11-06: the km keys hold the
+same English text), options (colour / size) with stock, and where each
+photo comes from. `photos` downloads the photos from Pexels (free for
+business use, no credit needed: pexels.com/license) and crops each as the
+file says: the clothing alone on a hanger or laid flat, no model, each
+photo its own shape (square, 4:5, 3:4 or 2:3) so the shop's grid has
+varied heights (founder, 2026-11-06). It also makes the shop's logo, its cover from catalogue
 photos and a contact sheet to review them, in --photos. `copy` writes the
 shop in one catalogue language the way demo_shop.py saves a copy of a live
 shop (shop.json and photos/, each photo sized as the app uploads it), for
