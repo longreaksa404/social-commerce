@@ -49,6 +49,7 @@ export async function make(dir) {
       sfx: () => name.startsWith('hf-') ? path.join(pluginRoot(), 'skills/media-use/audio/assets/sfx', name.slice(3)) : path.join(SFX_DIR, name.replace(/^mx-/, '')),
       audio: () => voices.some(v => v.file === name) ? path.join(dir, name) : path.join(MUSIC_DIR, name),
       brand: () => path.join(REPO, 'brand', name.replace(/^(navy|white)_/, '')),
+      local: () => path.join(dir, name), // a picture made for this video, kept in its folder (e.g. 005's link card)
     }[kind]?.();
     if (!src || !fs.existsSync(src)) { missing.push(`${rel} (looked for ${src})`); continue; }
     fs.mkdirSync(path.dirname(dst), { recursive: true });

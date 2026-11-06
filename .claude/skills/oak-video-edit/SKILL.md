@@ -122,6 +122,8 @@ the kit's `rootIndex` turns that into the root composition.
   `press(cursor, at)`. Prefix every id by scene (`a2-…`); scene time starts at 0.
 - **Screens**: the film returns `screens: 'clothing/km'` to use the Oak Wear set (`backend/marketing/out/clothing/km`);
   without it, the Oak Phone set (`out/km`). Video 004 is the first on Oak Wear.
+- **Video's own files**: `assets/local/<file>` in a film = `<file>` in the video's folder (a picture made for
+  that video, e.g. 005's link card from `card.py`, which runs the app's own `preview.py` draw_cover).
 - **Pieces**: `words()` (a title), `CURSOR()`, `iphone({ id })` (geometry, `at(x, y)`
   for an app point on the stage, `shot`/`crop`/`lift`/`liftBox`, `html({ view, overlay })`),
   `linkCard()` (the shop link's preview card), `TELEGRAM_ICON()`, `rng(seed)`.
