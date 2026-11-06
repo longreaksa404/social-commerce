@@ -3,9 +3,11 @@ import type { Tree } from '../core.ts'
 /** Landing page, log in, create store. */
 export const auth = {
   home: {
+    // Shown through <Phrases>: \u200b marks where Khmer may break, between
+    // phrases ("turn chats / on social media / into real orders").
     title: {
       en: 'Turn social media chats into real orders',
-      km: 'ប្រែការឆាតលើបណ្ដាញសង្គម ទៅជាការកុម្ម៉ង់ពិតៗ',
+      km: 'ប្រែការឆាត\u200bលើបណ្ដាញសង្គម ទៅជាការកុម្ម៉ង់ពិតៗ',
     },
   },
   // The navy half beside the login and register forms on laptops.

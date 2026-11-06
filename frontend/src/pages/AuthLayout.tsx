@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { OakOrderName } from '../components/OakMark.tsx'
 import { LanguageSwitch } from '../i18n/LanguageSwitch.tsx'
+import { Phrases } from '../i18n/Phrases.tsx'
 import { useT } from '../i18n/useT.ts'
 
 /** The product's name, Oak Order (01_PRODUCT.md section 1.1), with the
@@ -85,7 +86,9 @@ function Pitch() {
     <aside className="hidden flex-col bg-[#182841] p-12 text-white lg:flex">
       <BrandMark onDark />
       <div className="my-auto max-w-md">
-        <p className="text-3xl leading-tight font-bold tracking-tight text-balance">{t.auth.home.title}</p>
+        <p className="text-3xl leading-tight font-bold tracking-tight text-balance">
+          <Phrases text={t.auth.home.title} />
+        </p>
         <p className="mt-4 text-lg leading-relaxed text-white/75">{p.text}</p>
         {/* An example, said so: what a new order looks like arriving. */}
         <div className="mt-10">

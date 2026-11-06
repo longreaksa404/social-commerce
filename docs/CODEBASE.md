@@ -209,7 +209,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
         ├── pages/             home/ (the start page: Home, TopBar, Hero, HowItWorks, Features, Pricing, Questions, Bottom, PhoneStill, screens.ts, home.css), Login, Register, FinishSignup, OAuthCallback, ForgotPassword, ResetPassword, Legal (+ legal/content.ts), LoginField, AgreeLine, AuthLayout
         ├── dashboard/         Seller app: Layout, queries.ts, orders/, customers/, products/, links/, settings/, Categories, Notifications
         ├── shop/              Customer shop: ShopLayout, pages, queries.ts, cart.ts, device.ts, MapPicker, MapPreview, lookUpAddress, PaymentCard, PayNowSheet, khqrPicture, ...
-        ├── i18n/              core.ts, useT.ts, LanguageProvider, LanguageSwitch, messages/*.ts ({en, km} pairs)
+        ├── i18n/              core.ts, useT.ts, LanguageProvider, LanguageSwitch, Phrases, messages/*.ts ({en, km} pairs)
         └── theme/             theme.ts (auto/light/dark per device), ThemeSwitch
 ```
 
@@ -1669,6 +1669,10 @@ values). The default language is Khmer, chosen per device (`sc.lang`).
 Backend messages are English; `errorText()` maps them to Khmer by exact
 message, then by code (`messages/apiErrors.ts`). **Every new backend error
 message needs a Khmer entry there.** What sellers type is shown as typed.
+A large Khmer line that must break between phrases (the headline,
+`auth.home.title`) puts `\u200b` between them in the text and is shown
+through `<Phrases text>` (`i18n/Phrases.tsx`): it breaks only at spaces and
+`\u200b`, each piece on one line (founder's pick 7A, 2026-11-06).
 
 ### Tailwind conventions
 

@@ -1,6 +1,7 @@
 import { ArrowRight, Sparkles } from 'lucide-react'
-import { Fragment, type CSSProperties } from 'react'
+import type { CSSProperties } from 'react'
 import { Link } from 'react-router'
+import { Phrases } from '../../i18n/Phrases.tsx'
 import { useLang, useT } from '../../i18n/useT.ts'
 import { usePlanPrices } from '../../lib/planPrices.ts'
 import { outlineButton, solidButton } from './buttons.ts'
@@ -69,15 +70,17 @@ export function Hero({ intro }: { intro: Intro }) {
   )
 }
 
-/** The headline, a word at a time in the opening. Plain inline spans, so
- * Khmer, which runs whole phrases without spaces, still wraps inside one. */
+/** The headline, a phrase at a time in the opening (a word in English),
+ * each kept on one line (Phrases). */
 function Words({ text }: { text: string }) {
-  return text.split(' ').map((word, index) => (
-    <Fragment key={index}>
-      {index > 0 && ' '}
-      <span className="home-word" style={{ '--w': index } as CSSProperties}>
-        {word}
-      </span>
-    </Fragment>
-  ))
+  return (
+    <Phrases
+      text={text}
+      piece={(phrase, index) => (
+        <span className="home-word whitespace-nowrap" style={{ '--w': index } as CSSProperties}>
+          {phrase}
+        </span>
+      )}
+    />
+  )
 }
