@@ -2,9 +2,11 @@
 
 Picked by the founder on 2026-10-15. Navy is #1f3350.
 
-The start page (`frontend/src/pages/home/`) adds a thin champagne gold,
-#d6bc8a, on small details only (step numbers, the price card's edge, the
-free-days line, small icons) (founder, 2026-11-04). Nowhere else in the
+The start page (`frontend/src/pages/home/`) adds a thin champagne gold
+on small details only (step numbers, the price cards' edges, the
+free-days line, small icons) (founder, 2026-11-04): #8a6a32 on the light
+page, so its words read, and #d6bc8a in dark mode (founder's pick 4B,
+2026-11-06). Nowhere else in the
 app: its UI stays navy only. Navy is never a page background, the start
 page's included: light page, navy on buttons and small details (founder,
 2026-11-06).

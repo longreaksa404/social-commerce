@@ -81,8 +81,10 @@
   --color-navy-950: #0b1320;
 
   /* The start page (pages/home) only, on small details (founder,
-     2026-11-04). */
-  --color-champagne: #d6bc8a;
+     2026-11-04). A darker gold on the light page, so its words read
+     (4.9:1 on white; founder's pick 4B, 2026-11-06); the light champagne
+     in dark mode. */
+  --color-champagne: #8a6a32;
 
   /* Cards: a soft shadow and a faint outline (ring-slate-900/6, which
      dark mode turns into a faint light line) instead of a grey border. */
@@ -290,6 +292,7 @@
   --color-brand: #5a7bb0;
   --color-oak: #415f92;
   --color-oak-ink: #9fb7d9;
+  --color-champagne: #d6bc8a;
   /* Navy: tints turn deep, text turns light */
   --color-navy-50: #1c2636;
   --color-navy-100: #243149;
@@ -379,6 +382,7 @@
   --color-brand: --theme(--color-brand inline);
   --color-oak: --theme(--color-oak inline);
   --color-oak-ink: --theme(--color-oak-ink inline);
+  --color-champagne: --theme(--color-champagne inline);
   --color-navy-50: --theme(--color-navy-50 inline);
   --color-navy-100: --theme(--color-navy-100 inline);
   --color-navy-200: --theme(--color-navy-200 inline);
