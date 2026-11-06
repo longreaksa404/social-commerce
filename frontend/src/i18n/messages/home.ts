@@ -91,25 +91,20 @@ export const home = {
   pricing: {
     eyebrow: { en: 'Price', km: 'តម្លៃ' },
     plan: { en: 'Oak Order Standard', km: 'Oak Order Standard' },
+    // Three cards: the free days, monthly, yearly.
+    firstDays: { en: (days: string) => `First ${days} days`, km: (days: string) => `${days} ថ្ងៃដំបូង` },
+    free: { en: 'Free', km: 'ឥតគិតថ្លៃ' },
+    ofSelling: { en: 'of selling', km: 'នៃការលក់' },
+    monthly: { en: 'Monthly', km: 'ប្រចាំខែ' },
+    yearly: { en: 'Yearly', km: 'ប្រចាំឆ្នាំ' },
     aMonth: { en: 'a month', km: 'ក្នុងមួយខែ' },
-    orYear: {
-      en: (year: string) => `or ${year} a year`,
-      km: (year: string) => `ឬ ${year} ក្នុងមួយឆ្នាំ`,
-    },
+    aYear: { en: 'a year', km: 'ក្នុងមួយឆ្នាំ' },
     save: { en: (amount: string) => `Save ${amount}`, km: (amount: string) => `សន្សំ ${amount}` },
-    trial: {
-      en: (days: string) =>
-        `Free for your first ${days} days of selling: the ${days} days start when you open your shop, not when you sign up.`,
-      km: (days: string) => `ឥតគិតថ្លៃ ${days} ថ្ងៃដំបូងនៃការលក់៖ ${days} ថ្ងៃចាប់ផ្ដើមពេលអ្នកបើកហាង មិនមែនពេលចុះឈ្មោះទេ។`,
-    },
-    noCard: {
-      en: "No card, no automatic charges. Pay by KHQR when it's time.",
-      km: 'មិនត្រូវការកាត មិនកាត់ប្រាក់ដោយស្វ័យប្រវត្តិ។ បង់តាម KHQR ពេលដល់ពេល។',
-    },
-    everything: {
-      en: 'Everything included, with up to 10 staff logins.',
-      km: 'មានមុខងារទាំងអស់ និងគណនីបុគ្គលិករហូតដល់ 10 នាក់។',
-    },
+    startsOpen: { en: 'Starts when you open your shop', km: 'ចាប់ផ្ដើមពេលអ្នកបើកហាង' },
+    noCard: { en: 'No card', km: 'មិនត្រូវការកាត' },
+    everything: { en: 'Everything included', km: 'មានមុខងារទាំងអស់' },
+    staff: { en: 'Up to 10 staff logins', km: 'គណនីបុគ្គលិករហូតដល់ 10 នាក់' },
+    byKhqr: { en: 'Pay by KHQR', km: 'បង់តាម KHQR' },
     setup: { en: 'We help you set up your shop.', km: 'យើងជួយអ្នករៀបចំហាង។' },
   },
   questions: {
