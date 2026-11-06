@@ -197,7 +197,7 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
     ├── functions/shop/[[path]].ts   Cloudflare Pages Function running linkPreview.ts (the host after the move)
     ├── public/_headers        The same headers for Cloudflare Pages
     ├── .node-version          24, for Cloudflare Pages' build
-    ├── vite.config.ts         React + Tailwind plugins, envDir '..' (root .env), optional polling
+    ├── vite.config.ts         React + Tailwind plugins, `preload-fonts` (the built index.html preloads the Khmer and Latin fonts), envDir '..' (root .env), optional polling
     ├── package.json           Node 24; scripts dev / build (tsc -b && vite build) / lint (oxlint)
     └── src/
         ├── main.tsx           Providers: Language → QueryClient → Auth → Feedback → Router
