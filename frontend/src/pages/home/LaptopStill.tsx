@@ -20,8 +20,8 @@ export function LaptopStill({ lang, className = '' }: { lang: Lang; className?: 
           <img
             src={laptopUrl(lang)}
             alt={t.home.screens.laptop}
-            width={1440}
-            height={900}
+            width={2880}
+            height={1800}
             decoding="async"
             fetchPriority="high"
             className="min-h-0 w-full flex-1 object-cover object-top-left"

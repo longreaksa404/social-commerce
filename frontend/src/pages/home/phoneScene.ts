@@ -118,7 +118,9 @@ export function createPhoneScene(
   options: { screen: string; shot: Shot; finish: Finish; onFirstFrame: () => void; onFail: () => void },
 ): PhoneScene {
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  // iPhones commonly have 3 physical pixels per CSS pixel. A 2x canvas
+  // blurred their screen text even with the original 3x screenshots.
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3))
   renderer.outputColorSpace = SRGBColorSpace
   renderer.toneMapping = NoToneMapping
 
@@ -230,7 +232,7 @@ export function createPhoneScene(
   // Screenshots, loaded once each.
   const loader = new TextureLoader()
   const textures = new Map<string, Promise<Texture>>()
-  const anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy())
+  const anisotropy = renderer.capabilities.getMaxAnisotropy()
   const load = (url: string) => {
     let texture = textures.get(url)
     if (!texture) {
