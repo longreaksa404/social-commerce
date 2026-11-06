@@ -22,7 +22,8 @@ export function AdminOrders() {
       only="orders"
       placeholder="sokha 1043, or a phone"
       label="Find an order"
-      hint="A shop and an order number, or the customer's phone."
+      hint="A shop and an order number, or the customer's phone. Try"
+      examples={['sokha 1043', '1043', '012 345 678']}
     />
   )
 }
@@ -31,10 +32,24 @@ export function AdminOrders() {
  * name; each phone opens its page with the shops it ordered from. Shops
  * keep their own customers: the same phone in two shops is two records. */
 export function AdminCustomers() {
-  return <FindPage title="Customers" only="customers" placeholder="012 345 678, or a name" label="Find a customer" hint="A phone number or a name." />
+  return <FindPage title="Customers" only="customers" placeholder="012 345 678, or a name" label="Find a customer" hint="A phone number or a name. Try" examples={['012 345 678', 'Sokha']} />
 }
 
-function FindPage({ title, only, placeholder, label, hint }: { title: string; only: 'orders' | 'customers'; placeholder: string; label: string; hint: string }) {
+function FindPage({
+  title,
+  only,
+  placeholder,
+  label,
+  hint,
+  examples,
+}: {
+  title: string
+  only: 'orders' | 'customers'
+  placeholder: string
+  label: string
+  hint: string
+  examples: string[]
+}) {
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState(params.get('q') ?? '')
   const q = useSettled(query).trim()
@@ -47,8 +62,8 @@ function FindPage({ title, only, placeholder, label, hint }: { title: string; on
     <>
       <title>{`${title} · Oak Order admin`}</title>
       <AdminPageHeader title={title} />
-      <div className="max-w-3xl space-y-5">
-        <div>
+      <div className="max-w-4xl space-y-5">
+        <div className="max-w-2xl">
           <Input
             type="search"
             autoFocus
@@ -58,9 +73,22 @@ function FindPage({ title, only, placeholder, label, hint }: { title: string; on
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <p className="mt-1.5 text-xs text-slate-500 sm:px-1">{hint}</p>
+          {/* What can be typed, as examples to tap (pick 9A). */}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:px-1">
+            <span className="text-xs text-slate-500">{hint}</span>
+            {examples.map((example) => (
+              <button
+                key={example}
+                type="button"
+                onClick={() => setQuery(example)}
+                className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-navy-600"
+              >
+                {example}
+              </button>
+            ))}
+          </div>
         </div>
-        {q ? <SearchResults q={q} only={only} /> : <EmptyState icon={Search} title={label} />}
+        {q ? <SearchResults q={q} only={only} /> : null}
       </div>
     </>
   )
@@ -103,7 +131,7 @@ function Customer({ customer }: { customer: AdminCustomer }) {
           {initials(customer.name) || '?'}
         </span>
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-bold text-slate-900">{customer.name}</h1>
+          <h1 className="text-lg font-bold break-words text-slate-900">{customer.name}</h1>
           <p className="text-sm text-slate-500 tabular-nums">
             {formatPhone(customer.phone)} · in {customer.shops.length === 1 ? '1 shop' : `${customer.shops.length} shops`}
           </p>
@@ -115,7 +143,7 @@ function Customer({ customer }: { customer: AdminCustomer }) {
           <li key={s.customer_id} className="flex items-center gap-3 px-4 py-3 text-sm">
             <Link to={`/admin/shops/${s.store_id}`} className="group flex min-w-0 flex-1 items-center gap-2">
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium text-slate-900 group-hover:underline">{s.shop}</span>
+                <span className="block font-medium break-words text-slate-900 group-hover:underline">{s.shop}</span>
                 <span className="block text-slate-500">
                   {s.orders === 1 ? '1 order' : `${s.orders} orders`}
                   {s.last_order_at && ` · last ${ago(s.last_order_at)}`}

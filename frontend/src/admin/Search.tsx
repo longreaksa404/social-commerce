@@ -1,7 +1,7 @@
 import { Check, ChevronRight, Copy, Search as SearchIcon, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { cardClass } from '../components/styles.ts'
+import { buttonClass, cardClass } from '../components/styles.ts'
 import { Skeleton } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
 import { formatMoney } from '../lib/money.ts'
@@ -16,7 +16,10 @@ const digitsOf = (text: string) => text.replace(/\D/g, '').replace(/^855/, '0')
 /** Search results (founder's pick 10C): shops and people from the lists
  * the admin already has, customers and orders from the API. `only`: just
  * orders (the Orders page) or just customers (the Customers page).
- * `onPick`: after a tap (closes the panel). */
+ * `onPick`: after a tap (closes the panel). Redesign pick 9A (2026-11-06):
+ * it says what happened: still searching, no match, couldn't search (with
+ * Try again, the search kept), or some results while a part failed. A
+ * failed search no longer reads "Nothing found". */
 export function SearchResults({ q, only, onPick }: { q: string; only?: 'orders' | 'customers'; onPick?: () => void }) {
   const words = q.trim().toLowerCase()
   const digits = digitsOf(words)
@@ -30,17 +33,35 @@ export function SearchResults({ q, only, onPick }: { q: string; only?: 'orders' 
   const phoneHas = (phone: string | null | undefined) => digits.length > 2 && (phone ?? '').replace(/\D/g, '').includes(digits)
   const foundShops = only ? [] : (shops.data ?? []).filter((s) => has(s.name) || has(s.code) || has(s.slug) || has(s.owner_name) || phoneHas(s.login)).slice(0, 5)
   const foundPeople = only ? [] : (people.data ?? []).filter((p) => has(p.name) || has(p.email) || phoneHas(p.phone)).slice(0, 5)
-  const loading = customers.isPending && customers.fetchStatus !== 'idle'
-  const nothing =
-    !loading && !orders.isFetching && foundShops.length + foundPeople.length + (customers.data?.length ?? 0) + (orders.data?.length ?? 0) === 0
+  const wantCustomers = only !== 'orders' && q.trim().length > 1
+  const wantOrders = only !== 'customers'
+  const loading = (wantCustomers && customers.isPending) || (wantOrders && orders.isPending)
+  const parts: [string, boolean, () => void][] = [
+    ['orders', wantOrders && orders.isError, () => void orders.refetch()],
+    ['customers', wantCustomers && customers.isError, () => void customers.refetch()],
+    ['shops', !only && shops.isError, () => void shops.refetch()],
+    ['people', !only && people.isError, () => void people.refetch()],
+  ]
+  const failed = parts.filter(([, broke]) => broke)
+  const retry = () => failed.forEach(([, , again]) => again())
+  const failedWords = failed.map(([word]) => word).join(' and ')
+  const total = foundShops.length + foundPeople.length + (customers.data?.length ?? 0) + (orders.data?.length ?? 0)
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" aria-busy={loading}>
+      {failed.length > 0 && total > 0 && (
+        <p role="alert" className="text-sm text-amber-700 sm:px-1">
+          {failedWords[0].toUpperCase() + failedWords.slice(1)} couldn't load, so this may not be everything.{' '}
+          <button type="button" onClick={retry} className="font-semibold text-navy-700 underline underline-offset-4">
+            Try again
+          </button>
+        </p>
+      )}
       {foundShops.length > 0 && (
         <Group title="Shops">
           {foundShops.map((shop) => (
             <Row key={shop.id} to={`/admin/shops/${shop.id}`} onPick={onPick} lead={<ShopLogo shop={shop} size="size-9" />}>
-              <span className="block truncate font-medium text-slate-900">{shop.name}</span>
+              <span className="line-clamp-2 font-medium break-words text-slate-900">{shop.name}</span>
               <span className="block truncate text-slate-500">
                 <span className="font-semibold tracking-wide">{shop.code}</span> · <StageWords shop={shop} />
               </span>
@@ -52,7 +73,7 @@ export function SearchResults({ q, only, onPick }: { q: string; only?: 'orders' 
         <Group title="People">
           {foundPeople.map((person) => (
             <Row key={person.id} to={`/admin/people/${person.id}`} onPick={onPick} lead={<Initials name={person.name} />}>
-              <span className="block truncate font-medium text-slate-900">{person.name}</span>
+              <span className="block font-medium break-words text-slate-900">{person.name}</span>
               <span className="block truncate text-slate-500">
                 {person.role === 'owner' ? 'Owner' : 'Staff'} · {person.shop} · {loginOf(person)}
               </span>
@@ -60,21 +81,17 @@ export function SearchResults({ q, only, onPick }: { q: string; only?: 'orders' 
           ))}
         </Group>
       )}
-      {loading ? (
-        <Skeleton className="h-24 w-full rounded-2xl" />
-      ) : (
-        (customers.data?.length ?? 0) > 0 && (
-          <Group title="Customers">
-            {customers.data!.map((customer) => (
-              <Row key={customer.phone} to={`/admin/customers/${encodeURIComponent(customer.phone)}`} onPick={onPick} lead={<Initials name={customer.name} />}>
-                <span className="block truncate font-medium text-slate-900">{customer.name}</span>
-                <span className="block truncate text-slate-500 tabular-nums">
-                  {formatPhone(customer.phone)} · in {customer.shops.length === 1 ? customer.shops[0].shop : `${customer.shops.length} shops`}
-                </span>
-              </Row>
-            ))}
-          </Group>
-        )
+      {(customers.data?.length ?? 0) > 0 && (
+        <Group title="Customers">
+          {customers.data!.map((customer) => (
+            <Row key={customer.phone} to={`/admin/customers/${encodeURIComponent(customer.phone)}`} onPick={onPick} lead={<Initials name={customer.name} />}>
+              <span className="block font-medium break-words text-slate-900">{customer.name}</span>
+              <span className="block truncate text-slate-500 tabular-nums">
+                {formatPhone(customer.phone)} · in {customer.shops.length === 1 ? customer.shops[0].shop : `${customer.shops.length} shops`}
+              </span>
+            </Row>
+          ))}
+        </Group>
       )}
       {(orders.data?.length ?? 0) > 0 && (
         <section aria-label="Orders" className="space-y-3">
@@ -84,7 +101,35 @@ export function SearchResults({ q, only, onPick }: { q: string; only?: 'orders' 
           ))}
         </section>
       )}
-      {nothing && <p className="text-sm text-slate-500 sm:px-1">Nothing found.</p>}
+      {loading && (
+        <div aria-label="Searching" className="space-y-2">
+          <Skeleton className="h-16 w-full rounded-2xl" />
+          <Skeleton className="h-16 w-full rounded-2xl" />
+        </div>
+      )}
+      {!loading && total === 0 && failed.length > 0 && (
+        <div role="alert" className={`${cardClass} flex flex-col items-center px-6 py-8 text-center`}>
+          <p className="font-semibold text-slate-900">Couldn't search {failedWords}</p>
+          <p className="mt-1 text-sm text-slate-500">The server didn't answer. Your search is kept.</p>
+          <button type="button" onClick={retry} className={`${buttonClass('secondary')} mt-4`}>
+            Try again
+          </button>
+        </div>
+      )}
+      {!loading && total === 0 && failed.length === 0 && (
+        <div className="sm:px-1">
+          <p className="font-medium text-slate-900">
+            {only === 'orders' ? 'No order matches' : only === 'customers' ? 'No customer matches' : 'Nothing matches'} “{q.trim()}”
+          </p>
+          <p className="mt-0.5 text-sm text-slate-500">
+            {only === 'orders'
+              ? "Try the number alone, or the customer's phone."
+              : only === 'customers'
+                ? 'Try the phone typed another way, or part of the name.'
+                : "Try a shop's name, a phone, or a shop and an order number."}
+          </p>
+        </div>
+      )}
       {only !== 'customers' && /^\D+$/.test(words) && <p className="text-xs text-slate-500 sm:px-1">Add a number for an order: {words.split(/\s+/)[0]} 1043.</p>}
     </div>
   )
