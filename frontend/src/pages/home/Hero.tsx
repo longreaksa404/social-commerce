@@ -1,5 +1,5 @@
 import { ArrowRight, Sparkles } from 'lucide-react'
-import { Fragment, useEffect, useRef, type CSSProperties } from 'react'
+import { Fragment, type CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { useLang, useT } from '../../i18n/useT.ts'
 import { usePlanPrices } from '../../lib/planPrices.ts'
@@ -13,17 +13,17 @@ const after = (seconds: number) => ({ '--d': `${seconds}s` }) as CSSProperties
 
 /** The first screen: what Oak Order does, the two ways in, the free days,
  * and the phone with the demo shop on it. On phones the phone comes under
- * the buttons, its top showing, so people scroll. It dims and drifts back
- * as it scrolls away. */
+ * the buttons, its top showing, so people scroll. It stays bright as it
+ * scrolls away: on phones it's the bottom half of the screen, and dimming
+ * it hid it just as people scrolled to it (founder's pick 6A, 2026-11-06). */
 export function Hero({ intro }: { intro: Intro }) {
   const t = useT()
   const { lang } = useLang()
   const prices = usePlanPrices()
   const hero = t.home.hero
-  const leave = useLeave()
   return (
     <section className="relative px-5 pt-6 pb-20 sm:px-8 sm:pt-14 lg:pt-20 lg:pb-28">
-      <div ref={leave} className="home-leave mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
         <div>
           <h1 className="home-display text-[clamp(2.15rem,8.6vw,4.75rem)] lg:text-[clamp(3.5rem,5.4vw,4.75rem)]">
             <Words text={t.auth.home.title} />
@@ -80,29 +80,4 @@ function Words({ text }: { text: string }) {
       </span>
     </Fragment>
   ))
-}
-
-/** Sets --leave on the element, 0 to 1 as the first screen scrolls away. */
-function useLeave() {
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    let frame = 0
-    const update = () => {
-      frame = 0
-      const element = ref.current
-      if (!element) return
-      const height = element.offsetHeight || 1
-      element.style.setProperty('--leave', Math.min(1, Math.max(0, window.scrollY / height)).toFixed(3))
-    }
-    const later = () => {
-      if (!frame) frame = requestAnimationFrame(update)
-    }
-    later()
-    window.addEventListener('scroll', later, { passive: true })
-    return () => {
-      cancelAnimationFrame(frame)
-      window.removeEventListener('scroll', later)
-    }
-  }, [])
-  return ref
 }

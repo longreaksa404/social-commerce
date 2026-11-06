@@ -178,19 +178,8 @@
   animation-delay: 0.15s;
 }
 
-/* The first screen dims and drifts back as it scrolls away (Hero sets
-   --leave, 0 to 1). */
-.home-leave {
-  opacity: calc(1 - var(--leave, 0) * 0.7);
-  scale: calc(1 - var(--leave, 0) * 0.04);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .home-phone-sweep-run {
     animation: none;
-  }
-  .home-leave {
-    opacity: 1;
-    scale: 1;
   }
 }
