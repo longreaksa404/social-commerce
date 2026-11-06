@@ -140,8 +140,8 @@ def create_customer_token(telegram_user_id: int, phone: str, name: str) -> str:
     )
 
 
-# The admin's login (01_PRODUCT.md §22.11): the password gives a step token,
-# good this long for the Telegram step that follows.
+# The admin's login (01_PRODUCT.md §22.11): Telegram gives a step token,
+# good this long for the password that follows.
 ADMIN_STEP_MINUTES = 5
 
 
@@ -162,10 +162,12 @@ def create_admin_refresh_token(admin_id: uuid.UUID, session_id: uuid.UUID) -> st
     )
 
 
-def create_admin_step_token(admin_id: uuid.UUID) -> str:
-    """The right password, waiting for the Telegram step. Not stored."""
+def create_admin_step_token(phone: str, telegram_user_id: int) -> str:
+    """An admin's number, proved in Telegram, waiting for the password.
+    Not stored."""
     return _encode(
-        {"type": "admin_step", "sub": str(admin_id)}, timedelta(minutes=ADMIN_STEP_MINUTES)
+        {"type": "admin_step", "sub": phone, "tg": telegram_user_id},
+        timedelta(minutes=ADMIN_STEP_MINUTES),
     )
 
 

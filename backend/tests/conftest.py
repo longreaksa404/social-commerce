@@ -168,8 +168,12 @@ async def admin(client, monkeypatch):
     telegram_user_id = random.randrange(10**9, 10**10)
     check_id, phone = await verified_phone_check(telegram_user_id=telegram_user_id)
     monkeypatch.setattr(get_settings(), "admin_phones", f"+855 {phone[1:]}")
+    step = await client.post("/api/v1/admin/auth/telegram", json={"phone_check": check_id})
+    assert step.status_code == 200, step.text
+    assert step.json()["new"] is True
     response = await client.post(
-        "/api/v1/admin/auth/setup", json={"phone_check": check_id, "password": ADMIN_PASSWORD}
+        "/api/v1/admin/auth/setup",
+        json={"step_token": step.json()["step_token"], "password": ADMIN_PASSWORD},
     )
     assert response.status_code == 201, response.text
     return {

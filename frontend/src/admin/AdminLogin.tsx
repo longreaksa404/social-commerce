@@ -1,40 +1,45 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircle, RotateCcw, Send } from 'lucide-react'
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 import { usePhoneCheck } from '../auth/usePhoneCheck.ts'
 import { OakMark } from '../components/OakMark.tsx'
 import { buttonClass } from '../components/styles.ts'
-import { Button, ErrorMessage, Field, Input, PasswordInput } from '../components/ui.tsx'
+import { Button, ErrorMessage, Field, PasswordInput } from '../components/ui.tsx'
 import { adminApi, ApiError, type AccessToken } from '../lib/api.ts'
 import { formatPhone } from '../lib/orders.ts'
 import { useAdminSession } from './useAdminSession.ts'
 
-type Mode = { kind: 'password' } | { kind: 'telegram'; stepToken: string } | { kind: 'setup' }
+/** Telegram proved an admin's number; the password comes next. `new`: no
+ * account yet, so the password is a new one. */
+type Step = { step_token: string; phone: string; new: boolean }
 
-/** /admin/login: the admin's own login (founder's pick 2A, 2026-10-28):
- * the password, then a confirmation in Telegram (the admin's number
- * shared with Oak's bot, as at sign-up). The first time: Telegram, then
- * a password. English only (D5A). */
+const TOO_LONG = 'That took too long. Start again.'
+
+/** /admin/login: the admin's own login (01 §22.11, English only, D5A):
+ * Telegram first (the admin's number shared with Oak's bot, as at
+ * sign-up), then only the password (founder, 2026-11-06: no phone to
+ * type). The first time, the password is a new one. */
 export function AdminLogin() {
   const { status, startSession } = useAdminSession()
   const navigate = useNavigate()
   const from = (useLocation().state as { from?: string } | null)?.from
-  const [mode, setMode] = useState<Mode>({ kind: 'password' })
+  const [step, setStep] = useState<Step | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const queryClient = useQueryClient()
-  // Each Telegram step starts a new phone check: one already used (by the
-  // setup, or a login before) is gone on the server.
-  function go(next: Mode) {
-    queryClient.removeQueries({ queryKey: ['phone-check'] })
-    setMode(next)
-  }
 
   if (status === 'in') return <Navigate to={from?.startsWith('/admin') ? from : '/admin'} replace />
 
   function loggedIn(token: AccessToken) {
     startSession(token)
     navigate(from?.startsWith('/admin') ? from : '/admin', { replace: true })
+  }
+
+  // Back to Telegram with a new phone check: the one used is gone on the server.
+  function startOver(message: string | null) {
+    queryClient.removeQueries({ queryKey: ['phone-check'] })
+    setNotice(message)
+    setStep(null)
   }
 
   return (
@@ -46,151 +51,100 @@ export function AdminLogin() {
           <h1 className="text-xl font-bold text-slate-900">Oak Order</h1>
           <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">Admin</p>
         </div>
-        {mode.kind === 'password' && (
-          <PasswordStep
+        {step === null ? (
+          <TelegramLogin
             notice={notice}
-            onStep={(stepToken) => {
+            onStep={(next) => {
               setNotice(null)
-              go({ kind: 'telegram', stepToken })
-            }}
-            onSetup={() => go({ kind: 'setup' })}
-          />
-        )}
-        {mode.kind === 'telegram' && (
-          <ConfirmStep
-            stepToken={mode.stepToken}
-            onLoggedIn={loggedIn}
-            onBack={(message) => {
-              setNotice(message)
-              setMode({ kind: 'password' })
+              setStep(next)
             }}
           />
+        ) : (
+          <PasswordStep step={step} onLoggedIn={loggedIn} onStartOver={startOver} />
         )}
-        {mode.kind === 'setup' && <SetupSteps onLoggedIn={loggedIn} onBack={() => setMode({ kind: 'password' })} />}
       </div>
     </main>
   )
 }
 
-function PasswordStep({ notice, onStep, onSetup }: { notice: string | null; onStep: (token: string) => void; onSetup: () => void }) {
-  const [phone, setPhone] = useState('')
-  const [password, setPassword] = useState('')
-  const login = useMutation({
-    mutationFn: () =>
-      adminApi<{ step_token: string }>('/admin/auth/login', { method: 'POST', body: { phone, password }, auth: false }),
-    onSuccess: (step) => onStep(step.step_token),
-  })
-
-  function submit(event: FormEvent) {
-    event.preventDefault()
-    login.mutate()
-  }
-
-  return (
-    <form onSubmit={submit} className="space-y-4" noValidate>
-      {notice && <p className="text-sm font-medium text-amber-700">{notice}</p>}
-      <Field label="Phone">
-        <Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" autoComplete="username" required />
-      </Field>
-      <Field label="Password">
-        <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
-      </Field>
-      <ErrorMessage error={login.error} />
-      <Button type="submit" size="lg" loading={login.isPending} disabled={!phone || !password} className="w-full">
-        Log in
-      </Button>
-      <p className="text-center text-sm text-slate-500">
-        First time?{' '}
-        <button type="button" onClick={onSetup} className="font-medium text-navy-700 link">
-          Set up with Telegram
-        </button>
-      </p>
-    </form>
-  )
-}
-
-/** Step 2 of a login: the admin's own number from Telegram. */
-function ConfirmStep({
-  stepToken,
-  onLoggedIn,
-  onBack,
-}: {
-  stepToken: string
-  onLoggedIn: (token: AccessToken) => void
-  onBack: (message: string | null) => void
-}) {
-  const confirm = useMutation({
+/** Step 1: the admin's number from Telegram. Only numbers set as admins
+ * on Render get past it. */
+function TelegramLogin({ notice, onStep }: { notice: string | null; onStep: (step: Step) => void }) {
+  const telegram = useMutation({
     mutationFn: (phoneCheck: string) =>
-      adminApi<AccessToken>('/admin/auth/confirm', { method: 'POST', body: { step_token: stepToken, phone_check: phoneCheck }, auth: false }),
-    onSuccess: onLoggedIn,
-    onError: (error) => {
-      // The step lasts 5 minutes.
-      if (error instanceof ApiError && error.code === 'TOKEN_EXPIRED') onBack('That took too long. Log in again.')
-    },
+      adminApi<Step>('/admin/auth/telegram', { method: 'POST', body: { phone_check: phoneCheck }, auth: false }),
+    onSuccess: onStep,
   })
-  const { mutate } = confirm
+  const { mutate } = telegram
   const onDone = useCallback((checkId: string) => mutate(checkId), [mutate])
   return (
     <TelegramStep
-      title="Confirm in Telegram"
+      notice={notice}
       onDone={onDone}
-      working={confirm.isPending}
-      error={confirm.error}
-      onRetry={() => confirm.reset()}
-      footer={
-        <button type="button" onClick={() => onBack(null)} className="text-sm font-medium text-navy-700 link">
-          Back
-        </button>
-      }
+      working={telegram.isPending}
+      error={telegram.error}
+      onRetry={() => telegram.reset()}
     />
   )
 }
 
-/** The first time: Telegram proves the number (it must be in ADMIN_PHONES
- * on Render), then the password it will log in with. */
-function SetupSteps({ onLoggedIn, onBack }: { onLoggedIn: (token: AccessToken) => void; onBack: () => void }) {
-  const [check, setCheck] = useState<{ id: string; phone: string } | null>(null)
-  const onDone = useCallback((id: string, phone: string) => setCheck({ id, phone }), [])
+/** Step 2: the password, or a new one the first time. A wrong one can be
+ * typed again while the step lasts (5 minutes). */
+function PasswordStep({
+  step,
+  onLoggedIn,
+  onStartOver,
+}: {
+  step: Step
+  onLoggedIn: (token: AccessToken) => void
+  onStartOver: (message: string | null) => void
+}) {
   const [password, setPassword] = useState('')
-  const setup = useMutation({
+  const send = useMutation({
     mutationFn: () =>
-      adminApi<AccessToken>('/admin/auth/setup', { method: 'POST', body: { phone_check: check?.id, password }, auth: false }),
+      adminApi<AccessToken>(step.new ? '/admin/auth/setup' : '/admin/auth/login', {
+        method: 'POST',
+        body: { step_token: step.step_token, password },
+        auth: false,
+      }),
     onSuccess: onLoggedIn,
+    onError: (error) => {
+      if (error instanceof ApiError && error.code === 'TOKEN_EXPIRED') onStartOver(TOO_LONG)
+    },
   })
-
-  if (check === null) {
-    return (
-      <TelegramStep
-        title="First time here"
-        hint="Only numbers set as admins on Render."
-        onDone={onDone}
-        footer={
-          <button type="button" onClick={onBack} className="text-sm font-medium text-navy-700 link">
-            Back to Log in
-          </button>
-        }
-      />
-    )
-  }
 
   function submit(event: FormEvent) {
     event.preventDefault()
-    setup.mutate()
+    send.mutate()
   }
 
   return (
     <form onSubmit={submit} className="space-y-4" noValidate>
       <div>
-        <h2 className="font-semibold text-slate-900">Set your admin password</h2>
-        <p className="text-sm text-slate-500 tabular-nums">{formatPhone(check.phone)}, confirmed in Telegram.</p>
+        <h2 className="font-semibold text-slate-900">{step.new ? 'Set your admin password' : 'Enter your password'}</h2>
+        <p className="text-sm text-slate-500 tabular-nums">{formatPhone(step.phone)}, confirmed in Telegram.</p>
       </div>
-      <Field label="Password" hint="At least 8 characters.">
-        <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" minLength={8} required />
+      {/* For password managers: the account the password belongs to. */}
+      <input type="text" name="username" autoComplete="username" value={step.phone} readOnly hidden />
+      <Field label="Password" hint={step.new ? 'At least 8 characters.' : undefined}>
+        <PasswordInput
+          autoFocus
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete={step.new ? 'new-password' : 'current-password'}
+          minLength={step.new ? 8 : undefined}
+          required
+        />
       </Field>
-      <ErrorMessage error={setup.error} />
-      <Button type="submit" size="lg" loading={setup.isPending} disabled={password.length < 8} className="w-full">
-        Save and log in
+      <ErrorMessage error={send.error} />
+      <Button type="submit" size="lg" loading={send.isPending} disabled={step.new ? password.length < 8 : !password} className="w-full">
+        {step.new ? 'Save and log in' : 'Log in'}
       </Button>
+      <p className="text-center">
+        <button type="button" onClick={() => onStartOver(null)} className="text-sm font-medium text-navy-700 link">
+          Back
+        </button>
+      </p>
     </form>
   )
 }
@@ -198,41 +152,37 @@ function SetupSteps({ onLoggedIn, onBack }: { onLoggedIn: (token: AccessToken) =
 /** Open Oak's bot, share the phone, come back: `onDone` once the bot has
  * the number. */
 function TelegramStep({
-  title,
-  hint = "Share your phone with Oak's bot. This page goes on by itself.",
+  notice,
   onDone,
-  working = false,
-  error = null,
+  working,
+  error,
   onRetry,
-  footer,
 }: {
-  title: string
-  hint?: string
-  onDone: (checkId: string, phone: string) => void
-  working?: boolean
-  error?: unknown
-  onRetry?: () => void
-  footer: ReactNode
+  notice: string | null
+  onDone: (checkId: string) => void
+  working: boolean
+  error: unknown
+  onRetry: () => void
 }) {
   const { check, created, read, done, opened, setOpened, startOver, expired } = usePhoneCheck()
   const doneId = done?.id
-  const donePhone = done?.phone
   // Once per finished check (a refetch brings the same one back).
   useEffect(() => {
-    if (doneId && donePhone) onDone(doneId, donePhone)
-  }, [doneId, donePhone, onDone])
+    if (doneId) onDone(doneId)
+  }, [doneId, onDone])
 
   function again() {
-    onRetry?.()
+    onRetry()
     startOver()
   }
 
   const problem = error ?? created.error ?? (expired ? read.error : null)
   return (
     <div className="space-y-4 text-center">
+      {notice && <p className="text-sm font-medium text-amber-700">{notice}</p>}
       <div>
-        <h2 className="font-semibold text-slate-900">{title}</h2>
-        <p className="mt-1 text-sm text-slate-500">{hint}</p>
+        <h2 className="font-semibold text-slate-900">Log in</h2>
+        <p className="mt-1 text-sm text-slate-500">Share your phone with Oak's bot. This page goes on by itself.</p>
       </div>
       {problem ? (
         <div className="space-y-3 text-left">
@@ -244,7 +194,7 @@ function TelegramStep({
       ) : done || working ? (
         <p role="status" className="flex min-h-12 items-center justify-center gap-2 text-sm font-medium text-slate-700">
           <LoaderCircle aria-hidden className="size-5 animate-spin" />
-          Logging in…
+          Checking your number…
         </p>
       ) : (
         <div>
@@ -264,7 +214,6 @@ function TelegramStep({
           </p>
         </div>
       )}
-      {footer}
     </div>
   )
 }

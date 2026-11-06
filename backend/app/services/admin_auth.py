@@ -1,12 +1,13 @@
 """The admin's own login (01_PRODUCT.md §22.11, founder 2026-10-28): the
 system owner's account, not a shop's.
 
-1. Phone and password (login) give a step token, good for 5 minutes.
-2. The admin's own number, shared with Oak's bot like a seller's phone
-   check (app/services/phone_check.py), with that token (confirm): logged
-   in. Neither alone is enough.
-3. The first time (setup): a number in ADMIN_PHONES, shared with the bot,
-   and the password it will use.
+1. The admin's number, shared with Oak's bot like a seller's phone check
+   (app/services/phone_check.py), gives a step token for that number,
+   good for 5 minutes (telegram; founder 2026-11-06: Telegram first, then
+   only the password, no phone to type).
+2. With that token, the account's password (login): logged in. Neither
+   alone is enough.
+3. The first time, step 2 sets the password instead (setup).
 
 Only phones in ADMIN_PHONES (set on Render, not in the app) get in, at
 each step and on each request (api/deps.py), so taking a number off the
@@ -23,19 +24,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import security
 from app.core.errors import AppError
 from app.models import AdminAccount, AdminSession
-from app.schemas.admin_auth import AdminConfirmIn, AdminLoginIn, AdminSetupIn, AdminStepOut
+from app.schemas.admin_auth import AdminLoginIn, AdminSetupIn, AdminStepOut, AdminTelegramIn
 from app.schemas.auth import TokenPair
 from app.services import admin_log, phone_check
 from app.services.admin import admin_phones
 from app.services.auth import REUSE_GRACE
-from app.services.phone import normalize_phone
 
 # How long the password typed again opens the critical actions.
 PASSWORD_AGAIN = timedelta(minutes=10)
-
-
-def _invalid_credentials() -> AppError:
-    return AppError(401, "INVALID_CREDENTIALS", "Wrong phone number or password.")
 
 
 def _invalid_refresh() -> AppError:
@@ -50,66 +46,74 @@ def allowed(account: AdminAccount | None) -> bool:
     return account is not None and account.is_active and account.phone in admin_phones()
 
 
-async def login(db: AsyncSession, data: AdminLoginIn) -> AdminStepOut:
-    try:
-        phone = normalize_phone(data.phone)
-    except ValueError:
-        phone = None
-    account = (
-        await db.scalar(select(AdminAccount).where(AdminAccount.phone == phone)) if phone else None
-    )
-    if not allowed(account):
-        # As long as a wrong password, so it can't be used to test numbers.
-        await security.verify_password(data.password, security.DUMMY_PASSWORD_HASH)
-        raise _invalid_credentials()
-    if not await security.verify_password(data.password, account.password_hash):
-        raise _invalid_credentials()
-    return AdminStepOut(step_token=security.create_admin_step_token(account.id))
-
-
-async def confirm(db: AsyncSession, data: AdminConfirmIn) -> TokenPair:
-    """The Telegram step. The check is used up only when it's the admin's
-    own number."""
-    payload = security.decode_token(data.step_token, "admin_step")
-    account = await db.get(AdminAccount, uuid.UUID(payload["sub"]))
-    if not allowed(account):
-        raise _invalid_credentials()
+async def telegram(db: AsyncSession, data: AdminTelegramIn) -> AdminStepOut:
+    """Step 1: a finished phone check of a number in ADMIN_PHONES. Used up
+    only then; another number keeps it."""
     check = await phone_check.use(db, data.phone_check)
-    if check.phone != account.phone:
+    account = await _account(db, check.phone)
+    if check.phone not in admin_phones() or (account is not None and not allowed(account)):
         await db.rollback()
-        raise AppError(
-            403,
-            "ADMIN_PHONE_MISMATCH",
-            "This Telegram account's number isn't this admin's.",
-            "phone_check",
-        )
-    account.telegram_user_id = check.telegram_user_id
+        raise _not_admin()
+    await db.commit()
+    return AdminStepOut(
+        step_token=security.create_admin_step_token(check.phone, check.telegram_user_id),
+        phone=check.phone,
+        new=account is None,
+    )
+
+
+async def login(db: AsyncSession, data: AdminLoginIn) -> TokenPair:
+    """Step 2: the password. A wrong one can be typed again while the step
+    lasts (the 10/minute limit applies)."""
+    phone, telegram_user_id = _step(data.step_token)
+    account = await _account(db, phone)
+    if not allowed(account):
+        raise _not_admin()
+    if not await security.verify_password(data.password, account.password_hash):
+        raise _wrong_password()
+    account.telegram_user_id = telegram_user_id
     admin_log.record(db, account.id, "admin_login")
     return await _start(db, account)
 
 
 async def setup(db: AsyncSession, data: AdminSetupIn) -> TokenPair:
-    check = await phone_check.use(db, data.phone_check)
-    if check.phone not in admin_phones():
-        await db.rollback()
+    """The first time, step 2: the password it will log in with."""
+    phone, telegram_user_id = _step(data.step_token)
+    if phone not in admin_phones():
         raise _not_admin()
-    if await db.scalar(select(AdminAccount.id).where(AdminAccount.phone == check.phone)):
-        await db.rollback()
+    if await _account(db, phone):
         raise AppError(
             409,
             "ADMIN_EXISTS",
             "This number already has an admin account. Log in with its password.",
-            "phone_check",
         )
     account = AdminAccount(
-        phone=check.phone,
+        phone=phone,
         password_hash=await security.hash_password(data.password),
-        telegram_user_id=check.telegram_user_id,
+        telegram_user_id=telegram_user_id,
     )
     db.add(account)
     await db.flush()
     admin_log.record(db, account.id, "admin_setup")
     return await _start(db, account)
+
+
+def _step(token: str) -> tuple[str, int]:
+    """The number a step token proved, and the Telegram account that
+    shared it."""
+    payload = security.decode_token(token, "admin_step")
+    telegram_user_id = payload.get("tg")
+    if not isinstance(telegram_user_id, int):
+        raise _invalid_refresh()
+    return payload["sub"], telegram_user_id
+
+
+async def _account(db: AsyncSession, phone: str) -> AdminAccount | None:
+    return await db.scalar(select(AdminAccount).where(AdminAccount.phone == phone))
+
+
+def _wrong_password() -> AppError:
+    return AppError(422, "WRONG_PASSWORD", "That's not your password.", "password")
 
 
 async def refresh(db: AsyncSession, refresh_token: str) -> TokenPair:
@@ -160,7 +164,7 @@ async def password_again(
     if account is None or session is None or session.admin_id != admin_id:
         raise _invalid_refresh()
     if not await security.verify_password(password, account.password_hash):
-        raise AppError(422, "WRONG_PASSWORD", "That's not your password.", "password")
+        raise _wrong_password()
     session.password_at = datetime.now(UTC)
     await db.commit()
 
@@ -170,7 +174,7 @@ async def check_password(db: AsyncSession, admin_id: uuid.UUID, password: str) -
     (removing a customer's details, erasing a shop): 422 WRONG_PASSWORD."""
     account = await db.get(AdminAccount, admin_id)
     if account is None or not await security.verify_password(password, account.password_hash):
-        raise AppError(422, "WRONG_PASSWORD", "That's not your password.", "password")
+        raise _wrong_password()
 
 
 def password_recent(session: AdminSession | None) -> bool:

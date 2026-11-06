@@ -1,6 +1,7 @@
 """The admin's own login (01_PRODUCT.md §22.11, founder 2026-10-28): the
-system owner's account, not a shop's. The password, then the Telegram
-step; the first time, Telegram then a password; only ADMIN_PHONES."""
+system owner's account, not a shop's. Telegram, then the password
+(founder 2026-11-06); the first time, Telegram then a new password; only
+ADMIN_PHONES."""
 
 from sqlalchemy import select
 
@@ -25,44 +26,47 @@ def cookie(token: str) -> dict[str, str]:
     return {"Cookie": f"{ADMIN_REFRESH_COOKIE}={token}"}
 
 
-async def log_in(client, phone: str, password: str = ADMIN_PASSWORD, telegram_phone=None):
-    """Both steps: the password, then a check shared from `telegram_phone`
-    (the admin's own number unless given)."""
-    step = await client.post(f"{AUTH}/login", json={"phone": phone, "password": password})
+async def telegram_step(client, phone: str):
+    """Step 1: `phone` shared with Oak's bot."""
+    check_id, _ = await verified_phone_check(phone)
+    return await client.post(f"{AUTH}/telegram", json={"phone_check": check_id})
+
+
+async def log_in(client, phone: str, password: str = ADMIN_PASSWORD):
+    """Both steps: Telegram, then the password."""
+    step = await telegram_step(client, phone)
     if step.status_code != 200:
         return step
-    check_id, _ = await verified_phone_check(telegram_phone or phone)
     return await client.post(
-        f"{AUTH}/confirm", json={"step_token": step.json()["step_token"], "phone_check": check_id}
+        f"{AUTH}/login", json={"step_token": step.json()["step_token"], "password": password}
     )
 
 
 async def test_the_first_time_a_listed_number_sets_its_password(client, admin):
     me = await client.get(f"{AUTH}/me", headers=bearer(admin["access_token"]))
-    check_id, _ = await verified_phone_check(admin["phone"])
+    step = await telegram_step(client, admin["phone"])
     again = await client.post(
-        f"{AUTH}/setup", json={"phone_check": check_id, "password": "another-password"}
+        f"{AUTH}/setup",
+        json={"step_token": step.json()["step_token"], "password": "another-password"},
     )
 
     assert me.status_code == 200, me.text
     assert me.json() == {"phone": admin["phone"], "telegram": True}
+    assert step.json()["new"] is False
     assert again.status_code == 409
     assert again.json()["error"]["code"] == "ADMIN_EXISTS"
 
 
-async def test_a_number_not_in_admin_phones_cant_set_one_up(client, monkeypatch):
+async def test_a_number_not_in_admin_phones_is_stopped_at_telegram(client, monkeypatch):
     monkeypatch.setattr(get_settings(), "admin_phones", "+855 12 000 111")
-    check_id, _ = await verified_phone_check(random_phone())
 
-    response = await client.post(
-        f"{AUTH}/setup", json={"phone_check": check_id, "password": ADMIN_PASSWORD}
-    )
+    response = await telegram_step(client, random_phone())
 
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "ADMIN_ONLY"
 
 
-async def test_logging_in_takes_the_password_then_telegram(client, admin):
+async def test_logging_in_takes_telegram_then_the_password(client, admin):
     response = await log_in(client, admin["phone"])
 
     assert response.status_code == 200, response.text
@@ -71,23 +75,35 @@ async def test_logging_in_takes_the_password_then_telegram(client, admin):
     assert shops.status_code == 200, shops.text
 
 
-async def test_a_wrong_password_or_another_telegram_number_is_refused(client, admin):
-    wrong = await log_in(client, admin["phone"], password="not-the-password")
-    unknown = await log_in(client, random_phone())
-    other_telegram = await log_in(client, admin["phone"], telegram_phone=random_phone())
+async def test_a_wrong_password_can_be_typed_again(client, admin):
+    step = await telegram_step(client, admin["phone"])
+    token = step.json()["step_token"]
 
-    assert wrong.status_code == unknown.status_code == 401
-    assert wrong.json()["error"]["code"] == unknown.json()["error"]["code"] == "INVALID_CREDENTIALS"
-    assert other_telegram.status_code == 403
-    assert other_telegram.json()["error"]["code"] == "ADMIN_PHONE_MISMATCH"
-
-
-async def test_the_password_alone_doesnt_open_the_admin(client, admin):
-    step = await client.post(
-        f"{AUTH}/login", json={"phone": admin["phone"], "password": ADMIN_PASSWORD}
+    wrong = await client.post(f"{AUTH}/login", json={"step_token": token, "password": "nope-nope"})
+    right = await client.post(
+        f"{AUTH}/login", json={"step_token": token, "password": ADMIN_PASSWORD}
     )
 
+    assert wrong.status_code == 422
+    assert wrong.json()["error"]["code"] == "WRONG_PASSWORD"
+    assert right.status_code == 200, right.text
+
+
+async def test_telegram_alone_doesnt_open_the_admin(client, admin):
+    step = await telegram_step(client, admin["phone"])
+
     response = await client.get(SHOPS, headers=bearer(step.json()["step_token"]))
+
+    assert response.status_code == 401
+
+
+async def test_a_seller_token_isnt_a_step(client, register, admin):
+    seller = await register(phone=admin["phone"])
+
+    response = await client.post(
+        f"{AUTH}/login",
+        json={"step_token": seller["access_token"], "password": ADMIN_PASSWORD},
+    )
 
     assert response.status_code == 401
 
@@ -110,13 +126,11 @@ async def test_taking_a_number_off_admin_phones_stops_it_at_once(client, admin, 
 
     access = await client.get(SHOPS, headers=bearer(admin["access_token"]))
     refresh = await client.post(f"{AUTH}/refresh", headers=cookie(admin["refresh_token"]))
-    login = await client.post(
-        f"{AUTH}/login", json={"phone": admin["phone"], "password": ADMIN_PASSWORD}
-    )
+    login = await telegram_step(client, admin["phone"])
 
     assert access.status_code == 403
-    assert access.json()["error"]["code"] == "ADMIN_ONLY"
-    assert refresh.status_code == login.status_code == 401
+    assert access.json()["error"]["code"] == login.json()["error"]["code"] == "ADMIN_ONLY"
+    assert refresh.status_code == 401
 
 
 async def test_refresh_swaps_the_session_and_logout_ends_it(client, admin):
@@ -157,6 +171,6 @@ async def test_a_forgotten_admin_password_is_reset_by_the_command(client, admin)
     new = await log_in(client, admin["phone"], password=password)
     ended = await client.post(f"{AUTH}/refresh", headers=cookie(admin["refresh_token"]))
 
-    assert old.status_code == 401
+    assert old.status_code == 422
     assert new.status_code == 200, new.text
     assert ended.status_code == 401
