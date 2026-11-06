@@ -200,15 +200,16 @@ export function createPhoneScene(
   bandMesh.renderOrder = 4
   phone.add(bandMesh)
 
-  // A soft shadow under the phone, on an unseen floor.
+  // A soft shadow under the phone, on an unseen floor: narrower than the
+  // canvas, or the light page shows its cut-off sides (2026-11-06).
   const shadow = new Mesh(
-    keep(new PlaneGeometry(3.4, 1.4)),
+    keep(new PlaneGeometry(2.5, 1.1)),
     keep(
       new MeshBasicMaterial({
         map: keep(
           painted(128, (g, size) => {
             const gradient = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
-            gradient.addColorStop(0, 'rgba(0,0,0,0.55)')
+            gradient.addColorStop(0, 'rgba(15,23,42,0.32)')
             gradient.addColorStop(1, 'rgba(0,0,0,0)')
             g.fillStyle = gradient
             g.fillRect(0, 0, size, size)
