@@ -1,5 +1,5 @@
 import { CalendarClock, ExternalLink, Inbox, MousePointerClick, Package, Plus, SearchX, Truck } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { useChosenMarker, type Place } from '../../components/chosenMarker.ts'
 import { keepPage } from '../../components/pageTurn.ts'
@@ -27,6 +27,13 @@ const FILTERS: { key: 'all' | 'new' | 'active' | 'done' | 'closed'; statuses: Or
   { key: 'closed', statuses: ['rejected', 'cancelled'] },
 ]
 
+// Tailwind's lg: the laptop layout, the list with the open order beside it.
+const WIDE = window.matchMedia('(min-width: 1024px)')
+const onWideChange = (notify: () => void) => {
+  WIDE.addEventListener('change', notify)
+  return () => WIDE.removeEventListener('change', notify)
+}
+
 /** /dashboard/orders and /dashboard/orders/:orderId. Phones show one or the
  * other; laptops show the list with the open order beside it, like an
  * inbox, so going through new orders needs no going back and forth. */
@@ -45,6 +52,15 @@ export function OrdersPage() {
   const loaded = orders.data?.pages.flatMap((page) => page.orders) ?? []
   const next = orderId && !fromElsewhere ? nextNewOrder(loaded, orderId) : undefined
   const newLeft = loaded.filter((o) => o.status === 'pending' && o.id !== orderId).length
+  // Laptops never show an empty half: with none open, the tab's first new
+  // order opens, else its newest (founder's pick 4A, 2026-11-06).
+  const wide = useSyncExternalStore(onWideChange, () => WIDE.matches)
+  // Not from the last tab's list, kept on screen while this tab's loads.
+  const ready = wide && !orderId && !orders.isPlaceholderData
+  const first = ready ? (loaded.find((o) => o.status === 'pending') ?? loaded[0])?.id : undefined
+  useEffect(() => {
+    if (first) navigate(`/dashboard/orders/${first}${search}`, { replace: true })
+  }, [first, navigate, search])
   // The title and tabs run across the top on laptops, above both columns,
   // so all the tabs fit on one line.
   return (
