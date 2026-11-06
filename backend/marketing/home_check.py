@@ -233,11 +233,27 @@ def wait_screen(page: Page, ending: str) -> None:
     )
 
 
+def middle_step(page: Page, index: int) -> None:
+    """Laptops: scroll step `index`'s words to the middle of the screen."""
+    page.evaluate(
+        "(i) => document.querySelectorAll('[data-steps] ol li')[i]"
+        ".scrollIntoView({ block: 'center' })",
+        index,
+    )
+    page.wait_for_timeout(250)
+
+
 def walk_steps(browser: Browser, width: int, height: int, reduced: bool = False) -> None:
+    """Phones: the step follows how far the stage has scrolled. Laptops: it's
+    the step whose words are in the middle (founder's pick 8A, 2026-11-06)."""
     page = open_home(browser, "km", width, height, reduced=reduced)
     for index, progress in enumerate((0.1, 0.35, 0.6, 0.85)):
-        scroll_steps(page, progress)
-        where = f"{width}px at {progress}"
+        if width >= 1024:
+            middle_step(page, index)
+            where = f"{width}px, step {index}'s words in the middle"
+        else:
+            scroll_steps(page, progress)
+            where = f"{width}px at {progress}"
         assert active_step(page) == index, f"{where}: step {active_step(page)}, want {index}"
         wait_screen(page, f"/home/km/{STEP_FILES[index]}.webp")
         shot(page, f"steps-{width}-{index}{'-reduced' if reduced else ''}", full=False)

@@ -12,15 +12,19 @@ const TURNS = ['rotateY(-12deg) rotateX(4deg)', 'rotateY(8deg) rotateX(2deg)', '
 
 /** How it works: the phone stays in place while the four steps scroll by,
  * its screen changing at each. On phones the step's words change under the
- * phone; on laptops they scroll on the left. Heights are in svh, the
- * smallest screen height, so a browser bar hiding mid-scroll doesn't jump
- * to another step. */
+ * phone, the step set by how far the stage has scrolled; on laptops they
+ * scroll on the left, and the step is the one whose words are nearest the
+ * middle of the screen, so the bright words always sit beside their screen
+ * (founder's pick 8A, 2026-11-06). Heights are in svh, the smallest screen
+ * height, so a browser bar hiding mid-scroll doesn't jump to another
+ * step. */
 export function HowItWorks({ intro }: { intro: Intro }) {
   const t = useT()
   const { lang } = useLang()
   const steps = t.home.steps
   const scroller = useRef<HTMLDivElement>(null)
   const stage = useRef<HTMLDivElement>(null)
+  const list = useRef<HTMLOListElement>(null)
   const [step, setStep] = useState(0)
 
   useEffect(() => {
@@ -28,6 +32,14 @@ export function HowItWorks({ intro }: { intro: Intro }) {
     const measure = () => {
       frame = 0
       if (!scroller.current || !stage.current) return
+      // Laptops (the list is showing): the last step whose top has passed
+      // the middle, which is the one whose words are nearest it.
+      if (list.current?.offsetParent) {
+        const middle = window.innerHeight / 2
+        const tops = [...list.current.children].map((item) => item.getBoundingClientRect().top)
+        setStep(Math.max(0, tops.findLastIndex((top) => top <= middle)))
+        return
+      }
       const box = scroller.current.getBoundingClientRect()
       const distance = box.height - stage.current.offsetHeight
       setStep(stepAt(distance > 0 ? -box.top / distance : 0, STEPS.length))
@@ -65,7 +77,7 @@ export function HowItWorks({ intro }: { intro: Intro }) {
         style={{ height: `${STEPS.length * STEP_SVH}svh` }}
       >
         {/* Laptops: the steps scroll on the left, the one shown in full. */}
-        <ol className="hidden lg:block">
+        <ol ref={list} className="hidden lg:block">
           {STEPS.map((key, index) => (
             <li
               key={key}
