@@ -38,8 +38,8 @@ export function PhoneStill({
           <img
             src={shown}
             alt={t.home.screens[screen]}
-            width={780}
-            height={1688}
+            width={1170}
+            height={2532}
             decoding="async"
             fetchPriority={priority ? 'high' : 'auto'}
             loading={priority ? 'eager' : 'lazy'}
@@ -51,8 +51,8 @@ export function PhoneStill({
               src={next.src}
               alt=""
               aria-hidden
-              width={780}
-              height={1688}
+              width={1170}
+              height={2532}
               decoding="async"
               onLoad={() => setLoaded(next.src)}
               onTransitionEnd={() => setShown(next.src)}

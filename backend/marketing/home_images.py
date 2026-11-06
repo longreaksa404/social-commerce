@@ -4,15 +4,21 @@
 
 Takes 5 of the iPhone-sized PNGs that shots.py makes, and the laptop's
 Orders page that laptop_shot.py makes (marketing/out/, git-ignored), in
-Khmer and English, and saves them as small WebPs for the start page
-(frontend/public/home/<lang>/<screen>.webp, committed). Run it again after
-shots.py or laptop_shot.py when a screen in the app changes; --only
+Khmer and English, and saves them as sharp WebPs for the start page
+(frontend/public/home/<lang>/<screen>.webp, committed): the phone screens
+at the full size shots.py takes them (3x), the laptop at 1440 x 900 from
+laptop_shot.py's 2x picture (its text stays crisp when shrunk). Each is
+lossless when that is smaller than quality 90 (screens that are mostly
+text), else quality 90 (founder, 2026-11-06: "make the image very good
+quality"). Run it again
+after shots.py or laptop_shot.py when a screen in the app changes; --only
 laptop (or shop,orders, ...) does just those.
 
-Exits 1 if a picture is missing or a screen comes out over 150 KB.
+Exits 1 if a picture is missing or a file comes out over 300 KB.
 """
 
 import argparse
+import io
 import sys
 from pathlib import Path
 
@@ -21,8 +27,10 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 PUBLIC = HERE.parents[1] / "frontend" / "public" / "home"
 
-PHONE = (780, 1688)  # 2x a 390 x 844 phone screen
-LAPTOP = (1440, 900)  # a 1440 x 900 laptop screen at 1x
+PHONE = (1170, 2532)  # 3x a 390 x 844 phone screen, as shots.py takes it
+# A 1440 x 900 laptop screen, shrunk from laptop_shot.py's 2x picture: on
+# the page it is at most ~450 px wide, ~900 pixels on a Retina laptop.
+LAPTOP = (1440, 900)
 # The start page's name for a screen (pages/home/screens.ts) → the picture
 # it comes from and its size.
 SCREENS = {
@@ -34,7 +42,18 @@ SCREENS = {
     "laptop": ("laptop_orders", LAPTOP),
 }
 LANGS = ("km", "en")
-MAX_BYTES = 150_000
+QUALITY = 90
+MAX_BYTES = 300_000
+
+
+def webp(image: Image.Image) -> bytes:
+    """Lossless when that is smaller (mostly text), else quality 90."""
+    choices = []
+    for options in ({"lossless": True}, {"quality": QUALITY}):
+        buffer = io.BytesIO()
+        image.save(buffer, "WEBP", method=6, **options)
+        choices.append(buffer.getvalue())
+    return min(choices, key=len)
 
 
 def screens(source: Path, names: list[str]) -> bool:
@@ -50,9 +69,10 @@ def screens(source: Path, names: list[str]) -> bool:
                 continue
             out = PUBLIC / lang / f"{name}.webp"
             with Image.open(png) as image:
-                image.convert("RGB").resize(size, Image.Resampling.LANCZOS).save(
-                    out, "WEBP", quality=82, method=6
-                )
+                image = image.convert("RGB")
+                if image.size != size:
+                    image = image.resize(size, Image.Resampling.LANCZOS)
+                out.write_bytes(webp(image))
             weight = out.stat().st_size
             too_big = weight > MAX_BYTES
             ok = ok and not too_big

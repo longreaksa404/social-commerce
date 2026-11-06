@@ -436,17 +436,20 @@ out.
 **The start page's phone screens.** `backend/marketing/home_images.py
 [--source DIR]` (Pillow) turns 5 of these stills per language (`01_shop`,
 `16_share_link`, `05_checkout`, `11_khqr`, `07_dashboard`) into
-`frontend/public/home/<lang>/{shop,share,checkout,khqr,orders}.webp`, 780 ×
-1688 at quality 82 (38–79 KB each). The laptop on the first screen:
+`frontend/public/home/<lang>/{shop,share,checkout,khqr,orders}.webp` at
+the full 1170 × 2532 (73–198 KB each; lossless when smaller, else quality
+90: founder, 2026-11-06, "make the image very good quality"). The laptop
+on the first screen:
 `backend/marketing/laptop_shot.py --login … --password …` logs in to the
 app running here (localhost only, never the live site) as a shop's owner,
-e.g. the local Oak Wear copy, and saves the Orders page at 1440 × 900 in
+e.g. the local Oak Wear copy, and saves the Orders page at 1440 × 900 (2x,
+so 2880 × 1800 pixels) in
 both languages (`out/<lang>/laptop_orders.png`; `--lang` for one, `--out`
 for another folder such as `out/clothing`); `home_images.py --only
-laptop` makes `public/home/<lang>/laptop.webp` (1440 × 900, ~63 KB). Those
+laptop` makes `public/home/<lang>/laptop.webp` (shrunk to 1440 × 900, ~75 KB). Those
 12 files are committed; since 2026-11-06 they are the Oak Wear set
 (`--source marketing/out/clothing`), as the live demo shop is Oak Wear. It exits 1 if a still is missing
-or a screen is over 150 KB. Run it after `shots.py` whenever one of those
+or a screen is over 300 KB. Run it after `shots.py` whenever one of those
 screens changes; `--source` points at another checkout's `out/` (a
 worktree has none).
 

@@ -48,7 +48,7 @@ def main() -> int:
         for lang in args.lang:
             context = browser.new_context(
                 viewport=SIZE,
-                device_scale_factor=1,
+                device_scale_factor=2,  # 2880 x 1800: sharp on Retina laptops
                 locale="km-KH" if lang == "km" else "en-US",
                 timezone_id="Asia/Phnom_Penh",
                 color_scheme="light",
