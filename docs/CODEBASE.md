@@ -43,7 +43,7 @@ Founder-side checks on the live site are in `04_STATUS.md`.
 | 0 | SQLAlchemy base, tenant convention | DONE | `app/db/base.py` `TenantMixin` (`store_id`) |
 | 0 | React + Vite + TS + Tailwind | DONE | `frontend/` |
 | 0 | CI | DONE | `.github/workflows/ci.yml` |
-| 0 | Deploy skeletons | DONE | `backend/Dockerfile`, `render.yaml`, `frontend/vercel.json` |
+| 0 | Deploy skeletons | DONE | `backend/Dockerfile`, `render.yaml`, `frontend/public/_headers` (Cloudflare Pages since 2026-11-06; Vercel before) |
 | 0 | Sentry | DONE | backend `SENTRY_DSN`, frontend `VITE_SENTRY_DSN`; off when empty |
 | 1 | `seller`, `store` tables | DONE | `app/models/account.py`, migration `abd12fdb8cf6` |
 | 1 | Register / login / refresh / logout + JWT | DONE | `app/api/auth.py`, `app/services/auth.py` |
@@ -96,7 +96,7 @@ Founder-side checks on the live site are in `04_STATUS.md`.
 | 8 | Link generation endpoint + UI | DONE | `app/services/link.py`, `src/dashboard/links/` |
 | 8 | View/order tracking | DONE | `POST /shop/{slug}/track-view` (BackgroundTasks); order event written in checkout |
 | 8 | Link stats | DONE | `GET /seller/links/{id}/stats`, `LinkDetail.tsx` |
-| 8 | Open Graph link previews | DONE | `frontend/middleware.ts` (Vercel Routing Middleware, bots only) |
+| 8 | Open Graph link previews | DONE | `frontend/linkPreview.ts`, run by `frontend/functions/shop/[[path]].ts` (a Cloudflare Pages Function, bots only) |
 
 The Phase 0 "API: ok" check is gone from the frontend. The start page
 (`src/pages/home/`) is a landing page for new sellers (2026-11-05). `GET /health` is still used by
@@ -112,7 +112,7 @@ Render's health check.
 | Rate limiting + security review | DONE | `client_ip()` uses `CF-Connecting-IP` (`app/core/ratelimit.py`); the live check is still pending (04) |
 | Seed real store data | NOT STARTED | no seed script in the repo |
 | Onboard first real seller | NOT STARTED | |
-| Domain + Cloudflare DNS | DONE (live 2026-10-09) | `order.oaksolve.com` (Vercel), `api.oaksolve.com` (Render; `render.yaml` `PUBLIC_API_URL` / `PUBLIC_APP_URL`), `images.oaksolve.com` (R2, `R2_PUBLIC_URL`); the login page shows `order.oaksolve.com`. `oaksolve.com` (302) and the vercel.app address (308) forward to it (04) |
+| Domain + Cloudflare DNS | DONE (live 2026-10-09) | `order.oaksolve.com` (Cloudflare Pages since 2026-11-06), `api.oaksolve.com` (Render; `render.yaml` `PUBLIC_API_URL` / `PUBLIC_APP_URL`), `images.oaksolve.com` (R2, `R2_PUBLIC_URL`); the login page shows `order.oaksolve.com`. `oaksolve.com` (302) and the vercel.app address (308) forward to it (04) |
 | Refresh token in an httpOnly cookie (part of the domain work in 04) | DONE (live 2026-10-09) | `backend/app/api/session_cookie.py`, `frontend/src/lib/api.ts`; only works once app and API share oaksolve.com |
 | Phone check through the Telegram bot (founder's choice 2026-10-09: sellers sign up with a real phone; Google, then Facebook and TikTok, to follow) | DONE | `phone_check` table, `POST/GET /auth/phone-checks`, `services/phone_check.py`, the bot's share button (`services/telegram.py`), `app/telegram_poll.py` for laptops; `auth/PhoneCheck.tsx` |
 | Continue with Google (same decision) | DONE (needs the founder's Google client ID) | `core/google.py`, `services/social.py`, `seller_login`, `POST /auth/google`, `/auth/social/register`, `/seller/account/google`; `auth/SocialButtons.tsx`, `auth/GoogleButton.tsx`, `pages/FinishSignup.tsx`, Settings → Your account (Google, Add a password); migration `4520c66e86de` |
@@ -195,8 +195,6 @@ Leaves out `node_modules`, `.venv`, `dist`, caches and migration bodies.
     ├── index.html             Khmer <html lang>, theme set before first paint (reads sc.theme)
     ├── linkPreview.ts         Open Graph cards for preview bots on /shop/* (shared by the two hosts below)
     ├── functions/shop/[[path]].ts   Cloudflare Pages Function running linkPreview.ts (the host after the move)
-    ├── middleware.ts          Vercel Routing Middleware running linkPreview.ts (until the move)
-    ├── vercel.json            SPA rewrite + frame-ancestors 'none' / X-Frame-Options / nosniff (Vercel)
     ├── public/_headers        The same headers for Cloudflare Pages
     ├── .node-version          24, for Cloudflare Pages' build
     ├── vite.config.ts         React + Tailwind plugins, envDir '..' (root .env), optional polling
@@ -311,9 +309,12 @@ cd frontend && npm install
 
 **Deploys.** Pushing to `main` runs CI. Render redeploys the API once CI
 passes (`autoDeployTrigger: checksPass`), and migrations run when the
-container starts. Vercel redeploys the frontend on every push. Commits must
-be authored with an email on the `longreaksa404` GitHub account, or Vercel
-blocks the deploy (04).
+container starts. Cloudflare Pages (project `oak-order`, root `frontend`,
+`npm run build` → `dist`) redeploys the frontend on every push to `main`
+and builds a preview of other branches; its `VITE_` variables are in the
+Pages project's settings (2026-11-06: `VITE_API_URL`, `VITE_SENTRY_DSN`,
+`VITE_SUPPORT_TELEGRAM`; Google and Facebook left out, so their buttons
+are hidden).
 
 **Environment variables** (names only):
 
@@ -340,8 +341,8 @@ blocks the deploy (04).
 | `VITE_GOOGLE_CLIENT_ID` | frontend | The same client ID, for Google's button (`src/lib/google.ts`); empty hides every Google button |
 | `VITE_FACEBOOK_APP_ID` | frontend | The public ID for the Facebook sign-in link (`src/lib/oauth.ts`); empty hides its buttons (empty on the live site until Meta allows it). `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET` and `VITE_TIKTOK_CLIENT_KEY` went with TikTok's login (2026-10-27); nothing reads them |
 | `VITE_SUPPORT_TELEGRAM` | frontend | Oak Order's own Telegram username (no @) for sellers' "Get help" links (`src/lib/support.ts`); empty hides them |
-| `DEMO_SHOP_SLUG`, `DEMO_BAKONG_ID`, `DEMO_KHQR_ACCOUNT` | `backend/marketing` (a laptop only, never Render or Vercel) | The live demo shop to copy (its code in `/shop/<code>`), and the KHQR its customers pay, which isn't public: the Bakong ID, and with ABA's shared ID `abaakhppxxx@abaa` the ABA account number in the QR (`demo_shop.khqr_settings`; from a "dual" QR, the account in the shop's currency: the one that isn't in tag 29 when tag 53 is the other currency). Without them the KHQR pictures are skipped |
-| `GEMINI_API_KEY` | `.claude/skills/oak-video-edit` (the founder's Windows laptop only, never Render or Vercel) | Gemini API key (its own Google project, no billing: free tier) for the marketing videos' Khmer voice-over, `gemini-3.8-flash-tts` through the Interactions API. Not used by the app |
+| `DEMO_SHOP_SLUG`, `DEMO_BAKONG_ID`, `DEMO_KHQR_ACCOUNT` | `backend/marketing` (a laptop only, never Render or Cloudflare Pages) | The live demo shop to copy (its code in `/shop/<code>`), and the KHQR its customers pay, which isn't public: the Bakong ID, and with ABA's shared ID `abaakhppxxx@abaa` the ABA account number in the QR (`demo_shop.khqr_settings`; from a "dual" QR, the account in the shop's currency: the one that isn't in tag 29 when tag 53 is the other currency). Without them the KHQR pictures are skipped |
+| `GEMINI_API_KEY` | `.claude/skills/oak-video-edit` (the founder's Windows laptop only, never Render or Cloudflare Pages) | Gemini API key (its own Google project, no billing: free tier) for the marketing videos' Khmer voice-over, `gemini-3.8-flash-tts` through the Interactions API. Not used by the app |
 | `VITE_USE_POLLING`, `WATCHFILES_FORCE_POLLING` | dev container | File polling (the repo is on a Windows drive mount) |
 | `BACKUP_DATABASE_URL`, `BACKUP_R2_ACCOUNT_ID`, `BACKUP_R2_ACCESS_KEY_ID`, `BACKUP_R2_SECRET_ACCESS_KEY`, `BACKUP_R2_BUCKET` | GitHub Actions secrets | Nightly backup workflow |
 
@@ -1319,7 +1320,7 @@ router via `createBrowserRouter`), TanStack Query 5, Tailwind CSS 4 (via
 `src/index.css`), Vite 8, TypeScript 6, oxlint. Other libraries:
 lucide-react (icons), leaflet (checkout map, lazy-loaded), uqr (draws
 KHQR), three (the start page's 3D phone only, its own chunk loaded by
-`import()` from `pages/home/Phone3D.tsx`, about 146 kB gzipped), @sentry/react, @vercel/functions (middleware),
+`import()` from `pages/home/Phone3D.tsx`, about 146 kB gzipped), @sentry/react,
 @fontsource-variable/noto-sans-khmer and inter. No automated frontend tests.
 
 ### Routes (`src/router.tsx`)
@@ -1750,17 +1751,14 @@ message needs a Khmer entry there.** What sellers type is shown as typed.
 The logic is in `linkPreview.ts` (plain web APIs: `isPreviewBot`,
 `previewResponse`), run on `/shop/*` by the host: a Cloudflare Pages
 Function (`frontend/functions/shop/[[path]].ts`, `env.ASSETS` for
-`index.html`, `env.VITE_API_URL`) and, until the move to Cloudflare Pages
-(decided 2026-10-14; the founder switches the domain), Vercel Routing
-Middleware (`frontend/middleware.ts`, `matcher: '/shop/:path*'`,
-`process.env.VITE_API_URL`). For preview-bot user agents only (Facebook,
+`index.html`, `env.VITE_API_URL`; Pages since 2026-11-06, before that
+Vercel Routing Middleware). For preview-bot user agents only (Facebook,
 Telegram, TikTok, WhatsApp, ...), it fetches the storefront API (6 s
 timeout) and returns `index.html` with `og:` title, description and image
 filled in, in Khmer. Everyone else passes straight through to the SPA
-(Cloudflare: its SPA fallback, as there's no `404.html`; Vercel: the
-`vercel.json` rewrite). The security headers are in both `vercel.json` and
-`public/_headers` (Cloudflare). Both hosts were run locally with bot and
-phone requests against the API (2026-10-14).
+(Cloudflare's SPA fallback, as there's no `404.html`). The security
+headers are in `public/_headers`. Checked on the live site by the founder
+(2026-11-06): a shop, its Facebook and Telegram cards, log-in.
 
 Oak in every card (founder's picks 3B and 5B, 2026-10-10): titles end in
 "· Oak Order" (the page's own words are cut first, never the suffix), with
@@ -1785,8 +1783,8 @@ don't take the SVG favicon). The three PNGs were drawn from the mark's SVG
 
 | Integration | State | Details |
 |---|---|---|
-| **Google sign-in** ("Continue with Google") | WIRED, env-gated (`GOOGLE_CLIENT_ID` / `VITE_GOOGLE_CLIENT_ID`); live since 2026-10-13 (04) | Google Identity Services script (`accounts.google.com/gsi/client`, loaded on first use, `src/lib/google.ts`), its own button (`auth/GoogleButton.tsx`, outline, in the app's language: as wide as the form up to 400 px in Settings → Your account, its square "G" with `icon` under the Login and Register forms: our own tile (the Facebook tile's look, `ProviderButton`, drawn at once) with Google's real button laid over it at opacity 0.01, taking the tap, and `color-scheme: light` around Google's frame, since Google's button flickered on iPhones as it swapped drawings and showed a white square in Android dark mode, founder's screenshots 2026-10-20), popup mode; the ID token is checked by the API (`core/google.py`). No secret, no redirect URL; the client must list `https://order.oaksolve.com` and `http://localhost:5173` as JavaScript origins. Tested with a key made in the tests and a stand-in button in the browser, not yet with real Google |
-| **Facebook sign-in** | WIRED, env-gated (`FACEBOOK_APP_ID`+`_SECRET` on Render, `VITE_FACEBOOK_APP_ID` kept out of Vercel); off until Meta's business verification and App Review | Redirect flow, no SDK: `lib/oauth.ts` sends the browser to `facebook.com/v26.0/dialog/oauth` (scope `public_profile,email`) with a random `state`; the API trades the code (`core/oauth.py`). Redirect URIs to register: `https://order.oaksolve.com/auth/facebook/callback` (+ `http://localhost:5173/...` in development mode). Its button is drawn like Google's outline button (`auth/ProviderLogo.tsx`). **TikTok sign-in was removed on 2026-10-27** (TikTok turned the app down; it only ever ran on TikTok's sandbox). Tested with the providers' answers faked (tests and the browser), not yet with the real ones |
+| **Google sign-in** ("Continue with Google") | WIRED, env-gated (`GOOGLE_CLIENT_ID` / `VITE_GOOGLE_CLIENT_ID`); live 2026-10-13, closed 2026-11-06 (founder: Telegram only; both keys left out, the code stays) | Google Identity Services script (`accounts.google.com/gsi/client`, loaded on first use, `src/lib/google.ts`), its own button (`auth/GoogleButton.tsx`, outline, in the app's language: as wide as the form up to 400 px in Settings → Your account, its square "G" with `icon` under the Login and Register forms: our own tile (the Facebook tile's look, `ProviderButton`, drawn at once) with Google's real button laid over it at opacity 0.01, taking the tap, and `color-scheme: light` around Google's frame, since Google's button flickered on iPhones as it swapped drawings and showed a white square in Android dark mode, founder's screenshots 2026-10-20), popup mode; the ID token is checked by the API (`core/google.py`). No secret, no redirect URL; the client must list `https://order.oaksolve.com` and `http://localhost:5173` as JavaScript origins. Tested with a key made in the tests and a stand-in button in the browser, not yet with real Google |
+| **Facebook sign-in** | WIRED, env-gated (`FACEBOOK_APP_ID`+`_SECRET` on Render, `VITE_FACEBOOK_APP_ID` kept out of Cloudflare Pages; closed 2026-11-06, Telegram only); off until Meta's business verification and App Review | Redirect flow, no SDK: `lib/oauth.ts` sends the browser to `facebook.com/v26.0/dialog/oauth` (scope `public_profile,email`) with a random `state`; the API trades the code (`core/oauth.py`). Redirect URIs to register: `https://order.oaksolve.com/auth/facebook/callback` (+ `http://localhost:5173/...` in development mode). Its button is drawn like Google's outline button (`auth/ProviderLogo.tsx`). **TikTok sign-in was removed on 2026-10-27** (TikTok turned the app down; it only ever ran on TikTok's sandbox). Tested with the providers' answers faked (tests and the browser), not yet with the real ones |
 | **Telegram bot** (seller alerts) | WIRED, env-gated | `services/telegram.py`: plain `httpx` calls to the Bot API (`sendMessage`, `setWebhook` with messages and button taps, `editMessageText`, `answerCallbackQuery`). Webhook registered at startup only when `PUBLIC_API_URL` is set. Webhook checks the secret header with `hmac.compare_digest`. `/start <code>` in a private chat stores `store.telegram_chat_id` (the code is store id + expiry + 12-byte HMAC-SHA256, base64url, 43 chars, key derived from `JWT_SECRET`). Groups are ignored. Replies go back in the webhook response. Alerts (`services/notifications.py`) for new orders and low stock (crossing the shop's `low_stock_alert`, 5 to start, or to 0), and "<name> says they paid #1001" when a customer taps "I've paid" (`notify_payment_claimed`), go out after the response (`_send_all`). The "says paid" alert has two buttons: "✅ បានទទួល កត់ថាបានបង់" (Received, mark paid; `callback_data` `paid:<order id>`) and Open order. A tap (`callback_query`, `notifications.button_tapped`) records the payment paid only when the tap's chat is the order's shop's `telegram_chat_id` (anyone holding a bot message can send any data), not for a rejected or cancelled order or a failed or paid payment; it answers with `answerCallbackQuery` in the webhook response, edits the alert (`editMessageText`: the last line becomes "✅ បានកត់ថាបានបង់", Open order stays) and tells the customer like the app's Mark paid. An order the seller added from a chat sends only low stock. Bot texts point to Settings → Alerts. Each writes a `notification_log` row (`telegram`, sent or failed). A 403, or a 400 "chat not found", disconnects the store. Every bot message (alerts, connect and help replies, the password reset) is in Khmer only, the app's default language, in the app's own Khmer words (decided 2026-10-09; no per-seller language is stored); HTML-escaped. The words themselves are in `services/bot_texts.py` (2026-10-31): the admin can change them, or turn a message the bot sends by itself off; a sender skips a message that's off, and `telegram.send_message` sends a changed message again in the code's words when Telegram answers 400 (`refused_since` counts them). The same chat gets "Forgot password?" links (`auth.send_password_reset`, no log row). **Phone check** (founder's choice 2026-10-09, instead of SMS codes; `services/phone_check.py`): `/start phone_<code>` remembers who opened it and answers with a reply keyboard button `request_contact` ("📱 ចែករំលែកលេខទូរស័ព្ទ"); the contact that comes back counts only if `contact.user_id` is the sender's own id (anyone can attach someone else's contact card), then completes the newest open check that account opened and removes the keyboard. Telegram numbers come without the + (`855…`), so the + is added before `normalize_phone`. Codes starting `phone_` go to the phone check, the rest to the store link. On a laptop, `python -m app.telegram_poll` stands in for the webhook. Live and tested by the founder (04). |
 | **"Ask seller": Telegram, Messenger, Instagram, call** | WIRED (no bot) | `shop/ContactSeller.tsx` (+ `contact.ts`) on the product page and the order page: `https://t.me/<telegram_username>?text=<question>`; `https://m.me/<messenger_username>` and `https://ig.me/m/<instagram_username>` (Instagram since the founder's test list #22, 2026-10-24; neither can type a message, so the question is copied to the clipboard first); `tel:<contact_phone>`. Each hidden when empty; one way shows as one button, more as a row that wraps. Set in Settings → Contact; `StoreUpdate` accepts a page's m.me / facebook.com link (`profile.php?id=` too), an Instagram username with @ or as its instagram.com / ig.me link, and any phone spelling. A customer's "Reply to <shop>" button (Message on Telegram) opens the shop's Telegram, else Messenger, else Instagram. |
 | **Web notifications** | WIRED | `notification_log` rows with `channel=web`, written in the checkout transaction; the dashboard polls. No push. |

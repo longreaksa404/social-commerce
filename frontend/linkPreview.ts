@@ -17,10 +17,9 @@
  * with a cover photo gets a large card made from it, with its logo
  * (founder's pick 4A, 2026-10-15).
  *
- * The host runs it on /shop/*: a Cloudflare Pages Function
- * (functions/shop/[[path]].ts) and, until the move to Cloudflare Pages
- * (decided 2026-10-14), Vercel Routing Middleware (middleware.ts). Plain
- * web APIs only, so it runs on either.
+ * Cloudflare Pages runs it on /shop/* as a Pages Function
+ * (functions/shop/[[path]].ts; on Pages since 2026-11-06). Plain web APIs
+ * only.
  */
 
 // Preview fetchers, not browsers: in-app browsers (FBAN, TikTok's webview,

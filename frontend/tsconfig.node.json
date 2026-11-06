@@ -19,5 +19,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts", "middleware.ts", "linkPreview.ts", "functions"]
+  "include": ["vite.config.ts", "linkPreview.ts", "functions"]
 }

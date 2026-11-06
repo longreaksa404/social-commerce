@@ -21,7 +21,7 @@ export const fill = (text: string, prices: Prices) =>
   text.replace(/\{(trial|month|year)\}/g, (_, key: keyof Prices) => prices[key])
 
 // Change it with the text.
-export const UPDATED = '2026-10-31'
+export const UPDATED = '2026-11-06'
 
 const en: Record<LegalDoc, LegalPage> = {
   privacy: {
@@ -67,8 +67,7 @@ const en: Record<LegalDoc, LegalPage> = {
           [
             'Render: our server (Singapore).',
             'Neon: our database (Singapore).',
-            'Vercel: the website.',
-            'Cloudflare: the domain, photo storage and nightly backups.',
+            'Cloudflare: the website, the domain, photo storage and nightly backups.',
             'Telegram: order alerts, customers\' order updates, and phone number checks.',
             'Sentry: reports when something breaks, so we can fix it.',
             'Google and Facebook: only when you choose to log in with them.',
@@ -250,8 +249,7 @@ const km: Record<LegalDoc, LegalPage> = {
           [
             'Render៖ ម៉ាស៊ីនមេរបស់យើង (សិង្ហបុរី)។',
             'Neon៖ មូលដ្ឋានទិន្នន័យរបស់យើង (សិង្ហបុរី)។',
-            'Vercel៖ គេហទំព័រ។',
-            'Cloudflare៖ ដែន ទីផ្ទុករូបថត និងការបម្រុងទុករៀងរាល់យប់។',
+            'Cloudflare៖ គេហទំព័រ ដែន ទីផ្ទុករូបថត និងការបម្រុងទុករៀងរាល់យប់។',
             'Telegram៖ ការជូនដំណឹងការកុម្ម៉ង់ ដំណឹងការកុម្ម៉ង់សម្រាប់អតិថិជន និងការផ្ទៀងផ្ទាត់លេខទូរស័ព្ទ។',
             'Sentry៖ របាយការណ៍ពេលមានអ្វីខូច ដើម្បីឱ្យយើងជួសជុលបាន។',
             'Google និង Facebook៖ តែពេលអ្នកជ្រើសចូលគណនីតាមពួកវាប៉ុណ្ណោះ។',
