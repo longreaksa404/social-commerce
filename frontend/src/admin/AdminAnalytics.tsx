@@ -4,7 +4,7 @@ import { formatMoney } from '../lib/money.ts'
 import type { AdminAnalytics as Analytics, AdminMonth } from '../lib/types.ts'
 import { Tile } from './AdminHome.tsx'
 import { useAdminAnalytics } from './queries.ts'
-import { day } from './shared.ts'
+import { day, monthName } from './shared.ts'
 import { Chip, Chips } from './ui.tsx'
 
 const RANGES = [6, 12, 24] as const
@@ -13,18 +13,8 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
 const percent = (part: number, whole: number) => (whole === 0 ? '—' : `${Math.round((part / whole) * 100)}%`)
 
 /** "Nov", or "Jan 26" where a year starts. */
-function monthShort(ym: string, withYear = false) {
-  const date = new Date(`${ym}-01T00:00`)
-  return date.toLocaleDateString('en-GB', {
-    month: 'short',
-    year: withYear || date.getMonth() === 0 ? '2-digit' : undefined,
-  })
-}
-const monthLong = (ym: string) =>
-  new Date(`${ym}-01T00:00`).toLocaleDateString('en-GB', {
-    month: 'long',
-    year: 'numeric',
-  })
+const monthShort = (ym: string, withYear = false) => monthName(ym, withYear || ym.endsWith('-01') ? 'shortYear' : 'short')
+const monthLong = (ym: string) => monthName(ym)
 
 /** /admin/analytics: how Oak Order grows, month by month, from what is
  * already recorded (shops, orders, plan payments); test shops left out.

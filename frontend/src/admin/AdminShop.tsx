@@ -14,7 +14,7 @@ import { DayList } from './AdminLog.tsx'
 import { logItem, type DayItem } from './logWords.ts'
 import { ShopLogo, StageWords } from './AdminShops.tsx'
 import { useAdminSettings, useAdminShop, useCheckClaim, useEraseShop, useMarkPaid, useSetShopOpen, useShopMoney } from './queries.ts'
-import { ago, date, day, shortDay } from './shared.ts'
+import { ago, date, day, ppDay, shortDay } from './shared.ts'
 import { Chip, Sheet } from './ui.tsx'
 import { usePasswordAgain } from './usePasswordAgain.tsx'
 
@@ -106,7 +106,7 @@ function Header({ shop, onCheck }: { shop: AdminShopDetail; onCheck: () => void 
         <StageWords shop={shop} />
         {!shop.is_open && (
           <span className="text-slate-500">
-            {shop.closed_at ? ` ${new Date(shop.closed_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}` : ' by the seller'}
+            {shop.closed_at ? ` ${shortDay(ppDay(shop.closed_at))}` : ' by the seller'}
             {shop.closed_reason && ` · ${shop.closed_reason}`}
           </span>
         )}
@@ -354,7 +354,7 @@ function PaidUntil({ shop }: { shop: AdminShopDetail }) {
       <span className="flex-1">
         <span className="block text-slate-500">Paid until</span>
         <span className="block font-semibold text-slate-900">
-          {shortDay(shop.paid_until)} {new Date(`${shop.paid_until}T00:00`).getFullYear()}
+          {shortDay(shop.paid_until)} {shop.paid_until.slice(0, 4)}
           {shop.on_trial && <span className="font-normal text-slate-500"> · free trial</span>}
         </span>
       </span>

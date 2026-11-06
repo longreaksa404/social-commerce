@@ -8,7 +8,7 @@ import { errorText } from '../lib/errors.ts'
 import { SUPPORT_TELEGRAM } from '../lib/support.ts'
 import type { AdminSystem as System } from '../lib/types.ts'
 import { useAdminSystem, useConnectBotAgain, useRunJob } from './queries.ts'
-import { ago } from './shared.ts'
+import { ago, dayMonth, dayTime, ppDay } from './shared.ts'
 
 const ms = (value: number) => (value >= 1000 ? `${(value / 1000).toFixed(1)} s` : `${Math.round(value)} ms`)
 const mb = (bytes: number) => (bytes >= 1024 ** 3 ? `${(bytes / 1024 ** 3).toFixed(1)} GB` : `${Math.round(bytes / 1024 ** 2)} MB`)
@@ -56,7 +56,7 @@ function backupWords(backup: System['backup']): { text: string; tone: string } {
 /** Render's free hours this month (backend services/awake.py): amber when
  * the month is on pace to run out, red once nearly all are used. */
 function ServerHours({ hours }: { hours: NonNullable<System['server_hours']> }) {
-  const since = new Date(hours.counted_from).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  const since = dayMonth(ppDay(hours.counted_from))
   return (
     <span className={hours.over ? 'text-red-700' : hours.low ? 'text-amber-700' : undefined}>
       About {Math.round(hours.used)} of {hours.limit}
@@ -150,7 +150,7 @@ function Page({ system }: { system: System }) {
               ),
             ],
             ['Errors', `${speed.errors_hour} in the last hour · ${speed.errors_today} today`],
-            ['Server up since', `${new Date(speed.started_at).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} (${ago(speed.started_at)})`],
+            ['Server up since', `${dayTime(speed.started_at)} (${ago(speed.started_at)})`],
             ...(system.server_hours ? ([['Free server hours', <ServerHours key="h" hours={system.server_hours} />]] as [string, ReactNode][]) : []),
           ]}
         />
@@ -210,7 +210,7 @@ function Page({ system }: { system: System }) {
               ? ([
                   [
                     'Last saved',
-                    `${new Date(backup.last_at).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${backup.bytes ? ` · ${mb(backup.bytes)}` : ''}`,
+                    `${dayTime(backup.last_at)}${backup.bytes ? ` · ${mb(backup.bytes)}` : ''}`,
                   ],
                 ] as [string, ReactNode][])
               : []),

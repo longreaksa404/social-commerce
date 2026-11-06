@@ -8,7 +8,7 @@ import { errorText } from '../lib/errors.ts'
 import { formatPhone } from '../lib/orders.ts'
 import type { AdminShop } from '../lib/types.ts'
 import { useAdminShops, useBroadcast, useMakeTestShop, useSetShopOpen, useSignups } from './queries.ts'
-import { ago, initials } from './shared.ts'
+import { ago, initials, time } from './shared.ts'
 import { Chip, Sheet } from './ui.tsx'
 import { usePasswordAgain } from './usePasswordAgain.tsx'
 
@@ -63,7 +63,7 @@ function Broadcast() {
       {
         onSuccess: ({ sent }) => {
           if (sent === 0) return toast("Your Telegram didn't get it: log in to the admin with Telegram once", 'error')
-          setTested({ text: text.trim(), at: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) })
+          setTested({ text: text.trim(), at: time(new Date().toISOString()) })
         },
         onError: (error) => toast(errorText(error), 'error'),
       },

@@ -1,18 +1,20 @@
 import { AlertCircle, CircleCheck } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
-import { useT } from '../i18n/useT.ts'
+import { currentLang, MESSAGES, type Messages } from '../i18n/core.ts'
 import { FeedbackContext, type ConfirmOptions, type ToastTone } from './feedback.ts'
 import { buttonClass } from './styles.ts'
 
 type Toast = { id: number; message: string; tone: ToastTone; life: number }
-type PendingConfirm = ConfirmOptions & { resolve: (ok: boolean) => void }
+// `words`: the buttons' language when it was asked, so the English-only
+// admin (forceLang('en'), admin/session.tsx) gets English buttons although
+// this provider sits above it, in the app's language.
+type PendingConfirm = ConfirmOptions & { resolve: (ok: boolean) => void; words: Messages['common'] }
 
 export function FeedbackProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
   const [pending, setPending] = useState<PendingConfirm | null>(null)
   const dialog = useRef<HTMLDialogElement>(null)
   const nextId = useRef(0)
-  const t = useT()
 
   const toast = useCallback((message: string, tone: ToastTone = 'success') => {
     const id = ++nextId.current
@@ -24,7 +26,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   const confirm = useCallback(
     (options: ConfirmOptions) =>
       new Promise<boolean>((resolve) => {
-        setPending({ ...options, resolve })
+        setPending({ ...options, resolve, words: MESSAGES[currentLang()].common })
         // Open after React has rendered the dialog's content.
         requestAnimationFrame(() => dialog.current?.showModal())
       }),
@@ -84,7 +86,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
             {pending.message && <p className="mt-2 text-sm leading-6 whitespace-pre-line text-slate-600">{pending.message}</p>}
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button type="button" className={buttonClass('secondary')} onClick={() => close(false)}>
-                {t.common.cancel}
+                {pending.words.cancel}
               </button>
               <button
                 type="button"
@@ -92,7 +94,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                 className={buttonClass(pending.danger ? 'danger' : 'primary')}
                 onClick={() => close(true)}
               >
-                {pending.confirmLabel ?? t.common.confirm}
+                {pending.confirmLabel ?? pending.words.confirm}
               </button>
             </div>
           </div>

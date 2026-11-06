@@ -2,19 +2,17 @@ import { ScrollText } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Button, Card, EmptyState, ErrorState, Field, Input, PageHeader, Skeleton } from '../components/ui.tsx'
+import { phnomPenhDate } from '../lib/orders.ts'
 import { LOG_KINDS, logItem, type DayItem } from './logWords.ts'
 import { useAdminLog } from './queries.ts'
+import { addDays, dayMonth, ppDay, shortDay, time } from './shared.ts'
 import { Chip, Chips } from './ui.tsx'
 
 // Chips for the shops in the newest lines, after All shops.
 const SHOP_CHIPS = 5
 
 /** "2026-11-07T00:00:00+07:00": the start of the day after, in Phnom Penh. */
-function dayAfter(ymd: string) {
-  const next = new Date(`${ymd}T00:00:00Z`)
-  next.setUTCDate(next.getUTCDate() + 1)
-  return `${next.toISOString().slice(0, 10)}T00:00:00+07:00`
-}
+const dayAfter = (ymd: string) => `${addDays(ymd)}T00:00:00+07:00`
 
 /** /admin/log: everything done from the admin, a day at a time (founder's
  * pick 13A, 2026-10-28), like a diary; chips for the kinds of action and
@@ -24,7 +22,7 @@ export function AdminLog() {
   const [storeId, setStoreId] = useState<string | null>(null)
   const [kind, setKind] = useState<string | null>(null)
   const [day, setDay] = useState('')
-  const [today] = useState(() => new Date().toLocaleDateString('en-CA'))
+  const [today] = useState(() => phnomPenhDate())
   const actions = LOG_KINDS.find((k) => k.label === kind)?.actions ?? []
   const all = useAdminLog(null)
   const log = useAdminLog(storeId, actions, day ? dayAfter(day) : '')
@@ -92,27 +90,21 @@ export function AdminLog() {
   )
 }
 
-/** "Today", "Yesterday", or "Mon 27 Oct". */
+/** A Phnom Penh day: "Today", "Yesterday", or "Mon 27 Oct" ("27 Oct 2025"
+ * in another year). */
 function dayTitle(key: string) {
-  const today = new Date()
-  const yesterday = new Date(today)
-  yesterday.setDate(today.getDate() - 1)
-  if (key === today.toDateString()) return 'Today'
-  if (key === yesterday.toDateString()) return 'Yesterday'
-  const day = new Date(key)
-  return day.toLocaleDateString('en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    year: day.getFullYear() === today.getFullYear() ? undefined : 'numeric',
-  })
+  const today = phnomPenhDate()
+  if (key === today) return 'Today'
+  if (key === phnomPenhDate(-1)) return 'Yesterday'
+  return key.slice(0, 4) === today.slice(0, 4) ? shortDay(key) : dayMonth(key, today.slice(0, 4))
 }
 
-/** Items under their day, newest first: the log, and a shop's Activity. */
+/** Items under their Phnom Penh day, newest first: the log, and a shop's
+ * Activity. */
 export function DayList({ items }: { items: DayItem[] }) {
   const days = new Map<string, DayItem[]>()
   for (const item of items) {
-    const key = new Date(item.at).toDateString()
+    const key = ppDay(item.at)
     days.set(key, [...(days.get(key) ?? []), item])
   }
   return (
@@ -134,10 +126,9 @@ export function DayList({ items }: { items: DayItem[] }) {
 }
 
 function DayRow({ item }: { item: DayItem }) {
-  const time = new Date(item.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
   return (
     <li className="flex gap-3 px-4 py-3 text-sm">
-      <span className="w-11 shrink-0 text-slate-500 tabular-nums">{time}</span>
+      <span className="w-11 shrink-0 text-slate-500 tabular-nums">{time(item.at)}</span>
       <span className="min-w-0 flex-1">
         {item.href ? (
           <Link to={item.href} className="block font-medium text-slate-900 hover:underline">

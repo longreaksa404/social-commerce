@@ -12,10 +12,10 @@ import { phnomPenhDate } from '../lib/orders.ts'
 import type { AdminPaymentRow, AdminPayments } from '../lib/types.ts'
 import { Tile } from './AdminHome.tsx'
 import { useAdminPayments, useCheckClaim } from './queries.ts'
-import { shortDay } from './shared.ts'
+import { monthName, shortDay } from './shared.ts'
 
 const usd = (amount: string | number) => formatMoney(amount, 'USD')
-const monthName = (year: number, month: number) => new Date(year, month - 1, 1).toLocaleDateString('en-GB', { month: 'long' })
+const monthOf = (year: number, month: number) => monthName(`${year}-${String(month).padStart(2, '0')}`)
 const plural = (n: number, one: string) => `${n} ${n === 1 ? one : `${one}s`}`
 
 /** /admin/money (part 17, founder's pick 9B, 2026-10-28): what still
@@ -36,7 +36,7 @@ export function AdminMoney() {
     setYear(Math.floor(index / 12))
     setMonth((index % 12) + 1)
   }
-  const label = month === null ? String(year) : `${monthName(year, month)} ${year}`
+  const label = month === null ? String(year) : monthOf(year, month)
   const atNow = month === null ? year >= Number(today.slice(0, 4)) : year * 12 + month >= Number(today.slice(0, 4)) * 12 + Number(today.slice(5, 7))
 
   const download = useMutation({

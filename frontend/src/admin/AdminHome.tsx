@@ -6,7 +6,7 @@ import { formatMoney } from '../lib/money.ts'
 import type { AdminNeed, AdminNotice, AdminOverview } from '../lib/types.ts'
 import { DailyBars } from './DailyBars.tsx'
 import { useAdminNotices, useAdminOverview } from './queries.ts'
-import { shortDay } from './shared.ts'
+import { addDays, monthName, shortDay } from './shared.ts'
 
 const usd = (amount: string | number) => formatMoney(amount, 'USD')
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
@@ -54,8 +54,8 @@ export function AdminHome() {
 
 function Numbers({ data }: { data: AdminOverview }) {
   // Today in Phnom Penh, as the API counts it.
-  const today = new Date(`${data.days.at(-1)?.day ?? ''}T00:00`)
-  const month = today.toLocaleDateString('en-GB', { month: 'long' })
+  const today = data.days.at(-1)?.day ?? ''
+  const month = monthName(today.slice(0, 7)).split(' ')[0]
   const { shops } = data
   const unpaid = data.needs.filter((n) => n.kind === 'unpaid').length
   const ending = data.needs.filter((n) => n.kind === 'ending').length
@@ -69,7 +69,7 @@ function Numbers({ data }: { data: AdminOverview }) {
         {shops.closed > 0 && <> · {shops.closed} closed</>}
       </Tile>
       <Tile label={`Collected in ${month}`} value={usd(data.collected_month)}>
-        {plural(data.payments_month, 'payment')} · {today.getFullYear()}: {usd(data.collected_year)}
+        {plural(data.payments_month, 'payment')} · {today.slice(0, 4)}: {usd(data.collected_year)}
       </Tile>
       <Tile label="If all renew" value={usd(data.monthly_income)}>
         a month: each paying shop's last plan, a year's / 12
@@ -163,7 +163,7 @@ function Needs({ data }: { data: AdminOverview }) {
 /** What's wrong, in words; red and amber on the words only. */
 function NeedText({ need }: { need: AdminNeed }) {
   const day = need.day ? shortDay(need.day) : ''
-  const nextDay = need.day ? shortDay(addDay(need.day)) : ''
+  const nextDay = need.day ? shortDay(addDays(need.day)) : ''
   switch (need.kind) {
     case 'claim':
       return (
@@ -182,8 +182,3 @@ function NeedText({ need }: { need: AdminNeed }) {
   }
 }
 
-function addDay(ymd: string) {
-  const date = new Date(`${ymd}T00:00`)
-  date.setDate(date.getDate() + 1)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}

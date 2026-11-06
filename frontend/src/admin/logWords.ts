@@ -1,12 +1,12 @@
 import { formatMoney } from '../lib/money.ts'
 import { formatPhone } from '../lib/orders.ts'
 import type { AdminLogLine } from '../lib/types.ts'
+import { dayMonth as calendarDayMonth } from './shared.ts'
 
 const PROVIDER: Record<string, string> = { google: 'Google', facebook: 'Facebook' }
 
 /** "28 Nov" from "2026-11-28". */
-const dayMonth = (ymd: unknown) =>
-  typeof ymd === 'string' ? new Date(`${ymd}T00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''
+const dayMonth = (ymd: unknown) => (typeof ymd === 'string' ? calendarDayMonth(ymd) : '')
 
 const text = (value: unknown) => (typeof value === 'string' ? value : '')
 
