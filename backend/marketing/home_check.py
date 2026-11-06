@@ -133,6 +133,24 @@ def check_widths(browser: Browser) -> None:
 
 
 @check
+def check_titles_show(browser: Browser) -> None:
+    """Every section title shows once scrolled to (2026-11-06: Chrome never
+    reported a fully clipped title as in view, so four stayed hidden)."""
+    for width, height in ((390, 844), (1440, 900)):
+        page = open_home(browser, "en", width, height)
+        bottom = page.evaluate("document.documentElement.scrollHeight")
+        for top in range(0, bottom, 150):
+            page.evaluate(f"scrollTo(0, {top})")
+            page.wait_for_timeout(40)
+        hidden = page.evaluate(
+            """() => [...document.querySelectorAll('[data-reveal]:not([data-revealed])')]
+            .map((e) => e.textContent.trim().slice(0, 30))"""
+        )
+        assert not hidden, f"{width}px: never shown: {hidden}"
+        page.context.close()
+
+
+@check
 def check_links(browser: Browser) -> None:
     page = open_home(browser)
     hrefs = page.evaluate(
