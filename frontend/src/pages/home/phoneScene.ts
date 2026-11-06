@@ -48,13 +48,15 @@ type Pose = { ry: number; rx: number; z: number; y: number }
 
 // Each shot's framing: the phone's turn (radians), the camera's distance,
 // and how far the phone rises. At z 10.8 the phone is as big as the still
-// picture under the canvas; closer shots lift it, so it grows upward and
-// never over the words under it.
+// picture under the canvas. Closer shots grow it at most about 8%, from its
+// middle: on an iPhone in Safari there's only about 30 px between the top
+// bar and the phone, so a bigger or lifted phone went under the bar
+// (founder's video, 2026-11-06).
 const SHOTS: Record<Shot, Pose> = {
   hero: { ry: -0.35, rx: 0.08, z: 10.8, y: 0 },
   0: { ry: -0.45, rx: 0.12, z: 11.4, y: 0 }, // wide, from a little below
-  1: { ry: -0.15, rx: 0.04, z: 10, y: 0.18 }, // push in
-  2: { ry: 0.12, rx: -0.04, z: 9.3, y: 0.34 }, // close on the QR
+  1: { ry: -0.15, rx: 0.04, z: 10.4, y: 0 }, // push in
+  2: { ry: 0.12, rx: -0.04, z: 10, y: 0 }, // close on the QR
   3: { ry: 0.42, rx: 0.06, z: 11, y: 0 }, // pull back, turned the other way
 }
 // Never far enough to show the back.

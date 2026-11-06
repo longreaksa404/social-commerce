@@ -9,6 +9,12 @@ const STEPS = ['share', 'order', 'pay', 'track'] as const
 const STEP_SVH = 80
 // The still phone turns a little at each step (the 3D one turns more).
 const TURNS = ['rotateY(-12deg) rotateX(4deg)', 'rotateY(8deg) rotateX(2deg)', 'rotateY(-6deg) rotateX(6deg)', 'rotateY(12deg) rotateX(3deg)']
+// The phone's width on phones: a quarter of the screen's height, but on
+// short screens (Safari with its bars, iPhone SE) what's left after the top
+// bar, the words, the gaps (about 290 px) and room for the 3D close-up
+// (the phone is 2.06 times as tall as wide, 2.3 with the close-up), so it
+// never goes under the top bar (founder's video, 2026-11-06).
+const PHONE_WIDTH = 'w-[min(60vw,26svh,calc((100svh_-_290px)/2.3))]'
 
 /** How it works: the phone stays in place while the four steps scroll by,
  * its screen changing at each. On phones the step's words change under the
@@ -101,7 +107,7 @@ export function HowItWorks({ intro }: { intro: Intro }) {
             lang={lang}
             shot={step as 0 | 1 | 2 | 3}
             wait={intro === 'playing'}
-            className={`w-[min(60vw,26svh)] lg:w-[min(320px,34svh)] ${fade}`}
+            className={`${PHONE_WIDTH} lg:w-[min(320px,34svh)] ${fade}`}
             style={{ transform: `perspective(1600px) ${TURNS[step]}` }}
           />
           {/* Phones: the step's words under the phone, one at a time. */}
