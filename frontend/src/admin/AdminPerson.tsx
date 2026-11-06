@@ -1,4 +1,4 @@
-import { Check, ChevronLeft, ChevronRight, Copy } from 'lucide-react'
+import { Check, ChevronRight, Copy } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
@@ -7,6 +7,7 @@ import { Button, ErrorMessage, ErrorState, Field, Input, Skeleton } from '../com
 import { ApiError } from '../lib/api.ts'
 import { errorText } from '../lib/errors.ts'
 import type { AdminSeller } from '../lib/types.ts'
+import { PhoneBar } from './AdminHeader.tsx'
 import { usePasswordAgain } from './usePasswordAgain.tsx'
 import { useAdminPerson, usePersonAction } from './queries.ts'
 import { ago, initials, loginOf } from './shared.ts'
@@ -23,10 +24,7 @@ export function AdminPerson({ sellerId }: { sellerId: string }) {
   const person = useAdminPerson(sellerId)
   return (
     <div className="min-w-0">
-      <Link to="/admin/people" className="mb-3 inline-flex min-h-11 items-center gap-1 text-sm font-medium text-navy-700 lg:hidden">
-        <ChevronLeft aria-hidden className="size-4" />
-        People
-      </Link>
+      <PhoneBar back="/admin/people" title={person.data?.name ?? 'Person'} sub={person.data ? `${person.data.role === 'owner' ? 'Owner' : 'Staff'} · ${person.data.shop}` : undefined} />
       {person.isPending ? (
         <Skeleton className="h-96 w-full rounded-2xl" />
       ) : person.error ? (

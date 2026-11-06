@@ -4,7 +4,7 @@ import { NavLink, useParams } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import { cardClass } from '../components/styles.ts'
 import { Button, EmptyState, ErrorState, Field, Input, PageHeader, Skeleton, Switch, TextArea } from '../components/ui.tsx'
-import { AdminPageHeader } from './AdminHeader.tsx'
+import { AdminPageHeader, PhoneBar } from './AdminHeader.tsx'
 import { errorText } from '../lib/errors.ts'
 import type { AdminBotDraft, AdminBotMessage, AdminBotProfile, AdminBotWord, AdminBotWords } from '../lib/types.ts'
 import { useDebounced } from '../lib/useDebounced.ts'
@@ -217,7 +217,11 @@ function MessageEditor({ message, words }: { message: AdminBotMessage; words: Ad
 
   return (
     <div className="space-y-5 pb-24">
-      <PageHeader title={message.name} subtitle={message.about} back="/admin/bot" backOnPhonesOnly />
+      <PhoneBar back="/admin/bot" title={message.name} sub="Bot" />
+      <div className="hidden lg:block">
+        <PageHeader title={message.name} subtitle={message.about} />
+      </div>
+      <p className="-mt-2 text-sm text-slate-500 lg:hidden">{message.about}</p>
 
       <section aria-label="Sending" className={`${cardClass} px-4 py-2 sm:px-5`}>
         {message.can_off ? (
@@ -479,7 +483,11 @@ function ProfileForm({ profile }: { profile: AdminBotProfile }) {
 
   return (
     <div className="space-y-5 pb-24">
-      <PageHeader title="Bot profile" subtitle={`@${profile.username} · photo and OPEN app in BotFather`} back="/admin/bot" backOnPhonesOnly />
+      <PhoneBar back="/admin/bot" title="Bot profile" sub="Bot" />
+      <div className="hidden lg:block">
+        <PageHeader title="Bot profile" subtitle={`@${profile.username} · photo and OPEN app in BotFather`} />
+      </div>
+      <p className="-mt-2 text-sm text-slate-500 lg:hidden">{`@${profile.username} · photo and OPEN app in BotFather`}</p>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
         <section aria-label="Profile" className={`${cardClass} space-y-4 p-4 sm:p-5`}>
           <Field label="Name" hint={count('name')}>

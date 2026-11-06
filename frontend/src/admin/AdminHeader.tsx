@@ -4,6 +4,30 @@ import { Link } from 'react-router'
 import { NoticeBell } from './Notices.tsx'
 import { SearchBox } from './Search.tsx'
 
+/** A phone's only top bar on a page that opens from a list (a shop, a
+ * person, a bot message, a customer; founder's pick 2A, 2026-11-06):
+ * "‹ name", in place of the Oak Order bar (AdminLayout leaves that out on
+ * these pages). Not on laptops, where the page sits beside its list. */
+export function PhoneBar({ back, title, sub }: { back: string; title: ReactNode; sub?: ReactNode }) {
+  return (
+    <div className="sticky top-0 z-30 -mx-4 -mt-4 mb-4 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
+      <div className="flex h-14 items-center gap-1 pr-4 pl-1">
+        <Link
+          to={back}
+          aria-label="Back"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
+        >
+          <ChevronLeft aria-hidden className="size-6" />
+        </Link>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-slate-900">{title}</p>
+          {sub && <p className="truncate text-xs text-slate-500">{sub}</p>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** Every admin page's title row (founder's pick 1A, 2026-11-06): the
  * title, the page's own buttons, then the search and the bell at the right
  * on a laptop, so they don't take a row of their own; on a phone they are

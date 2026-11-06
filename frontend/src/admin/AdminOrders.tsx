@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import { cardClass } from '../components/styles.ts'
 import { Button, EmptyState, ErrorMessage, ErrorState, Field, Input, PasswordInput, Skeleton } from '../components/ui.tsx'
-import { AdminPageHeader } from './AdminHeader.tsx'
+import { AdminPageHeader, PhoneBar } from './AdminHeader.tsx'
 import { formatPhone } from '../lib/orders.ts'
 import type { AdminCustomer } from '../lib/types.ts'
 import { useAdminCustomers, useForgetCustomer } from './queries.ts'
@@ -75,7 +75,8 @@ export function AdminCustomerPage() {
   const customer = found.data?.find((c) => c.phone === phone)
   return (
     <>
-      <AdminPageHeader title="Customers" back="/admin/customers" />
+      <PhoneBar back="/admin/customers" title={customer?.name ?? "Customer"} sub="Customers" />
+      <AdminPageHeader title="Customers" back="/admin/customers" phone={false} />
       <div className="max-w-3xl">
         {found.isPending ? (
           <Skeleton className="h-64 w-full rounded-2xl" />

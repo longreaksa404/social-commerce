@@ -1,6 +1,7 @@
 import {
   Activity,
   Bot,
+  Check,
   ChartColumn,
   ContactRound,
   Home,
@@ -14,9 +15,10 @@ import {
   Users,
   Wallet,
   Wrench,
+  X,
   type LucideIcon,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, NavLink, useLocation } from 'react-router'
 import { OakMark, OakOrderName } from '../components/OakMark.tsx'
 import { ErrorState, PageOutlet, Spinner } from '../components/ui.tsx'
@@ -86,10 +88,13 @@ export function AdminLayout() {
     )
   }
   if (status === 'out') return <Navigate to="/admin/login" replace state={{ from: location.pathname }} />
+  // A shop, a person, a bot message or a customer has its own "‹ name" bar
+  // on phones (PhoneBar, pick 2A), in place of the Oak Order bar.
+  const detail = /^\/admin\/(shops|people|bot|customers)\/[^/]+\/?$/.test(location.pathname)
   return (
     <div className="min-h-dvh lg:flex">
       <Sidebar />
-      <MobileTopBar />
+      {!detail && <MobileTopBar />}
       <div className="min-w-0 lg:flex-1">
         {/* No width cap on a laptop (pick 1A): lists and tables use the
             screen; forms keep their own reading width. */}
@@ -187,10 +192,11 @@ function MobileTopBar() {
 
 function BottomBar() {
   const [moreOpen, setMoreOpen] = useState(false)
-  const { logOut } = useAdminSession()
   const waiting = useWaitingClaims()
+  const { pathname } = useLocation()
   const tabs = places.slice(0, TAB_COUNT)
-  const more = places.slice(TAB_COUNT)
+  // The More tab lights up on any page under it, with a dot (pick 2A).
+  const inMore = places.slice(TAB_COUNT).find((p) => pathname === p.to || pathname.startsWith(`${p.to}/`))
   return (
     <>
       <nav
@@ -220,45 +226,112 @@ function BottomBar() {
           ))}
           <button
             type="button"
+            aria-haspopup="dialog"
             aria-expanded={moreOpen}
+            aria-label={inMore ? `More, now on ${inMore.label}` : 'More'}
             onClick={() => setMoreOpen(true)}
-            className="flex min-h-16 flex-1 flex-col items-center justify-center gap-1 text-xs font-medium text-slate-500"
+            className={`flex min-h-16 flex-1 flex-col items-center justify-center gap-1 text-xs font-medium ${inMore || moreOpen ? 'text-navy-700' : 'text-slate-500'}`}
           >
-            <span className="flex h-8 w-14 items-center justify-center">
-              <Menu aria-hidden className="size-5" strokeWidth={1.75} />
+            <span className={`relative flex h-8 w-14 items-center justify-center rounded-full ${inMore || moreOpen ? 'bg-navy-50' : ''}`}>
+              <Menu aria-hidden className="size-5" strokeWidth={inMore ? 2.25 : 1.75} />
+              {inMore && <span aria-hidden className="absolute top-1 right-3 size-1.5 rounded-full bg-navy-700" />}
             </span>
             More
           </button>
         </div>
       </nav>
-      {moreOpen && (
-        <div className="fixed inset-0 z-40 flex items-end bg-slate-900/40 lg:hidden" onClick={() => setMoreOpen(false)}>
-          <div
-            role="dialog"
-            aria-label="More"
-            className="w-full animate-sheet-up rounded-t-3xl bg-surface p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]"
-            onClick={(event) => event.stopPropagation()}
+      <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
+    </>
+  )
+}
+
+/** More on a phone (pick 2A, 2026-11-06): a real dialog, so focus moves
+ * in and back to the More tab, Esc and ✕ close it and the page behind
+ * can't be tapped; its list scrolls on a short phone. The place you're
+ * on is shaded and ticked. Any tap on a place closes it. */
+function MoreSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null)
+  const { logOut } = useAdminSession()
+  const me = useAdminMe()
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    const el = dialog.current
+    if (!el) return
+    if (open && !el.open) el.showModal()
+    else if (!open && el.open) el.close()
+  }, [open])
+  // Leaving by the browser's back button closes it too.
+  useEffect(() => onClose(), [pathname]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <dialog
+      ref={dialog}
+      aria-labelledby="admin-more"
+      onCancel={(e) => {
+        e.preventDefault()
+        onClose()
+      }}
+      onClick={(e) => e.target === dialog.current && onClose()}
+      className="m-0 mt-auto w-full max-w-none rounded-t-3xl bg-surface p-0 shadow-xl open:animate-sheet-up lg:hidden"
+    >
+      <div className="flex max-h-[85dvh] flex-col">
+        <div className="flex items-center border-b border-slate-100 py-1.5 pr-2 pl-5">
+          <h2 id="admin-more" className="flex-1 font-semibold text-slate-900">
+            More
+          </h2>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="inline-flex size-11 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-navy-600"
           >
-            {more.map(({ to, label, icon: Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={() => setMoreOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${isActive ? 'bg-navy-50 text-navy-700' : 'text-slate-600'}`
-                }
-              >
-                <Icon aria-hidden className="size-5" />
-                {label}
-              </NavLink>
-            ))}
-            <button type="button" onClick={() => void logOut()} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600">
+            <X aria-hidden className="size-5" />
+          </button>
+        </div>
+        <nav aria-label="More" className="min-h-0 overflow-y-auto overscroll-contain p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+          {GROUPS.map((group, i) => {
+            const shown = group.places.filter((place) => places.indexOf(place) >= TAB_COUNT)
+            if (shown.length === 0) return null
+            return (
+              <div key={group.label ?? 'main'} className={i > 0 ? 'mt-2' : ''}>
+                {group.label && <p className="px-3 pt-1 pb-1 text-xs font-semibold text-slate-400">{group.label}</p>}
+                {shown.map(({ to, label, icon: Icon }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                      `flex min-h-11 items-center gap-3 rounded-xl px-3 text-[15px] font-medium focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600 ${
+                        isActive ? 'bg-navy-50 text-navy-700' : 'text-slate-700'
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <Icon aria-hidden className="size-5 shrink-0" />
+                        <span className="flex-1">{label}</span>
+                        {isActive && <Check aria-hidden className="size-4" />}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            )
+          })}
+          <div className="mt-2 border-t border-slate-100 pt-2">
+            <button
+              type="button"
+              onClick={() => void logOut()}
+              className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-[15px] font-medium text-slate-700 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy-600"
+            >
               <LogOut aria-hidden className="size-5" />
-              Log out
+              <span className="flex-1 text-left">Log out</span>
+              {me.data && <span className="text-sm font-normal text-slate-500 tabular-nums">{formatPhone(me.data.phone)}</span>}
             </button>
           </div>
-        </div>
-      )}
-    </>
+        </nav>
+      </div>
+    </dialog>
   )
 }

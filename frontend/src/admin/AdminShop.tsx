@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Eye, Lock, Send, Trash2 } from 'lucide-react'
+import { CalendarDays, ChevronRight, ExternalLink, Eye, Lock, Send, Trash2 } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
@@ -10,6 +10,7 @@ import { errorText } from '../lib/errors.ts'
 import { formatMoney } from '../lib/money.ts'
 import { formatPhone } from '../lib/orders.ts'
 import type { AdminPayment, AdminShopDetail, PlanPayment, PlanPeriod } from '../lib/types.ts'
+import { PhoneBar } from './AdminHeader.tsx'
 import { DayList } from './AdminLog.tsx'
 import { logItem, type DayItem } from './logWords.ts'
 import { ShopLogo, StageWords } from './ShopBits.tsx'
@@ -35,10 +36,7 @@ export function AdminShop({ storeId }: { storeId: string }) {
   const [tab, setTab] = useState<Tab>('overview')
   return (
     <div className="min-w-0">
-      <Link to="/admin/shops" className="mb-3 inline-flex min-h-11 items-center gap-1 text-sm font-medium text-navy-700 lg:hidden">
-        <ChevronLeft aria-hidden className="size-4" />
-        Shops
-      </Link>
+      <PhoneBar back="/admin/shops" title={shop.data?.name ?? 'Shop'} sub={shop.data?.code} />
       {shop.isPending ? (
         <Skeleton className="h-96 w-full rounded-2xl" />
       ) : shop.error ? (
