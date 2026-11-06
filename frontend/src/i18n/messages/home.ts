@@ -163,5 +163,6 @@ export const home = {
     checkout: { en: 'A customer placing an order', km: 'អតិថិជនកំពុងកុម្ម៉ង់' },
     khqr: { en: 'The KHQR with the exact amount', km: 'KHQR ដែលមានចំនួនទឹកប្រាក់ត្រឹមត្រូវ' },
     orders: { en: "The seller's Orders tab", km: 'ផ្ទាំងការកុម្ម៉ង់របស់អ្នកលក់' },
+    laptop: { en: "The seller's Orders tab on a laptop", km: 'ផ្ទាំងការកុម្ម៉ង់របស់អ្នកលក់ លើកុំព្យូទ័រយួរដៃ' },
   },
 } satisfies Tree

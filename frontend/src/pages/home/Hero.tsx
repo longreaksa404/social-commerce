@@ -5,6 +5,7 @@ import { Phrases } from '../../i18n/Phrases.tsx'
 import { useLang, useT } from '../../i18n/useT.ts'
 import { usePlanPrices } from '../../lib/planPrices.ts'
 import { outlineButton, solidButton } from './buttons.ts'
+import { LaptopStill } from './LaptopStill.tsx'
 import { Phone3D } from './Phone3D.tsx'
 import { DEMO_SHOP } from './screens.ts'
 import type { Intro } from './useIntro.ts'
@@ -13,10 +14,11 @@ import type { Intro } from './useIntro.ts'
 const after = (seconds: number) => ({ '--d': `${seconds}s` }) as CSSProperties
 
 /** The first screen: what Oak Order does, the two ways in, the free days,
- * and the phone with the demo shop on it. On phones the phone comes under
- * the buttons, its top showing, so people scroll. It stays bright as it
- * scrolls away: on phones it's the bottom half of the screen, and dimming
- * it hid it just as people scrolled to it (founder's pick 6A, 2026-11-06). */
+ * and Oak Order on a laptop (the seller's Orders) with a phone in front
+ * (the demo shop), so it shows it works on both (founder, 2026-11-06). On
+ * phones they come under the buttons, their tops showing, so people
+ * scroll. They stay bright as they scroll away: dimming hid them just as
+ * people scrolled to them (founder's pick 6A, 2026-11-06). */
 export function Hero({ intro }: { intro: Intro }) {
   const t = useT()
   const { lang } = useLang()
@@ -24,7 +26,7 @@ export function Hero({ intro }: { intro: Intro }) {
   const hero = t.home.hero
   return (
     <section className="relative px-5 pt-6 pb-20 sm:px-8 sm:pt-14 lg:pt-20 lg:pb-28">
-      <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1fr_1.05fr]">
         <div>
           <h1 className="home-display text-[clamp(2.15rem,8.6vw,4.75rem)] lg:text-[clamp(3.5rem,5.4vw,4.75rem)]">
             <Words text={t.auth.home.title} />
@@ -52,8 +54,13 @@ export function Hero({ intro }: { intro: Intro }) {
             {hero.free(prices.trial)}
           </p>
         </div>
-        <div className="relative flex justify-center">
-          <div className="home-intro-phone">
+        {/* The laptop at the back left, the phone in front at the right,
+            standing a little taller. */}
+        <div className="relative mx-auto w-full max-w-[34rem] pt-[12%] pb-[4%] lg:max-w-none">
+          <div className="home-intro-laptop w-[84%] pl-[6%]">
+            <LaptopStill lang={lang} />
+          </div>
+          <div className="home-intro-phone absolute right-[2%] bottom-0 w-[32%]">
             <Phone3D
               screen="shop"
               lang={lang}
@@ -61,7 +68,7 @@ export function Hero({ intro }: { intro: Intro }) {
               priority
               follow
               wait={intro === 'playing'}
-              className="w-[min(70vw,290px)] [transform:perspective(1600px)_rotateY(-12deg)_rotateX(4deg)] lg:w-[330px]"
+              className="w-full [transform:perspective(1600px)_rotateY(-12deg)_rotateX(4deg)]"
             />
           </div>
         </div>

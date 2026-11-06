@@ -19,3 +19,8 @@ export function stepAt(progress: number, count: number): number {
 export function screenUrl(lang: Lang, screen: Screen): string {
   return `/home/${lang}/${screen}.webp`
 }
+
+/** The seller's Orders page on a laptop (LaptopStill). */
+export function laptopUrl(lang: Lang): string {
+  return `/home/${lang}/laptop.webp`
+}
