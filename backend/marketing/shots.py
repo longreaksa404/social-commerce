@@ -814,7 +814,8 @@ class Shots:
         self.show(page, "08_order")
         # The open order is a focused screen: the bell is on the list.
         page.go_back()
-        self.tap(page, page.locator("a[href^='/dashboard/notifications']"))
+        # The visible bell: the page also has the laptop bar's, hidden on a phone.
+        self.tap(page, page.locator("a[href^='/dashboard/notifications']:visible"))
         page.wait_for_url("**/dashboard/notifications**")
         self.show(page, "09_notifications")
 
