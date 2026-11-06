@@ -255,12 +255,28 @@ class AdminServerHoursOut(BaseModel):
     over: bool  # 93% used
 
 
+class AdminDatabaseComputeOut(BaseModel):
+    """Neon's compute hours this period, as Neon's API says (services/neon.py)."""
+
+    readable: bool  # False: Neon couldn't be read just now
+    used: float | None = None  # CU-hours this period
+    limit: int  # the plan's CU-hours a month
+    period_start: datetime | None = None
+    period_end: datetime | None = None
+    on_pace: int | None = None  # the period's CU-hours at this rate; None for 2 days
+    low: bool = False  # 70% used, or on pace to pass the allowance
+    over: bool = False  # 90% used
+
+
 class AdminSystemOut(BaseModel):
     """The System page (parts 24 to 27, pick 12B)."""
 
     speed: AdminSpeedOut
     # None off Render or on a paid plan (RENDER_FREE_HOURS=0).
     server_hours: AdminServerHoursOut | None = None
+    # None unless the Neon key and project ID are set (NEON_COMPUTE_HOURS=0
+    # turns it off).
+    database_compute: AdminDatabaseComputeOut | None = None
     jobs: list[AdminJobOut]
     backup: AdminBackupOut
     bot: AdminBotOut
@@ -418,6 +434,7 @@ class AdminNoticeOut(BaseModel):
         "backup_late",
         "errors",
         "server_hours",
+        "database_compute",
     ]
     severity: Literal["action", "urgent", "warning", "info"]
     title: str

@@ -346,6 +346,20 @@ export type AdminSystem = {
     low: boolean
     over: boolean
   } | null
+  /** Neon's compute hours this period (backend services/neon.py); null
+   * unless the Neon key and project ID are set. */
+  database_compute: {
+    /** False: Neon couldn't be read just now. */
+    readable: boolean
+    used: number | null
+    limit: number
+    period_start: string | null
+    period_end: string | null
+    /** The period's hours at this rate; null until 2 days are counted. */
+    on_pace: number | null
+    low: boolean
+    over: boolean
+  } | null
   database_bytes: number
   database_ms: number
   services: { name: string; set: boolean }[]
@@ -951,6 +965,7 @@ export type AdminNotice = {
     | 'backup_late'
     | 'errors'
     | 'server_hours'
+    | 'database_compute'
   severity: 'action' | 'urgent' | 'warning' | 'info'
   title: string
   text: string

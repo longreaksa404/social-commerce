@@ -66,6 +66,18 @@ function ServerHours({ hours }: { hours: NonNullable<System['server_hours']> }) 
   )
 }
 
+/** Neon's compute hours this period (backend services/neon.py): amber when
+ * on pace to run out, red once nearly all are used. */
+function DatabaseCompute({ compute }: { compute: NonNullable<System['database_compute']> }) {
+  if (!compute.readable || compute.used === null) return <span className="text-amber-700">Couldn't read Neon</span>
+  return (
+    <span className={compute.over ? 'text-red-700' : compute.low ? 'text-amber-700' : undefined}>
+      About {Math.round(compute.used)} of {compute.limit} hours this month
+      {compute.on_pace !== null && ` · on pace for ${compute.on_pace}`}
+    </span>
+  )
+}
+
 function Page({ system }: { system: System }) {
   const { speed, bot, backup } = system
   const late = system.jobs.filter((j) => j.late && !j.failing)
@@ -185,6 +197,7 @@ function Page({ system }: { system: System }) {
           rows={[
             ['Size', mb(system.database_bytes)],
             ['Answers in', ms(system.database_ms)],
+            ...(system.database_compute ? ([['Compute', <DatabaseCompute key="c" compute={system.database_compute} />]] as [string, ReactNode][]) : []),
           ]}
         />
       </Group>

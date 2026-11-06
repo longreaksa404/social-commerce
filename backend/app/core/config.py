@@ -90,6 +90,14 @@ class Settings(BaseSettings):
     # (services/awake.py). 0 once the service is on a paid plan.
     render_free_hours: int = Field(default=750, ge=0)
 
+    # Neon's compute hours, for the admin's warning before the plan's run
+    # out (services/neon.py). Off unless the key and the project ID are set;
+    # the key is a secret (Render only). The allowance is the plan's
+    # CU-hours a month: 100 on Free (2026-11); 0 = off, e.g. on a paid plan.
+    neon_api_key: str = ""
+    neon_project_id: str = ""
+    neon_compute_hours: int = Field(default=100, ge=0)
+
     @property
     def facebook_configured(self) -> bool:
         return bool(self.facebook_app_id and self.facebook_app_secret)

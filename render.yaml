@@ -59,6 +59,12 @@ services:
         sync: false
       - key: ADMIN_PHONES
         sync: false
+      # Neon's compute hours on the admin's System page (optional; both
+      # needed). NEON_COMPUTE_HOURS defaults to 100 (the Free plan).
+      - key: NEON_API_KEY
+        sync: false
+      - key: NEON_PROJECT_ID
+        sync: false
       - key: R2_ACCOUNT_ID
         sync: false
       - key: R2_ACCESS_KEY_ID

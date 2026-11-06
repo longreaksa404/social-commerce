@@ -24,9 +24,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import clock
 from app.models import NotificationChannel, NotificationLog, NotificationStatus, PlatformSetting
-from app.schemas.admin import AdminNoticeOut, AdminNoticesOut, AdminServerHoursOut
+from app.schemas.admin import (
+    AdminDatabaseComputeOut,
+    AdminNoticeOut,
+    AdminNoticesOut,
+    AdminServerHoursOut,
+)
 from app.schemas.plan import PlanStage
-from app.services import admin_system, awake, jobs, monitor, platform
+from app.services import admin_system, awake, jobs, monitor, neon, platform
 from app.services import plan as plan_service
 from app.services.admin import NOT_OPENED_DAYS, list_shops
 
@@ -252,6 +257,25 @@ def hours_notice(hours: AdminServerHoursOut | None, now: datetime) -> AdminNotic
     )
 
 
+def compute_notice(compute: AdminDatabaseComputeOut | None, now: datetime) -> AdminNoticeOut | None:
+    """Neon's compute hours running low: once at about 70% used or on pace
+    to pass the allowance, again (urgent) at about 90% used. Nothing when
+    Neon couldn't be read."""
+    if compute is None or not compute.readable or not compute.low:
+        return None
+    pace = f" · on pace for {compute.on_pace}" if compute.on_pace is not None else ""
+    return AdminNoticeOut(
+        key=f"compute:{neon.period_key(compute.period_start or now)}:"
+        f"{'over' if compute.over else 'pace'}",
+        kind="database_compute",
+        severity="urgent" if compute.over else "warning",
+        title="Database compute running low",
+        text=f"About {compute.used:.0f} of {compute.limit} hours used{pace}",
+        at=now,
+        href="/admin/system#database",
+    )
+
+
 async def current(db: AsyncSession) -> list[AdminNoticeOut]:
     """Every notice of the moment, newest first (most urgent first at the
     same time; one with no time, last)."""
@@ -267,6 +291,9 @@ async def current(db: AsyncSession) -> list[AdminNoticeOut]:
     hours = hours_notice(await awake.state(db), now)
     if hours:
         notices.append(hours)
+    compute = compute_notice(await neon.state(), now)
+    if compute:
+        notices.append(compute)
     oldest = datetime.min.replace(tzinfo=UTC)
     return sorted(notices, key=lambda n: (-(n.at or oldest).timestamp(), SEVERITY[n.severity]))
 

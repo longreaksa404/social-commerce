@@ -22,7 +22,7 @@ from app.schemas.admin import (
     AdminSpeedOut,
     AdminSystemOut,
 )
-from app.services import awake, jobs, monitor, platform, telegram
+from app.services import awake, jobs, monitor, neon, platform, telegram
 from app.services.telegram import TelegramError
 
 
@@ -148,6 +148,7 @@ async def system(db: AsyncSession) -> AdminSystemOut:
     return AdminSystemOut(
         speed=AdminSpeedOut(**speed.__dict__),
         server_hours=await awake.state(db),
+        database_compute=await neon.state(),
         jobs=job_states(runs),
         backup=backup_state(runs.get(BACKUP)),
         bot=await _bot(db),
