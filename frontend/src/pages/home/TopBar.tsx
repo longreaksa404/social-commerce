@@ -14,15 +14,15 @@ export function TopBar() {
   return (
     <header
       className={`home-topbar sticky top-0 z-30 border-b pt-[env(safe-area-inset-top)] transition-colors duration-500 ${
-        scrolled ? 'border-white/10 bg-night/70 backdrop-blur-md' : 'border-transparent'
+        scrolled ? 'border-slate-200 bg-slate-50/80 backdrop-blur-md' : 'border-transparent'
       }`}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-8">
-        <Link to="/" className="inline-flex min-h-11 items-center text-xl text-white sm:text-2xl">
+        <Link to="/" className="inline-flex min-h-11 items-center text-xl text-oak-ink sm:text-2xl">
           <OakOrderName />
         </Link>
         <div className="flex items-center gap-2">
-          <LanguageSwitch onDark />
+          <LanguageSwitch />
           <Link data-cta="login" to="/login" className={`${outlineButton} px-4 text-sm`}>
             {t.auth.logIn}
           </Link>

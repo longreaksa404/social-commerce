@@ -74,7 +74,7 @@ export function HowItWorks({ intro }: { intro: Intro }) {
             >
               <span className="text-sm font-semibold text-champagne tabular-nums">{number(index)}</span>
               <h3 className="mt-3 text-3xl font-semibold">{steps[key].title}</h3>
-              <p className="mt-3 max-w-md text-lg leading-relaxed text-white/65">{steps[key].text}</p>
+              <p className="mt-3 max-w-md text-lg leading-relaxed text-slate-600">{steps[key].text}</p>
             </li>
           ))}
         </ol>
@@ -106,12 +106,12 @@ export function HowItWorks({ intro }: { intro: Intro }) {
                   <span className="text-sm font-semibold text-champagne tabular-nums">{number(index)}</span>
                   <span aria-hidden className="flex flex-1 gap-1">
                     {STEPS.map((other, at) => (
-                      <span key={other} className={`h-px flex-1 ${at <= index ? 'bg-champagne' : 'bg-white/15'}`} />
+                      <span key={other} className={`h-px flex-1 ${at <= index ? 'bg-champagne' : 'bg-slate-200'}`} />
                     ))}
                   </span>
                 </div>
                 <h3 className="mt-3 text-xl font-semibold">{steps[key].title}</h3>
-                <p className="mt-1.5 leading-relaxed text-white/65">{steps[key].text}</p>
+                <p className="mt-1.5 leading-relaxed text-slate-600">{steps[key].text}</p>
               </div>
             ))}
           </div>

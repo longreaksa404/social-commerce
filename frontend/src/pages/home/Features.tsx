@@ -12,7 +12,7 @@ const FEATURES: [key: 'chat' | 'stock' | 'driver' | 'receipt' | 'customers' | 'e
   ['excel', FileSpreadsheet],
 ]
 
-/** Also in Oak Order: six frosted tiles, icons and words only. */
+/** Also in Oak Order: six white tiles, icons and words only. */
 export function Features() {
   const t = useT()
   const features = t.home.features
@@ -31,14 +31,14 @@ export function Features() {
                 onPointerLeave={settle}
                 onPointerUp={settle}
                 onPointerCancel={settle}
-                className="home-tilt flex h-full gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[0_30px_60px_-30px_rgb(0_0_0/0.7)] min-[480px]:flex-col"
+                className="home-tilt flex h-full gap-4 rounded-2xl bg-surface p-5 shadow-card ring-1 ring-slate-900/6 min-[480px]:flex-col"
               >
                 <span className="grid size-10 shrink-0 place-items-center rounded-full border border-champagne/30 text-champagne">
                   <Icon aria-hidden className="size-5" />
                 </span>
                 <div>
                   <h3 className="font-semibold">{features[key].title}</h3>
-                  <p className="mt-1.5 text-[15px] leading-relaxed text-white/60">{features[key].text}</p>
+                  <p className="mt-1.5 text-[15px] leading-relaxed text-slate-600">{features[key].text}</p>
                 </div>
               </div>
             </li>

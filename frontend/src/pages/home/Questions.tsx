@@ -22,12 +22,12 @@ export function Questions() {
         </h2>
         <div data-reveal className="mt-10 space-y-3">
           {items.map(([question, answer]) => (
-            <details key={question} className="group rounded-2xl border border-white/10 bg-white/[0.03] open:bg-white/[0.05]">
-              <summary className="flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-2xl px-5 py-4 font-medium focus-visible:outline-2 focus-visible:outline-white">
+            <details key={question} className="group rounded-2xl bg-surface shadow-card ring-1 ring-slate-900/6">
+              <summary className="flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-2xl px-5 py-4 font-medium focus-visible:outline-2 focus-visible:outline-navy-600">
                 {question}
                 <Plus aria-hidden className="size-5 shrink-0 text-champagne transition duration-300 group-open:rotate-45" />
               </summary>
-              <p className="px-5 pb-5 leading-relaxed text-white/65">{answer}</p>
+              <p className="px-5 pb-5 leading-relaxed text-slate-600">{answer}</p>
             </details>
           ))}
         </div>

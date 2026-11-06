@@ -28,7 +28,7 @@ export function Hero({ intro }: { intro: Intro }) {
           <h1 className="home-display text-[clamp(2.15rem,8.6vw,4.75rem)] lg:text-[clamp(3.5rem,5.4vw,4.75rem)]">
             <Words text={t.auth.home.title} />
           </h1>
-          <p className="home-intro-after mt-6 max-w-xl text-lg leading-relaxed text-white/70 sm:text-xl" style={after(1)}>
+          <p className="home-intro-after mt-6 max-w-xl text-lg leading-relaxed text-slate-600 sm:text-xl" style={after(1)}>
             {hero.lead}
           </p>
           <div className="home-intro-after mt-9 flex flex-col gap-3 sm:flex-row" style={after(1.1)}>
@@ -40,7 +40,7 @@ export function Hero({ intro }: { intro: Intro }) {
               <ArrowRight aria-hidden className="size-4" />
             </Link>
           </div>
-          <p className="home-intro-after mt-3 text-sm leading-relaxed text-white/50" style={after(1.2)}>
+          <p className="home-intro-after mt-3 text-sm leading-relaxed text-slate-500" style={after(1.2)}>
             {hero.demoNote}
           </p>
           <p
@@ -52,10 +52,6 @@ export function Hero({ intro }: { intro: Intro }) {
           </p>
         </div>
         <div className="relative flex justify-center">
-          <div
-            aria-hidden
-            className="home-intro-glow absolute top-1/2 left-1/2 -z-10 size-[130%] -translate-1/2 rounded-full bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--color-night-glow)_80%,transparent),transparent)]"
-          />
           <div className="home-intro-phone">
             <Phone3D
               screen="shop"

@@ -1,8 +1,8 @@
 const base =
-  'inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold transition duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-[0.98]'
+  'inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold transition duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600 active:scale-[0.98]'
 
-/** White on night: Create your shop. */
-export const solidButton = `${base} bg-white text-night shadow-[0_12px_32px_-12px_rgb(255_255_255/0.45)] hover:bg-white/90`
+/** Navy, the app's own button: Create your shop. */
+export const solidButton = `${base} bg-accent text-on-accent shadow-[0_12px_28px_-14px_rgb(31_51_80/0.6)] hover:bg-accent-hover`
 
-/** A light outline: Try a demo shop, Log in. */
-export const outlineButton = `${base} border border-white/25 bg-white/[0.04] text-white hover:border-white/40 hover:bg-white/10`
+/** White with a thin line: Try a demo shop, Log in. */
+export const outlineButton = `${base} border border-slate-300 bg-surface text-slate-900 hover:border-slate-400 hover:bg-slate-50`

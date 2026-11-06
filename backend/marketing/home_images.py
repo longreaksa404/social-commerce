@@ -4,16 +4,13 @@
 
 Takes 5 of the iPhone-sized PNGs that shots.py makes (marketing/out/,
 git-ignored) in Khmer and English, and saves them as small WebPs for the
-start page (frontend/public/home/<lang>/<screen>.webp, committed), plus the
-film grain the page lays over everything (frontend/public/home/grain.webp,
-the same file every run). Run it again after shots.py when a screen in the
-app changes.
+start page (frontend/public/home/<lang>/<screen>.webp, committed). Run it
+again after shots.py when a screen in the app changes.
 
 Exits 1 if a picture is missing or a screen comes out over 150 KB.
 """
 
 import argparse
-import random
 import sys
 from pathlib import Path
 
@@ -33,7 +30,6 @@ SCREENS = {
 LANGS = ("km", "en")
 SIZE = (780, 1688)  # 2x a 390 x 844 phone screen
 MAX_BYTES = 150_000
-GRAIN = 128  # tiled; soft noise around mid-grey, which overlay blending leaves alone
 
 
 def screens(source: Path) -> bool:
@@ -58,22 +54,11 @@ def screens(source: Path) -> bool:
     return ok
 
 
-def grain() -> None:
-    noise = random.Random(1)
-    image = Image.new("L", (GRAIN, GRAIN))
-    image.putdata([max(0, min(255, round(noise.gauss(128, 28)))) for _ in range(GRAIN * GRAIN)])
-    out = PUBLIC / "grain.webp"
-    image.save(out, "WEBP", quality=50)
-    print(f"{out.relative_to(PUBLIC)}  {out.stat().st_size // 1000} KB")
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--source", type=Path, default=HERE / "out", help="shots.py's out folder")
     args = parser.parse_args()
-    ok = screens(args.source)
-    grain()
-    return 0 if ok else 1
+    return 0 if screens(args.source) else 1
 
 
 if __name__ == "__main__":

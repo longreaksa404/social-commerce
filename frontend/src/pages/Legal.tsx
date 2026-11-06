@@ -81,9 +81,9 @@ function Body({ block }: { block: Block }) {
 }
 
 /** The three pages, as a row of small links (start page, legal pages). */
-export function LegalLinks({ className = '', onDark = false }: { className?: string; onDark?: boolean }) {
+export function LegalLinks({ className = '' }: { className?: string }) {
   const t = useT()
-  const link = `inline-flex min-h-11 items-center link ${onDark ? 'text-white/60 hover:text-white' : 'text-slate-500 hover:text-slate-700'}`
+  const link = 'inline-flex min-h-11 items-center link text-slate-500 hover:text-slate-700'
   return (
     <nav className={`flex flex-wrap gap-x-5 text-sm ${className}`}>
       <Link to={PATHS.privacy} className={link}>

@@ -375,11 +375,6 @@ def check_intro_scroll(browser: Browser) -> None:
 def check_intro_reduced(browser: Browser) -> None:
     page = fresh(browser, reduced=True)
     never_playing(page, "reduce motion")
-    names = page.evaluate(
-        "() => [...document.querySelectorAll('.home-glow')]"
-        ".map((e) => getComputedStyle(e).animationName)"
-    )
-    assert names and all(name == "none" for name in names), f"glows drift: {names}"
     page.context.close()
 
 
@@ -408,19 +403,20 @@ def check_intro_back(browser: Browser) -> None:
 
 
 @check
-def check_night_behind(browser: Browser) -> None:
+def check_light_behind(browser: Browser) -> None:
+    """The app's own light page, not navy (founder, 2026-11-06: no navy
+    backgrounds), the same as /login behind it."""
     page = fresh(browser)
-    night = "getComputedStyle(document.body).backgroundColor"
-    first = page.evaluate(night)
-    assert first == "rgb(11, 19, 32)", f"not navy before the app: {first!r}"
+    behind = "getComputedStyle(document.body).backgroundColor"
+    home = page.evaluate(behind)
+    assert home != "rgb(11, 19, 32)", f"navy behind the page: {home!r}"
     bar = "document.querySelector('meta[name=theme-color]').content"
-    assert page.evaluate(bar) == "#0b1320", f"browser bar: {page.evaluate(bar)}"
+    assert page.evaluate(bar) == "#ffffff", f"browser bar: {page.evaluate(bar)}"
     page.locator("[data-cta=login]").click(force=True)
     page.wait_for_url("**/login")
     page.wait_for_selector("main[data-home]", state="detached")
-    left = page.evaluate(night)
-    assert left != "rgb(11, 19, 32)", f"still navy behind /login: {left!r}"
-    assert page.evaluate(bar) == "#ffffff", f"browser bar on /login: {page.evaluate(bar)}"
+    login = page.evaluate(behind)
+    assert login == home, f"/login has another page colour: {login!r}"
     page.context.close()
 
 
