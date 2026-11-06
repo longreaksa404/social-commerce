@@ -60,13 +60,11 @@ function CustomerView({ customer, back, onStale }: { customer: Customer; back: s
         <Card className="p-4 sm:p-6">
           <div className="flex items-center gap-3">
             <CustomerPhoto url={customer.photo_url} className="size-14" />
+            {/* The name is the page's title, so the card starts with the
+                phone (founder's pick 5A, 2026-11-06). */}
             <div className="min-w-0">
-              <p className="truncate text-lg font-bold text-slate-900">{customer.name}</p>
-              <p className="text-sm text-slate-500 tabular-nums">
-                {formatPhone(customer.phone)}
-                <span className="text-slate-400"> · </span>
-                {c.since(formatDate(customer.created_at))}
-              </p>
+              <p className="text-lg font-semibold text-slate-900 tabular-nums">{formatPhone(customer.phone)}</p>
+              <p className="text-sm text-slate-500">{c.since(formatDate(customer.created_at))}</p>
             </div>
           </div>
           <div className="mt-4 flex gap-3">

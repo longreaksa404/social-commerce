@@ -55,6 +55,15 @@ function Shell() {
   const orderScreen = useMatch('/dashboard/orders/:orderId') !== null || receiptScreen
   const settingsScreen = useMatch('/dashboard/settings/:section') !== null
   const focused = productScreen || orderScreen || settingsScreen
+  // Pages one step into a tab: on phones their "‹ title" is the only bar,
+  // no shop-name bar above it; the tab bar stays (founder's pick 5A,
+  // 2026-11-06: two bars took about 150px).
+  const customerScreen = useMatch('/dashboard/customers/:customerId') !== null
+  const categoriesScreen = useMatch('/dashboard/categories') !== null
+  const notificationsScreen = useMatch('/dashboard/notifications') !== null
+  // New link too.
+  const linkScreen = useMatch('/dashboard/links/:linkId') !== null
+  const subPage = customerScreen || categoriesScreen || notificationsScreen || linkScreen
   // How wide the page may get on laptops: lists that sit beside what's
   // open, grids and tables use the width; forms stay a readable column.
   // Every page starts at the same left edge beside the sidebar, so the
@@ -80,11 +89,11 @@ function Shell() {
       {acting && <ActingBar acting={acting} />}
       <div className="lg:flex">
         <Sidebar />
-        {!focused && <MobileTopBar />}
+        {!focused && !subPage && <MobileTopBar />}
         <div className="min-w-0 lg:flex-1">
           <main
             className={`mx-auto w-full px-4 lg:mx-0 lg:px-8 lg:pt-8 lg:pb-8 ${width} ${
-              focused ? 'pt-2 pb-28' : 'pt-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)]'
+              focused ? 'pt-2 pb-28' : `${subPage ? 'pt-2' : 'pt-4'} pb-[calc(env(safe-area-inset-bottom)+5.5rem)]`
             }`}
           >
             <PageOutlet depth={2} />

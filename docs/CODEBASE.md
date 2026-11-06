@@ -1380,7 +1380,11 @@ share button (`ShareShopButton`, `dashboard/ShareShop.tsx`, UX check #10,
 it on a laptop; the Links page starts with the shop's link and Copy
 (`useShareShop`). The product edit, order
 detail and settings section pages are "focused" screens with no app or tab
-bar, their own back button, and a pinned action bar.
+bar, their own back button, and a pinned action bar. A customer,
+Categories, Notifications, New link and a link's page (`subPage` in
+`Layout.tsx`) have no app bar on phones either: their "‹ title" is the
+only bar and the tab bar stays (founder's pick 5A, 2026-11-06); the
+customer's card starts with the phone, the name being the title.
 
 ### API client (`src/lib/api.ts`)
 
