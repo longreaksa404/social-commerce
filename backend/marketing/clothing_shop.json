@@ -23,7 +23,8 @@
   {"slug": "tops", "name": {"km": "Tops", "en": "Tops"}},
   {"slug": "bottoms", "name": {"km": "Bottoms", "en": "Bottoms"}},
   {"slug": "dresses", "name": {"km": "Dresses", "en": "Dresses"}},
-  {"slug": "skirts", "name": {"km": "Skirts", "en": "Skirts"}}
+  {"slug": "skirts", "name": {"km": "Skirts", "en": "Skirts"}},
+  {"slug": "y2k", "name": {"km": "Y2K", "en": "Y2K"}}
  ],
  "colours": {
   "White": "ពណ៌ស",
@@ -46,7 +47,12 @@
   "Dark blue": "ពណ៌ខៀវចាស់",
   "Wine": "Wine",
   "Teal": "Teal",
-  "Champagne": "Champagne"
+  "Champagne": "Champagne",
+  "Orange": "Orange",
+  "Multi": "Multi",
+  "Navy": "Navy",
+  "Lilac": "Lilac",
+  "Silver": "Silver"
  },
  "products": [
   {
@@ -498,6 +504,114 @@
    "price": "14.00",
    "photos": ["skirt-peacock"],
    "variants": [["Blue", "S", 9], ["Blue", "M", 16], ["Blue", "L", 10]]
+  },
+  {
+   "slug": "nope-graphic-tee",
+   "category": "y2k",
+   "name": {"km": "NOPE graphic tee", "en": "NOPE graphic tee"},
+   "description": {"km": "Oversized tee with a bold NOPE print.", "en": "Oversized tee with a bold NOPE print."},
+   "price": "11.00",
+   "photos": ["y2k-nope-graphic-tee"],
+   "variants": [["White", "M", 12], ["White", "L", 9], ["White", "XL", 15]]
+  },
+  {
+   "slug": "flamingo-shirt",
+   "category": "y2k",
+   "name": {"km": "Flamingo print shirt", "en": "Flamingo print shirt"},
+   "description": {"km": "Yellow short-sleeve shirt with flamingos.", "en": "Yellow short-sleeve shirt with flamingos."},
+   "price": "14.00",
+   "photos": ["y2k-flamingo-shirt"],
+   "variants": [["Yellow", "S", 10], ["Yellow", "M", 11], ["Yellow", "L", 14]]
+  },
+  {
+   "slug": "ringer-tee",
+   "category": "y2k",
+   "name": {"km": "Ringer tee", "en": "Ringer tee"},
+   "description": {"km": "Retro tee with contrast neck and sleeves.", "en": "Retro tee with contrast neck and sleeves."},
+   "price": "9.00",
+   "photos": ["y2k-ringer-tee"],
+   "variants": [["White", "S", 13], ["White", "M", 9], ["White", "L", 16]]
+  },
+  {
+   "slug": "white-baby-tee",
+   "category": "y2k",
+   "name": {"km": "White baby tee", "en": "White baby tee"},
+   "description": {"km": "Small fitted crop tee, the Y2K basic.", "en": "Small fitted crop tee, the Y2K basic."},
+   "price": "8.00",
+   "photos": ["y2k-white-baby-tee"],
+   "variants": [["White", "S", 10], ["White", "M", 12]]
+  },
+  {
+   "slug": "orange-boxy-tee",
+   "category": "y2k",
+   "name": {"km": "Orange boxy tee", "en": "Orange boxy tee"},
+   "description": {"km": "Short boxy tee in bright orange.", "en": "Short boxy tee in bright orange."},
+   "price": "9.00",
+   "photos": ["y2k-orange-boxy-tee"],
+   "variants": [["Orange", "S", 9], ["Orange", "M", 15], ["Orange", "L", 10]]
+  },
+  {
+   "slug": "graffiti-tee",
+   "category": "y2k",
+   "name": {"km": "Street print jacket", "en": "Street print jacket"},
+   "description": {"km": "Black jacket with a street-art back print.", "en": "Black jacket with a street-art back print."},
+   "price": "24.00",
+   "photos": ["y2k-graffiti-tee"],
+   "variants": [["Black", "M", 11], ["Black", "L", 14], ["Black", "XL", 13]]
+  },
+  {
+   "slug": "graffiti-denim-jacket",
+   "category": "y2k",
+   "name": {"km": "Graffiti denim jacket", "en": "Graffiti denim jacket"},
+   "description": {"km": "Hand-painted white denim jacket.", "en": "Hand-painted white denim jacket."},
+   "price": "28.00",
+   "photos": ["y2k-graffiti-denim-jacket"],
+   "variants": [["White", "M", 9], ["White", "L", 16], ["White", "XL", 10]]
+  },
+  {
+   "slug": "neon-sport-set",
+   "category": "y2k",
+   "name": {"km": "Neon sport set", "en": "Neon sport set"},
+   "description": {"km": "Bright sporty top and shorts.", "en": "Bright sporty top and shorts."},
+   "price": "18.00",
+   "photos": ["y2k-neon-sport-set"],
+   "variants": [["Multi", "S", 12], ["Multi", "M", 9], ["Multi", "L", 15]]
+  },
+  {
+   "slug": "bright-basic-tee",
+   "category": "y2k",
+   "name": {"km": "Bright basic tee", "en": "Bright basic tee"},
+   "description": {"km": "Candy-colour cotton tee.", "en": "Candy-colour cotton tee."},
+   "price": "7.00",
+   "photos": ["y2k-bright-basic-tee"],
+   "variants": [["Pink", "S", 10], ["Pink", "M", 11], ["Pink", "L", 14]]
+  },
+  {
+   "slug": "navy-varsity-jacket",
+   "category": "y2k",
+   "name": {"km": "Navy varsity jacket", "en": "Navy varsity jacket"},
+   "description": {"km": "Navy varsity jacket with white sleeves.", "en": "Navy varsity jacket with white sleeves."},
+   "price": "25.00",
+   "photos": ["y2k-navy-varsity-jacket"],
+   "variants": [["Navy", "M", 13], ["Navy", "L", 9], ["Navy", "XL", 16]]
+  },
+  {
+   "slug": "pastel-sweatshirt",
+   "category": "y2k",
+   "name": {"km": "Pastel sweatshirt", "en": "Pastel sweatshirt"},
+   "description": {"km": "Soft oversized sweatshirt in butter yellow.", "en": "Soft oversized sweatshirt in butter yellow."},
+   "price": "15.00",
+   "photos": ["y2k-pastel-sweatshirt"],
+   "variants": [["Yellow", "M", 10], ["Yellow", "L", 12], ["Yellow", "XL", 9]]
+  },
+  {
+   "slug": "fringe-top",
+   "category": "y2k",
+   "name": {"km": "Fringe top", "en": "Fringe top"},
+   "description": {"km": "Top with swinging fringe.", "en": "Top with swinging fringe."},
+   "price": "13.00",
+   "photos": ["y2k-fringe-top"],
+   "variants": [["Silver", "S", 15], ["Silver", "M", 10], ["Silver", "L", 11]]
   }
  ],
  "photos": {
@@ -555,7 +669,19 @@
   "skirt-satin": {"pexels": 6046221, "author": "Skylar Kang", "crop": [0.0, 0.058, 1.0, 0.942]},
   "skirt-bubble": {"pexels": 6046229, "author": "Skylar Kang", "crop": [0.0, 0.003, 1.0, 0.997]},
   "skirt-button": {"pexels": 7432278, "author": "Elisabeth Ende", "crop": [0.1, 0.0, 0.9, 1.0]},
-  "skirt-peacock": {"pexels": 19895985, "author": "Marcelo Verfe", "crop": [0.036, 0.0, 0.964, 1.0]}
+  "skirt-peacock": {"pexels": 19895985, "author": "Marcelo Verfe", "crop": [0.036, 0.0, 0.964, 1.0]},
+  "y2k-nope-graphic-tee": {"pexels": 40454884, "author": "Elena Sher", "crop": [0, 0.25, 1, 1]},
+  "y2k-flamingo-shirt": {"pexels": 37673784, "author": "Elena Sher", "crop": [0, 0.05, 0.75, 0.75]},
+  "y2k-ringer-tee": {"pexels": 32233642, "author": "Tbrsln", "crop": [0.1, 0, 0.9, 1]},
+  "y2k-white-baby-tee": {"pexels": 8148576, "author": "Vie Studio", "crop": [0, 0.35, 1, 0.95]},
+  "y2k-orange-boxy-tee": {"pexels": 8148577, "author": "Vie Studio", "crop": [0.12, 0.3, 0.88, 0.85]},
+  "y2k-graffiti-tee": {"pexels": 8463179, "author": "Unlime", "crop": [0.1, 0.1, 0.95, 1]},
+  "y2k-graffiti-denim-jacket": {"pexels": 6059864, "author": "Mallony Media", "crop": [0.1, 0, 0.95, 0.9]},
+  "y2k-neon-sport-set": {"pexels": 16661232, "author": "Marga Ramos Garcia", "crop": [0, 0, 1, 0.8]},
+  "y2k-bright-basic-tee": {"pexels": 36025541, "author": "Roop Sarkar", "crop": [0.15, 0, 0.85, 1]},
+  "y2k-navy-varsity-jacket": {"pexels": 32483229, "author": "Allan Glez", "crop": [0.1, 0.25, 0.9, 0.85]},
+  "y2k-pastel-sweatshirt": {"pexels": 9594422, "author": "Ron Lach", "crop": [0.1, 0, 0.9, 1]},
+  "y2k-fringe-top": {"pexels": 9393545, "author": "Mikhail Nilov", "crop": [0, 0.2, 1, 0.95]}
  },
  "cover": ["tee-black", "dress-floral-pink", "cardigans", "jeans-blue"]
 }
