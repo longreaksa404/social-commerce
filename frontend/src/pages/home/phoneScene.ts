@@ -118,9 +118,10 @@ export function createPhoneScene(
   options: { screen: string; shot: Shot; finish: Finish; onFirstFrame: () => void; onFail: () => void },
 ): PhoneScene {
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' })
-  // iPhones commonly have 3 physical pixels per CSS pixel. A 2x canvas
-  // blurred their screen text even with the original 3x screenshots.
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3))
+  // Supersample on standard-density laptops too: at 1x the small, tilted
+  // screen loses its text detail before the canvas reaches the page.
+  // Retina/iPhone displays keep their native density, up to 3x.
+  renderer.setPixelRatio(Math.max(2, Math.min(window.devicePixelRatio, 3)))
   renderer.outputColorSpace = SRGBColorSpace
   renderer.toneMapping = NoToneMapping
 
