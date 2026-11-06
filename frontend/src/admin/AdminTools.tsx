@@ -20,18 +20,41 @@ const isTest = (shop: AdminShop) => /^test-.*@example\.com$/.test(shop.login)
  * tools"): a Telegram message to every shop, sent to the admin first (part
  * 30, pick 15A); the sign-ups that didn't finish (part 31); a test shop in
  * one tap (part 29), open at once, with a login to copy, and the open test
- * shops, each closed in one tap. */
+ * shops, each closed in one tap. Redesign pick 14A (2026-11-06): all
+ * three on one page, the message with the most room and its steps, the
+ * test shops beside it, the unfinished sign-ups under them. */
 export function AdminTools() {
   return (
     <>
       <title>Tools · Oak Order admin</title>
       <AdminPageHeader title="Tools" />
-      <div className="max-w-3xl space-y-8">
+      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)] xl:gap-6">
         <Broadcast />
-        <Signups />
         <TestShops />
+        <div className="xl:col-span-2">
+          <Signups />
+        </div>
       </div>
     </>
+  )
+}
+
+/** Where a message to every shop is: written, sent to you, sent to the
+ * shops, which opens only once the same words reached you (pick 14A). */
+function Steps({ at, shops }: { at: 0 | 1 | 2; shops: string }) {
+  const steps = ['Write', 'Send to me first', `Send to ${shops}`]
+  return (
+    <ol aria-label="Steps" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+      {steps.map((label, i) => (
+        <li key={i} aria-current={i === at ? 'step' : undefined} className="flex items-center gap-2">
+          {i > 0 && <span aria-hidden className="text-slate-300">›</span>}
+          <span className={i === at ? 'font-semibold text-slate-900' : i < at ? 'font-medium text-slate-500' : 'text-slate-400'}>
+            {i < at && '✓ '}
+            {label}
+          </span>
+        </li>
+      ))}
+    </ol>
   )
 }
 
@@ -87,6 +110,7 @@ function Broadcast() {
   return (
     <Group title="Message every shop">
       <div className={`${cardClass} space-y-4 p-4 sm:p-5`}>
+        <Steps at={!text.trim() ? 0 : ready ? 2 : 1} shops={shopsWord} />
         <Field label="Message">
           <TextArea rows={3} maxLength={1000} value={text} onChange={(e) => setText(e.target.value)} placeholder="Oak Order is down for 10 minutes tonight at 22:00." />
         </Field>
@@ -154,7 +178,33 @@ function Signups() {
       ) : (signups.data ?? []).length === 0 ? (
         <p className={`${cardClass} px-4 py-3 text-sm text-slate-500`}>None in the last 30 days.</p>
       ) : (
-        <ul className={`${cardClass} divide-y divide-slate-100`}>
+        <>
+        <div className={`${cardClass} hidden overflow-x-auto lg:block`}>
+          <table className="w-full text-sm">
+            <thead className="border-b border-slate-200 text-xs text-slate-500">
+              <tr>
+                {['Telegram name', 'Number', 'When', ''].map((h, i) => (
+                  <th key={i} scope="col" className="px-4 py-2.5 text-left font-medium">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {signups.data!.map((signup) => (
+                <tr key={signup.phone}>
+                  <td className={`px-4 py-2.5 font-medium break-words ${signup.telegram_name ? 'text-slate-900' : 'text-slate-500'}`}>{signup.telegram_name ?? 'No Telegram name'}</td>
+                  <td className="px-4 py-2.5 whitespace-nowrap text-slate-700 tabular-nums">{formatPhone(signup.phone)}</td>
+                  <td className="px-4 py-2.5 whitespace-nowrap text-slate-500">{ago(signup.checked_at)}</td>
+                  <td className="px-4 py-2 text-right">
+                    <CopyPhone phone={signup.phone} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <ul className={`${cardClass} divide-y divide-slate-100 lg:hidden`}>
           {signups.data!.map((signup) => (
             <li key={signup.phone} className="flex items-center gap-3 px-4 py-3 text-sm">
               <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-full bg-navy-50 text-xs font-bold text-navy-700">
@@ -172,6 +222,7 @@ function Signups() {
             </li>
           ))}
         </ul>
+        </>
       )}
     </Group>
   )
@@ -205,7 +256,7 @@ function TestShops() {
   const open = (shops.data ?? []).filter((s) => isTest(s) && s.is_open).sort((a, b) => b.created_at.localeCompare(a.created_at))
 
   return (
-    <Group title="Test shop">
+    <Group title="Test shops">
       <div className={`${cardClass} flex flex-wrap items-center gap-3 p-4 sm:p-5`}>
         <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
           <FlaskConical aria-hidden className="size-5" />
@@ -291,7 +342,7 @@ function TestShopRow({ shop }: { shop: AdminShop }) {
   return (
     <li className="flex items-center gap-3 px-4 py-3 text-sm">
       <Link to={`/admin/shops/${shop.id}`} className="min-w-0 flex-1">
-        <span className="block truncate font-medium text-slate-900 hover:underline">{shop.name}</span>
+        <span className="block font-medium break-words text-slate-900 hover:underline">{shop.name}</span>
         <span className="block truncate text-slate-500">
           {shop.login} · made {ago(shop.created_at)}
         </span>
