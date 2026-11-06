@@ -1,6 +1,6 @@
 import type { Lang } from '../../i18n/core.ts'
 
-/** The live demo shop, Oak Phone (docs/MARKETING_FACTS.md §8). Its orders
+/** The live demo shop, Oak Wear (docs/MARKETING_FACTS.md §8). Its orders
  * reach the founder; the page says so under the button. */
 export const DEMO_SHOP = 'zdpb5d'
 

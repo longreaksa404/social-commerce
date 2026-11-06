@@ -47,7 +47,7 @@ The current run: `03_video_plan.md` (videos 003–022 around the launch; one mad
 - Save one MP3 per block, named by content-log number: `001_1_hook.mp3`, `001_2_pain.mp3`, `001_3_fix.mp3`, `001_4_cta.mp3`.
 
 ## Visuals
-- Demo shop: **Oak Phone** (the shoe shop Oak Fashion until 2026-11-02), an iPhone shop (new and used iPhones, AirPods, $45–$2,349) on the live site. Its orders stay paused except while I take phone screenshots. It's an example shop: never present its orders as real sales or a real seller's results.
+- Demo shop: **Oak Wear** (the shoe shop Oak Fashion until 2026-11-02, then the iPhone shop Oak Phone until 2026-11-06), an everyday clothing shop (tops, bottoms, dresses, $8.50–$20) on the live site at the same link. Its orders stay paused except while I take phone screenshots. It's an example shop: never present its orders as real sales or a real seller's results.
 - App pictures and clips: made by the local tool `backend/marketing/shots.py` from a copy of the demo shop: 22 pictures and 15 clips, in Khmer and English (Oak Phone and the shop's look of 2026-11-04 since the run of 2026-11-05). The full list (file name, what it shows, length) is in section 10 "Video assets" of MARKETING_FACTS.md. Shot lists name the exact file, with its path relative to `backend/marketing/out/` (e.g. `km/07_dashboard.png`, `video/km_order_arrives.mp4`). If a shot needs something that isn't there, flag it as MISSING.
 - Clips have no sound and start and end on a 1-second still; a circle shows every tap. Khmer videos use `km/` pictures and `km_` clips.
 - Before a batch: check the files the scripts need exist. If the KHQR or low-stock steps were skipped in the last run, re-run shots.py (see MARKETING_FACTS section 10).

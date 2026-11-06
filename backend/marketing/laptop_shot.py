@@ -5,11 +5,12 @@ laptop, from a shop on this machine.
 
 Logs in to the app running here (uvicorn on :8000 and `npm run dev` on
 :5173 by default; never the live site) as the shop's owner, opens Orders in
-Khmer and in English, and saves marketing/out/<lang>/laptop_orders.png
-(git-ignored). home_images.py turns them into the start page's laptop.webp.
-Use a shop with real-looking orders, such as a local copy of the demo shop
-Oak Phone. Needs the marketing venv's Playwright (marketing/requirements.txt);
---browser points at another Chromium.
+Khmer and in English (--lang for one), and saves
+marketing/out/<lang>/laptop_orders.png (git-ignored; --out for another
+folder, e.g. out/clothing). home_images.py turns them into the start page's
+laptop.webp. Use a shop with real-looking orders, such as a local copy of
+the demo shop Oak Wear (shots.py --copy). Needs the marketing venv's
+Playwright (marketing/requirements.txt); --browser points at another Chromium.
 """
 
 import argparse
@@ -36,13 +37,15 @@ def main() -> int:
     parser.add_argument("--web", default="http://localhost:5173")
     parser.add_argument("--api", default="http://localhost:8000")
     parser.add_argument("--browser", help="a Chromium to use instead of Playwright's")
+    parser.add_argument("--lang", nargs="+", choices=LANGS, default=list(LANGS))
+    parser.add_argument("--out", type=Path, default=OUT, help="where <lang>/ goes")
     args = parser.parse_args()
     if not (local(args.web) and local(args.api)):
         print("Only the app on this machine: --web and --api must be localhost.")
         return 1
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(executable_path=args.browser)
-        for lang in LANGS:
+        for lang in args.lang:
             context = browser.new_context(
                 viewport=SIZE,
                 device_scale_factor=1,
@@ -68,10 +71,10 @@ def main() -> int:
             page.wait_for_load_state("networkidle")
             page.evaluate("document.fonts.ready")
             page.wait_for_timeout(1500)
-            out = OUT / lang / "laptop_orders.png"
+            out = args.out.resolve() / lang / "laptop_orders.png"
             out.parent.mkdir(parents=True, exist_ok=True)
             page.screenshot(path=out)
-            print(out.relative_to(HERE))
+            print(out)
             context.close()
         browser.close()
     return 0

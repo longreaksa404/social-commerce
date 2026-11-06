@@ -158,7 +158,7 @@ export const home = {
   },
   // What each phone screen shows, for screen readers.
   screens: {
-    shop: { en: 'The demo shop Oak Phone on a phone', km: 'ហាងគំរូ Oak Phone លើទូរស័ព្ទ' },
+    shop: { en: 'The demo shop Oak Wear on a phone', km: 'ហាងគំរូ Oak Wear លើទូរស័ព្ទ' },
     share: { en: 'Sharing a product link to Facebook', km: 'ការចែករំលែកតំណទំនិញទៅ Facebook' },
     checkout: { en: 'A customer placing an order', km: 'អតិថិជនកំពុងកុម្ម៉ង់' },
     khqr: { en: 'The KHQR with the exact amount', km: 'KHQR ដែលមានចំនួនទឹកប្រាក់ត្រឹមត្រូវ' },
