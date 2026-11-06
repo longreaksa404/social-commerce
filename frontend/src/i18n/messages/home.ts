@@ -5,15 +5,17 @@ import type { Tree } from '../core.ts'
  * is auth.home.title, shared with the login and sign-up pages. */
 export const home = {
   hero: {
+    // One sentence, so the phone shows on the first screen (founder's pick
+    // 5A, 2026-11-06); How it works says the rest.
     lead: {
-      en: 'One link for your Facebook, TikTok and Instagram shop. Customers order and pay through it, and you see every order, payment and delivery in one place on your phone.',
-      km: 'តំណតែមួយសម្រាប់ហាងរបស់អ្នកលើ Facebook, TikTok និង Instagram។ អតិថិជនកុម្ម៉ង់ និងបង់ប្រាក់តាមតំណនោះ ហើយអ្នកឃើញរាល់ការកុម្ម៉ង់ ការបង់ប្រាក់ និងការដឹកជញ្ជូន នៅកន្លែងតែមួយលើទូរស័ព្ទរបស់អ្នក។',
+      en: 'One link for your Facebook, TikTok and Instagram shop.',
+      km: 'តំណតែមួយសម្រាប់ហាងរបស់អ្នកលើ Facebook, TikTok និង Instagram។',
     },
     demo: { en: 'Try a demo shop', km: 'សាកមើលហាងគំរូ' },
     // Its orders reach the founder: say so before anyone pays.
     demoNote: {
-      en: "Oak Phone is our demo shop. Place an order to try it; don't pay the QR.",
-      km: 'Oak Phone ជាហាងគំរូរបស់យើង។ សាកកុម្ម៉ង់បាន ប៉ុន្តែកុំបង់ QR។',
+      en: "Demo shop: try an order, but don't pay the QR.",
+      km: 'ហាងគំរូ៖ សាកកុម្ម៉ង់បាន តែកុំបង់ QR។',
     },
     free: {
       en: (days: string) => `Free for your first ${days} days of selling. No card.`,

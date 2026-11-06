@@ -45,7 +45,7 @@ The app's own lines, from the start page (use them word for word; the second one
 | English | Khmer |
 |---|---|
 | Turn social media chats into real orders | ប្រែការឆាតលើបណ្ដាញសង្គម ទៅជាការកុម្ម៉ង់ពិតៗ |
-| One link for your Facebook, TikTok and Instagram shop. Customers order and pay through it, and you see every order, payment and delivery in one place on your phone. | តំណតែមួយសម្រាប់ហាងរបស់អ្នកលើ Facebook, TikTok និង Instagram។ អតិថិជនកុម្ម៉ង់ និងបង់ប្រាក់តាមតំណនោះ ហើយអ្នកឃើញរាល់ការកុម្ម៉ង់ ការបង់ប្រាក់ និងការដឹកជញ្ជូន នៅកន្លែងតែមួយលើទូរស័ព្ទរបស់អ្នក។ |
+| One link for your Facebook, TikTok and Instagram shop. | តំណតែមួយសម្រាប់ហាងរបស់អ្នកលើ Facebook, TikTok និង Instagram។ |
 
 ## 2. Who it's for
 

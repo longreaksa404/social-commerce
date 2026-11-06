@@ -22,16 +22,16 @@ export function Hero({ intro }: { intro: Intro }) {
   const hero = t.home.hero
   const leave = useLeave()
   return (
-    <section className="relative px-5 pt-8 pb-20 sm:px-8 sm:pt-14 lg:pt-20 lg:pb-28">
-      <div ref={leave} className="home-leave mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
+    <section className="relative px-5 pt-6 pb-20 sm:px-8 sm:pt-14 lg:pt-20 lg:pb-28">
+      <div ref={leave} className="home-leave mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
         <div>
           <h1 className="home-display text-[clamp(2.15rem,8.6vw,4.75rem)] lg:text-[clamp(3.5rem,5.4vw,4.75rem)]">
             <Words text={t.auth.home.title} />
           </h1>
-          <p className="home-intro-after mt-6 max-w-xl text-lg leading-relaxed text-slate-600 sm:text-xl" style={after(1)}>
+          <p className="home-intro-after mt-4 max-w-xl text-lg leading-relaxed text-slate-600 sm:text-xl" style={after(1)}>
             {hero.lead}
           </p>
-          <div className="home-intro-after mt-9 flex flex-col gap-3 sm:flex-row" style={after(1.1)}>
+          <div className="home-intro-after mt-7 flex flex-col gap-3 sm:flex-row" style={after(1.1)}>
             <Link data-cta="create" to="/register" className={solidButton}>
               {t.auth.createYourStore}
             </Link>
@@ -44,7 +44,7 @@ export function Hero({ intro }: { intro: Intro }) {
             {hero.demoNote}
           </p>
           <p
-            className="home-intro-after mt-7 inline-flex items-center gap-2 border-t border-champagne/30 pt-4 text-sm font-medium text-champagne"
+            className="home-intro-after mt-5 inline-flex items-center gap-2 border-t border-champagne/30 pt-4 text-sm font-medium text-champagne"
             style={after(1.3)}
           >
             <Sparkles aria-hidden className="size-4 shrink-0" />
