@@ -8,10 +8,12 @@ import type { Currency } from '../../lib/types.ts'
 
 export type VariantDraft = { key: string; id?: string; name: string; sku: string; price_override: string; stock_quantity: string }
 
-// One row per option where the list is at least 18rem wide (a 360px phone
-// and up): the @min-[18rem] classes. Narrower, each option takes two lines
-// with its own labels.
-const ROW = '@min-[18rem]:grid-cols-[minmax(0,1fr)_3.5rem_6rem_2.75rem]'
+// Phones: two lines per option, the name with the bin, then stock and
+// price, each with its own label, in a box of its own. From a 36rem list
+// (tablets, laptops) one row each, with a price box wide enough for
+// ៛9,999,999 (founder's pick 1A, 2026-11-06: prices were cut to
+// "1849.(" in a 6rem box).
+const ROW = '@min-[36rem]:grid-cols-[minmax(0,1fr)_4.5rem_9rem_2.75rem]'
 
 /** Sizes, colours...: a row each (name, stock, price), headings once on
  * top. SKU codes are rarely used, so they show only once asked for, or
@@ -36,13 +38,13 @@ export function VariantList({
     onChange(variants.map((v) => (v.key === key ? { ...v, ...change } : v)))
   // Visible above each field on narrow lists; read by screen readers only
   // where the headings on top say it.
-  const label = 'mb-1 block text-xs font-medium text-slate-500 @min-[18rem]:sr-only'
+  const label = 'mb-1 block text-xs font-medium text-slate-500 @min-[36rem]:sr-only'
 
   return (
     <div className="@container space-y-3">
       <div
         aria-hidden
-        className={`hidden gap-1.5 text-xs font-medium text-slate-500 @min-[18rem]:grid ${ROW}`}
+        className={`hidden gap-1.5 text-xs font-medium text-slate-500 @min-[36rem]:grid ${ROW}`}
       >
         <span>
           {p.variantName}
@@ -54,16 +56,16 @@ export function VariantList({
         </span>
         <span>{p.price}</span>
       </div>
-      <ul className={skus ? 'space-y-5' : 'space-y-4 @min-[18rem]:space-y-2'}>
+      <ul className={skus ? 'space-y-3 @min-[36rem]:space-y-5' : 'space-y-3 @min-[36rem]:space-y-2'}>
         {variants.map((variant, index) => (
           <li key={variant.key}>
             <div
               role="group"
               aria-label={p.variant(index + 1)}
-              className={`grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-start gap-x-1.5 gap-y-2 ${ROW}`}
+              className={`grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)_2.75rem] items-start gap-x-1.5 gap-y-2 rounded-xl border border-slate-200 p-2.5 @min-[36rem]:rounded-none @min-[36rem]:border-0 @min-[36rem]:p-0 ${ROW}`}
             >
               {/* Fields, so a missing name shows under it like on every form. */}
-              <Field label={p.variantName} labelClassName={label} className="col-span-2 @min-[18rem]:col-span-1">
+              <Field label={p.variantName} labelClassName={label} className="col-span-2 @min-[36rem]:col-span-1">
                 <Input
                   required
                   placeholder={p.variantNamePlaceholder}
@@ -73,8 +75,8 @@ export function VariantList({
                   className="px-2.5!"
                 />
               </Field>
-              {/* Beside the name on narrow lists (down past its label); last in
-                  the row on wide ones. */}
+              {/* Beside the name on phones (down past its label); last in the
+                  row on wide lists. */}
               <IconButton
                 icon={Trash2}
                 tone="danger"
@@ -86,7 +88,7 @@ export function VariantList({
                   if (typed && !(await askRemove(p.removeVariantAsk(variant.name.trim())))) return
                   onChange(variants.filter((v) => v.key !== variant.key))
                 }}
-                className="@max-[18rem]:mt-5 @min-[18rem]:order-last"
+                className="@max-[36rem]:mt-5 @min-[36rem]:order-last"
               />
               <Field label={p.stock} labelClassName={label}>
                 <Input
@@ -111,7 +113,7 @@ export function VariantList({
                 />
               </Field>
               {skus && (
-                <label className="col-span-3 @min-[18rem]:order-last @min-[18rem]:col-span-4">
+                <label className="col-span-3 @min-[36rem]:order-last @min-[36rem]:col-span-4">
                   <span className="mb-1 block text-xs font-medium text-slate-500">{p.sku}</span>
                   <Input
                     maxLength={64}
