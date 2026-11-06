@@ -17,6 +17,20 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 
 initTheme()
 
+// A new version went live while this tab was open, so the part of the app
+// it asks for (the dashboard, the admin) is gone: load the page again, once
+// per address, instead of showing an error.
+window.addEventListener('vite:preloadError', (event) => {
+  try {
+    if (sessionStorage.getItem('sc.reloaded') === location.pathname) return
+    sessionStorage.setItem('sc.reloaded', location.pathname)
+  } catch {
+    return
+  }
+  event.preventDefault()
+  location.reload()
+})
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
 })

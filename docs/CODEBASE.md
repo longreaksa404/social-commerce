@@ -1893,7 +1893,12 @@ anything that writes.
 
 1. Component under `frontend/src/dashboard/<area>/` or `frontend/src/shop/`.
 2. Route in `src/router.tsx`, under the `/dashboard` or `/shop/:storeSlug`
-   children.
+   children. A dashboard page is exported from `src/dashboard/pages.ts` and
+   routed with `lazy: dashboard('ThePage')`: the whole dashboard is one
+   chunk, downloaded only once a seller opens it, so the start page and
+   shop links don't carry it (2026-11-06). `main.tsx` reloads the page once
+   when such a chunk is gone after a new version went live
+   (`vite:preloadError`).
 3. Texts in `src/i18n/messages/<area>.ts` as `{ en, km }` pairs; `const t =
    useT()`.
 4. Data through hooks in `queries.ts`. Show `Skeleton` while pending and
@@ -2096,7 +2101,7 @@ this document.
 | 16 | `backend/app/services/pricing.py` | The money math (mirrored in the frontend) |
 | 17 | `backend/app/api/shop.py` | All public endpoints and their rate limits |
 | 18 | `backend/tests/conftest.py` | Test DB setup and fixtures (with `tests/helpers.py`) |
-| 19 | `frontend/src/router.tsx` | Every route |
+| 19 | `frontend/src/router.tsx` | Every route (the dashboard's from `dashboard/pages.ts`, its own chunk) |
 | 20 | `frontend/src/lib/api.ts` | Fetch client, `ApiError`, token storage and refresh |
 | 21 | `frontend/src/lib/types.ts` | TypeScript mirror of the API responses |
 | 22 | `frontend/src/auth/AuthContext.tsx` | Session restore, login, register, logout |

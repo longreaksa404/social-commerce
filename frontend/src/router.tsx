@@ -1,20 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { OldAdminLink } from './admin/OldAdminLink.tsx'
 import { RootLayout } from './components/RootLayout.tsx'
-import { Categories } from './dashboard/Categories.tsx'
-import { CustomerDetail } from './dashboard/customers/CustomerDetail.tsx'
-import { CustomerList } from './dashboard/customers/CustomerList.tsx'
-import { DashboardLayout } from './dashboard/Layout.tsx'
-import { LinkDetail } from './dashboard/links/LinkDetail.tsx'
-import { LinkList } from './dashboard/links/LinkList.tsx'
-import { NewLink } from './dashboard/links/NewLink.tsx'
-import { Notifications } from './dashboard/Notifications.tsx'
-import { NewOrder } from './dashboard/orders/NewOrder.tsx'
-import { OrdersPage } from './dashboard/orders/OrderList.tsx'
-import { Receipt } from './dashboard/orders/Receipt.tsx'
-import { ProductEdit } from './dashboard/products/ProductEdit.tsx'
-import { ProductList } from './dashboard/products/ProductList.tsx'
-import { SettingsPage } from './dashboard/settings/SettingsPage.tsx'
 import { FinishSignup } from './pages/FinishSignup.tsx'
 import { ForgotPassword } from './pages/ForgotPassword.tsx'
 import { Home } from './pages/home/Home.tsx'
@@ -33,6 +19,14 @@ import { ShopProduct } from './shop/ShopProduct.tsx'
 
 // A data router (not <BrowserRouter>) so forms can block navigation while
 // they have unsaved changes (useBlocker).
+
+type DashboardPages = typeof import('./dashboard/pages.ts')
+/** A seller page, from the dashboard's own chunk (dashboard/pages.ts):
+ * downloaded once a seller opens the dashboard, never by the start page or
+ * a shop link. */
+const dashboard =
+  (page: keyof DashboardPages) =>
+  async () => ({ Component: (await import('./dashboard/pages.ts'))[page] })
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
@@ -53,29 +47,29 @@ export const router = createBrowserRouter([
       { path: '/dashboard/admin/*', element: <OldAdminLink /> },
       {
         path: '/dashboard',
-        element: <DashboardLayout />,
+        lazy: dashboard('DashboardLayout'),
         children: [
           { index: true, element: <Navigate to="orders" replace /> },
           // One page: on laptops the list stays beside the open order.
-          { path: 'orders', element: <OrdersPage /> },
+          { path: 'orders', lazy: dashboard('OrdersPage') },
           // An order that came by chat (founder's pick 3A).
-          { path: 'orders/new', element: <NewOrder /> },
-          { path: 'orders/:orderId', element: <OrdersPage /> },
+          { path: 'orders/new', lazy: dashboard('NewOrder') },
+          { path: 'orders/:orderId', lazy: dashboard('OrdersPage') },
           // The order's parcel slip, to print or share (pick 4A, 2026-10-25).
-          { path: 'orders/:orderId/receipt', element: <Receipt /> },
-          { path: 'customers', element: <CustomerList /> },
-          { path: 'customers/:customerId', element: <CustomerDetail /> },
-          { path: 'products', element: <ProductList /> },
-          { path: 'products/new', element: <ProductEdit /> },
-          { path: 'products/:productId', element: <ProductEdit /> },
-          { path: 'categories', element: <Categories /> },
-          { path: 'links', element: <LinkList /> },
-          { path: 'links/new', element: <NewLink /> },
-          { path: 'links/:linkId', element: <LinkDetail /> },
+          { path: 'orders/:orderId/receipt', lazy: dashboard('Receipt') },
+          { path: 'customers', lazy: dashboard('CustomerList') },
+          { path: 'customers/:customerId', lazy: dashboard('CustomerDetail') },
+          { path: 'products', lazy: dashboard('ProductList') },
+          { path: 'products/new', lazy: dashboard('ProductEdit') },
+          { path: 'products/:productId', lazy: dashboard('ProductEdit') },
+          { path: 'categories', lazy: dashboard('Categories') },
+          { path: 'links', lazy: dashboard('LinkList') },
+          { path: 'links/new', lazy: dashboard('NewLink') },
+          { path: 'links/:linkId', lazy: dashboard('LinkDetail') },
           // One page: on laptops the menu stays beside the open setting.
-          { path: 'settings', element: <SettingsPage /> },
-          { path: 'settings/:section', element: <SettingsPage /> },
-          { path: 'notifications', element: <Notifications /> },
+          { path: 'settings', lazy: dashboard('SettingsPage') },
+          { path: 'settings/:section', lazy: dashboard('SettingsPage') },
+          { path: 'notifications', lazy: dashboard('Notifications') },
         ],
       },
       {
