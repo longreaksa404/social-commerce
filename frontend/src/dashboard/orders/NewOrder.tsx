@@ -215,8 +215,14 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
       <title>{n.title}</title>
       {/* Saving is refused while the shop's plan is unpaid (PLAN_UNPAID). */}
       <PlanReminder stoppedOnly />
-      <form onSubmit={submit} className="space-y-4">
-        <Section title={n.customer}>
+      {/* Phones: one column. Laptops: the customer, delivery and payment on
+          the left, the items and their totals on the right, like checkout;
+          the third row grows with a long item list. */}
+      <form
+        onSubmit={submit}
+        className="space-y-4 lg:grid lg:grid-cols-2 lg:grid-rows-[auto_auto_1fr_auto] lg:items-start lg:gap-x-6 lg:gap-y-4 lg:space-y-0"
+      >
+        <Section title={n.customer} className="lg:col-start-1 lg:row-start-1">
           <Field label={n.phone} error={fieldError(add.error, 'phone')} hint={match ? n.known(match.order_count) : undefined}>
             <Input
               required
@@ -234,7 +240,7 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
           </Field>
         </Section>
 
-        <Section title={n.items}>
+        <Section title={n.items} className="lg:col-start-2 lg:row-span-3 lg:row-start-1">
           {lines.length > 0 && (
             <ul className="divide-y divide-slate-100">
               {lines.map((line, i) => (
@@ -270,7 +276,7 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
           {fieldError(add.error, 'items') && <p className="text-sm text-red-700">{fieldError(add.error, 'items')}</p>}
         </Section>
 
-        <Section title={n.delivery}>
+        <Section title={n.delivery} className="lg:col-start-1 lg:row-start-2">
           {choices.length > 1 && (
             <div role="radiogroup" aria-label={n.delivery} className="grid gap-2">
               {choices.map((choice) => (
@@ -297,7 +303,7 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
           )}
         </Section>
 
-        <Section title={n.payment}>
+        <Section title={n.payment} className="lg:col-start-1 lg:row-span-2 lg:row-start-3">
           {methods.length > 1 ? (
             <div role="radiogroup" aria-label={n.payment} className="grid gap-2">
               {methods.map((method) => (
@@ -315,7 +321,7 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
         </Section>
 
         {lines.length > 0 && (
-          <dl className="space-y-1 rounded-2xl bg-surface px-4 py-3 text-sm ring-1 ring-slate-900/6 sm:px-6">
+          <dl className="space-y-1 rounded-2xl bg-surface px-4 py-3 text-sm ring-1 ring-slate-900/6 sm:px-6 lg:col-start-2 lg:row-start-4">
             <div className="flex justify-between">
               <dt className="text-slate-600">{t.shop.summary.items}</dt>
               <dd>{formatMoney(fromCents(subtotal), currency)}</dd>
@@ -335,11 +341,13 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
           </dl>
         )}
 
-        <ErrorMessage error={formError(add.error, FIELDS)} />
+        <div className="empty:hidden lg:col-span-2">
+          <ErrorMessage error={formError(add.error, FIELDS)} />
+        </div>
 
         {/* Pinned like the product form's Save. */}
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
-          <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:col-span-2 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
+          <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3 lg:max-w-none lg:px-5">
             <span className="min-w-0 flex-1 text-sm text-slate-500" aria-live="polite">
               {missingItems ? (
                 n.noItems

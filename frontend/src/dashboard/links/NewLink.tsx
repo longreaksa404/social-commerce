@@ -68,8 +68,10 @@ export function NewLink() {
       <title>{l.newLink}</title>
 
       <form onSubmit={submit} className="space-y-4">
-        <Card className="space-y-5 p-4 sm:p-6">
-          <Field label={l.whatItOpens} error={fieldError(create.error, 'target_id')}>
+        {/* Laptops: what it opens and its name side by side, the places
+            across under them, so the form uses the page's width. */}
+        <Card className="space-y-5 p-4 sm:p-6 lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-5 lg:space-y-0">
+          <Field label={l.whatItOpens} error={fieldError(create.error, 'target_id')} className="lg:col-start-1 lg:row-start-1">
             {loading ? (
               <Skeleton className="h-11 w-full rounded-xl" />
             ) : (
@@ -100,7 +102,7 @@ export function NewLink() {
             )}
           </Field>
 
-          <fieldset>
+          <fieldset className="lg:col-span-2 lg:row-start-2">
             <legend className="mb-1.5 block text-sm font-medium text-slate-700">{l.wherePost}</legend>
             <div className="flex flex-wrap gap-2">
               {[...LINK_SOURCES, { key: OTHER, label: l.other }].map((s) => (
@@ -125,7 +127,7 @@ export function NewLink() {
           </fieldset>
 
           {source === OTHER && (
-            <Field label={l.where} error={fieldError(create.error, 'source')}>
+            <Field label={l.where} error={fieldError(create.error, 'source')} className="lg:col-start-1 lg:row-start-3">
               <Input
                 autoFocus
                 required
@@ -141,6 +143,7 @@ export function NewLink() {
             label={l.name}
             hint={l.nameHint}
             error={fieldError(create.error, 'campaign')}
+            className="lg:col-start-2 lg:row-start-1"
           >
             <Input maxLength={60} value={campaign} onChange={(e) => setCampaign(e.target.value)} />
           </Field>

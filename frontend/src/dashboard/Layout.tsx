@@ -64,23 +64,12 @@ function Shell() {
   // New link too.
   const linkScreen = useMatch('/dashboard/links/:linkId') !== null
   const subPage = customerScreen || categoriesScreen || notificationsScreen || linkScreen
-  // How wide the page may get on laptops: lists that sit beside what's
-  // open, grids and tables use the width; forms stay a readable column.
+  // Laptops: every page uses the width beside the menu, as Orders does, so
+  // no page leaves an empty right side (founder, 2026-11-06, after the
+  // phone and laptop check); pages with two parts put them side by side.
   // Every page starts at the same left edge beside the sidebar, so the
   // title doesn't jump between pages (UI check #9, founder 2026-10-17).
-  const ordersList = useMatch('/dashboard/orders') !== null
-  const productsList = useMatch('/dashboard/products') !== null
-  const customersList = useMatch('/dashboard/customers') !== null
-  const linksList = useMatch('/dashboard/links') !== null
-  const settingsMenu = useMatch('/dashboard/settings') !== null
-  const width =
-    orderScreen || ordersList || productsList || productScreen
-      ? 'max-w-3xl lg:max-w-7xl'
-      : settingsMenu || settingsScreen
-        ? 'max-w-3xl lg:max-w-6xl'
-        : customersList || linksList
-          ? 'max-w-3xl lg:max-w-5xl'
-          : 'max-w-3xl'
+  const width = 'max-w-3xl lg:max-w-7xl'
 
   // Opened by the admin (D1A): its bar across the top, the sticky bars
   // under it.

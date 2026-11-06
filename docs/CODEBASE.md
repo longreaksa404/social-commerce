@@ -1681,10 +1681,13 @@ through `<Phrases text>` (`i18n/Phrases.tsx`): it breaks only at spaces and
 
 - **Mobile-first.** Base classes are for phones; `sm:` (640 px) turns
   edge-to-edge cards into rounded inset cards; `lg:` (1024 px) switches to
-  the sidebar layout. The dashboard column is `max-w-3xl` (wider for the
-  order, product, customer and link lists and Settings, `Layout.tsx`),
-  left-aligned beside the sidebar from `lg` so every page starts at the
-  same edge (UI check #9); the shop is `max-w-5xl`.
+  the sidebar layout. The dashboard column is `max-w-3xl` on phones and
+  tablets and `lg:max-w-7xl` for every page on laptops (`Layout.tsx`;
+  founder, 2026-11-06: no laptop page leaves its right side empty, so
+  pages with two parts put them side by side: the product form, a
+  customer, a new chat order, New link), left-aligned beside the sidebar
+  so every page starts at the same edge (UI check #9); the shop is
+  `max-w-5xl`.
 - **Write classes for light mode only.** Dark mode (`:root[data-theme='dark']`
   in `index.css`) flips the slate, navy, emerald, red, amber and sky scales.
   Solid fills that must not flip use the tokens `bg-surface` (cards, bars,

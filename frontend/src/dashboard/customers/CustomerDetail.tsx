@@ -54,7 +54,8 @@ function CustomerView({ customer, back, onStale }: { customer: Customer; back: s
       <PageHeader title={customer.name} back={back} />
       <title>{customer.name}</title>
 
-      <div className="space-y-4">
+      {/* Laptops: who they are on the left, their orders on the right. */}
+      <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 lg:space-y-0">
         {/* Who they are, with calling them one tap away (founder's pick,
             2026-10-08). */}
         <Card className="p-4 sm:p-6">
