@@ -44,7 +44,7 @@ export function Categories() {
   )
 
   return (
-    <div className="max-w-3xl">
+    <>
       <PageHeader title={c.title} back="/dashboard/products" action={newButton} />
 
       {adding && <AddCategory onClose={() => setAdding(false)} onAdded={refresh} />}
@@ -73,7 +73,7 @@ export function Categories() {
           ))}
         </Card>
       )}
-    </div>
+    </>
   )
 }
 

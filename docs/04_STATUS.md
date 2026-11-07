@@ -1,5 +1,7 @@
 # Project Status
 
+> **2026-11-07:** Seller laptop width correction, not pushed: the founder's live Categories and Settings screenshots showed that the two readable-width exceptions still looked like the old wasted-space layout; Categories now fills the seller workspace and the selected Settings form takes all the room beside its menu, superseding the Categories cap from the same day's width follow-up and Settings pick 7A's 672 px cap; checked both in Chromium at 1,920×1,080 with no horizontal overflow, plus the frontend lint and production build; phones are unchanged.
+
 > **2026-11-07:** Khmer unsaved-changes question fixed, not pushed: its two buttons no longer both say “បោះបង់”; the safe button still says “បោះបង់” and the red button now says “មិនរក្សាទុក”, so a seller can tell Cancel from Discard before leaving a form; founder reported the duplicate wording from the app screenshot.
 
 > **2026-11-07:** Seller laptop width follow-up, not pushed: the founder replaced the same day's centred 1,024 px limit after seeing it waste space on a 1,920 px screen; seller pages now use the room beside the menu up to 1,440 px, Orders and an opened Customer divide that room into two balanced columns, and narrow pages such as Categories keep a readable left-aligned width; checked in Chromium at 1,920×1,080, 1,366×768 and 390×844 with no horizontal overflow, plus the frontend lint and production build.
