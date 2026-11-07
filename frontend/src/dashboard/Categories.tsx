@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, Pencil, Plus, Share2, Tags, Trash2, X } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { Pencil, Plus, Share2, Tags, Trash2, X } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useFeedback } from '../components/feedback.ts'
 import {
@@ -10,8 +10,8 @@ import {
   ErrorMessage,
   ErrorState,
   Field,
-  IconButton,
   Input,
+  IconButton,
   MenuButton,
   PageHeader,
   Skeleton,
@@ -77,7 +77,8 @@ export function Categories() {
   )
 }
 
-/** The new category's name, with Add and Cancel; closes once added. */
+/** The new category's name in a small window (founder's pick 3B,
+ * 2026-11-07); closes once added. */
 function AddCategory({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
   const { toast } = useFeedback()
   const [name, setName] = useState('')
@@ -98,8 +99,8 @@ function AddCategory({ onClose, onAdded }: { onClose: () => void; onAdded: () =>
   }
 
   return (
-    <Card className="mb-4 animate-rise p-4 sm:p-5">
-      <form onSubmit={submit} onKeyDown={(e) => e.key === 'Escape' && onClose()}>
+    <CategoryDialog title={c.newCategory} onClose={onClose}>
+      <form onSubmit={submit}>
         <Field label={c.name}>
           <Input
             autoFocus
@@ -125,7 +126,7 @@ function AddCategory({ onClose, onAdded }: { onClose: () => void; onAdded: () =>
           </Button>
         </div>
       </form>
-    </Card>
+    </CategoryDialog>
   )
 }
 
@@ -133,19 +134,9 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
   const { toast, confirm } = useFeedback()
   const [editing, setEditing] = useState(false)
   const [sharing, setSharing] = useState(false)
-  const [name, setName] = useState(category.name)
   const t = useT()
   const c = t.categories
 
-  const rename = useMutation({
-    mutationFn: () =>
-      api<Category>(`/seller/categories/${category.id}`, { method: 'PATCH', body: { name: name.trim() } }),
-    onSuccess: () => {
-      setEditing(false)
-      toast(c.renamed)
-      onChanged()
-    },
-  })
   const remove = useMutation({
     mutationFn: () => api(`/seller/categories/${category.id}`, { method: 'DELETE' }),
     onSuccess: () => {
@@ -164,45 +155,6 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
       danger: true,
     })
     if (ok) remove.mutate()
-  }
-
-  if (editing) {
-    return (
-      <form
-        className="p-3"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (name.trim()) rename.mutate()
-        }}
-      >
-        <div className="flex items-center gap-1">
-          <div className="min-w-0 flex-1">
-            <Input
-              autoFocus
-              aria-label={c.name}
-              maxLength={100}
-              enterKeyHint="done"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          <IconButton type="submit" icon={Check} label={c.saveName} disabled={rename.isPending || !name.trim()} className="text-navy-700" />
-          <IconButton
-            icon={X}
-            label={t.common.cancel}
-            onClick={() => {
-              setName(category.name)
-              setEditing(false)
-            }}
-          />
-        </div>
-        {rename.error && (
-          <div className="mt-2">
-            <ErrorMessage error={rename.error} />
-          </div>
-        )}
-      </form>
-    )
   }
 
   const count = category.product_count
@@ -235,6 +187,110 @@ function CategoryRow({ category, onChanged }: { category: Category; onChanged: (
         open={sharing}
         onClose={() => setSharing(false)}
       />
+      {editing && (
+        <RenameCategory
+          category={category}
+          onClose={() => setEditing(false)}
+          onRenamed={() => {
+            toast(c.renamed)
+            onChanged()
+          }}
+        />
+      )}
     </div>
+  )
+}
+
+function RenameCategory({
+  category,
+  onClose,
+  onRenamed,
+}: {
+  category: Category
+  onClose: () => void
+  onRenamed: () => void
+}) {
+  const [name, setName] = useState(category.name)
+  const t = useT()
+  const c = t.categories
+  const rename = useMutation({
+    mutationFn: () =>
+      api<Category>(`/seller/categories/${category.id}`, { method: 'PATCH', body: { name: name.trim() } }),
+    onSuccess: () => {
+      onRenamed()
+      onClose()
+    },
+  })
+
+  return (
+    <CategoryDialog title={c.rename} onClose={onClose}>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault()
+          if (name.trim()) rename.mutate()
+        }}
+      >
+        <Field label={c.name}>
+          <Input
+            autoFocus
+            maxLength={100}
+            autoCapitalize="words"
+            enterKeyHint="done"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+        </Field>
+        {rename.error && (
+          <div className="mt-3">
+            <ErrorMessage error={rename.error} />
+          </div>
+        )}
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="secondary" onClick={onClose}>
+            {t.common.cancel}
+          </Button>
+          <Button type="submit" loading={rename.isPending} disabled={!name.trim() || name.trim() === category.name}>
+            {c.saveName}
+          </Button>
+        </div>
+      </form>
+    </CategoryDialog>
+  )
+}
+
+/** Shared add/rename window: a bottom sheet on phones and a centred small
+ * dialog from 640px up. */
+function CategoryDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  const dialog = useRef<HTMLDialogElement>(null)
+  const t = useT()
+
+  useEffect(() => {
+    const element = dialog.current
+    if (!element) return
+    element.showModal()
+    return () => element.close()
+  }, [])
+
+  return (
+    <dialog
+      ref={dialog}
+      aria-labelledby="category-dialog-title"
+      onCancel={(event) => {
+        event.preventDefault()
+        onClose()
+      }}
+      onClick={(event) => event.target === dialog.current && onClose()}
+      className="m-0 mt-auto w-full max-w-none rounded-t-2xl bg-surface p-0 shadow-xl open:animate-sheet-up sm:m-auto sm:max-w-sm sm:rounded-2xl sm:open:animate-zoom-in"
+    >
+      <div className="p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] sm:pb-5">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 id="category-dialog-title" className="text-lg font-semibold text-slate-900">
+            {title}
+          </h2>
+          <IconButton icon={X} label={t.common.close} onClick={onClose} className="-mr-2" />
+        </div>
+        {children}
+      </div>
+    </dialog>
   )
 }
