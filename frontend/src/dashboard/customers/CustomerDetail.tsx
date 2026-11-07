@@ -38,8 +38,15 @@ export function CustomerDetail() {
         <CustomerView customer={customer.data} back={back} onStale={() => customer.refetch()} />
       </div>
       <div className="hidden grid-cols-[minmax(18rem,25rem)_minmax(0,1fr)] items-start gap-6 lg:grid">
-        <CustomerPicker selectedId={customer.data.id} />
-        <CustomerView customer={customer.data} back={back} onStale={() => customer.refetch()} besideList />
+        {/* Both children return fragments. Wrap each one so the grid has
+            exactly two cells and their later siblings cannot spill into a
+            second row below the other column. */}
+        <div className="min-w-0">
+          <CustomerPicker selectedId={customer.data.id} />
+        </div>
+        <div className="min-w-0">
+          <CustomerView customer={customer.data} back={back} onStale={() => customer.refetch()} besideList />
+        </div>
       </div>
     </>
   )
