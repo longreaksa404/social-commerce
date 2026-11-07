@@ -26,6 +26,7 @@ import { useAddOrder, useCustomer, useCustomers, useInSetup, usePlan, useProduct
 import { NotOpenYet } from '../OpenShop.tsx'
 import { PlanReminder } from '../Reminder.tsx'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
+import { FormSaveBar } from '../FormSaveBar.tsx'
 
 /** One line of the order: a product, or one of its options. */
 type Line = { product: Product; variant: Variant | null; quantity: number }
@@ -356,9 +357,8 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
           <ErrorMessage error={formError(add.error, FIELDS)} />
         </div>
 
-        {/* Pinned like the product form's Save. */}
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:col-span-2 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
-          <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3 lg:max-w-none lg:px-5">
+        <div className="lg:col-span-2 lg:mt-4">
+          <FormSaveBar standalone>
             <span className="min-w-0 flex-1 text-sm text-slate-500" aria-live="polite">
               {missingItems ? (
                 n.noItems
@@ -372,7 +372,7 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
             <Button type="submit" loading={add.isPending} disabled={missingItems || how === null || payment === null} className="min-w-32">
               {n.save}
             </Button>
-          </div>
+          </FormSaveBar>
         </div>
       </form>
     </>

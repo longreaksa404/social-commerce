@@ -9,6 +9,7 @@ import { useT } from '../../i18n/useT.ts'
 import { LINK_SOURCES } from '../../lib/links.ts'
 import type { LinkTarget } from '../../lib/types.ts'
 import { useCategories, useCreateLink, useProducts } from '../queries.ts'
+import { FormSaveBar } from '../FormSaveBar.tsx'
 
 const OTHER = 'other'
 
@@ -152,14 +153,14 @@ export function NewLink() {
 
             <ErrorMessage error={formError(create.error, ['target_id', 'source', 'campaign'])} />
           </div>
-          <div className="flex items-center gap-3 border-t border-slate-200 bg-slate-50 px-4 py-3 sm:px-6">
+          <FormSaveBar>
             <p className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
               {readySummary ?? (!target ? l.chooseOpening : l.choosePosting)}
             </p>
             <Button type="submit" loading={create.isPending} disabled={!place || !target || loading}>
               {l.make}
             </Button>
-          </div>
+          </FormSaveBar>
         </Card>
       </form>
     </div>

@@ -24,6 +24,7 @@ import { uploadProductImage } from '../../lib/images.ts'
 import type { Currency, Product, ProductStatus } from '../../lib/types.ts'
 import { useProduct, useSaveProduct, useStore } from '../queries.ts'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
+import { FormSaveBar } from '../FormSaveBar.tsx'
 import { ShareLinkSheet } from '../links/ShareLinkSheet.tsx'
 import { CategoryPicker } from './CategoryPicker.tsx'
 import { NewProductPhotos, ProductPhotos, type LocalPhoto } from './ProductPhotos.tsx'
@@ -317,10 +318,8 @@ function ProductForm({ product }: { product?: Product }) {
           <ErrorMessage error={formError(save.error, fields)} />
         </div>
 
-        {/* Pinned to the bottom so Save is always in reach (floating at the
-            bottom of both columns on wide screens). */}
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:col-span-2 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
-          <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3 lg:max-w-none lg:px-5">
+        <div className="lg:col-span-2">
+          <FormSaveBar standalone>
             <span className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
               {progress ??
                 (dirty ? t.common.unsaved : isNew ? '' : <SavedNote key={save.submittedAt} justSaved={save.isSuccess} />)}
@@ -328,7 +327,7 @@ function ProductForm({ product }: { product?: Product }) {
             <Button type="submit" loading={busy} disabled={!isNew && !dirty} className="min-w-32">
               {isNew ? p.addProduct : t.common.save}
             </Button>
-          </div>
+          </FormSaveBar>
         </div>
       </form>
     </>

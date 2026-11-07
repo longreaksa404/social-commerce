@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 /** A form's own footer plus one pinned copy while that footer is outside
  * the viewport. The copy uses the footer's laptop width and steps aside
  * for a phone keyboard (founder's picks 7A and 9A, 2026-11-07). */
-export function FormSaveBar({ children }: { children: ReactNode }) {
+export function FormSaveBar({ children, standalone = false }: { children: ReactNode; standalone?: boolean }) {
   const footer = useRef<HTMLDivElement>(null)
   const [footerVisible, setFooterVisible] = useState(true)
   const [typing, setTyping] = useState(false)
@@ -57,7 +57,11 @@ export function FormSaveBar({ children }: { children: ReactNode }) {
         ref={footer}
         inert={showPinned}
         aria-hidden={showPinned}
-        className="border-t border-slate-200 bg-slate-50 sm:rounded-b-2xl"
+        className={
+          standalone
+            ? '-mx-4 bg-surface shadow-card ring-1 ring-slate-900/6 sm:mx-0 sm:rounded-2xl'
+            : 'border-t border-slate-200 bg-slate-50 sm:rounded-b-2xl'
+        }
       >
         {content}
       </div>

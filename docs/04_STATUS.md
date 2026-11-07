@@ -1,5 +1,7 @@
 # Project Status
 
+> **2026-11-07:** Seller dashboard redesign, step 9 of 10, not pushed: founder pick 9A; Settings, a product form, a New order from a chat and New link now each keep their real Save or Make button at the end of the form and show one shared pinned copy only while that button is out of sight; the copy uses the form's width on laptops and slides away for a phone keyboard, so one button is on screen at a time and no field is covered; checked in English and Khmer with the frontend lint and production build.
+
 > **2026-11-07:** Seller dashboard redesign, step 8 of 10, not pushed: founder pick 8A supersedes the dashboard part of the 2026-10-15 colour decision; every seller now sees the Oak Order dashboard in navy, while a shop's chosen colour stays in the public shop and its Settings → Shop preview; the hint now says “Used in your shop.”; 02 §5 and CODEBASE were updated; checked in English and Khmer with the frontend lint and production build.
 
 > **2026-11-07:** Seller dashboard redesign, step 7 of 10, not pushed: founder pick 7A; Settings keeps its menu beside a setting up to 672 px wide on laptops, the cover preview no longer grows past that reading width, and Save is now the form card's own footer instead of a separate floating card; it says Unsaved changes with a navy dot or Saved, pins a measured copy only while the footer is out of sight, and moves away for a phone keyboard; long Settings menu labels wrap to two lines; checked in English and Khmer with the frontend lint and production build.
