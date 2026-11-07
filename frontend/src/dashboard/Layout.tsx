@@ -64,12 +64,12 @@ function Shell() {
   // New link too.
   const linkScreen = useMatch('/dashboard/links/:linkId') !== null
   const subPage = customerScreen || categoriesScreen || notificationsScreen || linkScreen
-  // Laptops: every page uses the width beside the menu, as Orders does, so
-  // no page leaves an empty right side (founder, 2026-11-06, after the
-  // phone and laptop check); pages with two parts put them side by side.
+  // Laptops: every page shares one centred 1,024px content width (founder's
+  // pick 1B, 2026-11-07). This keeps the page frame steady while moving
+  // between tabs and keeps very wide screens from stretching the content.
   // Every page starts at the same left edge beside the sidebar, so the
   // title doesn't jump between pages (UI check #9, founder 2026-10-17).
-  const width = 'max-w-3xl lg:max-w-7xl'
+  const width = 'max-w-3xl lg:max-w-5xl'
 
   // Opened by the admin (D1A): its bar across the top, the sticky bars
   // under it.
@@ -81,7 +81,7 @@ function Shell() {
         {!focused && !subPage && <MobileTopBar />}
         <div className="min-w-0 lg:flex-1">
           <main
-            className={`mx-auto w-full px-4 lg:mx-0 lg:px-8 lg:pt-8 lg:pb-8 ${width} ${
+            className={`mx-auto w-full px-4 lg:px-8 lg:pt-8 lg:pb-8 ${width} ${
               focused ? 'pt-2 pb-28' : `${subPage ? 'pt-2' : 'pt-4'} pb-[calc(env(safe-area-inset-bottom)+5.5rem)]`
             }`}
           >

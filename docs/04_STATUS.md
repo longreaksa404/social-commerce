@@ -1,5 +1,7 @@
 # Project Status
 
+> **2026-11-07:** Seller dashboard redesign, step 1 of 10, not pushed: every seller page now uses the founder's pick 1B, one centred 1,024 px content width on laptops, instead of stretching across all the room beside the menu; phones keep their existing width and spacing; checked with the frontend lint and production build.
+
 > **2026-11-07:** Oak Wear category photo refresh: the 30 active Dresses, Bottoms and Skirts products now use dedicated internet-sourced dress, individual bottoms, and skirt photos; Tops and Y2K were left unchanged; checked through the public shop API.
 
 > **2026-11-07:** Oak Wear live photos changed: all 62 active products now use free internet-sourced garment-only clothing photos with varied crops; the homepage's first product and shop cover were replaced too; hidden iPhone products were untouched; checked through the public shop API.
