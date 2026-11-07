@@ -1,5 +1,7 @@
 # Project Status
 
+> **2026-11-07:** Seller dashboard redesign, step 4 of 10, not pushed: founder pick 4B; a New order from a chat no longer puts the first eight products between Customer and Delivery; Items shows the chosen products and one Add products button, which opens a searchable product sheet from the bottom on phones (a small window on laptops), stays open while the seller adds several products, and closes with Done; checked with the frontend lint and production build.
+
 > **2026-11-07:** Seller dashboard redesign, step 3 of 10, not pushed: founder pick 3B; Categories keeps its current list and each row's ⋯ menu, while New category and Rename now open a small centred window on laptops and a sheet from the bottom on phones instead of changing a row or adding a form above the list; checked with the frontend lint and production build.
 
 > **2026-11-07:** Seller dashboard redesign, step 2 of 10, not pushed: founder pick 2A; Customers still opens as the full sortable table on a laptop, but opening a customer now keeps a searchable customer list beside their details and orders, so the seller can move between people without going Back; the search and selected customer stay in the address; phones keep the focused customer screen and return to the same search; checked with the frontend lint and production build.

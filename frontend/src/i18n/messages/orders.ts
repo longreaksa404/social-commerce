@@ -136,6 +136,8 @@ export const orders = {
       km: (n: number) => `ធ្លាប់កុម្ម៉ង់ ${n} ដង`,
     },
     items: { en: 'Items', km: 'ទំនិញ' },
+    addProducts: { en: 'Add products', km: 'បន្ថែមទំនិញ' },
+    done: { en: 'Done', km: 'រួចរាល់' },
     findProduct: { en: 'Find a product', km: 'ស្វែងរកទំនិញ' },
     noProducts: { en: 'No products match.', km: 'គ្មានទំនិញដែលត្រូវគ្នាទេ។' },
     pickOption: { en: 'Choose an option:', km: 'ជ្រើសរើសជម្រើស៖' },

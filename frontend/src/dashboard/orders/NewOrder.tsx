@@ -1,5 +1,5 @@
 import { Minus, Plus, Search, Trash2, UserRound } from 'lucide-react'
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
 import {
@@ -131,6 +131,7 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
   const [addressNote, setAddressNote] = useState('')
   const [notes, setNotes] = useState('')
   const [lines, setLines] = useState<Line[]>([])
+  const [pickingProducts, setPickingProducts] = useState(false)
   const delivers = delivery.own_delivery || delivery.couriers.length > 0
   const choices = [...(delivers ? [DELIVERY] : []), ...(delivery.pickup ? [PICKUP] : [])]
   const methods = PAYMENT_METHOD_ORDER.filter((m) => store.payment_settings[m].enabled)
@@ -272,7 +273,17 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
               ))}
             </ul>
           )}
-          <ProductPicker products={products} currency={currency} onPick={addLine} />
+          <Button variant="secondary" icon={Plus} onClick={() => setPickingProducts(true)} className="w-full">
+            {n.addProducts}
+          </Button>
+          {pickingProducts && (
+            <ProductPickerSheet
+              products={products}
+              currency={currency}
+              onPick={addLine}
+              onClose={() => setPickingProducts(false)}
+            />
+          )}
           {fieldError(add.error, 'items') && <p className="text-sm text-red-700">{fieldError(add.error, 'items')}</p>}
         </Section>
 
@@ -368,6 +379,58 @@ function NewOrderForm({ store, products }: { store: Store; products: Product[] }
   )
 }
 
+/** Pick products without lengthening the order form (founder's pick 4B,
+ * 2026-11-07). The sheet stays open after each pick so several products
+ * can be added, then Done returns to the chosen items. */
+function ProductPickerSheet({
+  products,
+  currency,
+  onPick,
+  onClose,
+}: {
+  products: Product[]
+  currency: Store['currency']
+  onPick: (product: Product, variant: Variant | null) => void
+  onClose: () => void
+}) {
+  const dialog = useRef<HTMLDialogElement>(null)
+  const n = useT().orders.newOrder
+
+  useEffect(() => {
+    const element = dialog.current
+    if (!element) return
+    element.showModal()
+    return () => element.close()
+  }, [])
+
+  return (
+    <dialog
+      ref={dialog}
+      aria-labelledby="product-picker-title"
+      onCancel={(event) => {
+        event.preventDefault()
+        onClose()
+      }}
+      onClick={(event) => event.target === dialog.current && onClose()}
+      className="m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-hidden rounded-t-2xl bg-surface p-0 shadow-xl open:animate-sheet-up sm:m-auto sm:max-w-lg sm:rounded-2xl sm:open:animate-zoom-in"
+    >
+      <div className="flex max-h-[90dvh] flex-col">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-5 py-3">
+          <h2 id="product-picker-title" className="text-lg font-semibold text-slate-900">
+            {n.addProducts}
+          </h2>
+          <Button variant="secondary" onClick={onClose}>
+            {n.done}
+          </Button>
+        </div>
+        <div className="min-h-0 overflow-y-auto p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:p-5">
+          <ProductPicker products={products} currency={currency} onPick={onPick} />
+        </div>
+      </div>
+    </dialog>
+  )
+}
+
 /** One choice of a radio list, as a full-width row. */
 function ChoiceRow({ checked, onChoose, children }: { checked: boolean; onChoose: () => void; children: string }) {
   return (
@@ -419,6 +482,7 @@ function ProductPicker({
         aria-label={n.findProduct}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
         leading={<Search aria-hidden className="size-4 text-slate-400" />}
       />
       {shown.length === 0 ? (
