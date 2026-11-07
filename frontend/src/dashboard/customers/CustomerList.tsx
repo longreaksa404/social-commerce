@@ -108,7 +108,7 @@ function CustomerRow({
   const t = useT()
   return (
     <Link
-      to={`/dashboard/customers/${customer.id}`}
+      to={`/dashboard/customers/${customer.id}${search ? `?q=${encodeURIComponent(search)}` : ''}`}
       // Back to this list with this search.
       state={{ back: search ? `/dashboard/customers?q=${encodeURIComponent(search)}` : '/dashboard/customers' }}
       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 sm:p-4"
@@ -185,7 +185,7 @@ function CustomerTable({ customers, currency, search }: { customers: CustomerSum
             <tr key={customer.id} className="relative transition-colors hover:bg-slate-50">
               <td className="px-4 py-3">
                 <Link
-                  to={`/dashboard/customers/${customer.id}`}
+                  to={`/dashboard/customers/${customer.id}${search ? `?q=${encodeURIComponent(search)}` : ''}`}
                   state={{ back }}
                   className="flex items-center gap-2.5 font-semibold text-slate-900 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-navy-600"
                 >

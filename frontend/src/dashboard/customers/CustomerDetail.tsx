@@ -1,17 +1,18 @@
-import { Copy, MapPin, Phone, Send } from 'lucide-react'
-import { useState } from 'react'
-import { useParams } from 'react-router'
+import { Copy, MapPin, Phone, Search, SearchX, Send } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
 import { buttonClass } from '../../components/styles.ts'
-import { Button, Card, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
+import { Button, Card, EmptyState, ErrorState, Input, PageHeader, Skeleton } from '../../components/ui.tsx'
 import { useT } from '../../i18n/useT.ts'
 import { formatSpent } from '../../lib/customers.ts'
 import { formatDate, formatPhone } from '../../lib/orders.ts'
-import type { CustomerDetail as Customer } from '../../lib/types.ts'
+import type { Currency, CustomerDetail as Customer, CustomerSummary } from '../../lib/types.ts'
+import { useDebounced } from '../../lib/useDebounced.ts'
 import { EAGER_PHOTOS } from '../../shop/components.tsx'
 import { MessageCustomerSheet } from '../orders/MessageCustomer.tsx'
 import { OrderRow } from '../orders/OrderRow.tsx'
-import { useCustomer, useStore } from '../queries.ts'
+import { useCustomer, useCustomers, useStore } from '../queries.ts'
 import { useBackTo } from '../useBackTo.ts'
 import { CustomerPhoto } from './CustomerPhoto.tsx'
 
@@ -31,12 +32,33 @@ export function CustomerDetail() {
       </>
     )
   }
-  return <CustomerView customer={customer.data} back={back} onStale={() => customer.refetch()} />
+  return (
+    <>
+      <div className="lg:hidden">
+        <CustomerView customer={customer.data} back={back} onStale={() => customer.refetch()} />
+      </div>
+      <div className="hidden grid-cols-[minmax(18rem,25rem)_minmax(0,1fr)] items-start gap-6 lg:grid">
+        <CustomerPicker selectedId={customer.data.id} />
+        <CustomerView customer={customer.data} back={back} onStale={() => customer.refetch()} besideList />
+      </div>
+    </>
+  )
 }
 
-function CustomerView({ customer, back, onStale }: { customer: Customer; back: string; onStale: () => void }) {
+function CustomerView({
+  customer,
+  back,
+  onStale,
+  besideList = false,
+}: {
+  customer: Customer
+  back: string
+  onStale: () => void
+  besideList?: boolean
+}) {
   const currency = useStore().data?.currency ?? 'USD'
   const { toast } = useFeedback()
+  const location = useLocation()
   const t = useT()
   const c = t.customers
   const [messaging, setMessaging] = useState(false)
@@ -51,11 +73,17 @@ function CustomerView({ customer, back, onStale }: { customer: Customer; back: s
   }
   return (
     <>
-      <PageHeader title={customer.name} back={back} />
+      <PageHeader title={customer.name} back={besideList ? undefined : back} />
       <title>{customer.name}</title>
 
       {/* Laptops: who they are on the left, their orders on the right. */}
-      <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 lg:space-y-0">
+      <div
+        className={
+          besideList
+            ? 'space-y-4'
+            : 'space-y-4 lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 lg:space-y-0'
+        }
+      >
         {/* Who they are, with calling them one tap away (founder's pick,
             2026-10-08). */}
         <Card className="p-4 sm:p-6">
@@ -126,7 +154,7 @@ function CustomerView({ customer, back, onStale }: { customer: Customer; back: s
                 order={order}
                 eager={i < EAGER_PHOTOS}
                 showCustomer={false}
-                back={`/dashboard/customers/${customer.id}`}
+                back={`/dashboard/customers/${customer.id}${location.search}`}
               />
             ))}
           </Card>
@@ -138,6 +166,127 @@ function CustomerView({ customer, back, onStale }: { customer: Customer; back: s
         </section>
       </div>
     </>
+  )
+}
+
+/** The laptop master list stays beside an open customer so the seller can
+ * move between people without losing the search (founder's pick 2A,
+ * 2026-11-07). Phones keep the focused customer screen above. */
+function CustomerPicker({ selectedId }: { selectedId: string }) {
+  const [params, setParams] = useSearchParams()
+  const [typed, setTyped] = useState(() => params.get('q') ?? '')
+  const search = useDebounced(typed.trim(), 300)
+  const inUrl = params.get('q') ?? ''
+  useEffect(() => {
+    if (search !== inUrl) setParams(search ? { q: search } : {}, { replace: true })
+  }, [search, inUrl, setParams])
+
+  const list = useCustomers(search)
+  const currency = useStore().data?.currency ?? 'USD'
+  const t = useT()
+  const c = t.customers
+  const shown = list.data?.pages.flatMap((page) => page.customers) ?? []
+  const total = list.data?.pages[0]?.total ?? 0
+
+  return (
+    <section aria-labelledby="customer-picker-title" className="min-w-0">
+      <PageHeader title={c.title} />
+      <h2 id="customer-picker-title" className="sr-only">
+        {c.title}
+      </h2>
+      <Input
+        type="search"
+        aria-label={c.search}
+        placeholder={c.searchPlaceholder}
+        enterKeyHint="search"
+        autoComplete="off"
+        value={typed}
+        onChange={(e) => setTyped(e.target.value)}
+        leading={<Search aria-hidden className="size-4.5" />}
+      />
+      {!list.isPending && !list.error && (
+        <p aria-live="polite" className="mt-3 mb-2 px-1 text-sm text-slate-500">
+          {search ? c.found(total) : c.count(total)}
+        </p>
+      )}
+
+      {list.isPending ? (
+        <CustomerPickerSkeleton />
+      ) : list.error ? (
+        <ErrorState error={list.error} onRetry={() => list.refetch()} />
+      ) : shown.length === 0 ? (
+        <EmptyState icon={SearchX} title={c.notFoundTitle}>
+          {c.notFoundText(search)}
+        </EmptyState>
+      ) : (
+        <Card className={`divide-y divide-slate-100 overflow-hidden transition-opacity ${list.isPlaceholderData ? 'opacity-60' : ''}`}>
+          {shown.map((customer) => (
+            <PickerRow key={customer.id} customer={customer} currency={currency} search={search} selected={customer.id === selectedId} />
+          ))}
+        </Card>
+      )}
+      {list.hasNextPage && (
+        <Button
+          variant="secondary"
+          loading={list.isFetchingNextPage}
+          onClick={() => list.fetchNextPage()}
+          className="mt-4 w-full"
+        >
+          {t.orders.showMore}
+        </Button>
+      )}
+    </section>
+  )
+}
+
+function PickerRow({
+  customer,
+  currency,
+  search,
+  selected,
+}: {
+  customer: CustomerSummary
+  currency: Currency
+  search: string
+  selected: boolean
+}) {
+  const t = useT()
+  return (
+    <Link
+      to={`/dashboard/customers/${customer.id}${search ? `?q=${encodeURIComponent(search)}` : ''}`}
+      aria-current={selected ? 'page' : undefined}
+      className={`flex min-h-18 items-center gap-3 border-l-3 px-3 py-2.5 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-navy-600 ${
+        selected ? 'border-navy-600 bg-slate-50' : 'border-transparent'
+      }`}
+    >
+      <CustomerPhoto url={customer.photo_url} name={customer.name} className="size-10" />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-semibold text-slate-900">{customer.name}</span>
+        <span className="block text-sm text-slate-600 tabular-nums">{formatPhone(customer.phone)}</span>
+        <span className="block truncate text-xs text-slate-500">
+          {t.customers.orderCount(customer.order_count)}
+          {customer.last_order_at && t.customers.lastOrder(formatDate(customer.last_order_at))}
+        </span>
+      </span>
+      <span className="shrink-0 text-sm font-semibold text-slate-900">{formatSpent(customer.spent, currency)}</span>
+    </Link>
+  )
+}
+
+function CustomerPickerSkeleton() {
+  return (
+    <Card className="divide-y divide-slate-100 overflow-hidden">
+      {Array.from({ length: 6 }, (_, i) => (
+        <div key={i} className="flex min-h-18 items-center gap-3 px-3 py-2.5">
+          <Skeleton className="size-10 rounded-full" />
+          <span className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-20" />
+          </span>
+          <Skeleton className="h-4 w-14" />
+        </div>
+      ))}
+    </Card>
   )
 }
 

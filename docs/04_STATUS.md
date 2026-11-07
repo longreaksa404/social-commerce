@@ -1,5 +1,7 @@
 # Project Status
 
+> **2026-11-07:** Seller dashboard redesign, step 2 of 10, not pushed: founder pick 2A; Customers still opens as the full sortable table on a laptop, but opening a customer now keeps a searchable customer list beside their details and orders, so the seller can move between people without going Back; the search and selected customer stay in the address; phones keep the focused customer screen and return to the same search; checked with the frontend lint and production build.
+
 > **2026-11-07:** Seller dashboard redesign, step 1 of 10, not pushed: every seller page now uses the founder's pick 1B, one centred 1,024 px content width on laptops, instead of stretching across all the room beside the menu; phones keep their existing width and spacing; checked with the frontend lint and production build.
 
 > **2026-11-07:** Oak Wear category photo refresh: the 30 active Dresses, Bottoms and Skirts products now use dedicated internet-sourced dress, individual bottoms, and skirt photos; Tops and Y2K were left unchanged; checked through the public shop API.
