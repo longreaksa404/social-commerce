@@ -44,6 +44,8 @@ export function Notifications() {
   }
 
   const shown = uniqueById(list.data.pages.flatMap((page) => page.notifications))
+  const orderNotifications = shown.filter((notification) => notification.event_type !== 'low_stock')
+  const stockNotifications = shown.filter((notification) => notification.event_type === 'low_stock')
   return (
     <>
       {header}
@@ -52,11 +54,22 @@ export function Notifications() {
           {t.customers.notifications.emptyText}
         </EmptyState>
       ) : (
-        <Card className="divide-y divide-slate-100 overflow-hidden">
-          {shown.map((n) => (
-            <NotificationRow key={n.id} notification={n} unread={!n.read || fresh.has(n.id)} />
-          ))}
-        </Card>
+        <>
+          <Card className="divide-y divide-slate-100 overflow-hidden lg:hidden">
+            {shown.map((n) => (
+              <NotificationRow key={n.id} notification={n} unread={!n.read || fresh.has(n.id)} />
+            ))}
+          </Card>
+          <div className="hidden items-start gap-6 lg:grid lg:grid-cols-2">
+            <NotificationGroup
+              id="orders"
+              title={t.customers.notifications.ordersAndPayments}
+              notifications={orderNotifications}
+              fresh={fresh}
+            />
+            <NotificationGroup id="stock" title={t.customers.notifications.stock} notifications={stockNotifications} fresh={fresh} />
+          </div>
+        </>
       )}
       {list.hasNextPage && (
         <Button
@@ -69,6 +82,37 @@ export function Notifications() {
         </Button>
       )}
     </>
+  )
+}
+
+/** Laptops split the feed by what needs attention (founder's pick 5B,
+ * 2026-11-07); each column keeps its own newest-first order. */
+function NotificationGroup({
+  id,
+  title,
+  notifications,
+  fresh,
+}: {
+  id: string
+  title: string
+  notifications: SellerNotification[]
+  fresh: ReadonlySet<string>
+}) {
+  return (
+    <section className="min-w-0" aria-labelledby={`notifications-${id}`}>
+      <h2 id={`notifications-${id}`} className="mb-2 px-1 font-semibold text-slate-900">
+        {title}
+      </h2>
+      <Card className="divide-y divide-slate-100 overflow-hidden">
+        {notifications.map((notification) => (
+          <NotificationRow
+            key={notification.id}
+            notification={notification}
+            unread={!notification.read || fresh.has(notification.id)}
+          />
+        ))}
+      </Card>
+    </section>
   )
 }
 
@@ -176,17 +220,29 @@ function ListSkeleton({ header }: { header: ReactNode }) {
   return (
     <>
       {header}
-      <Card className="divide-y divide-slate-100">
-        {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="flex gap-3 px-4 py-3 sm:p-4">
-            <Skeleton className="size-10 shrink-0 rounded-full" />
-            <div className="flex-1 space-y-2 pt-0.5">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-4 w-48" />
-            </div>
-          </div>
-        ))}
+      <Card className="divide-y divide-slate-100 lg:hidden">
+        <SkeletonRows />
       </Card>
+      <div className="hidden gap-6 lg:grid lg:grid-cols-2">
+        <Card className="divide-y divide-slate-100">
+          <SkeletonRows />
+        </Card>
+        <Card className="divide-y divide-slate-100">
+          <SkeletonRows />
+        </Card>
+      </div>
     </>
   )
+}
+
+function SkeletonRows() {
+  return Array.from({ length: 4 }, (_, i) => (
+    <div key={i} className="flex gap-3 px-4 py-3 sm:p-4">
+      <Skeleton className="size-10 shrink-0 rounded-full" />
+      <div className="flex-1 space-y-2 pt-0.5">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-4 w-48 max-w-full" />
+      </div>
+    </div>
+  ))
 }

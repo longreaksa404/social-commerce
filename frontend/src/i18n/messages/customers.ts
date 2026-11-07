@@ -53,6 +53,8 @@ export const customers = {
   },
 
   notifications: {
+    ordersAndPayments: { en: 'Orders and payments', km: 'ការកុម្ម៉ង់ និងការបង់ប្រាក់' },
+    stock: { en: 'Stock', km: 'ស្តុក' },
     emptyTitle: { en: 'No notifications yet', km: 'មិនទាន់មានការជូនដំណឹងនៅឡើយ' },
     emptyText: {
       en: 'New orders and low stock show up here.',
