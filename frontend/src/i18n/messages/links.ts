@@ -30,6 +30,8 @@ export const links = {
   ready: { en: 'Link ready. Copy it or share it.', km: 'តំណរួចរាល់។ ចម្លង ឬចែករំលែកវា។' },
   whatItOpens: { en: 'What it opens', km: 'អ្វីដែលតំណនឹងបើក' },
   chooseWhat: { en: 'Choose…', km: 'ជ្រើសរើស…' },
+  chooseOpening: { en: 'Choose what the link opens.', km: 'សូមជ្រើសរើសអ្វីដែលតំណនឹងបើក។' },
+  choosePosting: { en: "Choose where you'll post it.", km: 'សូមជ្រើសរើសកន្លែងដែលអ្នកនឹងប៉ុស្តិ៍។' },
   products: { en: 'Products', km: 'ទំនិញ' },
   categories: { en: 'Categories', km: 'ប្រភេទ' },
   wherePost: { en: "Where you'll post it", km: 'កន្លែងដែលអ្នកនឹងប៉ុស្តិ៍' },

@@ -43,10 +43,18 @@ export function NewLink() {
   const [campaign, setCampaign] = useState('')
 
   const place = source === OTHER ? otherSource.trim() : source
+  const placeName = source === OTHER ? otherSource.trim() : LINK_SOURCES.find((item) => item.key === source)?.label
   // Until the lists arrive, a product picked by a Share button has no
   // option yet and the select would show the first one.
   const loading = products.isPending || categories.isPending
   const shown = products.data?.filter((p) => p.status === 'active' || target === `product:${p.id}`) ?? []
+  const targetName =
+    target === 'store'
+      ? l.wholeShop
+      : target.startsWith('product:')
+        ? shown.find((product) => `product:${product.id}` === target)?.name
+        : categories.data?.find((category) => `category:${category.id}` === target)?.name
+  const readySummary = targetName && placeName ? `${targetName} · ${placeName}` : null
 
   function submit(event: FormEvent) {
     event.preventDefault()
@@ -63,97 +71,97 @@ export function NewLink() {
   }
 
   return (
-    <>
+    <div className="max-w-[40rem]">
       <PageHeader title={l.newLink} back="/dashboard/links" />
       <title>{l.newLink}</title>
 
-      <form onSubmit={submit} className="space-y-4">
-        {/* Laptops: what it opens and its name side by side, the places
-            across under them, so the form uses the page's width. */}
-        <Card className="space-y-5 p-4 sm:p-6 lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-5 lg:space-y-0">
-          <Field label={l.whatItOpens} error={fieldError(create.error, 'target_id')} className="lg:col-start-1 lg:row-start-1">
-            {loading ? (
-              <Skeleton className="h-11 w-full rounded-xl" />
-            ) : (
-              <Select required value={target} onChange={(e) => setTarget(e.target.value)}>
-                <option value="" disabled>
-                  {l.chooseWhat}
-                </option>
-                <option value="store">{l.wholeShop}</option>
-                {shown.length > 0 && (
-                  <optgroup label={l.products}>
-                    {shown.map((p) => (
-                      <option key={p.id} value={`product:${p.id}`}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-                {categories.data && categories.data.length > 0 && (
-                  <optgroup label={l.categories}>
-                    {categories.data.map((c) => (
-                      <option key={c.id} value={`category:${c.id}`}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-              </Select>
-            )}
-          </Field>
-
-          <fieldset className="lg:col-span-2 lg:row-start-2">
-            <legend className="mb-1.5 block text-sm font-medium text-slate-700">{l.wherePost}</legend>
-            <div className="flex flex-wrap gap-2">
-              {[...LINK_SOURCES, { key: OTHER, label: l.other }].map((s) => (
-                <button
-                  key={s.key}
-                  type="button"
-                  aria-pressed={source === s.key}
-                  onClick={() => setSource(s.key)}
-                  className={`inline-flex min-h-11 items-center gap-2 rounded-full border text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-navy-600 ${
-                    hasLogo(s.key) ? 'pr-4 pl-2' : 'px-4'
-                  } ${
-                    source === s.key
-                      ? 'border-navy-600 bg-navy-50 text-navy-800'
-                      : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  <SourceLogo source={s.key} className="size-6" />
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          {source === OTHER && (
-            <Field label={l.where} error={fieldError(create.error, 'source')} className="lg:col-start-1 lg:row-start-3">
-              <Input
-                autoFocus
-                required
-                maxLength={30}
-                placeholder={l.wherePlaceholder}
-                value={otherSource}
-                onChange={(e) => setOtherSource(e.target.value)}
-              />
+      <form onSubmit={submit}>
+        <Card className="overflow-hidden">
+          <div className="space-y-5 p-4 sm:p-6">
+            <Field label={l.whatItOpens} error={fieldError(create.error, 'target_id')}>
+              {loading ? (
+                <Skeleton className="h-11 w-full rounded-xl" />
+              ) : (
+                <Select required value={target} onChange={(e) => setTarget(e.target.value)}>
+                  <option value="" disabled>
+                    {l.chooseWhat}
+                  </option>
+                  <option value="store">{l.wholeShop}</option>
+                  {shown.length > 0 && (
+                    <optgroup label={l.products}>
+                      {shown.map((p) => (
+                        <option key={p.id} value={`product:${p.id}`}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {categories.data && categories.data.length > 0 && (
+                    <optgroup label={l.categories}>
+                      {categories.data.map((c) => (
+                        <option key={c.id} value={`category:${c.id}`}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </Select>
+              )}
             </Field>
-          )}
 
-          <Field
-            label={l.name}
-            hint={l.nameHint}
-            error={fieldError(create.error, 'campaign')}
-            className="lg:col-start-2 lg:row-start-1"
-          >
-            <Input maxLength={60} value={campaign} onChange={(e) => setCampaign(e.target.value)} />
-          </Field>
+            <fieldset>
+              <legend className="mb-1.5 block text-sm font-medium text-slate-700">{l.wherePost}</legend>
+              <div className="flex flex-wrap gap-2">
+                {[...LINK_SOURCES, { key: OTHER, label: l.other }].map((s) => (
+                  <button
+                    key={s.key}
+                    type="button"
+                    aria-pressed={source === s.key}
+                    onClick={() => setSource(s.key)}
+                    className={`inline-flex min-h-11 items-center gap-2 rounded-full border text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-navy-600 ${
+                      hasLogo(s.key) ? 'pr-4 pl-2' : 'px-4'
+                    } ${
+                      source === s.key
+                        ? 'border-navy-600 bg-navy-50 text-navy-800'
+                        : 'border-slate-300 bg-surface text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <SourceLogo source={s.key} className="size-6" />
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
+            {source === OTHER && (
+              <Field label={l.where} error={fieldError(create.error, 'source')}>
+                <Input
+                  autoFocus
+                  required
+                  maxLength={30}
+                  placeholder={l.wherePlaceholder}
+                  value={otherSource}
+                  onChange={(e) => setOtherSource(e.target.value)}
+                />
+              </Field>
+            )}
+
+            <Field label={l.name} hint={l.nameHint} error={fieldError(create.error, 'campaign')}>
+              <Input maxLength={60} value={campaign} onChange={(e) => setCampaign(e.target.value)} />
+            </Field>
+
+            <ErrorMessage error={formError(create.error, ['target_id', 'source', 'campaign'])} />
+          </div>
+          <div className="flex items-center gap-3 border-t border-slate-200 bg-slate-50 px-4 py-3 sm:px-6">
+            <p className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
+              {readySummary ?? (!target ? l.chooseOpening : l.choosePosting)}
+            </p>
+            <Button type="submit" loading={create.isPending} disabled={!place || !target || loading}>
+              {l.make}
+            </Button>
+          </div>
         </Card>
-
-        <ErrorMessage error={formError(create.error, ['target_id', 'source', 'campaign'])} />
-        <Button type="submit" size="lg" loading={create.isPending} disabled={!place || !target || loading} className="w-full sm:w-auto">
-          {l.make}
-        </Button>
       </form>
-    </>
+    </div>
   )
 }

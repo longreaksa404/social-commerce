@@ -1,5 +1,7 @@
 # Project Status
 
+> **2026-11-07:** Seller dashboard redesign, step 6 of 10, not pushed: founder pick 6A; New link is now one 640 px card on laptops and the same single card on phones, with What it opens, Where you'll post it and Name in the order the seller decides them; its footer says what is still missing or summarizes the picks, and Make link ends the card; checked in English and Khmer with the frontend lint and production build.
+
 > **2026-11-07:** Seller dashboard redesign, step 5 of 10, not pushed: founder pick 5B; Notifications now fills a laptop page with two newest-first columns, Orders and payments on the left and Stock on the right, instead of stretching every notification into one very wide row; phones keep one newest-first list; checked in English and Khmer with the frontend lint and production build.
 
 > **2026-11-07:** Seller dashboard redesign, step 4 of 10, not pushed: founder pick 4B; a New order from a chat no longer puts the first eight products between Customer and Delivery; Items shows the chosen products and one Add products button, which opens a searchable product sheet from the bottom on phones (a small window on laptops), stays open while the seller adds several products, and closes with Done; checked with the frontend lint and production build.
