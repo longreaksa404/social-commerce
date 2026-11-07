@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, type ComponentType, type FormEvent } from 'react'
 import { Navigate, useParams } from 'react-router'
 import { useFeedback } from '../../components/feedback.ts'
-import { Button, Card, ErrorMessage, ErrorState, PageHeader, SavedNote, Skeleton } from '../../components/ui.tsx'
+import { Button, Card, ErrorMessage, ErrorState, PageHeader, Skeleton } from '../../components/ui.tsx'
 import type { Messages } from '../../i18n/core.ts'
 import { useT } from '../../i18n/useT.ts'
 import { api } from '../../lib/api.ts'
@@ -11,6 +11,7 @@ import { convertMoney, formatMoney } from '../../lib/money.ts'
 import type { Product, Store } from '../../lib/types.ts'
 import { keys, useRole, useStore } from '../queries.ts'
 import { useUnsavedChanges } from '../useUnsavedChanges.ts'
+import { FormSaveBar } from '../FormSaveBar.tsx'
 import {
   DeliveryFields,
   ContactFields,
@@ -166,29 +167,27 @@ function SectionForm({ id, store }: { id: SectionId; store: Store }) {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
-      <Card className="space-y-4 p-4 sm:p-6">
-        <Fields
-          store={store}
-          form={form}
-          update={(changes) => setForm((f) => ({ ...f, ...changes }))}
-          error={save.error}
-        />
-      </Card>
-      <ErrorMessage error={formError(save.error, section.fields(form))} />
-
-      {/* Pinned to the bottom so Save is always in reach (floating at the
-          bottom of the column on wide screens). */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-4 lg:rounded-2xl lg:border-0 lg:bg-surface/95 lg:pb-0 lg:shadow-card lg:ring-1 lg:ring-slate-900/6">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
-          <span className="min-w-0 flex-1 truncate text-sm text-slate-500" aria-live="polite">
-            {dirty ? t.common.unsaved : <SavedNote key={save.submittedAt} justSaved={save.isSuccess} />}
+    <form onSubmit={submit}>
+      <Card className="overflow-visible">
+        <div className="space-y-4 p-4 sm:p-6">
+          <Fields
+            store={store}
+            form={form}
+            update={(changes) => setForm((f) => ({ ...f, ...changes }))}
+            error={save.error}
+          />
+          <ErrorMessage error={formError(save.error, section.fields(form))} />
+        </div>
+        <FormSaveBar>
+          <span className="flex min-w-0 flex-1 items-center gap-2 text-sm text-slate-500" aria-live="polite">
+            {dirty && <span aria-hidden className="size-2 shrink-0 rounded-full bg-brand" />}
+            <span className="line-clamp-2 break-words">{dirty ? t.common.unsaved : t.common.saved}</span>
           </span>
           <Button type="submit" loading={save.isPending} disabled={!dirty} className="min-w-32">
             {t.common.save}
           </Button>
-        </div>
-      </div>
+        </FormSaveBar>
+      </Card>
     </form>
   )
 }

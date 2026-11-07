@@ -30,7 +30,7 @@ export function SettingsPage() {
       </div>
       {/* On laptops, once the role says which page opens first. */}
       {(section || (wide && open)) && (
-        <div className={section ? '' : 'max-lg:hidden'}>
+        <div className={`min-w-0 lg:max-w-2xl ${section ? '' : 'max-lg:hidden'}`}>
           <SettingsSection key={open} open={section ?? open} />
         </div>
       )}

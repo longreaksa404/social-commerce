@@ -1387,6 +1387,14 @@ KHQR), three (the start page's 3D phone only, its own chunk loaded by
 | `/shop/:storeSlug/orders` | `ShopOrders` | Orders placed on this device |
 | `*` | redirect to `/` | |
 
+Settings layout (founder's pick 7A, 2026-11-07): `SettingsPage.tsx` keeps
+the 22rem menu beside an open setting capped at `max-w-2xl` (672 px).
+Store-setting forms put their state and Save button in the card's footer;
+`dashboard/FormSaveBar.tsx` shows a measured pinned copy only while that
+footer is outside the viewport, hides it for a phone keyboard, and uses
+the form's own width on laptops. The footer says Unsaved changes with a
+navy dot, or Saved; long Settings menu titles wrap to two lines.
+
 The dashboard shell has a bottom tab bar on phones (Orders, Customers,
 Products, Links, Settings) and a sidebar from `lg` (from 1024 to 1279px a
 slim rail, `w-22`: icons with their names under them, the logo, share and
