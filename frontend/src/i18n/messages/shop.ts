@@ -128,7 +128,7 @@ export const shop = {
     // Typed into the customer's Telegram chat with the seller.
     askSellerText: {
       en: (name: string, url: string) => `Hi! I'd like to ask about ${name}: ${url}`,
-      km: (name: string, url: string) => `សួស្តី! ខ្ញុំចង់សួរអំពី ${name}៖ ${url}`,
+      km: (name: string, url: string) => `សួស្ដី! ខ្ញុំចង់សួរអំពី ${name}៖ ${url}`,
     },
     photos: { en: 'Product photos', km: 'រូបថតទំនិញ' },
     photoOf: {

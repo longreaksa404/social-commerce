@@ -109,7 +109,7 @@ export const checkout = {
   pickup: { en: 'Pickup', km: 'មកយកផ្ទាល់' },
   deliveryByShop: { en: 'Delivery by the shop', km: 'ហាងដឹកជូនផ្ទាល់' },
   courierOptional: { en: 'Delivery company (optional)', km: 'ក្រុមហ៊ុនដឹកជញ្ជូន (មិនចាំបាច់)' },
-  shopChooses: { en: 'Shop chooses', km: 'ឲ្យហាងជ្រើសរើស' },
+  shopChooses: { en: 'Shop chooses', km: 'ឱ្យហាងជ្រើសរើស' },
   howGet: { en: 'How do you want to get your order?', km: 'តើអ្នកចង់ទទួលការកុម្ម៉ង់តាមរបៀបណា?' },
   freeFromAmount: { en: (amount: string) => `orders from ${amount}`, km: (amount: string) => `ការកុម្ម៉ង់ចាប់ពី ${amount}` },
   freeFromItems: { en: (n: number) => `${n} or more items`, km: (n: number) => `ទំនិញចាប់ពី ${n} ឡើងទៅ` },

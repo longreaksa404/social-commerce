@@ -91,7 +91,7 @@ export const order = {
   // Typed into the customer's Telegram chat with the seller.
   askAboutText: {
     en: (n: number, url: string) => `Hi! I'd like to ask about my order #${n}: ${url}`,
-    km: (n: number, url: string) => `សួស្តី! ខ្ញុំចង់សួរអំពីការកុម្ម៉ង់ #${n} របស់ខ្ញុំ៖ ${url}`,
+    km: (n: number, url: string) => `សួស្ដី! ខ្ញុំចង់សួរអំពីការកុម្ម៉ង់ #${n} របស់ខ្ញុំ៖ ${url}`,
   },
   yourOrders: { en: 'All your orders', km: 'ការកុម្ម៉ង់ទាំងអស់របស់អ្នក' },
   copyLink: { en: 'Copy link', km: 'ចម្លងតំណ' },
@@ -211,7 +211,7 @@ export const order = {
       en: (shop: string) =>
         `Paying from another phone? Scan this screen. The QR works for 24 hours; reopen the page for a new one. ${shop} confirms it here.`,
       km: (shop: string) =>
-        `បង់ពីទូរស័ព្ទផ្សេង? ស្កេនអេក្រង់នេះ។ QR ប្រើបាន 24 ម៉ោង; បើកទំព័រម្ដងទៀតដើម្បីបាន QR ថ្មី។ ${shop} នឹងបញ្ជាក់នៅទីនេះ។`,
+        `បង់ពីទូរស័ព្ទផ្សេង? ស្កេនអេក្រង់នេះ។ QR ប្រើបាន 24 ម៉ោង។ បើកទំព័រម្ដងទៀតដើម្បីបាន QR ថ្មី។ ${shop} នឹងបញ្ជាក់នៅទីនេះ។`,
     },
     // "Not paid yet. Transfer $12.00 to:"
     bankBefore: { en: 'Not paid yet. Transfer', km: 'មិនទាន់បង់។ សូមផ្ទេរ' },
@@ -234,7 +234,7 @@ export const order = {
     iPaidNoChat: { en: "I've paid", km: 'ខ្ញុំបានបង់ហើយ' },
     iPaidText: {
       en: (n: number, total: string) => `Hi! I've paid order #${n}, ${total}. Here's my receipt:`,
-      km: (n: number, total: string) => `សួស្តី! ខ្ញុំបានបង់ការកុម្ម៉ង់ #${n} ចំនួន ${total} ហើយ។ នេះជាបង្កាន់ដៃរបស់ខ្ញុំ៖`,
+      km: (n: number, total: string) => `សួស្ដី! ខ្ញុំបានបង់ការកុម្ម៉ង់ #${n} ចំនួន ${total} ហើយ។ នេះជាបង្កាន់ដៃរបស់ខ្ញុំ៖`,
     },
     told: {
       en: (shop: string, time: string) => `You told ${shop} you paid (${time}). They'll confirm it here.`,
@@ -248,7 +248,7 @@ export const order = {
       en: (n: number) =>
         `Write “#${n}” in the transfer note. The seller confirms it here.`,
       km: (n: number) =>
-        `សូមសរសេរ “#${n}” ក្នុងចំណាំនៃការផ្ទេរ។ អ្នកលក់នឹងបញ្ជាក់នៅទីនេះ។`,
+        `សូមសរសេរ “#${n}” ក្នុងកំណត់ចំណាំនៃការផ្ទេរប្រាក់។ អ្នកលក់នឹងបញ្ជាក់នៅទីនេះ។`,
     },
   },
 } satisfies Tree

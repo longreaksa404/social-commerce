@@ -9,10 +9,10 @@ export const links = {
   yourShopLink: { en: 'Your shop link', km: 'តំណហាងរបស់អ្នក' },
   // The Links tab's first part (pick 11A, 2026-10-25).
   yourShop: { en: 'Your shop', km: 'ហាងរបស់អ្នក' },
-  emptyTitle: { en: 'See which posts bring orders', km: 'មើលថាប៉ុស្តិ៍ណាខ្លះនាំមកការកុម្ម៉ង់' },
+  emptyTitle: { en: 'See which posts bring orders', km: 'មើលថាការបង្ហោះណាខ្លះនាំមកការកុម្ម៉ង់' },
   emptyText: {
     en: 'Make a link for each post to count its views and orders.',
-    km: 'បង្កើតតំណមួយសម្រាប់ប៉ុស្តិ៍នីមួយៗ ដើម្បីរាប់អ្នកមើល និងការកុម្ម៉ង់។',
+    km: 'បង្កើតតំណមួយសម្រាប់ការបង្ហោះនីមួយៗ ដើម្បីរាប់អ្នកមើល និងការកុម្ម៉ង់។',
   },
   views: {
     en: (n: number) => `${n} ${n === 1 ? 'view' : 'views'}`,
@@ -31,10 +31,10 @@ export const links = {
   whatItOpens: { en: 'What it opens', km: 'អ្វីដែលតំណនឹងបើក' },
   chooseWhat: { en: 'Choose…', km: 'ជ្រើសរើស…' },
   chooseOpening: { en: 'Choose what the link opens.', km: 'សូមជ្រើសរើសអ្វីដែលតំណនឹងបើក។' },
-  choosePosting: { en: "Choose where you'll post it.", km: 'សូមជ្រើសរើសកន្លែងដែលអ្នកនឹងប៉ុស្តិ៍។' },
+  choosePosting: { en: "Choose where you'll post it.", km: 'សូមជ្រើសរើសកន្លែងដែលអ្នកនឹងបង្ហោះ។' },
   products: { en: 'Products', km: 'ទំនិញ' },
   categories: { en: 'Categories', km: 'ប្រភេទ' },
-  wherePost: { en: "Where you'll post it", km: 'កន្លែងដែលអ្នកនឹងប៉ុស្តិ៍' },
+  wherePost: { en: "Where you'll post it", km: 'កន្លែងដែលអ្នកនឹងបង្ហោះ' },
   // Share on a product or category (test list #9, 2026-10-24).
   shareTitle: { en: (name: string) => `Share ${name}`, km: (name: string) => `ចែករំលែក ${name}` },
   other: { en: 'Other', km: 'ផ្សេងទៀត' },

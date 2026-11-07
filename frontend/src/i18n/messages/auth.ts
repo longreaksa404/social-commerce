@@ -173,7 +173,7 @@ export const auth = {
     phoneLabel: { en: 'Phone number', km: 'លេខទូរស័ព្ទ' },
     passwordHint: { en: 'At least 8 characters.', km: 'យ៉ាងតិច 8 តួអក្សរ។' },
     confirmPassword: { en: 'Confirm password', km: 'បញ្ជាក់ពាក្យសម្ងាត់' },
-    confirmPasswordHint: { en: 'Re-enter your password.', km: 'បញ្ចូលពាក្យសម្ងាត់ម្តងទៀត។' },
+    confirmPasswordHint: { en: 'Re-enter your password.', km: 'បញ្ចូលពាក្យសម្ងាត់ម្ដងទៀត។' },
     passwordMismatch: { en: 'Passwords do not match.', km: 'ពាក្យសម្ងាត់ទាំងពីរមិនត្រូវគ្នាទេ។' },
     step1Title: { en: 'Verify phone', km: 'ផ្ទៀងផ្ទាត់ទូរស័ព្ទ' },
     step2Title: { en: 'Your shop', km: 'ហាងរបស់អ្នក' },

@@ -181,7 +181,7 @@ export const settings = {
   couriers: { en: 'Couriers (optional)', km: 'ក្រុមហ៊ុនដឹកជញ្ជូន (មិនចាំបាច់)' },
   couriersHint: {
     en: 'Customers can pick one, or leave it to you.',
-    km: 'អតិថិជនអាចជ្រើសមួយ ឬទុកឲ្យអ្នកជ្រើស។',
+    km: 'អតិថិជនអាចជ្រើសមួយ ឬទុកឱ្យអ្នកជ្រើស។',
   },
   courier: { en: 'Courier', km: 'ក្រុមហ៊ុនដឹក' },
   removeCourier: { en: (name: string) => `Remove ${name}`, km: (name: string) => `ដក ${name} ចេញ` },
