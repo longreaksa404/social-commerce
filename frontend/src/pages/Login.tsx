@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useId, useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { ChevronDown, KeyRound } from 'lucide-react'
 import { SocialButtons } from '../auth/SocialButtons.tsx'
@@ -10,9 +10,9 @@ import { AuthLayout } from './AuthLayout.tsx'
 import { LoginField } from './LoginField.tsx'
 
 /**
- * Approach B: Telegram Hero (Primary 1-Tap) + Collapsible Password Box.
- * Tailored for shop owners who log in with Telegram, while keeping
- * email / password login cleanly accessible for staff without visual clutter.
+ * Telegram first for shop owners, then the password login folded under a
+ * line for staff and password accounts, all in AuthLayout's one card (no
+ * boxes inside it, 2026-11-07).
  */
 export function Login() {
   const { status, login: logIn } = useAuth()
@@ -25,6 +25,7 @@ export function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<unknown>(null)
   const [pending, setPending] = useState(false)
+  const formId = useId()
   const t = useT()
 
   const from = (location.state as { from?: string } | null)?.from ?? '/dashboard'
@@ -56,97 +57,80 @@ export function Login() {
         </>
       }
     >
-      <div className="space-y-4">
-        {/* ── 1. TELEGRAM 1-TAP LOGIN ── */}
-        <div className="rounded-2xl border border-slate-200 bg-surface p-4 shadow-xs">
-          <TelegramLogIn withDivider={false} onLoggedIn={() => navigate(from, { replace: true })} />
-        </div>
+      {/* 1. Telegram, the one strong button, and a plain line under it. */}
+      <TelegramLogIn onLoggedIn={() => navigate(from, { replace: true })} />
 
-        {/* ── 2. COLLAPSIBLE PASSWORD LOGIN ── */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-surface shadow-xs transition-colors">
-          <button
-            type="button"
-            onClick={() => {
-              setShowPassword((prev) => !prev)
-              setError(null)
-            }}
-            className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-slate-50/80"
-            aria-expanded={showPassword}
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-                <KeyRound className="size-4" aria-hidden />
-              </div>
-              <div className="min-w-0 truncate">
-                <span className="block text-sm font-semibold text-slate-900 truncate">
-                  {t.auth.login.loginWithPassword}
-                </span>
-                <span className="block text-xs text-slate-500 truncate">
-                  {t.auth.login.loginWithPasswordDesc}
-                </span>
+      {/* 2. Password login for staff and password accounts, folded away
+          unless the page was opened for it (route state byEmail). */}
+      <div>
+        <button
+          type="button"
+          onClick={() => {
+            setShowPassword((prev) => !prev)
+            setError(null)
+          }}
+          className="-mx-2 flex w-[calc(100%+1rem)] min-h-14 items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-navy-600"
+          aria-expanded={showPassword}
+          aria-controls={formId}
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+            <KeyRound className="size-4" aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold text-slate-900">{t.auth.login.loginWithPassword}</span>
+            <span className="mt-0.5 block text-xs leading-5 text-slate-500">{t.auth.login.loginWithPasswordDesc}</span>
+          </span>
+          <ChevronDown
+            className={`size-5 shrink-0 text-slate-400 transition-transform duration-200 ${
+              showPassword ? 'rotate-180 text-navy-700' : ''
+            }`}
+            aria-hidden
+          />
+        </button>
+
+        {showPassword && (
+          <form id={formId} onSubmit={submit} className="mt-4 space-y-4 animate-fade-in">
+            <LoginField
+              value={login}
+              onChange={setLogin}
+              byEmail={byEmail}
+              onByEmailChange={setByEmail}
+              enterKeyHint="next"
+            />
+
+            <div>
+              <Field label={t.auth.password}>
+                <PasswordInput
+                  autoComplete="current-password"
+                  enterKeyHint="go"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Field>
+              <div className="text-right">
+                <Link
+                  to="/forgot-password"
+                  state={{ login, byEmail }}
+                  className="inline-flex min-h-11 items-center text-xs font-semibold text-navy-700 link hover:text-navy-900"
+                >
+                  {t.auth.forgot.link}
+                </Link>
               </div>
             </div>
-            <ChevronDown
-              className={`size-4 shrink-0 text-slate-400 transition-transform duration-200 ${
-                showPassword ? 'rotate-180 text-navy-700' : ''
-              }`}
-              aria-hidden
-            />
-          </button>
 
-          {showPassword && (
-            <form
-              onSubmit={submit}
-              className="border-t border-slate-100 p-4 pt-3 space-y-4 animate-fade-in"
-            >
-              <LoginField
-                value={login}
-                onChange={setLogin}
-                byEmail={byEmail}
-                onByEmailChange={setByEmail}
-                enterKeyHint="next"
-              />
+            <ErrorMessage error={error} />
 
-              <div>
-                <Field label={t.auth.password}>
-                  <PasswordInput
-                    autoComplete="current-password"
-                    enterKeyHint="go"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </Field>
-                <div className="mt-1 text-right">
-                  <Link
-                    to="/forgot-password"
-                    state={{ login, byEmail }}
-                    className="inline-flex min-h-9 items-center text-xs font-semibold text-navy-700 link hover:text-navy-900"
-                  >
-                    {t.auth.forgot.link}
-                  </Link>
-                </div>
-              </div>
+            <Button type="submit" variant="secondary" size="lg" loading={pending} className="w-full">
+              {t.auth.logIn}
+            </Button>
 
-              <ErrorMessage error={error} />
-
-              <Button
-                type="submit"
-                variant="secondary"
-                size="lg"
-                loading={pending}
-                className="w-full"
-              >
-                {t.auth.logIn}
-              </Button>
-
-              {pending && <SlowNotice />}
-            </form>
-          )}
-        </div>
-
-        <SocialButtons label={t.auth.social.orLogIn} />
+            {pending && <SlowNotice />}
+          </form>
+        )}
       </div>
+
+      <SocialButtons label={t.auth.social.orLogIn} />
     </AuthLayout>
   )
 }

@@ -102,7 +102,6 @@ export const auth = {
       en: 'Staff log in with their phone number and password below.',
       km: 'បុគ្គលិកចូលគណនីដោយលេខទូរស័ព្ទ និងពាក្យសម្ងាត់ខាងក្រោម។',
     },
-    orPassword: { en: 'or with your password', km: 'ឬចូលដោយពាក្យសម្ងាត់' },
   },
   login: {
     title: { en: 'Welcome back', km: 'សូមស្វាគមន៍ការត្រឡប់មកវិញ' },

@@ -1,10 +1,11 @@
-import { AlertCircle, CircleCheck, LoaderCircle, RotateCcw, Send } from 'lucide-react'
+import { AlertCircle, CircleCheck, LoaderCircle, RotateCcw } from 'lucide-react'
 import { useEffect, type ReactNode } from 'react'
 import { buttonClass } from '../components/styles.ts'
 import { Button, ErrorMessage } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
 import { formatPhone } from '../lib/orders.ts'
 import type { PhoneCheck as Check } from '../lib/types.ts'
+import { TelegramIcon } from './TelegramIcon.tsx'
 import { usePhoneCheck } from './usePhoneCheck.ts'
 
 /**
@@ -131,7 +132,7 @@ export function PhoneCheck({
             }}
             className={`${buttonClass(opened ? 'secondary' : 'primary')} w-full ${check ? '' : 'pointer-events-none opacity-50'}`}
           >
-            <Send aria-hidden className="size-4" />
+            <TelegramIcon />
             {p.verify}
           </a>
           <p className="mt-2 flex items-start gap-2 text-xs leading-5 text-slate-500" aria-live="polite">

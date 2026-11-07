@@ -43,14 +43,14 @@ export function LoginField({
           onChange={(e) => onChange(e.target.value)}
         />
       </Field>
-      <div className="mt-1 text-right">
+      <div className="text-right">
         <button
           type="button"
           onClick={() => {
             onByEmailChange(!byEmail)
             onChange('')
           }}
-          className="inline-flex min-h-9 items-center text-xs font-semibold text-navy-700 link hover:text-navy-900"
+          className="inline-flex min-h-11 items-center text-xs font-semibold text-navy-700 link hover:text-navy-900"
         >
           {byEmail ? t.auth.usePhone : t.auth.useEmail}
         </button>

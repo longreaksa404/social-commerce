@@ -139,38 +139,36 @@ export function Register() {
         </>
       }
     >
-      {/* ── 2-Step Centered Stepper ── */}
       <StepBar currentStep={isVerified ? 2 : 1} />
 
       {!isVerified ? (
-        /* ──────── STEP 1: VERIFY PHONE WITH TELEGRAM ──────── */
-        <div className="mt-6 space-y-4 animate-fade-in">
-          {/* Telegram Phone Check Button / Component */}
-          <div className="rounded-xl border border-slate-300 bg-surface p-4">
-            <PhoneCheck
-              key={phoneKey}
-              label={t.auth.register.phoneLabel}
-              error={fieldError(error, 'phone_check')}
-              onChange={onPhone}
-              resume={opened}
-              onOpen={setOpened}
-              required
-              taken={{
-                message: t.auth.phoneCheck.taken,
-                action: (
-                  <Link to="/login" className={buttonClass()}>
-                    {t.auth.logIn}
-                  </Link>
-                ),
-              }}
-            />
-          </div>
+        // Step 1: verify the phone with Telegram, straight in the card.
+        <div className="mt-7 animate-fade-in">
+          <PhoneCheck
+            key={phoneKey}
+            label={t.auth.register.phoneLabel}
+            error={fieldError(error, 'phone_check')}
+            onChange={onPhone}
+            resume={opened}
+            onOpen={setOpened}
+            required
+            taken={{
+              message: t.auth.phoneCheck.taken,
+              action: (
+                <Link to="/login" className={buttonClass()}>
+                  {t.auth.logIn}
+                </Link>
+              ),
+            }}
+          />
 
           <SocialButtons label={t.auth.social.orSignUp} />
         </div>
       ) : (
-        /* ──────── STEP 2: SHOP NAME & PASSWORDS ──────── */
-        <form onSubmit={submit} className="mt-6 space-y-4 animate-fade-in">
+        // Step 2: the shop's name and password. Nothing takes focus on
+        // arrival, so coming back from Telegram neither opens the keyboard
+        // nor jumps past the verified number (2026-11-07).
+        <form onSubmit={submit} className="mt-7 space-y-4 animate-fade-in">
           <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
             <CircleCheck className="size-5 shrink-0 text-emerald-600" aria-hidden />
             <span className="sr-only">{t.auth.phoneCheck.verified}</span>
@@ -194,7 +192,6 @@ export function Register() {
           >
             <Input
               required
-              autoFocus
               maxLength={100}
               autoCapitalize="words"
               enterKeyHint="next"
@@ -264,13 +261,15 @@ export function Register() {
 // ---------------------------------------------------------------------------
 // Helpers & Local Components
 
-/** Two numbered milestones; the current step is also named to screen readers. */
+/** Two numbered milestones joined by a thin neutral line (from one
+ * circle's middle to the other's, under them); the current step is navy
+ * and named to screen readers. Each label wraps under its own circle. */
 function StepBar({ currentStep }: { currentStep: 1 | 2 }) {
   const t = useT()
   const steps = [t.auth.register.step1Title, t.auth.register.step2Title]
 
   return (
-    <ol className="mx-auto grid w-full max-w-sm grid-cols-2 gap-4">
+    <ol className="relative mx-auto grid w-full max-w-sm grid-cols-2 before:absolute before:inset-x-1/4 before:top-4 before:h-px before:bg-slate-300">
       {steps.map((label, index) => {
         const step = index + 1
         const current = step === currentStep
@@ -278,19 +277,17 @@ function StepBar({ currentStep }: { currentStep: 1 | 2 }) {
           <li
             key={step}
             aria-current={current ? 'step' : undefined}
-            className="flex min-w-0 flex-col items-center gap-1.5 text-center"
+            className="relative flex min-w-0 flex-col items-center gap-1.5 px-2 text-center"
           >
             <span
               aria-hidden
-              className={`flex size-8 items-center justify-center rounded-full text-xs font-semibold ${
-                current
-                  ? 'bg-accent text-on-accent'
-                  : 'border border-slate-300 bg-surface text-slate-500'
+              className={`flex size-8 items-center justify-center rounded-full text-xs font-semibold ring-4 ring-surface ${
+                current ? 'bg-accent text-on-accent' : 'border border-slate-300 bg-surface text-slate-500'
               }`}
             >
               {step}
             </span>
-            <span className={`text-xs ${current ? 'font-semibold text-slate-900' : 'text-slate-500'}`}>
+            <span className={`text-xs leading-5 ${current ? 'font-semibold text-slate-900' : 'text-slate-500'}`}>
               {label}
             </span>
           </li>

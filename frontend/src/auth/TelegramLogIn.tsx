@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { LoaderCircle, RotateCcw, Send } from 'lucide-react'
+import { LoaderCircle, RotateCcw } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link } from 'react-router'
 import { buttonClass } from '../components/styles.ts'
@@ -7,31 +7,23 @@ import { Button, ErrorMessage } from '../components/ui.tsx'
 import { useT } from '../i18n/useT.ts'
 import { api, ApiError, type AccessToken } from '../lib/api.ts'
 import { formatPhone } from '../lib/orders.ts'
+import { TelegramIcon } from './TelegramIcon.tsx'
 import { useAuth } from './useAuth.ts'
 import { usePhoneCheck } from './usePhoneCheck.ts'
 
 /** "Log in with Telegram", first on Log in (founder's test list #30,
  * 2026-10-24): open the bot, share the number, come back, logged in. For
  * shop owners; staff log in with their password (#25), and the owner's
- * password stays too (#29). A number with no shop gets Create your shop. */
-export function TelegramLogIn({
-  onLoggedIn,
-  withDivider = true,
-}: {
-  onLoggedIn: () => void
-  withDivider?: boolean
-}) {
+ * password stays too (#29). A number with no shop gets Create your shop.
+ * A plain line under it separates the password login; neither shows
+ * where the bot isn't set up. */
+export function TelegramLogIn({ onLoggedIn }: { onLoggedIn: () => void }) {
   const block = useBlock(onLoggedIn)
-  const t = useT()
   if (block === null) return null
   return (
     <>
       {block}
-      {withDivider && (
-        <p className="my-5 flex items-center gap-3 text-sm text-slate-500 before:h-px before:flex-1 before:bg-slate-200 after:h-px after:flex-1 after:bg-slate-200">
-          {t.auth.telegramLogin.orPassword}
-        </p>
-      )}
+      <hr className="my-5 border-slate-200" />
     </>
   )
 }
@@ -116,7 +108,7 @@ function useBlock(onLoggedIn: () => void) {
         onClick={() => setOpened(true)}
         className={`${buttonClass(opened ? 'secondary' : 'primary', 'lg')} w-full ${check ? '' : 'pointer-events-none opacity-50'}`}
       >
-        <Send aria-hidden className="size-4" />
+        <TelegramIcon />
         {l.button}
       </a>
       <p aria-live="polite" className="mt-2 text-xs leading-5 text-slate-500">

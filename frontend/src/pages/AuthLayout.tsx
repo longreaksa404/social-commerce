@@ -17,22 +17,28 @@ export function BrandMark({ className = '' }: { className?: string }) {
   )
 }
 
-/** A soft light behind the top of the page. Put it in a `relative
- * isolate` box, so it sits under that box's content but over its color. */
-export function Glow() {
+/** The start page's top bar, measured the same (64 px, the safe area,
+ * `max-w-6xl`, its padding and bottom line) but in the page's flow, not
+ * fixed: the start page's bar (home/TopBar.tsx) is a fixed layer for an
+ * iPhone flicker fix, and a fixed bar here would take room from the
+ * keyboard. No Log in or Create your shop: the link under the form is it. */
+function AuthHeader() {
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(70%_100%_at_50%_0%,var(--color-navy-100),transparent)] opacity-70"
-    />
+    <header className="border-b border-slate-200 bg-slate-50 pt-[env(safe-area-inset-top)]">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-8">
+        <BrandMark className="text-xl sm:text-2xl" />
+        <LanguageSwitch />
+      </div>
+    </header>
   )
 }
 
-/** Phones: full-bleed white, the brand above the form (every pixel of
- * width counts at 360px); a centered card from `sm` up. Laptops: split in
- * two, a navy half with the brand, what it does and an example of an
- * order coming in, and the form on the other half (founder's pick,
- * 2026-10-08). */
+/** Log in, Create your shop and the other account pages, as part of the
+ * start page (2026-11-07): its grey page and top bar, the form in one
+ * white card. Laptops: the start page's `max-w-6xl` grid, the pitch on
+ * the left and the card (at most 28rem) on the right, centred up and
+ * down only while it fits; taller forms start at the top and scroll.
+ * Phones: the card alone, the page scrolls as usual. */
 export function AuthLayout({
   title,
   subtitle,
@@ -45,65 +51,50 @@ export function AuthLayout({
   footer: ReactNode
 }) {
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-2">
-      <Pitch />
-      <main className="relative isolate flex min-h-dvh flex-col bg-surface px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:items-center sm:justify-center sm:bg-slate-50 sm:px-4 lg:bg-surface">
-        <div className="lg:hidden">
-          <Glow />
-        </div>
-        <div className="mb-8 flex items-center justify-between gap-3 sm:mb-6 sm:w-full sm:max-w-md lg:hidden">
-          <BrandMark />
-          <LanguageSwitch />
-        </div>
-        <div className="w-full sm:max-w-md sm:rounded-2xl sm:bg-surface sm:p-8 sm:shadow-card sm:ring-1 sm:ring-slate-900/6 lg:p-0 lg:shadow-none lg:ring-0">
-          <div className="flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
-            {/* Laptops: the switch on the title's row, so the form starts
-                higher and the price shows on a 768 px screen (founder's
-                pick 6A, sign-up check 2026-10-18). */}
-            <div className="hidden shrink-0 lg:block">
-              <LanguageSwitch />
-            </div>
+    <div className="flex min-h-dvh flex-col bg-slate-50">
+      <AuthHeader />
+      <main className="flex flex-1 flex-col pt-6 pb-[calc(env(safe-area-inset-bottom)+2rem)] sm:pt-10 lg:py-12">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:my-auto sm:px-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-center lg:gap-x-[clamp(3rem,7vw,7rem)]">
+          <Pitch />
+          <div className="mx-auto w-full max-w-md lg:max-w-none">
+            <section className="rounded-2xl bg-surface p-5 shadow-card ring-1 ring-slate-900/6 sm:p-8">
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
+              {subtitle && <p className="mt-1.5 text-sm text-slate-500">{subtitle}</p>}
+              <div className="mt-6">{children}</div>
+            </section>
+            <p className="mt-6 text-center text-sm text-slate-600">{footer}</p>
           </div>
-          {subtitle && <p className="mt-1.5 text-sm text-slate-500">{subtitle}</p>}
-          <div className="mt-6 lg:mt-5">{children}</div>
         </div>
-        <p className="mt-6 text-center text-sm text-slate-600 lg:mt-5">{footer}</p>
       </main>
     </div>
   )
 }
 
-/** The other half on laptops: the page grey (the app's dark grey in dark
- * mode) with the brand, what it does and an example order. It was solid
- * navy; navy is never a background (founder's pick 9A, 2026-11-06). */
+/** Laptops only, left of the card: the start page's headline, what Oak
+ * Order does and an example of an order coming in, in its type sizes. */
 function Pitch() {
   const t = useT()
   const p = t.auth.pitch
   return (
-    <aside className="hidden flex-col border-r border-slate-200 bg-slate-50 p-12 lg:flex">
-      <BrandMark />
-      <div className="my-auto max-w-md">
-        <p className="text-3xl leading-tight font-bold tracking-tight text-balance">
-          <Phrases text={t.auth.home.title} />
-        </p>
-        <p className="mt-4 text-lg leading-relaxed text-slate-600">{p.text}</p>
-        {/* An example, said so: what a new order looks like arriving. */}
-        <div className="mt-10">
-          <p className="mb-2 text-xs font-semibold text-slate-500">{p.example}</p>
-          <div className="flex items-center gap-3 rounded-2xl bg-surface p-4 shadow-card ring-1 ring-slate-900/6">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-oak-ink">
-              <ShoppingBag aria-hidden className="size-5" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-semibold">{p.sampleTitle}</span>
-              <span className="block text-sm text-slate-600">{p.sampleText}</span>
-            </span>
-            <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-bold text-on-accent">{p.sampleTag}</span>
-          </div>
+    <aside className="hidden lg:block">
+      <p className="text-[clamp(2.5rem,4.2vw,3.5rem)] font-semibold text-balance text-slate-900 [&:lang(en)]:leading-[1.06] [&:lang(en)]:tracking-[-0.035em] [&:lang(km)]:leading-[1.4]">
+        <Phrases text={t.auth.home.title} />
+      </p>
+      <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-600">{p.text}</p>
+      {/* An example, said so: what a new order looks like arriving. */}
+      <div className="mt-10 max-w-sm">
+        <p className="mb-2 text-xs font-semibold text-slate-500">{p.example}</p>
+        <div className="flex items-center gap-3 rounded-2xl bg-surface p-4 shadow-card ring-1 ring-slate-900/6">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-oak-ink">
+            <ShoppingBag aria-hidden className="size-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold">{p.sampleTitle}</span>
+            <span className="block text-sm text-slate-600">{p.sampleText}</span>
+          </span>
+          <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-bold text-on-accent">{p.sampleTag}</span>
         </div>
       </div>
-      <p className="text-sm text-slate-500">order.oaksolve.com</p>
     </aside>
   )
 }
