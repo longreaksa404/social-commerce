@@ -126,5 +126,5 @@ export const products = {
   // Leaving a form with unsaved changes.
   discardTitle: { en: 'Discard changes?', km: 'បោះបង់ការកែប្រែ?' },
   discardMessage: { en: "Your changes haven't been saved.", km: 'ការកែប្រែរបស់អ្នកមិនទាន់បានរក្សាទុកទេ។' },
-  discard: { en: 'Discard', km: 'បោះបង់' },
+  discard: { en: 'Discard', km: 'មិនរក្សាទុក' },
 } satisfies Tree
