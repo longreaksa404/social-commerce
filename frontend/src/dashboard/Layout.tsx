@@ -61,12 +61,12 @@ function Shell() {
   // New link too.
   const linkScreen = useMatch('/dashboard/links/:linkId') !== null
   const subPage = customerScreen || categoriesScreen || notificationsScreen || linkScreen
-  // Laptops: every page shares one centred 1,024px content width (founder's
-  // pick 1B, 2026-11-07). This keeps the page frame steady while moving
-  // between tabs and keeps very wide screens from stretching the content.
+  // Laptops: every page uses the room beside the sidebar, up to 1,440px
+  // (founder, 2026-11-07). Data-heavy pages can fill that workspace; forms
+  // and short lists set their own readable inner width.
   // Every page starts at the same left edge beside the sidebar, so the
   // title doesn't jump between pages (UI check #9, founder 2026-10-17).
-  const width = 'max-w-3xl lg:max-w-5xl'
+  const width = 'max-w-3xl lg:max-w-[90rem]'
 
   // Opened by the admin (D1A): its bar across the top, the sticky bars
   // under it.

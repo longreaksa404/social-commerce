@@ -1714,11 +1714,13 @@ through `<Phrases text>` (`i18n/Phrases.tsx`): it breaks only at spaces and
 - **Mobile-first.** Base classes are for phones; `sm:` (640 px) turns
   edge-to-edge cards into rounded inset cards; `lg:` (1024 px) switches to
   the sidebar layout. The dashboard column is `max-w-3xl` on phones and
-  tablets and one centred `lg:max-w-5xl` (1,024 px) for every page on
-  laptops (`Layout.tsx`; founder's pick 1B, 2026-11-07), so changing tabs
-  keeps one steady frame and very wide screens do not stretch the
-  content; the shop is `max-w-5xl`. Seller laptop pages use 24 px shell
-  padding, 22 px page titles, 20 px shared-section padding and 8 px
+  tablets; on laptops it fills the room beside the sidebar up to
+  `lg:max-w-[90rem]` (1,440 px), centred only after that (`Layout.tsx`;
+  founder, 2026-11-07). Data-heavy pages use that workspace: Orders and an
+  opened Customer become balanced columns at `xl`. Focused content keeps
+  its own readable cap (for example Settings 672 px, New link 640 px and
+  Categories 768 px); the shop is `max-w-5xl`. Seller laptop pages use
+  24 px shell padding, 22 px page titles, 20 px shared-section padding and 8 px
   customer-table row padding; phones keep their spacing (founder's pick
   10A, 2026-11-07; scoped by `.seller-dashboard-page` in `index.css`).
 - **Write classes for light mode only.** Dark mode (`:root[data-theme='dark']`

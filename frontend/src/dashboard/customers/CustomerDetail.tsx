@@ -37,7 +37,7 @@ export function CustomerDetail() {
       <div className="lg:hidden">
         <CustomerView customer={customer.data} back={back} onStale={() => customer.refetch()} />
       </div>
-      <div className="hidden grid-cols-[minmax(18rem,25rem)_minmax(0,1fr)] items-start gap-6 lg:grid">
+      <div className="hidden grid-cols-[minmax(18rem,25rem)_minmax(0,1fr)] items-start gap-6 lg:grid xl:grid-cols-2">
         {/* Both children return fragments. Wrap each one so the grid has
             exactly two cells and their later siblings cannot spill into a
             second row below the other column. */}
