@@ -1,5 +1,7 @@
 # Project Status
 
+> **2026-11-07:** Seller dashboard redesign, step 8 of 10, not pushed: founder pick 8A supersedes the dashboard part of the 2026-10-15 colour decision; every seller now sees the Oak Order dashboard in navy, while a shop's chosen colour stays in the public shop and its Settings → Shop preview; the hint now says “Used in your shop.”; 02 §5 and CODEBASE were updated; checked in English and Khmer with the frontend lint and production build.
+
 > **2026-11-07:** Seller dashboard redesign, step 7 of 10, not pushed: founder pick 7A; Settings keeps its menu beside a setting up to 672 px wide on laptops, the cover preview no longer grows past that reading width, and Save is now the form card's own footer instead of a separate floating card; it says Unsaved changes with a navy dot or Saved, pins a measured copy only while the footer is out of sight, and moves away for a phone keyboard; long Settings menu labels wrap to two lines; checked in English and Khmer with the frontend lint and production build.
 
 > **2026-11-07:** Seller dashboard redesign, step 6 of 10, not pushed: founder pick 6A; New link is now one 640 px card on laptops and the same single card on phones, with What it opens, Where you'll post it and Name in the order the seller decides them; its footer says what is still missing or summarizes the picks, and Make link ends the card; checked in English and Khmer with the frontend lint and production build.
@@ -3336,10 +3338,10 @@ shop", §46's pricing line) and 02 §5 (`store.paid_until` nullable),
 §6.2 (`POST /seller/plan/open`, the `setup` stage).
 
 Shop colour and cover photo (2026-10-15, founder's picks 1A 2A 3A 4A
-5A, data OK): eight calm colours a seller can pick (navy by default);
-everything navy in the shop and in the seller's dashboard takes it
-(the dashboard was added at the founder's request after trying it); a 3:1
-cover photo across the top of the shop like a Facebook page, which also
+5A, data OK; dashboard colour superseded by pick 8A, 2026-11-07): eight
+calm colours a seller can pick (navy by default); everything navy in the
+public shop takes it, while every seller dashboard stays Oak Order navy;
+a 3:1 cover photo across the top of the shop like a Facebook page, which also
 becomes the shop's large link card. Both optional. 02 updated in the
 commits. Waiting for the founder to apply to 01 §23.1 (Store) and the
 03 §4 Phase 9 table (text given in the session).

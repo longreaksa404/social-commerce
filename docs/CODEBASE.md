@@ -1755,9 +1755,11 @@ through `<Phrases text>` (`i18n/Phrases.tsx`): it breaks only at spaces and
   that must stay navy use `text-oak`; the name "Oak Order" on a page (the
   shop's "Made with Oak Order", the log-in header) is all `text-oak-ink`,
   navy, light navy in dark mode (UI check #15).
-  The seller's dashboard sets it too (`dashboard/Layout.tsx`, founder
-  2026-10-15), so the dashboard is in the shop's colour as well; a
-  `navy` block lets the Navy swatch show navy inside another colour.
+  The seller dashboard always uses Oak Order navy; only the public shop
+  sets `data-shop-color` (founder's pick 8A, 2026-11-07, superseding the
+  dashboard part of the 2026-10-15 decision). Settings' preview and each
+  swatch still show the saved or picked shop colour; a `navy` block lets
+  the Navy swatch show navy inside another colour.
 - Animations are theme tokens (`animate-rise`, `animate-fade-in`,
   `animate-pop`, `animate-sheet-up`, `animate-shimmer`, `animate-wiggle`,
   `animate-drive`, `animate-arrive`, ...); a `prefers-reduced-motion` rule turns them off.

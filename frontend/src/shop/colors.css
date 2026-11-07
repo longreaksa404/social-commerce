@@ -1,5 +1,5 @@
-/* A shop's own colour (founder's picks 1A 2A, 2026-10-15): the shop's pages
-   and the seller's dashboard set data-shop-color on <html> (useShopColor),
+/* A shop's own colour (founder's picks 1A 2A, 2026-10-15): public shop pages
+   set data-shop-color on <html> (useShopColor),
    and Settings sets it on each swatch. Each colour replaces the navy scale and the solid fills
    (accent, brand) in light and dark mode, so everything navy in the shop
    takes it. Navy itself is index.css's default. Made from navy's own

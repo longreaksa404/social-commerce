@@ -7,7 +7,6 @@ import { useBump } from '../components/useBump.ts'
 import type { Messages } from '../i18n/core.ts'
 import { useT } from '../i18n/useT.ts'
 import { ActingBar } from './ActingBar.tsx'
-import { useShopColor } from '../shop/colors.ts'
 import { useStore, useUnreadNotifications } from './queries.ts'
 import { useSetup } from './settings/setup.ts'
 import { ShareShopButton } from './ShareShop.tsx'
@@ -45,8 +44,6 @@ export function DashboardLayout() {
 
 function Shell() {
   const { acting } = useAuth()
-  // The seller sees their shop's colour too (founder, 2026-10-15).
-  useShopColor(useStore().data?.color)
   // Product create/edit, an order and a settings page are focused task
   // screens on phones: no app bar or tab bar; the page brings its own back
   // button and a pinned bar with its buttons.

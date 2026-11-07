@@ -8,9 +8,9 @@ import type { ShopColor } from '../lib/types.ts'
 export const DEEP_COLORS: ShopColor[] = ['navy', 'teal', 'forest', 'olive', 'coffee', 'wine', 'plum', 'charcoal']
 export const LIGHT_COLORS: ShopColor[] = ['pink', 'sky', 'mint', 'peach', 'lilac', 'sand']
 
-/** While a shop's page or its seller's dashboard shows (founder,
- * 2026-10-15): its colour on <html>, so the sheets and toasts opened over
- * the page take it too. Gone again on leaving. */
+/** While a public shop page shows: its colour on <html>, so the sheets and
+ * toasts opened over the page take it too. Gone again on leaving. Seller
+ * screens stay Oak Order navy (founder's pick 8A, 2026-11-07). */
 export function useShopColor(color: ShopColor | undefined) {
   useEffect(() => {
     if (!color || color === 'navy') return

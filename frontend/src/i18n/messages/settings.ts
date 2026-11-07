@@ -59,8 +59,8 @@ export const settings = {
   },
   shopColor: { en: 'Shop color', km: 'ពណ៌ហាង' },
   colorHint: {
-    en: 'Used in your shop and this app.',
-    km: 'ប្រើក្នុងហាងរបស់អ្នក និងកម្មវិធីនេះ។',
+    en: 'Used in your shop.',
+    km: 'ប្រើក្នុងហាងរបស់អ្នក។',
   },
   // Every button that only shows the shop says this; "Open shop" means
   // starting to take orders (UX check #4, 2026-10-17).
