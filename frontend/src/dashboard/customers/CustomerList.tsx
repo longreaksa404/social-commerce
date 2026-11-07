@@ -182,7 +182,7 @@ function CustomerTable({ customers, currency, search }: { customers: CustomerSum
         </thead>
         <tbody className="divide-y divide-slate-100">
           {sorted.map((customer) => (
-            <tr key={customer.id} className="relative transition-colors hover:bg-slate-50">
+            <tr key={customer.id} className="seller-dense-row relative transition-colors hover:bg-slate-50">
               <td className="px-4 py-3">
                 <Link
                   to={`/dashboard/customers/${customer.id}${search ? `?q=${encodeURIComponent(search)}` : ''}`}

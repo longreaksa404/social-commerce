@@ -78,7 +78,7 @@ function Shell() {
         {!focused && !subPage && <MobileTopBar />}
         <div className="min-w-0 lg:flex-1">
           <main
-            className={`mx-auto w-full px-4 lg:px-8 lg:pt-8 lg:pb-8 ${width} ${
+            className={`seller-dashboard-page mx-auto w-full px-4 lg:px-6 lg:pt-6 lg:pb-6 ${width} ${
               focused ? 'pt-2 pb-28' : `${subPage ? 'pt-2' : 'pt-4'} pb-[calc(env(safe-area-inset-bottom)+5.5rem)]`
             }`}
           >

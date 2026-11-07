@@ -439,7 +439,7 @@ export function Section({
   children: ReactNode
 }) {
   return (
-    <Card className={`p-4 sm:p-6 ${className}`}>
+    <Card className={`seller-section p-4 sm:p-6 ${className}`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2.5 text-base font-semibold text-slate-900">
@@ -482,7 +482,7 @@ export function PageHeader({
 }) {
   const t = useT()
   return (
-    <div className="mb-4 flex items-center gap-2 sm:mb-6">
+    <div className="seller-page-header mb-4 flex items-center gap-2 sm:mb-6">
       {back && (
         <Link
           to={back}
@@ -494,11 +494,11 @@ export function PageHeader({
       )}
       {subtitle ? (
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
+          <h1 className="seller-page-title truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
           <p className="truncate text-sm text-slate-500 tabular-nums">{subtitle}</p>
         </div>
       ) : (
-        <h1 className="min-w-0 flex-1 truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
+        <h1 className="seller-page-title min-w-0 flex-1 truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
       )}
       {action}
     </div>

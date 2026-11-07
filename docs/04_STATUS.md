@@ -1,5 +1,7 @@
 # Project Status
 
+> **2026-11-07:** Seller dashboard redesign, step 10 of 10, the last, not pushed: founder pick 10A; seller pages are a little tighter only on laptops—page padding 32 → 24 px, page titles 24 → 22 px, shared form cards 24 → 20 px and customer rows 12 → 8 px above and below—so more useful rows fit on a 1366×768 screen; phones keep their existing spacing and 44 px tap targets; checked in Chromium at 1440×900, 390×844 and 360×640 against the live demo data without saving anything, plus the frontend lint and production build.
+
 > **2026-11-07:** Seller dashboard redesign, step 9 of 10, not pushed: founder pick 9A; Settings, a product form, a New order from a chat and New link now each keep their real Save or Make button at the end of the form and show one shared pinned copy only while that button is out of sight; the copy uses the form's width on laptops and slides away for a phone keyboard, so one button is on screen at a time and no field is covered; checked in English and Khmer with the frontend lint and production build.
 
 > **2026-11-07:** Seller dashboard redesign, step 8 of 10, not pushed: founder pick 8A supersedes the dashboard part of the 2026-10-15 colour decision; every seller now sees the Oak Order dashboard in navy, while a shop's chosen colour stays in the public shop and its Settings → Shop preview; the hint now says “Used in your shop.”; 02 §5 and CODEBASE were updated; checked in English and Khmer with the frontend lint and production build.

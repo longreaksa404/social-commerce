@@ -1717,7 +1717,10 @@ through `<Phrases text>` (`i18n/Phrases.tsx`): it breaks only at spaces and
   tablets and one centred `lg:max-w-5xl` (1,024 px) for every page on
   laptops (`Layout.tsx`; founder's pick 1B, 2026-11-07), so changing tabs
   keeps one steady frame and very wide screens do not stretch the
-  content; the shop is `max-w-5xl`.
+  content; the shop is `max-w-5xl`. Seller laptop pages use 24 px shell
+  padding, 22 px page titles, 20 px shared-section padding and 8 px
+  customer-table row padding; phones keep their spacing (founder's pick
+  10A, 2026-11-07; scoped by `.seller-dashboard-page` in `index.css`).
 - **Write classes for light mode only.** Dark mode (`:root[data-theme='dark']`
   in `index.css`) flips the slate, navy, emerald, red, amber and sky scales.
   Solid fills that must not flip use the tokens `bg-surface` (cards, bars,

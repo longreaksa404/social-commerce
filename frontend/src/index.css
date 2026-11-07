@@ -539,6 +539,24 @@
   animation: none;
 }
 
+/* Seller laptop density (founder's pick 10A, 2026-11-07). Phones keep
+   their existing spacing and 44px targets. */
+@media (min-width: 64rem) {
+  .seller-dashboard-page .seller-page-header {
+    margin-bottom: 1rem;
+  }
+  .seller-dashboard-page .seller-page-title {
+    font-size: 1.375rem;
+  }
+  .seller-dashboard-page .seller-section {
+    padding: 1.25rem;
+  }
+  .seller-dashboard-page .seller-dense-row > td {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
 /* Effects end where they would have ended; nothing loops or waits. */
 @media (prefers-reduced-motion: reduce) {
   *,
