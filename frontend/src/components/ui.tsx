@@ -215,7 +215,7 @@ export function PasswordInput(props: InputHTMLAttributes<HTMLInputElement>) {
           type="button"
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? t.common.hidePassword : t.common.showPassword}
-          className="flex size-10 items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-navy-600"
+          className="flex size-11 items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-navy-600 sm:size-10"
         >
           <Icon aria-hidden className="size-5" />
         </button>

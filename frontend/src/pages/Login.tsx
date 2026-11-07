@@ -71,7 +71,7 @@ export function Login() {
           }}
           className="-mx-2 flex w-[calc(100%+1rem)] min-h-14 items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-navy-600"
           aria-expanded={showPassword}
-          aria-controls={formId}
+          aria-controls={showPassword ? formId : undefined}
         >
           <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
             <KeyRound className="size-4" aria-hidden />

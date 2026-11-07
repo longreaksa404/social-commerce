@@ -27,7 +27,9 @@ function AuthHeader() {
     <header className="border-b border-slate-200 bg-slate-50 pt-[env(safe-area-inset-top)]">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-8">
         <BrandMark className="text-xl sm:text-2xl" />
-        <LanguageSwitch />
+        {/* The switch's 40 px buttons reach the group's full 44 px for a
+            finger, without looking different from the start page's. */}
+        <LanguageSwitch className="*:relative *:before:absolute *:before:inset-x-0 *:before:-inset-y-0.5" />
       </div>
     </header>
   )
@@ -62,7 +64,10 @@ export function AuthLayout({
               {subtitle && <p className="mt-1.5 text-sm text-slate-500">{subtitle}</p>}
               <div className="mt-6">{children}</div>
             </section>
-            <p className="mt-6 text-center text-sm text-slate-600">{footer}</p>
+            {/* Its link (Create your shop, Log in) is 44 px tall to tap. */}
+            <p className="mt-3 text-center text-sm text-slate-600 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center">
+              {footer}
+            </p>
           </div>
         </div>
       </main>
